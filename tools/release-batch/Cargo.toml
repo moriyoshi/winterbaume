@@ -1,0 +1,21 @@
+[package]
+name = "release-batch"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Chunked cargo-release driver for the crates.io publish_new rate limit"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+ureq = { version = "2", default-features = false, features = ["tls"] }
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "release-batch"
+path = "src/main.rs"

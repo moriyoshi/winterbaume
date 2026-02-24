@@ -1,0 +1,49 @@
+name: Auto-label service
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  label:
+    if: ${{ !contains(github.event.issue.labels.*.name, 'possible-abuse') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+            const m = body.match(/###\s+Affected AWS service\s*\n+\s*([a-z0-9]+)\s*\n/i);
+            if (!m) {
+              core.info('No service dropdown value found in issue body.');
+              return;
+            }
+            const slug = m[1].trim().toLowerCase();
+            if (slug === '_no_response_' || slug === 'none') {
+              core.info(`Dropdown value "${slug}" is not a service.`);
+              return;
+            }
+            const label = `service:${slug}`;
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+            });
+            if (labels.some(l => l.name === label)) {
+              core.info(`Issue already has ${label}.`);
+              return;
+            }
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                labels: [label],
+              });
+              core.info(`Applied ${label}.`);
+            } catch (err) {
+              core.warning(`Failed to apply ${label}: ${err.message}. Does the label exist?`);
+            }

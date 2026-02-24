@@ -1,0 +1,187 @@
+# winterbaume-cloudwatchlogs
+
+CloudWatch Logs service implementation for winterbaume.
+
+## Coverage
+
+| Metric | Value |
+|---|---|
+| Service | CloudWatch Logs |
+| AWS model | `cloudwatch-logs` |
+| Protocol | awsJson1.1 |
+| winterbaume coverage | 93/113 operations (82.3%) |
+| stubs (routed, returns empty/default) | 15/113 operations (13.3%) |
+| moto coverage | 51/113 operations (45.1%) |
+| floci coverage | 0/113 operations (0.0%) |
+| kumo coverage | 9/113 operations (8.0%) |
+| Coverage report date | 2026-05-06 |
+
+## Server-mode usage
+
+Start `winterbaume-server` and point the AWS CLI at it:
+
+```sh
+cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
+```
+
+```sh
+export AWS_ENDPOINT_URL=http://localhost:5555
+aws logs describe-log-groups
+```
+
+## Example
+
+```rust
+use aws_sdk_cloudwatchlogs::config::BehaviorVersion;
+use winterbaume_cloudwatchlogs::CloudWatchLogsService;
+use winterbaume_core::MockAws;
+
+#[tokio::main]
+async fn main() {
+    let mock = MockAws::builder()
+        .with_service(CloudWatchLogsService::new())
+        .build();
+
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_cloudwatchlogs::config::Region::new("us-east-1"))
+        .load()
+        .await;
+
+    let client = aws_sdk_cloudwatchlogs::Client::new(&config);
+
+    let resp = client
+        .describe_log_groups()
+        .send()
+        .await
+        .expect("describe_log_groups should succeed");
+    println!("CloudWatch log groups: {}", resp.log_groups().len());
+}
+```
+
+## Implemented APIs (93)
+
+- `AssociateKmsKey`
+- `CancelExportTask`
+- `CancelImportTask`
+- `CreateDelivery`
+- `CreateExportTask`
+- `CreateImportTask`
+- `CreateLogAnomalyDetector`
+- `CreateLogGroup`
+- `CreateLogStream`
+- `CreateScheduledQuery`
+- `DeleteAccountPolicy`
+- `DeleteDataProtectionPolicy`
+- `DeleteDelivery`
+- `DeleteDeliveryDestination`
+- `DeleteDeliveryDestinationPolicy`
+- `DeleteDeliverySource`
+- `DeleteDestination`
+- `DeleteIndexPolicy`
+- `DeleteIntegration`
+- `DeleteLogAnomalyDetector`
+- `DeleteLogGroup`
+- `DeleteLogStream`
+- `DeleteMetricFilter`
+- `DeleteQueryDefinition`
+- `DeleteResourcePolicy`
+- `DeleteRetentionPolicy`
+- `DeleteScheduledQuery`
+- `DeleteSubscriptionFilter`
+- `DeleteTransformer`
+- `DescribeAccountPolicies`
+- `DescribeConfigurationTemplates`
+- `DescribeDeliveries`
+- `DescribeDeliveryDestinations`
+- `DescribeDeliverySources`
+- `DescribeDestinations`
+- `DescribeExportTasks`
+- `DescribeImportTasks`
+- `DescribeIndexPolicies`
+- `DescribeLogGroups`
+- `DescribeLogStreams`
+- `DescribeMetricFilters`
+- `DescribeQueries`
+- `DescribeQueryDefinitions`
+- `DescribeResourcePolicies`
+- `DescribeSubscriptionFilters`
+- `DisassociateKmsKey`
+- `FilterLogEvents`
+- `GetDataProtectionPolicy`
+- `GetDelivery`
+- `GetDeliveryDestination`
+- `GetDeliveryDestinationPolicy`
+- `GetDeliverySource`
+- `GetIntegration`
+- `GetLogAnomalyDetector`
+- `GetLogEvents`
+- `GetQueryResults`
+- `GetScheduledQuery`
+- `GetTransformer`
+- `ListAnomalies`
+- `ListIntegrations`
+- `ListLogAnomalyDetectors`
+- `ListLogGroups`
+- `ListScheduledQueries`
+- `ListTagsForResource`
+- `ListTagsLogGroup`
+- `PutAccountPolicy`
+- `PutDataProtectionPolicy`
+- `PutDeliveryDestination`
+- `PutDeliveryDestinationPolicy`
+- `PutDeliverySource`
+- `PutDestination`
+- `PutDestinationPolicy`
+- `PutIndexPolicy`
+- `PutIntegration`
+- `PutLogEvents`
+- `PutLogGroupDeletionProtection`
+- `PutMetricFilter`
+- `PutQueryDefinition`
+- `PutResourcePolicy`
+- `PutRetentionPolicy`
+- `PutSubscriptionFilter`
+- `PutTransformer`
+- `StartQuery`
+- `StopQuery`
+- `TagLogGroup`
+- `TagResource`
+- `TestTransformer`
+- `UntagLogGroup`
+- `UntagResource`
+- `UpdateAnomaly`
+- `UpdateDeliveryConfiguration`
+- `UpdateLogAnomalyDetector`
+- `UpdateScheduledQuery`
+
+<details><summary>Stubbed APIs (15) &mdash; routed but return an empty/default response</summary>
+
+- `AssociateSourceToS3TableIntegration`
+- `DescribeFieldIndexes`
+- `DescribeImportTaskBatches`
+- `DisassociateSourceFromS3TableIntegration`
+- `GetLogFields`
+- `GetLogGroupFields`
+- `GetLogObject`
+- `GetLogRecord`
+- `GetScheduledQueryHistory`
+- `ListAggregateLogGroupSummaries`
+- `ListLogGroupsForQuery`
+- `ListSourcesForS3TableIntegration`
+- `PutBearerTokenAuthentication`
+- `StartLiveTail`
+- `TestMetricFilter`
+
+</details>
+
+<details><summary>Not yet implemented APIs (5)</summary>
+
+- `CreateLookupTable`
+- `DeleteLookupTable`
+- `DescribeLookupTables`
+- `GetLookupTable`
+- `UpdateLookupTable`
+
+</details>

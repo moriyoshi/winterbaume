@@ -1,0 +1,41 @@
+name: Close stale feedback issues
+
+on:
+  schedule:
+    # Daily at 03:17 UTC. Off-the-hour to avoid GitHub's scheduler congestion.
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+env:
+  # Days the reporter has to respond after `feedback` is applied before the issue
+  # is marked stale.
+  DAYS_BEFORE_STALE: '14'
+  # Days after the stale warning before the issue is closed.
+  DAYS_BEFORE_CLOSE: '7'
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639  # v9
+        with:
+          only-issue-labels: feedback
+          exempt-issue-labels: possible-abuse
+          stale-issue-label: stale
+          days-before-issue-stale: ${{ env.DAYS_BEFORE_STALE }}
+          days-before-issue-close: ${{ env.DAYS_BEFORE_CLOSE }}
+          # Pull requests are out of scope for this workflow.
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          remove-issue-stale-when-updated: true
+          close-issue-reason: not_planned
+          stale-issue-message: |
+            This issue has been waiting for the reporter's feedback for ${{ env.DAYS_BEFORE_STALE }} days and is now marked stale.
+
+            If the requested information is still relevant, please reply or edit the issue within ${{ env.DAYS_BEFORE_CLOSE }} days. Otherwise it will be closed automatically.
+          close-issue-message: |
+            Closing because no further feedback was received within ${{ env.DAYS_BEFORE_CLOSE }} days of the stale notice. Reopen with the requested details and we'll take another look.
+          operations-per-run: 100

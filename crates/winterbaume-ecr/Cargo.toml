@@ -1,0 +1,33 @@
+[package]
+name = "winterbaume-ecr"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "ECR service implementation for winterbaume"
+
+[dependencies]
+winterbaume-core = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+bytes = { workspace = true }
+http = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+base64 = { workspace = true }
+sha2 = { workspace = true }
+
+[dev-dependencies]
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true, features = ["test-util"] }
+aws-sdk-ecr = { workspace = true }
+aws-smithy-runtime-api = { workspace = true }
+aws-smithy-types = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

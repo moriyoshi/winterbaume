@@ -1,0 +1,26 @@
+[package]
+name = "winterbaume-ec2-generated"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Auto-generated Smithy types and wire serialisers for the EC2 service"
+readme = "README.md"
+
+[dependencies]
+winterbaume-core = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+quick-xml = { workspace = true }
+
+[features]
+default = ["full"]
+full = ["advanced-network", "compute", "extras", "network", "storage"]
+advanced-network = []
+compute = []
+extras = []
+network = []
+storage = []
+
+[lints]
+workspace = true

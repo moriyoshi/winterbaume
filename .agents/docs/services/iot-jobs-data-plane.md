@@ -1,0 +1,104 @@
+# AWS IoT Jobs Data Plane
+
+Source: AWS Smithy API model vendored in `vendor/api-models-aws`.
+
+## Service Overview
+
+IoT Jobs is a service that allows you to define a set of jobs — remote operations that are sent to and executed on one or more devices connected to Amazon Web Services IoT Core. For example, you can define a job that instructs a set of devices to download and install application or firmware updates, reboot, rotate certificates, or perform remote troubleshooting operations. Find the endpoint address for actions in the IoT jobs data plane by running this CLI command: `aws iot describe-endpoint --endpoint-type iot:Jobs` The service name used by Amazon Web Services Signature Version 4 to sign requests is: iot-jobs-data . To create a job, you make a job document which is a description of the remote operations to be performed, and you specify a list of targets that should perform the operations. The targets can be individual things, thing groups or both.
+
+## Possible Usage Scenarios
+- Scenario insight from EC2: add full state-machine walks for AWS IoT Jobs Data Plane resources that start, stop, cancel, complete, disable, or otherwise transition through observable lifecycle states.
+- From the AWS documentation and model: represent documented AWS IoT Jobs Data Plane workflows in the local mock. Include service-managed state, documented errors, pagination, and asynchronous job state where the model exposes them.
+- From the operation surface: model setup and mutation workflows that create or update service resources across the `Start`, `Describe`, `Get`, `Update` operation families, including `StartCommandExecution`, `StartNextPendingJobExecution`, `DescribeJobExecution`, `GetPendingJobExecutions`, `UpdateJobExecution`.
+
+## Service Identity and Protocol
+
+- AWS model slug: `iot-jobs-data-plane`
+- AWS SDK for Rust slug: `iotjobsdataplane`
+- Model version: `2017-09-29`
+- Model file: `vendor/api-models-aws/models/iot-jobs-data-plane/service/2017-09-29/iot-jobs-data-plane-2017-09-29.json`
+- SDK ID: `IoT Jobs Data Plane`
+- Endpoint prefix: `data.jobs.iot`
+- ARN namespace: `iot-jobs-data`
+- CloudFormation name: `IoTJobsDataPlane`
+- CloudTrail event source: `iotjobsdataplane.amazonaws.com`
+- Protocols: `restJson1`
+- Auth schemes: `sigv4`
+- Endpoint rule parameters: `Endpoint`, `Region`, `UseDualStack`, `UseFIPS`
+
+## Behavioural Model Notes
+
+- Operation surface is concentrated in these families: `Start` (2), `Describe` (1), `Get` (1), `Update` (1).
+- State-changing operations should define resource existence, duplicate, conflict, and deletion semantics: `StartCommandExecution`, `StartNextPendingJobExecution`, `UpdateJobExecution`.
+- Read/list operations should define not-found behaviour, filtering, ordering, and empty-result shapes: `DescribeJobExecution`, `GetPendingJobExecutions`.
+- Idempotency is explicit for 1 operations; repeated calls with the same token should preserve AWS-compatible outcomes.
+- Asynchronous or job-like operations need lifecycle states, polling semantics, and terminal failure modelling: `DescribeJobExecution`, `GetPendingJobExecutions`, `StartCommandExecution`, `StartNextPendingJobExecution`, `UpdateJobExecution`.
+- 5 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
+
+## Operation Groups
+
+### Start
+
+- Operations: `StartCommandExecution`, `StartNextPendingJobExecution`
+- Traits: `idempotency-token` (1)
+- Common required input members in this group: `commandArn`, `targetArn`, `thingName`
+
+### Describe
+
+- Operations: `DescribeJobExecution`
+- Common required input members in this group: `jobId`, `thingName`
+
+### Get
+
+- Operations: `GetPendingJobExecutions`
+- Common required input members in this group: `thingName`
+
+### Update
+
+- Operations: `UpdateJobExecution`
+- Common required input members in this group: `jobId`, `status`, `thingName`
+
+## Operation Detail Matrix
+
+| Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
+|---|---|---|---|---|---|---|---|
+| `DescribeJobExecution` | `GET /things/{thingName}/jobs/{jobId}` | - | `jobId`, `thingName` | - | `DescribeJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `TerminalStateException`, `ThrottlingException` | Gets details of a job execution. Requires permission to access the DescribeJobExecution action. |
+| `GetPendingJobExecutions` | `GET /things/{thingName}/jobs` | - | `thingName` | - | `GetPendingJobExecutionsResponse` | `CertificateValidationException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Gets the list of all jobs for a thing that are not in a terminal status. Requires permission to access the GetPendingJobExecutions action. |
+| `StartCommandExecution` | `POST /command-executions` | `idempotency-token` | `commandArn`, `targetArn` | `clientToken` | `StartCommandExecutionResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Using the command created with the `CreateCommand` API, start a command execution on a specific device. |
+| `StartNextPendingJobExecution` | `PUT /things/{thingName}/jobs/$next` | - | `thingName` | - | `StartNextPendingJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Gets and starts the next pending (status IN_PROGRESS or QUEUED) job execution for a thing. Requires permission to access the StartNextPendingJobExecution action. |
+| `UpdateJobExecution` | `POST /things/{thingName}/jobs/{jobId}` | - | `jobId`, `status`, `thingName` | - | `UpdateJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `InvalidStateTransitionException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Updates the status of a job execution. Requires permission to access the UpdateJobExecution action. |
+
+## Important Shapes
+
+| Shape | Type | Members | Documentation cue |
+|---|---|---|---|
+| `ResourceNotFoundException` | `structure` | `message` | The specified resource does not exist. |
+| `ThrottlingException` | `structure` | `message`, `payload` | The rate exceeds the limit. |
+| `CertificateValidationException` | `structure` | `message` | The certificate is invalid. |
+| `InvalidRequestException` | `structure` | `message` | The contents of the request were invalid. |
+| `ServiceUnavailableException` | `structure` | `message` | The service is temporarily unavailable. |
+| `DescribeJobExecutionRequest` | `structure` | `executionNumber`, `includeJobDocument`, `jobId`, `thingName` | - |
+| `DescribeJobExecutionResponse` | `structure` | `execution` | - |
+| `TerminalStateException` | `structure` | `message` | The job is in a terminal state. |
+| `GetPendingJobExecutionsRequest` | `structure` | `thingName` | - |
+| `GetPendingJobExecutionsResponse` | `structure` | `inProgressJobs`, `queuedJobs` | - |
+| `StartCommandExecutionRequest` | `structure` | `clientToken`, `commandArn`, `executionTimeoutSeconds`, `parameters`, `targetArn` | - |
+| `StartCommandExecutionResponse` | `structure` | `executionId` | - |
+| `ConflictException` | `structure` | `message`, `resourceId` | A conflict has occurred when performing the API request. |
+| `InternalServerException` | `structure` | `message` | An internal server error occurred when performing the API request. |
+| `ServiceQuotaExceededException` | `structure` | `message` | The service quota has been exceeded for this request. |
+| `ValidationException` | `structure` | `message` | A validation error occurred when performing the API request. |
+| `StartNextPendingJobExecutionRequest` | `structure` | `statusDetails`, `stepTimeoutInMinutes`, `thingName` | - |
+| `StartNextPendingJobExecutionResponse` | `structure` | `execution` | - |
+| `UpdateJobExecutionRequest` | `structure` | `executionNumber`, `expectedVersion`, `includeJobDocument`, `includeJobExecutionState`, `jobId`, `status`, `statusDetails`, `stepTimeoutInMinutes`, `thingName` | - |
+| `UpdateJobExecutionResponse` | `structure` | `executionState`, `jobDocument` | - |
+| `InvalidStateTransitionException` | `structure` | `message` | An update attempted to change the job execution to a state that is invalid because of the job execution's current state (for example, an attempt to change a request in state... |
+
+## Research Checklist for Parity Work
+
+- Confirm lifecycle transitions for every create/update/delete/start/stop operation.
+- Confirm exact not-found, already-exists, conflict, validation, throttling, and access-denied error names.
+- Confirm pagination token format, result ordering, default limits, and empty collection shape.
+- Confirm idempotency-token behaviour, especially mismatched replay parameters.
+- Confirm cross-service identifiers such as ARNs, IAM roles, KMS keys, S3 buckets, VPC resources, and logging destinations.
+- Confirm whether read APIs are derived from customer-managed state, AWS-managed catalogues, telemetry, recommendations, or asynchronous jobs.

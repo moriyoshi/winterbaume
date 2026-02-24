@@ -1,0 +1,96 @@
+# AWS Price List Service
+
+Source: AWS Smithy API model vendored in `vendor/api-models-aws`.
+
+## Service Overview
+
+The Amazon Web Services Price List API is a centralized and convenient way to programmatically query Amazon Web Services for services, products, and pricing information. The Amazon Web Services Price List uses standardized product attributes such as `Location`, `Storage Class`, and `Operating System`, and provides prices at the SKU level. You can use the Amazon Web Services Price List to do the following: Build cost control and scenario planning tools Reconcile billing data Forecast future spend for budgeting purposes Provide cost benefit analysis that compare your internal workloads with Amazon Web Services Use `GetServices` without a service code to retrieve the service codes for all Amazon Web Services services, then `GetServices` with a service code to retrieve the attribute names for that service. After you have the service code and attribute names, you can use `GetAttributeValues` to see what values are available for an attribute. With the service code and an attribute name and value, you can use `GetProducts` to find specific products that you're interested in, such as an `AmazonEC2` instance, with a `Provisioned IOPS` `volumeType`.
+
+## Possible Usage Scenarios
+- From the AWS documentation and model: represent documented AWS Price List Service workflows in the local mock. Include service-managed state, documented errors, pagination, and asynchronous job state where the model exposes them.
+- From the operation surface: model discovery and reporting workflows that retrieve, list, filter, or query service-managed state across the `Get`, `Describe`, `List` operation families, including `GetAttributeValues`, `GetPriceListFileUrl`, `GetProducts`, `DescribeServices`, `ListPriceLists`.
+
+## Service Identity and Protocol
+
+- AWS model slug: `pricing`
+- AWS SDK for Rust slug: `pricing`
+- Model version: `2017-10-15`
+- Model file: `vendor/api-models-aws/models/pricing/service/2017-10-15/pricing-2017-10-15.json`
+- SDK ID: `Pricing`
+- Endpoint prefix: `api.pricing`
+- ARN namespace: `pricing`
+- CloudFormation name: `Pricing`
+- CloudTrail event source: `pricelist.amazonaws.com`
+- Protocols: `awsJson1_1`
+- Auth schemes: `sigv4`
+- Endpoint rule parameters: `Endpoint`, `Region`, `UseDualStack`, `UseFIPS`
+
+## Behavioural Model Notes
+
+- Operation surface is concentrated in these families: `Get` (3), `Describe` (1), `List` (1).
+- Read/list operations should define not-found behaviour, filtering, ordering, and empty-result shapes: `DescribeServices`, `GetAttributeValues`, `GetPriceListFileUrl`, `GetProducts`, `ListPriceLists`.
+- Pagination is modelled for 4 operations; token stability and page boundaries are observable API behaviour.
+- 5 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
+- Documentation and model terms indicate cross-service dependencies or identifiers: `EC2/VPC`.
+- Some responses appear to be derived from telemetry, managed inventories, recommendations, or findings; seedable mock state may be required because real AWS derives these from external systems.
+
+## Operation Groups
+
+### Get
+
+- Operations: `GetAttributeValues`, `GetPriceListFileUrl`, `GetProducts`
+- Traits: `paginated` (2)
+- Common required input members in this group: `AttributeName`, `FileFormat`, `PriceListArn`, `ServiceCode`
+
+### Describe
+
+- Operations: `DescribeServices`
+- Traits: `paginated` (1)
+
+### List
+
+- Operations: `ListPriceLists`
+- Traits: `paginated` (1)
+- Common required input members in this group: `CurrencyCode`, `EffectiveDate`, `ServiceCode`
+
+## Operation Detail Matrix
+
+| Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
+|---|---|---|---|---|---|---|---|
+| `DescribeServices` | - | `paginated` | - | - | `DescribeServicesResponse` | `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Returns the metadata for one service or a list of the metadata for all services. Use this without a service code to get the service codes for all services. |
+| `GetAttributeValues` | - | `paginated` | `AttributeName`, `ServiceCode` | - | `GetAttributeValuesResponse` | `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Returns a list of attribute values. Attributes are similar to the details in a Price List API offer file. |
+| `GetPriceListFileUrl` | - | - | `FileFormat`, `PriceListArn` | - | `GetPriceListFileUrlResponse` | `AccessDeniedException`, `InternalErrorException`, `InvalidParameterException`, `NotFoundException`, `ResourceNotFoundException`, `ThrottlingException` | This feature is in preview release and is subject to change. Your use of Amazon Web Services Price List API is subject to the Beta Service Participation terms of the Amazon Web Services Service Terms (Section 1.10). |
+| `GetProducts` | - | `paginated` | `ServiceCode` | - | `GetProductsResponse` | `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Returns a list of all products that match the filter criteria. |
+| `ListPriceLists` | - | `paginated` | `CurrencyCode`, `EffectiveDate`, `ServiceCode` | - | `ListPriceListsResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ResourceNotFoundException`, `ThrottlingException` | This feature is in preview release and is subject to change. Your use of Amazon Web Services Price List API is subject to the Beta Service Participation terms of the Amazon Web Services Service Terms (Section 1.10). |
+
+## Important Shapes
+
+| Shape | Type | Members | Documentation cue |
+|---|---|---|---|
+| `InternalErrorException` | `structure` | `Message` | An error on the server occurred during the processing of your request. |
+| `InvalidParameterException` | `structure` | `Message` | One or more parameters had an invalid value. |
+| `NotFoundException` | `structure` | `Message` | The requested resource can't be found. |
+| `ThrottlingException` | `structure` | `Message` | You've made too many requests exceeding service quotas. |
+| `ExpiredNextTokenException` | `structure` | `Message` | The pagination token expired. |
+| `InvalidNextTokenException` | `structure` | `Message` | The pagination token is invalid. |
+| `AccessDeniedException` | `structure` | `Message` | General authentication failure. |
+| `ResourceNotFoundException` | `structure` | `Message` | The requested resource can't be found. |
+| `DescribeServicesRequest` | `structure` | `FormatVersion`, `MaxResults`, `NextToken`, `ServiceCode` | - |
+| `DescribeServicesResponse` | `structure` | `FormatVersion`, `NextToken`, `Services` | - |
+| `GetAttributeValuesRequest` | `structure` | `AttributeName`, `MaxResults`, `NextToken`, `ServiceCode` | - |
+| `GetAttributeValuesResponse` | `structure` | `AttributeValues`, `NextToken` | - |
+| `GetPriceListFileUrlRequest` | `structure` | `FileFormat`, `PriceListArn` | - |
+| `GetPriceListFileUrlResponse` | `structure` | `Url` | - |
+| `GetProductsRequest` | `structure` | `Filters`, `FormatVersion`, `MaxResults`, `NextToken`, `ServiceCode` | - |
+| `GetProductsResponse` | `structure` | `FormatVersion`, `NextToken`, `PriceList` | - |
+| `ListPriceListsRequest` | `structure` | `CurrencyCode`, `EffectiveDate`, `MaxResults`, `NextToken`, `RegionCode`, `ServiceCode` | - |
+| `ListPriceListsResponse` | `structure` | `NextToken`, `PriceLists` | - |
+
+## Research Checklist for Parity Work
+
+- Confirm lifecycle transitions for every create/update/delete/start/stop operation.
+- Confirm exact not-found, already-exists, conflict, validation, throttling, and access-denied error names.
+- Confirm pagination token format, result ordering, default limits, and empty collection shape.
+- Confirm idempotency-token behaviour, especially mismatched replay parameters.
+- Confirm cross-service identifiers such as ARNs, IAM roles, KMS keys, S3 buckets, VPC resources, and logging destinations.
+- Confirm whether read APIs are derived from customer-managed state, AWS-managed catalogues, telemetry, recommendations, or asynchronous jobs.

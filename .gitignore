@@ -1,0 +1,10 @@
+target/
+.gradle/
+.agents-workspace/
+.pytest_cache/
+.DS_Store
+Thumbs.db
+*.orig
+*.rej
+*.swo
+*.swp

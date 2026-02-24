@@ -1,0 +1,431 @@
+# AWS Identity and Access Management
+
+Source: AWS Smithy API model vendored in `vendor/api-models-aws`.
+
+## Service Overview
+
+Identity and Access Management Identity and Access Management (IAM) is a web service for securely controlling access to Amazon Web Services services. With IAM, you can centrally manage users, security credentials such as access keys, and permissions that control which Amazon Web Services resources users and applications can access. For more information about IAM, see Identity and Access Management (IAM) and the Identity and Access Management User Guide.
+
+## Possible Usage Scenarios
+- Scenario insight from EC2: include mutable binding failover for AWS Identity and Access Management where a stable endpoint, target, subscription, route, or association moves between backing resources and read APIs must show only the new binding.
+- Scenario insight from EC2: exercise account or service defaults for AWS Identity and Access Management by toggling configuration, creating later resources without explicit overrides, and confirming the default propagates into those resources.
+- Scenario insight from EC2: cover association replacement for AWS Identity and Access Management by verifying the old parent no longer lists the child, the new parent does, and returned association identifiers match subsequent reads.
+- From the AWS documentation and model: represent documented AWS Identity and Access Management workflows in the local mock. Include service-managed state, documented errors, pagination, and asynchronous job state where the model exposes them.
+- From the operation surface: model lifecycle workflows that provision, inspect, update, and clean up service resources across the `List`, `Get`, `Delete`, `Create`, `Update` operation families, including `ListAccessKeys`, `ListAccountAliases`, `ListAttachedGroupPolicies`, `ListAttachedRolePolicies`, `GetAccessKeyLastUsed`, `GetAccountAuthorizationDetails`.
+
+## Service Identity and Protocol
+
+- AWS model slug: `iam`
+- AWS SDK for Rust slug: `iam`
+- Model version: `2010-05-08`
+- Model file: `vendor/api-models-aws/models/iam/service/2010-05-08/iam-2010-05-08.json`
+- SDK ID: `IAM`
+- Endpoint prefix: `iam`
+- ARN namespace: `iam`
+- CloudFormation name: `IAM`
+- CloudTrail event source: `iam.amazonaws.com`
+- Protocols: `awsQuery`
+- Auth schemes: `sigv4`
+- Endpoint rule parameters: `Endpoint`, `Region`, `UseDualStack`, `UseFIPS`
+
+## Behavioural Model Notes
+
+- Operation surface is concentrated in these families: `List` (36), `Get` (29), `Delete` (23), `Create` (15), `Update` (15), `Tag` (8), `Untag` (8), `Put` (5).
+- State-changing operations should define resource existence, duplicate, conflict, and deletion semantics: `AcceptDelegationRequest`, `AddClientIDToOpenIDConnectProvider`, `AddRoleToInstanceProfile`, `AddUserToGroup`, `AssociateDelegationRequest`, `AttachGroupPolicy`, `AttachRolePolicy`, `AttachUserPolicy`, `CreateAccessKey`, `CreateAccountAlias`, `CreateDelegationRequest`, `CreateGroup`, `CreateInstanceProfile`, `CreateLoginProfile`, `CreateOpenIDConnectProvider`, `CreatePolicy`, `CreatePolicyVersion`, `CreateRole`, `CreateSAMLProvider`, `CreateServiceLinkedRole`, ... (+78).
+- Read/list operations should define not-found behaviour, filtering, ordering, and empty-result shapes: `GetAccessKeyLastUsed`, `GetAccountAuthorizationDetails`, `GetAccountPasswordPolicy`, `GetAccountSummary`, `GetContextKeysForCustomPolicy`, `GetContextKeysForPrincipalPolicy`, `GetCredentialReport`, `GetDelegationRequest`, `GetGroup`, `GetGroupPolicy`, `GetHumanReadableSummary`, `GetInstanceProfile`, `GetLoginProfile`, `GetMFADevice`, `GetOpenIDConnectProvider`, `GetOrganizationsAccessReport`, `GetOutboundWebIdentityFederationInfo`, `GetPolicy`, `GetPolicyVersion`, `GetRole`, ... (+45).
+- Pagination is modelled for 34 operations; token stability and page boundaries are observable API behaviour.
+- Asynchronous or job-like operations need lifecycle states, polling semantics, and terminal failure modelling: `GenerateCredentialReport`, `GenerateOrganizationsAccessReport`, `GetCredentialReport`, `GetOrganizationsAccessReport`.
+- Tagging is part of the service contract; preserve tag key uniqueness, merge/replace semantics, and list-tags ARN validation.
+- 174 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
+- Documentation and model terms indicate cross-service dependencies or identifiers: `IAM`, `S3`, `SNS`, `EC2/VPC`, `ECR`, `ECS`, `STS`.
+- Some responses appear to be derived from telemetry, managed inventories, recommendations, or findings; seedable mock state may be required because real AWS derives these from external systems.
+
+## Official AWS Documentation Research
+
+Sources:
+- https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html
+- https://docs.aws.amazon.com/IAM/latest/UserGuide/temporary-delegation-policy-evaluation-guidelines.html
+- https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html
+
+Research outcomes:
+- Effective permissions are affected by identity policies, resource policies, permissions boundaries, Organizations SCPs, and session policies.
+- Any explicit deny from any applicable policy type overrides an allow.
+- Identity-based policy permissions are limited by permissions boundaries; effective permissions are the intersection of both policy types.
+- SCPs apply at the account level and can limit every principal in an account. When SCPs, permissions boundaries, and identity policies all apply, the request must be allowed by all of them.
+- Session policies passed during temporary session creation further limit the session; effective permissions are the intersection of the role/user policies, session policy, and permissions boundary.
+- Same-account resource-based policies can grant permissions directly to some sessions or users in ways that are not always limited by implicit denies in identity policies or boundaries; explicit denies still apply.
+
+Parity implications:
+- IAM parity cannot be represented by attached-policy lookup alone. Evaluation needs explicit deny precedence and intersection semantics across policy classes.
+- Role sessions, federated sessions, and resource-policy principals need distinct principal identities.
+- Delegation APIs that require Organizations/SCP context should be modelled as cross-account or organisation-dependent behaviours, not simple local mutations.
+
+## Operation Groups
+
+### List
+
+- Operations: `ListAccessKeys`, `ListAccountAliases`, `ListAttachedGroupPolicies`, `ListAttachedRolePolicies`, `ListAttachedUserPolicies`, `ListDelegationRequests`, `ListEntitiesForPolicy`, `ListGroupPolicies`, `ListGroups`, `ListGroupsForUser`, `ListInstanceProfileTags`, `ListInstanceProfiles`, `ListInstanceProfilesForRole`, `ListMFADeviceTags`, `ListMFADevices`, `ListOpenIDConnectProviderTags`, `ListOpenIDConnectProviders`, `ListOrganizationsFeatures`, `ListPolicies`, `ListPoliciesGrantingServiceAccess`, `ListPolicyTags`, `ListPolicyVersions`, `ListRolePolicies`, `ListRoleTags`, `ListRoles`, `ListSAMLProviderTags`, `ListSAMLProviders`, `ListSSHPublicKeys`, `ListServerCertificateTags`, `ListServerCertificates`, `ListServiceSpecificCredentials`, `ListSigningCertificates`, `ListUserPolicies`, `ListUserTags`, `ListUsers`, `ListVirtualMFADevices`
+- Traits: `paginated` (30)
+- Common required input members in this group: `Arn`, `GroupName`, `InstanceProfileName`, `OpenIDConnectProviderArn`, `PolicyArn`, `RoleName`, `SAMLProviderArn`, `SerialNumber`, `ServerCertificateName`, `ServiceNamespaces`, `UserName`
+
+### Get
+
+- Operations: `GetAccessKeyLastUsed`, `GetAccountAuthorizationDetails`, `GetAccountPasswordPolicy`, `GetAccountSummary`, `GetContextKeysForCustomPolicy`, `GetContextKeysForPrincipalPolicy`, `GetCredentialReport`, `GetDelegationRequest`, `GetGroup`, `GetGroupPolicy`, `GetHumanReadableSummary`, `GetInstanceProfile`, `GetLoginProfile`, `GetMFADevice`, `GetOpenIDConnectProvider`, `GetOrganizationsAccessReport`, `GetOutboundWebIdentityFederationInfo`, `GetPolicy`, `GetPolicyVersion`, `GetRole`, `GetRolePolicy`, `GetSAMLProvider`, `GetSSHPublicKey`, `GetServerCertificate`, `GetServiceLastAccessedDetails`, `GetServiceLastAccessedDetailsWithEntities`, `GetServiceLinkedRoleDeletionStatus`, `GetUser`, `GetUserPolicy`
+- Traits: `paginated` (2)
+- Common required input members in this group: `AccessKeyId`, `DelegationRequestId`, `DeletionTaskId`, `Encoding`, `EntityArn`, `GroupName`, `InstanceProfileName`, `JobId`, `OpenIDConnectProviderArn`, `PolicyArn`, `PolicyInputList`, `PolicyName`, `PolicySourceArn`, `RoleName`, `SAMLProviderArn`, `SSHPublicKeyId`, `SerialNumber`, `ServerCertificateName`, `ServiceNamespace`, `UserName`, `VersionId`
+
+### Delete
+
+- Operations: `DeleteAccessKey`, `DeleteAccountAlias`, `DeleteAccountPasswordPolicy`, `DeleteGroup`, `DeleteGroupPolicy`, `DeleteInstanceProfile`, `DeleteLoginProfile`, `DeleteOpenIDConnectProvider`, `DeletePolicy`, `DeletePolicyVersion`, `DeleteRole`, `DeleteRolePermissionsBoundary`, `DeleteRolePolicy`, `DeleteSAMLProvider`, `DeleteSSHPublicKey`, `DeleteServerCertificate`, `DeleteServiceLinkedRole`, `DeleteServiceSpecificCredential`, `DeleteSigningCertificate`, `DeleteUser`, `DeleteUserPermissionsBoundary`, `DeleteUserPolicy`, `DeleteVirtualMFADevice`
+- Common required input members in this group: `AccessKeyId`, `AccountAlias`, `CertificateId`, `GroupName`, `InstanceProfileName`, `OpenIDConnectProviderArn`, `PolicyArn`, `PolicyName`, `RoleName`, `SAMLProviderArn`, `SSHPublicKeyId`, `SerialNumber`, `ServerCertificateName`, `ServiceSpecificCredentialId`, `UserName`, `VersionId`
+
+### Create
+
+- Operations: `CreateAccessKey`, `CreateAccountAlias`, `CreateDelegationRequest`, `CreateGroup`, `CreateInstanceProfile`, `CreateLoginProfile`, `CreateOpenIDConnectProvider`, `CreatePolicy`, `CreatePolicyVersion`, `CreateRole`, `CreateSAMLProvider`, `CreateServiceLinkedRole`, `CreateServiceSpecificCredential`, `CreateUser`, `CreateVirtualMFADevice`
+- Common required input members in this group: `AWSServiceName`, `AccountAlias`, `AssumeRolePolicyDocument`, `Description`, `GroupName`, `InstanceProfileName`, `Name`, `NotificationChannel`, `Permissions`, `PolicyArn`, `PolicyDocument`, `PolicyName`, `RequestorWorkflowId`, `RoleName`, `SAMLMetadataDocument`, `ServiceName`, `SessionDuration`, `Url`, `UserName`, `VirtualMFADeviceName`
+
+### Update
+
+- Operations: `UpdateAccessKey`, `UpdateAccountPasswordPolicy`, `UpdateAssumeRolePolicy`, `UpdateDelegationRequest`, `UpdateGroup`, `UpdateLoginProfile`, `UpdateOpenIDConnectProviderThumbprint`, `UpdateRole`, `UpdateRoleDescription`, `UpdateSAMLProvider`, `UpdateSSHPublicKey`, `UpdateServerCertificate`, `UpdateServiceSpecificCredential`, `UpdateSigningCertificate`, `UpdateUser`
+- Common required input members in this group: `AccessKeyId`, `CertificateId`, `DelegationRequestId`, `Description`, `GroupName`, `OpenIDConnectProviderArn`, `PolicyDocument`, `RoleName`, `SAMLProviderArn`, `SSHPublicKeyId`, `ServerCertificateName`, `ServiceSpecificCredentialId`, `Status`, `ThumbprintList`, `UserName`
+
+### Tag
+
+- Operations: `TagInstanceProfile`, `TagMFADevice`, `TagOpenIDConnectProvider`, `TagPolicy`, `TagRole`, `TagSAMLProvider`, `TagServerCertificate`, `TagUser`
+- Common required input members in this group: `InstanceProfileName`, `OpenIDConnectProviderArn`, `PolicyArn`, `RoleName`, `SAMLProviderArn`, `SerialNumber`, `ServerCertificateName`, `Tags`, `UserName`
+
+### Untag
+
+- Operations: `UntagInstanceProfile`, `UntagMFADevice`, `UntagOpenIDConnectProvider`, `UntagPolicy`, `UntagRole`, `UntagSAMLProvider`, `UntagServerCertificate`, `UntagUser`
+- Common required input members in this group: `InstanceProfileName`, `OpenIDConnectProviderArn`, `PolicyArn`, `RoleName`, `SAMLProviderArn`, `SerialNumber`, `ServerCertificateName`, `TagKeys`, `UserName`
+
+### Put
+
+- Operations: `PutGroupPolicy`, `PutRolePermissionsBoundary`, `PutRolePolicy`, `PutUserPermissionsBoundary`, `PutUserPolicy`
+- Common required input members in this group: `GroupName`, `PermissionsBoundary`, `PolicyDocument`, `PolicyName`, `RoleName`, `UserName`
+
+### Enable
+
+- Operations: `EnableMFADevice`, `EnableOrganizationsRootCredentialsManagement`, `EnableOrganizationsRootSessions`, `EnableOutboundWebIdentityFederation`
+- Common required input members in this group: `AuthenticationCode1`, `AuthenticationCode2`, `SerialNumber`, `UserName`
+
+### Add
+
+- Operations: `AddClientIDToOpenIDConnectProvider`, `AddRoleToInstanceProfile`, `AddUserToGroup`
+- Common required input members in this group: `ClientID`, `GroupName`, `InstanceProfileName`, `OpenIDConnectProviderArn`, `RoleName`, `UserName`
+
+### Attach
+
+- Operations: `AttachGroupPolicy`, `AttachRolePolicy`, `AttachUserPolicy`
+- Common required input members in this group: `GroupName`, `PolicyArn`, `RoleName`, `UserName`
+
+### Detach
+
+- Operations: `DetachGroupPolicy`, `DetachRolePolicy`, `DetachUserPolicy`
+- Common required input members in this group: `GroupName`, `PolicyArn`, `RoleName`, `UserName`
+
+### Disable
+
+- Operations: `DisableOrganizationsRootCredentialsManagement`, `DisableOrganizationsRootSessions`, `DisableOutboundWebIdentityFederation`
+
+### Generate
+
+- Operations: `GenerateCredentialReport`, `GenerateOrganizationsAccessReport`, `GenerateServiceLastAccessedDetails`
+- Common required input members in this group: `Arn`, `EntityPath`
+
+### Remove
+
+- Operations: `RemoveClientIDFromOpenIDConnectProvider`, `RemoveRoleFromInstanceProfile`, `RemoveUserFromGroup`
+- Common required input members in this group: `ClientID`, `GroupName`, `InstanceProfileName`, `OpenIDConnectProviderArn`, `RoleName`, `UserName`
+
+### Upload
+
+- Operations: `UploadSSHPublicKey`, `UploadServerCertificate`, `UploadSigningCertificate`
+- Common required input members in this group: `CertificateBody`, `PrivateKey`, `SSHPublicKeyBody`, `ServerCertificateName`, `UserName`
+
+### Set
+
+- Operations: `SetDefaultPolicyVersion`, `SetSecurityTokenServicePreferences`
+- Common required input members in this group: `GlobalEndpointTokenVersion`, `PolicyArn`, `VersionId`
+
+### Simulate
+
+- Operations: `SimulateCustomPolicy`, `SimulatePrincipalPolicy`
+- Traits: `paginated` (2)
+- Common required input members in this group: `ActionNames`, `PolicyInputList`, `PolicySourceArn`
+
+### Accept
+
+- Operations: `AcceptDelegationRequest`
+- Common required input members in this group: `DelegationRequestId`
+
+### Associate
+
+- Operations: `AssociateDelegationRequest`
+- Common required input members in this group: `DelegationRequestId`
+
+### Change
+
+- Operations: `ChangePassword`
+- Common required input members in this group: `NewPassword`, `OldPassword`
+
+### Deactivate
+
+- Operations: `DeactivateMFADevice`
+- Common required input members in this group: `SerialNumber`
+
+### Reject
+
+- Operations: `RejectDelegationRequest`
+- Common required input members in this group: `DelegationRequestId`
+
+### Reset
+
+- Operations: `ResetServiceSpecificCredential`
+- Common required input members in this group: `ServiceSpecificCredentialId`
+
+### Resync
+
+- Operations: `ResyncMFADevice`
+- Common required input members in this group: `AuthenticationCode1`, `AuthenticationCode2`, `SerialNumber`, `UserName`
+
+### Send
+
+- Operations: `SendDelegationToken`
+- Common required input members in this group: `DelegationRequestId`
+
+## Operation Detail Matrix
+
+| Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
+|---|---|---|---|---|---|---|---|
+| `AcceptDelegationRequest` | - | - | `DelegationRequestId` | - | `Unit` | `ConcurrentModificationException`, `NoSuchEntityException`, `ServiceFailureException` | Accepts a delegation request, granting the requested temporary access. Once the delegation request is accepted, it is eligible to send the exchange token to the partner. |
+| `AddClientIDToOpenIDConnectProvider` | - | - | `ClientID`, `OpenIDConnectProviderArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds a new client ID (also known as audience) to the list of client IDs already registered for the specified IAM OpenID Connect (OIDC) provider resource. This operation is idempotent; it does not fail or return an error if you add an existing client ID to the... |
+| `AddRoleToInstanceProfile` | - | - | `InstanceProfileName`, `RoleName` | - | `Unit` | `EntityAlreadyExistsException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Adds the specified IAM role to the specified instance profile. An instance profile can contain only one role, and this quota cannot be increased. |
+| `AddUserToGroup` | - | - | `GroupName`, `UserName` | - | `Unit` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds the specified user to the specified group. |
+| `AssociateDelegationRequest` | - | - | `DelegationRequestId` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Associates a delegation request with the current identity. If the partner that created the delegation request has specified the owner account during creation, only an identity from that owner account can call the `AssociateDelegationRequest` API for the... |
+| `AttachGroupPolicy` | - | - | `GroupName`, `PolicyArn` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `PolicyNotAttachableException`, `ServiceFailureException` | Attaches the specified managed policy to the specified IAM group. You use this operation to attach a managed policy to a group. |
+| `AttachRolePolicy` | - | - | `PolicyArn`, `RoleName` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `PolicyNotAttachableException`, `ServiceFailureException`, `UnmodifiableEntityException` | Attaches the specified managed policy to the specified IAM role. When you attach a managed policy to a role, the managed policy becomes part of the role's permission (access) policy. |
+| `AttachUserPolicy` | - | - | `PolicyArn`, `UserName` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `PolicyNotAttachableException`, `ServiceFailureException` | Attaches the specified managed policy to the specified user. You use this operation to attach a managed policy to a user. |
+| `ChangePassword` | - | - | `NewPassword`, `OldPassword` | - | `Unit` | `EntityTemporarilyUnmodifiableException`, `InvalidUserTypeException`, `LimitExceededException`, `NoSuchEntityException`, `PasswordPolicyViolationException`, `ServiceFailureException` | Changes the password of the IAM user who is calling this operation. This operation can be performed using the CLI, the Amazon Web Services API, or the My Security Credentials page in the Amazon Web Services Management Console. |
+| `CreateAccessKey` | - | - | - | - | `CreateAccessKeyResponse` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Creates a new Amazon Web Services secret access key and corresponding Amazon Web Services access key ID for the specified user. The default status for new keys is `Active`. |
+| `CreateAccountAlias` | - | - | `AccountAlias` | - | `Unit` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `LimitExceededException`, `ServiceFailureException` | Creates an alias for your Amazon Web Services account. For information about using an Amazon Web Services account alias, see Creating, deleting, and listing an Amazon Web Services account alias in the Amazon Web Services Sign-In User Guide . |
+| `CreateDelegationRequest` | - | - | `Description`, `NotificationChannel`, `Permissions`, `RequestorWorkflowId`, `SessionDuration` | - | `CreateDelegationRequestResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `LimitExceededException`, `ServiceFailureException` | Creates an IAM delegation request for temporary access delegation. This API is not available for general use. |
+| `CreateGroup` | - | - | `GroupName` | - | `CreateGroupResponse` | `EntityAlreadyExistsException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Creates a new group. For information about the number of groups you can create, see IAM and STS quotas in the IAM User Guide . |
+| `CreateInstanceProfile` | - | - | `InstanceProfileName` | - | `CreateInstanceProfileResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `LimitExceededException`, `ServiceFailureException` | Creates a new instance profile. For information about instance profiles, see Using roles for applications on Amazon EC2 in the IAM User Guide , and Instance profiles in the Amazon EC2 User Guide . |
+| `CreateLoginProfile` | - | - | - | - | `CreateLoginProfileResponse` | `EntityAlreadyExistsException`, `LimitExceededException`, `NoSuchEntityException`, `PasswordPolicyViolationException`, `ServiceFailureException` | Creates a password for the specified IAM user. A password allows an IAM user to access Amazon Web Services services through the Amazon Web Services Management Console. |
+| `CreateOpenIDConnectProvider` | - | - | `Url` | - | `CreateOpenIDConnectProviderResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `LimitExceededException`, `OpenIdIdpCommunicationErrorException`, `ServiceFailureException` | Creates an IAM entity to describe an identity provider (IdP) that supports OpenID Connect (OIDC). The OIDC provider that you create with this operation can be used as a principal in a role's trust policy. |
+| `CreatePolicy` | - | - | `PolicyDocument`, `PolicyName` | - | `CreatePolicyResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `LimitExceededException`, `MalformedPolicyDocumentException`, `ServiceFailureException` | Creates a new managed policy for your Amazon Web Services account. This operation creates a policy version with a version identifier of `v1` and sets v1 as the policy's default version. |
+| `CreatePolicyVersion` | - | - | `PolicyArn`, `PolicyDocument` | - | `CreatePolicyVersionResponse` | `InvalidInputException`, `LimitExceededException`, `MalformedPolicyDocumentException`, `NoSuchEntityException`, `ServiceFailureException` | Creates a new version of the specified managed policy. To update a managed policy, you create a new policy version. |
+| `CreateRole` | - | - | `AssumeRolePolicyDocument`, `RoleName` | - | `CreateRoleResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `LimitExceededException`, `MalformedPolicyDocumentException`, `ServiceFailureException` | Creates a new role for your Amazon Web Services account. For more information about roles, see IAM roles in the IAM User Guide . |
+| `CreateSAMLProvider` | - | - | `Name`, `SAMLMetadataDocument` | - | `CreateSAMLProviderResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `LimitExceededException`, `ServiceFailureException` | Creates an IAM resource that describes an identity provider (IdP) that supports SAML 2.0. The SAML provider resource that you create with this operation can be used as a principal in an IAM role's trust policy. |
+| `CreateServiceLinkedRole` | - | - | `AWSServiceName` | - | `CreateServiceLinkedRoleResponse` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Creates an IAM role that is linked to a specific Amazon Web Services service. The service controls the attached policies and when the role can be deleted. |
+| `CreateServiceSpecificCredential` | - | - | `ServiceName`, `UserName` | - | `CreateServiceSpecificCredentialResponse` | `LimitExceededException`, `NoSuchEntityException`, `ServiceNotSupportedException` | Generates a set of credentials consisting of a user name and password that can be used to access the service specified in the request. These credentials are generated by IAM, and can be used only for the specified service. |
+| `CreateUser` | - | - | `UserName` | - | `CreateUserResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Creates a new IAM user for your Amazon Web Services account. For information about quotas for the number of IAM users you can create, see IAM and STS quotas in the IAM User Guide . |
+| `CreateVirtualMFADevice` | - | - | `VirtualMFADeviceName` | - | `CreateVirtualMFADeviceResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `LimitExceededException`, `ServiceFailureException` | Creates a new virtual MFA device for the Amazon Web Services account. After creating the virtual MFA, use EnableMFADevice to attach the MFA device to an IAM user. |
+| `DeactivateMFADevice` | - | - | `SerialNumber` | - | `Unit` | `ConcurrentModificationException`, `EntityTemporarilyUnmodifiableException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deactivates the specified MFA device and removes it from association with the user name for which it was originally enabled. For more information about creating and working with virtual MFA devices, see Enabling a virtual multi-factor authentication (MFA)... |
+| `DeleteAccessKey` | - | - | `AccessKeyId` | - | `Unit` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the access key pair associated with the specified IAM user. If you do not specify a user name, IAM determines the user name implicitly based on the Amazon Web Services access key ID signing the request. |
+| `DeleteAccountAlias` | - | - | `AccountAlias` | - | `Unit` | `ConcurrentModificationException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified Amazon Web Services account alias. For information about using an Amazon Web Services account alias, see Creating, deleting, and listing an Amazon Web Services account alias in the Amazon Web Services Sign-In User Guide . |
+| `DeleteAccountPasswordPolicy` | - | - | - | - | `Unit` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the password policy for the Amazon Web Services account. There are no parameters. |
+| `DeleteGroup` | - | - | `GroupName` | - | `Unit` | `DeleteConflictException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified IAM group. The group must not contain any users or have any attached policies. |
+| `DeleteGroupPolicy` | - | - | `GroupName`, `PolicyName` | - | `Unit` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified inline policy that is embedded in the specified IAM group. A group can also have managed policies attached to it. |
+| `DeleteInstanceProfile` | - | - | `InstanceProfileName` | - | `Unit` | `DeleteConflictException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified instance profile. The instance profile must not have an associated role. |
+| `DeleteLoginProfile` | - | - | - | - | `Unit` | `EntityTemporarilyUnmodifiableException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the password for the specified IAM user or root user, For more information, see Managing passwords for IAM users. You can use the CLI, the Amazon Web Services API, or the Users page in the IAM console to delete a password for any IAM user. |
+| `DeleteOpenIDConnectProvider` | - | - | `OpenIDConnectProviderArn` | - | `Unit` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes an OpenID Connect identity provider (IdP) resource object in IAM. Deleting an IAM OIDC provider resource does not update any roles that reference the provider as a principal in their trust policies. |
+| `DeletePolicy` | - | - | `PolicyArn` | - | `Unit` | `DeleteConflictException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified managed policy. Before you can delete a managed policy, you must first detach the policy from all users, groups, and roles that it is attached to. |
+| `DeletePolicyVersion` | - | - | `PolicyArn`, `VersionId` | - | `Unit` | `DeleteConflictException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified version from the specified managed policy. You cannot delete the default version from a policy using this operation. |
+| `DeleteRole` | - | - | `RoleName` | - | `Unit` | `ConcurrentModificationException`, `DeleteConflictException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Deletes the specified role. Unlike the Amazon Web Services Management Console, when you delete a role programmatically, you must delete the items attached to the role manually, or the deletion fails. |
+| `DeleteRolePermissionsBoundary` | - | - | `RoleName` | - | `Unit` | `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Deletes the permissions boundary for the specified IAM role. You cannot set the boundary for a service-linked role. |
+| `DeleteRolePolicy` | - | - | `PolicyName`, `RoleName` | - | `Unit` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Deletes the specified inline policy that is embedded in the specified IAM role. A role can also have managed policies attached to it. |
+| `DeleteSAMLProvider` | - | - | `SAMLProviderArn` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes a SAML provider resource in IAM. Deleting the provider resource from IAM does not update any roles that reference the SAML provider resource's ARN as a principal in their trust policies. |
+| `DeleteSSHPublicKey` | - | - | `SSHPublicKeyId`, `UserName` | - | `Unit` | `NoSuchEntityException` | Deletes the specified SSH public key. The SSH public key deleted by this operation is used only for authenticating the associated IAM user to an CodeCommit repository. |
+| `DeleteServerCertificate` | - | - | `ServerCertificateName` | - | `Unit` | `DeleteConflictException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified server certificate. For more information about working with server certificates, see Working with server certificates in the IAM User Guide . |
+| `DeleteServiceLinkedRole` | - | - | `RoleName` | - | `DeleteServiceLinkedRoleResponse` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Submits a service-linked role deletion request and returns a `DeletionTaskId`, which you can use to check the status of the deletion. Before you call this operation, confirm that the role has no active sessions and that any resources used by the role in the... |
+| `DeleteServiceSpecificCredential` | - | - | `ServiceSpecificCredentialId` | - | `Unit` | `NoSuchEntityException` | Deletes the specified service-specific credential. |
+| `DeleteSigningCertificate` | - | - | `CertificateId` | - | `Unit` | `ConcurrentModificationException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes a signing certificate associated with the specified IAM user. If you do not specify a user name, IAM determines the user name implicitly based on the Amazon Web Services access key ID signing the request. |
+| `DeleteUser` | - | - | `UserName` | - | `Unit` | `ConcurrentModificationException`, `DeleteConflictException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified IAM user. Unlike the Amazon Web Services Management Console, when you delete a user programmatically, you must delete the items attached to the user manually, or the deletion fails. |
+| `DeleteUserPermissionsBoundary` | - | - | `UserName` | - | `Unit` | `NoSuchEntityException`, `ServiceFailureException` | Deletes the permissions boundary for the specified IAM user. Deleting the permissions boundary for a user might increase its permissions by allowing the user to perform all the actions granted in its permissions policies. |
+| `DeleteUserPolicy` | - | - | `PolicyName`, `UserName` | - | `Unit` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes the specified inline policy that is embedded in the specified IAM user. A user can also have managed policies attached to it. |
+| `DeleteVirtualMFADevice` | - | - | `SerialNumber` | - | `Unit` | `ConcurrentModificationException`, `DeleteConflictException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Deletes a virtual MFA device. You must deactivate a user's virtual MFA device before you can delete it. |
+| `DetachGroupPolicy` | - | - | `GroupName`, `PolicyArn` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified managed policy from the specified IAM group. A group can also have inline policies embedded with it. |
+| `DetachRolePolicy` | - | - | `PolicyArn`, `RoleName` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Removes the specified managed policy from the specified role. A role can also have inline policies embedded with it. |
+| `DetachUserPolicy` | - | - | `PolicyArn`, `UserName` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified managed policy from the specified user. A user can also have inline policies embedded with it. |
+| `DisableOrganizationsRootCredentialsManagement` | - | - | - | - | `DisableOrganizationsRootCredentialsManagementResponse` | `AccountNotManagementOrDelegatedAdministratorException`, `OrganizationNotFoundException`, `OrganizationNotInAllFeaturesModeException`, `ServiceAccessNotEnabledException` | Disables the management of privileged root user credentials across member accounts in your organization. When you disable this feature, the management account and the delegated administrator for IAM can no longer manage root user credentials for member... |
+| `DisableOrganizationsRootSessions` | - | - | - | - | `DisableOrganizationsRootSessionsResponse` | `AccountNotManagementOrDelegatedAdministratorException`, `OrganizationNotFoundException`, `OrganizationNotInAllFeaturesModeException`, `ServiceAccessNotEnabledException` | Disables root user sessions for privileged tasks across member accounts in your organization. When you disable this feature, the management account and the delegated administrator for IAM can no longer perform privileged tasks on member accounts in your... |
+| `DisableOutboundWebIdentityFederation` | - | - | - | - | `Unit` | `FeatureDisabledException` | Disables the outbound identity federation feature for your Amazon Web Services account. When disabled, IAM principals in the account cannot use the `GetWebIdentityToken` API to obtain JSON Web Tokens (JWTs) for authentication with external services. |
+| `EnableMFADevice` | - | - | `AuthenticationCode1`, `AuthenticationCode2`, `SerialNumber`, `UserName` | - | `Unit` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `EntityTemporarilyUnmodifiableException`, `InvalidAuthenticationCodeException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Enables the specified MFA device and associates it with the specified IAM user. When enabled, the MFA device is required for every subsequent login by the IAM user associated with the device. |
+| `EnableOrganizationsRootCredentialsManagement` | - | - | - | - | `EnableOrganizationsRootCredentialsManagementResponse` | `AccountNotManagementOrDelegatedAdministratorException`, `CallerIsNotManagementAccountException`, `OrganizationNotFoundException`, `OrganizationNotInAllFeaturesModeException`, `ServiceAccessNotEnabledException` | Enables the management of privileged root user credentials across member accounts in your organization. When you enable root credentials management for centralized root access, the management account and the delegated administrator for IAM can manage root... |
+| `EnableOrganizationsRootSessions` | - | - | - | - | `EnableOrganizationsRootSessionsResponse` | `AccountNotManagementOrDelegatedAdministratorException`, `CallerIsNotManagementAccountException`, `OrganizationNotFoundException`, `OrganizationNotInAllFeaturesModeException`, `ServiceAccessNotEnabledException` | Allows the management account or delegated administrator to perform privileged tasks on member accounts in your organization. For more information, see Centrally manage root access for member accounts in the Identity and Access Management User Guide . |
+| `EnableOutboundWebIdentityFederation` | - | - | - | - | `EnableOutboundWebIdentityFederationResponse` | `FeatureEnabledException` | Enables the outbound identity federation feature for your Amazon Web Services account. When enabled, IAM principals in your account can use the `GetWebIdentityToken` API to obtain JSON Web Tokens (JWTs) for secure authentication with external services. |
+| `GenerateCredentialReport` | - | - | - | - | `GenerateCredentialReportResponse` | `LimitExceededException`, `ServiceFailureException` | Generates a credential report for the Amazon Web Services account. For more information about the credential report, see Getting credential reports in the IAM User Guide . |
+| `GenerateOrganizationsAccessReport` | - | - | `EntityPath` | - | `GenerateOrganizationsAccessReportResponse` | `ReportGenerationLimitExceededException` | Generates a report for service last accessed data for Organizations. You can generate a report for any entities (organization root, organizational unit, or account) or policies in your organization. |
+| `GenerateServiceLastAccessedDetails` | - | - | `Arn` | - | `GenerateServiceLastAccessedDetailsResponse` | `InvalidInputException`, `NoSuchEntityException` | Generates a report that includes details about when an IAM resource (user, group, role, or policy) was last used in an attempt to access Amazon Web Services services. Recent activity usually appears within four hours. |
+| `GetAccessKeyLastUsed` | - | - | `AccessKeyId` | - | `GetAccessKeyLastUsedResponse` | - | Retrieves information about when the specified access key was last used. The information includes the date and time of last use, along with the Amazon Web Services service and Region that were specified in the last request made with that key. |
+| `GetAccountAuthorizationDetails` | - | `paginated` | - | - | `GetAccountAuthorizationDetailsResponse` | `ServiceFailureException` | Retrieves information about all IAM users, groups, roles, and policies in your Amazon Web Services account, including their relationships to one another. Use this operation to obtain a snapshot of the configuration of IAM permissions (users, groups, roles... |
+| `GetAccountPasswordPolicy` | - | - | - | - | `GetAccountPasswordPolicyResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves the password policy for the Amazon Web Services account. This tells you the complexity requirements and mandatory rotation periods for the IAM user passwords in your account. |
+| `GetAccountSummary` | - | - | - | - | `GetAccountSummaryResponse` | `ServiceFailureException` | Retrieves information about IAM entity usage and IAM quotas in the Amazon Web Services account. For information about IAM quotas, see IAM and STS quotas in the IAM User Guide . |
+| `GetContextKeysForCustomPolicy` | - | - | `PolicyInputList` | - | `GetContextKeysForPolicyResponse` | `InvalidInputException` | Gets a list of all of the context keys referenced in the input policies. The policies are supplied as a list of one or more strings. |
+| `GetContextKeysForPrincipalPolicy` | - | - | `PolicySourceArn` | - | `GetContextKeysForPolicyResponse` | `InvalidInputException`, `NoSuchEntityException` | Gets a list of all of the context keys referenced in all the IAM policies that are attached to the specified IAM entity. The entity can be an IAM user, group, or role. |
+| `GetCredentialReport` | - | - | - | - | `GetCredentialReportResponse` | `CredentialReportExpiredException`, `CredentialReportNotPresentException`, `CredentialReportNotReadyException`, `ServiceFailureException` | Retrieves a credential report for the Amazon Web Services account. For more information about the credential report, see Getting credential reports in the IAM User Guide . |
+| `GetDelegationRequest` | - | - | `DelegationRequestId` | - | `GetDelegationRequestResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves information about a specific delegation request. If a delegation request has no owner or owner account, `GetDelegationRequest` for that delegation request can be called by any account. |
+| `GetGroup` | - | `paginated` | `GroupName` | - | `GetGroupResponse` | `NoSuchEntityException`, `ServiceFailureException` | Returns a list of IAM users that are in the specified IAM group. You can paginate the results using the `MaxItems` and `Marker` parameters. |
+| `GetGroupPolicy` | - | - | `GroupName`, `PolicyName` | - | `GetGroupPolicyResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves the specified inline policy document that is embedded in the specified IAM group. Policies returned by this operation are URL-encoded compliant with RFC 3986. |
+| `GetHumanReadableSummary` | - | - | `EntityArn` | - | `GetHumanReadableSummaryResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Retrieves a human readable summary for a given entity. At this time, the only supported entity type is `delegation-request` This method uses a Large Language Model (LLM) to generate the summary. |
+| `GetInstanceProfile` | - | - | `InstanceProfileName` | - | `GetInstanceProfileResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves information about the specified instance profile, including the instance profile's path, GUID, ARN, and role. For more information about instance profiles, see Using instance profiles in the IAM User Guide . |
+| `GetLoginProfile` | - | - | - | - | `GetLoginProfileResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves the user name for the specified IAM user. A login profile is created when you create a password for the user to access the Amazon Web Services Management Console. |
+| `GetMFADevice` | - | - | `SerialNumber` | - | `GetMFADeviceResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves information about an MFA device for a specified user. |
+| `GetOpenIDConnectProvider` | - | - | `OpenIDConnectProviderArn` | - | `GetOpenIDConnectProviderResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Returns information about the specified OpenID Connect (OIDC) provider resource object in IAM. |
+| `GetOrganizationsAccessReport` | - | - | `JobId` | - | `GetOrganizationsAccessReportResponse` | `NoSuchEntityException` | Retrieves the service last accessed data report for Organizations that was previously generated using the ` GenerateOrganizationsAccessReport ` operation. This operation retrieves the status of your report job and the report contents. |
+| `GetOutboundWebIdentityFederationInfo` | - | - | - | - | `GetOutboundWebIdentityFederationInfoResponse` | `FeatureDisabledException` | Retrieves the configuration information for the outbound identity federation feature in your Amazon Web Services account. The response includes the unique issuer URL for your Amazon Web Services account and the current enabled/disabled status of the feature. |
+| `GetPolicy` | - | - | `PolicyArn` | - | `GetPolicyResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Retrieves information about the specified managed policy, including the policy's default version and the total number of IAM users, groups, and roles to which the policy is attached. To retrieve the list of the specific users, groups, and roles that the... |
+| `GetPolicyVersion` | - | - | `PolicyArn`, `VersionId` | - | `GetPolicyVersionResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Retrieves information about the specified version of the specified managed policy, including the policy document. Policies returned by this operation are URL-encoded compliant with RFC 3986. |
+| `GetRole` | - | - | `RoleName` | - | `GetRoleResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves information about the specified role, including the role's path, GUID, ARN, and the role's trust policy that grants permission to assume the role. For more information about roles, see IAM roles in the IAM User Guide . |
+| `GetRolePolicy` | - | - | `PolicyName`, `RoleName` | - | `GetRolePolicyResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves the specified inline policy document that is embedded with the specified IAM role. Policies returned by this operation are URL-encoded compliant with RFC 3986. |
+| `GetSAMLProvider` | - | - | `SAMLProviderArn` | - | `GetSAMLProviderResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Returns the SAML provider metadocument that was uploaded when the IAM SAML provider resource object was created or updated. This operation requires Signature Version 4. |
+| `GetSSHPublicKey` | - | - | `Encoding`, `SSHPublicKeyId`, `UserName` | - | `GetSSHPublicKeyResponse` | `NoSuchEntityException`, `UnrecognizedPublicKeyEncodingException` | Retrieves the specified SSH public key, including metadata about the key. The SSH public key retrieved by this operation is used only for authenticating the associated IAM user to an CodeCommit repository. |
+| `GetServerCertificate` | - | - | `ServerCertificateName` | - | `GetServerCertificateResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves information about the specified server certificate stored in IAM. For more information about working with server certificates, see Working with server certificates in the IAM User Guide . |
+| `GetServiceLastAccessedDetails` | - | - | `JobId` | - | `GetServiceLastAccessedDetailsResponse` | `InvalidInputException`, `NoSuchEntityException` | Retrieves a service last accessed report that was created using the `GenerateServiceLastAccessedDetails` operation. You can use the `JobId` parameter in `GetServiceLastAccessedDetails` to retrieve the status of your report job. |
+| `GetServiceLastAccessedDetailsWithEntities` | - | - | `JobId`, `ServiceNamespace` | - | `GetServiceLastAccessedDetailsWithEntitiesResponse` | `InvalidInputException`, `NoSuchEntityException` | After you generate a group or policy report using the `GenerateServiceLastAccessedDetails` operation, you can use the `JobId` parameter in `GetServiceLastAccessedDetailsWithEntities`. This operation retrieves the status of your report job and a list of... |
+| `GetServiceLinkedRoleDeletionStatus` | - | - | `DeletionTaskId` | - | `GetServiceLinkedRoleDeletionStatusResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Retrieves the status of your service-linked role deletion. After you use DeleteServiceLinkedRole to submit a service-linked role for deletion, you can use the `DeletionTaskId` parameter in `GetServiceLinkedRoleDeletionStatus` to check the status of the... |
+| `GetUser` | - | - | - | - | `GetUserResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves information about the specified IAM user, including the user's creation date, path, unique ID, and ARN. If you do not specify a user name, IAM determines the user name implicitly based on the Amazon Web Services access key ID used to sign the... |
+| `GetUserPolicy` | - | - | `PolicyName`, `UserName` | - | `GetUserPolicyResponse` | `NoSuchEntityException`, `ServiceFailureException` | Retrieves the specified inline policy document that is embedded in the specified IAM user. Policies returned by this operation are URL-encoded compliant with RFC 3986. |
+| `ListAccessKeys` | - | `paginated` | - | - | `ListAccessKeysResponse` | `NoSuchEntityException`, `ServiceFailureException` | Returns information about the access key IDs associated with the specified IAM user. If there is none, the operation returns an empty list. |
+| `ListAccountAliases` | - | `paginated` | - | - | `ListAccountAliasesResponse` | `ServiceFailureException` | Lists the account alias associated with the Amazon Web Services account (Note: you can have only one). For information about using an Amazon Web Services account alias, see Creating, deleting, and listing an Amazon Web Services account alias in the IAM User... |
+| `ListAttachedGroupPolicies` | - | `paginated` | `GroupName` | - | `ListAttachedGroupPoliciesResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists all managed policies that are attached to the specified IAM group. An IAM group can also have inline policies embedded with it. |
+| `ListAttachedRolePolicies` | - | `paginated` | `RoleName` | - | `ListAttachedRolePoliciesResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists all managed policies that are attached to the specified IAM role. An IAM role can also have inline policies embedded with it. |
+| `ListAttachedUserPolicies` | - | `paginated` | `UserName` | - | `ListAttachedUserPoliciesResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists all managed policies that are attached to the specified IAM user. An IAM user can also have inline policies embedded with it. |
+| `ListDelegationRequests` | - | - | - | - | `ListDelegationRequestsResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists delegation requests based on the specified criteria. If a delegation request has no owner, even if it is assigned to a specific account, it will not be part of the `ListDelegationRequests` output for that account. |
+| `ListEntitiesForPolicy` | - | `paginated` | `PolicyArn` | - | `ListEntitiesForPolicyResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists all IAM users, groups, and roles that the specified managed policy is attached to. You can use the optional `EntityFilter` parameter to limit the results to a particular type of entity (users, groups, or roles). |
+| `ListGroupPolicies` | - | `paginated` | `GroupName` | - | `ListGroupPoliciesResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the names of the inline policies that are embedded in the specified IAM group. An IAM group can also have managed policies attached to it. |
+| `ListGroups` | - | `paginated` | - | - | `ListGroupsResponse` | `ServiceFailureException` | Lists the IAM groups that have the specified path prefix. You can paginate the results using the `MaxItems` and `Marker` parameters. |
+| `ListGroupsForUser` | - | `paginated` | `UserName` | - | `ListGroupsForUserResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the IAM groups that the specified IAM user belongs to. You can paginate the results using the `MaxItems` and `Marker` parameters. |
+| `ListInstanceProfileTags` | - | `paginated` | `InstanceProfileName` | - | `ListInstanceProfileTagsResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the tags that are attached to the specified IAM instance profile. The returned list of tags is sorted by tag key. |
+| `ListInstanceProfiles` | - | `paginated` | - | - | `ListInstanceProfilesResponse` | `ServiceFailureException` | Lists the instance profiles that have the specified path prefix. If there are none, the operation returns an empty list. |
+| `ListInstanceProfilesForRole` | - | `paginated` | `RoleName` | - | `ListInstanceProfilesForRoleResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the instance profiles that have the specified associated IAM role. If there are none, the operation returns an empty list. |
+| `ListMFADeviceTags` | - | `paginated` | `SerialNumber` | - | `ListMFADeviceTagsResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists the tags that are attached to the specified IAM virtual multi-factor authentication (MFA) device. The returned list of tags is sorted by tag key. |
+| `ListMFADevices` | - | `paginated` | - | - | `ListMFADevicesResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the MFA devices for an IAM user. If the request includes a IAM user name, then this operation lists all the MFA devices associated with the specified user. |
+| `ListOpenIDConnectProviderTags` | - | `paginated` | `OpenIDConnectProviderArn` | - | `ListOpenIDConnectProviderTagsResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists the tags that are attached to the specified OpenID Connect (OIDC)-compatible identity provider. The returned list of tags is sorted by tag key. |
+| `ListOpenIDConnectProviders` | - | - | - | - | `ListOpenIDConnectProvidersResponse` | `ServiceFailureException` | Lists information about the IAM OpenID Connect (OIDC) provider resource objects defined in the Amazon Web Services account. IAM resource-listing operations return a subset of the available attributes for the resource. |
+| `ListOrganizationsFeatures` | - | - | - | - | `ListOrganizationsFeaturesResponse` | `AccountNotManagementOrDelegatedAdministratorException`, `OrganizationNotFoundException`, `OrganizationNotInAllFeaturesModeException`, `ServiceAccessNotEnabledException` | Lists the centralized root access features enabled for your organization. For more information, see Centrally manage root access for member accounts. |
+| `ListPolicies` | - | `paginated` | - | - | `ListPoliciesResponse` | `ServiceFailureException` | Lists all the managed policies that are available in your Amazon Web Services account, including your own customer-defined managed policies and all Amazon Web Services managed policies. You can filter the list of policies that is returned using the optional... |
+| `ListPoliciesGrantingServiceAccess` | - | - | `Arn`, `ServiceNamespaces` | - | `ListPoliciesGrantingServiceAccessResponse` | `InvalidInputException`, `NoSuchEntityException` | Retrieves a list of policies that the IAM identity (user, group, or role) can use to access each specified service. This operation does not use other policy types when determining whether a resource could access a service. |
+| `ListPolicyTags` | - | `paginated` | `PolicyArn` | - | `ListPolicyTagsResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists the tags that are attached to the specified IAM customer managed policy. The returned list of tags is sorted by tag key. |
+| `ListPolicyVersions` | - | `paginated` | `PolicyArn` | - | `ListPolicyVersionsResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists information about the versions of the specified managed policy, including the version that is currently set as the policy's default version. For more information about managed policies, see Managed policies and inline policies in the IAM User Guide . |
+| `ListRolePolicies` | - | `paginated` | `RoleName` | - | `ListRolePoliciesResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the names of the inline policies that are embedded in the specified IAM role. An IAM role can also have managed policies attached to it. |
+| `ListRoleTags` | - | `paginated` | `RoleName` | - | `ListRoleTagsResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the tags that are attached to the specified role. The returned list of tags is sorted by tag key. |
+| `ListRoles` | - | `paginated` | - | - | `ListRolesResponse` | `ServiceFailureException` | Lists the IAM roles that have the specified path prefix. If there are none, the operation returns an empty list. |
+| `ListSAMLProviderTags` | - | `paginated` | `SAMLProviderArn` | - | `ListSAMLProviderTagsResponse` | `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Lists the tags that are attached to the specified Security Assertion Markup Language (SAML) identity provider. The returned list of tags is sorted by tag key. |
+| `ListSAMLProviders` | - | - | - | - | `ListSAMLProvidersResponse` | `ServiceFailureException` | Lists the SAML provider resource objects defined in IAM in the account. IAM resource-listing operations return a subset of the available attributes for the resource. |
+| `ListSSHPublicKeys` | - | `paginated` | - | - | `ListSSHPublicKeysResponse` | `NoSuchEntityException` | Returns information about the SSH public keys associated with the specified IAM user. If none exists, the operation returns an empty list. |
+| `ListServerCertificateTags` | - | `paginated` | `ServerCertificateName` | - | `ListServerCertificateTagsResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the tags that are attached to the specified IAM server certificate. The returned list of tags is sorted by tag key. |
+| `ListServerCertificates` | - | `paginated` | - | - | `ListServerCertificatesResponse` | `ServiceFailureException` | Lists the server certificates stored in IAM that have the specified path prefix. If none exist, the operation returns an empty list. |
+| `ListServiceSpecificCredentials` | - | - | - | - | `ListServiceSpecificCredentialsResponse` | `NoSuchEntityException`, `ServiceNotSupportedException` | Returns information about the service-specific credentials associated with the specified IAM user. If none exists, the operation returns an empty list. |
+| `ListSigningCertificates` | - | `paginated` | - | - | `ListSigningCertificatesResponse` | `NoSuchEntityException`, `ServiceFailureException` | Returns information about the signing certificates associated with the specified IAM user. If none exists, the operation returns an empty list. |
+| `ListUserPolicies` | - | `paginated` | `UserName` | - | `ListUserPoliciesResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the names of the inline policies embedded in the specified IAM user. An IAM user can also have managed policies attached to it. |
+| `ListUserTags` | - | `paginated` | `UserName` | - | `ListUserTagsResponse` | `NoSuchEntityException`, `ServiceFailureException` | Lists the tags that are attached to the specified IAM user. The returned list of tags is sorted by tag key. |
+| `ListUsers` | - | `paginated` | - | - | `ListUsersResponse` | `ServiceFailureException` | Lists the IAM users that have the specified path prefix. If no path prefix is specified, the operation returns all users in the Amazon Web Services account. |
+| `ListVirtualMFADevices` | - | `paginated` | - | - | `ListVirtualMFADevicesResponse` | - | Lists the virtual MFA devices defined in the Amazon Web Services account by assignment status. If you do not specify an assignment status, the operation returns a list of all virtual MFA devices. |
+| `PutGroupPolicy` | - | - | `GroupName`, `PolicyDocument`, `PolicyName` | - | `Unit` | `LimitExceededException`, `MalformedPolicyDocumentException`, `NoSuchEntityException`, `ServiceFailureException` | Adds or updates an inline policy document that is embedded in the specified IAM group. A user can also have managed policies attached to it. |
+| `PutRolePermissionsBoundary` | - | - | `PermissionsBoundary`, `RoleName` | - | `Unit` | `InvalidInputException`, `NoSuchEntityException`, `PolicyNotAttachableException`, `ServiceFailureException`, `UnmodifiableEntityException` | Adds or updates the policy that is specified as the IAM role's permissions boundary. You can use an Amazon Web Services managed policy or a customer managed policy to set the boundary for a role. |
+| `PutRolePolicy` | - | - | `PolicyDocument`, `PolicyName`, `RoleName` | - | `Unit` | `LimitExceededException`, `MalformedPolicyDocumentException`, `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Adds or updates an inline policy document that is embedded in the specified IAM role. When you embed an inline policy in a role, the inline policy is used as part of the role's access (permissions) policy. |
+| `PutUserPermissionsBoundary` | - | - | `PermissionsBoundary`, `UserName` | - | `Unit` | `InvalidInputException`, `NoSuchEntityException`, `PolicyNotAttachableException`, `ServiceFailureException` | Adds or updates the policy that is specified as the IAM user's permissions boundary. You can use an Amazon Web Services managed policy or a customer managed policy to set the boundary for a user. |
+| `PutUserPolicy` | - | - | `PolicyDocument`, `PolicyName`, `UserName` | - | `Unit` | `LimitExceededException`, `MalformedPolicyDocumentException`, `NoSuchEntityException`, `ServiceFailureException` | Adds or updates an inline policy document that is embedded in the specified IAM user. An IAM user can also have a managed policy attached to it. |
+| `RejectDelegationRequest` | - | - | `DelegationRequestId` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Rejects a delegation request, denying the requested temporary access. Once a request is rejected, it cannot be accepted or updated later. |
+| `RemoveClientIDFromOpenIDConnectProvider` | - | - | `ClientID`, `OpenIDConnectProviderArn` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified client ID (also known as audience) from the list of client IDs registered for the specified IAM OpenID Connect (OIDC) provider resource object. This operation is idempotent; it does not fail or return an error if you try to remove a... |
+| `RemoveRoleFromInstanceProfile` | - | - | `InstanceProfileName`, `RoleName` | - | `Unit` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Removes the specified IAM role from the specified Amazon EC2 instance profile. Make sure that you do not have any Amazon EC2 instances running with the role you are about to remove from the instance profile. |
+| `RemoveUserFromGroup` | - | - | `GroupName`, `UserName` | - | `Unit` | `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified user from the specified group. |
+| `ResetServiceSpecificCredential` | - | - | `ServiceSpecificCredentialId` | - | `ResetServiceSpecificCredentialResponse` | `NoSuchEntityException` | Resets the password for a service-specific credential. The new password is Amazon Web Services generated and cryptographically strong. |
+| `ResyncMFADevice` | - | - | `AuthenticationCode1`, `AuthenticationCode2`, `SerialNumber`, `UserName` | - | `Unit` | `ConcurrentModificationException`, `InvalidAuthenticationCodeException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Synchronizes the specified MFA device with its IAM resource object on the Amazon Web Services servers. For more information about creating and working with virtual MFA devices, see Using a virtual MFA device in the IAM User Guide . |
+| `SendDelegationToken` | - | - | `DelegationRequestId` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Sends the exchange token for an accepted delegation request. The exchange token is sent to the partner via an asynchronous notification channel, established by the partner. |
+| `SetDefaultPolicyVersion` | - | - | `PolicyArn`, `VersionId` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Sets the specified version of the specified policy as the policy's default (operative) version. This operation affects all users, groups, and roles that the policy is attached to. |
+| `SetSecurityTokenServicePreferences` | - | - | `GlobalEndpointTokenVersion` | - | `Unit` | `ServiceFailureException` | Sets the specified version of the global endpoint token as the token version used for the Amazon Web Services account. By default, Security Token Service (STS) is available as a global service, and all STS requests go to a single endpoint at... |
+| `SimulateCustomPolicy` | - | `paginated` | `ActionNames`, `PolicyInputList` | - | `SimulatePolicyResponse` | `InvalidInputException`, `PolicyEvaluationException` | Simulate how a set of IAM policies and optionally a resource-based policy works with a list of API operations and Amazon Web Services resources to determine the policies' effective permissions. The policies are provided as strings. |
+| `SimulatePrincipalPolicy` | - | `paginated` | `ActionNames`, `PolicySourceArn` | - | `SimulatePolicyResponse` | `InvalidInputException`, `NoSuchEntityException`, `PolicyEvaluationException` | Simulate how a set of IAM policies attached to an IAM entity works with a list of API operations and Amazon Web Services resources to determine the policies' effective permissions. The entity can be an IAM user, group, or role. |
+| `TagInstanceProfile` | - | - | `InstanceProfileName`, `Tags` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds one or more tags to an IAM instance profile. If a tag with the same key name already exists, then that tag is overwritten with the new value. |
+| `TagMFADevice` | - | - | `SerialNumber`, `Tags` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds one or more tags to an IAM virtual multi-factor authentication (MFA) device. If a tag with the same key name already exists, then that tag is overwritten with the new value. |
+| `TagOpenIDConnectProvider` | - | - | `OpenIDConnectProviderArn`, `Tags` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds one or more tags to an OpenID Connect (OIDC)-compatible identity provider. For more information about these providers, see About web identity federation. |
+| `TagPolicy` | - | - | `PolicyArn`, `Tags` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds one or more tags to an IAM customer managed policy. If a tag with the same key name already exists, then that tag is overwritten with the new value. |
+| `TagRole` | - | - | `RoleName`, `Tags` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds one or more tags to an IAM role. The role can be a regular role or a service-linked role. |
+| `TagSAMLProvider` | - | - | `SAMLProviderArn`, `Tags` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds one or more tags to a Security Assertion Markup Language (SAML) identity provider. For more information about these providers, see About SAML 2.0-based federation . |
+| `TagServerCertificate` | - | - | `ServerCertificateName`, `Tags` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds one or more tags to an IAM server certificate. If a tag with the same key name already exists, then that tag is overwritten with the new value. |
+| `TagUser` | - | - | `Tags`, `UserName` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Adds one or more tags to an IAM user. If a tag with the same key name already exists, then that tag is overwritten with the new value. |
+| `UntagInstanceProfile` | - | - | `InstanceProfileName`, `TagKeys` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified tags from the IAM instance profile. For more information about tagging, see Tagging IAM resources in the IAM User Guide . |
+| `UntagMFADevice` | - | - | `SerialNumber`, `TagKeys` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified tags from the IAM virtual multi-factor authentication (MFA) device. For more information about tagging, see Tagging IAM resources in the IAM User Guide . |
+| `UntagOpenIDConnectProvider` | - | - | `OpenIDConnectProviderArn`, `TagKeys` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified tags from the specified OpenID Connect (OIDC)-compatible identity provider in IAM. For more information about OIDC providers, see About web identity federation. |
+| `UntagPolicy` | - | - | `PolicyArn`, `TagKeys` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified tags from the customer managed policy. For more information about tagging, see Tagging IAM resources in the IAM User Guide . |
+| `UntagRole` | - | - | `RoleName`, `TagKeys` | - | `Unit` | `ConcurrentModificationException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified tags from the role. For more information about tagging, see Tagging IAM resources in the IAM User Guide . |
+| `UntagSAMLProvider` | - | - | `SAMLProviderArn`, `TagKeys` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified tags from the specified Security Assertion Markup Language (SAML) identity provider in IAM. For more information about these providers, see About web identity federation. |
+| `UntagServerCertificate` | - | - | `ServerCertificateName`, `TagKeys` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified tags from the IAM server certificate. For more information about tagging, see Tagging IAM resources in the IAM User Guide . |
+| `UntagUser` | - | - | `TagKeys`, `UserName` | - | `Unit` | `ConcurrentModificationException`, `NoSuchEntityException`, `ServiceFailureException` | Removes the specified tags from the user. For more information about tagging, see Tagging IAM resources in the IAM User Guide . |
+| `UpdateAccessKey` | - | - | `AccessKeyId`, `Status` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Changes the status of the specified access key from Active to Inactive, or vice versa. This operation can be used to disable a user's key as part of a key rotation workflow. |
+| `UpdateAccountPasswordPolicy` | - | - | - | - | `Unit` | `LimitExceededException`, `MalformedPolicyDocumentException`, `NoSuchEntityException`, `ServiceFailureException` | Updates the password policy settings for the Amazon Web Services account. This operation does not support partial updates. |
+| `UpdateAssumeRolePolicy` | - | - | `PolicyDocument`, `RoleName` | - | `Unit` | `LimitExceededException`, `MalformedPolicyDocumentException`, `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Updates the policy that grants an IAM entity permission to assume a role. This is typically referred to as the "role trust policy". |
+| `UpdateDelegationRequest` | - | - | `DelegationRequestId` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Updates an existing delegation request with additional information. When the delegation request is updated, it reaches the `PENDING_APPROVAL` state. |
+| `UpdateGroup` | - | - | `GroupName` | - | `Unit` | `EntityAlreadyExistsException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Updates the name and/or the path of the specified IAM group. You should understand the implications of changing a group's path or name. |
+| `UpdateLoginProfile` | - | - | `UserName` | - | `Unit` | `EntityTemporarilyUnmodifiableException`, `LimitExceededException`, `NoSuchEntityException`, `PasswordPolicyViolationException`, `ServiceFailureException` | Changes the password for the specified IAM user. You can use the CLI, the Amazon Web Services API, or the Users page in the IAM console to change the password for any IAM user. |
+| `UpdateOpenIDConnectProviderThumbprint` | - | - | `OpenIDConnectProviderArn`, `ThumbprintList` | - | `Unit` | `ConcurrentModificationException`, `InvalidInputException`, `NoSuchEntityException`, `ServiceFailureException` | Replaces the existing list of server certificate thumbprints associated with an OpenID Connect (OIDC) provider resource object with a new list of thumbprints. The list that you pass with this operation completely replaces the existing list of thumbprints. |
+| `UpdateRole` | - | - | `RoleName` | - | `UpdateRoleResponse` | `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Updates the description or maximum session duration setting of a role. |
+| `UpdateRoleDescription` | - | - | `Description`, `RoleName` | - | `UpdateRoleDescriptionResponse` | `NoSuchEntityException`, `ServiceFailureException`, `UnmodifiableEntityException` | Use UpdateRole instead. Modifies only the description of a role. |
+| `UpdateSAMLProvider` | - | - | `SAMLProviderArn` | - | `UpdateSAMLProviderResponse` | `ConcurrentModificationException`, `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Updates the metadata document, SAML encryption settings, and private keys for an existing SAML provider. To rotate private keys, add your new private key and then remove the old key in a separate request. |
+| `UpdateSSHPublicKey` | - | - | `SSHPublicKeyId`, `Status`, `UserName` | - | `Unit` | `InvalidInputException`, `NoSuchEntityException` | Sets the status of an IAM user's SSH public key to active or inactive. SSH public keys that are inactive cannot be used for authentication. |
+| `UpdateServerCertificate` | - | - | `ServerCertificateName` | - | `Unit` | `EntityAlreadyExistsException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Updates the name and/or the path of the specified server certificate stored in IAM. For more information about working with server certificates, see Working with server certificates in the IAM User Guide . |
+| `UpdateServiceSpecificCredential` | - | - | `ServiceSpecificCredentialId`, `Status` | - | `Unit` | `NoSuchEntityException` | Sets the status of a service-specific credential to `Active` or `Inactive`. Service-specific credentials that are inactive cannot be used for authentication to the service. |
+| `UpdateSigningCertificate` | - | - | `CertificateId`, `Status` | - | `Unit` | `InvalidInputException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Changes the status of the specified user signing certificate from active to disabled, or vice versa. This operation can be used to disable an IAM user's signing certificate as part of a certificate rotation work flow. |
+| `UpdateUser` | - | - | `UserName` | - | `Unit` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `EntityTemporarilyUnmodifiableException`, `LimitExceededException`, `NoSuchEntityException`, `ServiceFailureException` | Updates the name and/or the path of the specified IAM user. You should understand the implications of changing an IAM user's path or name. |
+| `UploadSSHPublicKey` | - | - | `SSHPublicKeyBody`, `UserName` | - | `UploadSSHPublicKeyResponse` | `DuplicateSSHPublicKeyException`, `InvalidPublicKeyException`, `LimitExceededException`, `NoSuchEntityException`, `UnrecognizedPublicKeyEncodingException` | Uploads an SSH public key and associates it with the specified IAM user. The SSH public key uploaded by this operation can be used only for authenticating the associated IAM user to an CodeCommit repository. |
+| `UploadServerCertificate` | - | - | `CertificateBody`, `PrivateKey`, `ServerCertificateName` | - | `UploadServerCertificateResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `KeyPairMismatchException`, `LimitExceededException`, `MalformedCertificateException`, `ServiceFailureException` | Uploads a server certificate entity for the Amazon Web Services account. The server certificate entity includes a public key certificate, a private key, and an optional certificate chain, which should all be PEM-encoded. |
+| `UploadSigningCertificate` | - | - | `CertificateBody` | - | `UploadSigningCertificateResponse` | `ConcurrentModificationException`, `DuplicateCertificateException`, `EntityAlreadyExistsException`, `InvalidCertificateException`, `LimitExceededException`, `MalformedCertificateException`, `NoSuchEntityException`, `ServiceFailureException` | Uploads an X.509 signing certificate and associates it with the specified IAM user. Some Amazon Web Services services require you to use certificates to validate requests that are signed with a corresponding private key. |
+
+## Important Shapes
+
+| Shape | Type | Members | Documentation cue |
+|---|---|---|---|
+| `ServiceFailureException` | `structure` | `message` | The request processing has failed because of an unknown error, exception or failure. |
+| `NoSuchEntityException` | `structure` | `message` | The request was rejected because it referenced a resource entity that does not exist. |
+| `InvalidInputException` | `structure` | `message` | The request was rejected because an invalid or out-of-range value was supplied for an input parameter. |
+| `LimitExceededException` | `structure` | `message` | The request was rejected because it attempted to create resources beyond the current Amazon Web Services account limits. |
+| `ConcurrentModificationException` | `structure` | `message` | The request was rejected because multiple requests to change this object were submitted simultaneously. |
+| `EntityAlreadyExistsException` | `structure` | `message` | The request was rejected because it attempted to create a resource that already exists. |
+| `UnmodifiableEntityException` | `structure` | `message` | The request was rejected because service-linked roles are protected Amazon Web Services resources. |
+| `MalformedPolicyDocumentException` | `structure` | `message` | The request was rejected because the policy document was malformed. |
+| `DeleteConflictException` | `structure` | `message` | The request was rejected because it attempted to delete a resource that has attached subordinate entities. |
+| `EntityTemporarilyUnmodifiableException` | `structure` | `message` | The request was rejected because it referenced an entity that is temporarily unmodifiable, such as a user name that was deleted and then recreated. |
+| `PolicyNotAttachableException` | `structure` | `message` | The request failed because Amazon Web Services service role policies can only be attached to the service-linked role for that service. |
+| `AccountNotManagementOrDelegatedAdministratorException` | `structure` | `Message` | The request was rejected because the account making the request is not the management account or delegated administrator account for centralized root access. |
+| `OrganizationNotFoundException` | `structure` | `Message` | The request was rejected because no organization is associated with your account. |
+| `OrganizationNotInAllFeaturesModeException` | `structure` | `Message` | The request was rejected because your organization does not have All features enabled. |
+| `ServiceAccessNotEnabledException` | `structure` | `Message` | The request was rejected because trusted access is not enabled for IAM in Organizations. |
+| `PasswordPolicyViolationException` | `structure` | `message` | The request was rejected because the provided password did not meet the requirements imposed by the account password policy. |
+| `ServiceNotSupportedException` | `structure` | `message` | The specified service does not support service-specific credentials. |
+| `FeatureDisabledException` | `structure` | `message` | The request failed because outbound identity federation is already disabled for your Amazon Web Services account. |
+| `InvalidAuthenticationCodeException` | `structure` | `message` | The request was rejected because the authentication code was not recognized. |
+| `CallerIsNotManagementAccountException` | `structure` | `Message` | The request was rejected because the account making the request is not the management account for the organization. |
+| `GetContextKeysForPolicyResponse` | `structure` | `ContextKeyNames` | Contains the response to a successful GetContextKeysForPrincipalPolicy or GetContextKeysForCustomPolicy request. |
+| `UnrecognizedPublicKeyEncodingException` | `structure` | `message` | The request was rejected because the public key encoding format is unsupported or unrecognized. |
+| `SimulatePolicyResponse` | `structure` | `EvaluationResults`, `IsTruncated`, `Marker` | Contains the response to a successful SimulatePrincipalPolicy or SimulateCustomPolicy request. |
+
+## Winterbaume LTM Notes
+
+Sources: .agents/docs/LTM/rule-evaluator-and-validator-crates.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md.
+
+Mode: full distillation.
+
+### Policy Evaluation Engine
+
+- `winterbaume-iam-rule-eval` owns IAM policy evaluation logic outside the HTTP layer. Handlers should construct evaluator inputs, call the engine, and map results into IAM simulation response shapes.
+- Durable evaluator semantics include explicit deny before allow before implicit deny, case-insensitive action matching, case-sensitive resource matching, direct wildcard matching, and policy-source tracking for matched statements.
+- IAM simulation work should treat the evaluator as the semantic boundary. Handler code should stay responsible for request parsing, state lookup, response shaping, and IAM error mapping, not for duplicating policy evaluation rules.
+
+### Parity Follow-Ups
+
+- Treat IAM simulation as implemented but incomplete rather than unimplemented. Follow-up parity belongs in evaluator support for richer condition operators, permissions boundaries, policy variables, and remaining simulation edge cases.
+- Tests for `SimulatePrincipalPolicy` and `SimulateCustomPolicy` should assert matched statement source tracking as well as the final decision, because AWS simulation responses expose more than an allow/deny boolean.
+- When adding condition support, preserve the existing precedence model: an explicit deny from any applicable policy source must dominate otherwise matching allows.
+
+## Research Checklist for Parity Work
+
+- Confirm lifecycle transitions for every create/update/delete/start/stop operation.
+- Confirm exact not-found, already-exists, conflict, validation, throttling, and access-denied error names.
+- Confirm pagination token format, result ordering, default limits, and empty collection shape.
+- Confirm idempotency-token behaviour, especially mismatched replay parameters.
+- Confirm cross-service identifiers such as ARNs, IAM roles, KMS keys, S3 buckets, VPC resources, and logging destinations.
+- Confirm whether read APIs are derived from customer-managed state, AWS-managed catalogues, telemetry, recommendations, or asynchronous jobs.

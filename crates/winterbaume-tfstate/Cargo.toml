@@ -1,0 +1,16 @@
+[package]
+name = "winterbaume-tfstate"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Terraform state file (v4) parser and serializer for winterbaume"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

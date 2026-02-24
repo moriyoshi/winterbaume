@@ -1,0 +1,339 @@
+# winterbaume-iot
+
+AWS IoT service implementation for winterbaume.
+
+## Coverage
+
+| Metric | Value |
+|---|---|
+| Service | IoT |
+| AWS model | `iot` |
+| Protocol | restJson1 |
+| winterbaume coverage | 103/272 operations (37.9%) |
+| stubs (routed, returns empty/default) | 0/272 operations (0.0%) |
+| moto coverage | 100/272 operations (36.8%) |
+| floci coverage | 0/272 operations (0.0%) |
+| kumo coverage | 0/272 operations (0.0%) |
+| Coverage report date | 2026-05-06 |
+
+## Server-mode usage
+
+Start `winterbaume-server` and point the AWS CLI at it:
+
+```sh
+cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
+```
+
+```sh
+export AWS_ENDPOINT_URL=http://localhost:5555
+aws iot list-things
+```
+
+## Example
+
+```rust
+use aws_sdk_iot::config::BehaviorVersion;
+use winterbaume_core::MockAws;
+use winterbaume_iot::IotService;
+
+#[tokio::main]
+async fn main() {
+    let mock = MockAws::builder().with_service(IotService::new()).build();
+
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_iot::config::Region::new("us-east-1"))
+        .load()
+        .await;
+
+    let client = aws_sdk_iot::Client::new(&config);
+
+    let resp = client
+        .list_things()
+        .send()
+        .await
+        .expect("list_things should succeed");
+    println!("IoT things: {}", resp.things().len());
+}
+```
+
+## Implemented APIs (103)
+
+- `AddThingToBillingGroup`
+- `AddThingToThingGroup`
+- `AttachPolicy`
+- `AttachPrincipalPolicy`
+- `AttachThingPrincipal`
+- `CancelJob`
+- `CancelJobExecution`
+- `CreateBillingGroup`
+- `CreateCertificateFromCsr`
+- `CreateDomainConfiguration`
+- `CreateJob`
+- `CreateJobTemplate`
+- `CreateKeysAndCertificate`
+- `CreatePolicy`
+- `CreatePolicyVersion`
+- `CreateRoleAlias`
+- `CreateThing`
+- `CreateThingGroup`
+- `CreateThingType`
+- `CreateTopicRule`
+- `DeleteBillingGroup`
+- `DeleteCACertificate`
+- `DeleteCertificate`
+- `DeleteDomainConfiguration`
+- `DeleteJob`
+- `DeleteJobExecution`
+- `DeleteJobTemplate`
+- `DeletePolicy`
+- `DeletePolicyVersion`
+- `DeleteRoleAlias`
+- `DeleteThing`
+- `DeleteThingGroup`
+- `DeleteThingType`
+- `DeleteTopicRule`
+- `DeprecateThingType`
+- `DescribeBillingGroup`
+- `DescribeCACertificate`
+- `DescribeCertificate`
+- `DescribeDomainConfiguration`
+- `DescribeEndpoint`
+- `DescribeJob`
+- `DescribeJobExecution`
+- `DescribeJobTemplate`
+- `DescribeRoleAlias`
+- `DescribeThing`
+- `DescribeThingGroup`
+- `DescribeThingType`
+- `DetachPolicy`
+- `DetachPrincipalPolicy`
+- `DetachThingPrincipal`
+- `DisableTopicRule`
+- `EnableTopicRule`
+- `GetIndexingConfiguration`
+- `GetJobDocument`
+- `GetPolicy`
+- `GetPolicyVersion`
+- `GetRegistrationCode`
+- `GetTopicRule`
+- `ListAttachedPolicies`
+- `ListBillingGroups`
+- `ListCertificates`
+- `ListCertificatesByCA`
+- `ListDomainConfigurations`
+- `ListJobExecutionsForJob`
+- `ListJobExecutionsForThing`
+- `ListJobTemplates`
+- `ListJobs`
+- `ListPolicies`
+- `ListPolicyPrincipals`
+- `ListPolicyVersions`
+- `ListPrincipalPolicies`
+- `ListPrincipalThings`
+- `ListRoleAliases`
+- `ListTagsForResource`
+- `ListTargetsForPolicy`
+- `ListThingGroups`
+- `ListThingGroupsForThing`
+- `ListThingPrincipals`
+- `ListThingPrincipalsV2`
+- `ListThingTypes`
+- `ListThings`
+- `ListThingsInBillingGroup`
+- `ListThingsInThingGroup`
+- `ListTopicRules`
+- `RegisterCACertificate`
+- `RegisterCertificate`
+- `RegisterCertificateWithoutCA`
+- `RemoveThingFromBillingGroup`
+- `RemoveThingFromThingGroup`
+- `ReplaceTopicRule`
+- `SearchIndex`
+- `SetDefaultPolicyVersion`
+- `TagResource`
+- `UntagResource`
+- `UpdateBillingGroup`
+- `UpdateCACertificate`
+- `UpdateCertificate`
+- `UpdateDomainConfiguration`
+- `UpdateIndexingConfiguration`
+- `UpdateRoleAlias`
+- `UpdateThing`
+- `UpdateThingGroup`
+- `UpdateThingGroupsForThing`
+
+<details><summary>Not yet implemented APIs (169)</summary>
+
+- `AcceptCertificateTransfer`
+- `AssociateSbomWithPackageVersion`
+- `AssociateTargetsWithJob`
+- `AttachSecurityProfile`
+- `CancelAuditMitigationActionsTask`
+- `CancelAuditTask`
+- `CancelCertificateTransfer`
+- `CancelDetectMitigationActionsTask`
+- `ClearDefaultAuthorizer`
+- `ConfirmTopicRuleDestination`
+- `CreateAuditSuppression`
+- `CreateAuthorizer`
+- `CreateCertificateProvider`
+- `CreateCommand`
+- `CreateCustomMetric`
+- `CreateDimension`
+- `CreateDynamicThingGroup`
+- `CreateFleetMetric`
+- `CreateMitigationAction`
+- `CreateOTAUpdate`
+- `CreatePackage`
+- `CreatePackageVersion`
+- `CreateProvisioningClaim`
+- `CreateProvisioningTemplate`
+- `CreateProvisioningTemplateVersion`
+- `CreateScheduledAudit`
+- `CreateSecurityProfile`
+- `CreateStream`
+- `CreateTopicRuleDestination`
+- `DeleteAccountAuditConfiguration`
+- `DeleteAuditSuppression`
+- `DeleteAuthorizer`
+- `DeleteCertificateProvider`
+- `DeleteCommand`
+- `DeleteCommandExecution`
+- `DeleteCustomMetric`
+- `DeleteDimension`
+- `DeleteDynamicThingGroup`
+- `DeleteFleetMetric`
+- `DeleteMitigationAction`
+- `DeleteOTAUpdate`
+- `DeletePackage`
+- `DeletePackageVersion`
+- `DeleteProvisioningTemplate`
+- `DeleteProvisioningTemplateVersion`
+- `DeleteRegistrationCode`
+- `DeleteScheduledAudit`
+- `DeleteSecurityProfile`
+- `DeleteStream`
+- `DeleteTopicRuleDestination`
+- `DeleteV2LoggingLevel`
+- `DescribeAccountAuditConfiguration`
+- `DescribeAuditFinding`
+- `DescribeAuditMitigationActionsTask`
+- `DescribeAuditSuppression`
+- `DescribeAuditTask`
+- `DescribeAuthorizer`
+- `DescribeCertificateProvider`
+- `DescribeCustomMetric`
+- `DescribeDefaultAuthorizer`
+- `DescribeDetectMitigationActionsTask`
+- `DescribeDimension`
+- `DescribeEncryptionConfiguration`
+- `DescribeEventConfigurations`
+- `DescribeFleetMetric`
+- `DescribeIndex`
+- `DescribeManagedJobTemplate`
+- `DescribeMitigationAction`
+- `DescribeProvisioningTemplate`
+- `DescribeProvisioningTemplateVersion`
+- `DescribeScheduledAudit`
+- `DescribeSecurityProfile`
+- `DescribeStream`
+- `DescribeThingRegistrationTask`
+- `DetachSecurityProfile`
+- `DisassociateSbomFromPackageVersion`
+- `GetBehaviorModelTrainingSummaries`
+- `GetBucketsAggregation`
+- `GetCardinality`
+- `GetCommand`
+- `GetCommandExecution`
+- `GetEffectivePolicies`
+- `GetLoggingOptions`
+- `GetOTAUpdate`
+- `GetPackage`
+- `GetPackageConfiguration`
+- `GetPackageVersion`
+- `GetPercentiles`
+- `GetStatistics`
+- `GetThingConnectivityData`
+- `GetTopicRuleDestination`
+- `GetV2LoggingOptions`
+- `ListActiveViolations`
+- `ListAuditFindings`
+- `ListAuditMitigationActionsExecutions`
+- `ListAuditMitigationActionsTasks`
+- `ListAuditSuppressions`
+- `ListAuditTasks`
+- `ListAuthorizers`
+- `ListCACertificates`
+- `ListCertificateProviders`
+- `ListCommandExecutions`
+- `ListCommands`
+- `ListCustomMetrics`
+- `ListDetectMitigationActionsExecutions`
+- `ListDetectMitigationActionsTasks`
+- `ListDimensions`
+- `ListFleetMetrics`
+- `ListIndices`
+- `ListManagedJobTemplates`
+- `ListMetricValues`
+- `ListMitigationActions`
+- `ListOTAUpdates`
+- `ListOutgoingCertificates`
+- `ListPackageVersions`
+- `ListPackages`
+- `ListPrincipalThingsV2`
+- `ListProvisioningTemplateVersions`
+- `ListProvisioningTemplates`
+- `ListRelatedResourcesForAuditFinding`
+- `ListSbomValidationResults`
+- `ListScheduledAudits`
+- `ListSecurityProfiles`
+- `ListSecurityProfilesForTarget`
+- `ListStreams`
+- `ListTargetsForSecurityProfile`
+- `ListThingRegistrationTaskReports`
+- `ListThingRegistrationTasks`
+- `ListTopicRuleDestinations`
+- `ListV2LoggingLevels`
+- `ListViolationEvents`
+- `PutVerificationStateOnViolation`
+- `RegisterThing`
+- `RejectCertificateTransfer`
+- `SetDefaultAuthorizer`
+- `SetLoggingOptions`
+- `SetV2LoggingLevel`
+- `SetV2LoggingOptions`
+- `StartAuditMitigationActionsTask`
+- `StartDetectMitigationActionsTask`
+- `StartOnDemandAuditTask`
+- `StartThingRegistrationTask`
+- `StopThingRegistrationTask`
+- `TestAuthorization`
+- `TestInvokeAuthorizer`
+- `TransferCertificate`
+- `UpdateAccountAuditConfiguration`
+- `UpdateAuditSuppression`
+- `UpdateAuthorizer`
+- `UpdateCertificateProvider`
+- `UpdateCommand`
+- `UpdateCustomMetric`
+- `UpdateDimension`
+- `UpdateDynamicThingGroup`
+- `UpdateEncryptionConfiguration`
+- `UpdateEventConfigurations`
+- `UpdateFleetMetric`
+- `UpdateJob`
+- `UpdateMitigationAction`
+- `UpdatePackage`
+- `UpdatePackageConfiguration`
+- `UpdatePackageVersion`
+- `UpdateProvisioningTemplate`
+- `UpdateScheduledAudit`
+- `UpdateSecurityProfile`
+- `UpdateStream`
+- `UpdateThingType`
+- `UpdateTopicRuleDestination`
+- `ValidateSecurityProfileBehaviors`
+
+</details>

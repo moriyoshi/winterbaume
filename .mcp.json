@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "aws-documentation-mcp-server": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "awslabs.aws-documentation-mcp-server@latest"
+      ],
+      "env": {}
+    }
+  }
+}

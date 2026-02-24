@@ -1,0 +1,59 @@
+name: Deploy Docs
+
+on:
+  push:
+    tags:
+      - '*-v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build and publish VitePress docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: docs
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Validate Cloudflare Pages configuration
+        run: |
+          test -n "${{ vars.CLOUDFLARE_PAGES_PROJECT }}" || {
+            echo "Set the CLOUDFLARE_PAGES_PROJECT repository variable to your Cloudflare Pages project name." >&2
+            exit 1
+          }
+
+      - name: Install docs dependencies
+        working-directory: docs
+        run: npm ci
+
+      - name: Generate service pages
+        working-directory: docs
+        run: npm run generate
+
+      - name: Build VitePress site
+        working-directory: docs
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd  # v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy docs/.vitepress/dist --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          # gitHubToken enables GitHub Deployments tracking; the token is scoped
+          # to deployments:write only (see top-level permissions block).
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

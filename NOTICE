@@ -1,0 +1,75 @@
+Winterbaume
+Copyright 2025 Winterbaume contributors
+
+This product includes software developed at
+https://github.com/getmoto/moto
+
+=======================================================================
+Moto - Mock AWS Services
+=======================================================================
+
+Copyright 2012 Steve Pulec
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Winterbaume used moto as a reference implementation for AWS service
+mock behaviour and ported many of its Python test cases into Rust
+integration tests. The moto source is available at
+https://github.com/getmoto/moto.
+
+Moto is written by Steve Pulec with contributions from:
+
+  Zach Smith, Dilshod Tadjibaev, Dan Berglund, Lincoln de Sousa,
+  mhock, Ilya Sukhanov, Lucian Branescu Mihaila,
+  Konstantinos Koukopoulos, attili, JJ Zeng, Jon Haddad,
+  Andres Riancho, Michael Ossareh, JeffMGreg, Hugo Lopes Tavares,
+  Chris St. Pierre, Frank Mata, Clint Ecker, Richard Eames,
+  Kevin Glisson, Shawn Falkner-Horine, David Baumgold,
+  Rory-Finnegan, Bobby Impollonia, Ralfas, Omer Katz,
+  Joseph Lawson, Trey Tacon, Peter, Tyler Sanders, Gary Dalton,
+  Chris Henry, Mike Fuller, Andy, Mike Grima, Marco Rucci,
+  Zack Kourouma, Pior Bastida, Dustin J. Mitchell,
+  Jean-Baptiste Barth, Tom Viner, Justin Wiley, Adam Stauffer,
+  Guy Templeton, Michael van Tellingen, Jessie Nadler,
+  Alex Morken, Clive Li, Jim Shields, William Richard,
+  Alex Casalboni, Jon Beilke, Bendeguz Acs, Craig Anderson,
+  Robert Lewis, Kyle Jones, Mickaël Schoentgen, Ariel Beck,
+  Roman Rader, Bryan Chen, Jonas Bulik, Rita Cheung,
+  David Acevedo, Damon Williams
+
+The full contributor list is available at
+https://github.com/getmoto/moto/blob/master/AUTHORS.md.
+
+=======================================================================
+AWS API Models
+=======================================================================
+
+Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Winterbaume vendors a snapshot of the official AWS API Smithy models
+under vendor/api-models-aws/ to drive its in-tree wire-type and
+serialiser code generation. The upstream LICENSE and NOTICE files are
+preserved alongside the vendored models. The upstream source is
+available at https://github.com/aws/api-models-aws.

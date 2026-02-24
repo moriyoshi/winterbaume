@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify Publish Ready"
+  short_description: "Check release runbook readiness"
+  default_prompt: "Verify whether the current Winterbaume checkout satisfies the release runbook and publish-readiness gates."

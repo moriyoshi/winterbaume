@@ -1,0 +1,266 @@
+# winterbaume-rds
+
+RDS service implementation for winterbaume.
+
+## Coverage
+
+| Metric | Value |
+|---|---|
+| Service | RDS |
+| AWS model | `rds` |
+| Protocol | awsQuery |
+| winterbaume coverage | 146/164 operations (89.0%) |
+| stubs (routed, returns empty/default) | 4/164 operations (2.4%) |
+| moto coverage | 85/164 operations (51.8%) |
+| floci coverage | 0/164 operations (0.0%) |
+| kumo coverage | 12/164 operations (7.3%) |
+| Coverage report date | 2026-05-06 |
+
+## Server-mode usage
+
+Start `winterbaume-server` and point the AWS CLI at it:
+
+```sh
+cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
+```
+
+```sh
+export AWS_ENDPOINT_URL=http://localhost:5555
+aws rds describe-db-instances
+```
+
+## Current Network Resource Stub Semantics
+
+RDS currently stores database subnet groups and security group references inside RDS state.
+
+- DB subnet group operations store subnet IDs and return RDS-local subnet group data.
+- DB instances and clusters store DB subnet group names, classic DB security group names, and VPC security group IDs as request metadata.
+- Security group ingress operations record RDS-local authorisations and do not mutate EC2 security groups.
+- The implementation does not consult `winterbaume-ec2` state for these identifiers, so it does not check that referenced VPCs, subnets, security groups, VPC endpoints, network interfaces, or load balancers exist, belong to the same VPC, or are in a usable lifecycle state.
+
+## Example
+
+```rust
+use aws_sdk_rds::config::BehaviorVersion;
+use winterbaume_core::MockAws;
+use winterbaume_rds::RdsService;
+
+#[tokio::main]
+async fn main() {
+    let mock = MockAws::builder().with_service(RdsService::new()).build();
+
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_rds::config::Region::new("us-east-1"))
+        .load()
+        .await;
+
+    let client = aws_sdk_rds::Client::new(&config);
+
+    // Create a DB instance
+    let resp = client
+        .create_db_instance()
+        .db_instance_identifier("example-db")
+        .db_instance_class("db.t3.micro")
+        .engine("mysql")
+        .send()
+        .await
+        .expect("create_db_instance should succeed");
+
+    let inst = resp.db_instance().expect("should have db_instance");
+    println!(
+        "Created DB instance: {}",
+        inst.db_instance_identifier().unwrap_or_default()
+    );
+    println!("Engine: {}", inst.engine().unwrap_or_default());
+    println!("Status: {}", inst.db_instance_status().unwrap_or_default());
+    println!("ARN: {}", inst.db_instance_arn().unwrap_or_default());
+
+    // Describe DB instances
+    let desc = client
+        .describe_db_instances()
+        .send()
+        .await
+        .expect("describe_db_instances should succeed");
+
+    println!("\nTotal DB instances: {}", desc.db_instances().len());
+}
+```
+
+## Implemented APIs (146)
+
+- `AddRoleToDBCluster`
+- `AddRoleToDBInstance`
+- `AddSourceIdentifierToSubscription`
+- `AddTagsToResource`
+- `ApplyPendingMaintenanceAction`
+- `AuthorizeDBSecurityGroupIngress`
+- `BacktrackDBCluster`
+- `CancelExportTask`
+- `CopyDBClusterParameterGroup`
+- `CopyDBClusterSnapshot`
+- `CopyDBParameterGroup`
+- `CopyDBSnapshot`
+- `CopyOptionGroup`
+- `CreateBlueGreenDeployment`
+- `CreateDBCluster`
+- `CreateDBClusterEndpoint`
+- `CreateDBClusterParameterGroup`
+- `CreateDBClusterSnapshot`
+- `CreateDBInstance`
+- `CreateDBInstanceReadReplica`
+- `CreateDBParameterGroup`
+- `CreateDBProxy`
+- `CreateDBProxyEndpoint`
+- `CreateDBSecurityGroup`
+- `CreateDBShardGroup`
+- `CreateDBSnapshot`
+- `CreateDBSubnetGroup`
+- `CreateEventSubscription`
+- `CreateGlobalCluster`
+- `CreateOptionGroup`
+- `DeleteBlueGreenDeployment`
+- `DeleteDBCluster`
+- `DeleteDBClusterAutomatedBackup`
+- `DeleteDBClusterEndpoint`
+- `DeleteDBClusterParameterGroup`
+- `DeleteDBClusterSnapshot`
+- `DeleteDBInstance`
+- `DeleteDBInstanceAutomatedBackup`
+- `DeleteDBParameterGroup`
+- `DeleteDBProxy`
+- `DeleteDBProxyEndpoint`
+- `DeleteDBSecurityGroup`
+- `DeleteDBShardGroup`
+- `DeleteDBSnapshot`
+- `DeleteDBSubnetGroup`
+- `DeleteEventSubscription`
+- `DeleteGlobalCluster`
+- `DeleteOptionGroup`
+- `DeregisterDBProxyTargets`
+- `DescribeAccountAttributes`
+- `DescribeBlueGreenDeployments`
+- `DescribeDBClusterAutomatedBackups`
+- `DescribeDBClusterBacktracks`
+- `DescribeDBClusterEndpoints`
+- `DescribeDBClusterParameterGroups`
+- `DescribeDBClusterParameters`
+- `DescribeDBClusterSnapshotAttributes`
+- `DescribeDBClusterSnapshots`
+- `DescribeDBClusters`
+- `DescribeDBEngineVersions`
+- `DescribeDBInstanceAutomatedBackups`
+- `DescribeDBInstances`
+- `DescribeDBLogFiles`
+- `DescribeDBMajorEngineVersions`
+- `DescribeDBParameterGroups`
+- `DescribeDBParameters`
+- `DescribeDBProxies`
+- `DescribeDBProxyEndpoints`
+- `DescribeDBProxyTargetGroups`
+- `DescribeDBProxyTargets`
+- `DescribeDBRecommendations`
+- `DescribeDBSecurityGroups`
+- `DescribeDBShardGroups`
+- `DescribeDBSnapshotAttributes`
+- `DescribeDBSnapshotTenantDatabases`
+- `DescribeDBSnapshots`
+- `DescribeDBSubnetGroups`
+- `DescribeEngineDefaultClusterParameters`
+- `DescribeEngineDefaultParameters`
+- `DescribeEventCategories`
+- `DescribeEventSubscriptions`
+- `DescribeExportTasks`
+- `DescribeGlobalClusters`
+- `DescribeOptionGroups`
+- `DescribeOrderableDBInstanceOptions`
+- `DescribeReservedDBInstances`
+- `DescribeReservedDBInstancesOfferings`
+- `DescribeSourceRegions`
+- `DescribeValidDBInstanceModifications`
+- `DisableHttpEndpoint`
+- `DownloadDBLogFilePortion`
+- `EnableHttpEndpoint`
+- `FailoverDBCluster`
+- `FailoverGlobalCluster`
+- `ListTagsForResource`
+- `ModifyActivityStream`
+- `ModifyCertificates`
+- `ModifyCurrentDBClusterCapacity`
+- `ModifyDBCluster`
+- `ModifyDBClusterEndpoint`
+- `ModifyDBClusterParameterGroup`
+- `ModifyDBClusterSnapshotAttribute`
+- `ModifyDBInstance`
+- `ModifyDBParameterGroup`
+- `ModifyDBProxy`
+- `ModifyDBProxyEndpoint`
+- `ModifyDBProxyTargetGroup`
+- `ModifyDBShardGroup`
+- `ModifyDBSnapshot`
+- `ModifyDBSnapshotAttribute`
+- `ModifyDBSubnetGroup`
+- `ModifyEventSubscription`
+- `ModifyGlobalCluster`
+- `ModifyOptionGroup`
+- `PromoteReadReplica`
+- `PromoteReadReplicaDBCluster`
+- `RebootDBCluster`
+- `RebootDBInstance`
+- `RebootDBShardGroup`
+- `RegisterDBProxyTargets`
+- `RemoveFromGlobalCluster`
+- `RemoveRoleFromDBCluster`
+- `RemoveRoleFromDBInstance`
+- `RemoveSourceIdentifierFromSubscription`
+- `RemoveTagsFromResource`
+- `ResetDBClusterParameterGroup`
+- `ResetDBParameterGroup`
+- `RestoreDBClusterFromS3`
+- `RestoreDBClusterFromSnapshot`
+- `RestoreDBClusterToPointInTime`
+- `RestoreDBInstanceFromDBSnapshot`
+- `RestoreDBInstanceFromS3`
+- `RestoreDBInstanceToPointInTime`
+- `RevokeDBSecurityGroupIngress`
+- `StartActivityStream`
+- `StartDBCluster`
+- `StartDBInstance`
+- `StartDBInstanceAutomatedBackupsReplication`
+- `StartExportTask`
+- `StopActivityStream`
+- `StopDBCluster`
+- `StopDBInstance`
+- `StopDBInstanceAutomatedBackupsReplication`
+- `SwitchoverBlueGreenDeployment`
+- `SwitchoverGlobalCluster`
+- `SwitchoverReadReplica`
+
+<details><summary>Stubbed APIs (4) &mdash; routed but return an empty/default response</summary>
+
+- `DescribeCertificates`
+- `DescribeEvents`
+- `DescribeOptionGroupOptions`
+- `DescribePendingMaintenanceActions`
+
+</details>
+
+<details><summary>Not yet implemented APIs (14)</summary>
+
+- `CreateCustomDBEngineVersion`
+- `CreateIntegration`
+- `CreateTenantDatabase`
+- `DeleteCustomDBEngineVersion`
+- `DeleteIntegration`
+- `DeleteTenantDatabase`
+- `DescribeIntegrations`
+- `DescribeServerlessV2PlatformVersions`
+- `DescribeTenantDatabases`
+- `ModifyCustomDBEngineVersion`
+- `ModifyDBRecommendation`
+- `ModifyIntegration`
+- `ModifyTenantDatabase`
+- `PurchaseReservedDBInstancesOffering`
+
+</details>

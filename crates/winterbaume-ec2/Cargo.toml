@@ -1,0 +1,44 @@
+[package]
+name = "winterbaume-ec2"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "EC2/VPC service implementation for winterbaume"
+
+[dependencies]
+winterbaume-core = { workspace = true }
+winterbaume-ec2-generated = { version = "0.1.0", path = "../winterbaume-ec2-generated", default-features = false }
+tokio = { workspace = true }
+http = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+urlencoding = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[features]
+default = ["full"]
+full = [
+    "advanced-network",
+    "compute",
+    "extras",
+    "network",
+    "storage",
+]
+advanced-network = ["winterbaume-ec2-generated/advanced-network"]
+compute = ["winterbaume-ec2-generated/compute"]
+extras = ["winterbaume-ec2-generated/extras"]
+network = ["winterbaume-ec2-generated/network"]
+storage = ["winterbaume-ec2-generated/storage"]
+
+[dev-dependencies]
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true, features = ["test-util"] }
+aws-sdk-ec2 = { workspace = true }
+aws-smithy-runtime-api = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

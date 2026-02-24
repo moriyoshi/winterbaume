@@ -1,0 +1,329 @@
+[package]
+name = "winterbaume-server"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Standalone HTTP server for winterbaume AWS mock services"
+repository.workspace = true
+readme = "README.md"
+
+[[bin]]
+name = "winterbaume-server"
+path = "src/main.rs"
+
+# Optional backend features.
+#
+# Enable a feature to compile support for an alternative storage backend.
+# The backend is only activated at runtime when the corresponding CLI option,
+# environment variable, or config-file entry is provided.
+#
+#   cargo build --features backend-sqs-redis,backend-dynamodb-redis,backend-vfs-fs
+#
+# The DuckDB-backed Athena / Redshift Data SQL engine has two variants. Pick
+# at most one:
+#
+#   --features backend-sqlengine-duckdb-bundled
+#       Compiles DuckDB from source via the wrapper crate's `bundled` feature.
+#       Adds several minutes to a clean build but needs no system libraries.
+#
+#   --features backend-sqlengine-duckdb
+#       Links against a prebuilt libduckdb located via DUCKDB_LIB_DIR /
+#       DUCKDB_INCLUDE_DIR. Much faster to compile; used by CI.
+[features]
+default = ["backend-sqs-redis", "backend-dynamodb-redis", "backend-vfs-fs"]
+# Redis-backed SQS queue storage (via winterbaume-sqs-redis).
+backend-sqs-redis = ["dep:winterbaume-sqs-redis"]
+# Redis-backed DynamoDB table/item storage (via winterbaume-dynamodb-redis).
+backend-dynamodb-redis = ["dep:winterbaume-dynamodb-redis"]
+# Filesystem-backed VFS for S3/Glacier/EBS blob storage (uses FsVfs from
+# winterbaume-core; no extra crate dependency).
+backend-vfs-fs = []
+# DuckDB-backed SQL engine for Athena / Redshift Data, linking against a
+# prebuilt libduckdb (DUCKDB_LIB_DIR / DUCKDB_INCLUDE_DIR must be set at
+# build time).
+backend-sqlengine-duckdb = ["dep:winterbaume-sqlengine-duckdb"]
+# Same as `backend-sqlengine-duckdb` but enables the wrapper crate's
+# `bundled` feature, which compiles DuckDB from source with no system
+# dependencies. Significantly slower to build.
+backend-sqlengine-duckdb-bundled = [
+    "backend-sqlengine-duckdb",
+    "winterbaume-sqlengine-duckdb/bundled",
+]
+
+[dependencies]
+winterbaume-accessanalyzer = { workspace = true }
+winterbaume-aiops = { workspace = true }
+winterbaume-amplifybackend = { workspace = true }
+winterbaume-amplifyuibuilder = { workspace = true }
+winterbaume-appconfigdata = { workspace = true }
+winterbaume-appfabric = { workspace = true }
+winterbaume-appflow = { workspace = true }
+winterbaume-appintegrations = { workspace = true }
+winterbaume-applicationcostprofiler = { workspace = true }
+winterbaume-applicationdiscoveryservice = { workspace = true }
+winterbaume-applicationsignals = { workspace = true }
+winterbaume-arczonalshift = { workspace = true }
+winterbaume-artifact = { workspace = true }
+winterbaume-autoscalingplans = { workspace = true }
+winterbaume-backupgateway = { workspace = true }
+winterbaume-backupsearch = { workspace = true }
+winterbaume-bcmdashboards = { workspace = true }
+winterbaume-bcmdataexports = { workspace = true }
+winterbaume-bcmrecommendedactions = { workspace = true }
+winterbaume-dlm = { workspace = true }
+winterbaume-rbin = { workspace = true }
+winterbaume-savingsplans = { workspace = true }
+winterbaume-personalizeevents = { workspace = true }
+winterbaume-personalizeruntime = { workspace = true }
+winterbaume-pinpointsmsvoice = { workspace = true }
+winterbaume-pi = { workspace = true }
+winterbaume-trustedadvisor = { workspace = true }
+winterbaume-supportapp = { workspace = true }
+winterbaume-pricing = { workspace = true }
+winterbaume-freetier = { workspace = true }
+winterbaume-cloud9 = { workspace = true }
+winterbaume-s3outposts = { workspace = true }
+winterbaume-route53recoverycluster = { workspace = true }
+winterbaume-snowdevicemanagement = { workspace = true }
+winterbaume-simspaceweaver = { workspace = true }
+winterbaume-taxsettings = { workspace = true }
+winterbaume-ssmquicksetup = { workspace = true }
+winterbaume-pcaconnectorscep = { workspace = true }
+winterbaume-cloudfrontkeyvaluestore = { workspace = true }
+winterbaume-cloudtraildata = { workspace = true }
+winterbaume-cloudsearchdomain = { workspace = true }
+winterbaume-connectparticipant = { workspace = true }
+winterbaume-controlcatalog = { workspace = true }
+winterbaume-costandusagereport = { workspace = true }
+winterbaume-braket = { workspace = true }
+winterbaume-chimesdkmeetings = { workspace = true }
+winterbaume-cognitosync = { workspace = true }
+winterbaume-codestarnotifications = { workspace = true }
+winterbaume-codegurusecurity = { workspace = true }
+winterbaume-codegurureviewer = { workspace = true }
+winterbaume-connectcontactlens = { workspace = true }
+winterbaume-costoptimizationhub = { workspace = true }
+winterbaume-billing = { workspace = true }
+winterbaume-core = { workspace = true }
+winterbaume-sts = { workspace = true }
+winterbaume-iam = { workspace = true }
+winterbaume-s3 = { workspace = true }
+winterbaume-s3files = { workspace = true }
+winterbaume-sqs = { workspace = true }
+winterbaume-dynamodb = { workspace = true }
+winterbaume-kms = { workspace = true }
+winterbaume-ssm = { workspace = true }
+winterbaume-secretsmanager = { workspace = true }
+winterbaume-cloudwatchlogs = { workspace = true }
+winterbaume-sns = { workspace = true }
+winterbaume-lambda = { workspace = true }
+winterbaume-ecr = { workspace = true }
+winterbaume-eventbridge = { workspace = true }
+winterbaume-sfn = { workspace = true }
+winterbaume-route53 = { workspace = true }
+winterbaume-cloudwatch = { workspace = true }
+winterbaume-acm = { workspace = true }
+winterbaume-eks = { workspace = true }
+winterbaume-kinesis = { workspace = true }
+winterbaume-cloudformation = { workspace = true }
+winterbaume-cloudfront = { workspace = true }
+winterbaume-firehose = { workspace = true }
+winterbaume-fis = { workspace = true }
+winterbaume-cloudcontrol = { workspace = true }
+winterbaume-keyspaces = { workspace = true }
+winterbaume-rolesanywhere = { workspace = true }
+winterbaume-organizations = { workspace = true }
+winterbaume-ecs = { workspace = true }
+winterbaume-elasticache = { workspace = true }
+winterbaume-elasticloadbalancing = { workspace = true }
+winterbaume-elasticloadbalancingv2 = { workspace = true }
+winterbaume-apigateway = { workspace = true }
+winterbaume-apigatewaymanagement = { workspace = true }
+winterbaume-apigatewayv2 = { workspace = true }
+winterbaume-cognitoidentityprovider = { workspace = true }
+winterbaume-sesv2 = { workspace = true }
+winterbaume-ses = { workspace = true }
+winterbaume-ec2instanceconnect = { workspace = true }
+winterbaume-ec2 = { workspace = true }
+winterbaume-account = { workspace = true }
+winterbaume-codecommit = { workspace = true }
+winterbaume-rds = { workspace = true }
+winterbaume-rdsdata = { workspace = true }
+winterbaume-neptune = { workspace = true }
+winterbaume-redshift = { workspace = true }
+winterbaume-polly = { workspace = true }
+winterbaume-cloudtrail = { workspace = true }
+winterbaume-budgets = { workspace = true }
+winterbaume-glacier = { workspace = true }
+winterbaume-resourcegroups = { workspace = true }
+winterbaume-scheduler = { workspace = true }
+winterbaume-appconfig = { workspace = true }
+winterbaume-codebuild = { workspace = true }
+winterbaume-codepipeline = { workspace = true }
+winterbaume-athena = { workspace = true }
+winterbaume-auditmanager = { workspace = true }
+winterbaume-chatbot = { workspace = true }
+winterbaume-codeartifact = { workspace = true }
+winterbaume-xray = { workspace = true }
+winterbaume-signer = { workspace = true }
+winterbaume-pipes = { workspace = true }
+winterbaume-dax = { workspace = true }
+winterbaume-codedeploy = { workspace = true }
+winterbaume-cognitoidentity = { workspace = true }
+winterbaume-guardduty = { workspace = true }
+winterbaume-backup = { workspace = true }
+winterbaume-ivs = { workspace = true }
+winterbaume-wafv2 = { workspace = true }
+winterbaume-config = { workspace = true }
+winterbaume-securityhub = { workspace = true }
+winterbaume-inspector2 = { workspace = true }
+winterbaume-rekognition = { workspace = true }
+winterbaume-synthetics = { workspace = true }
+winterbaume-shield = { workspace = true }
+winterbaume-servicequotas = { workspace = true }
+winterbaume-ram = { workspace = true }
+winterbaume-macie2 = { workspace = true }
+winterbaume-comprehend = { workspace = true }
+winterbaume-transcribe = { workspace = true }
+winterbaume-textract = { workspace = true }
+winterbaume-forecast = { workspace = true }
+winterbaume-personalize = { workspace = true }
+winterbaume-route53resolver = { workspace = true }
+winterbaume-acmpca = { workspace = true }
+winterbaume-directconnect = { workspace = true }
+winterbaume-databasemigration = { workspace = true }
+winterbaume-directory = { workspace = true }
+winterbaume-mq = { workspace = true }
+winterbaume-transfer = { workspace = true }
+winterbaume-datasync = { workspace = true }
+winterbaume-servicediscovery = { workspace = true }
+winterbaume-identitystore = { workspace = true }
+winterbaume-efs = { workspace = true }
+winterbaume-support = { workspace = true }
+winterbaume-batch = { workspace = true }
+winterbaume-glue = { workspace = true }
+winterbaume-fsx = { workspace = true }
+winterbaume-memorydb = { workspace = true }
+winterbaume-ebs = { workspace = true }
+winterbaume-networkfirewall = { workspace = true }
+winterbaume-sagemaker = { workspace = true }
+winterbaume-appsync = { workspace = true }
+winterbaume-iot = { workspace = true }
+winterbaume-kafka = { workspace = true }
+winterbaume-lexmodelsv2 = { workspace = true }
+winterbaume-lakeformation = { workspace = true }
+winterbaume-amp = { workspace = true }
+winterbaume-opensearch = { workspace = true }
+winterbaume-opensearchserverless = { workspace = true }
+winterbaume-costexplorer = { workspace = true }
+winterbaume-bedrock = { workspace = true }
+winterbaume-clouddirectory = { workspace = true }
+winterbaume-cloudhsmv2 = { workspace = true }
+winterbaume-dynamodbstreams = { workspace = true }
+winterbaume-dsql = { workspace = true }
+winterbaume-databrew = { workspace = true }
+winterbaume-emr = { workspace = true }
+winterbaume-emrserverless = { workspace = true }
+winterbaume-workspaces = { workspace = true }
+winterbaume-emrcontainers = { workspace = true }
+winterbaume-bedrockagent = { workspace = true }
+winterbaume-connect = { workspace = true }
+winterbaume-kinesisanalyticsv2 = { workspace = true }
+winterbaume-appmesh = { workspace = true }
+winterbaume-greengrass = { workspace = true }
+winterbaume-networkmanager = { workspace = true }
+winterbaume-pinpoint = { workspace = true }
+winterbaume-swf = { workspace = true }
+winterbaume-redshiftdata = { workspace = true }
+winterbaume-mediaconnect = { workspace = true }
+winterbaume-medialive = { workspace = true }
+winterbaume-mediapackage = { workspace = true }
+winterbaume-managedblockchain = { workspace = true }
+winterbaume-resiliencehub = { workspace = true }
+winterbaume-quicksight = { workspace = true }
+winterbaume-vpclattice = { workspace = true }
+winterbaume-workspacesweb = { workspace = true }
+winterbaume-mediastore = { workspace = true }
+winterbaume-route53domains = { workspace = true }
+winterbaume-mediapackagev2 = { workspace = true }
+winterbaume-osis = { workspace = true }
+winterbaume-outposts = { workspace = true }
+winterbaume-servicecatalog = { workspace = true }
+winterbaume-timestreamwrite = { workspace = true }
+winterbaume-connectcampaigns = { workspace = true }
+winterbaume-kinesisvideo = { workspace = true }
+winterbaume-sso = { workspace = true }
+winterbaume-ssoadmin = { workspace = true }
+winterbaume-servicecatalogappregistry = { workspace = true }
+winterbaume-timestreamquery = { workspace = true }
+winterbaume-timestreaminfluxdb = { workspace = true }
+winterbaume-marketplacemetering = { workspace = true }
+winterbaume-sagemakermetrics = { workspace = true }
+winterbaume-sagemakerruntime = { workspace = true }
+winterbaume-iotdataplane = { workspace = true }
+winterbaume-kinesisvideoarchivedmedia = { workspace = true }
+winterbaume-resourcegroupstagging = { workspace = true }
+winterbaume-applicationautoscaling = { workspace = true }
+winterbaume-autoscaling = { workspace = true }
+winterbaume-mediastoredata = { workspace = true }
+winterbaume-simpledbv2 = { workspace = true }
+winterbaume-datapipeline = { workspace = true }
+winterbaume-s3control = { workspace = true }
+winterbaume-s3vectors = { workspace = true }
+winterbaume-s3tables = { workspace = true }
+winterbaume-panorama = { workspace = true }
+winterbaume-elasticbeanstalk = { workspace = true }
+winterbaume-apprunner = { workspace = true }
+winterbaume-amplify = { workspace = true }
+winterbaume-tfstate = { workspace = true }
+winterbaume-terraform = { workspace = true }
+winterbaume-sqs-redis = { workspace = true, optional = true }
+winterbaume-dynamodb-redis = { workspace = true, optional = true }
+# The workspace entry already pins `default-features = false`; the
+# `backend-sqlengine-duckdb` / `-bundled` features below are what decide
+# whether DuckDB is compiled from source or linked against a prebuilt
+# libduckdb located via DUCKDB_LIB_DIR / DUCKDB_INCLUDE_DIR.
+winterbaume-sqlengine-duckdb = { workspace = true, optional = true }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+toml = "0.8"
+clap = { version = "4", features = ["derive", "env"] }
+serde_json = { workspace = true }
+bytes = { workspace = true }
+http = { workspace = true }
+http-body-util = "0.1"
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+regex = { workspace = true }
+
+[dev-dependencies]
+# AWS SDK clients for the DuckDB round-trip integration test.
+# These are only used when the test is compiled, which itself is gated by the
+# `backend-sqlengine-duckdb` (or `-bundled`) feature.
+aws-config = { workspace = true }
+aws-sdk-athena = { workspace = true }
+aws-sdk-redshiftdata = { workspace = true }
+aws-credential-types = { workspace = true, features = ["test-util"] }
+
+[lints]
+workspace = true
+
+# Release builds via cargo-dist link DuckDB statically by enabling the
+# `backend-sqlengine-duckdb-bundled` feature. This keeps the public binary
+# self-contained ( SQL execution works out of the box ) without forcing the
+# slow source build on local `cargo build` / `cargo test`, which still use
+# the lean default feature set.
+[package.metadata.dist]
+features = ["backend-sqlengine-duckdb-bundled"]
+
+# DuckDB round-trip integration test.
+# Gate the [[test]] entry on the feature flag so a default `cargo test -p
+# winterbaume-server` does not pull DuckDB just to skip the file at compile
+# time.
+[[test]]
+name = "duckdb_round_trip"
+path = "tests/duckdb_round_trip.rs"
+required-features = ["backend-sqlengine-duckdb"]

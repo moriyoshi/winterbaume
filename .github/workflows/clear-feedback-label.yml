@@ -1,0 +1,47 @@
+name: Clear feedback label on reporter response
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [edited]
+
+permissions:
+  issues: write
+
+jobs:
+  clear:
+    if: >-
+      github.event.issue.state == 'open' &&
+      !github.event.issue.pull_request &&
+      github.event.sender.login == github.event.issue.user.login &&
+      contains(github.event.issue.labels.*.name, 'feedback') &&
+      !contains(github.event.issue.labels.*.name, 'possible-abuse')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
+        with:
+          script: |
+            const issue = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+            };
+            try {
+              await github.rest.issues.removeLabel({ ...issue, name: 'feedback' });
+              core.info('Removed feedback label after reporter response.');
+            } catch (err) {
+              if (err.status === 404) {
+                core.info('Feedback label was already gone.');
+                return;
+              }
+              throw err;
+            }
+            // If a stale warning had already been posted, drop the stale label too
+            // so the reporter's response is treated as a clean restart.
+            try {
+              await github.rest.issues.removeLabel({ ...issue, name: 'stale' });
+              core.info('Cleared stale label as well.');
+            } catch (err) {
+              if (err.status !== 404) throw err;
+            }

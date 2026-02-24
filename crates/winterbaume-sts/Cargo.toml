@@ -1,0 +1,31 @@
+[package]
+name = "winterbaume-sts"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "STS service mock implementation for winterbaume"
+
+[dependencies]
+winterbaume-core = { workspace = true }
+
+tokio = { workspace = true }
+bytes = { workspace = true }
+http = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+quick-xml = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true, features = ["test-util"] }
+aws-sdk-sts = { workspace = true }
+aws-smithy-runtime-api = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

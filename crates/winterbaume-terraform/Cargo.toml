@@ -1,0 +1,185 @@
+[package]
+name = "winterbaume-terraform"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Terraform state injection and extraction for winterbaume"
+
+[dependencies]
+winterbaume-tfstate = { workspace = true }
+winterbaume-core = { workspace = true }
+winterbaume-accessanalyzer = { workspace = true }
+winterbaume-acm = { workspace = true }
+winterbaume-apprunner = { workspace = true }
+winterbaume-amplify = { workspace = true }
+winterbaume-appfabric = { workspace = true }
+winterbaume-appflow = { workspace = true }
+winterbaume-applicationcostprofiler = { workspace = true }
+winterbaume-apigatewayv2 = { workspace = true }
+winterbaume-appsync = { workspace = true }
+winterbaume-athena = { workspace = true }
+winterbaume-auditmanager = { workspace = true }
+winterbaume-autoscaling = { workspace = true }
+winterbaume-backup = { workspace = true }
+winterbaume-batch = { workspace = true }
+winterbaume-chatbot = { workspace = true }
+winterbaume-cloudformation = { workspace = true }
+winterbaume-cloudfront = { workspace = true }
+winterbaume-cloudtrail = { workspace = true }
+winterbaume-cloudwatch = { workspace = true }
+winterbaume-codebuild = { workspace = true }
+winterbaume-codeartifact = { workspace = true }
+winterbaume-codecommit = { workspace = true }
+winterbaume-codedeploy = { workspace = true }
+winterbaume-codepipeline = { workspace = true }
+winterbaume-cognitoidentityprovider = { workspace = true }
+winterbaume-config = { workspace = true }
+winterbaume-dynamodb = { workspace = true }
+winterbaume-ec2 = { workspace = true }
+winterbaume-ecr = { workspace = true }
+winterbaume-ecs = { workspace = true }
+winterbaume-efs = { workspace = true }
+winterbaume-elasticache = { workspace = true }
+winterbaume-eks = { workspace = true }
+winterbaume-elasticloadbalancingv2 = { workspace = true }
+winterbaume-emr = { workspace = true }
+winterbaume-eventbridge = { workspace = true }
+winterbaume-firehose = { workspace = true }
+winterbaume-fis = { workspace = true }
+winterbaume-keyspaces = { workspace = true }
+winterbaume-rolesanywhere = { workspace = true }
+winterbaume-glue = { workspace = true }
+winterbaume-iam = { workspace = true }
+winterbaume-kafka = { workspace = true }
+winterbaume-kinesis = { workspace = true }
+winterbaume-kms = { workspace = true }
+winterbaume-lambda = { workspace = true }
+winterbaume-cloudwatchlogs = { workspace = true }
+winterbaume-opensearch = { workspace = true }
+winterbaume-opensearchserverless = { workspace = true }
+winterbaume-organizations = { workspace = true }
+winterbaume-rds = { workspace = true }
+winterbaume-redshift = { workspace = true }
+winterbaume-route53 = { workspace = true }
+winterbaume-s3 = { workspace = true }
+winterbaume-scheduler = { workspace = true }
+winterbaume-secretsmanager = { workspace = true }
+winterbaume-sesv2 = { workspace = true }
+winterbaume-ses = { workspace = true }
+winterbaume-sns = { workspace = true }
+winterbaume-sqs = { workspace = true }
+winterbaume-ssm = { workspace = true }
+winterbaume-ssoadmin = { workspace = true }
+winterbaume-sfn = { workspace = true }
+winterbaume-wafv2 = { workspace = true }
+winterbaume-workspaces = { workspace = true }
+winterbaume-account = { workspace = true }
+winterbaume-acmpca = { workspace = true }
+winterbaume-amp = { workspace = true }
+winterbaume-apigateway = { workspace = true }
+winterbaume-appconfig = { workspace = true }
+winterbaume-applicationautoscaling = { workspace = true }
+winterbaume-appmesh = { workspace = true }
+winterbaume-bedrock = { workspace = true }
+winterbaume-bedrockagent = { workspace = true }
+winterbaume-budgets = { workspace = true }
+winterbaume-cloudhsmv2 = { workspace = true }
+winterbaume-cognitoidentity = { workspace = true }
+winterbaume-comprehend = { workspace = true }
+winterbaume-connect = { workspace = true }
+winterbaume-costexplorer = { workspace = true }
+winterbaume-databasemigration = { workspace = true }
+winterbaume-datapipeline = { workspace = true }
+winterbaume-datasync = { workspace = true }
+winterbaume-dax = { workspace = true }
+winterbaume-directconnect = { workspace = true }
+winterbaume-directory = { workspace = true }
+winterbaume-dsql = { workspace = true }
+winterbaume-ebs = { workspace = true }
+winterbaume-ec2instanceconnect = { workspace = true }
+winterbaume-elasticbeanstalk = { workspace = true }
+winterbaume-elasticloadbalancing = { workspace = true }
+winterbaume-emrcontainers = { workspace = true }
+winterbaume-emrserverless = { workspace = true }
+winterbaume-fsx = { workspace = true }
+winterbaume-glacier = { workspace = true }
+winterbaume-guardduty = { workspace = true }
+winterbaume-identitystore = { workspace = true }
+winterbaume-inspector2 = { workspace = true }
+winterbaume-iot = { workspace = true }
+winterbaume-ivs = { workspace = true }
+winterbaume-kinesisanalyticsv2 = { workspace = true }
+winterbaume-kinesisvideo = { workspace = true }
+winterbaume-lakeformation = { workspace = true }
+winterbaume-lexmodelsv2 = { workspace = true }
+winterbaume-macie2 = { workspace = true }
+winterbaume-medialive = { workspace = true }
+winterbaume-mediapackage = { workspace = true }
+winterbaume-mediapackagev2 = { workspace = true }
+winterbaume-mediastore = { workspace = true }
+winterbaume-memorydb = { workspace = true }
+winterbaume-mq = { workspace = true }
+winterbaume-neptune = { workspace = true }
+winterbaume-networkfirewall = { workspace = true }
+winterbaume-networkmanager = { workspace = true }
+winterbaume-osis = { workspace = true }
+winterbaume-outposts = { workspace = true }
+winterbaume-pinpoint = { workspace = true }
+winterbaume-pipes = { workspace = true }
+winterbaume-quicksight = { workspace = true }
+winterbaume-ram = { workspace = true }
+winterbaume-rekognition = { workspace = true }
+winterbaume-resiliencehub = { workspace = true }
+winterbaume-resourcegroups = { workspace = true }
+winterbaume-route53domains = { workspace = true }
+winterbaume-route53resolver = { workspace = true }
+winterbaume-s3control = { workspace = true }
+winterbaume-s3tables = { workspace = true }
+winterbaume-sagemaker = { workspace = true }
+winterbaume-securityhub = { workspace = true }
+winterbaume-servicecatalog = { workspace = true }
+winterbaume-servicecatalogappregistry = { workspace = true }
+winterbaume-servicediscovery = { workspace = true }
+winterbaume-servicequotas = { workspace = true }
+winterbaume-shield = { workspace = true }
+winterbaume-signer = { workspace = true }
+winterbaume-simpledbv2 = { workspace = true }
+winterbaume-swf = { workspace = true }
+winterbaume-synthetics = { workspace = true }
+winterbaume-timestreaminfluxdb = { workspace = true }
+winterbaume-timestreamquery = { workspace = true }
+winterbaume-timestreamwrite = { workspace = true }
+winterbaume-transcribe = { workspace = true }
+winterbaume-transfer = { workspace = true }
+winterbaume-vpclattice = { workspace = true }
+winterbaume-xray = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true, features = ["test-util"] }
+aws-sdk-s3 = { workspace = true }
+aws-sdk-iam = { workspace = true }
+aws-sdk-sqs = { workspace = true }
+aws-sdk-ec2 = { workspace = true }
+aws-sdk-appflow = { workspace = true }
+winterbaume-amplify = { workspace = true }
+winterbaume-apprunner = { workspace = true }
+winterbaume-chatbot = { workspace = true }
+winterbaume-sts = { workspace = true }
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1"
+http = { workspace = true }
+bytes = { workspace = true }
+regex = { workspace = true }
+
+[lints]
+workspace = true

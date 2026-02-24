@@ -1,0 +1,213 @@
+# winterbaume-ssm
+
+SSM service implementation for winterbaume.
+
+## Coverage
+
+| Metric | Value |
+|---|---|
+| Service | SSM |
+| AWS model | `ssm` |
+| Protocol | awsJson1.1 |
+| winterbaume coverage | 127/146 operations (87.0%) |
+| stubs (routed, returns empty/default) | 19/146 operations (13.0%) |
+| moto coverage | 41/146 operations (28.1%) |
+| floci coverage | 0/146 operations (0.0%) |
+| kumo coverage | 7/146 operations (4.8%) |
+| Coverage report date | 2026-05-06 |
+
+## Server-mode usage
+
+Start `winterbaume-server` and point the AWS CLI at it:
+
+```sh
+cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
+```
+
+```sh
+export AWS_ENDPOINT_URL=http://localhost:5555
+aws ssm describe-parameters
+```
+
+## Example
+
+```rust
+use aws_sdk_ssm::config::BehaviorVersion;
+use winterbaume_core::MockAws;
+use winterbaume_ssm::SsmService;
+
+#[tokio::main]
+async fn main() {
+    let mock = MockAws::builder().with_service(SsmService::new()).build();
+
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_ssm::config::Region::new("us-east-1"))
+        .load()
+        .await;
+
+    let client = aws_sdk_ssm::Client::new(&config);
+
+    let resp = client
+        .describe_parameters()
+        .send()
+        .await
+        .expect("describe_parameters should succeed");
+    println!("SSM parameters: {}", resp.parameters().len());
+}
+```
+
+## Implemented APIs (127)
+
+- `AddTagsToResource`
+- `AssociateOpsItemRelatedItem`
+- `CancelCommand`
+- `CancelMaintenanceWindowExecution`
+- `CreateActivation`
+- `CreateAssociation`
+- `CreateAssociationBatch`
+- `CreateDocument`
+- `CreateMaintenanceWindow`
+- `CreateOpsItem`
+- `CreateOpsMetadata`
+- `CreatePatchBaseline`
+- `CreateResourceDataSync`
+- `DeleteActivation`
+- `DeleteAssociation`
+- `DeleteDocument`
+- `DeleteInventory`
+- `DeleteMaintenanceWindow`
+- `DeleteOpsItem`
+- `DeleteOpsMetadata`
+- `DeleteParameter`
+- `DeleteParameters`
+- `DeletePatchBaseline`
+- `DeleteResourceDataSync`
+- `DeleteResourcePolicy`
+- `DeregisterManagedInstance`
+- `DeregisterPatchBaselineForPatchGroup`
+- `DeregisterTargetFromMaintenanceWindow`
+- `DeregisterTaskFromMaintenanceWindow`
+- `DescribeActivations`
+- `DescribeAssociation`
+- `DescribeAssociationExecutionTargets`
+- `DescribeAssociationExecutions`
+- `DescribeDocument`
+- `DescribeDocumentPermission`
+- `DescribeEffectivePatchesForPatchBaseline`
+- `DescribeInstanceInformation`
+- `DescribeInstanceProperties`
+- `DescribeInventoryDeletions`
+- `DescribeMaintenanceWindowExecutionTaskInvocations`
+- `DescribeMaintenanceWindowExecutionTasks`
+- `DescribeMaintenanceWindowExecutions`
+- `DescribeMaintenanceWindowSchedule`
+- `DescribeMaintenanceWindowTargets`
+- `DescribeMaintenanceWindowTasks`
+- `DescribeMaintenanceWindows`
+- `DescribeMaintenanceWindowsForTarget`
+- `DescribeOpsItems`
+- `DescribeParameters`
+- `DescribePatchBaselines`
+- `DescribePatchGroupState`
+- `DescribePatchGroups`
+- `DescribeSessions`
+- `DisassociateOpsItemRelatedItem`
+- `GetCommandInvocation`
+- `GetConnectionStatus`
+- `GetDefaultPatchBaseline`
+- `GetDeployablePatchSnapshotForInstance`
+- `GetDocument`
+- `GetInventory`
+- `GetInventorySchema`
+- `GetMaintenanceWindow`
+- `GetMaintenanceWindowExecution`
+- `GetMaintenanceWindowExecutionTask`
+- `GetMaintenanceWindowExecutionTaskInvocation`
+- `GetMaintenanceWindowTask`
+- `GetOpsItem`
+- `GetOpsMetadata`
+- `GetOpsSummary`
+- `GetParameter`
+- `GetParameterHistory`
+- `GetParameters`
+- `GetParametersByPath`
+- `GetPatchBaseline`
+- `GetPatchBaselineForPatchGroup`
+- `GetResourcePolicies`
+- `GetServiceSetting`
+- `LabelParameterVersion`
+- `ListAssociationVersions`
+- `ListAssociations`
+- `ListCommandInvocations`
+- `ListCommands`
+- `ListComplianceItems`
+- `ListComplianceSummaries`
+- `ListDocumentMetadataHistory`
+- `ListDocumentVersions`
+- `ListDocuments`
+- `ListInventoryEntries`
+- `ListNodes`
+- `ListNodesSummary`
+- `ListOpsItemEvents`
+- `ListOpsItemRelatedItems`
+- `ListOpsMetadata`
+- `ListResourceComplianceSummaries`
+- `ListResourceDataSync`
+- `ListTagsForResource`
+- `ModifyDocumentPermission`
+- `PutComplianceItems`
+- `PutInventory`
+- `PutParameter`
+- `PutResourcePolicy`
+- `RegisterDefaultPatchBaseline`
+- `RegisterPatchBaselineForPatchGroup`
+- `RegisterTargetWithMaintenanceWindow`
+- `RegisterTaskWithMaintenanceWindow`
+- `RemoveTagsFromResource`
+- `ResetServiceSetting`
+- `ResumeSession`
+- `SendCommand`
+- `StartAssociationsOnce`
+- `StartSession`
+- `TerminateSession`
+- `UnlabelParameterVersion`
+- `UpdateAssociation`
+- `UpdateAssociationStatus`
+- `UpdateDocument`
+- `UpdateDocumentDefaultVersion`
+- `UpdateDocumentMetadata`
+- `UpdateMaintenanceWindow`
+- `UpdateMaintenanceWindowTarget`
+- `UpdateMaintenanceWindowTask`
+- `UpdateManagedInstanceRole`
+- `UpdateOpsItem`
+- `UpdateOpsMetadata`
+- `UpdatePatchBaseline`
+- `UpdateResourceDataSync`
+- `UpdateServiceSetting`
+
+<details><summary>Stubbed APIs (19) &mdash; routed but return an empty/default response</summary>
+
+- `DescribeAutomationExecutions`
+- `DescribeAutomationStepExecutions`
+- `DescribeAvailablePatches`
+- `DescribeEffectiveInstanceAssociations`
+- `DescribeInstanceAssociationsStatus`
+- `DescribeInstancePatchStates`
+- `DescribeInstancePatchStatesForPatchGroup`
+- `DescribeInstancePatches`
+- `DescribePatchProperties`
+- `GetAccessToken`
+- `GetAutomationExecution`
+- `GetCalendarState`
+- `GetExecutionPreview`
+- `SendAutomationSignal`
+- `StartAccessRequest`
+- `StartAutomationExecution`
+- `StartChangeRequestExecution`
+- `StartExecutionPreview`
+- `StopAutomationExecution`
+
+</details>

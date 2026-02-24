@@ -1,0 +1,123 @@
+name: Record issue outcome
+
+on:
+  issues:
+    types: [closed]
+
+permissions:
+  # contents: write is required to push to the memory/triage branch. The
+  # GITHUB_TOKEN cannot be scoped below repository level, so this is an
+  # accepted risk. Enforce branch-protection rules on `main` to prevent the
+  # bot from writing to the source tree.
+  contents: write
+  issues: read
+
+concurrency:
+  group: memory-triage-write
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: >-
+      ${{ !github.event.issue.pull_request &&
+          !contains(github.event.issue.labels.*.name, 'possible-abuse') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build outcome record
+        id: build
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const issue = context.payload.issue;
+            const labels = (issue.labels || []).map(l => l.name);
+
+            // Pull the most recent comment by anyone other than the reporter as
+            // a proxy for "closing context". Cheaper than reading the timeline.
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              per_page: 100,
+            });
+            const reporter = issue.user.login;
+            const lastNonReporter = [...comments].reverse().find(c => c.user.login !== reporter);
+            const closingExcerpt = lastNonReporter
+              ? lastNonReporter.body.slice(0, 500)
+              : null;
+
+            // Detect KB cross-references in any comment body.
+            const kbRefs = new Set();
+            const issueRef = /#(\d+)/g;
+            for (const c of comments) {
+              for (const m of c.body.matchAll(issueRef)) {
+                kbRefs.add(Number(m[1]));
+              }
+            }
+
+            const record = {
+              schema: 'outcomes/v1',
+              timestamp: new Date().toISOString(),
+              issue: issue.number,
+              author: reporter,
+              title: issue.title,
+              state_reason: issue.state_reason,
+              final_labels: labels,
+              had_feedback_label: labels.includes('feedback'),
+              had_stale_label: labels.includes('stale'),
+              closing_comment_excerpt: closingExcerpt,
+              kb_referenced: [...kbRefs],
+              created_at: issue.created_at,
+              closed_at: issue.closed_at,
+            };
+            const outDir = path.join(process.env.RUNNER_TEMP, 'outcome-record');
+            fs.mkdirSync(outDir, { recursive: true });
+            fs.writeFileSync(path.join(outDir, 'record.json'), JSON.stringify(record));
+
+      - name: Append to memory/triage branch
+        env:
+          RECORD_PATH: ${{ runner.temp }}/outcome-record/record.json
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config --global user.name 'winterbaume-triage-bot'
+          git config --global user.email 'winterbaume-triage-bot@users.noreply.github.com'
+
+          work="$RUNNER_TEMP/memory-triage"
+          rm -rf "$work"
+          if ! git clone --depth 1 --branch memory/triage \
+                 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+                 "$work" 2>/dev/null; then
+            echo "Branch memory/triage does not yet exist. The triage recorder bootstraps it; skipping outcome record." >&2
+            exit 0
+          fi
+
+          cd "$work"
+          month="$(date -u +%Y-%m)"
+          target="outcomes/${month}.jsonl"
+          # Materialise the record line once; we re-append it on every retry to
+          # layer on top of whatever the rebase pulled in, rather than replace it.
+          line="$(python3 -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1])), separators=(",", ":")))' "$RECORD_PATH")"
+
+          # Retry on push race with the triage recorder. Each attempt resets to
+          # the latest remote tip and re-appends our line, so concurrent writers
+          # to the same JSONL layer cleanly instead of clobbering each other.
+          for attempt in 1 2 3 4 5; do
+            mkdir -p "$(dirname "$target")"
+            printf '%s\n' "$line" >> "$target"
+            git add "$target"
+            if git diff --cached --quiet; then
+              echo "No changes to commit."
+              exit 0
+            fi
+            git commit -m "outcomes: append record for #${{ github.event.issue.number }}"
+            if git push origin memory/triage; then
+              exit 0
+            fi
+            echo "Push failed (attempt ${attempt}); rebasing and retrying."
+            git fetch origin memory/triage
+            git reset --hard origin/memory/triage
+          done
+          echo "Failed to push after 5 attempts." >&2
+          exit 1

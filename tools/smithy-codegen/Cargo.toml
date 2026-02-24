@@ -1,0 +1,18 @@
+[package]
+name = "smithy-codegen"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Generates winterbaume handler scaffolding from Smithy 2.0 JSON API models"
+
+[[bin]]
+name = "smithy-codegen"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+heck = "0.5"

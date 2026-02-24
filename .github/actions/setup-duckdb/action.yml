@@ -1,0 +1,41 @@
+name: Setup prebuilt DuckDB
+description: >-
+  Download the prebuilt libduckdb release for Linux amd64, verify its
+  SHA-256 checksum, and export DUCKDB_LIB_DIR / DUCKDB_INCLUDE_DIR /
+  LD_LIBRARY_PATH so duckdb-rs links against the prebuilt instead of
+  recompiling DuckDB from source.
+
+inputs:
+  version:
+    description: DuckDB release tag (without the leading "v").
+    required: false
+    default: "1.5.1"
+  sha256:
+    description: SHA-256 of libduckdb-linux-amd64.zip.
+    required: false
+    default: "21aec66a60eae1696270ba715a481ab066a88d99a62718d0577579ac1a7a4834"
+
+runs:
+  using: composite
+  steps:
+    - name: Download and verify libduckdb
+      shell: bash
+      run: |
+        set -euo pipefail
+        version="${{ inputs.version }}"
+        expected_sha="${{ inputs.sha256 }}"
+        dest="${RUNNER_TEMP}/libduckdb"
+        archive="${RUNNER_TEMP}/libduckdb-linux-amd64.zip"
+        url="https://github.com/duckdb/duckdb/releases/download/v${version}/libduckdb-linux-amd64.zip"
+
+        mkdir -p "${dest}"
+        curl --proto '=https' --tlsv1.2 -fsSL -o "${archive}" "${url}"
+        echo "${expected_sha}  ${archive}" | sha256sum -c -
+        unzip -o -q "${archive}" -d "${dest}"
+        rm -f "${archive}"
+
+        {
+          echo "DUCKDB_LIB_DIR=${dest}"
+          echo "DUCKDB_INCLUDE_DIR=${dest}"
+          echo "LD_LIBRARY_PATH=${dest}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+        } >> "${GITHUB_ENV}"

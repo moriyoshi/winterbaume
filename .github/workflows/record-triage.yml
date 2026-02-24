@@ -1,0 +1,126 @@
+name: Record triage decision
+
+on:
+  workflow_run:
+    workflows: ["Triage bug report"]
+    types: [completed]
+
+permissions:
+  actions: read  # required to download artifacts from the triggering workflow_run
+  # contents: write is required to push to the memory/triage branch. The
+  # GITHUB_TOKEN cannot be scoped below repository level, so this is an
+  # accepted risk. Enforce branch-protection rules on `main` to prevent the
+  # bot from writing to the source tree.
+  #
+  # Dependency chain: triage-bug.yml uploads the triage-record artifact, and
+  # this workflow downloads and commits it. If triage-bug.yml were compromised,
+  # the artifact contents could be attacker-controlled. The append-only JSONL
+  # write to memory/triage is the blast radius; no code path executes the
+  # artifact contents.
+  contents: write
+
+concurrency:
+  group: memory-triage-write
+  cancel-in-progress: false
+
+jobs:
+  record:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download triage record
+        id: download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          name: triage-record
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: ${{ runner.temp }}/triage-record
+        continue-on-error: true
+
+      - name: Skip if no artifact
+        id: check
+        run: |
+          if [ ! -s "$RUNNER_TEMP/triage-record/record.json" ]; then
+            echo "No triage-record artifact (workflow likely had no actionable bug). Skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Append to memory/triage branch
+        if: steps.check.outputs.skip == 'false'
+        env:
+          RECORD_PATH: ${{ runner.temp }}/triage-record/record.json
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config --global user.name 'winterbaume-triage-bot'
+          git config --global user.email 'winterbaume-triage-bot@users.noreply.github.com'
+
+          work="$RUNNER_TEMP/memory-triage"
+          rm -rf "$work"
+          git clone --depth 1 --branch memory/triage \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "$work" 2>/dev/null || {
+              echo "Branch memory/triage does not exist; bootstrapping."
+              git clone --depth 1 \
+                "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+                "$work"
+              cd "$work"
+              git checkout --orphan memory/triage
+              git rm -rf . >/dev/null 2>&1 || true
+              cat > README.md <<'EOF'
+          # winterbaume triage memory
+
+          This branch is the bug-triage bot's working memory. **It is bot-owned.** Do not edit by hand.
+
+          - `triage-log/YYYY-MM.jsonl` -- one JSON record per triage workflow run. Two schemas appear in this file:
+            - `triage-log/v1` -- ordinary triage decision ( verdict ∈ `ready` / `needs-feedback` / `not-a-bug` ), populated by the AI triage step.
+            - `guardrail-flag/v1` -- prompt-injection guardrail flagged the issue ( verdict `abuse` ); the AI triage step is skipped, so this is the only audit record produced for that issue.
+          - `outcomes/YYYY-MM.jsonl` -- one record per closed issue (final labels, closing comment excerpt).
+
+          Both files are append-only and rotated monthly. Schemas live in the `schema` field of each record.
+
+          Writers:
+          - `.github/workflows/record-triage.yml`
+          - `.github/workflows/record-outcome.yml`
+
+          Reader: the triage workflow's pinned GitHub MCP server (`get_file_contents`, `ref: memory/triage`).
+          EOF
+              git add README.md
+              git commit -m 'Initialise memory/triage branch'
+              cd -
+            }
+
+          cd "$work"
+          # Ensure we're on the right branch even if the clone path took the bootstrap branch.
+          git checkout memory/triage 2>/dev/null || true
+
+          month="$(date -u +%Y-%m)"
+          target="triage-log/${month}.jsonl"
+          # Materialise the record line once; we re-append it on every retry to
+          # layer on top of whatever the rebase pulled in, rather than replace it.
+          line="$(python3 -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1])), separators=(",", ":")))' "$RECORD_PATH")"
+
+          # Retry on push race with the outcome recorder. Each attempt resets to
+          # the latest remote tip and re-appends our line, so concurrent writers
+          # to the same JSONL layer cleanly instead of clobbering each other.
+          for attempt in 1 2 3 4 5; do
+            mkdir -p "$(dirname "$target")"
+            printf '%s\n' "$line" >> "$target"
+            git add "$target"
+            if git diff --cached --quiet; then
+              echo "No changes to commit."
+              exit 0
+            fi
+            git commit -m "triage-log: append record for issue from run ${{ github.event.workflow_run.id }}"
+            if git push origin memory/triage; then
+              exit 0
+            fi
+            echo "Push failed (attempt ${attempt}); rebasing and retrying."
+            git fetch origin memory/triage
+            git reset --hard origin/memory/triage
+          done
+          echo "Failed to push after 5 attempts." >&2
+          exit 1

@@ -1,0 +1,30 @@
+[package]
+name = "winterbaume-transcribe"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Transcribe service implementation for winterbaume"
+
+[dependencies]
+winterbaume-core = { workspace = true }
+tokio = { workspace = true }
+bytes = { workspace = true }
+http = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true, features = ["test-util"] }
+aws-sdk-transcribe = { workspace = true }
+aws-smithy-runtime-api = { workspace = true }
+aws-smithy-types = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

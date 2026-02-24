@@ -1,0 +1,120 @@
+[env]
+SCCACHE_WRAPPER = { value = "{{config_root}}/target/debug/sccache-wrapper{% if os() == 'windows' %}.exe{% endif %}" }
+RELEASE_BATCH = { value = "{{config_root}}/target/debug/release-batch{% if os() == 'windows' %}.exe{% endif %}" }
+WB_WORKSPACE_ROOT = { value = "{{config_root}}" }
+WB_RUSTC_CACHE_DIR = { value = "{{config_root}}/.agents-workspace/tmp/winterbaume-rustc-cache" }
+WB_SCCACHE_WRAPPER_SCOREBOARD = { value = "{{config_root}}/.agents-workspace/tmp/sccache-wrapper-scoreboard" }
+DUCKDB_VERSION = "1.5.2"
+DUCKDB_LIB_DIR = { value = "{{config_root}}/.agents-workspace/tmp/duckdb-lib" }
+DUCKDB_INCLUDE_DIR = { value = "{{config_root}}/.agents-workspace/tmp/duckdb-lib" }
+
+[tasks.build-sccache-wrapper]
+env = {
+  CARGO_TARGET_DIR = "{{config_root}}/target"
+}
+run = '''
+if [ ! -e "{{config_root}}/target/debug/sccache-wrapper" ]; then RUSTC_WRAPPER= cargo build -p sccache-wrapper; fi'''
+run_windows = '''
+if (Test-Path "{{config_root}}/target/debug/sccache-wrapper.exe") { $env:RUSTC_WRAPPER = ""; cargo build -p sccache-wrapper }
+'''
+sources = [
+  "{{config_root}}/tools/sccache-wrapper/src/*.rs",
+]
+outputs = [
+  "{{config_root}}/target/debug/sccache-wrapper{% if os() == 'windows' %}.exe{% endif %}",
+]
+
+[tasks.build-release-batch]
+env = {
+  CARGO_TARGET_DIR = "{{config_root}}/target"
+}
+run = '''
+if [ ! -e "{{config_root}}/target/debug/release-batch" ]; then RUSTC_WRAPPER= cargo build -p release-batch; fi'''
+run_windows = '''
+if (Test-Path "{{config_root}}/target/debug/release-batch.exe") { $env:RUSTC_WRAPPER = ""; cargo build -p release-batch }
+'''
+sources = [
+  "{{config_root}}/tools/release-batch/src/*.rs",
+]
+outputs = [
+  "{{config_root}}/target/debug/release-batch{% if os() == 'windows' %}.exe{% endif %}",
+]
+
+[tasks.download-duckdb-binary]
+run = '''
+[ ! -e "${DUCKDB_LIB_DIR}/duckdb.h" ] || exit 0
+case "{{os()}}" in
+  macos)
+    url="https://install.duckdb.org/v${DUCKDB_VERSION}/libduckdb-osx-universal.zip"
+    ;;
+  linux)
+    url="https://install.duckdb.org/v${DUCKDB_VERSION}/libduckdb-linux-{{arch()}}.zip"
+    ;;
+esac
+out="{{config_root}}/.agents-workspace/tmp/duckdb.zip"
+mkdir -p "${DUCKDB_LIB_DIR}"
+curl -o "${out}" "${url}" && (cd "${DUCKDB_LIB_DIR}" && unzip "${out}")
+'''
+run_windows = '''
+if (Test-Path "$env:DUCKDB_LIB_DIR/duckdb.h") { exit 0 }
+$url = "https://install.duckdb.org/v$env:DUCKDB_VERSION/libduckdb-windows-amd64.zip"
+$out = "{{config_root}}/.agents-workspace/tmp/duckdb.zip"
+New-Item -ItemType Directory -Force -Path $env:DUCKDB_LIB_DIR | Out-Null
+Invoke-WebRequest -Uri $url -OutFile $out
+Expand-Archive -Path $out -DestinationPath $env:DUCKDB_LIB_DIR -Force
+'''
+outputs = [
+  "{{env.DUCKDB_LIB_DIR}}/{% if os() == 'windows' %}duckdb.dll{% elif os() == 'macosx' %}libduckdb.dylib{% else %}libduckdb.so{% endif %}",
+  "{{env.DUCKDB_LIB_DIR}}/duckdb.h",
+  "{{env.DUCKDB_LIB_DIR}}/duckdb.hpp",
+]
+
+[tasks.build]
+env = {
+  RUSTC_WRAPPER = "{{env.SCCACHE_WRAPPER}}",
+  CARGO_INCREMENTAL = "0",
+}
+depends = ["build-sccache-wrapper", "download-duckdb-binary"]
+run = "cargo build -p winterbaume-server --features=backend-sqs-redis,backend-dynamodb-redis,backend-vfs-fs,backend-sqlengine-duckdb"
+
+[tasks.clippy]
+env = {
+  RUSTC_WRAPPER = "{{env.SCCACHE_WRAPPER}}",
+  CARGO_INCREMENTAL = "0",
+}
+depends = ["build-sccache-wrapper", "download-duckdb-binary"]
+usage = '''
+arg "crate" help = "Target crate"
+'''
+
+run = "cargo clippy {% if usage.crate %}-p {{ usage.crate }}{% else %}--workspace{% endif %} --all-targets -- -D warnings"
+
+[tasks.test]
+env = {
+  RUSTC_WRAPPER = "{{env.SCCACHE_WRAPPER}}",
+  CARGO_INCREMENTAL = "0",
+}
+depends = ["build-sccache-wrapper", "download-duckdb-binary"]
+usage = '''
+arg "crate" help = "Target crate"
+'''
+
+run = "${SCCACHE_WRAPPER} test {% if usage.crate %}-p {{ usage.crate }}{% else %}--workspace{% endif %} --all-targets -- --ignored"
+
+[tasks.dump-cache]
+depends = ["build-sccache-wrapper"]
+run = "${SCCACHE_WRAPPER} --dump-cache"
+run_windows = "& $env:SCCACHE_WRAPPER --dump-cache"
+
+[tasks.show-scoreboard]
+depends = ["build-sccache-wrapper"]
+run = "${SCCACHE_WRAPPER} --show-scoreboard"
+run_windows = "& $env:SCCACHE_WRAPPER --show-scoreboard"
+
+[tasks.release]
+usage = '''
+arg "[options]" var=#true
+'''
+depends = ["build-release-batch"]
+run = "${RELEASE_BATCH} --sign ${usage_options[@]}"
+run_windows = "& $env:RELEASE_BATCH --sign ${usage_options[@]}"

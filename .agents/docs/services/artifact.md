@@ -1,0 +1,136 @@
+# AWS Artifact
+
+Source: AWS Smithy API model vendored in `vendor/api-models-aws`.
+
+## Service Overview
+
+This reference provides descriptions of the low-level AWS Artifact Service API.
+
+## Possible Usage Scenarios
+- Scenario insight from EC2: exercise account or service defaults for AWS Artifact by toggling configuration, creating later resources without explicit overrides, and confirming the default propagates into those resources.
+- From the AWS documentation and model: retrieve compliance reports, agreement metadata, and customer agreement documents for audit and procurement workflows.
+- From the operation surface: model report discovery, agreement acceptance/termination, account or organisation agreement state, and long-lived compliance evidence retrieval.
+
+## Service Identity and Protocol
+
+- AWS model slug: `artifact`
+- AWS SDK for Rust slug: `artifact`
+- Model version: `2018-05-10`
+- Model file: `vendor/api-models-aws/models/artifact/service/2018-05-10/artifact-2018-05-10.json`
+- SDK ID: `Artifact`
+- Endpoint prefix: `-`
+- ARN namespace: `artifact`
+- CloudFormation name: `-`
+- CloudTrail event source: `artifact.amazonaws.com`
+- Protocols: `restJson1`
+- Auth schemes: `sigv4`
+- Endpoint rule parameters: `Endpoint`, `Region`, `UseDualStack`, `UseFIPS`
+
+## Behavioural Model Notes
+
+- Operation surface is concentrated in these families: `Get` (4), `List` (3), `Put` (1).
+- State-changing operations should define resource existence, duplicate, conflict, and deletion semantics: `PutAccountSettings`.
+- Read/list operations should define not-found behaviour, filtering, ordering, and empty-result shapes: `GetAccountSettings`, `GetReport`, `GetReportMetadata`, `GetTermForReport`, `ListCustomerAgreements`, `ListReportVersions`, `ListReports`.
+- Pagination is modelled for 3 operations; token stability and page boundaries are observable API behaviour.
+- Idempotency is explicit for 1 operations; repeated calls with the same token should preserve AWS-compatible outcomes.
+- Asynchronous or job-like operations need lifecycle states, polling semantics, and terminal failure modelling: `GetReport`, `GetReportMetadata`, `GetTermForReport`, `ListReportVersions`, `ListReports`.
+- 8 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
+
+
+## Resource Model
+
+| Resource | Identifiers | Lifecycle operations | Other operations | Documentation cue |
+|---|---|---|---|---|
+| `AccountSettingsResource` | - | - | `GetAccountSettings`, `PutAccountSettings` | - |
+| `CustomerAgreementResource` | - | - | `ListCustomerAgreements` | - |
+| `ReportResource` | `reportId` | read: `GetReportMetadata`; list: `ListReports` | `GetReport`, `GetTermForReport`, `ListReportVersions` | - |
+| `TermResource` | `termId` | - | - | - |
+
+## Official AWS Documentation Research
+
+Sources:
+- https://docs.aws.amazon.com/artifact/latest/ug/what-is-aws-artifact.html
+- https://docs.aws.amazon.com/artifact/latest/ug/managing-agreements.html
+- https://docs.aws.amazon.com/artifact/latest/ug/accept-org-agreement.html
+
+Research outcomes:
+- AWS Artifact provides on-demand access to AWS security and compliance reports, certifications, and agreements.
+- Account agreements can be accepted, terminated, and reactivated for a single AWS account.
+- Organisation agreements can be accepted by management account owners and apply to member accounts when AWS Organizations all-features mode is enabled.
+- Terminating an organisation agreement removes member-account coverage.
+- Agreement access and report access are controlled by IAM permissions.
+- Agreements and reports are compliance artefacts, not resource deployments.
+
+Parity implications:
+- Model reports, report packages, agreements, account agreement state, organisation agreement state, terms acceptance, and termination separately.
+- Organisation agreement acceptance should depend on management-account context and organisation feature mode.
+- Report retrieval should enforce IAM access without creating cloud resources.
+
+## Operation Groups
+
+### Get
+
+- Operations: `GetAccountSettings`, `GetReport`, `GetReportMetadata`, `GetTermForReport`
+- Traits: `readonly` (4)
+- Common required input members in this group: `reportId`, `termToken`
+
+### List
+
+- Operations: `ListCustomerAgreements`, `ListReportVersions`, `ListReports`
+- Traits: `paginated` (3), `readonly` (3)
+- Common required input members in this group: `reportId`
+
+### Put
+
+- Operations: `PutAccountSettings`
+- Traits: `idempotent` (1)
+
+## Operation Detail Matrix
+
+| Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
+|---|---|---|---|---|---|---|---|
+| `GetAccountSettings` | `GET /v1/account-settings/get` | `readonly` | - | - | `GetAccountSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Get the account settings for Artifact. |
+| `GetReport` | `GET /v1/report/get` | `readonly` | `reportId`, `termToken` | - | `GetReportResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Get the content for a single report. |
+| `GetReportMetadata` | `GET /v1/report/getMetadata` | `readonly` | `reportId` | - | `GetReportMetadataResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Get the metadata for a single report. |
+| `GetTermForReport` | `GET /v1/report/getTermForReport` | `readonly` | `reportId` | - | `GetTermForReportResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Get the Term content associated with a single report. |
+| `ListCustomerAgreements` | `GET /v1/customer-agreement/list` | `readonly`, `paginated` | - | - | `ListCustomerAgreementsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List active customer-agreements applicable to calling identity. |
+| `ListReportVersions` | `GET /v1/report/listVersions` | `readonly`, `paginated` | `reportId` | - | `ListReportVersionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | List available report versions for a given report. |
+| `ListReports` | `GET /v1/report/list` | `readonly`, `paginated` | - | - | `ListReportsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | List available reports. |
+| `PutAccountSettings` | `PUT /v1/account-settings/put` | `idempotent` | - | - | `PutAccountSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Put the account settings for Artifact. |
+
+## Important Shapes
+
+| Shape | Type | Members | Documentation cue |
+|---|---|---|---|
+| `AccessDeniedException` | `structure` | `message` | User does not have sufficient access to perform this action. |
+| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | An unknown server exception has occurred. |
+| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | Request was denied due to request throttling. |
+| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | Request fails to satisfy the constraints specified by an AWS service. |
+| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | Request references a resource which does not exist. |
+| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | Request would cause a service quota to be exceeded. |
+| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | Request to create/modify content would result in a conflict. |
+| `GetAccountSettingsRequest` | `structure` | - | - |
+| `GetAccountSettingsResponse` | `structure` | `accountSettings` | - |
+| `GetReportRequest` | `structure` | `reportId`, `reportVersion`, `termToken` | - |
+| `GetReportResponse` | `structure` | `documentPresignedUrl` | - |
+| `GetReportMetadataRequest` | `structure` | `reportId`, `reportVersion` | - |
+| `GetReportMetadataResponse` | `structure` | `reportDetails` | - |
+| `GetTermForReportRequest` | `structure` | `reportId`, `reportVersion` | - |
+| `GetTermForReportResponse` | `structure` | `documentPresignedUrl`, `termToken` | - |
+| `ListCustomerAgreementsRequest` | `structure` | `maxResults`, `nextToken` | - |
+| `ListCustomerAgreementsResponse` | `structure` | `customerAgreements`, `nextToken` | - |
+| `ListReportVersionsRequest` | `structure` | `maxResults`, `nextToken`, `reportId` | - |
+| `ListReportVersionsResponse` | `structure` | `nextToken`, `reports` | - |
+| `ListReportsRequest` | `structure` | `maxResults`, `nextToken` | - |
+| `ListReportsResponse` | `structure` | `nextToken`, `reports` | - |
+| `PutAccountSettingsRequest` | `structure` | `notificationSubscriptionStatus` | - |
+| `PutAccountSettingsResponse` | `structure` | `accountSettings` | - |
+
+## Research Checklist for Parity Work
+
+- Confirm lifecycle transitions for every create/update/delete/start/stop operation.
+- Confirm exact not-found, already-exists, conflict, validation, throttling, and access-denied error names.
+- Confirm pagination token format, result ordering, default limits, and empty collection shape.
+- Confirm idempotency-token behaviour, especially mismatched replay parameters.
+- Confirm cross-service identifiers such as ARNs, IAM roles, KMS keys, S3 buckets, VPC resources, and logging destinations.
+- Confirm whether read APIs are derived from customer-managed state, AWS-managed catalogues, telemetry, recommendations, or asynchronous jobs.

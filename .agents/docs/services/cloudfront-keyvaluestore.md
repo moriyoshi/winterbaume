@@ -1,0 +1,116 @@
+# Amazon CloudFront KeyValueStore
+
+Source: AWS Smithy API model vendored in `vendor/api-models-aws`.
+
+## Service Overview
+
+Amazon CloudFront KeyValueStore Service to View and Update Data in a KVS Resource
+
+## Possible Usage Scenarios
+- From the AWS documentation and model: represent documented Amazon CloudFront KeyValueStore workflows in the local mock. Include service-managed state, documented errors, pagination, and asynchronous job state where the model exposes them.
+- From the operation surface: model lifecycle workflows that provision, inspect, update, and clean up service resources across the `Delete`, `Describe`, `Get`, `List`, `Put` operation families, including `DeleteKey`, `DescribeKeyValueStore`, `GetKey`, `ListKeys`, `PutKey`, `UpdateKeys`.
+
+## Service Identity and Protocol
+
+- AWS model slug: `cloudfront-keyvaluestore`
+- AWS SDK for Rust slug: `cloudfrontkeyvaluestore`
+- Model version: `2022-07-26`
+- Model file: `vendor/api-models-aws/models/cloudfront-keyvaluestore/service/2022-07-26/cloudfront-keyvaluestore-2022-07-26.json`
+- SDK ID: `CloudFront KeyValueStore`
+- Endpoint prefix: `cloudfront-keyvaluestore`
+- ARN namespace: `key-value-store`
+- CloudFormation name: `-`
+- CloudTrail event source: `-`
+- Protocols: `restJson1`
+- Auth schemes: `sigv4`
+- Endpoint rule parameters: `Endpoint`, `KvsARN`, `Region`, `UseFIPS`
+
+## Behavioural Model Notes
+
+- Operation surface is concentrated in these families: `Delete` (1), `Describe` (1), `Get` (1), `List` (1), `Put` (1), `Update` (1).
+- State-changing operations should define resource existence, duplicate, conflict, and deletion semantics: `DeleteKey`, `PutKey`, `UpdateKeys`.
+- Read/list operations should define not-found behaviour, filtering, ordering, and empty-result shapes: `DescribeKeyValueStore`, `GetKey`, `ListKeys`.
+- Pagination is modelled for 1 operations; token stability and page boundaries are observable API behaviour.
+- Idempotency is explicit for 3 operations; repeated calls with the same token should preserve AWS-compatible outcomes.
+- 6 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
+
+## Operation Groups
+
+### Delete
+
+- Operations: `DeleteKey`
+- Traits: `idempotent` (1)
+- Common required input members in this group: `IfMatch`, `Key`, `KvsARN`
+
+### Describe
+
+- Operations: `DescribeKeyValueStore`
+- Traits: `readonly` (1)
+- Common required input members in this group: `KvsARN`
+
+### Get
+
+- Operations: `GetKey`
+- Traits: `readonly` (1)
+- Common required input members in this group: `Key`, `KvsARN`
+
+### List
+
+- Operations: `ListKeys`
+- Traits: `paginated` (1), `readonly` (1)
+- Common required input members in this group: `KvsARN`
+
+### Put
+
+- Operations: `PutKey`
+- Traits: `idempotent` (1)
+- Common required input members in this group: `IfMatch`, `Key`, `KvsARN`, `Value`
+
+### Update
+
+- Operations: `UpdateKeys`
+- Traits: `idempotent` (1)
+- Common required input members in this group: `IfMatch`, `KvsARN`
+
+## Operation Detail Matrix
+
+| Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
+|---|---|---|---|---|---|---|---|
+| `DeleteKey` | `DELETE /key-value-stores/{KvsARN}/keys/{Key}` | `idempotent` | `IfMatch`, `Key`, `KvsARN` | - | `DeleteKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Deletes the key value pair specified by the key. |
+| `DescribeKeyValueStore` | `GET /key-value-stores/{KvsARN}` | `readonly` | `KvsARN` | - | `DescribeKeyValueStoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Returns metadata information about Key Value Store. |
+| `GetKey` | `GET /key-value-stores/{KvsARN}/keys/{Key}` | `readonly` | `Key`, `KvsARN` | - | `GetKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Returns a key value pair. |
+| `ListKeys` | `GET /key-value-stores/{KvsARN}/keys` | `readonly`, `paginated` | `KvsARN` | - | `ListKeysResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of key value pairs. |
+| `PutKey` | `PUT /key-value-stores/{KvsARN}/keys/{Key}` | `idempotent` | `IfMatch`, `Key`, `KvsARN`, `Value` | - | `PutKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new key value pair or replaces the value of an existing key. |
+| `UpdateKeys` | `POST /key-value-stores/{KvsARN}/keys` | `idempotent` | `IfMatch`, `KvsARN` | - | `UpdateKeysResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Puts or Deletes multiple key value pairs in a single, all-or-nothing operation. |
+
+## Important Shapes
+
+| Shape | Type | Members | Documentation cue |
+|---|---|---|---|
+| `AccessDeniedException` | `structure` | `Message` | Access denied. |
+| `ConflictException` | `structure` | `Message` | Resource is not in expected state. |
+| `InternalServerException` | `structure` | `Message` | Internal server error. |
+| `ResourceNotFoundException` | `structure` | `Message` | Resource was not found. |
+| `ValidationException` | `structure` | `Message` | Validation failed. |
+| `ServiceQuotaExceededException` | `structure` | `Message` | Limit exceeded. |
+| `DeleteKeyRequest` | `structure` | `IfMatch`, `Key`, `KvsARN` | - |
+| `DeleteKeyResponse` | `structure` | `ETag`, `ItemCount`, `TotalSizeInBytes` | Metadata information about a Key Value Store. |
+| `DescribeKeyValueStoreRequest` | `structure` | `KvsARN` | - |
+| `DescribeKeyValueStoreResponse` | `structure` | `Created`, `ETag`, `FailureReason`, `ItemCount`, `KvsARN`, `LastModified`, `Status`, `TotalSizeInBytes` | Metadata information about a Key Value Store. |
+| `GetKeyRequest` | `structure` | `Key`, `KvsARN` | - |
+| `GetKeyResponse` | `structure` | `ItemCount`, `Key`, `TotalSizeInBytes`, `Value` | A key value pair. |
+| `ListKeysRequest` | `structure` | `KvsARN`, `MaxResults`, `NextToken` | - |
+| `ListKeysResponse` | `structure` | `Items`, `NextToken` | - |
+| `PutKeyRequest` | `structure` | `IfMatch`, `Key`, `KvsARN`, `Value` | A key value pair. |
+| `PutKeyResponse` | `structure` | `ETag`, `ItemCount`, `TotalSizeInBytes` | Metadata information about a Key Value Store. |
+| `UpdateKeysRequest` | `structure` | `Deletes`, `IfMatch`, `KvsARN`, `Puts` | - |
+| `UpdateKeysResponse` | `structure` | `ETag`, `ItemCount`, `TotalSizeInBytes` | Metadata information about a Key Value Store. |
+
+## Research Checklist for Parity Work
+
+- Confirm lifecycle transitions for every create/update/delete/start/stop operation.
+- Confirm exact not-found, already-exists, conflict, validation, throttling, and access-denied error names.
+- Confirm pagination token format, result ordering, default limits, and empty collection shape.
+- Confirm idempotency-token behaviour, especially mismatched replay parameters.
+- Confirm cross-service identifiers such as ARNs, IAM roles, KMS keys, S3 buckets, VPC resources, and logging destinations.
+- Confirm whether read APIs are derived from customer-managed state, AWS-managed catalogues, telemetry, recommendations, or asynchronous jobs.

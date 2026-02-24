@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate Changelog"
+  short_description: "Generate root and per-crate changelogs from cargo-dist release tags."
+  default_prompt: "Generate or update the root umbrella CHANGELOG.md and per-crate changelogs for independently released winterbaume crates."

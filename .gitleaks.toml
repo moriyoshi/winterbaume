@@ -1,0 +1,13 @@
+title = "Winterbaume gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Self-signed test fixtures used by the ACM test suite. These are bogus PEM private keys with no production value."
+paths = [
+    '''^crates/winterbaume-acm/tests/resources/star_moto_com\.key$''',
+    '''^crates/winterbaume-acm/tests/resources/star_moto_com_ec_prime256v1\.key$''',
+    '''^crates/winterbaume-e2e-tests/tests/terraform/acm\.rs$''',
+    '''^tests/e2e/terraform/acm\.rs$''',
+]

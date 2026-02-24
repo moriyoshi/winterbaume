@@ -1,0 +1,492 @@
+name: Feature request
+description: Request a new AWS operation, new service, or behaviour parity improvement in winterbaume.
+title: "[feat] <short summary>"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. Please pick the affected AWS service below — this drives auto-labelling so the right area gets triaged. Slugs follow the AWS SDK for Rust crate-name convention (the `aws-sdk-<slug>` suffix). If the service is not yet implemented in winterbaume, that's fine; this template covers both new-service requests and additions to existing services.
+  - type: dropdown
+    id: service
+    attributes:
+      label: Affected AWS service
+      description: AWS SDK for Rust slug (the suffix of the `aws-sdk-<slug>` crate). One of these is required.
+      options:
+        - accessanalyzer
+        - account
+        - acm
+        - acmpca
+        - aiops
+        - amp
+        - amplify
+        - amplifybackend
+        - amplifyuibuilder
+        - apigateway
+        - apigatewaymanagement
+        - apigatewayv2
+        - appconfig
+        - appconfigdata
+        - appfabric
+        - appflow
+        - appintegrations
+        - applicationautoscaling
+        - applicationcostprofiler
+        - applicationdiscovery
+        - applicationinsights
+        - applicationsignals
+        - appmesh
+        - apprunner
+        - appstream
+        - appsync
+        - arcregionswitch
+        - arczonalshift
+        - artifact
+        - athena
+        - auditmanager
+        - autoscaling
+        - autoscalingplans
+        - b2bi
+        - backup
+        - backupgateway
+        - backupsearch
+        - batch
+        - bcmdashboards
+        - bcmdataexports
+        - bcmpricingcalculator
+        - bcmrecommendedactions
+        - bedrock
+        - bedrockagent
+        - bedrockagentcore
+        - bedrockagentcorecontrol
+        - bedrockagentruntime
+        - bedrockdataautomation
+        - bedrockdataautomationruntime
+        - bedrockruntime
+        - billing
+        - billingconductor
+        - braket
+        - budgets
+        - chatbot
+        - chime
+        - chimesdkidentity
+        - chimesdkmediapipelines
+        - chimesdkmeetings
+        - chimesdkmessaging
+        - chimesdkvoice
+        - cleanrooms
+        - cleanroomsml
+        - cloud9
+        - cloudcontrol
+        - clouddirectory
+        - cloudformation
+        - cloudfront
+        - cloudfrontkeyvaluestore
+        - cloudhsm
+        - cloudhsmv2
+        - cloudsearch
+        - cloudsearchdomain
+        - cloudtrail
+        - cloudtraildata
+        - cloudwatch
+        - cloudwatchevents
+        - cloudwatchlogs
+        - codeartifact
+        - codebuild
+        - codecatalyst
+        - codecommit
+        - codeconnections
+        - codedeploy
+        - codeguruprofiler
+        - codegurureviewer
+        - codegurusecurity
+        - codepipeline
+        - codestarconnections
+        - codestarnotifications
+        - cognitoidentity
+        - cognitoidentityprovider
+        - cognitosync
+        - comprehend
+        - comprehendmedical
+        - computeoptimizer
+        - computeoptimizerautomation
+        - config
+        - connect
+        - connectcampaigns
+        - connectcampaignsv2
+        - connectcases
+        - connectcontactlens
+        - connecthealth
+        - connectparticipant
+        - controlcatalog
+        - controltower
+        - costandusagereport
+        - costexplorer
+        - costoptimizationhub
+        - customerprofiles
+        - databasemigration
+        - databrew
+        - dataexchange
+        - datapipeline
+        - datasync
+        - datazone
+        - dax
+        - deadline
+        - detective
+        - devicefarm
+        - devopsagent
+        - devopsguru
+        - directconnect
+        - directory
+        - directoryservicedata
+        - dlm
+        - docdb
+        - docdbelastic
+        - drs
+        - dsql
+        - dynamodb
+        - dynamodbstreams
+        - ebs
+        - ec2
+        - ec2instanceconnect
+        - ecr
+        - ecrpublic
+        - ecs
+        - efs
+        - eks
+        - eksauth
+        - elasticache
+        - elasticbeanstalk
+        - elasticloadbalancing
+        - elasticloadbalancingv2
+        - elasticsearch
+        - elastictranscoder
+        - elementalinference
+        - emr
+        - emrcontainers
+        - emrserverless
+        - entityresolution
+        - eventbridge
+        - evs
+        - finspace
+        - finspacedata
+        - firehose
+        - fis
+        - fms
+        - forecast
+        - forecastquery
+        - frauddetector
+        - freetier
+        - fsx
+        - gamelift
+        - gameliftstreams
+        - geomaps
+        - geoplaces
+        - georoutes
+        - glacier
+        - globalaccelerator
+        - glue
+        - grafana
+        - greengrass
+        - greengrassv2
+        - groundstation
+        - guardduty
+        - health
+        - healthlake
+        - iam
+        - identitystore
+        - imagebuilder
+        - inspector
+        - inspector2
+        - inspectorscan
+        - interconnect
+        - internetmonitor
+        - invoicing
+        - iot
+        - iotdataplane
+        - iotdeviceadvisor
+        - iotevents
+        - ioteventsdata
+        - iotfleetwise
+        - iotjobsdataplane
+        - iotmanagedintegrations
+        - iotsecuretunneling
+        - iotsitewise
+        - iotthingsgraph
+        - iottwinmaker
+        - iotwireless
+        - ivs
+        - ivschat
+        - ivsrealtime
+        - kafka
+        - kafkaconnect
+        - kendra
+        - kendraranking
+        - keyspaces
+        - keyspacesstreams
+        - kinesis
+        - kinesisanalytics
+        - kinesisanalyticsv2
+        - kinesisvideo
+        - kinesisvideoarchivedmedia
+        - kinesisvideomedia
+        - kinesisvideosignaling
+        - kinesisvideowebrtcstorage
+        - kms
+        - lakeformation
+        - lambda
+        - launchwizard
+        - lexmodelbuilding
+        - lexmodelsv2
+        - lexruntime
+        - lexruntimev2
+        - licensemanager
+        - licensemanagerlinuxsubscriptions
+        - licensemanagerusersubscriptions
+        - lightsail
+        - location
+        - lookoutequipment
+        - m2
+        - machinelearning
+        - macie2
+        - mailmanager
+        - managedblockchain
+        - managedblockchainquery
+        - marketplaceagreement
+        - marketplacecatalog
+        - marketplacecommerceanalytics
+        - marketplacedeployment
+        - marketplacediscovery
+        - marketplaceentitlement
+        - marketplacemetering
+        - marketplacereporting
+        - mediaconnect
+        - mediaconvert
+        - medialive
+        - mediapackage
+        - mediapackagev2
+        - mediapackagevod
+        - mediastore
+        - mediastoredata
+        - mediatailor
+        - medicalimaging
+        - memorydb
+        - mgn
+        - migrationhub
+        - migrationhubconfig
+        - migrationhuborchestrator
+        - migrationhubrefactorspaces
+        - migrationhubstrategy
+        - mpa
+        - mq
+        - mturk
+        - mwaa
+        - mwaaserverless
+        - neptune
+        - neptunedata
+        - neptunegraph
+        - networkfirewall
+        - networkflowmonitor
+        - networkmanager
+        - networkmonitor
+        - notifications
+        - notificationscontacts
+        - novaact
+        - oam
+        - observabilityadmin
+        - odb
+        - omics
+        - opensearch
+        - opensearchserverless
+        - organizations
+        - osis
+        - outposts
+        - panorama
+        - partnercentralaccount
+        - partnercentralbenefits
+        - partnercentralchannel
+        - partnercentralselling
+        - paymentcryptography
+        - paymentcryptographydata
+        - pcaconnectorad
+        - pcaconnectorscep
+        - pcs
+        - personalize
+        - personalizeevents
+        - personalizeruntime
+        - pi
+        - pinpoint
+        - pinpointemail
+        - pinpointsmsvoice
+        - pinpointsmsvoicev2
+        - pipes
+        - polly
+        - pricing
+        - proton
+        - qapps
+        - qbusiness
+        - qconnect
+        - quicksight
+        - ram
+        - rbin
+        - rds
+        - rdsdata
+        - redshift
+        - redshiftdata
+        - redshiftserverless
+        - rekognition
+        - repostspace
+        - resiliencehub
+        - resourceexplorer2
+        - resourcegroups
+        - resourcegroupstagging
+        - rolesanywhere
+        - route53
+        - route53domains
+        - route53globalresolver
+        - route53profiles
+        - route53recoverycluster
+        - route53recoverycontrolconfig
+        - route53recoveryreadiness
+        - route53resolver
+        - rtbfabric
+        - rum
+        - s3
+        - s3control
+        - s3files
+        - s3outposts
+        - s3tables
+        - s3vectors
+        - sagemaker
+        - sagemakera2iruntime
+        - sagemakeredge
+        - sagemakerfeaturestoreruntime
+        - sagemakergeospatial
+        - sagemakermetrics
+        - sagemakerruntime
+        - sagemakerruntimehttp2
+        - savingsplans
+        - scheduler
+        - schemas
+        - secretsmanager
+        - securityagent
+        - securityhub
+        - securityir
+        - securitylake
+        - serverlessapplicationrepository
+        - servicecatalog
+        - servicecatalogappregistry
+        - servicediscovery
+        - servicequotas
+        - ses
+        - sesv2
+        - sfn
+        - shield
+        - signer
+        - signerdata
+        - signin
+        - simpledbv2
+        - simspaceweaver
+        - snowball
+        - snowdevicemanagement
+        - sns
+        - socialmessaging
+        - sqs
+        - ssm
+        - ssmcontacts
+        - ssmguiconnect
+        - ssmincidents
+        - ssmquicksetup
+        - ssmsap
+        - sso
+        - ssoadmin
+        - ssooidc
+        - storagegateway
+        - sts
+        - supplychain
+        - support
+        - supportapp
+        - sustainability
+        - swf
+        - synthetics
+        - taxsettings
+        - textract
+        - timestreaminfluxdb
+        - timestreamquery
+        - timestreamwrite
+        - tnb
+        - transcribe
+        - transcribestreaming
+        - transfer
+        - translate
+        - trustedadvisor
+        - uxc
+        - verifiedpermissions
+        - voiceid
+        - vpclattice
+        - waf
+        - wafregional
+        - wafv2
+        - wellarchitected
+        - wickr
+        - wisdom
+        - workdocs
+        - workmail
+        - workmailmessageflow
+        - workspaces
+        - workspacesinstances
+        - workspacesthinclient
+        - workspacesweb
+        - xray
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Request type
+      description: What kind of change is being asked for?
+      options:
+        - New AWS operation on an existing service
+        - New AWS service (no winterbaume crate yet)
+        - Behaviour parity with real AWS (existing operation diverges)
+        - Terraform converter support
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences describing the requested capability.
+      placeholder: e.g., support `S3:SelectObjectContent` so analytics jobs can run against mock S3.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / use case
+      description: Why does this matter? What workflow, tool, or test is blocked without it?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: What should winterbaume do? Reference the real AWS contract — request shape, response shape, error cases. Link to AWS docs or the Smithy model where possible.
+    validations:
+      required: true
+  - type: input
+    id: aws_docs
+    attributes:
+      label: AWS documentation link
+      description: URL to the AWS API reference for the operation(s) in scope.
+      placeholder: https://docs.aws.amazon.com/...
+    validations:
+      required: false
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Current workaround
+      description: Anything you're doing today to work around the gap (e.g., bypassing winterbaume for this call, stubbing client-side).
+    validations:
+      required: false

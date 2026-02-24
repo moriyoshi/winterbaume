@@ -1,0 +1,17 @@
+[package]
+name = "sccache-wrapper"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Wrapper around sccache that automatically sets SCCACHE_BASEDIRS for worktree builds and provides cross-worktree Rust compilation caching"
+
+[dependencies]
+sha2 = { workspace = true }
+fslock = "0.2"
+serde = { workspace = true }
+serde_json = { workspace = true }
+sysinfo = { version = "0.32", default-features = false, features = ["system"] }
+
+[[bin]]
+name = "sccache-wrapper"
+path = "src/main.rs"

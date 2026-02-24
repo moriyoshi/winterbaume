@@ -1,0 +1,57 @@
+name: KB entry
+description: Record a cross-cutting decision or recurring pattern that should inform future triage.
+title: "[kb] <short topic>"
+labels: ["kb"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to record a durable decision or recurring pattern -- something the bug-triage bot should consult on future reports. Keep it short. Each entry should answer one question.
+
+        Bot-proposed drafts arrive with the `kb-draft` label and need a maintainer to review, edit, and remove that label to ratify.
+  - type: input
+    id: topic
+    attributes:
+      label: Topic
+      description: One-line summary, suitable as the issue title without the `[kb]` prefix.
+      placeholder: e.g., "Wontfix: *Streams operations until Q3"
+    validations:
+      required: true
+  - type: input
+    id: applies_to
+    attributes:
+      label: Applies to
+      description: Service slugs this entry applies to, comma-separated. Use `all` if it cuts across every service.
+      placeholder: e.g., `s3, s3control` or `all`
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision
+      description: The rule itself, in one or two sentences. Phrased so the bot can apply it without further context.
+      placeholder: e.g., "Reports against `*Streams` operations should be closed as `not-a-bug` with a pointer to the rewrite plan."
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: Why this decision exists. Link the original incident, ADR, or discussion if any.
+    validations:
+      required: true
+  - type: input
+    id: supersedes
+    attributes:
+      label: Supersedes
+      description: If this replaces an earlier KB entry, link the issue number(s).
+      placeholder: e.g., #123
+    validations:
+      required: false
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Links to related issues, PRs, AWS docs, or commits.
+    validations:
+      required: false

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Smithy Model Update"
+  short_description: "Coordinate AWS Smithy model refresh fallout"
+  default_prompt: "Use $smithy-model-update to audit and reconcile Winterbaume after the vendored AWS Smithy models change."

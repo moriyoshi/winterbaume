@@ -1,0 +1,341 @@
+# winterbaume-glue
+
+AWS Glue service implementation for winterbaume.
+
+## Coverage
+
+| Metric | Value |
+|---|---|
+| Service | Glue |
+| AWS model | `glue` |
+| Protocol | awsJson1.1 |
+| winterbaume coverage | 132/265 operations (49.8%) |
+| stubs (routed, returns empty/default) | 0/265 operations (0.0%) |
+| moto coverage | 96/265 operations (36.2%) |
+| floci coverage | 0/265 operations (0.0%) |
+| kumo coverage | 11/265 operations (4.2%) |
+| Coverage report date | 2026-05-06 |
+
+## Server-mode usage
+
+Start `winterbaume-server` and point the AWS CLI at it:
+
+```sh
+cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
+```
+
+```sh
+export AWS_ENDPOINT_URL=http://localhost:5555
+aws glue list-registries
+```
+
+## Current Network Resource Stub Semantics
+
+Glue currently stores connection networking data as Glue connection properties.
+
+- Connection records can include physical connection requirements such as subnet ID, security group ID lists, and availability zone.
+- Jobs, crawlers, and sessions can refer to Glue connections without network reachability checks.
+- Glue does not create ENIs or validate subnet and security group combinations.
+- The implementation does not consult `winterbaume-ec2` state for these identifiers, so it does not check that referenced VPCs, subnets, security groups, VPC endpoints, network interfaces, or load balancers exist, belong to the same VPC, or are in a usable lifecycle state.
+
+## Example
+
+```rust
+use aws_sdk_glue::config::BehaviorVersion;
+use winterbaume_core::MockAws;
+use winterbaume_glue::GlueService;
+
+#[tokio::main]
+async fn main() {
+    let mock = MockAws::builder().with_service(GlueService::new()).build();
+
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_glue::config::Region::new("us-east-1"))
+        .load()
+        .await;
+
+    let client = aws_sdk_glue::Client::new(&config);
+
+    let resp = client
+        .get_databases()
+        .send()
+        .await
+        .expect("get_databases should succeed");
+    println!("Glue databases: {}", resp.database_list().len());
+}
+```
+
+## Implemented APIs (132)
+
+- `BatchCreatePartition`
+- `BatchDeleteConnection`
+- `BatchDeletePartition`
+- `BatchDeleteTable`
+- `BatchGetCrawlers`
+- `BatchGetDevEndpoints`
+- `BatchGetJobs`
+- `BatchGetPartition`
+- `BatchGetTriggers`
+- `BatchGetWorkflows`
+- `BatchStopJobRun`
+- `BatchUpdatePartition`
+- `CheckSchemaVersionValidity`
+- `CreateConnection`
+- `CreateCrawler`
+- `CreateDatabase`
+- `CreateDevEndpoint`
+- `CreateJob`
+- `CreateMLTransform`
+- `CreatePartition`
+- `CreateRegistry`
+- `CreateSchema`
+- `CreateSecurityConfiguration`
+- `CreateSession`
+- `CreateTable`
+- `CreateTrigger`
+- `CreateWorkflow`
+- `DeleteConnection`
+- `DeleteCrawler`
+- `DeleteDatabase`
+- `DeleteDevEndpoint`
+- `DeleteJob`
+- `DeleteMLTransform`
+- `DeletePartition`
+- `DeleteRegistry`
+- `DeleteResourcePolicy`
+- `DeleteSchema`
+- `DeleteSchemaVersions`
+- `DeleteSecurityConfiguration`
+- `DeleteSession`
+- `DeleteTable`
+- `DeleteTableVersion`
+- `DeleteTrigger`
+- `DeleteWorkflow`
+- `GetConnection`
+- `GetConnections`
+- `GetCrawler`
+- `GetCrawlerMetrics`
+- `GetCrawlers`
+- `GetDataCatalogEncryptionSettings`
+- `GetDatabase`
+- `GetDatabases`
+- `GetDevEndpoint`
+- `GetDevEndpoints`
+- `GetJob`
+- `GetJobBookmark`
+- `GetJobRun`
+- `GetJobRuns`
+- `GetJobs`
+- `GetMLTransform`
+- `GetMLTransforms`
+- `GetPartition`
+- `GetPartitions`
+- `GetRegistry`
+- `GetResourcePolicy`
+- `GetSchema`
+- `GetSchemaByDefinition`
+- `GetSchemaVersion`
+- `GetSchemaVersionsDiff`
+- `GetSecurityConfiguration`
+- `GetSecurityConfigurations`
+- `GetSession`
+- `GetTable`
+- `GetTableVersion`
+- `GetTableVersions`
+- `GetTables`
+- `GetTags`
+- `GetTrigger`
+- `GetTriggers`
+- `GetWorkflow`
+- `GetWorkflowRun`
+- `GetWorkflowRunProperties`
+- `GetWorkflowRuns`
+- `ImportCatalogToGlue`
+- `ListCrawlers`
+- `ListCrawls`
+- `ListDevEndpoints`
+- `ListJobs`
+- `ListMLTransforms`
+- `ListRegistries`
+- `ListSchemaVersions`
+- `ListSchemas`
+- `ListSessions`
+- `ListTriggers`
+- `ListWorkflows`
+- `PutDataCatalogEncryptionSettings`
+- `PutResourcePolicy`
+- `PutSchemaVersionMetadata`
+- `PutWorkflowRunProperties`
+- `QuerySchemaVersionMetadata`
+- `RegisterSchemaVersion`
+- `RemoveSchemaVersionMetadata`
+- `ResetJobBookmark`
+- `ResumeWorkflowRun`
+- `SearchTables`
+- `StartCrawler`
+- `StartCrawlerSchedule`
+- `StartJobRun`
+- `StartTrigger`
+- `StartWorkflowRun`
+- `StopCrawler`
+- `StopCrawlerSchedule`
+- `StopSession`
+- `StopTrigger`
+- `StopWorkflowRun`
+- `TagResource`
+- `UntagResource`
+- `UpdateConnection`
+- `UpdateCrawler`
+- `UpdateCrawlerSchedule`
+- `UpdateDatabase`
+- `UpdateDevEndpoint`
+- `UpdateJob`
+- `UpdateJobFromSourceControl`
+- `UpdateMLTransform`
+- `UpdatePartition`
+- `UpdateRegistry`
+- `UpdateSchema`
+- `UpdateSourceControlFromJob`
+- `UpdateTable`
+- `UpdateTrigger`
+- `UpdateWorkflow`
+
+<details><summary>Not yet implemented APIs (133)</summary>
+
+- `BatchDeleteTableVersion`
+- `BatchGetBlueprints`
+- `BatchGetCustomEntityTypes`
+- `BatchGetDataQualityResult`
+- `BatchGetTableOptimizer`
+- `BatchPutDataQualityStatisticAnnotation`
+- `CancelDataQualityRuleRecommendationRun`
+- `CancelDataQualityRulesetEvaluationRun`
+- `CancelMLTaskRun`
+- `CancelStatement`
+- `CreateBlueprint`
+- `CreateCatalog`
+- `CreateClassifier`
+- `CreateColumnStatisticsTaskSettings`
+- `CreateCustomEntityType`
+- `CreateDataQualityRuleset`
+- `CreateGlueIdentityCenterConfiguration`
+- `CreateIntegration`
+- `CreateIntegrationResourceProperty`
+- `CreateIntegrationTableProperties`
+- `CreatePartitionIndex`
+- `CreateScript`
+- `CreateTableOptimizer`
+- `CreateUsageProfile`
+- `CreateUserDefinedFunction`
+- `DeleteBlueprint`
+- `DeleteCatalog`
+- `DeleteClassifier`
+- `DeleteColumnStatisticsForPartition`
+- `DeleteColumnStatisticsForTable`
+- `DeleteColumnStatisticsTaskSettings`
+- `DeleteConnectionType`
+- `DeleteCustomEntityType`
+- `DeleteDataQualityRuleset`
+- `DeleteGlueIdentityCenterConfiguration`
+- `DeleteIntegration`
+- `DeleteIntegrationResourceProperty`
+- `DeleteIntegrationTableProperties`
+- `DeletePartitionIndex`
+- `DeleteTableOptimizer`
+- `DeleteUsageProfile`
+- `DeleteUserDefinedFunction`
+- `DescribeConnectionType`
+- `DescribeEntity`
+- `DescribeInboundIntegrations`
+- `DescribeIntegrations`
+- `GetBlueprint`
+- `GetBlueprintRun`
+- `GetBlueprintRuns`
+- `GetCatalog`
+- `GetCatalogImportStatus`
+- `GetCatalogs`
+- `GetClassifier`
+- `GetClassifiers`
+- `GetColumnStatisticsForPartition`
+- `GetColumnStatisticsForTable`
+- `GetColumnStatisticsTaskRun`
+- `GetColumnStatisticsTaskRuns`
+- `GetColumnStatisticsTaskSettings`
+- `GetCustomEntityType`
+- `GetDataQualityModel`
+- `GetDataQualityModelResult`
+- `GetDataQualityResult`
+- `GetDataQualityRuleRecommendationRun`
+- `GetDataQualityRuleset`
+- `GetDataQualityRulesetEvaluationRun`
+- `GetDataflowGraph`
+- `GetEntityRecords`
+- `GetGlueIdentityCenterConfiguration`
+- `GetIntegrationResourceProperty`
+- `GetIntegrationTableProperties`
+- `GetMLTaskRun`
+- `GetMLTaskRuns`
+- `GetMapping`
+- `GetMaterializedViewRefreshTaskRun`
+- `GetPartitionIndexes`
+- `GetPlan`
+- `GetResourcePolicies`
+- `GetStatement`
+- `GetTableOptimizer`
+- `GetUnfilteredPartitionMetadata`
+- `GetUnfilteredPartitionsMetadata`
+- `GetUnfilteredTableMetadata`
+- `GetUsageProfile`
+- `GetUserDefinedFunction`
+- `GetUserDefinedFunctions`
+- `ListBlueprints`
+- `ListColumnStatisticsTaskRuns`
+- `ListConnectionTypes`
+- `ListCustomEntityTypes`
+- `ListDataQualityResults`
+- `ListDataQualityRuleRecommendationRuns`
+- `ListDataQualityRulesetEvaluationRuns`
+- `ListDataQualityRulesets`
+- `ListDataQualityStatisticAnnotations`
+- `ListDataQualityStatistics`
+- `ListEntities`
+- `ListIntegrationResourceProperties`
+- `ListMaterializedViewRefreshTaskRuns`
+- `ListStatements`
+- `ListTableOptimizerRuns`
+- `ListUsageProfiles`
+- `ModifyIntegration`
+- `PutDataQualityProfileAnnotation`
+- `RegisterConnectionType`
+- `RunStatement`
+- `StartBlueprintRun`
+- `StartColumnStatisticsTaskRun`
+- `StartColumnStatisticsTaskRunSchedule`
+- `StartDataQualityRuleRecommendationRun`
+- `StartDataQualityRulesetEvaluationRun`
+- `StartExportLabelsTaskRun`
+- `StartImportLabelsTaskRun`
+- `StartMLEvaluationTaskRun`
+- `StartMLLabelingSetGenerationTaskRun`
+- `StartMaterializedViewRefreshTaskRun`
+- `StopColumnStatisticsTaskRun`
+- `StopColumnStatisticsTaskRunSchedule`
+- `StopMaterializedViewRefreshTaskRun`
+- `TestConnection`
+- `UpdateBlueprint`
+- `UpdateCatalog`
+- `UpdateClassifier`
+- `UpdateColumnStatisticsForPartition`
+- `UpdateColumnStatisticsForTable`
+- `UpdateColumnStatisticsTaskSettings`
+- `UpdateDataQualityRuleset`
+- `UpdateGlueIdentityCenterConfiguration`
+- `UpdateIntegrationResourceProperty`
+- `UpdateIntegrationTableProperties`
+- `UpdateTableOptimizer`
+- `UpdateUsageProfile`
+- `UpdateUserDefinedFunction`
+
+</details>

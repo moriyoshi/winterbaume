@@ -1,0 +1,83 @@
+[package]
+name = "winterbaume-e2e-tests"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+description = "Internal end-to-end test harnesses for the winterbaume workspace"
+
+[[test]]
+name = "terraform"
+path = "tests/terraform/main.rs"
+
+[dev-dependencies]
+winterbaume-core = { workspace = true }
+winterbaume-sts = { workspace = true }
+winterbaume-s3 = { workspace = true }
+winterbaume-iam = { workspace = true }
+winterbaume-sqs = { workspace = true }
+winterbaume-dynamodb = { workspace = true }
+winterbaume-kms = { workspace = true }
+winterbaume-sns = { workspace = true }
+winterbaume-lambda = { workspace = true }
+winterbaume-secretsmanager = { workspace = true }
+winterbaume-cloudwatchlogs = { workspace = true }
+winterbaume-ssm = { workspace = true }
+winterbaume-ecr = { workspace = true }
+winterbaume-eventbridge = { workspace = true }
+winterbaume-firehose = { workspace = true }
+winterbaume-cloudwatch = { workspace = true }
+winterbaume-sfn = { workspace = true }
+winterbaume-kinesis = { workspace = true }
+winterbaume-cognitoidentityprovider = { workspace = true }
+winterbaume-ecs = { workspace = true }
+winterbaume-route53 = { workspace = true }
+winterbaume-efs = { workspace = true }
+winterbaume-acm = { workspace = true }
+winterbaume-cloudfront = { workspace = true }
+winterbaume-wafv2 = { workspace = true }
+winterbaume-elasticloadbalancingv2 = { workspace = true }
+winterbaume-eks = { workspace = true }
+winterbaume-organizations = { workspace = true }
+winterbaume-ec2 = { workspace = true }
+winterbaume-rds = { workspace = true }
+winterbaume-apigatewayv2 = { workspace = true }
+winterbaume-appconfig = { workspace = true }
+winterbaume-appfabric = { workspace = true }
+winterbaume-appflow = { workspace = true }
+winterbaume-applicationcostprofiler = { workspace = true }
+winterbaume-autoscaling = { workspace = true }
+winterbaume-bedrockagent = { workspace = true }
+winterbaume-codecommit = { workspace = true }
+winterbaume-transfer = { workspace = true }
+winterbaume-networkmanager = { workspace = true }
+winterbaume-workspaces = { workspace = true }
+winterbaume-vpclattice = { workspace = true }
+winterbaume-scheduler = { workspace = true }
+winterbaume-batch = { workspace = true }
+winterbaume-config = { workspace = true }
+winterbaume-neptune = { workspace = true }
+winterbaume-redshift = { workspace = true }
+winterbaume-directconnect = { workspace = true }
+winterbaume-guardduty = { workspace = true }
+winterbaume-inspector2 = { workspace = true }
+winterbaume-iot = { workspace = true }
+winterbaume-keyspaces = { workspace = true }
+winterbaume-medialive = { workspace = true }
+winterbaume-mediapackage = { workspace = true }
+winterbaume-mediastore = { workspace = true }
+winterbaume-opensearchserverless = { workspace = true }
+winterbaume-pinpoint = { workspace = true }
+winterbaume-quicksight = { workspace = true }
+tokio = { workspace = true }
+libc = "0.2"
+hyper = { version = "1", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1"
+http = { workspace = true }
+bytes = { workspace = true }
+regex = { workspace = true }
+
+[lints]
+workspace = true

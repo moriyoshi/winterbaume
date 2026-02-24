@@ -1,0 +1,39 @@
+:root {
+  --vp-c-brand-1: #4d75ec;
+  --vp-c-brand-2: #688aff;
+  --vp-c-brand-3: #4d75ec;
+}
+
+.VPHero .image-src {
+  max-width: 400px;
+}
+
+.VPHero .text {
+  filter: drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.5));
+}
+
+.Layout .VPFooter.has-sidebar {
+  display: block;
+}
+
+@media (min-width: 960px) {
+  .Layout .VPFooter.has-sidebar {
+    margin-left: var(--vp-sidebar-width);
+  }
+}
+
+@media (min-width: 1440px) {
+  .Layout .VPFooter.has-sidebar {
+    margin-right: calc((100vw - var(--vp-layout-max-width)) / 2);
+    margin-left: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width));
+  }
+}
+
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(
+    60deg,
+    #4d75ec 20%,
+    #b4c4ff
+  );
+}

@@ -1,0 +1,144 @@
+# winterbaume-route53
+
+Route 53 service implementation for winterbaume.
+
+## Coverage
+
+| Metric | Value |
+|---|---|
+| Service | Route 53 |
+| AWS model | `route-53` |
+| Protocol | restXml |
+| winterbaume coverage | 71/71 operations (100.0%) |
+| stubs (routed, returns empty/default) | 0/71 operations (0.0%) |
+| moto coverage | 30/71 operations (42.3%) |
+| floci coverage | 0/71 operations (0.0%) |
+| kumo coverage | 7/71 operations (9.9%) |
+| Coverage report date | 2026-05-06 |
+
+## Server-mode usage
+
+Start `winterbaume-server` and point the AWS CLI at it:
+
+```sh
+cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
+```
+
+```sh
+export AWS_ENDPOINT_URL=http://localhost:5555
+aws route53 list-hosted-zones
+```
+
+## Current Network Resource Stub Semantics
+
+Route 53 currently stores private hosted zone VPC associations as Route 53-local state.
+
+- Hosted zone records include a list of associated VPC IDs and VPC regions.
+- VPC association authorisations are keyed by hosted zone and VPC metadata inside Route 53 state.
+- Associate and disassociate operations update the hosted zone's local VPC list and do not verify EC2 VPC existence or ownership.
+- The implementation does not consult `winterbaume-ec2` state for these identifiers, so it does not check that referenced VPCs, subnets, security groups, VPC endpoints, network interfaces, or load balancers exist, belong to the same VPC, or are in a usable lifecycle state.
+
+## Example
+
+```rust
+use aws_sdk_route53::config::BehaviorVersion;
+use winterbaume_core::MockAws;
+use winterbaume_route53::Route53Service;
+
+#[tokio::main]
+async fn main() {
+    let mock = MockAws::builder()
+        .with_service(Route53Service::new())
+        .build();
+
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_route53::config::Region::new("us-east-1"))
+        .load()
+        .await;
+
+    let client = aws_sdk_route53::Client::new(&config);
+
+    let resp = client
+        .list_hosted_zones()
+        .send()
+        .await
+        .expect("list_hosted_zones should succeed");
+    println!("Hosted zones: {}", resp.hosted_zones().len());
+}
+```
+
+## Implemented APIs (71)
+
+- `ActivateKeySigningKey`
+- `AssociateVPCWithHostedZone`
+- `ChangeCidrCollection`
+- `ChangeResourceRecordSets`
+- `ChangeTagsForResource`
+- `CreateCidrCollection`
+- `CreateHealthCheck`
+- `CreateHostedZone`
+- `CreateKeySigningKey`
+- `CreateQueryLoggingConfig`
+- `CreateReusableDelegationSet`
+- `CreateTrafficPolicy`
+- `CreateTrafficPolicyInstance`
+- `CreateTrafficPolicyVersion`
+- `CreateVPCAssociationAuthorization`
+- `DeactivateKeySigningKey`
+- `DeleteCidrCollection`
+- `DeleteHealthCheck`
+- `DeleteHostedZone`
+- `DeleteKeySigningKey`
+- `DeleteQueryLoggingConfig`
+- `DeleteReusableDelegationSet`
+- `DeleteTrafficPolicy`
+- `DeleteTrafficPolicyInstance`
+- `DeleteVPCAssociationAuthorization`
+- `DisableHostedZoneDNSSEC`
+- `DisassociateVPCFromHostedZone`
+- `EnableHostedZoneDNSSEC`
+- `GetAccountLimit`
+- `GetChange`
+- `GetCheckerIpRanges`
+- `GetDNSSEC`
+- `GetGeoLocation`
+- `GetHealthCheck`
+- `GetHealthCheckCount`
+- `GetHealthCheckLastFailureReason`
+- `GetHealthCheckStatus`
+- `GetHostedZone`
+- `GetHostedZoneCount`
+- `GetHostedZoneLimit`
+- `GetQueryLoggingConfig`
+- `GetReusableDelegationSet`
+- `GetReusableDelegationSetLimit`
+- `GetTrafficPolicy`
+- `GetTrafficPolicyInstance`
+- `GetTrafficPolicyInstanceCount`
+- `ListCidrBlocks`
+- `ListCidrCollections`
+- `ListCidrLocations`
+- `ListGeoLocations`
+- `ListHealthChecks`
+- `ListHostedZones`
+- `ListHostedZonesByName`
+- `ListHostedZonesByVPC`
+- `ListQueryLoggingConfigs`
+- `ListResourceRecordSets`
+- `ListReusableDelegationSets`
+- `ListTagsForResource`
+- `ListTagsForResources`
+- `ListTrafficPolicies`
+- `ListTrafficPolicyInstances`
+- `ListTrafficPolicyInstancesByHostedZone`
+- `ListTrafficPolicyInstancesByPolicy`
+- `ListTrafficPolicyVersions`
+- `ListVPCAssociationAuthorizations`
+- `TestDNSAnswer`
+- `UpdateHealthCheck`
+- `UpdateHostedZoneComment`
+- `UpdateHostedZoneFeatures`
+- `UpdateTrafficPolicyComment`
+- `UpdateTrafficPolicyInstance`

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Distill Memories"
+  short_description: "Distill LTM knowledge into core docs"
+  default_prompt: "Use $distill-memories to refresh ARCHITECTURE.md and OVERVIEW.md from the LTM notes."

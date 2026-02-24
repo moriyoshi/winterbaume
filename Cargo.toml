@@ -1,0 +1,2132 @@
+[package]
+name = "winterbaume"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "Mock AWS services for local development and testing"
+# Disable auto-discovery of examples/*.rs so cargo does not register them as
+# umbrella crate targets. The example files exist for in-tree usage only and
+# are intentionally not packaged.
+autoexamples = false
+# Restrict the published .crate to umbrella sources and legal/notice files.
+# Without this, cargo would package every tracked file at the workspace root
+# (.agents, vendor, docs, examples, etc.).
+include = [
+    "/src/**/*.rs",
+    "/Cargo.toml",
+    "/README.md",
+    "/LICENSE",
+    "/NOTICE",
+    "/CHANGELOG.md",
+]
+
+[lints]
+workspace = true
+
+[workspace]
+members = [
+    "crates/winterbaume-accessanalyzer",
+    "crates/winterbaume-account",
+    "crates/winterbaume-acm",
+    "crates/winterbaume-acmpca",
+    "crates/winterbaume-aiops",
+    "crates/winterbaume-amp",
+    "crates/winterbaume-amplify",
+    "crates/winterbaume-amplifybackend",
+    "crates/winterbaume-amplifyuibuilder",
+    "crates/winterbaume-apigateway",
+    "crates/winterbaume-apigatewaymanagement",
+    "crates/winterbaume-apigatewayv2",
+    "crates/winterbaume-appconfig",
+    "crates/winterbaume-appconfigdata",
+    "crates/winterbaume-appfabric",
+    "crates/winterbaume-appflow",
+    "crates/winterbaume-appintegrations",
+    "crates/winterbaume-applicationautoscaling",
+    "crates/winterbaume-applicationcostprofiler",
+    "crates/winterbaume-applicationdiscoveryservice",
+    "crates/winterbaume-applicationinsights",
+    "crates/winterbaume-applicationsignals",
+    "crates/winterbaume-appmesh",
+    "crates/winterbaume-apprunner",
+    "crates/winterbaume-appsync",
+    "crates/winterbaume-arczonalshift",
+    "crates/winterbaume-artifact",
+    "crates/winterbaume-athena",
+    "crates/winterbaume-auditmanager",
+    "crates/winterbaume-autoscaling",
+    "crates/winterbaume-autoscalingplans",
+    "crates/winterbaume-backup",
+    "crates/winterbaume-backupgateway",
+    "crates/winterbaume-backupsearch",
+    "crates/winterbaume-batch",
+    "crates/winterbaume-bcmdashboards",
+    "crates/winterbaume-bcmdataexports",
+    "crates/winterbaume-bcmrecommendedactions",
+    "crates/winterbaume-bedrock",
+    "crates/winterbaume-bedrockagent",
+    "crates/winterbaume-billing",
+    "crates/winterbaume-braket",
+    "crates/winterbaume-budgets",
+    "crates/winterbaume-chatbot",
+    "crates/winterbaume-chimesdkmeetings",
+    "crates/winterbaume-cloud9",
+    "crates/winterbaume-cloudcontrol",
+    "crates/winterbaume-clouddirectory",
+    "crates/winterbaume-cloudformation",
+    "crates/winterbaume-cloudfront",
+    "crates/winterbaume-cloudfrontkeyvaluestore",
+    "crates/winterbaume-cloudhsmv2",
+    "crates/winterbaume-cloudsearchdomain",
+    "crates/winterbaume-cloudtrail",
+    "crates/winterbaume-cloudtraildata",
+    "crates/winterbaume-cloudwatch",
+    "crates/winterbaume-cloudwatchlogs",
+    "crates/winterbaume-codeartifact",
+    "crates/winterbaume-codebuild",
+    "crates/winterbaume-codecommit",
+    "crates/winterbaume-codedeploy",
+    "crates/winterbaume-codegurureviewer",
+    "crates/winterbaume-codegurusecurity",
+    "crates/winterbaume-codepipeline",
+    "crates/winterbaume-codestarnotifications",
+    "crates/winterbaume-cognitoidentity",
+    "crates/winterbaume-cognitoidentityprovider",
+    "crates/winterbaume-cognitosync",
+    "crates/winterbaume-comprehend",
+    "crates/winterbaume-config",
+    "crates/winterbaume-connect",
+    "crates/winterbaume-connectcampaigns",
+    "crates/winterbaume-connectcontactlens",
+    "crates/winterbaume-connectparticipant",
+    "crates/winterbaume-controlcatalog",
+    "crates/winterbaume-core",
+    "crates/winterbaume-costandusagereport",
+    "crates/winterbaume-costexplorer",
+    "crates/winterbaume-costoptimizationhub",
+    "crates/winterbaume-databasemigration",
+    "crates/winterbaume-databrew",
+    "crates/winterbaume-datapipeline",
+    "crates/winterbaume-datasync",
+    "crates/winterbaume-dax",
+    "crates/winterbaume-directconnect",
+    "crates/winterbaume-directory",
+    "crates/winterbaume-dlm",
+    "crates/winterbaume-dsql",
+    "crates/winterbaume-dynamodb",
+    "crates/winterbaume-dynamodbstreams",
+    "crates/winterbaume-e2e-tests",
+    "crates/winterbaume-ebs",
+    "crates/winterbaume-ec2",
+    "crates/winterbaume-ec2-generated",
+    "crates/winterbaume-ec2instanceconnect",
+    "crates/winterbaume-ecr",
+    "crates/winterbaume-ecs",
+    "crates/winterbaume-efs",
+    "crates/winterbaume-eks",
+    "crates/winterbaume-elasticache",
+    "crates/winterbaume-elasticbeanstalk",
+    "crates/winterbaume-elasticloadbalancing",
+    "crates/winterbaume-elasticloadbalancingv2",
+    "crates/winterbaume-emr",
+    "crates/winterbaume-emrcontainers",
+    "crates/winterbaume-emrserverless",
+    "crates/winterbaume-eventbridge",
+    "crates/winterbaume-firehose",
+    "crates/winterbaume-fis",
+    "crates/winterbaume-forecast",
+    "crates/winterbaume-freetier",
+    "crates/winterbaume-fsx",
+    "crates/winterbaume-glacier",
+    "crates/winterbaume-glue",
+    "crates/winterbaume-greengrass",
+    "crates/winterbaume-guardduty",
+    "crates/winterbaume-iam",
+    "crates/winterbaume-identitystore",
+    "crates/winterbaume-inspector2",
+    "crates/winterbaume-iot",
+    "crates/winterbaume-iotdataplane",
+    "crates/winterbaume-ivs",
+    "crates/winterbaume-kafka",
+    "crates/winterbaume-keyspaces",
+    "crates/winterbaume-kinesis",
+    "crates/winterbaume-kinesisanalyticsv2",
+    "crates/winterbaume-kinesisvideo",
+    "crates/winterbaume-kinesisvideoarchivedmedia",
+    "crates/winterbaume-kms",
+    "crates/winterbaume-lakeformation",
+    "crates/winterbaume-lambda",
+    "crates/winterbaume-lexmodelsv2",
+    "crates/winterbaume-macie2",
+    "crates/winterbaume-managedblockchain",
+    "crates/winterbaume-marketplacemetering",
+    "crates/winterbaume-mediaconnect",
+    "crates/winterbaume-medialive",
+    "crates/winterbaume-mediapackage",
+    "crates/winterbaume-mediapackagev2",
+    "crates/winterbaume-mediastore",
+    "crates/winterbaume-mediastoredata",
+    "crates/winterbaume-memorydb",
+    "crates/winterbaume-mq",
+    "crates/winterbaume-neptune",
+    "crates/winterbaume-networkfirewall",
+    "crates/winterbaume-networkmanager",
+    "crates/winterbaume-opensearch",
+    "crates/winterbaume-opensearchserverless",
+    "crates/winterbaume-organizations",
+    "crates/winterbaume-osis",
+    "crates/winterbaume-outposts",
+    "crates/winterbaume-panorama",
+    "crates/winterbaume-pcaconnectorscep",
+    "crates/winterbaume-personalize",
+    "crates/winterbaume-personalizeevents",
+    "crates/winterbaume-personalizeruntime",
+    "crates/winterbaume-pi",
+    "crates/winterbaume-pinpoint",
+    "crates/winterbaume-pinpointsmsvoice",
+    "crates/winterbaume-pipes",
+    "crates/winterbaume-polly",
+    "crates/winterbaume-pricing",
+    "crates/winterbaume-quicksight",
+    "crates/winterbaume-ram",
+    "crates/winterbaume-rbin",
+    "crates/winterbaume-rds",
+    "crates/winterbaume-rdsdata",
+    "crates/winterbaume-redshift",
+    "crates/winterbaume-redshiftdata",
+    "crates/winterbaume-rekognition",
+    "crates/winterbaume-resiliencehub",
+    "crates/winterbaume-resourcegroups",
+    "crates/winterbaume-resourcegroupstagging",
+    "crates/winterbaume-rolesanywhere",
+    "crates/winterbaume-route53",
+    "crates/winterbaume-route53domains",
+    "crates/winterbaume-route53recoverycluster",
+    "crates/winterbaume-route53resolver",
+    "crates/winterbaume-s3",
+    "crates/winterbaume-s3control",
+    "crates/winterbaume-s3files",
+    "crates/winterbaume-s3outposts",
+    "crates/winterbaume-s3tables",
+    "crates/winterbaume-s3vectors",
+    "crates/winterbaume-sagemaker",
+    "crates/winterbaume-sagemakermetrics",
+    "crates/winterbaume-sagemakerruntime",
+    "crates/winterbaume-savingsplans",
+    "crates/winterbaume-scheduler",
+    "crates/winterbaume-secretsmanager",
+    "crates/winterbaume-securityhub",
+    "crates/winterbaume-server",
+    "crates/winterbaume-servicecatalog",
+    "crates/winterbaume-servicecatalogappregistry",
+    "crates/winterbaume-servicediscovery",
+    "crates/winterbaume-servicequotas",
+    "crates/winterbaume-ses",
+    "crates/winterbaume-sesv2",
+    "crates/winterbaume-sfn",
+    "crates/winterbaume-shield",
+    "crates/winterbaume-signer",
+    "crates/winterbaume-simpledbv2",
+    "crates/winterbaume-simspaceweaver",
+    "crates/winterbaume-snowdevicemanagement",
+    "crates/winterbaume-sns",
+    "crates/winterbaume-sqs",
+    "crates/winterbaume-ssm",
+    "crates/winterbaume-ssmquicksetup",
+    "crates/winterbaume-sso",
+    "crates/winterbaume-ssoadmin",
+    "crates/winterbaume-sts",
+    "crates/winterbaume-support",
+    "crates/winterbaume-supportapp",
+    "crates/winterbaume-swf",
+    "crates/winterbaume-synthetics",
+    "crates/winterbaume-taxsettings",
+    "crates/winterbaume-textract",
+    "crates/winterbaume-timestreaminfluxdb",
+    "crates/winterbaume-timestreamquery",
+    "crates/winterbaume-timestreamwrite",
+    "crates/winterbaume-transcribe",
+    "crates/winterbaume-transfer",
+    "crates/winterbaume-trustedadvisor",
+    "crates/winterbaume-vpclattice",
+    "crates/winterbaume-wafv2",
+    "crates/winterbaume-workspaces",
+    "crates/winterbaume-workspacesweb",
+    "crates/winterbaume-xray",
+    # Standalone libraries
+    "crates/winterbaume-bedrock-flow-parser",
+    "crates/winterbaume-bedrock-flow-validator",
+    "crates/winterbaume-dynamodb-redis",
+    "crates/winterbaume-iam-rule-eval",
+    "crates/winterbaume-partiql",
+    "crates/winterbaume-sfn-asl-eval",
+    "crates/winterbaume-sqlengine-duckdb",
+    "crates/winterbaume-sqs-redis",
+    "crates/winterbaume-terraform",
+    "crates/winterbaume-tfstate",
+    "crates/winterbaume-wafv2-wcu-calculator",
+    "crates/winterbaume-wafv2-webacl-rule-parser",
+    # Tools
+    "tools/release-batch",
+    "tools/sccache-wrapper",
+    "tools/smithy-codegen",
+]
+# winterbaume-sqlengine-duckdb is excluded from the default build because it
+# compiles DuckDB from source (bundled feature), which takes several minutes.
+# Build it explicitly with: cargo build -p winterbaume-sqlengine-duckdb
+default-members = [
+    ".",
+    "crates/winterbaume-accessanalyzer",
+    "crates/winterbaume-account",
+    "crates/winterbaume-acm",
+    "crates/winterbaume-acmpca",
+    "crates/winterbaume-aiops",
+    "crates/winterbaume-amp",
+    "crates/winterbaume-amplify",
+    "crates/winterbaume-amplifybackend",
+    "crates/winterbaume-amplifyuibuilder",
+    "crates/winterbaume-apigateway",
+    "crates/winterbaume-apigatewaymanagement",
+    "crates/winterbaume-apigatewayv2",
+    "crates/winterbaume-appconfig",
+    "crates/winterbaume-appconfigdata",
+    "crates/winterbaume-appfabric",
+    "crates/winterbaume-appflow",
+    "crates/winterbaume-appintegrations",
+    "crates/winterbaume-applicationautoscaling",
+    "crates/winterbaume-applicationcostprofiler",
+    "crates/winterbaume-applicationdiscoveryservice",
+    "crates/winterbaume-applicationinsights",
+    "crates/winterbaume-applicationsignals",
+    "crates/winterbaume-appmesh",
+    "crates/winterbaume-apprunner",
+    "crates/winterbaume-appsync",
+    "crates/winterbaume-arczonalshift",
+    "crates/winterbaume-artifact",
+    "crates/winterbaume-athena",
+    "crates/winterbaume-auditmanager",
+    "crates/winterbaume-autoscaling",
+    "crates/winterbaume-autoscalingplans",
+    "crates/winterbaume-backup",
+    "crates/winterbaume-backupgateway",
+    "crates/winterbaume-backupsearch",
+    "crates/winterbaume-batch",
+    "crates/winterbaume-bcmdashboards",
+    "crates/winterbaume-bcmdataexports",
+    "crates/winterbaume-bcmrecommendedactions",
+    "crates/winterbaume-bedrock",
+    "crates/winterbaume-bedrock-flow-parser",
+    "crates/winterbaume-bedrock-flow-validator",
+    "crates/winterbaume-bedrockagent",
+    "crates/winterbaume-billing",
+    "crates/winterbaume-braket",
+    "crates/winterbaume-budgets",
+    "crates/winterbaume-chatbot",
+    "crates/winterbaume-chimesdkmeetings",
+    "crates/winterbaume-cloud9",
+    "crates/winterbaume-cloudcontrol",
+    "crates/winterbaume-clouddirectory",
+    "crates/winterbaume-cloudformation",
+    "crates/winterbaume-cloudfront",
+    "crates/winterbaume-cloudfrontkeyvaluestore",
+    "crates/winterbaume-cloudhsmv2",
+    "crates/winterbaume-cloudsearchdomain",
+    "crates/winterbaume-cloudtrail",
+    "crates/winterbaume-cloudtraildata",
+    "crates/winterbaume-cloudwatch",
+    "crates/winterbaume-cloudwatchlogs",
+    "crates/winterbaume-codeartifact",
+    "crates/winterbaume-codebuild",
+    "crates/winterbaume-codecommit",
+    "crates/winterbaume-codedeploy",
+    "crates/winterbaume-codegurureviewer",
+    "crates/winterbaume-codegurusecurity",
+    "crates/winterbaume-codepipeline",
+    "crates/winterbaume-codestarnotifications",
+    "crates/winterbaume-cognitoidentity",
+    "crates/winterbaume-cognitoidentityprovider",
+    "crates/winterbaume-cognitosync",
+    "crates/winterbaume-comprehend",
+    "crates/winterbaume-config",
+    "crates/winterbaume-connect",
+    "crates/winterbaume-connectcampaigns",
+    "crates/winterbaume-connectcontactlens",
+    "crates/winterbaume-connectparticipant",
+    "crates/winterbaume-controlcatalog",
+    "crates/winterbaume-core",
+    "crates/winterbaume-costandusagereport",
+    "crates/winterbaume-costexplorer",
+    "crates/winterbaume-costoptimizationhub",
+    "crates/winterbaume-databasemigration",
+    "crates/winterbaume-databrew",
+    "crates/winterbaume-datapipeline",
+    "crates/winterbaume-datasync",
+    "crates/winterbaume-dax",
+    "crates/winterbaume-directconnect",
+    "crates/winterbaume-directory",
+    "crates/winterbaume-dlm",
+    "crates/winterbaume-dsql",
+    "crates/winterbaume-dynamodb",
+    "crates/winterbaume-dynamodbstreams",
+    "crates/winterbaume-ebs",
+    "crates/winterbaume-ec2",
+    "crates/winterbaume-ec2-generated",
+    "crates/winterbaume-ec2instanceconnect",
+    "crates/winterbaume-ecr",
+    "crates/winterbaume-ecs",
+    "crates/winterbaume-efs",
+    "crates/winterbaume-eks",
+    "crates/winterbaume-elasticache",
+    "crates/winterbaume-elasticbeanstalk",
+    "crates/winterbaume-elasticloadbalancing",
+    "crates/winterbaume-elasticloadbalancingv2",
+    "crates/winterbaume-emr",
+    "crates/winterbaume-emrcontainers",
+    "crates/winterbaume-emrserverless",
+    "crates/winterbaume-eventbridge",
+    "crates/winterbaume-firehose",
+    "crates/winterbaume-fis",
+    "crates/winterbaume-forecast",
+    "crates/winterbaume-freetier",
+    "crates/winterbaume-fsx",
+    "crates/winterbaume-glacier",
+    "crates/winterbaume-glue",
+    "crates/winterbaume-greengrass",
+    "crates/winterbaume-guardduty",
+    "crates/winterbaume-iam",
+    "crates/winterbaume-iam-rule-eval",
+    "crates/winterbaume-identitystore",
+    "crates/winterbaume-inspector2",
+    "crates/winterbaume-iot",
+    "crates/winterbaume-iotdataplane",
+    "crates/winterbaume-ivs",
+    "crates/winterbaume-kafka",
+    "crates/winterbaume-keyspaces",
+    "crates/winterbaume-kinesis",
+    "crates/winterbaume-kinesisanalyticsv2",
+    "crates/winterbaume-kinesisvideo",
+    "crates/winterbaume-kinesisvideoarchivedmedia",
+    "crates/winterbaume-kms",
+    "crates/winterbaume-lakeformation",
+    "crates/winterbaume-lambda",
+    "crates/winterbaume-lexmodelsv2",
+    "crates/winterbaume-macie2",
+    "crates/winterbaume-managedblockchain",
+    "crates/winterbaume-marketplacemetering",
+    "crates/winterbaume-mediaconnect",
+    "crates/winterbaume-medialive",
+    "crates/winterbaume-mediapackage",
+    "crates/winterbaume-mediapackagev2",
+    "crates/winterbaume-mediastore",
+    "crates/winterbaume-mediastoredata",
+    "crates/winterbaume-memorydb",
+    "crates/winterbaume-mq",
+    "crates/winterbaume-neptune",
+    "crates/winterbaume-networkfirewall",
+    "crates/winterbaume-networkmanager",
+    "crates/winterbaume-opensearch",
+    "crates/winterbaume-opensearchserverless",
+    "crates/winterbaume-organizations",
+    "crates/winterbaume-osis",
+    "crates/winterbaume-outposts",
+    "crates/winterbaume-panorama",
+    "crates/winterbaume-partiql",
+    "crates/winterbaume-pcaconnectorscep",
+    "crates/winterbaume-personalize",
+    "crates/winterbaume-personalizeevents",
+    "crates/winterbaume-personalizeruntime",
+    "crates/winterbaume-pi",
+    "crates/winterbaume-pinpoint",
+    "crates/winterbaume-pinpointsmsvoice",
+    "crates/winterbaume-pipes",
+    "crates/winterbaume-polly",
+    "crates/winterbaume-pricing",
+    "crates/winterbaume-quicksight",
+    "crates/winterbaume-ram",
+    "crates/winterbaume-rbin",
+    "crates/winterbaume-rds",
+    "crates/winterbaume-rdsdata",
+    "crates/winterbaume-redshift",
+    "crates/winterbaume-redshiftdata",
+    "crates/winterbaume-rekognition",
+    "crates/winterbaume-resiliencehub",
+    "crates/winterbaume-resourcegroups",
+    "crates/winterbaume-resourcegroupstagging",
+    "crates/winterbaume-rolesanywhere",
+    "crates/winterbaume-route53",
+    "crates/winterbaume-route53domains",
+    "crates/winterbaume-route53recoverycluster",
+    "crates/winterbaume-route53resolver",
+    "crates/winterbaume-s3",
+    "crates/winterbaume-s3control",
+    "crates/winterbaume-s3files",
+    "crates/winterbaume-s3outposts",
+    "crates/winterbaume-s3tables",
+    "crates/winterbaume-s3vectors",
+    "crates/winterbaume-sagemaker",
+    "crates/winterbaume-sagemakermetrics",
+    "crates/winterbaume-sagemakerruntime",
+    "crates/winterbaume-savingsplans",
+    "crates/winterbaume-scheduler",
+    "crates/winterbaume-secretsmanager",
+    "crates/winterbaume-securityhub",
+    "crates/winterbaume-server",
+    "crates/winterbaume-servicecatalog",
+    "crates/winterbaume-servicecatalogappregistry",
+    "crates/winterbaume-servicediscovery",
+    "crates/winterbaume-servicequotas",
+    "crates/winterbaume-ses",
+    "crates/winterbaume-sesv2",
+    "crates/winterbaume-sfn",
+    "crates/winterbaume-sfn-asl-eval",
+    "crates/winterbaume-shield",
+    "crates/winterbaume-signer",
+    "crates/winterbaume-simpledbv2",
+    "crates/winterbaume-simspaceweaver",
+    "crates/winterbaume-snowdevicemanagement",
+    "crates/winterbaume-sns",
+    "crates/winterbaume-sqs",
+    "crates/winterbaume-ssm",
+    "crates/winterbaume-ssmquicksetup",
+    "crates/winterbaume-sso",
+    "crates/winterbaume-ssoadmin",
+    "crates/winterbaume-sts",
+    "crates/winterbaume-support",
+    "crates/winterbaume-supportapp",
+    "crates/winterbaume-swf",
+    "crates/winterbaume-synthetics",
+    "crates/winterbaume-taxsettings",
+    "crates/winterbaume-terraform",
+    "crates/winterbaume-textract",
+    "crates/winterbaume-tfstate",
+    "crates/winterbaume-timestreaminfluxdb",
+    "crates/winterbaume-timestreamquery",
+    "crates/winterbaume-timestreamwrite",
+    "crates/winterbaume-transcribe",
+    "crates/winterbaume-transfer",
+    "crates/winterbaume-trustedadvisor",
+    "crates/winterbaume-vpclattice",
+    "crates/winterbaume-wafv2",
+    "crates/winterbaume-wafv2-wcu-calculator",
+    "crates/winterbaume-wafv2-webacl-rule-parser",
+    "crates/winterbaume-workspaces",
+    "crates/winterbaume-workspacesweb",
+    "crates/winterbaume-xray",
+    "tools/smithy-codegen",
+]
+resolver = "3"
+
+[workspace.lints.rust]
+# Generated model code defines types/functions ahead of handler implementation.
+dead_code = "allow"
+unused_variables = "allow"
+unused_mut = "allow"
+
+[workspace.lints.clippy]
+# High-volume lints from generated / boilerplate code — allow workspace-wide.
+let_and_return = "allow"
+single_match = "allow"
+too_many_arguments = "allow"
+collapsible_if = "allow"
+needless_update = "allow"
+type_complexity = "allow"
+box_collection = "allow"
+result_large_err = "allow"
+
+[workspace.package]
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/moriyoshi/winterbaume"
+
+# cargo-release configuration
+[workspace.metadata.release]
+shared-version = false
+consolidate-commits = true
+allow-branch = ["main"]
+tag-name = "{{crate_name}}-v{{version}}"
+pre-release-commit-message = "chore: release {{crate_name}} v{{version}}"
+tag-message = "chore: release {{crate_name}} v{{version}}"
+# Disable build verification during publish — cross-crate deps within the
+# workspace may not be on crates.io yet when publishing in order.
+verify = false
+
+[workspace.dependencies]
+winterbaume-accessanalyzer = { version = "0.1.0", path = "crates/winterbaume-accessanalyzer" }
+winterbaume-aiops = { version = "0.1.0", path = "crates/winterbaume-aiops" }
+winterbaume-amplifybackend = { version = "0.1.0", path = "crates/winterbaume-amplifybackend" }
+winterbaume-amplifyuibuilder = { version = "0.1.0", path = "crates/winterbaume-amplifyuibuilder" }
+winterbaume-appconfigdata = { version = "0.1.0", path = "crates/winterbaume-appconfigdata" }
+winterbaume-appfabric = { version = "0.1.0", path = "crates/winterbaume-appfabric" }
+winterbaume-appflow = { version = "0.1.0", path = "crates/winterbaume-appflow" }
+winterbaume-appintegrations = { version = "0.1.0", path = "crates/winterbaume-appintegrations" }
+winterbaume-applicationcostprofiler = { version = "0.1.0", path = "crates/winterbaume-applicationcostprofiler" }
+winterbaume-applicationdiscoveryservice = { version = "0.1.0", path = "crates/winterbaume-applicationdiscoveryservice" }
+winterbaume-applicationinsights = { version = "0.1.0", path = "crates/winterbaume-applicationinsights" }
+winterbaume-applicationsignals = { version = "0.1.0", path = "crates/winterbaume-applicationsignals" }
+winterbaume-arczonalshift = { version = "0.1.0", path = "crates/winterbaume-arczonalshift" }
+winterbaume-artifact = { version = "0.1.0", path = "crates/winterbaume-artifact" }
+winterbaume-autoscalingplans = { version = "0.1.0", path = "crates/winterbaume-autoscalingplans" }
+winterbaume-backupgateway = { version = "0.1.0", path = "crates/winterbaume-backupgateway" }
+winterbaume-backupsearch = { version = "0.1.0", path = "crates/winterbaume-backupsearch" }
+winterbaume-bcmdashboards = { version = "0.1.0", path = "crates/winterbaume-bcmdashboards" }
+winterbaume-bcmdataexports = { version = "0.1.0", path = "crates/winterbaume-bcmdataexports" }
+winterbaume-bcmrecommendedactions = { version = "0.1.0", path = "crates/winterbaume-bcmrecommendedactions" }
+winterbaume-dlm = { version = "0.1.0", path = "crates/winterbaume-dlm" }
+winterbaume-rbin = { version = "0.1.0", path = "crates/winterbaume-rbin" }
+winterbaume-savingsplans = { version = "0.1.0", path = "crates/winterbaume-savingsplans" }
+winterbaume-personalizeevents = { version = "0.1.0", path = "crates/winterbaume-personalizeevents" }
+winterbaume-personalizeruntime = { version = "0.1.0", path = "crates/winterbaume-personalizeruntime" }
+winterbaume-pinpointsmsvoice = { version = "0.1.0", path = "crates/winterbaume-pinpointsmsvoice" }
+winterbaume-pi = { version = "0.1.0", path = "crates/winterbaume-pi" }
+winterbaume-trustedadvisor = { version = "0.1.0", path = "crates/winterbaume-trustedadvisor" }
+winterbaume-supportapp = { version = "0.1.0", path = "crates/winterbaume-supportapp" }
+winterbaume-pricing = { version = "0.1.0", path = "crates/winterbaume-pricing" }
+winterbaume-freetier = { version = "0.1.0", path = "crates/winterbaume-freetier" }
+winterbaume-cloud9 = { version = "0.1.0", path = "crates/winterbaume-cloud9" }
+winterbaume-s3outposts = { version = "0.1.0", path = "crates/winterbaume-s3outposts" }
+winterbaume-route53recoverycluster = { version = "0.1.0", path = "crates/winterbaume-route53recoverycluster" }
+winterbaume-snowdevicemanagement = { version = "0.1.0", path = "crates/winterbaume-snowdevicemanagement" }
+winterbaume-simspaceweaver = { version = "0.1.0", path = "crates/winterbaume-simspaceweaver" }
+winterbaume-taxsettings = { version = "0.1.0", path = "crates/winterbaume-taxsettings" }
+winterbaume-ssmquicksetup = { version = "0.1.0", path = "crates/winterbaume-ssmquicksetup" }
+winterbaume-pcaconnectorscep = { version = "0.1.0", path = "crates/winterbaume-pcaconnectorscep" }
+winterbaume-cloudfrontkeyvaluestore = { version = "0.1.0", path = "crates/winterbaume-cloudfrontkeyvaluestore" }
+winterbaume-cloudtraildata = { version = "0.1.0", path = "crates/winterbaume-cloudtraildata" }
+winterbaume-cloudsearchdomain = { version = "0.1.0", path = "crates/winterbaume-cloudsearchdomain" }
+winterbaume-connectparticipant = { version = "0.1.0", path = "crates/winterbaume-connectparticipant" }
+winterbaume-controlcatalog = { version = "0.1.0", path = "crates/winterbaume-controlcatalog" }
+winterbaume-costandusagereport = { version = "0.1.0", path = "crates/winterbaume-costandusagereport" }
+winterbaume-braket = { version = "0.1.0", path = "crates/winterbaume-braket" }
+winterbaume-chimesdkmeetings = { version = "0.1.0", path = "crates/winterbaume-chimesdkmeetings" }
+winterbaume-cognitosync = { version = "0.1.0", path = "crates/winterbaume-cognitosync" }
+winterbaume-codestarnotifications = { version = "0.1.0", path = "crates/winterbaume-codestarnotifications" }
+winterbaume-codegurusecurity = { version = "0.1.0", path = "crates/winterbaume-codegurusecurity" }
+winterbaume-codegurureviewer = { version = "0.1.0", path = "crates/winterbaume-codegurureviewer" }
+winterbaume-connectcontactlens = { version = "0.1.0", path = "crates/winterbaume-connectcontactlens" }
+winterbaume-costoptimizationhub = { version = "0.1.0", path = "crates/winterbaume-costoptimizationhub" }
+winterbaume-billing = { version = "0.1.0", path = "crates/winterbaume-billing" }
+winterbaume-core = { version = "0.1.0", path = "crates/winterbaume-core" }
+winterbaume-sts = { version = "0.1.0", path = "crates/winterbaume-sts" }
+winterbaume-iam = { version = "0.1.0", path = "crates/winterbaume-iam" }
+winterbaume-s3 = { version = "0.1.0", path = "crates/winterbaume-s3" }
+winterbaume-s3files = { version = "0.1.0", path = "crates/winterbaume-s3files" }
+winterbaume-sqs = { version = "0.1.0", path = "crates/winterbaume-sqs" }
+winterbaume-dynamodb = { version = "0.1.0", path = "crates/winterbaume-dynamodb" }
+winterbaume-dynamodb-redis = { version = "0.1.0", path = "crates/winterbaume-dynamodb-redis" }
+winterbaume-kms = { version = "0.1.0", path = "crates/winterbaume-kms" }
+winterbaume-ssm = { version = "0.1.0", path = "crates/winterbaume-ssm" }
+winterbaume-secretsmanager = { version = "0.1.0", path = "crates/winterbaume-secretsmanager" }
+winterbaume-cloudwatchlogs = { version = "0.1.0", path = "crates/winterbaume-cloudwatchlogs" }
+winterbaume-sns = { version = "0.1.0", path = "crates/winterbaume-sns" }
+winterbaume-lambda = { version = "0.1.0", path = "crates/winterbaume-lambda" }
+winterbaume-ecr = { version = "0.1.0", path = "crates/winterbaume-ecr" }
+winterbaume-eventbridge = { version = "0.1.0", path = "crates/winterbaume-eventbridge" }
+winterbaume-sfn = { version = "0.1.0", path = "crates/winterbaume-sfn" }
+winterbaume-route53 = { version = "0.1.0", path = "crates/winterbaume-route53" }
+winterbaume-cloudwatch = { version = "0.1.0", path = "crates/winterbaume-cloudwatch" }
+winterbaume-acm = { version = "0.1.0", path = "crates/winterbaume-acm" }
+winterbaume-apigateway = { version = "0.1.0", path = "crates/winterbaume-apigateway" }
+winterbaume-apigatewaymanagement = { version = "0.1.0", path = "crates/winterbaume-apigatewaymanagement" }
+winterbaume-apigatewayv2 = { version = "0.1.0", path = "crates/winterbaume-apigatewayv2" }
+winterbaume-eks = { version = "0.1.0", path = "crates/winterbaume-eks" }
+winterbaume-kinesis = { version = "0.1.0", path = "crates/winterbaume-kinesis" }
+winterbaume-cloudformation = { version = "0.1.0", path = "crates/winterbaume-cloudformation" }
+winterbaume-cloudfront = { version = "0.1.0", path = "crates/winterbaume-cloudfront" }
+winterbaume-firehose = { version = "0.1.0", path = "crates/winterbaume-firehose" }
+winterbaume-organizations = { version = "0.1.0", path = "crates/winterbaume-organizations" }
+winterbaume-ecs = { version = "0.1.0", path = "crates/winterbaume-ecs" }
+winterbaume-elasticache = { version = "0.1.0", path = "crates/winterbaume-elasticache" }
+winterbaume-elasticloadbalancing = { version = "0.1.0", path = "crates/winterbaume-elasticloadbalancing" }
+winterbaume-elasticloadbalancingv2 = { version = "0.1.0", path = "crates/winterbaume-elasticloadbalancingv2" }
+winterbaume-cognitoidentityprovider = { version = "0.1.0", path = "crates/winterbaume-cognitoidentityprovider" }
+winterbaume-sesv2 = { version = "0.1.0", path = "crates/winterbaume-sesv2" }
+winterbaume-ses = { version = "0.1.0", path = "crates/winterbaume-ses" }
+winterbaume-ec2instanceconnect = { version = "0.1.0", path = "crates/winterbaume-ec2instanceconnect" }
+winterbaume-ec2-generated = { version = "0.1.0", path = "crates/winterbaume-ec2-generated" }
+winterbaume-ec2 = { version = "0.1.0", path = "crates/winterbaume-ec2" }
+winterbaume-account = { version = "0.1.0", path = "crates/winterbaume-account" }
+winterbaume-codecommit = { version = "0.1.0", path = "crates/winterbaume-codecommit" }
+winterbaume-rds = { version = "0.1.0", path = "crates/winterbaume-rds" }
+winterbaume-rdsdata = { version = "0.1.0", path = "crates/winterbaume-rdsdata" }
+winterbaume-neptune = { version = "0.1.0", path = "crates/winterbaume-neptune" }
+winterbaume-redshift = { version = "0.1.0", path = "crates/winterbaume-redshift" }
+winterbaume-polly = { version = "0.1.0", path = "crates/winterbaume-polly" }
+winterbaume-cloudtrail = { version = "0.1.0", path = "crates/winterbaume-cloudtrail" }
+winterbaume-budgets = { version = "0.1.0", path = "crates/winterbaume-budgets" }
+winterbaume-glacier = { version = "0.1.0", path = "crates/winterbaume-glacier" }
+winterbaume-resourcegroups = { version = "0.1.0", path = "crates/winterbaume-resourcegroups" }
+winterbaume-scheduler = { version = "0.1.0", path = "crates/winterbaume-scheduler" }
+winterbaume-appconfig = { version = "0.1.0", path = "crates/winterbaume-appconfig" }
+winterbaume-codebuild = { version = "0.1.0", path = "crates/winterbaume-codebuild" }
+winterbaume-codepipeline = { version = "0.1.0", path = "crates/winterbaume-codepipeline" }
+winterbaume-athena = { version = "0.1.0", path = "crates/winterbaume-athena" }
+winterbaume-xray = { version = "0.1.0", path = "crates/winterbaume-xray" }
+winterbaume-signer = { version = "0.1.0", path = "crates/winterbaume-signer" }
+winterbaume-pipes = { version = "0.1.0", path = "crates/winterbaume-pipes" }
+winterbaume-dax = { version = "0.1.0", path = "crates/winterbaume-dax" }
+winterbaume-codedeploy = { version = "0.1.0", path = "crates/winterbaume-codedeploy" }
+winterbaume-cognitoidentity = { version = "0.1.0", path = "crates/winterbaume-cognitoidentity" }
+winterbaume-guardduty = { version = "0.1.0", path = "crates/winterbaume-guardduty" }
+winterbaume-backup = { version = "0.1.0", path = "crates/winterbaume-backup" }
+winterbaume-ivs = { version = "0.1.0", path = "crates/winterbaume-ivs" }
+winterbaume-wafv2 = { version = "0.1.0", path = "crates/winterbaume-wafv2" }
+winterbaume-wafv2-webacl-rule-parser = { version = "0.1.0", path = "crates/winterbaume-wafv2-webacl-rule-parser" }
+winterbaume-wafv2-wcu-calculator = { version = "0.1.0", path = "crates/winterbaume-wafv2-wcu-calculator" }
+winterbaume-config = { version = "0.1.0", path = "crates/winterbaume-config" }
+winterbaume-securityhub = { version = "0.1.0", path = "crates/winterbaume-securityhub" }
+winterbaume-inspector2 = { version = "0.1.0", path = "crates/winterbaume-inspector2" }
+winterbaume-rekognition = { version = "0.1.0", path = "crates/winterbaume-rekognition" }
+winterbaume-synthetics = { version = "0.1.0", path = "crates/winterbaume-synthetics" }
+winterbaume-shield = { version = "0.1.0", path = "crates/winterbaume-shield" }
+winterbaume-servicequotas = { version = "0.1.0", path = "crates/winterbaume-servicequotas" }
+winterbaume-ram = { version = "0.1.0", path = "crates/winterbaume-ram" }
+winterbaume-macie2 = { version = "0.1.0", path = "crates/winterbaume-macie2" }
+winterbaume-comprehend = { version = "0.1.0", path = "crates/winterbaume-comprehend" }
+winterbaume-transcribe = { version = "0.1.0", path = "crates/winterbaume-transcribe" }
+winterbaume-textract = { version = "0.1.0", path = "crates/winterbaume-textract" }
+winterbaume-forecast = { version = "0.1.0", path = "crates/winterbaume-forecast" }
+winterbaume-personalize = { version = "0.1.0", path = "crates/winterbaume-personalize" }
+winterbaume-route53resolver = { version = "0.1.0", path = "crates/winterbaume-route53resolver" }
+winterbaume-acmpca = { version = "0.1.0", path = "crates/winterbaume-acmpca" }
+winterbaume-directconnect = { version = "0.1.0", path = "crates/winterbaume-directconnect" }
+winterbaume-databasemigration = { version = "0.1.0", path = "crates/winterbaume-databasemigration" }
+winterbaume-directory = { version = "0.1.0", path = "crates/winterbaume-directory" }
+winterbaume-mq = { version = "0.1.0", path = "crates/winterbaume-mq" }
+winterbaume-transfer = { version = "0.1.0", path = "crates/winterbaume-transfer" }
+winterbaume-datasync = { version = "0.1.0", path = "crates/winterbaume-datasync" }
+winterbaume-servicediscovery = { version = "0.1.0", path = "crates/winterbaume-servicediscovery" }
+winterbaume-identitystore = { version = "0.1.0", path = "crates/winterbaume-identitystore" }
+winterbaume-efs = { version = "0.1.0", path = "crates/winterbaume-efs" }
+winterbaume-support = { version = "0.1.0", path = "crates/winterbaume-support" }
+winterbaume-batch = { version = "0.1.0", path = "crates/winterbaume-batch" }
+winterbaume-glue = { version = "0.1.0", path = "crates/winterbaume-glue" }
+winterbaume-fsx = { version = "0.1.0", path = "crates/winterbaume-fsx" }
+winterbaume-memorydb = { version = "0.1.0", path = "crates/winterbaume-memorydb" }
+winterbaume-ebs = { version = "0.1.0", path = "crates/winterbaume-ebs" }
+winterbaume-networkfirewall = { version = "0.1.0", path = "crates/winterbaume-networkfirewall" }
+winterbaume-sagemaker = { version = "0.1.0", path = "crates/winterbaume-sagemaker" }
+winterbaume-appsync = { version = "0.1.0", path = "crates/winterbaume-appsync" }
+winterbaume-iot = { version = "0.1.0", path = "crates/winterbaume-iot" }
+winterbaume-kafka = { version = "0.1.0", path = "crates/winterbaume-kafka" }
+winterbaume-lexmodelsv2 = { version = "0.1.0", path = "crates/winterbaume-lexmodelsv2" }
+winterbaume-lakeformation = { version = "0.1.0", path = "crates/winterbaume-lakeformation" }
+winterbaume-amp = { version = "0.1.0", path = "crates/winterbaume-amp" }
+winterbaume-opensearch = { version = "0.1.0", path = "crates/winterbaume-opensearch" }
+winterbaume-opensearchserverless = { version = "0.1.0", path = "crates/winterbaume-opensearchserverless" }
+winterbaume-elasticbeanstalk = { version = "0.1.0", path = "crates/winterbaume-elasticbeanstalk" }
+winterbaume-apprunner = { version = "0.1.0", path = "crates/winterbaume-apprunner" }
+winterbaume-amplify = { version = "0.1.0", path = "crates/winterbaume-amplify" }
+winterbaume-auditmanager = { version = "0.1.0", path = "crates/winterbaume-auditmanager" }
+winterbaume-chatbot = { version = "0.1.0", path = "crates/winterbaume-chatbot" }
+winterbaume-codeartifact = { version = "0.1.0", path = "crates/winterbaume-codeartifact" }
+winterbaume-costexplorer = { version = "0.1.0", path = "crates/winterbaume-costexplorer" }
+winterbaume-bedrock = { version = "0.1.0", path = "crates/winterbaume-bedrock" }
+winterbaume-clouddirectory = { version = "0.1.0", path = "crates/winterbaume-clouddirectory" }
+winterbaume-cloudhsmv2 = { version = "0.1.0", path = "crates/winterbaume-cloudhsmv2" }
+winterbaume-dynamodbstreams = { version = "0.1.0", path = "crates/winterbaume-dynamodbstreams" }
+winterbaume-dsql = { version = "0.1.0", path = "crates/winterbaume-dsql" }
+winterbaume-databrew = { version = "0.1.0", path = "crates/winterbaume-databrew" }
+winterbaume-emr = { version = "0.1.0", path = "crates/winterbaume-emr" }
+winterbaume-emrserverless = { version = "0.1.0", path = "crates/winterbaume-emrserverless" }
+winterbaume-workspaces = { version = "0.1.0", path = "crates/winterbaume-workspaces" }
+winterbaume-emrcontainers = { version = "0.1.0", path = "crates/winterbaume-emrcontainers" }
+winterbaume-bedrockagent = { version = "0.1.0", path = "crates/winterbaume-bedrockagent" }
+winterbaume-connect = { version = "0.1.0", path = "crates/winterbaume-connect" }
+winterbaume-kinesisanalyticsv2 = { version = "0.1.0", path = "crates/winterbaume-kinesisanalyticsv2" }
+winterbaume-appmesh = { version = "0.1.0", path = "crates/winterbaume-appmesh" }
+winterbaume-greengrass = { version = "0.1.0", path = "crates/winterbaume-greengrass" }
+winterbaume-networkmanager = { version = "0.1.0", path = "crates/winterbaume-networkmanager" }
+winterbaume-pinpoint = { version = "0.1.0", path = "crates/winterbaume-pinpoint" }
+winterbaume-swf = { version = "0.1.0", path = "crates/winterbaume-swf" }
+winterbaume-redshiftdata = { version = "0.1.0", path = "crates/winterbaume-redshiftdata" }
+winterbaume-mediaconnect = { version = "0.1.0", path = "crates/winterbaume-mediaconnect" }
+winterbaume-medialive = { version = "0.1.0", path = "crates/winterbaume-medialive" }
+winterbaume-mediapackage = { version = "0.1.0", path = "crates/winterbaume-mediapackage" }
+winterbaume-managedblockchain = { version = "0.1.0", path = "crates/winterbaume-managedblockchain" }
+winterbaume-resiliencehub = { version = "0.1.0", path = "crates/winterbaume-resiliencehub" }
+winterbaume-quicksight = { version = "0.1.0", path = "crates/winterbaume-quicksight" }
+winterbaume-vpclattice = { version = "0.1.0", path = "crates/winterbaume-vpclattice" }
+winterbaume-workspacesweb = { version = "0.1.0", path = "crates/winterbaume-workspacesweb" }
+winterbaume-mediastore = { version = "0.1.0", path = "crates/winterbaume-mediastore" }
+winterbaume-route53domains = { version = "0.1.0", path = "crates/winterbaume-route53domains" }
+winterbaume-mediapackagev2 = { version = "0.1.0", path = "crates/winterbaume-mediapackagev2" }
+winterbaume-osis = { version = "0.1.0", path = "crates/winterbaume-osis" }
+winterbaume-outposts = { version = "0.1.0", path = "crates/winterbaume-outposts" }
+winterbaume-fis = { version = "0.1.0", path = "crates/winterbaume-fis" }
+winterbaume-cloudcontrol = { version = "0.1.0", path = "crates/winterbaume-cloudcontrol" }
+winterbaume-keyspaces = { version = "0.1.0", path = "crates/winterbaume-keyspaces" }
+winterbaume-rolesanywhere = { version = "0.1.0", path = "crates/winterbaume-rolesanywhere" }
+winterbaume-servicecatalog = { version = "0.1.0", path = "crates/winterbaume-servicecatalog" }
+winterbaume-timestreamwrite = { version = "0.1.0", path = "crates/winterbaume-timestreamwrite" }
+winterbaume-connectcampaigns = { version = "0.1.0", path = "crates/winterbaume-connectcampaigns" }
+winterbaume-kinesisvideo = { version = "0.1.0", path = "crates/winterbaume-kinesisvideo" }
+winterbaume-sso = { version = "0.1.0", path = "crates/winterbaume-sso" }
+winterbaume-ssoadmin = { version = "0.1.0", path = "crates/winterbaume-ssoadmin" }
+winterbaume-servicecatalogappregistry = { version = "0.1.0", path = "crates/winterbaume-servicecatalogappregistry" }
+winterbaume-timestreamquery = { version = "0.1.0", path = "crates/winterbaume-timestreamquery" }
+winterbaume-timestreaminfluxdb = { version = "0.1.0", path = "crates/winterbaume-timestreaminfluxdb" }
+winterbaume-marketplacemetering = { version = "0.1.0", path = "crates/winterbaume-marketplacemetering" }
+winterbaume-sagemakermetrics = { version = "0.1.0", path = "crates/winterbaume-sagemakermetrics" }
+winterbaume-sagemakerruntime = { version = "0.1.0", path = "crates/winterbaume-sagemakerruntime" }
+winterbaume-iotdataplane = { version = "0.1.0", path = "crates/winterbaume-iotdataplane" }
+winterbaume-kinesisvideoarchivedmedia = { version = "0.1.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
+winterbaume-resourcegroupstagging = { version = "0.1.0", path = "crates/winterbaume-resourcegroupstagging" }
+winterbaume-applicationautoscaling = { version = "0.1.0", path = "crates/winterbaume-applicationautoscaling" }
+winterbaume-autoscaling = { version = "0.1.0", path = "crates/winterbaume-autoscaling" }
+winterbaume-mediastoredata = { version = "0.1.0", path = "crates/winterbaume-mediastoredata" }
+winterbaume-simpledbv2 = { version = "0.1.0", path = "crates/winterbaume-simpledbv2" }
+winterbaume-datapipeline = { version = "0.1.0", path = "crates/winterbaume-datapipeline" }
+winterbaume-s3control = { version = "0.1.0", path = "crates/winterbaume-s3control" }
+winterbaume-s3vectors = { version = "0.1.0", path = "crates/winterbaume-s3vectors" }
+winterbaume-s3tables = { version = "0.1.0", path = "crates/winterbaume-s3tables" }
+winterbaume-panorama = { version = "0.1.0", path = "crates/winterbaume-panorama" }
+winterbaume-iam-rule-eval = { version = "0.1.0", path = "crates/winterbaume-iam-rule-eval" }
+winterbaume-sfn-asl-eval = { version = "0.1.0", path = "crates/winterbaume-sfn-asl-eval" }
+winterbaume-bedrock-flow-parser = { version = "0.1.0", path = "crates/winterbaume-bedrock-flow-parser" }
+winterbaume-bedrock-flow-validator = { version = "0.1.0", path = "crates/winterbaume-bedrock-flow-validator" }
+winterbaume-partiql = { version = "0.1.0", path = "crates/winterbaume-partiql" }
+# `default-features = false` here so workspace inheritors decide whether to
+# enable the wrapper's `bundled` feature (compile DuckDB from source) or
+# link against a prebuilt libduckdb. Direct `cargo build -p
+# winterbaume-sqlengine-duckdb` still picks up the wrapper's own
+# `default = ["bundled"]` because that path doesn't go through this entry.
+winterbaume-sqlengine-duckdb = { version = "0.1.0", path = "crates/winterbaume-sqlengine-duckdb", default-features = false }
+winterbaume-sqs-redis = { version = "0.1.0", path = "crates/winterbaume-sqs-redis" }
+winterbaume-tfstate = { version = "0.1.0", path = "crates/winterbaume-tfstate" }
+winterbaume-terraform = { version = "0.1.0", path = "crates/winterbaume-terraform" }
+
+# AWS SDK
+aws-sdk-accessanalyzer = "1"
+aws-sdk-aiops = "1"
+aws-sdk-amplifybackend = "1"
+aws-sdk-amplifyuibuilder = "1"
+aws-sdk-appconfigdata = "1"
+aws-sdk-appfabric = "1"
+aws-sdk-appflow = "1"
+aws-sdk-appintegrations = "1"
+aws-sdk-applicationcostprofiler = "1"
+aws-sdk-applicationdiscovery = "1"
+aws-sdk-applicationinsights = "1"
+aws-sdk-applicationsignals = "1"
+aws-sdk-arczonalshift = "1"
+aws-sdk-artifact = "1"
+aws-sdk-autoscalingplans = "1"
+aws-sdk-backupgateway = "1"
+aws-sdk-backupsearch = "1"
+aws-sdk-bcmdashboards = "1"
+aws-sdk-bcmdataexports = "1"
+aws-sdk-bcmrecommendedactions = "1"
+aws-sdk-dlm = "1"
+aws-sdk-rbin = "1"
+aws-sdk-savingsplans = "1"
+aws-sdk-personalizeevents = "1"
+aws-sdk-personalizeruntime = "1"
+aws-sdk-pinpointsmsvoice = "1"
+aws-sdk-pi = "1"
+aws-sdk-trustedadvisor = "1"
+aws-sdk-supportapp = "1"
+aws-sdk-pricing = "1"
+aws-sdk-freetier = "1"
+aws-sdk-cloud9 = "1"
+aws-sdk-s3outposts = "1"
+aws-sdk-route53recoverycluster = "1"
+aws-sdk-snowdevicemanagement = "1"
+aws-sdk-simspaceweaver = "1"
+aws-sdk-taxsettings = "1"
+aws-sdk-ssmquicksetup = "1"
+aws-sdk-pcaconnectorscep = "1"
+aws-sdk-cloudfrontkeyvaluestore = "1"
+aws-sdk-cloudtraildata = "1"
+aws-sdk-cloudsearchdomain = "1"
+aws-sdk-connectparticipant = "1"
+aws-sdk-controlcatalog = "1"
+aws-sdk-costandusagereport = "1"
+aws-sdk-braket = "1"
+aws-sdk-chimesdkmeetings = "1"
+aws-sdk-cognitosync = "1"
+aws-sdk-codestarnotifications = "1"
+aws-sdk-codegurusecurity = "1"
+aws-sdk-codegurureviewer = "1"
+aws-sdk-connectcontactlens = "1"
+aws-sdk-costoptimizationhub = "1"
+aws-sdk-billing = "1"
+aws-config = "1"
+aws-credential-types = "1"
+aws-sdk-sts = "1"
+aws-sdk-iam = "1"
+aws-sdk-s3 = "1"
+aws-sdk-sqs = "1"
+aws-sdk-dynamodb = "1"
+aws-sdk-kms = "1"
+aws-sdk-ssm = "1"
+aws-sdk-secretsmanager = "1"
+aws-sdk-cloudwatchlogs = "1"
+aws-sdk-sns = "1"
+aws-sdk-lambda = "1"
+aws-sdk-ecr = "1"
+aws-sdk-eventbridge = "1"
+aws-sdk-sfn = "1"
+aws-sdk-route53 = "1"
+aws-sdk-cloudwatch = "1"
+aws-sdk-acm = "1"
+aws-sdk-eks = "1"
+aws-sdk-kinesis = "1"
+aws-sdk-cloudformation = "1"
+aws-sdk-cloudfront = "1"
+aws-sdk-firehose = "1"
+aws-sdk-organizations = "1"
+aws-sdk-ecs = "1"
+aws-sdk-elasticache = "1"
+aws-sdk-elasticloadbalancing = "1"
+aws-sdk-elasticloadbalancingv2 = "1"
+aws-sdk-cognitoidentityprovider = "1"
+aws-sdk-ses = "1"
+aws-sdk-sesv2 = "1"
+aws-sdk-s3files = "1"
+aws-sdk-ec2instanceconnect = "1"
+aws-sdk-ec2 = "1"
+aws-sdk-account = "1"
+aws-sdk-codecommit = "1"
+aws-sdk-rds = "1"
+aws-sdk-rdsdata = "1"
+aws-sdk-neptune = "1"
+aws-sdk-polly = "1"
+aws-sdk-cloudtrail = "1"
+aws-sdk-budgets = "1"
+aws-sdk-glacier = "1"
+aws-sdk-resourcegroups = "1"
+aws-sdk-scheduler = "1"
+aws-sdk-apigateway = "1"
+aws-sdk-apigatewaymanagement = "1"
+aws-sdk-apigatewayv2 = "1"
+aws-sdk-appconfig = "1"
+aws-sdk-apprunner = "1"
+aws-sdk-amplify = "1"
+aws-sdk-auditmanager = "1"
+aws-sdk-chatbot = "1"
+aws-sdk-codeartifact = "1"
+aws-sdk-codebuild = "1"
+aws-sdk-codepipeline = "1"
+aws-sdk-athena = "1"
+aws-sdk-signer = "1"
+aws-sdk-pipes = "1"
+aws-sdk-dax = "1"
+aws-sdk-codedeploy = "1"
+aws-sdk-cognitoidentity = "1"
+aws-sdk-guardduty = "1"
+aws-sdk-backup = "1"
+aws-sdk-ivs = "1"
+aws-sdk-wafv2 = "1"
+aws-sdk-config = "1"
+aws-sdk-xray = "1"
+aws-sdk-securityhub = "1"
+aws-sdk-inspector2 = "1"
+aws-sdk-rekognition = "1"
+aws-sdk-synthetics = "1"
+aws-sdk-shield = "1"
+aws-sdk-servicequotas = "1"
+aws-sdk-ram = "1"
+aws-sdk-macie2 = "1"
+aws-sdk-comprehend = "1"
+aws-sdk-transcribe = "1"
+aws-sdk-textract = "1"
+aws-sdk-forecast = "1"
+aws-sdk-personalize = "1"
+aws-sdk-route53resolver = "1"
+aws-sdk-acmpca = "1"
+aws-sdk-directconnect = "1"
+aws-sdk-directory = "1"
+aws-sdk-mq = "1"
+aws-sdk-transfer = "1"
+aws-sdk-databasemigration = "1"
+aws-sdk-datasync = "1"
+aws-sdk-servicediscovery = "1"
+aws-sdk-identitystore = "1"
+aws-sdk-efs = "1"
+aws-sdk-support = "1"
+aws-sdk-batch = "1"
+aws-sdk-glue = "1"
+aws-sdk-fsx = "1"
+aws-sdk-memorydb = "1"
+aws-sdk-ebs = "1"
+aws-sdk-networkfirewall = "1"
+aws-sdk-sagemaker = "1"
+aws-sdk-appsync = "1"
+aws-sdk-iot = "1"
+aws-sdk-kafka = "1"
+aws-sdk-lakeformation = "1"
+aws-sdk-lexmodelsv2 = "1"
+aws-sdk-amp = "1"
+aws-sdk-opensearch = "1"
+aws-sdk-opensearchserverless = "1"
+aws-sdk-panorama = "1"
+aws-sdk-elasticbeanstalk = "1"
+aws-sdk-costexplorer = "1"
+aws-sdk-bedrock = "1"
+aws-sdk-clouddirectory = "1"
+aws-sdk-cloudhsmv2 = "1"
+aws-sdk-dynamodbstreams = "1"
+aws-sdk-dsql = "1"
+aws-sdk-databrew = "1"
+aws-sdk-emr = "1"
+aws-sdk-emrserverless = "1"
+aws-sdk-workspaces = "1"
+aws-sdk-emrcontainers = "1"
+aws-sdk-bedrockagent = "1"
+aws-sdk-connect = "1"
+aws-sdk-kinesisanalyticsv2 = "1"
+aws-sdk-appmesh = "1"
+aws-sdk-greengrass = "1"
+aws-sdk-networkmanager = "1"
+aws-sdk-pinpoint = "1"
+aws-sdk-swf = "1"
+aws-sdk-redshift = "1"
+aws-sdk-redshiftdata = "1"
+aws-sdk-mediaconnect = "1"
+aws-sdk-medialive = "1"
+aws-sdk-mediapackage = "1"
+aws-sdk-managedblockchain = "1"
+aws-sdk-resiliencehub = "1"
+aws-sdk-quicksight = "1"
+aws-sdk-vpclattice = "1"
+aws-sdk-workspacesweb = "1"
+aws-sdk-mediastore = "1"
+aws-sdk-route53domains = "1"
+aws-sdk-mediapackagev2 = "1"
+aws-sdk-osis = "1"
+aws-sdk-outposts = "1"
+aws-sdk-fis = "1"
+aws-sdk-cloudcontrol = "1"
+aws-sdk-keyspaces = "1"
+aws-sdk-rolesanywhere = "1"
+aws-sdk-servicecatalog = "1"
+aws-sdk-timestreamwrite = "1"
+aws-sdk-connectcampaigns = "1"
+aws-sdk-kinesisvideo = "1"
+aws-sdk-sso = "1"
+aws-sdk-ssoadmin = "1"
+aws-sdk-servicecatalogappregistry = "1"
+aws-sdk-timestreamquery = "1"
+aws-sdk-timestreaminfluxdb = "1"
+aws-sdk-marketplacemetering = "1"
+aws-sdk-sagemakermetrics = "1"
+aws-sdk-sagemakerruntime = "1"
+aws-sdk-iotdataplane = "1"
+aws-sdk-kinesisvideoarchivedmedia = "1"
+aws-sdk-applicationautoscaling = "1"
+aws-sdk-autoscaling = "1"
+aws-sdk-mediastoredata = "1"
+aws-sdk-simpledbv2 = "1"
+aws-sdk-datapipeline = "1"
+aws-sdk-resourcegroupstagging = "1"
+aws-sdk-s3control = "1"
+aws-sdk-s3tables = "1"
+aws-sdk-s3vectors = "1"
+aws-smithy-mocks = "0.1"
+aws-smithy-runtime-api = "1"
+aws-smithy-types = "1"
+
+# Async
+tokio = { version = "1", features = ["full"] }
+
+# HTTP
+http = "1"
+bytes = "1"
+
+# Serialization
+quick-xml = { version = "0.37", features = ["serialize"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+urlencoding = "2"
+
+# PartiQL
+partiql-parser = "0.14"
+partiql-ast = "0.14"
+
+# SQL engine
+# `bundled` is intentionally NOT enabled here. The wrapper crate
+# `winterbaume-sqlengine-duckdb` re-exports it as its own `bundled`
+# default feature so local builds remain turnkey, while CI can opt out
+# via `--no-default-features` and link against a prebuilt libduckdb.
+duckdb = { version = "1" }
+papera = "0.1"
+
+# Utilities
+regex = "1"
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+tracing = "0.1"
+thiserror = "2"
+md-5 = "0.10"
+sha2 = "0.10"
+hmac = "0.12"
+base64 = "0.22"
+x509-parser = "0.16"
+rand = "0.9"
+aes-gcm = "0.10"
+ciborium = "0.2"
+redis = { version = "0.27", features = ["tokio-comp", "aio", "connection-manager"] }
+
+# ---------------------------------------------------------------------------
+# Root package (umbrella crate) — optional service dependencies
+# ---------------------------------------------------------------------------
+
+[dependencies]
+winterbaume-accessanalyzer = { workspace = true, optional = true }
+winterbaume-aiops = { workspace = true, optional = true }
+winterbaume-amplifybackend = { workspace = true, optional = true }
+winterbaume-amplifyuibuilder = { workspace = true, optional = true }
+winterbaume-appconfigdata = { workspace = true, optional = true }
+winterbaume-appfabric = { workspace = true, optional = true }
+winterbaume-appflow = { workspace = true, optional = true }
+winterbaume-appintegrations = { workspace = true, optional = true }
+winterbaume-applicationcostprofiler = { workspace = true, optional = true }
+winterbaume-applicationdiscoveryservice = { workspace = true, optional = true }
+winterbaume-applicationinsights = { workspace = true, optional = true }
+winterbaume-applicationsignals = { workspace = true, optional = true }
+winterbaume-arczonalshift = { workspace = true, optional = true }
+winterbaume-artifact = { workspace = true, optional = true }
+winterbaume-autoscalingplans = { workspace = true, optional = true }
+winterbaume-backupgateway = { workspace = true, optional = true }
+winterbaume-backupsearch = { workspace = true, optional = true }
+winterbaume-bcmdashboards = { workspace = true, optional = true }
+winterbaume-bcmdataexports = { workspace = true, optional = true }
+winterbaume-bcmrecommendedactions = { workspace = true, optional = true }
+winterbaume-dlm = { workspace = true, optional = true }
+winterbaume-rbin = { workspace = true, optional = true }
+winterbaume-savingsplans = { workspace = true, optional = true }
+winterbaume-personalizeevents = { workspace = true, optional = true }
+winterbaume-personalizeruntime = { workspace = true, optional = true }
+winterbaume-pinpointsmsvoice = { workspace = true, optional = true }
+winterbaume-pi = { workspace = true, optional = true }
+winterbaume-trustedadvisor = { workspace = true, optional = true }
+winterbaume-supportapp = { workspace = true, optional = true }
+winterbaume-pricing = { workspace = true, optional = true }
+winterbaume-freetier = { workspace = true, optional = true }
+winterbaume-cloud9 = { workspace = true, optional = true }
+winterbaume-s3outposts = { workspace = true, optional = true }
+winterbaume-route53recoverycluster = { workspace = true, optional = true }
+winterbaume-snowdevicemanagement = { workspace = true, optional = true }
+winterbaume-simspaceweaver = { workspace = true, optional = true }
+winterbaume-taxsettings = { workspace = true, optional = true }
+winterbaume-ssmquicksetup = { workspace = true, optional = true }
+winterbaume-pcaconnectorscep = { workspace = true, optional = true }
+winterbaume-cloudfrontkeyvaluestore = { workspace = true, optional = true }
+winterbaume-cloudtraildata = { workspace = true, optional = true }
+winterbaume-cloudsearchdomain = { workspace = true, optional = true }
+winterbaume-connectparticipant = { workspace = true, optional = true }
+winterbaume-controlcatalog = { workspace = true, optional = true }
+winterbaume-costandusagereport = { workspace = true, optional = true }
+winterbaume-braket = { workspace = true, optional = true }
+winterbaume-chimesdkmeetings = { workspace = true, optional = true }
+winterbaume-cognitosync = { workspace = true, optional = true }
+winterbaume-codestarnotifications = { workspace = true, optional = true }
+winterbaume-codegurusecurity = { workspace = true, optional = true }
+winterbaume-codegurureviewer = { workspace = true, optional = true }
+winterbaume-connectcontactlens = { workspace = true, optional = true }
+winterbaume-costoptimizationhub = { workspace = true, optional = true }
+winterbaume-billing = { workspace = true, optional = true }
+winterbaume-account = { workspace = true, optional = true }
+winterbaume-acm = { workspace = true, optional = true }
+winterbaume-acmpca = { workspace = true, optional = true }
+winterbaume-amp = { workspace = true, optional = true }
+winterbaume-apigateway = { workspace = true, optional = true }
+winterbaume-apigatewaymanagement = { workspace = true, optional = true }
+winterbaume-apigatewayv2 = { workspace = true, optional = true }
+winterbaume-appconfig = { workspace = true, optional = true }
+winterbaume-applicationautoscaling = { workspace = true, optional = true }
+winterbaume-autoscaling = { workspace = true, optional = true }
+winterbaume-appmesh = { workspace = true, optional = true }
+winterbaume-appsync = { workspace = true, optional = true }
+winterbaume-apprunner = { workspace = true, optional = true }
+winterbaume-amplify = { workspace = true, optional = true }
+winterbaume-athena = { workspace = true, optional = true }
+winterbaume-auditmanager = { workspace = true, optional = true }
+winterbaume-backup = { workspace = true, optional = true }
+winterbaume-batch = { workspace = true, optional = true }
+winterbaume-bedrock = { workspace = true, optional = true }
+winterbaume-bedrockagent = { workspace = true, optional = true }
+winterbaume-budgets = { workspace = true, optional = true }
+winterbaume-chatbot = { workspace = true, optional = true }
+winterbaume-cloudformation = { workspace = true, optional = true }
+winterbaume-cloudfront = { workspace = true, optional = true }
+winterbaume-clouddirectory = { workspace = true, optional = true }
+winterbaume-cloudhsmv2 = { workspace = true, optional = true }
+winterbaume-cloudtrail = { workspace = true, optional = true }
+winterbaume-cloudwatch = { workspace = true, optional = true }
+winterbaume-codebuild = { workspace = true, optional = true }
+winterbaume-codeartifact = { workspace = true, optional = true }
+winterbaume-codecommit = { workspace = true, optional = true }
+winterbaume-codedeploy = { workspace = true, optional = true }
+winterbaume-codepipeline = { workspace = true, optional = true }
+winterbaume-cognitoidentity = { workspace = true, optional = true }
+winterbaume-cognitoidentityprovider = { workspace = true, optional = true }
+winterbaume-comprehend = { workspace = true, optional = true }
+winterbaume-config = { workspace = true, optional = true }
+winterbaume-connect = { workspace = true, optional = true }
+winterbaume-connectcampaigns = { workspace = true, optional = true }
+winterbaume-costexplorer = { workspace = true, optional = true }
+winterbaume-databrew = { workspace = true, optional = true }
+winterbaume-datapipeline = { workspace = true, optional = true }
+winterbaume-datasync = { workspace = true, optional = true }
+winterbaume-dax = { workspace = true, optional = true }
+winterbaume-directconnect = { workspace = true, optional = true }
+winterbaume-directory = { workspace = true, optional = true }
+winterbaume-dsql = { workspace = true, optional = true }
+winterbaume-dynamodb = { workspace = true, optional = true }
+winterbaume-dynamodbstreams = { workspace = true, optional = true }
+winterbaume-ebs = { workspace = true, optional = true }
+winterbaume-ec2instanceconnect = { workspace = true, optional = true }
+winterbaume-ecr = { workspace = true, optional = true }
+winterbaume-ecs = { workspace = true, optional = true }
+winterbaume-efs = { workspace = true, optional = true }
+winterbaume-eks = { workspace = true, optional = true }
+winterbaume-elasticache = { workspace = true, optional = true }
+winterbaume-elasticloadbalancing = { workspace = true, optional = true }
+winterbaume-elasticloadbalancingv2 = { workspace = true, optional = true }
+winterbaume-emr = { workspace = true, optional = true }
+winterbaume-emrcontainers = { workspace = true, optional = true }
+winterbaume-emrserverless = { workspace = true, optional = true }
+winterbaume-eventbridge = { workspace = true, optional = true }
+winterbaume-firehose = { workspace = true, optional = true }
+winterbaume-fis = { workspace = true, optional = true }
+winterbaume-forecast = { workspace = true, optional = true }
+winterbaume-fsx = { workspace = true, optional = true }
+winterbaume-glacier = { workspace = true, optional = true }
+winterbaume-glue = { workspace = true, optional = true }
+winterbaume-greengrass = { workspace = true, optional = true }
+winterbaume-guardduty = { workspace = true, optional = true }
+winterbaume-iam = { workspace = true, optional = true }
+winterbaume-identitystore = { workspace = true, optional = true }
+winterbaume-inspector2 = { workspace = true, optional = true }
+winterbaume-iot = { workspace = true, optional = true }
+winterbaume-iotdataplane = { workspace = true, optional = true }
+winterbaume-ivs = { workspace = true, optional = true }
+winterbaume-kafka = { workspace = true, optional = true }
+winterbaume-lexmodelsv2 = { workspace = true, optional = true }
+winterbaume-kinesis = { workspace = true, optional = true }
+winterbaume-kinesisanalyticsv2 = { workspace = true, optional = true }
+winterbaume-kinesisvideo = { workspace = true, optional = true }
+winterbaume-kinesisvideoarchivedmedia = { workspace = true, optional = true }
+winterbaume-kms = { workspace = true, optional = true }
+winterbaume-lakeformation = { workspace = true, optional = true }
+winterbaume-lambda = { workspace = true, optional = true }
+winterbaume-cloudwatchlogs = { workspace = true, optional = true }
+winterbaume-macie2 = { workspace = true, optional = true }
+winterbaume-managedblockchain = { workspace = true, optional = true }
+winterbaume-mediaconnect = { workspace = true, optional = true }
+winterbaume-medialive = { workspace = true, optional = true }
+winterbaume-mediapackage = { workspace = true, optional = true }
+winterbaume-mediapackagev2 = { workspace = true, optional = true }
+winterbaume-mediastore = { workspace = true, optional = true }
+winterbaume-mediastoredata = { workspace = true, optional = true }
+winterbaume-memorydb = { workspace = true, optional = true }
+winterbaume-marketplacemetering = { workspace = true, optional = true }
+winterbaume-mq = { workspace = true, optional = true }
+winterbaume-networkfirewall = { workspace = true, optional = true }
+winterbaume-networkmanager = { workspace = true, optional = true }
+winterbaume-opensearch = { workspace = true, optional = true }
+winterbaume-opensearchserverless = { workspace = true, optional = true }
+winterbaume-organizations = { workspace = true, optional = true }
+winterbaume-osis = { workspace = true, optional = true }
+winterbaume-personalize = { workspace = true, optional = true }
+winterbaume-pinpoint = { workspace = true, optional = true }
+winterbaume-pipes = { workspace = true, optional = true }
+winterbaume-polly = { workspace = true, optional = true }
+winterbaume-quicksight = { workspace = true, optional = true }
+winterbaume-ram = { workspace = true, optional = true }
+winterbaume-rds = { workspace = true, optional = true }
+winterbaume-rdsdata = { workspace = true, optional = true }
+winterbaume-redshift = { workspace = true, optional = true }
+winterbaume-redshiftdata = { workspace = true, optional = true }
+winterbaume-rekognition = { workspace = true, optional = true }
+winterbaume-resiliencehub = { workspace = true, optional = true }
+winterbaume-resourcegroups = { workspace = true, optional = true }
+winterbaume-route53 = { workspace = true, optional = true }
+winterbaume-route53domains = { workspace = true, optional = true }
+winterbaume-route53resolver = { workspace = true, optional = true }
+winterbaume-s3 = { workspace = true, optional = true }
+winterbaume-s3files = { workspace = true, optional = true }
+winterbaume-sagemaker = { workspace = true, optional = true }
+winterbaume-sagemakermetrics = { workspace = true, optional = true }
+winterbaume-sagemakerruntime = { workspace = true, optional = true }
+winterbaume-scheduler = { workspace = true, optional = true }
+winterbaume-simpledbv2 = { workspace = true, optional = true }
+winterbaume-secretsmanager = { workspace = true, optional = true }
+winterbaume-securityhub = { workspace = true, optional = true }
+winterbaume-servicecatalog = { workspace = true, optional = true }
+winterbaume-servicecatalogappregistry = { workspace = true, optional = true }
+winterbaume-servicediscovery = { workspace = true, optional = true }
+winterbaume-servicequotas = { workspace = true, optional = true }
+winterbaume-sesv2 = { workspace = true, optional = true }
+winterbaume-ses = { workspace = true, optional = true }
+winterbaume-shield = { workspace = true, optional = true }
+winterbaume-signer = { workspace = true, optional = true }
+winterbaume-sns = { workspace = true, optional = true }
+winterbaume-sqs = { workspace = true, optional = true }
+winterbaume-ssm = { workspace = true, optional = true }
+winterbaume-sso = { workspace = true, optional = true }
+winterbaume-ssoadmin = { workspace = true, optional = true }
+winterbaume-sfn = { workspace = true, optional = true }
+winterbaume-sts = { workspace = true, optional = true }
+winterbaume-support = { workspace = true, optional = true }
+winterbaume-swf = { workspace = true, optional = true }
+winterbaume-synthetics = { workspace = true, optional = true }
+winterbaume-resourcegroupstagging = { workspace = true, optional = true }
+winterbaume-textract = { workspace = true, optional = true }
+winterbaume-timestreaminfluxdb = { workspace = true, optional = true }
+winterbaume-timestreamquery = { workspace = true, optional = true }
+winterbaume-timestreamwrite = { workspace = true, optional = true }
+winterbaume-transcribe = { workspace = true, optional = true }
+winterbaume-transfer = { workspace = true, optional = true }
+winterbaume-vpclattice = { workspace = true, optional = true }
+winterbaume-wafv2 = { workspace = true, optional = true }
+winterbaume-workspaces = { workspace = true, optional = true }
+winterbaume-workspacesweb = { workspace = true, optional = true }
+winterbaume-xray = { workspace = true, optional = true }
+winterbaume-panorama = { workspace = true, optional = true }
+winterbaume-elasticbeanstalk = { workspace = true, optional = true }
+
+[dev-dependencies]
+aws-config = { workspace = true }
+aws-smithy-types = { workspace = true }
+aws-sdk-accessanalyzer = { workspace = true }
+aws-sdk-aiops = { workspace = true }
+aws-sdk-amplifybackend = { workspace = true }
+aws-sdk-amplifyuibuilder = { workspace = true }
+aws-sdk-appconfigdata = { workspace = true }
+aws-sdk-appfabric = { workspace = true }
+aws-sdk-appflow = { workspace = true }
+aws-sdk-appintegrations = { workspace = true }
+aws-sdk-applicationcostprofiler = { workspace = true }
+aws-sdk-applicationdiscovery = { workspace = true }
+aws-sdk-applicationinsights = { workspace = true }
+aws-sdk-applicationsignals = { workspace = true }
+aws-sdk-arczonalshift = { workspace = true }
+aws-sdk-artifact = { workspace = true }
+aws-sdk-autoscalingplans = { workspace = true }
+aws-sdk-backupgateway = { workspace = true }
+aws-sdk-backupsearch = { workspace = true }
+aws-sdk-bcmdashboards = { workspace = true }
+aws-sdk-bcmdataexports = { workspace = true }
+aws-sdk-bcmrecommendedactions = { workspace = true }
+aws-sdk-dlm = { workspace = true }
+aws-sdk-rbin = { workspace = true }
+aws-sdk-savingsplans = { workspace = true }
+aws-sdk-personalizeevents = { workspace = true }
+aws-sdk-personalizeruntime = { workspace = true }
+aws-sdk-pinpointsmsvoice = { workspace = true }
+aws-sdk-pi = { workspace = true }
+aws-sdk-trustedadvisor = { workspace = true }
+aws-sdk-supportapp = { workspace = true }
+aws-sdk-pricing = { workspace = true }
+aws-sdk-freetier = { workspace = true }
+aws-sdk-cloud9 = { workspace = true }
+aws-sdk-s3outposts = { workspace = true }
+aws-sdk-route53recoverycluster = { workspace = true }
+aws-sdk-snowdevicemanagement = { workspace = true }
+aws-sdk-simspaceweaver = { workspace = true }
+aws-sdk-taxsettings = { workspace = true }
+aws-sdk-ssmquicksetup = { workspace = true }
+aws-sdk-pcaconnectorscep = { workspace = true }
+aws-sdk-cloudfrontkeyvaluestore = { workspace = true }
+aws-sdk-cloudtraildata = { workspace = true }
+aws-sdk-cloudsearchdomain = { workspace = true }
+aws-sdk-connectparticipant = { workspace = true }
+aws-sdk-controlcatalog = { workspace = true }
+aws-sdk-costandusagereport = { workspace = true }
+aws-sdk-braket = { workspace = true }
+aws-sdk-chimesdkmeetings = { workspace = true }
+aws-sdk-cognitosync = { workspace = true }
+aws-sdk-codestarnotifications = { workspace = true }
+aws-sdk-codegurusecurity = { workspace = true }
+aws-sdk-codegurureviewer = { workspace = true }
+aws-sdk-connectcontactlens = { workspace = true }
+aws-sdk-costoptimizationhub = { workspace = true }
+aws-sdk-billing = { workspace = true }
+bytes = { workspace = true }
+http = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+winterbaume-accessanalyzer = { workspace = true }
+winterbaume-aiops = { workspace = true }
+winterbaume-amplifybackend = { workspace = true }
+winterbaume-amplifyuibuilder = { workspace = true }
+winterbaume-appconfigdata = { workspace = true }
+winterbaume-appfabric = { workspace = true }
+winterbaume-appflow = { workspace = true }
+winterbaume-appintegrations = { workspace = true }
+winterbaume-applicationcostprofiler = { workspace = true }
+winterbaume-applicationdiscoveryservice = { workspace = true }
+winterbaume-applicationinsights = { workspace = true }
+winterbaume-applicationsignals = { workspace = true }
+winterbaume-arczonalshift = { workspace = true }
+winterbaume-artifact = { workspace = true }
+winterbaume-autoscalingplans = { workspace = true }
+winterbaume-backupgateway = { workspace = true }
+winterbaume-backupsearch = { workspace = true }
+winterbaume-bcmdashboards = { workspace = true }
+winterbaume-bcmdataexports = { workspace = true }
+winterbaume-bcmrecommendedactions = { workspace = true }
+winterbaume-dlm = { workspace = true }
+winterbaume-rbin = { workspace = true }
+winterbaume-savingsplans = { workspace = true }
+winterbaume-personalizeevents = { workspace = true }
+winterbaume-personalizeruntime = { workspace = true }
+winterbaume-pinpointsmsvoice = { workspace = true }
+winterbaume-pi = { workspace = true }
+winterbaume-trustedadvisor = { workspace = true }
+winterbaume-supportapp = { workspace = true }
+winterbaume-pricing = { workspace = true }
+winterbaume-freetier = { workspace = true }
+winterbaume-cloud9 = { workspace = true }
+winterbaume-s3outposts = { workspace = true }
+winterbaume-route53recoverycluster = { workspace = true }
+winterbaume-snowdevicemanagement = { workspace = true }
+winterbaume-simspaceweaver = { workspace = true }
+winterbaume-taxsettings = { workspace = true }
+winterbaume-ssmquicksetup = { workspace = true }
+winterbaume-pcaconnectorscep = { workspace = true }
+winterbaume-cloudfrontkeyvaluestore = { workspace = true }
+winterbaume-cloudtraildata = { workspace = true }
+winterbaume-cloudsearchdomain = { workspace = true }
+winterbaume-connectparticipant = { workspace = true }
+winterbaume-controlcatalog = { workspace = true }
+winterbaume-costandusagereport = { workspace = true }
+winterbaume-braket = { workspace = true }
+winterbaume-chimesdkmeetings = { workspace = true }
+winterbaume-cognitosync = { workspace = true }
+winterbaume-codestarnotifications = { workspace = true }
+winterbaume-codegurusecurity = { workspace = true }
+winterbaume-codegurureviewer = { workspace = true }
+winterbaume-connectcontactlens = { workspace = true }
+winterbaume-costoptimizationhub = { workspace = true }
+winterbaume-billing = { workspace = true }
+winterbaume-account = { workspace = true }
+winterbaume-acm = { workspace = true }
+winterbaume-acmpca = { workspace = true }
+winterbaume-amp = { workspace = true }
+winterbaume-apigateway = { workspace = true }
+winterbaume-apigatewaymanagement = { workspace = true }
+winterbaume-apigatewayv2 = { workspace = true }
+winterbaume-appconfig = { workspace = true }
+winterbaume-applicationautoscaling = { workspace = true }
+winterbaume-autoscaling = { workspace = true }
+winterbaume-appmesh = { workspace = true }
+winterbaume-appsync = { workspace = true }
+winterbaume-apprunner = { workspace = true }
+winterbaume-amplify = { workspace = true }
+winterbaume-athena = { workspace = true }
+winterbaume-auditmanager = { workspace = true }
+winterbaume-backup = { workspace = true }
+winterbaume-batch = { workspace = true }
+winterbaume-bedrock = { workspace = true }
+winterbaume-bedrockagent = { workspace = true }
+winterbaume-budgets = { workspace = true }
+winterbaume-chatbot = { workspace = true }
+winterbaume-cloudformation = { workspace = true }
+winterbaume-cloudfront = { workspace = true }
+winterbaume-clouddirectory = { workspace = true }
+winterbaume-cloudhsmv2 = { workspace = true }
+winterbaume-cloudtrail = { workspace = true }
+winterbaume-cloudwatch = { workspace = true }
+winterbaume-codebuild = { workspace = true }
+winterbaume-codeartifact = { workspace = true }
+winterbaume-codecommit = { workspace = true }
+winterbaume-codedeploy = { workspace = true }
+winterbaume-codepipeline = { workspace = true }
+winterbaume-cognitoidentity = { workspace = true }
+winterbaume-cognitoidentityprovider = { workspace = true }
+winterbaume-comprehend = { workspace = true }
+winterbaume-config = { workspace = true }
+winterbaume-connect = { workspace = true }
+winterbaume-connectcampaigns = { workspace = true }
+winterbaume-core = { workspace = true }
+winterbaume-costexplorer = { workspace = true }
+winterbaume-databrew = { workspace = true }
+winterbaume-datapipeline = { workspace = true }
+winterbaume-datasync = { workspace = true }
+winterbaume-dax = { workspace = true }
+winterbaume-directconnect = { workspace = true }
+winterbaume-databasemigration = { workspace = true }
+winterbaume-directory = { workspace = true }
+winterbaume-dsql = { workspace = true }
+winterbaume-dynamodb = { workspace = true }
+winterbaume-dynamodbstreams = { workspace = true }
+winterbaume-ebs = { workspace = true }
+winterbaume-ec2 = { workspace = true }
+winterbaume-ec2instanceconnect = { workspace = true }
+winterbaume-ecr = { workspace = true }
+winterbaume-ecs = { workspace = true }
+winterbaume-efs = { workspace = true }
+winterbaume-eks = { workspace = true }
+winterbaume-elasticache = { workspace = true }
+winterbaume-elasticloadbalancing = { workspace = true }
+winterbaume-elasticloadbalancingv2 = { workspace = true }
+winterbaume-emr = { workspace = true }
+winterbaume-emrcontainers = { workspace = true }
+winterbaume-emrserverless = { workspace = true }
+winterbaume-eventbridge = { workspace = true }
+winterbaume-firehose = { workspace = true }
+winterbaume-fis = { workspace = true }
+winterbaume-forecast = { workspace = true }
+winterbaume-fsx = { workspace = true }
+winterbaume-glacier = { workspace = true }
+winterbaume-glue = { workspace = true }
+winterbaume-greengrass = { workspace = true }
+winterbaume-guardduty = { workspace = true }
+winterbaume-iam = { workspace = true }
+winterbaume-identitystore = { workspace = true }
+winterbaume-inspector2 = { workspace = true }
+winterbaume-iot = { workspace = true }
+winterbaume-iotdataplane = { workspace = true }
+winterbaume-ivs = { workspace = true }
+winterbaume-kafka = { workspace = true }
+winterbaume-lexmodelsv2 = { workspace = true }
+winterbaume-kinesis = { workspace = true }
+winterbaume-kinesisanalyticsv2 = { workspace = true }
+winterbaume-kinesisvideo = { workspace = true }
+winterbaume-kinesisvideoarchivedmedia = { workspace = true }
+winterbaume-kms = { workspace = true }
+winterbaume-lakeformation = { workspace = true }
+winterbaume-lambda = { workspace = true }
+winterbaume-cloudwatchlogs = { workspace = true }
+winterbaume-macie2 = { workspace = true }
+winterbaume-managedblockchain = { workspace = true }
+winterbaume-mediaconnect = { workspace = true }
+winterbaume-medialive = { workspace = true }
+winterbaume-mediapackage = { workspace = true }
+winterbaume-mediapackagev2 = { workspace = true }
+winterbaume-mediastore = { workspace = true }
+winterbaume-mediastoredata = { workspace = true }
+winterbaume-memorydb = { workspace = true }
+winterbaume-marketplacemetering = { workspace = true }
+winterbaume-mq = { workspace = true }
+winterbaume-networkfirewall = { workspace = true }
+winterbaume-networkmanager = { workspace = true }
+winterbaume-opensearch = { workspace = true }
+winterbaume-opensearchserverless = { workspace = true }
+winterbaume-organizations = { workspace = true }
+winterbaume-osis = { workspace = true }
+winterbaume-outposts = { workspace = true }
+winterbaume-cloudcontrol = { workspace = true }
+winterbaume-keyspaces = { workspace = true }
+winterbaume-rolesanywhere = { workspace = true }
+winterbaume-personalize = { workspace = true }
+winterbaume-pinpoint = { workspace = true }
+winterbaume-pipes = { workspace = true }
+winterbaume-polly = { workspace = true }
+winterbaume-quicksight = { workspace = true }
+winterbaume-ram = { workspace = true }
+winterbaume-rds = { workspace = true }
+winterbaume-rdsdata = { workspace = true }
+winterbaume-neptune = { workspace = true }
+winterbaume-redshift = { workspace = true }
+winterbaume-redshiftdata = { workspace = true }
+winterbaume-rekognition = { workspace = true }
+winterbaume-resiliencehub = { workspace = true }
+winterbaume-resourcegroups = { workspace = true }
+winterbaume-resourcegroupstagging = { workspace = true }
+winterbaume-route53 = { workspace = true }
+winterbaume-route53domains = { workspace = true }
+winterbaume-route53resolver = { workspace = true }
+winterbaume-s3 = { workspace = true }
+winterbaume-s3files = { workspace = true }
+winterbaume-s3control = { workspace = true }
+winterbaume-s3tables = { workspace = true }
+winterbaume-s3vectors = { workspace = true }
+winterbaume-sagemaker = { workspace = true }
+winterbaume-sagemakermetrics = { workspace = true }
+winterbaume-sagemakerruntime = { workspace = true }
+winterbaume-scheduler = { workspace = true }
+winterbaume-simpledbv2 = { workspace = true }
+winterbaume-secretsmanager = { workspace = true }
+winterbaume-securityhub = { workspace = true }
+winterbaume-servicecatalog = { workspace = true }
+winterbaume-servicecatalogappregistry = { workspace = true }
+winterbaume-servicediscovery = { workspace = true }
+winterbaume-servicequotas = { workspace = true }
+winterbaume-sesv2 = { workspace = true }
+winterbaume-ses = { workspace = true }
+winterbaume-shield = { workspace = true }
+winterbaume-signer = { workspace = true }
+winterbaume-sns = { workspace = true }
+winterbaume-sqs = { workspace = true }
+winterbaume-ssm = { workspace = true }
+winterbaume-sso = { workspace = true }
+winterbaume-ssoadmin = { workspace = true }
+winterbaume-sfn = { workspace = true }
+winterbaume-sts = { workspace = true }
+winterbaume-support = { workspace = true }
+winterbaume-swf = { workspace = true }
+winterbaume-synthetics = { workspace = true }
+winterbaume-textract = { workspace = true }
+winterbaume-timestreaminfluxdb = { workspace = true }
+winterbaume-timestreamquery = { workspace = true }
+winterbaume-timestreamwrite = { workspace = true }
+winterbaume-transcribe = { workspace = true }
+winterbaume-transfer = { workspace = true }
+winterbaume-vpclattice = { workspace = true }
+winterbaume-wafv2 = { workspace = true }
+winterbaume-workspaces = { workspace = true }
+winterbaume-workspacesweb = { workspace = true }
+winterbaume-xray = { workspace = true }
+winterbaume-panorama = { workspace = true }
+winterbaume-elasticbeanstalk = { workspace = true }
+aws-sdk-account = { workspace = true }
+aws-sdk-acm = { workspace = true }
+aws-sdk-acmpca = { workspace = true }
+aws-sdk-amp = { workspace = true }
+aws-sdk-apigateway = { workspace = true }
+aws-sdk-apigatewaymanagement = { workspace = true }
+aws-sdk-apigatewayv2 = { workspace = true }
+aws-sdk-appconfig = { workspace = true }
+aws-sdk-apprunner = { workspace = true }
+aws-sdk-amplify = { workspace = true }
+aws-sdk-applicationautoscaling = { workspace = true }
+aws-sdk-autoscaling = { workspace = true }
+aws-sdk-appmesh = { workspace = true }
+aws-sdk-appsync = { workspace = true }
+aws-sdk-athena = { workspace = true }
+aws-sdk-auditmanager = { workspace = true }
+aws-sdk-backup = { workspace = true }
+aws-sdk-batch = { workspace = true }
+aws-sdk-bedrock = { workspace = true }
+aws-sdk-bedrockagent = { workspace = true }
+aws-sdk-budgets = { workspace = true }
+aws-sdk-chatbot = { workspace = true }
+aws-sdk-cloudformation = { workspace = true }
+aws-sdk-cloudfront = { workspace = true }
+aws-sdk-clouddirectory = { workspace = true }
+aws-sdk-cloudhsmv2 = { workspace = true }
+aws-sdk-cloudtrail = { workspace = true }
+aws-sdk-cloudwatch = { workspace = true }
+aws-sdk-cloudwatchlogs = { workspace = true }
+aws-sdk-codebuild = { workspace = true }
+aws-sdk-codeartifact = { workspace = true }
+aws-sdk-codecommit = { workspace = true }
+aws-sdk-codedeploy = { workspace = true }
+aws-sdk-codepipeline = { workspace = true }
+aws-sdk-cognitoidentity = { workspace = true }
+aws-sdk-cognitoidentityprovider = { workspace = true }
+aws-sdk-comprehend = { workspace = true }
+aws-sdk-config = { workspace = true }
+aws-sdk-connect = { workspace = true }
+aws-sdk-connectcampaigns = { workspace = true }
+aws-sdk-costexplorer = { workspace = true }
+aws-sdk-databrew = { workspace = true }
+aws-sdk-datapipeline = { workspace = true }
+aws-sdk-databasemigration = { workspace = true }
+aws-sdk-datasync = { workspace = true }
+aws-sdk-dax = { workspace = true }
+aws-sdk-directconnect = { workspace = true }
+aws-sdk-directory = { workspace = true }
+aws-sdk-dsql = { workspace = true }
+aws-sdk-dynamodb = { workspace = true }
+aws-sdk-dynamodbstreams = { workspace = true }
+aws-sdk-ebs = { workspace = true }
+aws-sdk-ec2 = { workspace = true }
+aws-sdk-ec2instanceconnect = { workspace = true }
+aws-sdk-ecr = { workspace = true }
+aws-sdk-ecs = { workspace = true }
+aws-sdk-efs = { workspace = true }
+aws-sdk-eks = { workspace = true }
+aws-sdk-elasticache = { workspace = true }
+aws-sdk-elasticloadbalancing = { workspace = true }
+aws-sdk-elasticloadbalancingv2 = { workspace = true }
+aws-sdk-emr = { workspace = true }
+aws-sdk-emrcontainers = { workspace = true }
+aws-sdk-emrserverless = { workspace = true }
+aws-sdk-eventbridge = { workspace = true }
+aws-sdk-firehose = { workspace = true }
+aws-sdk-fis = { workspace = true }
+aws-sdk-forecast = { workspace = true }
+aws-sdk-fsx = { workspace = true }
+aws-sdk-glacier = { workspace = true }
+aws-sdk-glue = { workspace = true }
+aws-sdk-greengrass = { workspace = true }
+aws-sdk-guardduty = { workspace = true }
+aws-sdk-iam = { workspace = true }
+aws-sdk-identitystore = { workspace = true }
+aws-sdk-inspector2 = { workspace = true }
+aws-sdk-iot = { workspace = true }
+aws-sdk-iotdataplane = { workspace = true }
+aws-sdk-ivs = { workspace = true }
+aws-sdk-kafka = { workspace = true }
+aws-sdk-kinesis = { workspace = true }
+aws-sdk-kinesisanalyticsv2 = { workspace = true }
+aws-sdk-kinesisvideo = { workspace = true }
+aws-sdk-kinesisvideoarchivedmedia = { workspace = true }
+aws-sdk-kms = { workspace = true }
+aws-sdk-lakeformation = { workspace = true }
+aws-sdk-lexmodelsv2 = { workspace = true }
+aws-sdk-lambda = { workspace = true }
+aws-sdk-macie2 = { workspace = true }
+aws-sdk-managedblockchain = { workspace = true }
+aws-sdk-marketplacemetering = { workspace = true }
+aws-sdk-mediaconnect = { workspace = true }
+aws-sdk-medialive = { workspace = true }
+aws-sdk-mediapackage = { workspace = true }
+aws-sdk-mediapackagev2 = { workspace = true }
+aws-sdk-mediastore = { workspace = true }
+aws-sdk-mediastoredata = { workspace = true }
+aws-sdk-memorydb = { workspace = true }
+aws-sdk-mq = { workspace = true }
+aws-sdk-networkfirewall = { workspace = true }
+aws-sdk-networkmanager = { workspace = true }
+aws-sdk-opensearch = { workspace = true }
+aws-sdk-opensearchserverless = { workspace = true }
+aws-sdk-organizations = { workspace = true }
+aws-sdk-osis = { workspace = true }
+aws-sdk-outposts = { workspace = true }
+aws-sdk-cloudcontrol = { workspace = true }
+aws-sdk-keyspaces = { workspace = true }
+aws-sdk-rolesanywhere = { workspace = true }
+aws-sdk-personalize = { workspace = true }
+aws-sdk-pinpoint = { workspace = true }
+aws-sdk-pipes = { workspace = true }
+aws-sdk-polly = { workspace = true }
+aws-sdk-quicksight = { workspace = true }
+aws-sdk-ram = { workspace = true }
+aws-sdk-rds = { workspace = true }
+aws-sdk-rdsdata = { workspace = true }
+aws-sdk-neptune = { workspace = true }
+aws-sdk-redshift = { workspace = true }
+aws-sdk-redshiftdata = { workspace = true }
+aws-sdk-rekognition = { workspace = true }
+aws-sdk-resiliencehub = { workspace = true }
+aws-sdk-resourcegroups = { workspace = true }
+aws-sdk-resourcegroupstagging = { workspace = true }
+aws-sdk-route53 = { workspace = true }
+aws-sdk-route53domains = { workspace = true }
+aws-sdk-route53resolver = { workspace = true }
+aws-sdk-s3 = { workspace = true }
+aws-sdk-s3files = { workspace = true }
+aws-sdk-s3control = { workspace = true }
+aws-sdk-s3tables = { workspace = true }
+aws-sdk-s3vectors = { workspace = true }
+aws-sdk-sagemaker = { workspace = true }
+aws-sdk-sagemakermetrics = { workspace = true }
+aws-sdk-sagemakerruntime = { workspace = true }
+aws-sdk-scheduler = { workspace = true }
+aws-sdk-secretsmanager = { workspace = true }
+aws-sdk-securityhub = { workspace = true }
+aws-sdk-servicecatalog = { workspace = true }
+aws-sdk-servicecatalogappregistry = { workspace = true }
+aws-sdk-servicediscovery = { workspace = true }
+aws-sdk-servicequotas = { workspace = true }
+aws-sdk-ses = { workspace = true }
+aws-sdk-sesv2 = { workspace = true }
+aws-sdk-sfn = { workspace = true }
+aws-sdk-shield = { workspace = true }
+aws-sdk-signer = { workspace = true }
+aws-sdk-simpledbv2 = { workspace = true }
+aws-sdk-sns = { workspace = true }
+aws-sdk-sqs = { workspace = true }
+aws-sdk-ssm = { workspace = true }
+aws-sdk-sso = { workspace = true }
+aws-sdk-ssoadmin = { workspace = true }
+aws-sdk-sts = { workspace = true }
+aws-sdk-support = { workspace = true }
+aws-sdk-swf = { workspace = true }
+aws-sdk-synthetics = { workspace = true }
+aws-sdk-textract = { workspace = true }
+aws-sdk-timestreaminfluxdb = { workspace = true }
+aws-sdk-timestreamquery = { workspace = true }
+aws-sdk-timestreamwrite = { workspace = true }
+aws-sdk-transcribe = { workspace = true }
+aws-sdk-transfer = { workspace = true }
+aws-sdk-vpclattice = { workspace = true }
+aws-sdk-wafv2 = { workspace = true }
+aws-sdk-workspaces = { workspace = true }
+aws-sdk-workspacesweb = { workspace = true }
+aws-sdk-xray = { workspace = true }
+aws-sdk-panorama = { workspace = true }
+aws-sdk-elasticbeanstalk = { workspace = true }
+
+[features]
+service-account = ["dep:winterbaume-account"]
+service-acm = ["dep:winterbaume-acm"]
+service-acmpca = ["dep:winterbaume-acmpca"]
+service-amp = ["dep:winterbaume-amp"]
+service-apigateway = ["dep:winterbaume-apigateway"]
+service-apigatewaymanagement = ["dep:winterbaume-apigatewaymanagement"]
+service-apigatewayv2 = ["dep:winterbaume-apigatewayv2"]
+service-appconfig = ["dep:winterbaume-appconfig"]
+service-applicationautoscaling = ["dep:winterbaume-applicationautoscaling"]
+service-appmesh = ["dep:winterbaume-appmesh"]
+service-appsync = ["dep:winterbaume-appsync"]
+service-apprunner = ["dep:winterbaume-apprunner"]
+service-amplify = ["dep:winterbaume-amplify"]
+service-athena = ["dep:winterbaume-athena"]
+service-auditmanager = ["dep:winterbaume-auditmanager"]
+service-backup = ["dep:winterbaume-backup"]
+service-batch = ["dep:winterbaume-batch"]
+service-bedrock = ["dep:winterbaume-bedrock"]
+service-bedrockagent = ["dep:winterbaume-bedrockagent"]
+service-budgets = ["dep:winterbaume-budgets"]
+service-chatbot = ["dep:winterbaume-chatbot"]
+service-cloudformation = ["dep:winterbaume-cloudformation"]
+service-cloudfront = ["dep:winterbaume-cloudfront"]
+service-clouddirectory = ["dep:winterbaume-clouddirectory"]
+service-cloudhsmv2 = ["dep:winterbaume-cloudhsmv2"]
+service-cloudtrail = ["dep:winterbaume-cloudtrail"]
+service-cloudwatch = ["dep:winterbaume-cloudwatch"]
+service-codebuild = ["dep:winterbaume-codebuild"]
+service-codeartifact = ["dep:winterbaume-codeartifact"]
+service-codecommit = ["dep:winterbaume-codecommit"]
+service-codedeploy = ["dep:winterbaume-codedeploy"]
+service-codepipeline = ["dep:winterbaume-codepipeline"]
+service-cognitoidentity = ["dep:winterbaume-cognitoidentity"]
+service-cognitoidentityprovider = ["dep:winterbaume-cognitoidentityprovider"]
+service-comprehend = ["dep:winterbaume-comprehend"]
+service-config = ["dep:winterbaume-config"]
+service-connect = ["dep:winterbaume-connect"]
+service-connectcampaigns = ["dep:winterbaume-connectcampaigns"]
+service-costexplorer = ["dep:winterbaume-costexplorer"]
+service-databrew = ["dep:winterbaume-databrew"]
+service-datapipeline = ["dep:winterbaume-datapipeline"]
+service-datasync = ["dep:winterbaume-datasync"]
+service-dax = ["dep:winterbaume-dax"]
+service-directconnect = ["dep:winterbaume-directconnect"]
+service-directory = ["dep:winterbaume-directory"]
+service-dsql = ["dep:winterbaume-dsql"]
+service-dynamodb = ["dep:winterbaume-dynamodb"]
+service-dynamodbstreams = ["dep:winterbaume-dynamodbstreams"]
+service-ebs = ["dep:winterbaume-ebs"]
+service-ec2instanceconnect = ["dep:winterbaume-ec2instanceconnect"]
+service-ecr = ["dep:winterbaume-ecr"]
+service-ecs = ["dep:winterbaume-ecs"]
+service-efs = ["dep:winterbaume-efs"]
+service-eks = ["dep:winterbaume-eks"]
+service-elasticloadbalancing = ["dep:winterbaume-elasticloadbalancing"]
+service-elasticloadbalancingv2 = ["dep:winterbaume-elasticloadbalancingv2"]
+service-emr = ["dep:winterbaume-emr"]
+service-emrcontainers = ["dep:winterbaume-emrcontainers"]
+service-emrserverless = ["dep:winterbaume-emrserverless"]
+service-eventbridge = ["dep:winterbaume-eventbridge"]
+service-firehose = ["dep:winterbaume-firehose"]
+service-fis = ["dep:winterbaume-fis"]
+service-forecast = ["dep:winterbaume-forecast"]
+service-fsx = ["dep:winterbaume-fsx"]
+service-glacier = ["dep:winterbaume-glacier"]
+service-glue = ["dep:winterbaume-glue"]
+service-greengrass = ["dep:winterbaume-greengrass"]
+service-guardduty = ["dep:winterbaume-guardduty"]
+service-iam = ["dep:winterbaume-iam"]
+service-identitystore = ["dep:winterbaume-identitystore"]
+service-inspector2 = ["dep:winterbaume-inspector2"]
+service-iot = ["dep:winterbaume-iot"]
+service-iotdataplane = ["dep:winterbaume-iotdataplane"]
+service-ivs = ["dep:winterbaume-ivs"]
+service-lexmodelsv2 = ["dep:winterbaume-lexmodelsv2"]
+service-kafka = ["dep:winterbaume-kafka"]
+service-kinesis = ["dep:winterbaume-kinesis"]
+service-kinesisanalyticsv2 = ["dep:winterbaume-kinesisanalyticsv2"]
+service-kinesisvideo = ["dep:winterbaume-kinesisvideo"]
+service-kinesisvideoarchivedmedia = ["dep:winterbaume-kinesisvideoarchivedmedia"]
+service-kms = ["dep:winterbaume-kms"]
+service-lakeformation = ["dep:winterbaume-lakeformation"]
+service-lambda = ["dep:winterbaume-lambda"]
+service-cloudwatchlogs = ["dep:winterbaume-cloudwatchlogs"]
+service-macie2 = ["dep:winterbaume-macie2"]
+service-managedblockchain = ["dep:winterbaume-managedblockchain"]
+service-mediaconnect = ["dep:winterbaume-mediaconnect"]
+service-medialive = ["dep:winterbaume-medialive"]
+service-mediapackage = ["dep:winterbaume-mediapackage"]
+service-mediapackagev2 = ["dep:winterbaume-mediapackagev2"]
+service-mediastore = ["dep:winterbaume-mediastore"]
+service-mediastoredata = ["dep:winterbaume-mediastoredata"]
+service-memorydb = ["dep:winterbaume-memorydb"]
+service-marketplacemetering = ["dep:winterbaume-marketplacemetering"]
+service-mq = ["dep:winterbaume-mq"]
+service-networkfirewall = ["dep:winterbaume-networkfirewall"]
+service-networkmanager = ["dep:winterbaume-networkmanager"]
+service-opensearch = ["dep:winterbaume-opensearch"]
+service-opensearchserverless = ["dep:winterbaume-opensearchserverless"]
+service-organizations = ["dep:winterbaume-organizations"]
+service-osis = ["dep:winterbaume-osis"]
+service-personalize = ["dep:winterbaume-personalize"]
+service-pinpoint = ["dep:winterbaume-pinpoint"]
+service-pipes = ["dep:winterbaume-pipes"]
+service-polly = ["dep:winterbaume-polly"]
+service-quicksight = ["dep:winterbaume-quicksight"]
+service-ram = ["dep:winterbaume-ram"]
+service-rds = ["dep:winterbaume-rds"]
+service-rdsdata = ["dep:winterbaume-rdsdata"]
+service-redshift = ["dep:winterbaume-redshift"]
+service-redshiftdata = ["dep:winterbaume-redshiftdata"]
+service-rekognition = ["dep:winterbaume-rekognition"]
+service-resiliencehub = ["dep:winterbaume-resiliencehub"]
+service-resourcegroups = ["dep:winterbaume-resourcegroups"]
+service-route53 = ["dep:winterbaume-route53"]
+service-route53domains = ["dep:winterbaume-route53domains"]
+service-route53resolver = ["dep:winterbaume-route53resolver"]
+service-s3 = ["dep:winterbaume-s3"]
+service-s3files = ["dep:winterbaume-s3files"]
+service-sagemaker = ["dep:winterbaume-sagemaker"]
+service-sagemakermetrics = ["dep:winterbaume-sagemakermetrics"]
+service-sagemakerruntime = ["dep:winterbaume-sagemakerruntime"]
+service-scheduler = ["dep:winterbaume-scheduler"]
+service-simpledbv2 = ["dep:winterbaume-simpledbv2"]
+service-secretsmanager = ["dep:winterbaume-secretsmanager"]
+service-securityhub = ["dep:winterbaume-securityhub"]
+service-servicecatalog = ["dep:winterbaume-servicecatalog"]
+service-servicecatalogappregistry = ["dep:winterbaume-servicecatalogappregistry"]
+service-servicediscovery = ["dep:winterbaume-servicediscovery"]
+service-servicequotas = ["dep:winterbaume-servicequotas"]
+service-sesv2 = ["dep:winterbaume-sesv2"]
+service-ses = ["dep:winterbaume-ses"]
+service-shield = ["dep:winterbaume-shield"]
+service-signer = ["dep:winterbaume-signer"]
+service-sns = ["dep:winterbaume-sns"]
+service-sqs = ["dep:winterbaume-sqs"]
+service-ssm = ["dep:winterbaume-ssm"]
+service-sso = ["dep:winterbaume-sso"]
+service-ssoadmin = ["dep:winterbaume-ssoadmin"]
+service-sfn = ["dep:winterbaume-sfn"]
+service-sts = ["dep:winterbaume-sts"]
+service-support = ["dep:winterbaume-support"]
+service-swf = ["dep:winterbaume-swf"]
+service-synthetics = ["dep:winterbaume-synthetics"]
+service-resourcegroupstagging = ["dep:winterbaume-resourcegroupstagging"]
+service-textract = ["dep:winterbaume-textract"]
+service-timestreaminfluxdb = ["dep:winterbaume-timestreaminfluxdb"]
+service-timestreamquery = ["dep:winterbaume-timestreamquery"]
+service-timestreamwrite = ["dep:winterbaume-timestreamwrite"]
+service-transcribe = ["dep:winterbaume-transcribe"]
+service-transfer = ["dep:winterbaume-transfer"]
+service-vpclattice = ["dep:winterbaume-vpclattice"]
+service-wafv2 = ["dep:winterbaume-wafv2"]
+service-workspaces = ["dep:winterbaume-workspaces"]
+service-workspacesweb = ["dep:winterbaume-workspacesweb"]
+service-xray = ["dep:winterbaume-xray"]
+service-panorama = ["dep:winterbaume-panorama"]
+service-elasticbeanstalk = ["dep:winterbaume-elasticbeanstalk"]
+service-aiops = ["dep:winterbaume-aiops"]
+service-amplifybackend = ["dep:winterbaume-amplifybackend"]
+service-amplifyuibuilder = ["dep:winterbaume-amplifyuibuilder"]
+service-appconfigdata = ["dep:winterbaume-appconfigdata"]
+service-appfabric = ["dep:winterbaume-appfabric"]
+service-appflow = ["dep:winterbaume-appflow"]
+service-appintegrations = ["dep:winterbaume-appintegrations"]
+service-applicationcostprofiler = ["dep:winterbaume-applicationcostprofiler"]
+service-applicationdiscoveryservice = ["dep:winterbaume-applicationdiscoveryservice"]
+service-applicationinsights = ["dep:winterbaume-applicationinsights"]
+service-applicationsignals = ["dep:winterbaume-applicationsignals"]
+service-arczonalshift = ["dep:winterbaume-arczonalshift"]
+service-artifact = ["dep:winterbaume-artifact"]
+service-autoscalingplans = ["dep:winterbaume-autoscalingplans"]
+service-backupgateway = ["dep:winterbaume-backupgateway"]
+service-backupsearch = ["dep:winterbaume-backupsearch"]
+service-bcmdashboards = ["dep:winterbaume-bcmdashboards"]
+service-bcmdataexports = ["dep:winterbaume-bcmdataexports"]
+service-bcmrecommendedactions = ["dep:winterbaume-bcmrecommendedactions"]
+service-dlm = ["dep:winterbaume-dlm"]
+service-rbin = ["dep:winterbaume-rbin"]
+service-savingsplans = ["dep:winterbaume-savingsplans"]
+service-personalizeevents = ["dep:winterbaume-personalizeevents"]
+service-personalizeruntime = ["dep:winterbaume-personalizeruntime"]
+service-pinpointsmsvoice = ["dep:winterbaume-pinpointsmsvoice"]
+service-pi = ["dep:winterbaume-pi"]
+service-trustedadvisor = ["dep:winterbaume-trustedadvisor"]
+service-supportapp = ["dep:winterbaume-supportapp"]
+service-pricing = ["dep:winterbaume-pricing"]
+service-freetier = ["dep:winterbaume-freetier"]
+service-cloud9 = ["dep:winterbaume-cloud9"]
+service-s3outposts = ["dep:winterbaume-s3outposts"]
+service-route53recoverycluster = ["dep:winterbaume-route53recoverycluster"]
+service-snowdevicemanagement = ["dep:winterbaume-snowdevicemanagement"]
+service-simspaceweaver = ["dep:winterbaume-simspaceweaver"]
+service-taxsettings = ["dep:winterbaume-taxsettings"]
+service-ssmquicksetup = ["dep:winterbaume-ssmquicksetup"]
+service-pcaconnectorscep = ["dep:winterbaume-pcaconnectorscep"]
+service-cloudfrontkeyvaluestore = ["dep:winterbaume-cloudfrontkeyvaluestore"]
+service-cloudtraildata = ["dep:winterbaume-cloudtraildata"]
+service-cloudsearchdomain = ["dep:winterbaume-cloudsearchdomain"]
+service-connectparticipant = ["dep:winterbaume-connectparticipant"]
+service-controlcatalog = ["dep:winterbaume-controlcatalog"]
+service-costandusagereport = ["dep:winterbaume-costandusagereport"]
+service-braket = ["dep:winterbaume-braket"]
+service-chimesdkmeetings = ["dep:winterbaume-chimesdkmeetings"]
+service-cognitosync = ["dep:winterbaume-cognitosync"]
+service-codestarnotifications = ["dep:winterbaume-codestarnotifications"]
+service-codegurusecurity = ["dep:winterbaume-codegurusecurity"]
+service-codegurureviewer = ["dep:winterbaume-codegurureviewer"]
+service-connectcontactlens = ["dep:winterbaume-connectcontactlens"]
+service-costoptimizationhub = ["dep:winterbaume-costoptimizationhub"]
+service-billing = ["dep:winterbaume-billing"]
+full = [
+    "service-account",
+    "service-acm",
+    "service-acmpca",
+    "service-amp",
+    "service-apigateway",
+    "service-apigatewaymanagement",
+    "service-apigatewayv2",
+    "service-appconfig",
+    "service-applicationautoscaling",
+    "service-appmesh",
+    "service-appsync",
+    "service-apprunner",
+    "service-athena",
+    "service-auditmanager",
+    "service-backup",
+    "service-batch",
+    "service-bedrock",
+    "service-bedrockagent",
+    "service-budgets",
+    "service-chatbot",
+    "service-cloudformation",
+    "service-cloudfront",
+    "service-clouddirectory",
+    "service-cloudhsmv2",
+    "service-cloudtrail",
+    "service-cloudwatch",
+    "service-codebuild",
+    "service-codeartifact",
+    "service-codecommit",
+    "service-codedeploy",
+    "service-codepipeline",
+    "service-cognitoidentity",
+    "service-cognitoidentityprovider",
+    "service-comprehend",
+    "service-config",
+    "service-connect",
+    "service-connectcampaigns",
+    "service-costexplorer",
+    "service-databrew",
+    "service-datapipeline",
+    "service-datasync",
+    "service-dax",
+    "service-directconnect",
+    "service-directory",
+    "service-dsql",
+    "service-dynamodb",
+    "service-dynamodbstreams",
+    "service-ebs",
+    "service-ec2instanceconnect",
+    "service-ecr",
+    "service-ecs",
+    "service-efs",
+    "service-eks",
+    "service-elasticloadbalancing",
+    "service-elasticloadbalancingv2",
+    "service-emrcontainers",
+    "service-emrserverless",
+    "service-eventbridge",
+    "service-firehose",
+    "service-fis",
+    "service-forecast",
+    "service-fsx",
+    "service-glacier",
+    "service-glue",
+    "service-greengrass",
+    "service-guardduty",
+    "service-iam",
+    "service-identitystore",
+    "service-inspector2",
+    "service-iot",
+    "service-iotdataplane",
+    "service-ivs",
+    "service-kafka",
+    "service-kinesis",
+    "service-kinesisanalyticsv2",
+    "service-kinesisvideo",
+    "service-kinesisvideoarchivedmedia",
+    "service-kms",
+    "service-lakeformation",
+    "service-lambda",
+    "service-cloudwatchlogs",
+    "service-macie2",
+    "service-managedblockchain",
+    "service-mediaconnect",
+    "service-medialive",
+    "service-mediapackage",
+    "service-mediapackagev2",
+    "service-mediastore",
+    "service-mediastoredata",
+    "service-memorydb",
+    "service-marketplacemetering",
+    "service-mq",
+    "service-networkfirewall",
+    "service-networkmanager",
+    "service-opensearch",
+    "service-organizations",
+    "service-osis",
+    "service-personalize",
+    "service-pinpoint",
+    "service-pipes",
+    "service-polly",
+    "service-quicksight",
+    "service-ram",
+    "service-rds",
+    "service-rdsdata",
+    "service-redshiftdata",
+    "service-rekognition",
+    "service-resiliencehub",
+    "service-resourcegroups",
+    "service-route53",
+    "service-route53domains",
+    "service-route53resolver",
+    "service-s3",
+    "service-s3files",
+    "service-sagemaker",
+    "service-sagemakermetrics",
+    "service-sagemakerruntime",
+    "service-scheduler",
+    "service-simpledbv2",
+    "service-secretsmanager",
+    "service-securityhub",
+    "service-servicecatalog",
+    "service-servicecatalogappregistry",
+    "service-servicediscovery",
+    "service-servicequotas",
+    "service-sesv2",
+    "service-ses",
+    "service-shield",
+    "service-signer",
+    "service-sns",
+    "service-sqs",
+    "service-ssm",
+    "service-sso",
+    "service-ssoadmin",
+    "service-sfn",
+    "service-sts",
+    "service-support",
+    "service-swf",
+    "service-synthetics",
+    "service-resourcegroupstagging",
+    "service-textract",
+    "service-timestreaminfluxdb",
+    "service-timestreamquery",
+    "service-timestreamwrite",
+    "service-transcribe",
+    "service-transfer",
+    "service-vpclattice",
+    "service-wafv2",
+    "service-workspaces",
+    "service-workspacesweb",
+    "service-xray",
+    "service-panorama",
+    "service-elasticbeanstalk",
+    "service-aiops",
+    "service-amplifybackend",
+    "service-appconfigdata",
+    "service-appfabric",
+    "service-appflow",
+    "service-applicationcostprofiler",
+    "service-artifact",
+    "service-autoscalingplans",
+]
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+[profile.dev.package.winterbaume-ec2-generated]
+codegen-units = 16
+opt-level = 0

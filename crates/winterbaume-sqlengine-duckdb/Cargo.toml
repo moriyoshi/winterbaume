@@ -1,0 +1,36 @@
+[package]
+name = "winterbaume-sqlengine-duckdb"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+description = "DuckDB-backed SQL engine backend for winterbaume Athena and Redshift Data"
+
+[features]
+# `bundled` makes duckdb-rs build DuckDB from source. This is the
+# default so a fresh `cargo build -p winterbaume-sqlengine-duckdb`
+# works without any system dependencies. Disable it (e.g. with
+# `--no-default-features`) when linking against a prebuilt libduckdb
+# located via DUCKDB_LIB_DIR / DUCKDB_INCLUDE_DIR; CI does this to
+# avoid the multi-minute from-source compile.
+default = ["bundled"]
+bundled = ["duckdb/bundled"]
+
+[dependencies]
+winterbaume-athena = { workspace = true }
+winterbaume-redshiftdata = { workspace = true }
+duckdb = { workspace = true }
+papera = { workspace = true }
+
+[dev-dependencies]
+aws-config = { workspace = true }
+aws-credential-types = { workspace = true, features = ["test-util"] }
+aws-sdk-athena = { workspace = true }
+aws-sdk-redshiftdata = { workspace = true }
+aws-smithy-runtime-api = { workspace = true }
+winterbaume-core = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true

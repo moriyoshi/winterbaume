@@ -1,0 +1,181 @@
+# AWS B2B Data Interchange
+
+Source: AWS Smithy API model vendored in `vendor/api-models-aws`.
+
+## Service Overview
+
+This is the Amazon Web Services B2B Data Interchange API Reference . It provides descriptions, API request parameters, and the XML response for each of the B2BI API actions. B2BI enables automated exchange of EDI (electronic data interchange) based business-critical transactions at cloud scale, with elasticity and pay-as-you-go pricing. Businesses use EDI documents to exchange transactional data with trading partners, such as suppliers and end customers, using standardized formats such as X12. Rather than actually running a command, you can use the `--generate-cli-skeleton` parameter with any API call to generate and display a parameter template.
+
+## Possible Usage Scenarios
+- Scenario insight from EC2: add full state-machine walks for AWS B2B Data Interchange resources that start, stop, cancel, complete, disable, or otherwise transition through observable lifecycle states.
+- From the AWS documentation and model: create B2B profiles, partnerships, transformers, capabilities, and trading-partner agreements for EDI exchange.
+- From the operation surface: model inbound and outbound EDI processing, transformation jobs, test conversions, tagging, and partner lifecycle administration.
+
+## Service Identity and Protocol
+
+- AWS model slug: `b2bi`
+- AWS SDK for Rust slug: `b2bi`
+- Model version: `2022-06-23`
+- Model file: `vendor/api-models-aws/models/b2bi/service/2022-06-23/b2bi-2022-06-23.json`
+- SDK ID: `b2bi`
+- Endpoint prefix: `b2bi`
+- ARN namespace: `-`
+- CloudFormation name: `-`
+- CloudTrail event source: `-`
+- Protocols: `awsJson1_0`
+- Auth schemes: `sigv4`
+- Endpoint rule parameters: `Endpoint`, `Region`, `UseDualStack`, `UseFIPS`
+
+## Behavioural Model Notes
+
+- Operation surface is concentrated in these families: `Create` (5), `Get` (5), `List` (5), `Delete` (4), `Update` (4), `Test` (3), `Generate` (1), `Start` (1).
+- State-changing operations should define resource existence, duplicate, conflict, and deletion semantics: `CreateCapability`, `CreatePartnership`, `CreateProfile`, `CreateStarterMappingTemplate`, `CreateTransformer`, `DeleteCapability`, `DeletePartnership`, `DeleteProfile`, `DeleteTransformer`, `StartTransformerJob`, `TagResource`, `UntagResource`, `UpdateCapability`, `UpdatePartnership`, `UpdateProfile`, `UpdateTransformer`.
+- Read/list operations should define not-found behaviour, filtering, ordering, and empty-result shapes: `GetCapability`, `GetPartnership`, `GetProfile`, `GetTransformer`, `GetTransformerJob`, `ListCapabilities`, `ListPartnerships`, `ListProfiles`, `ListTagsForResource`, `ListTransformers`.
+- Pagination is modelled for 4 operations; token stability and page boundaries are observable API behaviour.
+- Idempotency is explicit for 18 operations; repeated calls with the same token should preserve AWS-compatible outcomes.
+- Asynchronous or job-like operations need lifecycle states, polling semantics, and terminal failure modelling: `GetTransformerJob`, `StartTransformerJob`.
+- Tagging is part of the service contract; preserve tag key uniqueness, merge/replace semantics, and list-tags ARN validation.
+- 30 operations declare modelled service errors; parity work should map exact error names and retryability where documented.
+- Documentation and model terms indicate cross-service dependencies or identifiers: `S3`.
+
+
+## Resource Model
+
+| Resource | Identifiers | Lifecycle operations | Other operations | Documentation cue |
+|---|---|---|---|---|
+| `Capability` | `capabilityId` | create: `CreateCapability`; read: `GetCapability`; update: `UpdateCapability`; delete: `DeleteCapability`; list: `ListCapabilities` | - | - |
+| `Partnership` | `partnershipId` | create: `CreatePartnership`; read: `GetPartnership`; update: `UpdatePartnership`; delete: `DeletePartnership`; list: `ListPartnerships` | - | - |
+| `Profile` | `profileId` | create: `CreateProfile`; read: `GetProfile`; update: `UpdateProfile`; delete: `DeleteProfile`; list: `ListProfiles` | - | - |
+| `Transformer` | `transformerId` | create: `CreateTransformer`; read: `GetTransformer`; update: `UpdateTransformer`; delete: `DeleteTransformer`; list: `ListTransformers` | - | - |
+## Operation Groups
+
+### Create
+
+- Operations: `CreateCapability`, `CreatePartnership`, `CreateProfile`, `CreateStarterMappingTemplate`, `CreateTransformer`
+- Traits: `idempotency-token` (4), `idempotent` (4)
+- Common required input members in this group: `businessName`, `capabilities`, `configuration`, `email`, `logging`, `mappingType`, `name`, `phone`, `profileId`, `templateDetails`, `type`
+
+### Get
+
+- Operations: `GetCapability`, `GetPartnership`, `GetProfile`, `GetTransformer`, `GetTransformerJob`
+- Traits: `readonly` (5)
+- Common required input members in this group: `capabilityId`, `partnershipId`, `profileId`, `transformerId`, `transformerJobId`
+
+### List
+
+- Operations: `ListCapabilities`, `ListPartnerships`, `ListProfiles`, `ListTagsForResource`, `ListTransformers`
+- Traits: `paginated` (4), `readonly` (5)
+- Common required input members in this group: `ResourceARN`
+
+### Delete
+
+- Operations: `DeleteCapability`, `DeletePartnership`, `DeleteProfile`, `DeleteTransformer`
+- Traits: `idempotent` (4)
+- Common required input members in this group: `capabilityId`, `partnershipId`, `profileId`, `transformerId`
+
+### Update
+
+- Operations: `UpdateCapability`, `UpdatePartnership`, `UpdateProfile`, `UpdateTransformer`
+- Traits: `idempotent` (4)
+- Common required input members in this group: `capabilityId`, `partnershipId`, `profileId`, `transformerId`
+
+### Test
+
+- Operations: `TestConversion`, `TestMapping`, `TestParsing`
+- Traits: `idempotent` (3)
+- Common required input members in this group: `ediType`, `fileFormat`, `inputFile`, `inputFileContent`, `mappingTemplate`, `source`, `target`
+
+### Generate
+
+- Operations: `GenerateMapping`
+- Traits: `idempotent` (1)
+- Common required input members in this group: `inputFileContent`, `mappingType`, `outputFileContent`
+
+### Start
+
+- Operations: `StartTransformerJob`
+- Traits: `idempotency-token` (1), `idempotent` (1)
+- Common required input members in this group: `inputFile`, `outputLocation`, `transformerId`
+
+### Tag
+
+- Operations: `TagResource`
+- Common required input members in this group: `ResourceARN`, `Tags`
+
+### Untag
+
+- Operations: `UntagResource`
+- Traits: `idempotent` (1)
+- Common required input members in this group: `ResourceARN`, `TagKeys`
+
+## Operation Detail Matrix
+
+| Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
+|---|---|---|---|---|---|---|---|
+| `CreateCapability` | `POST /capabilities` | `idempotent`, `idempotency-token` | `configuration`, `name`, `type` | `clientToken` | `CreateCapabilityResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Instantiates a capability based on the specified parameters. A trading capability contains the information required to transform incoming EDI documents into JSON or XML outputs. |
+| `CreatePartnership` | `POST /partnerships` | `idempotent`, `idempotency-token` | `capabilities`, `email`, `name`, `profileId` | `clientToken` | `CreatePartnershipResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a partnership between a customer and a trading partner, based on the supplied parameters. A partnership represents the connection between you and your trading partner. |
+| `CreateProfile` | `POST /profiles` | `idempotent`, `idempotency-token` | `businessName`, `logging`, `name`, `phone` | `clientToken` | `CreateProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a customer profile. You can have up to five customer profiles, each representing a distinct private network. |
+| `CreateStarterMappingTemplate` | `POST /createmappingstarttemplate` | - | `mappingType`, `templateDetails` | - | `CreateStarterMappingTemplateResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Amazon Web Services B2B Data Interchange uses a mapping template in JSONata or XSLT format to transform a customer input file into a JSON or XML file that can be converted to EDI. If you provide a sample EDI file with the same structure as the EDI files that... |
+| `CreateTransformer` | `POST /transformers` | `idempotent`, `idempotency-token` | `name` | `clientToken` | `CreateTransformerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a transformer. Amazon Web Services B2B Data Interchange currently supports two scenarios: Inbound EDI : the Amazon Web Services customer receives an EDI file from their trading partner. |
+| `DeleteCapability` | `DELETE /capabilities/{capabilityId}` | `idempotent` | `capabilityId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified capability. A trading capability contains the information required to transform incoming EDI documents into JSON or XML outputs. |
+| `DeletePartnership` | `DELETE /partnerships/{partnershipId}` | `idempotent` | `partnershipId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified partnership. A partnership represents the connection between you and your trading partner. |
+| `DeleteProfile` | `DELETE /profiles/{profileId}` | `idempotent` | `profileId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified profile. A profile is the mechanism used to create the concept of a private network. |
+| `DeleteTransformer` | `DELETE /transformers/{transformerId}` | `idempotent` | `transformerId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified transformer. A transformer can take an EDI file as input and transform it into a JSON-or XML-formatted document. |
+| `GenerateMapping` | `POST /generate-mapping` | `idempotent` | `inputFileContent`, `mappingType`, `outputFileContent` | - | `GenerateMappingResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Takes sample input and output documents and uses Amazon Bedrock to generate a mapping automatically. Depending on the accuracy and other factors, you can then edit the mapping for your needs. |
+| `GetCapability` | `GET /capabilities/{capabilityId}` | `readonly` | `capabilityId` | - | `GetCapabilityResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the details for the specified capability. A trading capability contains the information required to transform incoming EDI documents into JSON or XML outputs. |
+| `GetPartnership` | `GET /partnerships/{partnershipId}` | `readonly` | `partnershipId` | - | `GetPartnershipResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the details for a partnership, based on the partner and profile IDs specified. A partnership represents the connection between you and your trading partner. |
+| `GetProfile` | `GET /profiles/{profileId}` | `readonly` | `profileId` | - | `GetProfileResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the details for the profile specified by the profile ID. A profile is the mechanism used to create the concept of a private network. |
+| `GetTransformer` | `GET /transformers/{transformerId}` | `readonly` | `transformerId` | - | `GetTransformerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the details for the transformer specified by the transformer ID. A transformer can take an EDI file as input and transform it into a JSON-or XML-formatted document. |
+| `GetTransformerJob` | `GET /transformer-jobs/{transformerJobId}` | `readonly` | `transformerId`, `transformerJobId` | - | `GetTransformerJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the details of the transformer run, based on the Transformer job ID. If 30 days have elapsed since your transformer job was started, the system deletes it. |
+| `ListCapabilities` | `GET /capabilities` | `readonly`, `paginated` | - | - | `ListCapabilitiesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the capabilities associated with your Amazon Web Services account for your current or specified region. A trading capability contains the information required to transform incoming EDI documents into JSON or XML outputs. |
+| `ListPartnerships` | `GET /partnerships` | `readonly`, `paginated` | - | - | `ListPartnershipsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the partnerships associated with your Amazon Web Services account for your current or specified region. A partnership represents the connection between you and your trading partner. |
+| `ListProfiles` | `GET /profiles` | `readonly`, `paginated` | - | - | `ListProfilesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the profiles associated with your Amazon Web Services account for your current or specified region. A profile is the mechanism used to create the concept of a private network. |
+| `ListTagsForResource` | `GET /tags/{ResourceARN}` | `readonly` | `ResourceARN` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists all of the tags associated with the Amazon Resource Name (ARN) that you specify. The resource can be a capability, partnership, profile, or transformer. |
+| `ListTransformers` | `GET /transformers` | `readonly`, `paginated` | - | - | `ListTransformersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the available transformers. A transformer can take an EDI file as input and transform it into a JSON-or XML-formatted document. |
+| `StartTransformerJob` | `POST /transformer-jobs` | `idempotent`, `idempotency-token` | `inputFile`, `outputLocation`, `transformerId` | `clientToken` | `StartTransformerJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Runs a job, using a transformer, to parse input EDI (electronic data interchange) file into the output structures used by Amazon Web Services B2B Data Interchange. If you only want to transform EDI (electronic data interchange) documents, you don't need to... |
+| `TagResource` | `POST /tags/{ResourceARN}` | - | `ResourceARN`, `Tags` | - | `Unit` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Attaches a key-value pair to a resource, as identified by its Amazon Resource Name (ARN). Resources are capability, partnership, profile, transformers and other entities. |
+| `TestConversion` | `POST /testconversion` | `idempotent` | `source`, `target` | - | `TestConversionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation mimics the latter half of a typical Outbound EDI request. It takes an input JSON/XML in the B2Bi shape as input, converts it to an X12 EDI string, and return that string. |
+| `TestMapping` | `POST /testmapping` | `idempotent` | `fileFormat`, `inputFileContent`, `mappingTemplate` | - | `TestMappingResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Maps the input file according to the provided template file. The API call downloads the file contents from the Amazon S3 location, and passes the contents in as a string, to the `inputFileContent` parameter. |
+| `TestParsing` | `POST /testparsing` | `idempotent` | `ediType`, `fileFormat`, `inputFile` | - | `TestParsingResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Parses the input EDI (electronic data interchange) file. The input file has a file size limit of 250 KB. |
+| `UntagResource` | `DELETE /tags/{ResourceARN}` | `idempotent` | `ResourceARN`, `TagKeys` | - | `Unit` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Detaches a key-value pair from the specified resource, as identified by its Amazon Resource Name (ARN). Resources are capability, partnership, profile, transformers and other entities. |
+| `UpdateCapability` | `PATCH /capabilities/{capabilityId}` | `idempotent` | `capabilityId` | - | `UpdateCapabilityResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates some of the parameters for a capability, based on the specified parameters. A trading capability contains the information required to transform incoming EDI documents into JSON or XML outputs. |
+| `UpdatePartnership` | `PATCH /partnerships/{partnershipId}` | `idempotent` | `partnershipId` | - | `UpdatePartnershipResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates some of the parameters for a partnership between a customer and trading partner. A partnership represents the connection between you and your trading partner. |
+| `UpdateProfile` | `PATCH /profiles/{profileId}` | `idempotent` | `profileId` | - | `UpdateProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified parameters for a profile. A profile is the mechanism used to create the concept of a private network. |
+| `UpdateTransformer` | `PATCH /transformers/{transformerId}` | `idempotent` | `transformerId` | - | `UpdateTransformerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified parameters for a transformer. A transformer can take an EDI file as input and transform it into a JSON-or XML-formatted document. |
+
+## Important Shapes
+
+| Shape | Type | Members | Documentation cue |
+|---|---|---|---|
+| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | This exception is thrown when an error occurs in the Amazon Web Services B2B Data Interchange service. |
+| `ValidationException` | `structure` | `Message` | Occurs when a B2BI object cannot be validated against a request from another object. |
+| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
+| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | The request was denied due to throttling: the data speed and rendering may be limited depending on various parameters and conditions. |
+| `ResourceNotFoundException` | `structure` | `message` | Occurs when the requested resource does not exist, or cannot be found. |
+| `ConflictException` | `structure` | `message` | A conflict exception is thrown when you attempt to delete a resource (such as a profile or a capability) that is being used by other resources. |
+| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | Occurs when the calling command attempts to exceed one of the service quotas, for example trying to create a capability when you already have the maximum number of capabilities... |
+| `CreateCapabilityRequest` | `structure` | `clientToken`, `configuration`, `instructionsDocuments`, `name`, `tags`, `type` | - |
+| `CreateCapabilityResponse` | `structure` | `capabilityArn`, `capabilityId`, `configuration`, `createdAt`, `instructionsDocuments`, `name`, `type` | - |
+| `CreatePartnershipRequest` | `structure` | `capabilities`, `capabilityOptions`, `clientToken`, `email`, `name`, `phone`, `profileId`, `tags` | - |
+| `CreatePartnershipResponse` | `structure` | `capabilities`, `capabilityOptions`, `createdAt`, `email`, `name`, `partnershipArn`, `partnershipId`, `phone`, `profileId`, `tradingPartnerId` | - |
+| `CreateProfileRequest` | `structure` | `businessName`, `clientToken`, `email`, `logging`, `name`, `phone`, `tags` | - |
+| `CreateProfileResponse` | `structure` | `businessName`, `createdAt`, `email`, `logGroupName`, `logging`, `name`, `phone`, `profileArn`, `profileId` | - |
+| `CreateStarterMappingTemplateRequest` | `structure` | `mappingType`, `outputSampleLocation`, `templateDetails` | - |
+| `CreateStarterMappingTemplateResponse` | `structure` | `mappingTemplate` | - |
+| `CreateTransformerRequest` | `structure` | `clientToken`, `ediType`, `fileFormat`, `inputConversion`, `mapping`, `mappingTemplate`, `name`, `outputConversion`, `sampleDocument`, `sampleDocuments`, `tags` | - |
+| `CreateTransformerResponse` | `structure` | `createdAt`, `ediType`, `fileFormat`, `inputConversion`, `mapping`, `mappingTemplate`, `name`, `outputConversion`, `sampleDocument`, `sampleDocuments`, `status`, `transformerArn`, ... (+1) | - |
+| `DeleteCapabilityRequest` | `structure` | `capabilityId` | - |
+| `DeletePartnershipRequest` | `structure` | `partnershipId` | - |
+| `DeleteProfileRequest` | `structure` | `profileId` | - |
+| `DeleteTransformerRequest` | `structure` | `transformerId` | - |
+| `GenerateMappingRequest` | `structure` | `inputFileContent`, `mappingType`, `outputFileContent` | - |
+| `GenerateMappingResponse` | `structure` | `mappingAccuracy`, `mappingTemplate` | - |
+
+## Research Checklist for Parity Work
+
+- Confirm lifecycle transitions for every create/update/delete/start/stop operation.
+- Confirm exact not-found, already-exists, conflict, validation, throttling, and access-denied error names.
+- Confirm pagination token format, result ordering, default limits, and empty collection shape.
+- Confirm idempotency-token behaviour, especially mismatched replay parameters.
+- Confirm cross-service identifiers such as ARNs, IAM roles, KMS keys, S3 buckets, VPC resources, and logging destinations.
+- Confirm whether read APIs are derived from customer-managed state, AWS-managed catalogues, telemetry, recommendations, or asynchronous jobs.
