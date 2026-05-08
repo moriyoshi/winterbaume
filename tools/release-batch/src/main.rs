@@ -375,6 +375,11 @@ fn parse_retry_after(text: &str) -> Option<SystemTime> {
     None
 }
 
+enum ChunkOutcome {
+    Success,
+    Failure(ExitStatus),
+}
+
 fn run() -> Result<ExitCode, Error> {
     let args = Args::parse();
 
@@ -442,22 +447,23 @@ fn run() -> Result<ExitCode, Error> {
 
     for (i, chunk) in chunks.iter().enumerate() {
         let i1 = i + 1;
+        let mut working_chunk: Vec<String> = chunk.to_vec();
         eprintln!(
             "\n=== chunk {i1}/{n} ({k} crate(s)) ===",
             n = chunks.len(),
-            k = chunk.len()
+            k = working_chunk.len()
         );
-        eprintln!("$ cargo release {bump_label} {}", chunk.join(" "));
+        eprintln!("$ cargo release {bump_label} {}", working_chunk.join(" "));
 
         if !args.execute {
             continue;
         }
 
         let mut attempt: u32 = 0;
-        let final_status = loop {
+        let outcome = loop {
             let mut cmd = Command::new(&cargo.path);
             cmd.arg("release").arg(args.version.as_ref().unwrap());
-            for c in *chunk {
+            for c in &working_chunk {
                 cmd.arg("-p").arg(c);
             }
             if args.sign {
@@ -471,7 +477,7 @@ fn run() -> Result<ExitCode, Error> {
 
             let (status, captured) = run_with_tee(&mut cmd)?;
             if status.success() {
-                break status;
+                break ChunkOutcome::Success;
             }
 
             match parse_retry_after(&captured) {
@@ -489,6 +495,35 @@ fn run() -> Result<ExitCode, Error> {
                         max = args.max_retries,
                     );
                     thread::sleep(wait);
+
+                    // The 429 may have hit mid-batch: cargo uploads crates one
+                    // at a time and aborts on the first failure, so earlier
+                    // crates in this chunk may have already landed. Re-check
+                    // crates.io and prune them, otherwise cargo will reject
+                    // the retry with "<crate> X.Y.Z is already published".
+                    let version = args.version.as_ref().unwrap();
+                    let before = working_chunk.len();
+                    working_chunk.retain(|name| {
+                        if already_on_crates_io(name, version) {
+                            eprintln!("skip {name} v{version}: published during previous attempt");
+                            false
+                        } else {
+                            true
+                        }
+                    });
+                    if working_chunk.is_empty() {
+                        eprintln!(
+                            "chunk {i1} fully landed during previous attempt; nothing left to retry"
+                        );
+                        break ChunkOutcome::Success;
+                    }
+                    if working_chunk.len() < before {
+                        eprintln!(
+                            "retrying chunk {i1} with {} remaining crate(s): {}",
+                            working_chunk.len(),
+                            working_chunk.join(" ")
+                        );
+                    }
                     continue;
                 }
                 Some(_) => {
@@ -496,20 +531,20 @@ fn run() -> Result<ExitCode, Error> {
                         "chunk {i1} hit crates.io rate limit and exhausted {} retries; aborting",
                         args.max_retries
                     );
-                    break status;
+                    break ChunkOutcome::Failure(status);
                 }
                 None => {
                     eprintln!(
                         "chunk {i1} failed (rc={:?}); fix the cause and re-run",
                         status.code()
                     );
-                    break status;
+                    break ChunkOutcome::Failure(status);
                 }
             }
         };
 
-        if !final_status.success() {
-            return Ok(ExitCode::from(final_status.code().unwrap_or(1) as u8));
+        if let ChunkOutcome::Failure(status) = outcome {
+            return Ok(ExitCode::from(status.code().unwrap_or(1) as u8));
         }
 
         if i1 < chunks.len() {

@@ -459,3 +459,32 @@ The journal has been audited against `.agents/docs/LTM/` and `.agents/docs/TODO.
 | `services/s3files.md` | Source-line refresh after `reconcile-journal-ltm`; existing full distillation kept from `new-service-implementation-patterns.md`, `core-service-expansion-and-coverage.md`, and `quality-gate-workflow-and-recurring-findings.md`. |
 
 Open follow-up work extracted during consolidation lives in `.agents/docs/TODO.md`.
+
+## 2026-05-09: release-batch retry pruning after partial 429
+
+### Symptom
+
+During the first-launch publish run, `release-batch` hit a crates.io 429 mid-chunk: in the 5-crate chunk `[winterbaume-amp, winterbaume-amplify, winterbaume-amplifybackend, winterbaume-amplifyuibuilder, winterbaume-apigateway]`, cargo successfully uploaded `winterbaume-amp v0.1.0`, then the upload of `winterbaume-amplify` was rejected with `status 429 Too Many Requests` ( "Please try again after Fri, 08 May 2026 15:32:42 GMT" ). The driver correctly parsed the deadline and slept until the window opened, but the retry re-invoked `cargo release ... -p winterbaume-amp -p winterbaume-amplify ...` with the original 5-crate list. cargo-release failed upfront with `error: winterbaume-amp 0.1.0 is already published to crates.io` and the driver returned a non-zero exit, leaving the run wedged.
+
+### Root cause
+
+The retry loop in `tools/release-batch/src/main.rs` reused the immutable `chunk: &[String]` slice on every iteration. `cargo publish` uploads crates one at a time, and once a crate has landed on crates.io, it is rejected on the next publish call. The driver had no logic to reconcile its in-memory chunk with what crates.io now contained between attempts.
+
+### Fix
+
+Re-query crates.io between retries and prune crates that were already published.
+
+- `tools/release-batch/src/main.rs`: copy each `chunk` into a mutable `working_chunk: Vec<String>` per iteration. After sleeping past the rate-limit deadline, run `working_chunk.retain(|name| !already_on_crates_io(name, version))` and log each pruned entry as `skip {name} v{version}: published during previous attempt`. If `working_chunk` is empty after pruning ( e.g., the 429 hit only on the index-update step after every crate had already uploaded ), treat the chunk as complete instead of failing. Otherwise log the surviving subset and re-issue the cargo invocation with `-p` flags for only those crates.
+- Introduced a small `ChunkOutcome { Success, Failure(ExitStatus) }` enum so the inner `loop` can break with either "all done" ( original success or fully-pruned ) or "give up with this status code".
+
+This piggybacks on the existing `already_on_crates_io` helper (which already drives the pre-flight resumability check at the top of `run`), so the retry path uses the same authoritative source of truth as the initial plan.
+
+### Verification
+
+- `./.agents/bin/cargo.sh fmt -p release-batch -- --check` clean.
+- `./.agents/bin/cargo.sh clippy -p release-batch --all-targets --all-features -- -D warnings` clean.
+- `./.agents/bin/cargo.sh test -p release-batch` — 5 existing `parse_retry_after` tests still pass; no new tests added because the pruning path is gated on real HTTP calls to crates.io and a real `cargo release` invocation, both of which are awkward to mock without restructuring.
+
+### Out of scope
+
+The fix only handles the 429-with-`try again after` recovery path. A non-429 failure that includes "is already published" (e.g., resuming after a manual abort, or re-running a chunk after the operator partially completed it by hand) still aborts; that scenario can be added later by extending the retry classifier in `parse_retry_after`'s call site to also detect "is already published" and prune+retry without sleeping. Not done in this change because the current bug only manifests on the 429 path.
