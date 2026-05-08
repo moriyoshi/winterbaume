@@ -488,3 +488,46 @@ This piggybacks on the existing `already_on_crates_io` helper (which already dri
 ### Out of scope
 
 The fix only handles the 429-with-`try again after` recovery path. A non-429 failure that includes "is already published" (e.g., resuming after a manual abort, or re-running a chunk after the operator partially completed it by hand) still aborts; that scenario can be added later by extending the retry classifier in `parse_retry_after`'s call site to also detect "is already published" and prune+retry without sleeping. Not done in this change because the current bug only manifests on the 429 path.
+
+## 2026-05-09: release-batch — recover from "is already published" cargo errors
+
+### Symptom
+
+The first fix above ( re-query crates.io between 429 retries ) was insufficient. On a fresh first-launch run, chunk 1 hit a 429 mid-batch with `winterbaume-amplify` and `winterbaume-amplifybackend` already uploaded, slept, then re-ran cargo with the original 5-crate list. The crates.io API probe ( `GET /api/v1/crates/<name>/<version>` ) did NOT remove the two landed crates from the working chunk — no `skip ... published during previous attempt` lines were emitted. cargo's own pre-flight on the second invocation then aborted with:
+
+```
+error: winterbaume-amplify 0.1.0 is already published to crates.io
+error: winterbaume-amplifybackend 0.1.0 is already published to crates.io
+chunk 1 failed (rc=Some(101)); fix the cause and re-run
+```
+
+The driver classified that second failure as non-recoverable ( no "try again after" phrase in the second invocation's output ) and exited.
+
+### Root cause and design lesson
+
+The HTTP-probe path is unreliable as a sole recovery signal. crates.io's `/api/v1/crates/{name}/{version}` endpoint is served via Fastly with caching and is not perfectly synchronous with the registry index that cargo consults during pre-flight. A negative cache hit ( 404 cached just before the publish ) can persist for tens of seconds even after the index has the new version, so a probe a few seconds after upload can return 404 for a crate that cargo will reject as already-published moments later. The previous fix relied on this single signal.
+
+cargo, in contrast, queries the registry index directly during its `cargo publish` pre-flight and emits `error: <crate> <version> is already published to crates.io` when it finds the version present. This is ground truth — same source of truth cargo itself uses to decide whether to abort the publish.
+
+### Fix
+
+Make cargo's own error message the primary recovery signal, and treat the HTTP probe as a secondary best-effort path used only on the 429 sleep branch ( where cargo never reached its pre-flight ).
+
+- `tools/release-batch/src/main.rs`: introduce `parse_already_published(text: &str) -> BTreeSet<String>` that scans cargo output line-by-line for the `... is already published to crates.io` suffix ( with optional `error: ` prefix ) and extracts the crate name from `<crate> <version>` via `rsplit_once(' ')`.
+- Restructure the per-chunk retry loop so it computes both signals on every failure:
+  - `let already_published = parse_already_published(&captured);`
+  - `let rate_limit_deadline = parse_retry_after(&captured);`
+  - If neither is present, fail the chunk ( unchanged from before ).
+  - If `rate_limit_deadline` is `Some`, increment the rate-limit counter, sleep until the deadline + retry buffer, and ( on retry path only ) also probe each surviving crate via the existing `already_on_crates_io` HTTP check.
+  - Always prune crates listed in `already_published` from `working_chunk` regardless of whether a 429 was also reported.
+  - If `working_chunk` empties out, mark the chunk `Success`. If it shrinks, log the surviving names and retry; if it stays the same and we hit only the 429 branch, re-issue cargo unchanged after the sleep.
+- Rename the retry counter from `attempt` to `rate_limit_attempts` and only bump it on 429s. Prune-driven retries are bounded by `chunk_size` ( each one strictly shrinks the working chunk by at least one crate ), so they don't need to count against `--max-retries`.
+
+### Verification
+
+- Three new unit tests cover `parse_already_published`: a verbatim two-crate failure tail from this run, a warnings-only buffer ( returns empty ), and a line without the `error: ` prefix ( still parsed ).
+- `./.agents/bin/cargo.sh fmt -p release-batch -- --check`, `./.agents/bin/cargo.sh clippy -p release-batch --all-targets --all-features -- -D warnings`, and `./.agents/bin/cargo.sh test -p release-batch` all clean ( 8 tests pass; the previous 5 `parse_retry_after` tests still hold ).
+
+### Operator note
+
+If `release-batch` is invoked through a pre-built binary on `$PATH` rather than `cargo run -p release-batch`, the operator must rebuild after pulling this change for the new recovery path to take effect. The retry-loop fix only exists in the binary, not in the input data.

@@ -356,6 +356,30 @@ where
     })
 }
 
+/// Scan cargo output for `error: <crate> <version> is already published to crates.io`
+/// lines emitted by cargo's pre-flight check, and return the set of crate names.
+/// This is cargo's own ground-truth signal (queried against the index, not the API),
+/// so it is more reliable than the `already_on_crates_io` HTTP probe — which can lag
+/// behind the index due to CDN caching.
+fn parse_already_published(text: &str) -> BTreeSet<String> {
+    const NEEDLE: &str = " is already published to crates.io";
+    let mut out = BTreeSet::new();
+    for line in text.lines() {
+        let trimmed = line.trim();
+        let body = trimmed.strip_prefix("error: ").unwrap_or(trimmed);
+        let Some(idx) = body.find(NEEDLE) else {
+            continue;
+        };
+        let head = &body[..idx];
+        if let Some((name, _ver)) = head.rsplit_once(' ') {
+            if !name.is_empty() {
+                out.insert(name.to_string());
+            }
+        }
+    }
+    out
+}
+
 /// Scan cargo output for the crates.io 429 "Please try again after <date> GMT"
 /// marker and return the parsed deadline. The phrase is embedded in the response
 /// body crates.io returns for rate-limit hits and mirrors the rate-limit reset
@@ -459,7 +483,7 @@ fn run() -> Result<ExitCode, Error> {
             continue;
         }
 
-        let mut attempt: u32 = 0;
+        let mut rate_limit_attempts: u32 = 0;
         let outcome = loop {
             let mut cmd = Command::new(&cargo.path);
             cmd.arg("release").arg(args.version.as_ref().unwrap());
@@ -480,66 +504,76 @@ fn run() -> Result<ExitCode, Error> {
                 break ChunkOutcome::Success;
             }
 
-            match parse_retry_after(&captured) {
-                Some(deadline) if attempt < args.max_retries => {
-                    attempt += 1;
-                    let now = SystemTime::now();
-                    let wait = deadline
-                        .duration_since(now)
-                        .unwrap_or_default()
-                        .saturating_add(Duration::from_secs(args.retry_buffer));
-                    eprintln!(
-                        "chunk {i1} hit crates.io rate limit; sleeping {}s until {} (retry {attempt}/{max})",
-                        wait.as_secs(),
-                        httpdate::fmt_http_date(deadline),
-                        max = args.max_retries,
-                    );
-                    thread::sleep(wait);
+            // Two recovery signals can show up in cargo's output:
+            //   1. "<crate> <version> is already published to crates.io" — cargo's
+            //      own pre-flight check against the registry index. Authoritative.
+            //   2. "Please try again after <date> GMT" — a 429 publish_new rate
+            //      limit, indicating we should sleep until the window slides.
+            // If neither appears, the failure is something we can't recover from.
+            let already_published = parse_already_published(&captured);
+            let rate_limit_deadline = parse_retry_after(&captured);
 
-                    // The 429 may have hit mid-batch: cargo uploads crates one
-                    // at a time and aborts on the first failure, so earlier
-                    // crates in this chunk may have already landed. Re-check
-                    // crates.io and prune them, otherwise cargo will reject
-                    // the retry with "<crate> X.Y.Z is already published".
-                    let version = args.version.as_ref().unwrap();
-                    let before = working_chunk.len();
-                    working_chunk.retain(|name| {
-                        if already_on_crates_io(name, version) {
-                            eprintln!("skip {name} v{version}: published during previous attempt");
-                            false
-                        } else {
-                            true
-                        }
-                    });
-                    if working_chunk.is_empty() {
-                        eprintln!(
-                            "chunk {i1} fully landed during previous attempt; nothing left to retry"
-                        );
-                        break ChunkOutcome::Success;
-                    }
-                    if working_chunk.len() < before {
-                        eprintln!(
-                            "retrying chunk {i1} with {} remaining crate(s): {}",
-                            working_chunk.len(),
-                            working_chunk.join(" ")
-                        );
-                    }
-                    continue;
+            if rate_limit_deadline.is_none() && already_published.is_empty() {
+                eprintln!(
+                    "chunk {i1} failed (rc={:?}); fix the cause and re-run",
+                    status.code()
+                );
+                break ChunkOutcome::Failure(status);
+            }
+
+            if rate_limit_deadline.is_some() && rate_limit_attempts >= args.max_retries {
+                eprintln!(
+                    "chunk {i1} hit crates.io rate limit and exhausted {} retries; aborting",
+                    args.max_retries
+                );
+                break ChunkOutcome::Failure(status);
+            }
+
+            if let Some(deadline) = rate_limit_deadline {
+                rate_limit_attempts += 1;
+                let now = SystemTime::now();
+                let wait = deadline
+                    .duration_since(now)
+                    .unwrap_or_default()
+                    .saturating_add(Duration::from_secs(args.retry_buffer));
+                eprintln!(
+                    "chunk {i1} hit crates.io rate limit; sleeping {}s until {} (retry {rate_limit_attempts}/{max})",
+                    wait.as_secs(),
+                    httpdate::fmt_http_date(deadline),
+                    max = args.max_retries,
+                );
+                thread::sleep(wait);
+            }
+
+            // Prune crates already on crates.io. The two signals are complementary:
+            //   - cargo's "is already published" error names crates the index
+            //     already has.
+            //   - On a 429 retry, cargo never reached its pre-flight, so we also
+            //     probe the crates.io API as a best-effort secondary path.
+            let version = args.version.as_ref().unwrap();
+            let before = working_chunk.len();
+            working_chunk.retain(|name| {
+                if already_published.contains(name) {
+                    eprintln!("skip {name} v{version}: cargo reports already published");
+                    return false;
                 }
-                Some(_) => {
-                    eprintln!(
-                        "chunk {i1} hit crates.io rate limit and exhausted {} retries; aborting",
-                        args.max_retries
-                    );
-                    break ChunkOutcome::Failure(status);
+                if rate_limit_deadline.is_some() && already_on_crates_io(name, version) {
+                    eprintln!("skip {name} v{version}: published during previous attempt");
+                    return false;
                 }
-                None => {
-                    eprintln!(
-                        "chunk {i1} failed (rc={:?}); fix the cause and re-run",
-                        status.code()
-                    );
-                    break ChunkOutcome::Failure(status);
-                }
+                true
+            });
+
+            if working_chunk.is_empty() {
+                eprintln!("chunk {i1} fully landed during previous attempt; nothing left to retry");
+                break ChunkOutcome::Success;
+            }
+            if working_chunk.len() < before {
+                eprintln!(
+                    "retrying chunk {i1} with {} remaining crate(s): {}",
+                    working_chunk.len(),
+                    working_chunk.join(" ")
+                );
             }
         };
 
@@ -616,5 +650,37 @@ real: Please try again after Fri, 08 May 2026 13:02:42 GMT and see ...
     fn ignores_phrase_without_gmt_terminator() {
         let no_gmt = "try again after Fri, 08 May 2026 13:02:42 UTC\n";
         assert!(parse_retry_after(no_gmt).is_none());
+    }
+
+    /// Verbatim tail of a real `cargo release` retry that hit cargo's
+    /// pre-flight pre-existence check after a partial-batch 429 left two
+    /// crates already published on crates.io.
+    const REAL_ALREADY_PUBLISHED: &str = "\
+warning: disabled by user, skipping winterbaume-xray v0.1.0 despite being unpublished
+error: winterbaume-amplify 0.1.0 is already published to crates.io
+error: winterbaume-amplifybackend 0.1.0 is already published to crates.io
+chunk 1 failed (rc=Some(101)); fix the cause and re-run
+";
+
+    #[test]
+    fn parses_already_published_list() {
+        let names = parse_already_published(REAL_ALREADY_PUBLISHED);
+        assert!(names.contains("winterbaume-amplify"));
+        assert!(names.contains("winterbaume-amplifybackend"));
+        assert_eq!(names.len(), 2);
+    }
+
+    #[test]
+    fn already_published_empty_when_absent() {
+        let only_warnings =
+            "warning: disabled by user, skipping winterbaume v0.1.0 despite being unpublished\n";
+        assert!(parse_already_published(only_warnings).is_empty());
+    }
+
+    #[test]
+    fn already_published_handles_missing_error_prefix() {
+        let no_prefix = "winterbaume-foo 0.1.0 is already published to crates.io\n";
+        let names = parse_already_published(no_prefix);
+        assert!(names.contains("winterbaume-foo"));
     }
 }
