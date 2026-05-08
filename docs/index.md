@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Winterbäume"
   text: "A stateful AWS service emulator for integration testing"
-  tagline: Real, state-backed behaviour for the operations that are implemented &mdash; with stubs clearly labelled for the rest. Embed in tests or run standalone.
+  tagline: Test AWS-style workflows locally, embedded in Rust tests or running as a standalone server.
   image: /hero-winter-tree.webp
   actions:
     - theme: brand
