@@ -80,7 +80,8 @@ Behaviour:
 - Reads workspace members via `cargo metadata`, drops `publish = false` crates, topologically sorts the rest so dependencies publish before dependants.
 - Skips crates that are already at the target version on crates.io (queried over the public crates.io API), making mid-launch retries idempotent. Pass `--skip-version-check` to opt out.
 - Per chunk, runs `cargo release <version> -p crate1 -p crate2 ...` with optional `--sign`, `--no-confirm`, `--execute`. Sleeps `--sleep` seconds between chunks (default: 660 = 600s rate window + 60s buffer).
-- A failing chunk aborts the run with a non-zero exit code. Re-running the same command resumes from the first crate that has not yet been published at the target version.
+- A chunk that fails with crates.io HTTP 429 ("publish_new" rate limit) is retried automatically. The driver tees cargo's output, parses the embedded `Please try again after <date> GMT` deadline from the 429 body, sleeps until then plus `--retry-buffer` seconds (default: 30), and re-runs the same chunk. Up to `--max-retries` retries per chunk (default: 3); other failure modes still abort immediately.
+- A failing chunk that is not a recoverable rate-limit hit aborts the run with a non-zero exit code. Re-running the same command resumes from the first crate that has not yet been published at the target version.
 - The cargo executable used for `metadata`, `locate-project`, and `release` is configurable via `--cargo <path>` or the `WB_CARGO` environment variable, so the driver can be pointed at the project's wrapper script (e.g. `WB_CARGO=./.agents/bin/cargo.sh ./target/release/release-batch ...`).
 
 Operational notes:

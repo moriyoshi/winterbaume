@@ -9,10 +9,12 @@
 use std::collections::{BTreeSet, HashMap, VecDeque};
 use std::env;
 use std::ffi::OsString;
+use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode};
+use std::process::{Command, ExitCode, ExitStatus, Stdio};
+use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use clap::Parser;
 use serde::Deserialize;
@@ -60,6 +62,16 @@ struct Args {
     /// Do not query crates.io to skip already-published versions.
     #[arg(long)]
     skip_version_check: bool,
+
+    /// Maximum retries per chunk when crates.io returns 429 (rate limited).
+    /// Each retry sleeps until the "Please try again after <date> GMT" timestamp
+    /// embedded in the response, plus --retry-buffer seconds.
+    #[arg(long, default_value_t = 3)]
+    max_retries: u32,
+
+    /// Extra seconds added to the "try again after" deadline before retrying.
+    #[arg(long, default_value_t = 30)]
+    retry_buffer: u64,
 
     /// Cargo executable to invoke for `metadata`, `locate-project`, and `release`.
     /// Defaults to the WB_CARGO environment variable, then `cargo` on PATH.
@@ -295,6 +307,74 @@ fn already_on_crates_io(name: &str, version: &str) -> bool {
     }
 }
 
+/// Spawn `cmd` with stdout/stderr piped, tee both streams to our own
+/// stdout/stderr line-by-line, and accumulate everything into a single
+/// captured string for post-mortem inspection (rate-limit detection).
+fn run_with_tee(cmd: &mut Command) -> Result<(ExitStatus, String), Error> {
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+    let mut child = cmd.spawn()?;
+    let child_stdout = child.stdout.take().expect("piped stdout");
+    let child_stderr = child.stderr.take().expect("piped stderr");
+    let buffer = Arc::new(Mutex::new(String::new()));
+
+    let h_out = tee_stream(child_stdout, std::io::stdout(), Arc::clone(&buffer));
+    let h_err = tee_stream(child_stderr, std::io::stderr(), Arc::clone(&buffer));
+
+    let status = child.wait()?;
+    h_out.join().expect("stdout tee thread panicked")?;
+    h_err.join().expect("stderr tee thread panicked")?;
+
+    let captured = Arc::try_unwrap(buffer)
+        .expect("tee threads released buffer")
+        .into_inner()
+        .expect("buffer mutex not poisoned");
+    Ok((status, captured))
+}
+
+fn tee_stream<R, W>(
+    reader: R,
+    mut writer: W,
+    buf: Arc<Mutex<String>>,
+) -> thread::JoinHandle<std::io::Result<()>>
+where
+    R: std::io::Read + Send + 'static,
+    W: Write + Send + 'static,
+{
+    thread::spawn(move || {
+        let mut reader = BufReader::new(reader);
+        let mut line = String::new();
+        loop {
+            line.clear();
+            if reader.read_line(&mut line)? == 0 {
+                break;
+            }
+            writer.write_all(line.as_bytes())?;
+            writer.flush()?;
+            buf.lock().expect("buffer mutex").push_str(&line);
+        }
+        Ok(())
+    })
+}
+
+/// Scan cargo output for the crates.io 429 "Please try again after <date> GMT"
+/// marker and return the parsed deadline. The phrase is embedded in the response
+/// body crates.io returns for rate-limit hits and mirrors the rate-limit reset
+/// time exposed via response headers.
+fn parse_retry_after(text: &str) -> Option<SystemTime> {
+    const NEEDLE: &str = "try again after ";
+    for (idx, _) in text.match_indices(NEEDLE) {
+        let rest = &text[idx + NEEDLE.len()..];
+        let Some(end) = rest.find(" GMT") else {
+            continue;
+        };
+        let candidate = &rest[..end + 4];
+        if let Ok(t) = httpdate::parse_http_date(candidate) {
+            return Some(t);
+        }
+    }
+    None
+}
+
 fn run() -> Result<ExitCode, Error> {
     let args = Args::parse();
 
@@ -373,27 +453,63 @@ fn run() -> Result<ExitCode, Error> {
             continue;
         }
 
-        let mut cmd = Command::new(&cargo.path);
-        cmd.arg("release").arg(args.version.as_ref().unwrap());
-        for c in *chunk {
-            cmd.arg("-p").arg(c);
-        }
-        if args.sign {
-            cmd.arg("--sign");
-        }
-        if args.no_confirm {
-            cmd.arg("--no-confirm");
-        }
-        cmd.arg("--execute");
-        cmd.current_dir(&root);
+        let mut attempt: u32 = 0;
+        let final_status = loop {
+            let mut cmd = Command::new(&cargo.path);
+            cmd.arg("release").arg(args.version.as_ref().unwrap());
+            for c in *chunk {
+                cmd.arg("-p").arg(c);
+            }
+            if args.sign {
+                cmd.arg("--sign");
+            }
+            if args.no_confirm {
+                cmd.arg("--no-confirm");
+            }
+            cmd.arg("--execute");
+            cmd.current_dir(&root);
 
-        let status = cmd.status()?;
-        if !status.success() {
-            eprintln!(
-                "chunk {i1} failed (rc={:?}); fix the cause and re-run",
-                status.code()
-            );
-            return Ok(ExitCode::from(status.code().unwrap_or(1) as u8));
+            let (status, captured) = run_with_tee(&mut cmd)?;
+            if status.success() {
+                break status;
+            }
+
+            match parse_retry_after(&captured) {
+                Some(deadline) if attempt < args.max_retries => {
+                    attempt += 1;
+                    let now = SystemTime::now();
+                    let wait = deadline
+                        .duration_since(now)
+                        .unwrap_or_default()
+                        .saturating_add(Duration::from_secs(args.retry_buffer));
+                    eprintln!(
+                        "chunk {i1} hit crates.io rate limit; sleeping {}s until {} (retry {attempt}/{max})",
+                        wait.as_secs(),
+                        httpdate::fmt_http_date(deadline),
+                        max = args.max_retries,
+                    );
+                    thread::sleep(wait);
+                    continue;
+                }
+                Some(_) => {
+                    eprintln!(
+                        "chunk {i1} hit crates.io rate limit and exhausted {} retries; aborting",
+                        args.max_retries
+                    );
+                    break status;
+                }
+                None => {
+                    eprintln!(
+                        "chunk {i1} failed (rc={:?}); fix the cause and re-run",
+                        status.code()
+                    );
+                    break status;
+                }
+            }
+        };
+
+        if !final_status.success() {
+            return Ok(ExitCode::from(final_status.code().unwrap_or(1) as u8));
         }
 
         if i1 < chunks.len() {
@@ -413,5 +529,57 @@ fn main() -> ExitCode {
             eprintln!("error: {e}");
             ExitCode::FAILURE
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Verbatim error from a real crates.io 429 hit during first-launch.
+    const REAL_429_OUTPUT: &str = "\
+note: the following crates have not been published yet:
+  winterbaume-bedrock-flow-validator v0.1.0 (/Users/moriyoshi/Source/winterbaume/crates/winterbaume-bedrock-flow-validator)
+  winterbaume-tfstate v0.1.0 (/Users/moriyoshi/Source/winterbaume/crates/winterbaume-tfstate)
+  winterbaume-wafv2-webacl-rule-parser v0.1.0 (/Users/moriyoshi/Source/winterbaume/crates/winterbaume-wafv2-webacl-rule-parser)
+
+Caused by:
+  the remote server responded with an error (status 429 Too Many Requests): You have published too many new crates in a short period of time. Please try again after Fri, 08 May 2026 13:02:42 GMT and see https://crates.io/docs/rate-limits for more details.
+";
+
+    #[test]
+    fn parses_real_429_message() {
+        let deadline = parse_retry_after(REAL_429_OUTPUT).expect("recognises 429 deadline");
+        let expected = httpdate::parse_http_date("Fri, 08 May 2026 13:02:42 GMT").unwrap();
+        assert_eq!(deadline, expected);
+    }
+
+    #[test]
+    fn returns_none_when_phrase_absent() {
+        let arbitrary = "error: failed to publish: cargo: connection refused\n";
+        assert!(parse_retry_after(arbitrary).is_none());
+    }
+
+    #[test]
+    fn returns_none_when_phrase_present_but_date_unparsable() {
+        let garbage = "Caused by: try again after sometime soon GMT and see ...\n";
+        assert!(parse_retry_after(garbage).is_none());
+    }
+
+    #[test]
+    fn picks_later_candidate_when_first_is_malformed() {
+        let mixed = "\
+junk: try again after not-a-date GMT and see more
+real: Please try again after Fri, 08 May 2026 13:02:42 GMT and see ...
+";
+        let deadline = parse_retry_after(mixed).expect("falls through to valid candidate");
+        let expected = httpdate::parse_http_date("Fri, 08 May 2026 13:02:42 GMT").unwrap();
+        assert_eq!(deadline, expected);
+    }
+
+    #[test]
+    fn ignores_phrase_without_gmt_terminator() {
+        let no_gmt = "try again after Fri, 08 May 2026 13:02:42 UTC\n";
+        assert!(parse_retry_after(no_gmt).is_none());
     }
 }

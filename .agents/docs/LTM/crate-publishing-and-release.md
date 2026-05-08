@@ -37,6 +37,7 @@ The driver reads `cargo metadata`, drops `publish = false` packages, sorts publi
 Operational details:
 
 - Default sleep is 660 seconds (600 second crates.io window plus 60 second buffer).
+- The driver tees cargo's stdout/stderr while capturing them. On a chunk failure, it scans the captured output for the `Please try again after <date> GMT` phrase that crates.io embeds in 429 response bodies, parses the RFC 1123 deadline with `httpdate`, sleeps until then plus `--retry-buffer` seconds (default: 30), and retries the same chunk. Capped at `--max-retries` retries (default: 3). This keeps the run alive when an account's `publish_new` quota is partially consumed before the run starts (default burst is 5, so even chunk-size 5 can hit the quota cold). Non-rate-limit failures still abort.
 - The cargo executable is resolved as `--cargo <path>` > `WB_CARGO` > `cargo` on `PATH`, so agents and operators can point the driver at `.agents/bin/cargo.sh`.
 - Plan-only runs do not require `--version`; they print `<version|level>` in the command preview.
 - `--execute` requires a version argument, but the argument is passed through verbatim to cargo-release and may be a concrete semver or a release level such as `patch`, `minor`, `major`, `release`, `alpha`, `beta`, or `rc`.

@@ -8,6 +8,7 @@ description = "Chunked cargo-release driver for the crates.io publish_new rate l
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+httpdate = "1"
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
