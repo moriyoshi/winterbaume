@@ -63,7 +63,10 @@ struct Args {
     #[arg(long)]
     skip_version_check: bool,
 
-    /// Maximum retries per chunk when crates.io returns 429 (rate limited).
+    /// Maximum consecutive 429 retries per chunk without forward progress.
+    /// The counter resets to zero whenever an attempt manages to publish at
+    /// least one new crate before being rate-limited, so a chunk that keeps
+    /// landing one crate per retry is allowed to continue indefinitely.
     /// Each retry sleeps until the "Please try again after <date> GMT" timestamp
     /// embedded in the response, plus --retry-buffer seconds.
     #[arg(long, default_value_t = 3)]
@@ -574,6 +577,18 @@ fn run() -> Result<ExitCode, Error> {
                     working_chunk.len(),
                     working_chunk.join(" ")
                 );
+                // Forward progress: at least one new crate landed since the
+                // last attempt, so the rate-limit retry budget is renewed.
+                // Without this, a chunk that keeps publishing one crate per
+                // retry would still abort after --max-retries 429s, even
+                // though it is steadily draining work.
+                if rate_limit_attempts > 0 {
+                    eprintln!(
+                        "resetting 429 retry counter (was {rate_limit_attempts}/{max}) because new crates were published",
+                        max = args.max_retries,
+                    );
+                    rate_limit_attempts = 0;
+                }
             }
         };
 
