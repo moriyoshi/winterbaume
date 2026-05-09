@@ -1,11 +1,13 @@
 ---
 name: winterbaume-bug
-description: File a winterbaume bug report on GitHub Issues using the project's official `bug_report.yml` issue form layout, so that the auto-label-service workflow can apply the correct `service:<slug>` label. Use this whenever Claude (or the user) discovers a defect in a `winterbaume-<service>` crate during exploration, testing, or development — for example a wrong status code, a missing field, a serialisation bug, an incorrect default, or any divergence from real AWS behaviour — and the bug should be tracked in the issue tracker. Use proactively whenever the user says things like "file a bug", "open an issue", "report this", "track this regression", or otherwise indicates the finding should not be lost. Do NOT use for feature requests, design discussions, or work that is being fixed in the same session without an issue.
+description: File a winterbaume bug report on GitHub Issues using the project's official bug-report issue form layout, so that the auto-label-service workflow can apply the correct `service:<slug>` label. Use this whenever Claude (or the user) discovers a defect in a `winterbaume-<service>` crate during exploration, testing, or development — for example a wrong status code, a missing field, a serialisation bug, an incorrect default, or any divergence from real AWS behaviour — and the bug should be tracked in the issue tracker. Use proactively whenever the user says things like "file a bug", "open an issue", "report this", "track this regression", or otherwise indicates the finding should not be lost. Do NOT use for feature requests, design discussions, or work that is being fixed in the same session without an issue.
 ---
 
 # winterbaume-bug
 
-Open a GitHub issue against `moriyoshi/winterbaume` that conforms to the project's bug-report issue form (`.github/ISSUE_TEMPLATE/bug_report.yml`). Conformance matters because the `Auto-label service` workflow (`.github/workflows/auto-label-service.yml`) parses the rendered issue body for an `### Affected AWS service` header and applies a `service:<slug>` label from the value beneath it. If the body does not match, triage labelling silently fails.
+Open a GitHub issue against `moriyoshi/winterbaume` that conforms to the project's bug-report issue form. Conformance matters because an `Auto-label service` GitHub Actions workflow parses the rendered issue body for an `### Affected AWS service` header and applies a `service:<slug>` label from the value beneath it. If the body does not match, triage labelling silently fails.
+
+This skill is self-contained: the body template, the auto-labeller regex, and the canonical list of valid service slugs are all embedded below. Do not read repository files outside this skill directory to look any of these up — if the project's authoritative template ever drifts from what is documented here, treat that as a maintenance task on this skill itself, not as a runtime lookup.
 
 ## When to use
 
@@ -19,22 +21,18 @@ Do not use for: feature requests, "wouldn't it be nice", documentation polish, o
 
 ## Workflow
 
-Follow these steps in order. Two checkpoints require user input: step 4 (after the duplicate search returns candidates) and step 6 (before the final `gh issue create` call). Opening an issue or commenting on one is externally visible and should never happen without explicit confirmation.
+Follow these steps in order. Two checkpoints require user input: step 3 (after the duplicate search returns candidates) and step 5 (before the final `gh issue create` call). Opening an issue or commenting on one is externally visible and should never happen without explicit confirmation.
 
-### 1. Confirm the authoritative template is unchanged
-
-Before drafting, verify the issue form and label workflow still match what this skill assumes. The bug template lives at `.github/ISSUE_TEMPLATE/bug_report.yml`; the labeller lives at `.github/workflows/auto-label-service.yml`. Read both. If the field set, ordering, or the label-extraction regex has changed, prefer the file on disk over the body template in this skill, and tell the user the skill is drifting so it can be updated.
-
-### 2. Identify the affected service slug
+### 1. Identify the affected service slug
 
 The slug is the part of the crate name after `winterbaume-`. For example:
 
-- A bug in `crates/winterbaume-ec2/...` → slug `ec2`
-- A bug in `crates/winterbaume-cognitoidentityprovider/...` → slug `cognitoidentityprovider`
+- A bug in the `winterbaume-ec2` crate → slug `ec2`
+- A bug in the `winterbaume-cognitoidentityprovider` crate → slug `cognitoidentityprovider`
 
-The slug **must** match one of the dropdown options in `bug_report.yml`. If the bug spans multiple services, file separate issues — the auto-labeller picks exactly one slug. If the slug is not in the dropdown, stop and surface this to the user; either the dropdown needs an entry or the bug is in shared infrastructure (in which case a service label may not apply, and the user should decide how to file it).
+The slug **must** be one of the valid options listed in `references/service-slugs.txt` (one slug per line, in the same order the issue form's dropdown presents them). If the bug spans multiple services, file separate issues — the auto-labeller picks exactly one slug. If the slug is not in that list, stop and surface this to the user; either the dropdown needs an entry or the bug is in shared infrastructure (in which case a service label may not apply, and the user should decide how to file it).
 
-### 3. Gather the required fields
+### 2. Gather the required fields
 
 The form has five required free-text fields plus the service dropdown. Collect each before drafting:
 
@@ -47,7 +45,7 @@ The form has five required free-text fields plus the service dropdown. Collect e
 
 If you discovered the bug in this session, draft these from your own context. Only ask the user for fields you genuinely cannot derive — typically `expected` if it requires AWS behaviour you have not verified.
 
-### 4. Search for existing duplicates or related issues
+### 3. Search for existing duplicates or related issues
 
 Before drafting or filing, search the issue tracker for issues that may be the same bug or closely related. Filing a duplicate wastes the maintainer's triage time and fragments the discussion thread.
 
@@ -89,17 +87,25 @@ Then present the findings to the user and ask how to proceed. Use this shape:
 > 2. File a new issue and reference #123 / #98 in the body so triage can decide.
 > 3. File a new issue without cross-references (only if you are confident none of the above are related).
 
-Wait for the user's choice before continuing. If they pick option 1, switch to `gh issue comment <number> --repo moriyoshi/winterbaume --body "$(cat <<'EOF' ... EOF)"` with a comment that includes the new reproduction, expected/actual, and `git rev-parse HEAD`, and skip the rest of this workflow. If they pick option 2, continue to step 5 and add a `### Related issues` section at the end of the body listing the referenced issue numbers (e.g., `Possibly related to #98. Possibly duplicate of #123 — please close one as a duplicate of the other if confirmed.`). If they pick option 3, continue to step 5 unchanged.
+Wait for the user's choice before continuing. If they pick option 1, switch to `gh issue comment <number> --repo moriyoshi/winterbaume --body "$(cat <<'EOF' ... EOF)"` with a comment that includes the new reproduction, expected/actual, and `git rev-parse HEAD`, and skip the rest of this workflow. If they pick option 2, continue to step 4 and add a `### Related issues` section at the end of the body listing the referenced issue numbers (e.g., `Possibly related to #98. Possibly duplicate of #123 — please close one as a duplicate of the other if confirmed.`). If they pick option 3, continue to step 4 unchanged.
 
-If the searches returned nothing relevant, say so explicitly ("No similar issues found in `service:<slug>` or by keyword search for `<keywords>`.") and continue to step 5 — being explicit lets the user catch the case where your keyword choice was too narrow.
+If the searches returned nothing relevant, say so explicitly ("No similar issues found in `service:<slug>` or by keyword search for `<keywords>`.") and continue to step 4 — being explicit lets the user catch the case where your keyword choice was too narrow.
 
-### 5. Format the body to match the issue-form output
+### 4. Format the body to match the issue-form output
 
 GitHub's issue-form renderer turns each field into a body section delimited by an `###` header that matches the field's `label`. Reproduce that exact shape so the auto-labeller's regex matches and the issue reads identically to one filed via the web form.
 
-Use this template verbatim, substituting bracketed placeholders. Do not add or rename headers. Keep the `### Affected AWS service` value on its own line, lowercase, with no surrounding markup — the labeller regex (`/###\s+Affected AWS service\s*\n+\s*([a-z0-9]+)\s*\n/i`) is strict.
+The auto-labeller extracts the slug with this regex:
 
-```markdown
+```
+/###\s+Affected AWS service\s*\n+\s*([a-z0-9]+)\s*\n/i
+```
+
+That regex is strict: the slug must sit on its own line, be lowercase, contain only `[a-z0-9]`, and have no surrounding markup (no backticks, no quotes, no list bullet).
+
+Use this template verbatim, substituting bracketed placeholders. Do not add or rename headers. The outer fence below uses four backticks so the inner three-backtick `shell` fences nest correctly; the actual issue body sent to GitHub uses three-backtick fences for the shell blocks.
+
+````markdown
 ### Affected AWS service
 
 <slug>
@@ -131,11 +137,11 @@ Use this template verbatim, substituting bracketed placeholders. Do not add or r
 ```shell
 <relevant log lines, secrets redacted>
 ```
-```
+````
 
 If there are no logs, drop the entire `### Server logs` section (header and code block) — do not leave an empty section, since the form treats the field as omitted.
 
-### 6. Confirm with the user, then file
+### 5. Confirm with the user, then file
 
 Show the user the proposed title and body and ask for explicit go-ahead. After they confirm, file via `gh`:
 
@@ -152,11 +158,11 @@ EOF
 Notes:
 
 - Use a heredoc to preserve newlines and backticks. Do not pass `--body` as a single-quoted string with embedded code fences — it is fragile.
-- Do not pass `--label` for the service label. The `Auto-label service` workflow applies it automatically from the body. The `bug` label is added by the issue form's `labels:` field, so it is also redundant.
+- Do not pass `--label` for the service label. The `Auto-label service` workflow applies it automatically from the body. The `bug` label is added by the issue form itself, so it is also redundant.
 - Do not assign the issue or set a milestone unless the user asked.
 - After creation, return the issue URL printed by `gh` to the user.
 
-### 7. Verify the auto-label fired (optional)
+### 6. Verify the auto-label fired (optional)
 
 After ~30 seconds, the workflow run should add `service:<slug>`. If the user wants confirmation:
 
@@ -174,7 +180,7 @@ Context: while running `cargo test -p winterbaume-ec2`, a test failed because `D
 
 The skill should:
 
-1. Note slug = `ec2`.
+1. Note slug = `ec2` (present in `references/service-slugs.txt`).
 2. Run `git rev-parse HEAD` for the version field.
 3. Search: `gh issue list --repo moriyoshi/winterbaume --state all --label service:ec2 --search "DescribeInstances Reservations" --limit 20`. Report findings to the user.
 4. Draft body with summary "EC2:DescribeInstances omits instance launched in the same session", reproduction as the failing test command + minimal `aws-sdk-rust` snippet, expected behaviour citing the AWS docs, actual behaviour citing the empty `Reservations`.
@@ -182,7 +188,7 @@ The skill should:
 
 ### Example 2 — bug found during a code review
 
-Context: while reviewing `crates/winterbaume-s3/src/handlers.rs`, Claude notices that `CopyObject` always returns `200` even when the destination key is empty, which would silently corrupt user data.
+Context: while reviewing the `winterbaume-s3` crate's request handler module, Claude notices that `CopyObject` always returns `200` even when the destination key is empty, which would silently corrupt user data.
 
 The skill should:
 
@@ -190,7 +196,7 @@ The skill should:
 2. Construct a minimal `aws s3api copy-object` repro.
 3. Search: `gh issue list --repo moriyoshi/winterbaume --state all --label service:s3 --search "CopyObject" --limit 20`. If a related issue exists (e.g., `#98 — CopyObject does not preserve metadata`), present it to the user and ask whether to comment on it, file a new issue and cross-reference it, or file standalone.
 4. Cite expected behaviour from AWS docs (the destination object must be created and the response includes a `CopyObjectResult`).
-5. Cite actual behaviour from the handler code path (link the file and line).
+5. Cite the file and line you already saw during the review in the issue body, so a reader of the issue can navigate there. This is content for the reader; do not re-grep the source tree as part of running this skill.
 6. Include `git rev-parse HEAD`.
 7. Confirm and file.
 
@@ -202,3 +208,4 @@ The skill should:
 - **Bundling multiple services.** One issue per service slug — the auto-labeller cannot apply two service labels from one body.
 - **Adding bespoke sections.** The issue form has a fixed shape; extra `###` headers are fine for the human reader but never replace the required ones, and never change the wording of a required header (the regex and downstream tooling depend on the exact label text).
 - **Skipping the version field.** It is required by the form and is what makes a future reader able to `git checkout` the exact tree that was buggy.
+- **Reading repository files to confirm the template.** The body template, regex, and slug list in this skill are authoritative. If they appear to drift from the live project, fix this skill rather than reaching outside it at runtime.
