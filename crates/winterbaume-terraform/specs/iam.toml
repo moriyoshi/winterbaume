@@ -854,3 +854,160 @@ type = "string?"
 hcl = "custom_suffix"
 view = "custom_suffix"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_iam_policy_attachment
+# ---------------------------------------------------------------------------
+# Multi-target attachment: attaches the named policy to every listed user,
+# group, and role. `users`, `groups`, and `roles` are `Vec<String>` inputs
+# which the spec format does not express, so the converter reads them
+# directly from `instance.attributes`. `name` is a purely informational TF
+# id with no view-side counterpart; on inject we keep the value only for
+# diagnostics, and extract emits nothing (the same attachments are already
+# reachable through the per-entity converters).
+
+[[resource]]
+type = "aws_iam_policy_attachment"
+model = "IamPolicyAttachmentTfModel"
+view = "AttachedPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_arn"
+view = "policy_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_role_policies_exclusive
+# ---------------------------------------------------------------------------
+# Replaces the named role's `inline_policies` so that exactly the listed
+# `policy_names` are present. The policy documents are not part of this
+# resource; existing documents are preserved and missing names get an
+# empty placeholder document. `policy_names` is a `Vec<String>` which the
+# spec format does not express, so the converter reads it directly from
+# `instance.attributes`.
+
+[[resource]]
+type = "aws_iam_role_policies_exclusive"
+model = "IamRolePoliciesExclusiveTfModel"
+view = "InlinePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "role_name"
+view = "role_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_user_policies_exclusive
+# ---------------------------------------------------------------------------
+# Mirrors `aws_iam_role_policies_exclusive` but targets a user's
+# `inline_policies`.
+
+[[resource]]
+type = "aws_iam_user_policies_exclusive"
+model = "IamUserPoliciesExclusiveTfModel"
+view = "InlinePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_name"
+view = "user_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_group_policies_exclusive
+# ---------------------------------------------------------------------------
+# Mirrors `aws_iam_role_policies_exclusive` but targets a group's
+# `inline_policies`.
+
+[[resource]]
+type = "aws_iam_group_policies_exclusive"
+model = "IamGroupPoliciesExclusiveTfModel"
+view = "InlinePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "group_name"
+view = "group_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_role_policy_attachments_exclusive
+# ---------------------------------------------------------------------------
+# Replaces the named role's `attached_policies` so that exactly the listed
+# `policy_arns` are present. `policy_arns` is a `Vec<String>` which the
+# spec format does not express, so the converter reads it directly from
+# `instance.attributes`.
+
+[[resource]]
+type = "aws_iam_role_policy_attachments_exclusive"
+model = "IamRolePolicyAttachmentsExclusiveTfModel"
+view = "AttachedPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "role_name"
+view = "role_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_user_policy_attachments_exclusive
+# ---------------------------------------------------------------------------
+# Mirrors `aws_iam_role_policy_attachments_exclusive` but targets a user's
+# `attached_policies`.
+
+[[resource]]
+type = "aws_iam_user_policy_attachments_exclusive"
+model = "IamUserPolicyAttachmentsExclusiveTfModel"
+view = "AttachedPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_name"
+view = "user_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_group_policy_attachments_exclusive
+# ---------------------------------------------------------------------------
+# Mirrors `aws_iam_role_policy_attachments_exclusive` but targets a group's
+# `attached_policies`.
+
+[[resource]]
+type = "aws_iam_group_policy_attachments_exclusive"
+model = "IamGroupPolicyAttachmentsExclusiveTfModel"
+view = "AttachedPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "group_name"
+view = "group_name"
+type = "string"
+required = true

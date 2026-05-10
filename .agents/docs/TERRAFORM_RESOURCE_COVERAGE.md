@@ -2,8 +2,8 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1206**
-Currently handled by winterbaume: **325** (320 verified against schema)
-Missing within classified prefixes: **886**
+Currently handled by winterbaume: **332** (327 verified against schema)
+Missing within classified prefixes: **879**
 
 Sorted by missing-count desc.
 
@@ -41,7 +41,6 @@ Sorted by missing-count desc.
 | vpclattice | `aws_vpclattice_` | 4 | 14 | 10 | 29% |  |
 | appsync | `aws_appsync_` | 1 | 10 | 9 | 10% |  |
 | fsx | `aws_fsx_` | 2 | 11 | 9 | 18% |  |
-| iam | `aws_iam_` | 25 | 34 | 9 | 74% |  |
 | lambda | `aws_lambda_` | 4 | 13 | 9 | 31% |  |
 | apprunner | `aws_apprunner_` | 1 | 9 | 8 | 11% |  |
 | dynamodb | `aws_dynamodb_` | 1 | 9 | 8 | 11% |  |
@@ -101,6 +100,7 @@ Sorted by missing-count desc.
 | codepipeline | `aws_codepipeline` | 1 | 3 | 2 | 33% |  |
 | costexplorer | `aws_ce_` | 2 | 4 | 2 | 50% |  |
 | elasticbeanstalk | `aws_elastic_beanstalk_` | 2 | 4 | 2 | 50% |  |
+| iam | `aws_iam_` | 32 | 34 | 2 | 94% |  |
 | ivs | `aws_ivs_` | 1 | 3 | 2 | 33% |  |
 | rekognition | `aws_rekognition_` | 1 | 3 | 2 | 33% |  |
 | route53domains | `aws_route53domains_` | 1 | 3 | 2 | 33% |  |
@@ -800,18 +800,6 @@ Sorted by missing-count desc.
 - `aws_fsx_openzfs_snapshot`
 - `aws_fsx_openzfs_volume`
 
-### iam — 9 missing
-
-- `aws_iam_group_policies_exclusive`
-- `aws_iam_group_policy_attachments_exclusive`
-- `aws_iam_organizations_features`
-- `aws_iam_policy_attachment`
-- `aws_iam_role_policies_exclusive`
-- `aws_iam_role_policy_attachments_exclusive`
-- `aws_iam_security_token_service_preferences`
-- `aws_iam_user_policies_exclusive`
-- `aws_iam_user_policy_attachments_exclusive`
-
 ### lambda — 9 missing
 
 - `aws_lambda_code_signing_config`
@@ -1276,6 +1264,11 @@ Sorted by missing-count desc.
 
 - `aws_elastic_beanstalk_application_version`
 - `aws_elastic_beanstalk_configuration_template`
+
+### iam — 2 missing
+
+- `aws_iam_organizations_features`
+- `aws_iam_security_token_service_preferences`
 
 ### ivs — 2 missing
 
