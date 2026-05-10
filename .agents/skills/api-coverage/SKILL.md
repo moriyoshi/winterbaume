@@ -1,22 +1,50 @@
 ---
 name: api-coverage
-description: Generate AWS API coverage reports comparing winterbaume implementations against official AWS API models.
+description: Generate AWS API coverage reports comparing winterbaume implementations against official AWS API models, plus Terraform converter coverage at the resource-type and per-attribute levels.
 user_invocable: true
 ---
 
 # API Coverage Report Generator
 
-Generate coverage reports that compare winterbaume's implemented AWS service operations against the official AWS API models in `vendor/api-models-aws/`, with moto, floci, and kumo coverage shown alongside for reference. The report also summarises integration-test coverage from `crates/winterbaume-*/tests/integration_test.rs` and Terraform E2E coverage from `crates/winterbaume-e2e-tests/tests/terraform/` as separate validation layers.
+Three complementary reports live in this skill, each answering a different
+"how much do we cover?" question:
+
+1. **AWS API operation coverage** — `generate_coverage.py` writes
+   `.agents/docs/API_COVERAGE.md`. Compares winterbaume's implemented
+   operations against the official Smithy models under
+   `vendor/api-models-aws/`, with moto / floci / kumo numbers alongside.
+2. **Terraform resource-type coverage** — `generate_terraform_resource_coverage.py`
+   writes `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`. For each
+   winterbaume service, lists how many Terraform `aws_*` resource types
+   the converter handles vs how many the AWS provider schema declares
+   for that service, plus the missing types per service.
+3. **Terraform attribute coverage** — `generate_terraform_converter_coverage.py`
+   writes `.agents/docs/TERRAFORM_CONVERTER_COVERAGE.md`. For each
+   handled resource type, measures inject% and extract% as the fraction
+   of the resource's TF schema attributes the converter touches in each
+   direction.
+
+Pick the right report for the question:
+- "Do we know about all the IAM resources Terraform supports?" → resource coverage.
+- "Does our `aws_iam_role` converter handle all the role's fields?" → attribute coverage.
+- "Does winterbaume implement the AWS IAM API operations moto does?" → API operation coverage.
 
 ## Instructions
 
-Run the coverage report script:
+Run the report you need:
 
 ```bash
+# 1. AWS API operation coverage
 python3 .agents/skills/api-coverage/scripts/generate_coverage.py
+
+# 2. Per-service Terraform resource-type coverage
+python3 .agents/skills/api-coverage/scripts/generate_terraform_resource_coverage.py
+
+# 3. Per-resource Terraform attribute coverage
+python3 .agents/skills/api-coverage/scripts/generate_terraform_converter_coverage.py
 ```
 
-This writes the report to `.agents/docs/API_COVERAGE.md` by default. Use `--output PATH` to write elsewhere.
+Each writes to `.agents/docs/<NAME>.md` by default; use `--output PATH` to redirect.
 
 ### Prerequisites
 
@@ -75,6 +103,54 @@ The report is written as Markdown with:
 - Terraform E2E summary lines plus a per-service Terraform E2E table
 - List of AWS services not yet implemented
 - Detailed per-service sections with `W[x] M[x] F[x] K[x]` side-by-side checklists for every operation, plus integration-test and Terraform E2E notes
+
+## Terraform resource-type coverage
+
+`generate_terraform_resource_coverage.py` answers: "for each winterbaume
+service, how many of the AWS Terraform provider's resource types do we
+actually handle?"
+
+It reads the canonical converter manifest at
+`crates/winterbaume-terraform/specs/<service>.toml` (the same specs the
+`tf-converter-codegen` tool consumes), extracts each `[[resource]] type`
+declaration, and compares the set against the AWS provider schema obtained
+via `terraform providers schema -json`. The schema is cached at
+`.agents-workspace/tmp/tf-schema/aws_provider_schema.json` (auto-generated
+on first run; reused thereafter).
+
+For each service:
+- The "service prefix" is the longest common prefix of the handled
+  resource types, capped at two underscore-separated segments after
+  `aws_` so a 1-handled service doesn't produce an over-narrow prefix.
+- Services with heterogeneous resource names ( `ec2` mixes `aws_vpc`,
+  `aws_subnet`, `aws_security_group`, etc.; `rds` mixes `aws_db_*` and
+  `aws_rds_*`; `elbv2` mixes `aws_lb*` and `aws_alb*` ) use a manual
+  override list defined in `PREFIX_OVERRIDES` at the top of the script.
+  Add a service to that table if its resources don't share a clean
+  common prefix.
+- Coverage % = handled / candidates_in_schema, where candidates are
+  every schema resource matching the service's prefix(es).
+
+Output sections:
+1. A summary header with totals ( schema resources, classified, handled,
+   missing ).
+2. A table sorted by absolute missing-count desc.
+3. Per-service "missing resources" list, suitable for triage and
+   converter expansion.
+4. ( If applicable ) a list of resources declared in specs but absent
+   from the schema — typically typos or resources removed in newer
+   provider versions.
+
+## Terraform attribute coverage
+
+`generate_terraform_converter_coverage.py` answers: "for each handled
+resource type, how many of its TF schema attributes does the converter
+actually touch?"
+
+It greps each migrated converter and the TfModel spec for field-level
+references, then computes inject% and extract% per resource. The
+`terraform-converter` skill uses these numbers to gate "excellent"
+( inject ≥ 60%, extract ≥ 50% ).
 
 ## Important Notes
 
