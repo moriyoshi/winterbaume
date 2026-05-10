@@ -2,15 +2,14 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1206**
-Currently handled by winterbaume: **305** (300 verified against schema)
-Missing within classified prefixes: **906**
+Currently handled by winterbaume: **316** (311 verified against schema)
+Missing within classified prefixes: **895**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
 | ec2 | override (37 patterns) | 39 | 139 | 100 | 28% |  |
-| iam | `aws_iam_` | 5 | 34 | 29 | 15% |  |
 | s3 | `aws_s3_` | 1 | 26 | 25 | 4% |  |
 | sagemaker | `aws_sagemaker_` | 5 | 30 | 25 | 17% |  |
 | route53 | `aws_route53_` | 2 | 26 | 24 | 8% |  |
@@ -18,6 +17,7 @@ Sorted by missing-count desc.
 | redshift | `aws_redshift_` | 2 | 23 | 21 | 9% |  |
 | apigateway | `aws_api_gateway_` | 6 | 26 | 20 | 23% |  |
 | directconnect | `aws_dx_` | 1 | 19 | 18 | 5% |  |
+| iam | `aws_iam_` | 16 | 34 | 18 | 47% |  |
 | glue | `aws_glue_` | 3 | 20 | 17 | 15% |  |
 | quicksight | `aws_quicksight_` | 3 | 20 | 17 | 15% |  |
 | networkmanager | `aws_networkmanager_` | 3 | 19 | 16 | 16% |  |
@@ -260,38 +260,6 @@ Sorted by missing-count desc.
 - `aws_vpn_gateway_attachment`
 - `aws_vpn_gateway_route_propagation`
 
-### iam — 29 missing
-
-- `aws_iam_access_key`
-- `aws_iam_account_alias`
-- `aws_iam_account_password_policy`
-- `aws_iam_group_membership`
-- `aws_iam_group_policies_exclusive`
-- `aws_iam_group_policy`
-- `aws_iam_group_policy_attachment`
-- `aws_iam_group_policy_attachments_exclusive`
-- `aws_iam_openid_connect_provider`
-- `aws_iam_organizations_features`
-- `aws_iam_policy_attachment`
-- `aws_iam_role_policies_exclusive`
-- `aws_iam_role_policy`
-- `aws_iam_role_policy_attachment`
-- `aws_iam_role_policy_attachments_exclusive`
-- `aws_iam_saml_provider`
-- `aws_iam_security_token_service_preferences`
-- `aws_iam_server_certificate`
-- `aws_iam_service_linked_role`
-- `aws_iam_service_specific_credential`
-- `aws_iam_signing_certificate`
-- `aws_iam_user_group_membership`
-- `aws_iam_user_login_profile`
-- `aws_iam_user_policies_exclusive`
-- `aws_iam_user_policy`
-- `aws_iam_user_policy_attachment`
-- `aws_iam_user_policy_attachments_exclusive`
-- `aws_iam_user_ssh_key`
-- `aws_iam_virtual_mfa_device`
-
 ### s3 — 25 missing
 
 - `aws_s3_access_point`
@@ -467,6 +435,27 @@ Sorted by missing-count desc.
 - `aws_dx_private_virtual_interface`
 - `aws_dx_public_virtual_interface`
 - `aws_dx_transit_virtual_interface`
+
+### iam — 18 missing
+
+- `aws_iam_group_membership`
+- `aws_iam_group_policies_exclusive`
+- `aws_iam_group_policy`
+- `aws_iam_group_policy_attachment`
+- `aws_iam_group_policy_attachments_exclusive`
+- `aws_iam_organizations_features`
+- `aws_iam_policy_attachment`
+- `aws_iam_role_policies_exclusive`
+- `aws_iam_role_policy`
+- `aws_iam_role_policy_attachment`
+- `aws_iam_role_policy_attachments_exclusive`
+- `aws_iam_security_token_service_preferences`
+- `aws_iam_service_linked_role`
+- `aws_iam_user_group_membership`
+- `aws_iam_user_policies_exclusive`
+- `aws_iam_user_policy`
+- `aws_iam_user_policy_attachment`
+- `aws_iam_user_policy_attachments_exclusive`
 
 ### glue — 17 missing
 

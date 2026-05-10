@@ -80,3 +80,162 @@ pub struct IamInstanceProfileTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub role: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_iam_openid_connect_provider` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamOpenidConnectProviderTfModel {
+    pub url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_saml_provider` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamSamlProviderTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub saml_metadata_document: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_virtual_mfa_device` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamVirtualMfaDeviceTfModel {
+    pub virtual_mfa_device_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_server_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamServerCertificateTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_body: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_chain: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_signing_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamSigningCertificateTfModel {
+    pub user_name: String,
+    pub certificate_body: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_service_specific_credential` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamServiceSpecificCredentialTfModel {
+    pub service_name: String,
+    pub user_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_specific_credential_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_user_ssh_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamUserSshKeyTfModel {
+    pub username: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub encoding: Option<String>,
+    pub public_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ssh_public_key_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_access_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamAccessKeyTfModel {
+    pub user: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_user_login_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamUserLoginProfileTfModel {
+    pub user: String,
+    #[serde(default = "default_iam_user_login_profile_password_reset_required")]
+    pub password_reset_required: bool,
+    #[serde(default = "default_iam_user_login_profile_password_length")]
+    pub password_length: i64,
+}
+
+fn default_iam_user_login_profile_password_reset_required() -> bool {
+    true
+}
+
+fn default_iam_user_login_profile_password_length() -> i64 {
+    20i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_account_password_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamAccountPasswordPolicyTfModel {
+    #[serde(default = "default_iam_account_password_policy_minimum_password_length")]
+    pub minimum_password_length: i64,
+    #[serde(default = "default_iam_account_password_policy_require_symbols")]
+    pub require_symbols: bool,
+    #[serde(default = "default_iam_account_password_policy_require_numbers")]
+    pub require_numbers: bool,
+    #[serde(default = "default_iam_account_password_policy_require_uppercase_characters")]
+    pub require_uppercase_characters: bool,
+    #[serde(default = "default_iam_account_password_policy_require_lowercase_characters")]
+    pub require_lowercase_characters: bool,
+    #[serde(default = "default_iam_account_password_policy_allow_users_to_change_password")]
+    pub allow_users_to_change_password: bool,
+    #[serde(default = "default_iam_account_password_policy_expire_passwords")]
+    pub expire_passwords: bool,
+}
+
+fn default_iam_account_password_policy_minimum_password_length() -> i64 {
+    6i64
+}
+
+fn default_iam_account_password_policy_require_symbols() -> bool {
+    false
+}
+
+fn default_iam_account_password_policy_require_numbers() -> bool {
+    false
+}
+
+fn default_iam_account_password_policy_require_uppercase_characters() -> bool {
+    false
+}
+
+fn default_iam_account_password_policy_require_lowercase_characters() -> bool {
+    false
+}
+
+fn default_iam_account_password_policy_allow_users_to_change_password() -> bool {
+    false
+}
+
+fn default_iam_account_password_policy_expire_passwords() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_account_alias` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamAccountAliasTfModel {
+    pub account_alias: String,
+}
