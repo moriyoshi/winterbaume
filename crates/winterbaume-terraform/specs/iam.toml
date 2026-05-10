@@ -588,3 +588,269 @@ hcl = "account_alias"
 view = "account_alias"
 type = "string"
 required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_role_policy_attachment
+# ---------------------------------------------------------------------------
+# Wave-1 sub-resource migration: the converter snapshots and mutates an
+# existing role's `attached_policies` rather than ingesting a fresh view, so
+# the generated model is consumed only as a typed deserialize helper.
+
+[[resource]]
+type = "aws_iam_role_policy_attachment"
+model = "IamRolePolicyAttachmentTfModel"
+view = "RoleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "role"
+view = "role"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_arn"
+view = "policy_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_user_policy_attachment
+# ---------------------------------------------------------------------------
+# Wave-1 sub-resource migration: mirrors `aws_iam_role_policy_attachment`.
+
+[[resource]]
+type = "aws_iam_user_policy_attachment"
+model = "IamUserPolicyAttachmentTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user"
+view = "user"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_arn"
+view = "policy_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_role_policy
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: pushes an `InlinePolicyView` onto an existing
+# role's `inline_policies`. The converter uses snapshot+mutate+restore.
+# `name_prefix` is an optional alternative to `name`; the converter resolves
+# the fallback by hand because the spec format only supports a single hcl
+# key per field.
+
+[[resource]]
+type = "aws_iam_role_policy"
+model = "IamRolePolicyTfModel"
+view = "InlinePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "role"
+view = "role"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "name_prefix"
+view = "name_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_user_policy
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: mirrors `aws_iam_role_policy` but targets a user.
+
+[[resource]]
+type = "aws_iam_user_policy"
+model = "IamUserPolicyTfModel"
+view = "InlinePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user"
+view = "user"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "name_prefix"
+view = "name_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_group_policy
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: mirrors `aws_iam_role_policy` but targets a group.
+
+[[resource]]
+type = "aws_iam_group_policy"
+model = "IamGroupPolicyTfModel"
+view = "InlinePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "group"
+view = "group"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "name_prefix"
+view = "name_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_group_policy_attachment
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: pushes an `AttachedPolicyView` onto an existing
+# group's `attached_policies`. The converter uses snapshot+mutate+restore.
+
+[[resource]]
+type = "aws_iam_group_policy_attachment"
+model = "IamGroupPolicyAttachmentTfModel"
+view = "AttachedPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "group"
+view = "group"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_arn"
+view = "policy_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_group_membership
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: replaces the named group's `members` with the
+# given user list. `users` is a `Vec<String>` which the spec format does
+# not express, so the converter reads it directly from `instance.attributes`.
+
+[[resource]]
+type = "aws_iam_group_membership"
+model = "IamGroupMembershipTfModel"
+view = "GroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "group"
+view = "group"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_user_group_membership
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: adds the named user to each group's `members` set.
+# `groups` is a `Vec<String>` which the spec format does not express, so
+# the converter reads it directly from `instance.attributes`.
+
+[[resource]]
+type = "aws_iam_user_group_membership"
+model = "IamUserGroupMembershipTfModel"
+view = "GroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user"
+view = "user"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_iam_service_linked_role
+# ---------------------------------------------------------------------------
+# AWS-managed roles created on-demand for AWS services. The role lives in
+# the regular `roles` collection but with a `/aws-service-role/<service>/`
+# path and a synthesised `AWSServiceRoleFor<ServiceCamelCase>` name.
+
+[[resource]]
+type = "aws_iam_service_linked_role"
+model = "IamServiceLinkedRoleTfModel"
+view = "RoleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "aws_service_name"
+view = "aws_service_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_suffix"
+view = "custom_suffix"
+type = "string?"
