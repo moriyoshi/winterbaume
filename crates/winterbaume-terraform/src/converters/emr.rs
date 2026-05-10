@@ -13,7 +13,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str};
+use crate::generated::emr as emr_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_emr_cluster
@@ -72,12 +73,19 @@ impl AwsEmrClusterConverter {
         let _ = attrs.get("configurations");
         let _ = attrs.get("configurations_json");
 
-        let name = optional_str(attrs, "name")
-            .or_else(|| optional_str(attrs, "id"))
+        let model: emr_gen::ClusterTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_emr_cluster", e))?;
+
+        let name = model
+            .name
+            .clone()
+            .or_else(|| model.id.clone())
             .unwrap_or_else(|| "unnamed-cluster".to_string());
-        let id = optional_str(attrs, "id")
+        let id = model
+            .id
+            .clone()
             .unwrap_or_else(|| format!("j-{}", uuid::Uuid::new_v4().simple()));
-        let cluster_arn = optional_str(attrs, "cluster_arn").unwrap_or_else(|| {
+        let cluster_arn = model.cluster_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:elasticmapreduce:{}:{}:cluster/{}",
                 region, ctx.default_account_id, id
@@ -199,7 +207,7 @@ impl AwsEmrClusterConverter {
         let cluster_view = ClusterView {
             id: id.clone(),
             name,
-            status: optional_str(attrs, "status").unwrap_or_else(|| "WAITING".to_string()),
+            status: model.status.unwrap_or_else(|| "WAITING".to_string()),
             creation_date_time: chrono::Utc::now().to_rfc3339(),
             ready_date_time: None,
             end_date_time: None,
@@ -211,16 +219,15 @@ impl AwsEmrClusterConverter {
                 .get("visible_to_all_users")
                 .and_then(|v| v.as_bool())
                 .unwrap_or(true),
-            log_uri: optional_str(attrs, "log_uri"),
-            release_label: optional_str(attrs, "release_label"),
+            log_uri: model.log_uri,
+            release_label: model.release_label,
             applications: vec![],
             tags: extract_tags(attrs),
-            service_role: optional_str(attrs, "service_role"),
-            job_flow_role: optional_str(attrs, "ec2_attributes.0.instance_profile")
-                .or_else(|| optional_str(attrs, "job_flow_role")),
-            auto_scaling_role: optional_str(attrs, "autoscaling_role"),
-            scale_down_behavior: optional_str(attrs, "scale_down_behavior"),
-            security_configuration: optional_str(attrs, "security_configuration"),
+            service_role: model.service_role,
+            job_flow_role: model.job_flow_role,
+            auto_scaling_role: model.autoscaling_role,
+            scale_down_behavior: model.scale_down_behavior,
+            security_configuration: model.security_configuration,
             step_concurrency_level: attrs
                 .get("step_concurrency_level")
                 .and_then(|v| v.as_i64())
@@ -229,7 +236,7 @@ impl AwsEmrClusterConverter {
             managed_scaling_policy: None,
             cluster_arn,
             normalized_instance_hours: None,
-            master_public_dns_name: optional_str(attrs, "master_public_dns_name"),
+            master_public_dns_name: model.master_public_dns_name,
             instance_groups,
             instance_fleets,
             bootstrap_actions,
@@ -397,12 +404,17 @@ impl AwsEmrSecurityConfigurationConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let name = optional_str(attrs, "name")
-            .or_else(|| optional_str(attrs, "id"))
+        let model: emr_gen::SecurityConfigurationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_emr_security_configuration", e))?;
+
+        let name = model
+            .name
+            .or(model.id)
             .unwrap_or_else(|| "unnamed-security-config".to_string());
-        let configuration = optional_str(attrs, "configuration").unwrap_or_default();
-        let creation_date_time =
-            optional_str(attrs, "creation_date").unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+        let configuration = model.configuration.unwrap_or_default();
+        let creation_date_time = model
+            .creation_date
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
         let sec_view = SecurityConfigurationView {
             name: name.clone(),

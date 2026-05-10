@@ -1,0 +1,155 @@
+# Auto-ingested by `tf-converter-codegen ingest iot`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (thing / thing_type / policy / certificate). Dropped nested-block
+# fields (attributes map, properties block, ca_pem) — those are read
+# straight from instance.attributes in the converter. ARN templates
+# are hand-written in the converter.
+
+[service]
+name = "iot"
+crate_name = "winterbaume_iot"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_iot_thing
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_iot_thing"
+model = "ThingTfModel"
+view = "ThingView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "thing_type_name"
+view = "thing_type_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_client_id"
+view = "default_client_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "i64"
+default = 1
+
+# ---------------------------------------------------------------------------
+# aws_iot_thing_type
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_iot_thing_type"
+model = "ThingTypeTfModel"
+view = "ThingTypeView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "deprecated"
+view = "deprecated"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_iot_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_iot_policy"
+model = "IotPolicyTfModel"
+view = "IotPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_version_id"
+view = "default_version_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_iot_certificate
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_iot_certificate"
+model = "CertificateTfModel"
+view = "CertificateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_pem"
+view = "certificate_pem"
+type = "string?"
+
+[[resource.field]]
+hcl = "ca_certificate_id"
+view = "ca_certificate_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "active"
+view = "active"
+type = "bool"
+default = true

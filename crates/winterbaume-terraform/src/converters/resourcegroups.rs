@@ -17,7 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::resourcegroups as resourcegroups_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_resourcegroups_group
@@ -62,19 +63,22 @@ impl AwsResourcegroupsGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_resourcegroups_group")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: resourcegroups_gen::ResourceGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_resourcegroups_group", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:resource-groups:{}:{}:group/{}",
                 region, ctx.default_account_id, name
             )
         });
+        let description = model.description.unwrap_or_default();
 
-        // Parse resource_query block
+        // Parse resource_query block (raw)
+        let attrs = &instance.attributes;
         let rq = attrs.get("resource_query");
         let (query_type, query_query) = if let Some(rq_val) = rq {
             let rq_obj = rq_val.as_array().and_then(|a| a.first()).unwrap_or(rq_val);
@@ -93,7 +97,7 @@ impl AwsResourcegroupsGroupConverter {
             ("TAG_FILTERS_1_0".to_string(), String::new())
         };
 
-        // Parse configuration blocks
+        // Parse configuration blocks (raw)
         let configuration = attrs.get("configuration").and_then(|v| {
             v.as_array().map(|arr| {
                 arr.iter()
@@ -140,12 +144,12 @@ impl AwsResourcegroupsGroupConverter {
         });
 
         let group_view = ResourceGroupView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             description,
             resource_query_type: query_type,
             resource_query_query: query_query,
-            tags: extract_tags(attrs),
+            tags: model.tags,
             configuration,
             resource_arns: vec![],
         };
@@ -158,7 +162,7 @@ impl AwsResourcegroupsGroupConverter {
                 group_lifecycle_events_desired_status: String::new(),
             },
         };
-        state_view.groups.insert(name.to_string(), group_view);
+        state_view.groups.insert(name, group_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

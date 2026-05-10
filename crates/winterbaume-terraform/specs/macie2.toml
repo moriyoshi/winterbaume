@@ -1,0 +1,129 @@
+# Auto-ingested by `tf-converter-codegen ingest macie2`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `s3_job_definition` (raw JSON blob — read raw)
+#   - `allow_list_ids` / `custom_data_identifier_ids` /
+#     `managed_data_identifier_ids` (Vec<String> — read raw)
+#   - `sampling_percentage` (Option<i32> — read raw)
+#   - `schedule_frequency` (raw JSON object — read raw)
+
+[service]
+name = "macie2"
+crate_name = "winterbaume_macie2"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_account
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_macie2_account"
+model = "AccountTfModel"
+view = "MacieSessionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "finding_publishing_frequency"
+view = "finding_publishing_frequency"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_role"
+view = "service_role"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_classification_job
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_macie2_classification_job"
+model = "ClassificationJobTfModel"
+view = "MacieClassificationJobView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "job_type"
+view = "job_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "job_id"
+view = "job_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "job_arn"
+view = "job_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "job_status"
+view = "job_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "client_token"
+view = "client_token"
+type = "string?"
+
+[[resource.field]]
+hcl = "managed_data_identifier_selector"
+view = "managed_data_identifier_selector"
+type = "string?"
+
+[[resource.field]]
+hcl = "initial_run"
+view = "initial_run"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_run_time"
+view = "last_run_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

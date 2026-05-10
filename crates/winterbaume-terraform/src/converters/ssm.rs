@@ -1,4 +1,9 @@
 //! Terraform converter for SSM resources.
+//!
+//! `ParameterTfModel` is generated from `specs/ssm.toml`. The ARN
+//! template, the `type` / `value` / `data_type` defaults, the synthesised
+//! initial parameter version, and the constant `tier = "Standard"`
+//! extract value are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::ssm as ssm_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_ssm_parameter
@@ -59,19 +65,17 @@ impl AwsSsmParameterConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_ssm_parameter")?;
-        let _tags_all = attrs.get("tags_all");
-        let _allowed_pattern = optional_str(attrs, "allowed_pattern");
-        let _overwrite = attrs.get("overwrite");
-        let _ = attrs.get("insecure_value");
-        let param_type = optional_str(attrs, "type").unwrap_or_else(|| "String".to_string());
-        let value = optional_str(attrs, "value").unwrap_or_default();
-        let region = extract_region(attrs, &ctx.default_region);
-        let version = optional_i64(attrs, "version").unwrap_or(1);
-        let data_type = optional_str(attrs, "data_type").unwrap_or_else(|| "text".to_string());
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: ssm_gen::ParameterTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_ssm_parameter", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let param_type = model.r#type.unwrap_or_else(|| "String".to_string());
+        let value = model.value.unwrap_or_default();
+        let version = model.version;
+        let data_type = model.data_type.unwrap_or_else(|| "text".to_string());
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ssm:{}:{}:parameter{}",
                 region, ctx.default_account_id, name
@@ -79,18 +83,18 @@ impl AwsSsmParameterConverter {
         });
 
         let param_view = ParameterView {
-            name: name.to_string(),
+            name: name.clone(),
             r#type: param_type.clone(),
             value: value.clone(),
             version,
             last_modified_date: None,
             arn,
             data_type,
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let param_version_view = ParameterVersionView {
-            name: name.to_string(),
+            name: name.clone(),
             r#type: param_type,
             value,
             version,
@@ -119,10 +123,10 @@ impl AwsSsmParameterConverter {
             resource_data_syncs: HashMap::new(),
             ..Default::default()
         };
-        state_view.parameters.insert(name.to_string(), param_view);
+        state_view.parameters.insert(name.clone(), param_view);
         state_view
             .parameter_versions
-            .insert(name.to_string(), vec![param_version_view]);
+            .insert(name, vec![param_version_view]);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

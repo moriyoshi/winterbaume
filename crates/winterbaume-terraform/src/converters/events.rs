@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::events as events_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_cloudwatch_event_bus  (also aws_cloudwatch_event_bus / aws_eventbridge_event_bus)
@@ -61,25 +62,26 @@ impl AwsCloudwatchEventBusConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_cloudwatch_event_bus")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let _event_source_name = optional_str(attrs, "event_source_name");
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventBusTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_event_bus", e))?;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:events:{}:{}:event-bus/{}",
-                    region, ctx.default_account_id, name
-                )
-            });
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:events:{}:{}:event-bus/{}",
+                region, ctx.default_account_id, name
+            )
+        });
 
         let dead_letter_config = attrs.get("dead_letter_config").cloned();
         let bus_view = EventBusView {
-            name: name.to_string(),
+            name: name.clone(),
             arn: arn.clone(),
-            policy: optional_str(attrs, "policy"),
+            policy: model.policy,
             dead_letter_config,
             ..Default::default()
         };
@@ -206,21 +208,24 @@ impl AwsCloudwatchEventRuleConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventRuleTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_event_rule", e))?;
+
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_cloudwatch_event_rule")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let name = model.name.clone();
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:events:{}:{}:rule/{}",
-                    region, ctx.default_account_id, name
-                )
-            });
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:events:{}:{}:rule/{}",
+                region, ctx.default_account_id, name
+            )
+        });
 
-        let event_bus_name =
-            optional_str(attrs, "event_bus_name").unwrap_or_else(|| "default".to_string());
+        let event_bus_name = model
+            .event_bus_name
+            .unwrap_or_else(|| "default".to_string());
 
         // Tags
         let tags: Vec<TagView> = {
@@ -245,12 +250,12 @@ impl AwsCloudwatchEventRuleConverter {
         };
 
         let rule_view = RuleView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
-            event_pattern: optional_str(attrs, "event_pattern"),
-            schedule_expression: optional_str(attrs, "schedule_expression"),
-            state: optional_str(attrs, "state").unwrap_or_else(|| "ENABLED".to_string()),
-            description: optional_str(attrs, "description"),
+            event_pattern: model.event_pattern,
+            schedule_expression: model.schedule_expression,
+            state: model.state.unwrap_or_else(|| "ENABLED".to_string()),
+            description: model.description,
             event_bus_name,
             targets: vec![],
             tags,
@@ -351,11 +356,15 @@ impl AwsCloudwatchEventTargetConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventTargetTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_event_target", e))?;
+
         let attrs = &instance.attributes;
-        let rule_name = require_str(attrs, "rule", "aws_cloudwatch_event_target")?;
-        let target_id = require_str(attrs, "target_id", "aws_cloudwatch_event_target")?;
-        let target_arn = require_str(attrs, "arn", "aws_cloudwatch_event_target")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let rule_name = model.rule.clone();
+        let target_id = model.target_id.clone();
+        let target_arn = model.arn.clone();
 
         let _tags_all = attrs.get("tags_all");
         let _retry_policy = attrs.get("retry_policy");
@@ -388,10 +397,10 @@ impl AwsCloudwatchEventTargetConverter {
         };
 
         let target_view = TargetView {
-            id: target_id.to_string(),
-            arn: target_arn.to_string(),
-            input: optional_str(attrs, "input"),
-            input_path: optional_str(attrs, "input_path"),
+            id: target_id.clone(),
+            arn: target_arn.clone(),
+            input: model.input,
+            input_path: model.input_path,
             extra,
         };
 
@@ -400,7 +409,7 @@ impl AwsCloudwatchEventTargetConverter {
             .service
             .snapshot(&ctx.default_account_id, &region)
             .await;
-        if let Some(rule) = state_view.rules.get_mut(rule_name) {
+        if let Some(rule) = state_view.rules.get_mut(&rule_name) {
             // Remove any existing target with the same ID to avoid duplicates.
             rule.targets.retain(|t| t.id != target_id);
             rule.targets.push(target_view);
@@ -411,18 +420,20 @@ impl AwsCloudwatchEventTargetConverter {
                 region, ctx.default_account_id, rule_name
             );
             let rule_view = RuleView {
-                name: rule_name.to_string(),
+                name: rule_name.clone(),
                 arn: rule_arn,
                 event_pattern: None,
                 schedule_expression: None,
                 state: "ENABLED".to_string(),
                 description: None,
-                event_bus_name: optional_str(attrs, "event_bus_name")
+                event_bus_name: model
+                    .event_bus_name
+                    .clone()
                     .unwrap_or_else(|| "default".to_string()),
                 targets: vec![target_view],
                 tags: vec![],
             };
-            state_view.rules.insert(rule_name.to_string(), rule_view);
+            state_view.rules.insert(rule_name.clone(), rule_view);
         }
         self.service
             .restore(&ctx.default_account_id, &region, state_view)

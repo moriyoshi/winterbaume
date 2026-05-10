@@ -1,0 +1,33 @@
+[service]
+name = "mediastore"
+crate_name = "winterbaume_mediastore"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_media_store_container"
+model = "ContainerTfModel"
+view = "ContainerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

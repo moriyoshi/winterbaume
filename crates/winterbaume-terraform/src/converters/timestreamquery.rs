@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::timestreamquery as timestreamquery_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_timestreamquery_scheduled_query
@@ -59,22 +60,21 @@ impl AwsTimestreamQueryScheduledQueryConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_timestreamquery_scheduled_query")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let query_string = optional_str(attrs, "query_string").unwrap_or_default();
-        let schedule_expression = optional_str(attrs, "schedule_expression").unwrap_or_default();
-        let target_database = optional_str(attrs, "target_database").unwrap_or_default();
-        let target_table = optional_str(attrs, "target_table").unwrap_or_default();
-        let s3_error_report_bucket = optional_str(attrs, "s3_error_report_bucket");
-        let notification_topic_arn =
-            optional_str(attrs, "notification_topic_arn").unwrap_or_default();
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
-        let state_str = optional_str(attrs, "state").unwrap_or_else(|| "ENABLED".to_string());
-        let last_run_status = optional_str(attrs, "last_run_status");
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: timestreamquery_gen::ScheduledQueryTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_timestreamquery_scheduled_query", e)
+            })?;
 
-        let _tags_all = attrs.get("tags_all");
-        let _kms_key_id = optional_str(attrs, "kms_key_id");
+        let arn = model.arn.clone().unwrap_or_else(|| {
+            format!(
+                "arn:aws:timestream:{}:{}:scheduled-query/{}",
+                region, ctx.default_account_id, model.name
+            )
+        });
+
+        // JSON-blob nested-block fields stay raw.
+        let attrs = &instance.attributes;
         let error_report_configuration = attrs
             .get("error_report_configuration")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
@@ -88,27 +88,21 @@ impl AwsTimestreamQueryScheduledQueryConverter {
             .get("schedule_configuration")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:timestream:{}:{}:scheduled-query/{}",
-                region, ctx.default_account_id, name
-            )
-        });
-
         let sq_view = ScheduledQueryView {
             arn: arn.clone(),
-            name: name.to_string(),
-            query_string,
-            state: state_str,
-            schedule_expression,
-            target_database,
-            target_table,
-            s3_error_report_bucket,
-            creation_time: optional_str(attrs, "creation_time")
+            name: model.name.clone(),
+            query_string: model.query_string.unwrap_or_default(),
+            state: model.state.unwrap_or_else(|| "ENABLED".to_string()),
+            schedule_expression: model.schedule_expression.unwrap_or_default(),
+            target_database: model.target_database.unwrap_or_default(),
+            target_table: model.target_table.unwrap_or_default(),
+            s3_error_report_bucket: model.s3_error_report_bucket,
+            creation_time: model
+                .creation_time
                 .unwrap_or_else(|| chrono::Utc::now().to_rfc3339()),
-            last_run_status,
-            notification_topic_arn,
-            role_arn,
+            last_run_status: model.last_run_status,
+            notification_topic_arn: model.notification_topic_arn.unwrap_or_default(),
+            role_arn: model.role_arn.unwrap_or_default(),
             error_report_configuration,
             target_configuration,
             notification_configuration,
@@ -117,18 +111,10 @@ impl AwsTimestreamQueryScheduledQueryConverter {
             last_run_summary: None,
         };
 
-        // Extract tags for resource_tags
+        // Resource tags keyed by ARN.
         let mut resource_tags: HashMap<String, HashMap<String, String>> = HashMap::new();
-        if let Some(tags_obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            let mut tags = HashMap::new();
-            for (k, v) in tags_obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-            if !tags.is_empty() {
-                resource_tags.insert(arn.clone(), tags);
-            }
+        if !model.tags.is_empty() {
+            resource_tags.insert(arn.clone(), model.tags);
         }
 
         let mut state_view = TimestreamQueryStateView {

@@ -1,0 +1,206 @@
+# Auto-ingested by `tf-converter-codegen ingest fsx`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (lustre / windows). Dropped Vec<T>/nested-block fields
+# (subnet_ids, security_group_ids, lustre_configuration,
+# windows_configuration, audit_log_configuration, disk_iops_configuration,
+# self_managed_active_directory, data_read_cache_configuration,
+# log_configuration, metadata_configuration, root_squash_configuration,
+# tags_all). Tags use `tags` (HashMap) and convert to TagView in the
+# converter. ARN/DNS templates and synthesised file_system_id are wired
+# up by hand.
+
+[service]
+name = "fsx"
+crate_name = "winterbaume_fsx"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_fsx_lustre_file_system
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_fsx_lustre_file_system"
+model = "LustreFileSystemTfModel"
+view = "FileSystemView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_capacity"
+view = "storage_capacity"
+type = "i64"
+default = 1200
+
+[[resource.field]]
+hcl = "storage_type"
+view = "storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "dns_name"
+view = "dns_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "lifecycle"
+view = "lifecycle"
+type = "string?"
+
+[[resource.field]]
+hcl = "lifecycle_status"
+view = "lifecycle_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_type"
+view = "deployment_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "copy_tags_to_backups"
+view = "copy_tags_to_backups"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "automatic_backup_retention_days"
+view = "automatic_backup_retention_days"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "daily_automatic_backup_start_time"
+view = "daily_automatic_backup_start_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "weekly_maintenance_start_time"
+view = "weekly_maintenance_start_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_fsx_windows_file_system
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_fsx_windows_file_system"
+model = "WindowsFileSystemTfModel"
+view = "FileSystemView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_capacity"
+view = "storage_capacity"
+type = "i64"
+default = 300
+
+[[resource.field]]
+hcl = "storage_type"
+view = "storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "dns_name"
+view = "dns_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "lifecycle"
+view = "lifecycle"
+type = "string?"
+
+[[resource.field]]
+hcl = "lifecycle_status"
+view = "lifecycle_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_type"
+view = "deployment_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "copy_tags_to_backups"
+view = "copy_tags_to_backups"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "automatic_backup_retention_days"
+view = "automatic_backup_retention_days"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "daily_automatic_backup_start_time"
+view = "daily_automatic_backup_start_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "weekly_maintenance_start_time"
+view = "weekly_maintenance_start_time"
+type = "string?"
+

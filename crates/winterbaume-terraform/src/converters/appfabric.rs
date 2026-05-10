@@ -1,6 +1,9 @@
 //! Terraform converters for AWS AppFabric resources.
+//!
+//! `AppBundleTfModel` is generated from `specs/appfabric.toml`. The ARN
+//! template (with a UUID-derived bundle id when no ARN is supplied) and
+//! the id-from-ARN derivation are wired up here.
 
-use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -15,7 +18,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str};
+use crate::generated::appfabric as appfabric_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_appfabric_app_bundle
@@ -59,11 +63,12 @@ impl AwsAppFabricAppBundleConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let cmk = optional_str(attrs, "customer_managed_key_arn");
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appfabric_gen::AppBundleTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appfabric_app_bundle", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             let id = Uuid::new_v4().simple().to_string();
             format!(
                 "arn:aws:appfabric:{}:{}:appbundle/{}",
@@ -76,23 +81,13 @@ impl AwsAppFabricAppBundleConverter {
             .map(|(_, id)| id.to_string())
             .unwrap_or_else(|| arn.clone());
 
-        let tags: HashMap<String, String> = attrs
-            .get("tags")
-            .and_then(|v| v.as_object())
-            .map(|obj| {
-                obj.iter()
-                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
-                    .collect()
-            })
-            .unwrap_or_default();
-
         let mut state_view = AppFabricStateView::default();
         state_view.app_bundles.insert(
             id,
             AppBundleView {
                 arn,
-                customer_managed_key_arn: cmk,
-                tags,
+                customer_managed_key_arn: model.customer_managed_key_arn,
+                tags: model.tags,
             },
         );
         self.service

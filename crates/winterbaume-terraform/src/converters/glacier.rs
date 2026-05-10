@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::glacier as glacier_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_glacier_vault
@@ -59,20 +60,22 @@ impl AwsGlacierVaultConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_glacier_vault")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: glacier_gen::VaultTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_glacier_vault", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:glacier:{}:{}:vaults/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let access_policy = optional_str(attrs, "access_policy");
 
-        // Parse notification block
-        let notification_config = attrs.get("notification").map(|v| {
+        // Parse notification block straight from raw attributes — TF schema
+        // exposes it as an array-of-objects which doesn't fit the spec's
+        // limited type vocabulary.
+        let notification_config = instance.attributes.get("notification").map(|v| {
             let obj = v.as_array().and_then(|a| a.first()).unwrap_or(v);
             let sns_topic = obj
                 .get("sns_topic")
@@ -91,13 +94,13 @@ impl AwsGlacierVaultConverter {
         });
 
         let vault_view = VaultView {
-            vault_name: name.to_string(),
+            vault_name: name.clone(),
             arn,
             created_at: chrono::Utc::now().to_rfc3339(),
             archives: HashMap::new(),
             jobs: HashMap::new(),
-            tags: extract_tags(attrs),
-            access_policy,
+            tags: model.tags,
+            access_policy: model.access_policy,
             notification_config,
             vault_lock: None,
             multipart_uploads: HashMap::new(),
@@ -108,7 +111,7 @@ impl AwsGlacierVaultConverter {
             data_retrieval_policy: None,
             provisioned_capacity: vec![],
         };
-        state_view.vaults.insert(name.to_string(), vault_view);
+        state_view.vaults.insert(name, vault_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

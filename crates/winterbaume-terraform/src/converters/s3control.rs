@@ -1,4 +1,10 @@
 //! Terraform converter for S3 Control resources.
+//!
+//! `AccessPointTfModel` and `BucketTfModel` are generated from
+//! `specs/s3control.toml`. ARN templates, the constants
+//! (`network_origin = "Internet"`, default `public_access_block_enabled
+//! = true`), and the `tags` HashMap-to-`Vec<(String, String)>`
+//! conversion are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_str, require_str};
+use crate::generated::s3control as s3control_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_s3control_access_point
@@ -59,46 +66,47 @@ impl AwsS3controlAccessPointConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_s3control_access_point")?;
-        let bucket = require_str(attrs, "bucket", "aws_s3control_access_point")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let account_id =
-            optional_str(attrs, "account_id").unwrap_or_else(|| ctx.default_account_id.clone());
-        let alias = optional_str(attrs, "alias").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!("arn:aws:s3:{}:{}:accesspoint/{}", region, account_id, name)
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: s3control_gen::AccessPointTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_s3control_access_point", e))?;
+
+        let account_id = model
+            .account_id
+            .clone()
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+        let alias = model.alias.clone().unwrap_or_default();
+        let arn = model.arn.clone().unwrap_or_else(|| {
+            format!(
+                "arn:aws:s3:{}:{}:accesspoint/{}",
+                region, account_id, model.name
+            )
         });
-        let network_origin =
-            optional_str(attrs, "network_origin").unwrap_or_else(|| "Internet".to_string());
-        let vpc_id = optional_str(attrs, "vpc_id");
-        let block_public_acls = optional_bool(attrs, "block_public_acls").unwrap_or(false);
-        let ignore_public_acls = optional_bool(attrs, "ignore_public_acls").unwrap_or(false);
-        let block_public_policy = optional_bool(attrs, "block_public_policy").unwrap_or(false);
-        let restrict_public_buckets =
-            optional_bool(attrs, "restrict_public_buckets").unwrap_or(false);
-        let creation_date = optional_str(attrs, "creation_date").unwrap_or_default();
-        let policy = optional_str(attrs, "policy");
+        let network_origin = model
+            .network_origin
+            .clone()
+            .unwrap_or_else(|| "Internet".to_string());
+        let creation_date = model.creation_date.clone().unwrap_or_default();
 
         let ap_view = AccessPointView {
-            name: name.to_string(),
-            bucket: bucket.to_string(),
+            name: model.name.clone(),
+            bucket: model.bucket,
             account_id: account_id.clone(),
             region: region.clone(),
             alias,
             arn,
             network_origin,
-            vpc_id,
-            block_public_acls,
-            ignore_public_acls,
-            block_public_policy,
-            restrict_public_buckets,
+            vpc_id: model.vpc_id,
+            block_public_acls: model.block_public_acls,
+            ignore_public_acls: model.ignore_public_acls,
+            block_public_policy: model.block_public_policy,
+            restrict_public_buckets: model.restrict_public_buckets,
             creation_date,
-            policy,
+            policy: model.policy,
         };
 
         let mut state_view = S3ControlStateView::default();
-        state_view.access_points.insert(name.to_string(), ap_view);
+        state_view.access_points.insert(model.name, ap_view);
         self.service.merge(&account_id, &region, state_view).await?;
 
         Ok(ConversionResult {
@@ -188,43 +196,41 @@ impl AwsS3controlBucketConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "bucket", "aws_s3control_bucket")?;
-        let outpost_id = require_str(attrs, "outpost_id", "aws_s3control_bucket")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: s3control_gen::BucketTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_s3control_bucket", e))?;
+
+        let arn = model.arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:s3-outposts:{}:{}:outpost/{}/bucket/{}",
-                region, ctx.default_account_id, outpost_id, name
+                region, ctx.default_account_id, model.outpost_id, model.bucket
             )
         });
-        let creation_date = optional_str(attrs, "creation_date").unwrap_or_default();
-        let public_access_block_enabled =
-            optional_bool(attrs, "public_access_block_enabled").unwrap_or(true);
-        let policy = optional_str(attrs, "policy");
-
-        let tags = if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            obj.iter()
-                .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
-                .collect()
-        } else {
-            vec![]
-        };
+        let creation_date = model.creation_date.clone().unwrap_or_default();
+        // public_access_block_enabled is not a typed model field because the
+        // TF default is `true` (`bool` types in the spec default to `false`).
+        let public_access_block_enabled = instance
+            .attributes
+            .get("public_access_block_enabled")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
+        let tags: Vec<(String, String)> = model.tags.into_iter().collect();
 
         let bucket_view = OutpostsBucketView {
-            name: name.to_string(),
+            name: model.bucket.clone(),
             arn,
-            outpost_id: outpost_id.to_string(),
+            outpost_id: model.outpost_id,
             creation_date,
             public_access_block_enabled,
-            policy,
+            policy: model.policy,
             tags,
         };
 
         let mut state_view = S3ControlStateView::default();
         state_view
             .outposts_buckets
-            .insert(name.to_string(), bucket_view);
+            .insert(model.bucket, bucket_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

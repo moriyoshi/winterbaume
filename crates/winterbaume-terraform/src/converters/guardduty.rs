@@ -16,8 +16,9 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
+use crate::generated::guardduty as guardduty_gen;
 use crate::util::{
-    extract_account_id, extract_region, extract_tags, optional_i64, optional_str, require_str,
+    classify_deserialize_error, extract_account_id, extract_region, extract_tags, optional_str,
 };
 
 // ---------------------------------------------------------------------------
@@ -63,22 +64,26 @@ impl AwsGuarddutyDetectorConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let account_id = extract_account_id(&instance.attributes, &ctx.default_account_id);
+        let model: guardduty_gen::DetectorTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_guardduty_detector", e))?;
+
         let attrs = &instance.attributes;
-        let account_id = extract_account_id(attrs, &ctx.default_account_id);
-        let detector_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "detector_id"))
+        let detector_id = model
+            .id
+            .or(model.detector_id)
             .unwrap_or_else(|| format!("detector-{}", uuid::Uuid::new_v4()));
-        let enable = optional_str(attrs, "enable")
-            .map(|v| v == "true")
-            .unwrap_or(true);
+        let enable = model.enable.map(|v| v == "true").unwrap_or(true);
         let status = if enable {
             "ENABLED".to_string()
         } else {
             "DISABLED".to_string()
         };
-        let finding_publishing_frequency = optional_str(attrs, "finding_publishing_frequency")
+        let finding_publishing_frequency = model
+            .finding_publishing_frequency
             .unwrap_or_else(|| "SIX_HOURS".to_string());
-        let region = extract_region(attrs, &ctx.default_region);
         let mut tags = extract_tags(attrs);
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
@@ -200,15 +205,18 @@ impl AwsGuarddutyFilterConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let account_id = extract_account_id(&instance.attributes, &ctx.default_account_id);
+        let model: guardduty_gen::FilterTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_guardduty_filter", e))?;
+
         let attrs = &instance.attributes;
-        let account_id = extract_account_id(attrs, &ctx.default_account_id);
-        let name = require_str(attrs, "name", "aws_guardduty_filter")?;
-        let detector_id = require_str(attrs, "detector_id", "aws_guardduty_filter")?;
-        let action = optional_str(attrs, "action").unwrap_or_else(|| "NOOP".to_string());
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let rank = optional_i64(attrs, "rank").unwrap_or(1) as i32;
-        let region = extract_region(attrs, &ctx.default_region);
-        let tags = extract_tags(attrs);
+        let name = model.name.clone();
+        let detector_id = model.detector_id.clone();
+        let action = model.action.unwrap_or_else(|| "NOOP".to_string());
+        let description = model.description.unwrap_or_default();
+        let rank = model.rank as i32;
 
         // Parse finding_criteria nested block.
         let finding_criteria = attrs
@@ -249,24 +257,24 @@ impl AwsGuarddutyFilterConverter {
             .unwrap_or_default();
 
         let filter_view = FilterView {
-            name: name.to_string(),
+            name: name.clone(),
             description,
             action,
             rank,
             finding_criteria,
-            tags,
+            tags: model.tags,
         };
 
         // Build a minimal detector view containing only this filter.
         let detector_view = DetectorView {
-            detector_id: detector_id.to_string(),
+            detector_id: detector_id.clone(),
             status: "ENABLED".to_string(),
             finding_publishing_frequency: "SIX_HOURS".to_string(),
             created_at: chrono::Utc::now().to_rfc3339(),
             tags: HashMap::new(),
             filters: {
                 let mut m = HashMap::new();
-                m.insert(name.to_string(), filter_view);
+                m.insert(name, filter_view);
                 m
             },
             data_sources: None,
@@ -289,9 +297,7 @@ impl AwsGuarddutyFilterConverter {
             malware_scans: HashMap::new(),
             ..Default::default()
         };
-        state_view
-            .detectors
-            .insert(detector_id.to_string(), detector_view);
+        state_view.detectors.insert(detector_id, detector_view);
         self.service.merge(&account_id, &region, state_view).await?;
 
         Ok(ConversionResult {
@@ -392,16 +398,20 @@ impl AwsGuarddutyMemberConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: guardduty_gen::MemberTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_guardduty_member", e))?;
+
         let attrs = &instance.attributes;
-        let account_id = require_str(attrs, "account_id", "aws_guardduty_member")?;
-        let detector_id = require_str(attrs, "detector_id", "aws_guardduty_member")?;
+        let account_id = model.account_id.clone();
+        let detector_id = model.detector_id.clone();
         let email = optional_str(attrs, "email").unwrap_or_default();
         let relationship_status =
             optional_str(attrs, "relationship_status").unwrap_or_else(|| "Enabled".to_string());
         let invite = optional_str(attrs, "invite")
             .map(|v| v == "true")
             .unwrap_or(false);
-        let region = extract_region(attrs, &ctx.default_region);
 
         // GuardDuty members live inside the detector in the internal types but are
         // not exposed via DetectorView. We still need a detector entry so that
@@ -412,7 +422,7 @@ impl AwsGuarddutyMemberConverter {
         // use a warning to note the limitation.
 
         let detector_view = DetectorView {
-            detector_id: detector_id.to_string(),
+            detector_id: detector_id.clone(),
             status: "ENABLED".to_string(),
             finding_publishing_frequency: "SIX_HOURS".to_string(),
             created_at: chrono::Utc::now().to_rfc3339(),
@@ -440,7 +450,7 @@ impl AwsGuarddutyMemberConverter {
         };
         state_view
             .detectors
-            .insert(detector_id.to_string(), detector_view);
+            .insert(detector_id.clone(), detector_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

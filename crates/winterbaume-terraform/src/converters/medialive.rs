@@ -1,4 +1,15 @@
 //! Terraform converters for MediaLive resources.
+//!
+//! `MediaLiveChannelTfModel` and `MediaLiveInputTfModel` are generated
+//! from `specs/medialive.toml`. The ARN templates, the
+//! `channel_id` / `input_id` / `id` fallback chain, the constants
+//! (`SINGLE_PIPELINE`, `DISABLED`, `IDLE`, `DETACHED`, `STATIC`,
+//! `UDP_PUSH`), the `pipelines_running_count` (i32), and the
+//! nested-block / array fields (`input_attachments`, `destinations`,
+//! `encoder_settings`, `input_specification`, `cdi_input_specification`,
+//! `maintenance`, `vpc`, `attached_channels`, `input_devices`,
+//! `media_connect_flows`, `security_groups`, `sources`) are wired up
+//! here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::medialive as medialive_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_medialive_channel
@@ -57,22 +69,34 @@ impl AwsMedialiveChannelConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: medialive_gen::MediaLiveChannelTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_medialive_channel", e))?;
 
-        let id = require_str(attrs, "channel_id", "aws_medialive_channel")
-            .or_else(|_| require_str(attrs, "id", "aws_medialive_channel"))?;
-        let name = require_str(attrs, "name", "aws_medialive_channel")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        // Original converter requires `channel_id` first, falling back to `id`.
+        let id =
+            model
+                .channel_id
+                .or(model.id)
+                .ok_or_else(|| ConversionError::MissingAttribute {
+                    resource_type: "aws_medialive_channel".to_string(),
+                    attribute: "channel_id".to_string(),
+                })?;
+        let name = model.name;
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:medialive:{}:{}:channel:{}",
                 region, ctx.default_account_id, id
             )
         });
-        let channel_class =
-            optional_str(attrs, "channel_class").unwrap_or_else(|| "SINGLE_PIPELINE".to_string());
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
-        let log_level = optional_str(attrs, "log_level").unwrap_or_else(|| "DISABLED".to_string());
+        let channel_class = model
+            .channel_class
+            .unwrap_or_else(|| "SINGLE_PIPELINE".to_string());
+        let role_arn = model.role_arn.unwrap_or_default();
+        let log_level = model.log_level.unwrap_or_else(|| "DISABLED".to_string());
+
+        let attrs = &instance.attributes;
         let pipelines_running_count = attrs
             .get("pipelines_running_count")
             .and_then(|v| v.as_i64())
@@ -94,7 +118,6 @@ impl AwsMedialiveChannelConverter {
             .get("input_specification")
             .cloned()
             .unwrap_or(serde_json::Value::Object(Default::default()));
-        let tags = extract_tags(attrs);
         let cdi_input_specification = attrs
             .get("cdi_input_specification")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
@@ -106,9 +129,9 @@ impl AwsMedialiveChannelConverter {
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
         let ch_view = MediaLiveChannelView {
-            id: id.to_string(),
+            id,
             arn,
-            name: name.to_string(),
+            name,
             state: "IDLE".to_string(),
             channel_class,
             pipelines_running_count,
@@ -118,7 +141,7 @@ impl AwsMedialiveChannelConverter {
             encoder_settings,
             input_specification,
             log_level,
-            tags,
+            tags: model.tags,
             cdi_input_specification,
             maintenance,
             vpc: channel_vpc,
@@ -218,25 +241,35 @@ impl AwsMedialiveInputConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: medialive_gen::MediaLiveInputTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_medialive_input", e))?;
 
-        let id = require_str(attrs, "input_id", "aws_medialive_input")
-            .or_else(|_| require_str(attrs, "id", "aws_medialive_input"))?;
-        let name = require_str(attrs, "name", "aws_medialive_input")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let id = model
+            .input_id
+            .or(model.id)
+            .ok_or_else(|| ConversionError::MissingAttribute {
+                resource_type: "aws_medialive_input".to_string(),
+                attribute: "input_id".to_string(),
+            })?;
+        let name = model.name;
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:medialive:{}:{}:input:{}",
                 region, ctx.default_account_id, id
             )
         });
-        let input_class =
-            optional_str(attrs, "input_class").unwrap_or_else(|| "SINGLE_PIPELINE".to_string());
-        let input_source_type =
-            optional_str(attrs, "input_source_type").unwrap_or_else(|| "STATIC".to_string());
-        let input_type = optional_str(attrs, "type").unwrap_or_else(|| "UDP_PUSH".to_string());
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
+        let input_class = model
+            .input_class
+            .unwrap_or_else(|| "SINGLE_PIPELINE".to_string());
+        let input_source_type = model
+            .input_source_type
+            .unwrap_or_else(|| "STATIC".to_string());
+        let input_type = model.input_type.unwrap_or_else(|| "UDP_PUSH".to_string());
+        let role_arn = model.role_arn.unwrap_or_default();
 
+        let attrs = &instance.attributes;
         let attached_channels: Vec<String> = attrs
             .get("attached_channels")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
@@ -261,15 +294,14 @@ impl AwsMedialiveInputConverter {
             .get("sources")
             .cloned()
             .unwrap_or(serde_json::Value::Array(vec![]));
-        let tags = extract_tags(attrs);
         let input_vpc = attrs
             .get("vpc")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
         let inp_view = MediaLiveInputView {
-            id: id.to_string(),
+            id,
             arn,
-            name: name.to_string(),
+            name,
             state: "DETACHED".to_string(),
             input_class,
             input_source_type,
@@ -281,7 +313,7 @@ impl AwsMedialiveInputConverter {
             media_connect_flows,
             security_groups,
             sources,
-            tags,
+            tags: model.tags,
             vpc: input_vpc,
         };
 

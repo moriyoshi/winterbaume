@@ -1,4 +1,13 @@
 //! Terraform converter for ACM PCA resources.
+//!
+//! `CertificateAuthorityTfModel` is generated from
+//! `specs/acmpca.toml`. ARN templates, the synthesised
+//! certificate-authority UUID, the constants (`type = "SUBORDINATE"`,
+//! `key_storage_security_standard = "FIPS_140_2_LEVEL_3_OR_HIGHER"`,
+//! `status = "ACTIVE"`), the nested
+//! `certificate_authority_configuration` block (key/signing
+//! algorithm, subject), and the nested `revocation_configuration`
+//! block are all wired up here from the raw attributes.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -17,7 +26,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str};
+use crate::generated::acmpca as acmpca_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_acmpca_certificate_authority
@@ -63,21 +73,19 @@ impl AwsAcmpcaCertificateAuthorityConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let ca_type = optional_str(attrs, "type").unwrap_or_else(|| "SUBORDINATE".to_string());
-        let key_storage_security_standard = optional_str(attrs, "key_storage_security_standard")
-            .unwrap_or_else(|| "FIPS_140_2_LEVEL_3_OR_HIGHER".to_string());
-        let _usage_mode =
-            optional_str(attrs, "usage_mode").unwrap_or_else(|| "GENERAL_PURPOSE".to_string());
-        let _enabled = attrs
-            .get("enabled")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(true);
-        let _ = attrs.get("revocation_configuration");
-        let _ = attrs.get("permanent_deletion_time_in_days");
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: acmpca_gen::CertificateAuthorityTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_acmpca_certificate_authority", e))?;
 
-        // Extract certificate_authority_configuration block
+        let attrs = &instance.attributes;
+
+        let ca_type = model.r#type.unwrap_or_else(|| "SUBORDINATE".to_string());
+        let key_storage_security_standard = model
+            .key_storage_security_standard
+            .unwrap_or_else(|| "FIPS_140_2_LEVEL_3_OR_HIGHER".to_string());
+
+        // Nested block: certificate_authority_configuration.
         let ca_config_val = attrs.get("certificate_authority_configuration");
         let key_algorithm = ca_config_val
             .and_then(|c| c.get("key_algorithm"))
@@ -116,7 +124,7 @@ impl AwsAcmpcaCertificateAuthorityConverter {
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
 
-        // Extract revocation_configuration block
+        // Nested block: revocation_configuration.
         let rev_config_val = attrs.get("revocation_configuration");
         let revocation_configuration = rev_config_val.map(|rc| {
             let crl_val = rc.get("crl_configuration");
@@ -135,23 +143,14 @@ impl AwsAcmpcaCertificateAuthorityConverter {
             }
         });
 
-        // Extract tags
-        let tags: Vec<TagView> = if let Some(tags_val) = attrs.get("tags") {
-            if let Some(obj) = tags_val.as_object() {
-                obj.iter()
-                    .map(|(k, v)| TagView {
-                        key: k.clone(),
-                        value: v.as_str().unwrap_or("").to_string(),
-                    })
-                    .collect()
-            } else {
-                vec![]
-            }
-        } else {
-            vec![]
-        };
+        // tags HashMap -> Vec<TagView>.
+        let tags: Vec<TagView> = model
+            .tags
+            .into_iter()
+            .map(|(k, v)| TagView { key: k, value: v })
+            .collect();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:acm-pca:{}:{}:certificate-authority/{}",
                 region,
@@ -164,7 +163,7 @@ impl AwsAcmpcaCertificateAuthorityConverter {
             arn: arn.clone(),
             owner_account: ctx.default_account_id.clone(),
             ca_type,
-            status: optional_str(attrs, "status").unwrap_or_else(|| "ACTIVE".to_string()),
+            status: model.status.unwrap_or_else(|| "ACTIVE".to_string()),
             created_at: chrono::Utc::now().to_rfc3339(),
             last_state_change_at: None,
             not_before: None,
@@ -186,11 +185,11 @@ impl AwsAcmpcaCertificateAuthorityConverter {
             tags,
             private_key_pem: String::new(),
             csr_pem: String::new(),
-            certificate_pem: optional_str(attrs, "certificate"),
-            certificate_chain_pem: optional_str(attrs, "certificate_chain"),
+            certificate_pem: model.certificate,
+            certificate_chain_pem: model.certificate_chain,
             issued_certificates: HashMap::new(),
             revoked_certificates: HashMap::new(),
-            policy: optional_str(attrs, "policy"),
+            policy: model.policy,
             permissions: HashMap::new(),
             audit_reports: HashMap::new(),
         };

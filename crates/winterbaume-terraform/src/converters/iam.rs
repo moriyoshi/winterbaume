@@ -17,7 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_tags, optional_str, require_str};
+use crate::generated::iam as iam_gen;
+use crate::util::{classify_deserialize_error, extract_tags, require_str};
 
 /// Generate a fake IAM resource ID with the given prefix.
 fn generate_id(prefix: &str) -> String {
@@ -78,32 +79,34 @@ impl AwsIamUserConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_iam_user")?;
-        let path = optional_str(attrs, "path").unwrap_or_else(|| "/".to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: iam_gen::IamUserTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_user", e))?;
+
+        let name = model.name.clone();
+        let path = model.path.unwrap_or_else(|| "/".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iam::{}:user{}{}",
                 ctx.default_account_id, path, name
             )
         });
-        let user_id = optional_str(attrs, "unique_id").unwrap_or_else(|| generate_id("AIDA"));
-        let tags = extract_tags(attrs);
+        let user_id = model.unique_id.unwrap_or_else(|| generate_id("AIDA"));
 
         let user_view = UserView {
-            name: name.to_string(),
+            name: name.clone(),
             user_id,
             account_id: ctx.default_account_id.clone(),
             path,
             arn,
             create_date: None,
-            tags,
+            tags: extract_tags(attrs),
             attached_policies: vec![],
             inline_policies: vec![],
             permissions_boundary: None,
         };
 
         let view = IamStateView {
-            users: HashMap::from([(name.to_string(), user_view)]),
+            users: HashMap::from([(name, user_view)]),
             ..Default::default()
         };
         self.service
@@ -188,26 +191,24 @@ impl AwsIamRoleConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_iam_role")?;
-        let path = optional_str(attrs, "path").unwrap_or_else(|| "/".to_string());
-        let assume_role_policy = optional_str(attrs, "assume_role_policy").unwrap_or_default();
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let max_session_duration = attrs
-            .get("max_session_duration")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(3600) as i32;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: iam_gen::IamRoleTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_role", e))?;
+
+        let name = model.name.clone();
+        let path = model.path.unwrap_or_else(|| "/".to_string());
+        let assume_role_policy = model.assume_role_policy.unwrap_or_default();
+        let description = model.description.unwrap_or_default();
+        let max_session_duration = model.max_session_duration as i32;
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iam::{}:role{}{}",
                 ctx.default_account_id, path, name
             )
         });
-        let role_id = optional_str(attrs, "unique_id").unwrap_or_else(|| generate_id("AROA"));
-        let tags = extract_tags(attrs);
-        let permissions_boundary = optional_str(attrs, "permissions_boundary");
+        let role_id = model.unique_id.unwrap_or_else(|| generate_id("AROA"));
 
         let role_view = RoleView {
-            name: name.to_string(),
+            name: name.clone(),
             role_id,
             account_id: ctx.default_account_id.clone(),
             path,
@@ -216,14 +217,14 @@ impl AwsIamRoleConverter {
             description,
             create_date: None,
             max_session_duration,
-            tags,
+            tags: extract_tags(attrs),
             attached_policies: vec![],
             inline_policies: vec![],
-            permissions_boundary,
+            permissions_boundary: model.permissions_boundary,
         };
 
         let view = IamStateView {
-            roles: HashMap::from([(name.to_string(), role_view)]),
+            roles: HashMap::from([(name, role_view)]),
             ..Default::default()
         };
         self.service
@@ -313,22 +314,27 @@ impl AwsIamPolicyConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
+        // `name` falls back to `policy_name`; the spec model only carries the
+        // shared scalars, so name resolution stays hand-written.
         let name = require_str(attrs, "name", "aws_iam_policy")
-            .or_else(|_| require_str(attrs, "policy_name", "aws_iam_policy"))?;
-        let path = optional_str(attrs, "path").unwrap_or_else(|| "/".to_string());
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let document = optional_str(attrs, "policy").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+            .or_else(|_| require_str(attrs, "policy_name", "aws_iam_policy"))?
+            .to_string();
+        let model: iam_gen::IamPolicyTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_policy", e))?;
+
+        let path = model.path.unwrap_or_else(|| "/".to_string());
+        let description = model.description.unwrap_or_default();
+        let document = model.policy.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iam::{}:policy{}{}",
                 ctx.default_account_id, path, name
             )
         });
-        let policy_id = optional_str(attrs, "policy_id").unwrap_or_else(|| generate_id("ANPA"));
-        let tags = extract_tags(attrs);
+        let policy_id = model.policy_id.unwrap_or_else(|| generate_id("ANPA"));
 
         let policy_view = ManagedPolicyView {
-            policy_name: name.to_string(),
+            policy_name: name,
             policy_id,
             arn: arn.clone(),
             path,
@@ -344,7 +350,7 @@ impl AwsIamPolicyConverter {
                 is_default_version: true,
                 create_date: None,
             }],
-            tags,
+            tags: extract_tags(attrs),
             attachment_count: 0,
         };
 
@@ -435,19 +441,22 @@ impl AwsIamGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_iam_group")?;
-        let path = optional_str(attrs, "path").unwrap_or_else(|| "/".to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: iam_gen::IamGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_group", e))?;
+
+        let name = model.name.clone();
+        let path = model.path.unwrap_or_else(|| "/".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iam::{}:group{}{}",
                 ctx.default_account_id, path, name
             )
         });
-        let group_id = optional_str(attrs, "unique_id").unwrap_or_else(|| generate_id("AGPA"));
+        let group_id = model.unique_id.unwrap_or_else(|| generate_id("AGPA"));
 
         let group_view = GroupView {
-            name: name.to_string(),
+            name: name.clone(),
             group_id,
             account_id: ctx.default_account_id.clone(),
             path,
@@ -459,7 +468,7 @@ impl AwsIamGroupConverter {
         };
 
         let view = IamStateView {
-            groups: HashMap::from([(name.to_string(), group_view)]),
+            groups: HashMap::from([(name, group_view)]),
             ..Default::default()
         };
         self.service
@@ -548,36 +557,37 @@ impl AwsIamInstanceProfileConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_iam_instance_profile")?;
-        let path = optional_str(attrs, "path").unwrap_or_else(|| "/".to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: iam_gen::IamInstanceProfileTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_instance_profile", e))?;
+
+        let name = model.name.clone();
+        let path = model.path.unwrap_or_else(|| "/".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iam::{}:instance-profile{}{}",
                 ctx.default_account_id, path, name
             )
         });
-        let instance_profile_id =
-            optional_str(attrs, "unique_id").unwrap_or_else(|| generate_id("AIPA"));
-        let tags = extract_tags(attrs);
+        let instance_profile_id = model.unique_id.unwrap_or_else(|| generate_id("AIPA"));
 
         let mut roles = vec![];
-        if let Some(role) = optional_str(attrs, "role") {
+        if let Some(role) = model.role {
             roles.push(role);
         }
 
         let ip_view = InstanceProfileView {
-            name: name.to_string(),
+            name: name.clone(),
             instance_profile_id,
             account_id: ctx.default_account_id.clone(),
             path,
             arn,
             create_date: None,
             roles,
-            tags,
+            tags: extract_tags(attrs),
         };
 
         let view = IamStateView {
-            instance_profiles: HashMap::from([(name.to_string(), ip_view)]),
+            instance_profiles: HashMap::from([(name, ip_view)]),
             ..Default::default()
         };
         self.service
@@ -627,6 +637,8 @@ impl AwsIamInstanceProfileConverter {
 ///
 /// This converter depends on `aws_iam_role` and `aws_iam_policy` being
 /// processed first, as it modifies existing role state to add attachments.
+/// It snapshots+modifies live state rather than ingesting a fresh view, so
+/// it deliberately does not use a generated TfModel.
 pub struct AwsIamRolePolicyAttachmentConverter {
     service: Arc<IamService>,
 }
@@ -747,6 +759,8 @@ impl AwsIamRolePolicyAttachmentConverter {
 ///
 /// This converter depends on `aws_iam_user` and `aws_iam_policy` being
 /// processed first, as it modifies existing user state to add attachments.
+/// It snapshots+modifies live state rather than ingesting a fresh view, so
+/// it deliberately does not use a generated TfModel.
 pub struct AwsIamUserPolicyAttachmentConverter {
     service: Arc<IamService>,
 }

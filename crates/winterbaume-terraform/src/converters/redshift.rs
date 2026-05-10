@@ -15,7 +15,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::redshift as redshift_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_redshift_cluster
@@ -61,44 +62,44 @@ impl AwsRedshiftClusterConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: redshift_gen::RedshiftClusterTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_redshift_cluster", e))?;
+
         // Additional fields for coverage
         let _ = attrs.get("tags_all");
         let _ = attrs.get("apply_immediately");
         let _ = attrs.get("availability_zone_relocation_enabled");
-        let _ = attrs.get("cluster_subnet_group_name");
         let _ = attrs.get("cluster_parameter_group_name");
         let _ = attrs.get("final_snapshot_identifier");
         let _ = attrs.get("iam_roles");
-        let _ = attrs.get("logging");
         let _ = attrs.get("manage_master_password");
         let _ = attrs.get("master_password_secret_kms_key_id");
         let _ = attrs.get("multi_az");
-        let _ = attrs.get("publicly_accessible");
         let _ = attrs.get("skip_final_snapshot");
         let _ = attrs.get("snapshot_cluster_identifier");
         let _ = attrs.get("snapshot_identifier");
         let _ = attrs.get("default_iam_role_arn");
         let _ = attrs.get("enhanced_vpc_routing");
-        let _ = attrs.get("cluster_version");
         let _ = attrs.get("cluster_namespace_arn");
 
-        let cluster_identifier = require_str(attrs, "cluster_identifier", "aws_redshift_cluster")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let cluster_identifier = model.cluster_identifier.clone();
 
-        let node_type = optional_str(attrs, "node_type").unwrap_or_else(|| "dc2.large".to_string());
-        let master_username =
-            optional_str(attrs, "master_username").unwrap_or_else(|| "admin".to_string());
-        let db_name = optional_str(attrs, "database_name").unwrap_or_else(|| "dev".to_string());
-        let number_of_nodes = optional_i64(attrs, "number_of_nodes").unwrap_or(1) as i32;
-        let cluster_status = optional_str(attrs, "cluster_status")
+        let node_type = model.node_type.unwrap_or_else(|| "dc2.large".to_string());
+        let master_username = model.master_username.unwrap_or_else(|| "admin".to_string());
+        let db_name = model.database_name.unwrap_or_else(|| "dev".to_string());
+        let number_of_nodes = model.number_of_nodes as i32;
+        let cluster_status = model
+            .cluster_status
             .and_then(|s| serde_json::from_value(serde_json::Value::String(s)).ok())
             .unwrap_or(winterbaume_redshift::types::ClusterStatus::Available);
-        let cluster_version =
-            optional_str(attrs, "cluster_version").unwrap_or_else(|| "1.0".to_string());
-        let availability_zone = optional_str(attrs, "availability_zone");
-        let cluster_subnet_group_name = optional_str(attrs, "cluster_subnet_group_name");
-        let vpc_id = optional_str(attrs, "vpc_id");
-        let endpoint_address = optional_str(attrs, "endpoint")
+        let cluster_version = model.cluster_version.unwrap_or_else(|| "1.0".to_string());
+        let availability_zone = model.availability_zone;
+        let cluster_subnet_group_name = model.cluster_subnet_group_name;
+        let vpc_id = model.vpc_id;
+        let endpoint_address = model
+            .endpoint
             .map(|e| {
                 // The terraform attribute may be "host:port"; extract host
                 e.split(':').next().unwrap_or(&e).to_string()
@@ -109,30 +110,21 @@ impl AwsRedshiftClusterConverter {
                     cluster_identifier, region
                 ))
             });
-        let endpoint_port = optional_i64(attrs, "port").map(|p| p as i32).or(Some(5439));
-        let encrypted = attrs
-            .get("encrypted")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-        let publicly_accessible = attrs
-            .get("publicly_accessible")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-        let preferred_maintenance_window = optional_str(attrs, "preferred_maintenance_window");
-        let automated_snapshot_retention_period =
-            optional_i64(attrs, "automated_snapshot_retention_period").unwrap_or(1) as i32;
+        let endpoint_port = Some(model.port as i32);
+        let encrypted = model.encrypted;
+        let publicly_accessible = model.publicly_accessible;
+        let preferred_maintenance_window = model.preferred_maintenance_window;
+        let automated_snapshot_retention_period = model.automated_snapshot_retention_period as i32;
 
         let tags_map = extract_tags(attrs);
         let tags: Vec<(String, String)> = tags_map.into_iter().collect();
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:redshift:{}:{}:cluster:{}",
-                    region, ctx.default_account_id, cluster_identifier
-                )
-            });
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:redshift:{}:{}:cluster:{}",
+                region, ctx.default_account_id, cluster_identifier
+            )
+        });
 
         // Parse `logging` nested block: [{enable: bool, bucket_name: ..., s3_key_prefix: ...}]
         let logging_block = attrs
@@ -174,7 +166,7 @@ impl AwsRedshiftClusterConverter {
             });
 
         let cluster_view = RedshiftClusterView {
-            cluster_identifier: cluster_identifier.to_string(),
+            cluster_identifier: cluster_identifier.clone(),
             node_type,
             cluster_status,
             master_username,
@@ -203,8 +195,7 @@ impl AwsRedshiftClusterConverter {
         };
 
         let mut view = RedshiftStateView::default();
-        view.clusters
-            .insert(cluster_identifier.to_string(), cluster_view);
+        view.clusters.insert(cluster_identifier, cluster_view);
         self.service
             .merge(&ctx.default_account_id, &region, view)
             .await?;
@@ -362,10 +353,14 @@ impl AwsRedshiftSubnetGroupConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_redshift_subnet_group")?;
         let region = extract_region(attrs, &ctx.default_region);
-        let description = optional_str(attrs, "description").unwrap_or_else(|| name.to_string());
-        let vpc_id = optional_str(attrs, "vpc_id").unwrap_or_default();
+        let model: redshift_gen::RedshiftSubnetGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_redshift_subnet_group", e))?;
+
+        let name = model.name.clone();
+        let description = model.description.unwrap_or_else(|| name.clone());
+        let vpc_id = model.vpc_id.unwrap_or_default();
 
         // subnet_ids may be an array
         let subnet_ids: Vec<String> = attrs
@@ -382,7 +377,7 @@ impl AwsRedshiftSubnetGroupConverter {
         let tags: Vec<(String, String)> = tags_map.into_iter().collect();
 
         let subnet_group_view = RedshiftSubnetGroupView {
-            name: name.to_string(),
+            name: name.clone(),
             description,
             vpc_id,
             subnet_ids,
@@ -390,8 +385,7 @@ impl AwsRedshiftSubnetGroupConverter {
         };
 
         let mut view = RedshiftStateView::default();
-        view.subnet_groups
-            .insert(name.to_string(), subnet_group_view);
+        view.subnet_groups.insert(name, subnet_group_view);
         self.service
             .merge(&ctx.default_account_id, &region, view)
             .await?;

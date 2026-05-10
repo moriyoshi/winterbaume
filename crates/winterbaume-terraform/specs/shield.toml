@@ -1,0 +1,39 @@
+[service]
+name = "shield"
+crate_name = "winterbaume_shield"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_shield_protection"
+model = "ProtectionTfModel"
+view = "ProtectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

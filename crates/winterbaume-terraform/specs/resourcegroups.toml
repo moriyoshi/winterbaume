@@ -1,0 +1,38 @@
+# Auto-ingested by `tf-converter-codegen ingest resourcegroups`.
+# Hand-tuned: switched view to ResourceGroupView (not AccountSettingsView).
+# Dropped resource_query and configuration (nested-block raw shapes) so
+# the converter reads them straight from instance.attributes.
+
+[service]
+name = "resourcegroups"
+crate_name = "winterbaume_resourcegroups"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_resourcegroups_group"
+model = "ResourceGroupTfModel"
+view = "ResourceGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

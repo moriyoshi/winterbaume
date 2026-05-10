@@ -1,4 +1,10 @@
 //! Terraform converters for IAM Roles Anywhere resources.
+//!
+//! `ProfileTfModel` and `TrustAnchorTfModel` are generated from
+//! `specs/rolesanywhere.toml`. The ARN templates, the synthesised UUID
+//! identifiers, the `role_arns` / `managed_policy_arns` Vec<String>
+//! fields, the `Option<i64>` / `Option<bool>` fields, and the nested
+//! `source` block are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,9 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::rolesanywhere as rolesanywhere_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_rolesanywhere_profile
@@ -63,13 +68,20 @@ impl AwsRolesAnywhereProfileConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_rolesanywhere_profile")?.to_string();
         let region = extract_region(attrs, &ctx.default_region);
-        let enabled = optional_bool(attrs, "enabled").unwrap_or(true);
-        let duration_seconds = optional_i64(attrs, "duration_seconds").map(|v| v as i32);
-        let session_policy = optional_str(attrs, "session_policy");
-        let require_instance_properties = optional_bool(attrs, "require_instance_properties");
-        let accept_role_session_name = optional_bool(attrs, "accept_role_session_name");
+        let model: rolesanywhere_gen::ProfileTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rolesanywhere_profile", e))?;
+
+        let duration_seconds = attrs
+            .get("duration_seconds")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32);
+        let require_instance_properties = attrs
+            .get("require_instance_properties")
+            .and_then(|v| v.as_bool());
+        let accept_role_session_name = attrs
+            .get("accept_role_session_name")
+            .and_then(|v| v.as_bool());
 
         let role_arns: Vec<String> = attrs
             .get("role_arns")
@@ -91,16 +103,13 @@ impl AwsRolesAnywhereProfileConverter {
             })
             .unwrap_or_default();
 
-        let profile_id =
-            optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let profile_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let profile_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let profile_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rolesanywhere:{}:{}:profile/{}",
                 region, ctx.default_account_id, profile_id
             )
         });
-
-        let tags = extract_tags(attrs);
 
         let mut profiles = HashMap::new();
         profiles.insert(
@@ -108,11 +117,11 @@ impl AwsRolesAnywhereProfileConverter {
             ProfileView {
                 profile_id,
                 profile_arn,
-                name,
-                enabled,
+                name: model.name,
+                enabled: model.enabled,
                 role_arns,
                 managed_policy_arns,
-                session_policy,
+                session_policy: model.session_policy,
                 duration_seconds,
                 require_instance_properties,
                 accept_role_session_name,
@@ -120,7 +129,7 @@ impl AwsRolesAnywhereProfileConverter {
                 created_by: None,
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
-                tags,
+                tags: model.tags,
             },
         );
 
@@ -233,13 +242,12 @@ impl AwsRolesAnywhereTrustAnchorConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_rolesanywhere_trust_anchor")?.to_string();
         let region = extract_region(attrs, &ctx.default_region);
-        let enabled = optional_bool(attrs, "enabled").unwrap_or(true);
+        let model: rolesanywhere_gen::TrustAnchorTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rolesanywhere_trust_anchor", e))?;
 
-        let trust_anchor_id =
-            optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let trust_anchor_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let trust_anchor_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let trust_anchor_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rolesanywhere:{}:{}:trust-anchor/{}",
                 region, ctx.default_account_id, trust_anchor_id
@@ -279,22 +287,20 @@ impl AwsRolesAnywhereTrustAnchorConverter {
                 (None, None)
             };
 
-        let tags = extract_tags(attrs);
-
         let mut trust_anchors = HashMap::new();
         trust_anchors.insert(
             trust_anchor_id.clone(),
             TrustAnchorView {
                 trust_anchor_id,
                 trust_anchor_arn,
-                name,
+                name: model.name,
                 source_type,
                 source_data,
-                enabled,
+                enabled: model.enabled,
                 notification_settings: vec![],
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
-                tags,
+                tags: model.tags,
             },
         );
 

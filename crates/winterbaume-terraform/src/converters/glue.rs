@@ -15,7 +15,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::glue as glue_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_glue_catalog_database
@@ -59,14 +60,15 @@ impl AwsGlueCatalogDatabaseConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: glue_gen::CatalogDatabaseTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_glue_catalog_database", e))?;
 
-        let name = require_str(attrs, "name", "aws_glue_catalog_database")?;
-        let _tags_all = attrs.get("tags_all");
-        let _target_database = attrs.get("target_database");
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let location_uri = optional_str(attrs, "location_uri").unwrap_or_default();
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let description = model.description.unwrap_or_default();
+        let location_uri = model.location_uri.unwrap_or_default();
 
         let parameters: HashMap<String, String> = attrs
             .get("parameters")
@@ -78,11 +80,12 @@ impl AwsGlueCatalogDatabaseConverter {
             })
             .unwrap_or_default();
 
-        let catalog_id =
-            optional_str(attrs, "catalog_id").unwrap_or_else(|| ctx.default_account_id.clone());
+        let catalog_id = model
+            .catalog_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
 
         let db_view = DatabaseView {
-            name: name.to_string(),
+            name: name.clone(),
             description,
             location_uri,
             parameters,
@@ -90,8 +93,8 @@ impl AwsGlueCatalogDatabaseConverter {
             catalog_id,
         };
 
-        let mut state_view = minimal_glue_state_view();
-        state_view.databases.insert(name.to_string(), db_view);
+        let mut state_view = GlueStateView::default();
+        state_view.databases.insert(name, db_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -174,22 +177,18 @@ impl AwsGlueJobConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: glue_gen::JobTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_glue_job", e))?;
 
-        let name = require_str(attrs, "name", "aws_glue_job")?;
-        let role = optional_str(attrs, "role_arn").unwrap_or_default();
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let worker_type = optional_str(attrs, "worker_type");
-        let glue_version = optional_str(attrs, "glue_version");
-        let max_retries = attrs
-            .get("max_retries")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(0) as i32;
-        let timeout = attrs
-            .get("timeout")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(2880) as i32;
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let role = model.role_arn.unwrap_or_default();
+        let description = model.description.unwrap_or_default();
+        let worker_type = model.worker_type;
+        let glue_version = model.glue_version;
+        let max_retries = model.max_retries as i32;
+        let timeout = model.timeout as i32;
         let number_of_workers = attrs
             .get("number_of_workers")
             .and_then(|v| v.as_i64())
@@ -197,9 +196,6 @@ impl AwsGlueJobConverter {
         let max_capacity = attrs.get("max_capacity").and_then(|v| v.as_f64());
 
         let command = attrs.get("command").cloned();
-        let _tags_all = attrs.get("tags_all");
-        let _connections = attrs.get("connections");
-        let _non_overridable_arguments = attrs.get("non_overridable_arguments");
 
         let default_arguments: HashMap<String, String> = attrs
             .get("default_arguments")
@@ -213,7 +209,7 @@ impl AwsGlueJobConverter {
 
         let now = Utc::now().to_rfc3339();
         let job_view = JobView {
-            name: name.to_string(),
+            name: name.clone(),
             description,
             role,
             command,
@@ -228,8 +224,8 @@ impl AwsGlueJobConverter {
             last_modified_on: now,
         };
 
-        let mut state_view = minimal_glue_state_view();
-        state_view.jobs.insert(name.to_string(), job_view);
+        let mut state_view = GlueStateView::default();
+        state_view.jobs.insert(name, job_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -322,32 +318,25 @@ impl AwsGlueCrawlerConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: glue_gen::CrawlerTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_glue_crawler", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let name = require_str(attrs, "name", "aws_glue_crawler")?;
-        let role = optional_str(attrs, "role").unwrap_or_default();
-        let database_name = optional_str(attrs, "database_name").unwrap_or_default();
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let schedule = optional_str(attrs, "schedule");
-        let table_prefix = optional_str(attrs, "table_prefix").unwrap_or_default();
-
-        // Additional fields for coverage
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("delta_target");
-        let _ = attrs.get("dynamodb_target");
-        let _ = attrs.get("jdbc_target");
-        let _ = attrs.get("lake_formation_configuration");
-        let _ = attrs.get("lineage_configuration");
-        let _ = attrs.get("recrawl_policy");
-        let _ = attrs.get("schema_change_policy");
+        let name = model.name.clone();
+        let role = model.role.unwrap_or_default();
+        let database_name = model.database_name.unwrap_or_default();
+        let description = model.description.unwrap_or_default();
+        let schedule = model.schedule;
+        let table_prefix = model.table_prefix.unwrap_or_default();
 
         // Merge s3_target, dynamodb_target, etc. as JSON targets
         let targets = attrs.get("s3_target").cloned();
 
         let now = Utc::now().to_rfc3339();
         let crawler_view = CrawlerView {
-            name: name.to_string(),
+            name: name.clone(),
             role,
             database_name,
             description,
@@ -362,8 +351,8 @@ impl AwsGlueCrawlerConverter {
             version: 1,
         };
 
-        let mut state_view = minimal_glue_state_view();
-        state_view.crawlers.insert(name.to_string(), crawler_view);
+        let mut state_view = GlueStateView::default();
+        state_view.crawlers.insert(name, crawler_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -413,12 +402,4 @@ impl AwsGlueCrawlerConverter {
         }
         Ok(results)
     }
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-fn minimal_glue_state_view() -> GlueStateView {
-    GlueStateView::default()
 }

@@ -1,0 +1,53 @@
+[service]
+name = "apigatewayv2"
+crate_name = "winterbaume_apigatewayv2"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_apigatewayv2_api"
+model = "ApiTfModel"
+view = "ApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "protocol_type"
+view = "protocol_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "route_selection_expression"
+view = "route_selection_expression"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_endpoint"
+view = "api_endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

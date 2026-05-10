@@ -1,4 +1,8 @@
 //! Terraform converter for Service Catalog App Registry resources.
+//!
+//! `ApplicationTfModel` is generated from `specs/servicecatalogappregistry.toml`.
+//! The id synthesis (UUID when missing), the ARN template, and the
+//! `creation_time`/`last_update_time` "now" timestamps are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::servicecatalogappregistry as servicecatalogappregistry_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_servicecatalogappregistry_application
@@ -61,28 +66,29 @@ impl AwsServicecatalogappregistryApplicationConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_servicecatalogappregistry_application")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: servicecatalogappregistry_gen::ApplicationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_servicecatalogappregistry_application", e)
+            })?;
+
+        let id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:servicecatalog:{}:{}:/applications/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let description = optional_str(attrs, "description");
-        let tags = extract_tags(attrs);
         let now = chrono::Utc::now();
 
         let app_view = ApplicationView {
             id: id.clone(),
             arn,
-            name: name.to_string(),
-            description,
+            name: model.name.clone(),
+            description: model.description,
             creation_time: now,
             last_update_time: now,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = ServiceCatalogAppRegistryStateView {
@@ -94,9 +100,7 @@ impl AwsServicecatalogappregistryApplicationConverter {
             app_to_resources: HashMap::new(),
             configuration: AppRegistryConfigView { tag_key: None },
         };
-        state_view
-            .application_names
-            .insert(name.to_string(), id.clone());
+        state_view.application_names.insert(model.name, id.clone());
         state_view.applications.insert(id, app_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)

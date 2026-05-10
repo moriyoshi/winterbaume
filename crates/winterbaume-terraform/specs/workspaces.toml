@@ -1,0 +1,118 @@
+# Auto-ingested by `tf-converter-codegen ingest workspaces`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (workspace / directory). Dropped Vec<T>/nested-block fields
+# (workspace_properties, ip_group_ids, saml_properties,
+# self_service_permissions, workspace_access_properties,
+# workspace_creation_properties, streaming_properties,
+# active_directory_config, tags, tags_all). Those are read straight
+# from instance.attributes in the converter. The synthesised
+# workspace ID, IAM role ARN template, and the alias-defaults-to-id
+# fallback are wired up by hand.
+
+[service]
+name = "workspaces"
+crate_name = "winterbaume_workspaces"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_workspaces_workspace
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_workspaces_workspace"
+model = "WorkspaceTfModel"
+view = "WorkspaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_name"
+view = "user_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bundle_id"
+view = "bundle_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "ip_address"
+view = "ip_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "computer_name"
+view = "computer_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "volume_encryption_key"
+view = "volume_encryption_key"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_workspaces_directory
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_workspaces_directory"
+model = "WorkspaceDirectoryTfModel"
+view = "WorkspaceDirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "directory_name"
+view = "directory_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_type"
+view = "directory_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "alias"
+view = "alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "registration_code"
+view = "registration_code"
+type = "string?"
+
+[[resource.field]]
+hcl = "workspace_security_group_id"
+view = "workspace_security_group_id"
+type = "string?"

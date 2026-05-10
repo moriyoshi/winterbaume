@@ -1,0 +1,112 @@
+# Auto-ingested by `tf-converter-codegen ingest s3`.
+# Hand-tuned: kept only the strongly-typed scalar inputs that map
+# cleanly to the BucketStateView. The bucket name has a fallback
+# chain (`bucket` -> `id`) handled by hand. Tags are merged via
+# the standard tags_all+tags helper in the converter (the generated
+# model's `tags` would read only the `tags` key, so we read both raw).
+# `force_destroy` is a Terraform-only lifecycle flag and is
+# discarded but read raw in the converter. ARN/URL templates and
+# the regional domain name are wired up by hand in extract.
+
+[service]
+name = "s3"
+crate_name = "winterbaume_s3"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_s3_bucket"
+model = "BucketStateTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_date"
+view = "creation_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "acl"
+view = "acl"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "versioning"
+view = "versioning"
+type = "string?"
+
+[[resource.field]]
+hcl = "versioning_status"
+view = "versioning_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "acceleration_status"
+view = "acceleration_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "request_payer"
+view = "request_payer"
+type = "string?"
+
+[[resource.field]]
+hcl = "server_side_encryption_configuration"
+view = "server_side_encryption_configuration"
+type = "string?"
+
+[[resource.field]]
+hcl = "logging"
+view = "logging"
+type = "string?"
+
+[[resource.field]]
+hcl = "cors_rule"
+view = "cors_rule"
+type = "string?"
+
+[[resource.field]]
+hcl = "lifecycle_rule"
+view = "lifecycle_rule"
+type = "string?"
+
+[[resource.field]]
+hcl = "website"
+view = "website"
+type = "string?"
+
+[[resource.field]]
+hcl = "replication_configuration"
+view = "replication_configuration"
+type = "string?"
+
+[[resource.field]]
+hcl = "object_lock_configuration"
+view = "object_lock_configuration"
+type = "string?"
+
+[[resource.field]]
+hcl = "notification_configuration"
+view = "notification_configuration"
+type = "string?"
+
+[[resource.field]]
+hcl = "ownership_controls"
+view = "ownership_controls"
+type = "string?"

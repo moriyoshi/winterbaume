@@ -1,0 +1,211 @@
+# Per-service Terraform converter mapping spec.
+#
+# Both SNS resources use `mode = "model_only"` because most TF input fields
+# land in `TopicView.attributes` / `SubscriptionView.attributes`
+# (a `HashMap<String, String>` keyed by AWS PascalCase attribute names),
+# not on direct StateView fields. The codegen emits the serde-derived
+# *TfModel struct only; `converters/sns.rs` does the bag mapping by hand.
+#
+# Regenerate with: cargo run -p tf-converter-codegen -- gen sns
+
+[service]
+name = "sns"
+crate_name = "winterbaume_sns"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_sns_topic
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sns_topic"
+model = "TopicTfModel"
+view = "TopicView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "display_name"
+view = "display_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "delivery_policy"
+view = "delivery_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_master_key_id"
+view = "kms_master_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "fifo_topic"
+view = "fifo_topic"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "content_based_deduplication"
+view = "content_based_deduplication"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# 15 feedback role / sample rate inputs, all optional strings. The hand-
+# written converter maps each into the AWS-side PascalCase attribute key.
+[[resource.field]]
+hcl = "sqs_success_feedback_role_arn"
+view = "sqs_success_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "sqs_failure_feedback_role_arn"
+view = "sqs_failure_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "sqs_success_feedback_sample_rate"
+view = "sqs_success_feedback_sample_rate"
+type = "string?"
+
+[[resource.field]]
+hcl = "lambda_success_feedback_role_arn"
+view = "lambda_success_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "lambda_failure_feedback_role_arn"
+view = "lambda_failure_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "lambda_success_feedback_sample_rate"
+view = "lambda_success_feedback_sample_rate"
+type = "string?"
+
+[[resource.field]]
+hcl = "http_success_feedback_role_arn"
+view = "http_success_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "http_failure_feedback_role_arn"
+view = "http_failure_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "http_success_feedback_sample_rate"
+view = "http_success_feedback_sample_rate"
+type = "string?"
+
+[[resource.field]]
+hcl = "firehose_success_feedback_role_arn"
+view = "firehose_success_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "firehose_failure_feedback_role_arn"
+view = "firehose_failure_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "firehose_success_feedback_sample_rate"
+view = "firehose_success_feedback_sample_rate"
+type = "string?"
+
+[[resource.field]]
+hcl = "application_success_feedback_role_arn"
+view = "application_success_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "application_failure_feedback_role_arn"
+view = "application_failure_feedback_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "application_success_feedback_sample_rate"
+view = "application_success_feedback_sample_rate"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sns_topic_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sns_topic_subscription"
+model = "SubscriptionTfModel"
+view = "SubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "topic_arn"
+view = "topic_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "protocol"
+view = "protocol"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "raw_message_delivery"
+view = "raw_message_delivery"
+type = "string?"
+
+[[resource.field]]
+hcl = "filter_policy"
+view = "filter_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "subscription_role_arn"
+view = "subscription_role_arn"
+type = "string?"

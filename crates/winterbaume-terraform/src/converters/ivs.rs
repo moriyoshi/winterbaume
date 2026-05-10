@@ -1,4 +1,8 @@
 //! Terraform converter for IVS resources.
+//!
+//! `ChannelTfModel` is generated from `specs/ivs.toml`. The default
+//! values for `latency_mode` ("LOW") and `channel_type` ("STANDARD")
+//! are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,13 +18,9 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str, require_str};
+use crate::generated::ivs as ivs_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
-// ---------------------------------------------------------------------------
-// aws_ivs_channel
-// ---------------------------------------------------------------------------
-
-/// Converts `aws_ivs_channel` Terraform resources to/from IVS state.
 pub struct AwsIvsChannelConverter {
     service: Arc<IvsService>,
 }
@@ -59,27 +59,24 @@ impl AwsIvsChannelConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_ivs_channel")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: ivs_gen::ChannelTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_ivs_channel", e))?;
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ivs:{}:{}:channel/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
-        let latency_mode = optional_str(attrs, "latency_mode").unwrap_or_else(|| "LOW".to_string());
-        let channel_type = optional_str(attrs, "type").unwrap_or_else(|| "STANDARD".to_string());
-        let authorized = optional_bool(attrs, "authorized").unwrap_or(false);
-        let tags = extract_tags(attrs);
 
         let channel_view = ChannelView {
             arn: arn.clone(),
-            name: name.to_string(),
-            latency_mode,
-            channel_type,
-            authorized,
-            tags,
+            name: model.name,
+            latency_mode: model.latency_mode.unwrap_or_else(|| "LOW".to_string()),
+            channel_type: model.channel_type.unwrap_or_else(|| "STANDARD".to_string()),
+            authorized: model.authorized,
+            tags: model.tags,
         };
 
         let mut state_view = IvsStateView {

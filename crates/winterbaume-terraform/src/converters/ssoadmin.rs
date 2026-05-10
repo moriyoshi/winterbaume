@@ -1,4 +1,9 @@
 //! Terraform converters for SSO Admin (IAM Identity Center) resources.
+//!
+//! `PermissionSetTfModel` and `AccountAssignmentTfModel` are generated
+//! from `specs/ssoadmin.toml`. The synthesised permission-set ARN
+//! template, the `id` fallback, and the `target_type` default
+//! ("AWS_ACCOUNT") are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::ssoadmin as ssoadmin_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_ssoadmin_permission_set
@@ -59,28 +65,28 @@ impl AwsSsoadminPermissionSetConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let name = require_str(attrs, "name", "aws_ssoadmin_permission_set")?;
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:sso:::permissionSet/ssoins-0123456789abcdef/{}",
-                    name.replace(' ', "-").to_lowercase()
-                )
-            });
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: ssoadmin_gen::PermissionSetTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ssoadmin_permission_set", e))?;
+
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:sso:::permissionSet/ssoins-0123456789abcdef/{}",
+                model.name.replace(' ', "-").to_lowercase()
+            )
+        });
 
         let ps_view = PermissionSetView {
             permission_set_arn: arn.clone(),
-            name: name.to_string(),
-            description: optional_str(attrs, "description"),
-            session_duration: optional_str(attrs, "session_duration"),
-            relay_state: optional_str(attrs, "relay_state"),
+            name: model.name,
+            description: model.description,
+            session_duration: model.session_duration,
+            relay_state: model.relay_state,
             inline_policy: None,
             managed_policies: vec![],
             customer_managed_policies: vec![],
-            tags: extract_tags(attrs),
+            tags: model.tags,
             created_date: 0.0,
         };
 
@@ -201,25 +207,21 @@ impl AwsSsoadminAccountAssignmentConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let permission_set_arn = require_str(
-            attrs,
-            "permission_set_arn",
-            "aws_ssoadmin_account_assignment",
-        )?;
-        let principal_id = require_str(attrs, "principal_id", "aws_ssoadmin_account_assignment")?;
-        let principal_type =
-            optional_str(attrs, "principal_type").unwrap_or_else(|| "USER".to_string());
-        let target_id = require_str(attrs, "target_id", "aws_ssoadmin_account_assignment")?;
-        let _target_type =
-            optional_str(attrs, "target_type").unwrap_or_else(|| "AWS_ACCOUNT".to_string());
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: ssoadmin_gen::AccountAssignmentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ssoadmin_account_assignment", e))?;
+
+        let principal_type = model.principal_type.unwrap_or_else(|| "USER".to_string());
+        let _target_type = model
+            .target_type
+            .unwrap_or_else(|| "AWS_ACCOUNT".to_string());
 
         let assignment_view = AccountAssignmentView {
-            account_id: target_id.to_string(),
-            permission_set_arn: permission_set_arn.to_string(),
+            account_id: model.target_id,
+            permission_set_arn: model.permission_set_arn,
             principal_type,
-            principal_id: principal_id.to_string(),
+            principal_id: model.principal_id,
         };
 
         let view = SsoAdminStateView {

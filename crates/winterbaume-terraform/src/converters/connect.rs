@@ -1,4 +1,9 @@
 //! Terraform converter for Connect resources.
+//!
+//! `ConnectInstanceTfModel` is generated from `specs/connect.toml`. The
+//! ARN template, status / identity-management-type defaults, and the
+//! pass-through `contact_flow_logs_enabled` / `early_media_enabled`
+//! constants are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str};
+use crate::generated::connect as connect_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_connect_instance
@@ -59,38 +65,38 @@ impl AwsConnectInstanceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: connect_gen::ConnectInstanceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_connect_instance", e))?;
 
-        let id = optional_str(attrs, "id").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let id = model.id.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:connect:{}:{}:instance/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let identity_management_type = optional_str(attrs, "identity_management_type")
+        let identity_management_type = model
+            .identity_management_type
             .unwrap_or_else(|| "CONNECT_MANAGED".to_string());
-        let instance_alias = optional_str(attrs, "instance_alias");
-        let instance_status = optional_str(attrs, "status").unwrap_or_else(|| "ACTIVE".to_string());
-        let created_time =
-            optional_str(attrs, "created_time").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
-        let inbound_calls_enabled = optional_bool(attrs, "inbound_calls_enabled").unwrap_or(true);
-        let outbound_calls_enabled = optional_bool(attrs, "outbound_calls_enabled").unwrap_or(true);
-        let _contact_flow_logs_enabled =
-            optional_bool(attrs, "contact_flow_logs_enabled").unwrap_or(false);
-        let _early_media_enabled = optional_bool(attrs, "early_media_enabled").unwrap_or(true);
+        let instance_status = model
+            .instance_status
+            .unwrap_or_else(|| "ACTIVE".to_string());
+        let created_time = model
+            .created_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string());
 
         let inst_view = ConnectInstanceView {
             id: id.clone(),
             arn,
             identity_management_type,
-            instance_alias,
+            instance_alias: model.instance_alias,
             instance_status,
             created_time,
-            inbound_calls_enabled,
-            outbound_calls_enabled,
-            tags: extract_tags(attrs),
+            inbound_calls_enabled: model.inbound_calls_enabled,
+            outbound_calls_enabled: model.outbound_calls_enabled,
+            tags: model.tags,
         };
 
         let state_view = ConnectStateView {

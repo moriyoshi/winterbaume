@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::dax as dax_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_dax_cluster
@@ -62,14 +63,17 @@ impl AwsDaxClusterConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let cluster_name = require_str(attrs, "cluster_name", "aws_dax_cluster")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: dax_gen::DaxClusterTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_dax_cluster", e))?;
 
-        let node_type =
-            optional_str(attrs, "node_type").unwrap_or_else(|| "dax.r4.large".to_string());
-        let iam_role_arn = optional_str(attrs, "iam_role_arn").unwrap_or_default();
-        let replication_factor = optional_i64(attrs, "replication_factor").unwrap_or(1) as i32;
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let cluster_name = model.cluster_name.clone();
+        let node_type = model
+            .node_type
+            .unwrap_or_else(|| "dax.r4.large".to_string());
+        let iam_role_arn = model.iam_role_arn.unwrap_or_default();
+        let replication_factor = model.replication_factor as i32;
+        let description = model.description.unwrap_or_default();
         let sse_enabled = attrs
             .get("server_side_encryption")
             .and_then(|v| v.as_array())
@@ -77,21 +81,18 @@ impl AwsDaxClusterConverter {
             .and_then(|obj| obj.get("enabled"))
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
-        let cluster_endpoint_encryption_type =
-            optional_str(attrs, "cluster_endpoint_encryption_type")
-                .unwrap_or_else(|| "NONE".to_string());
+        let cluster_endpoint_encryption_type = model
+            .cluster_endpoint_encryption_type
+            .unwrap_or_else(|| "NONE".to_string());
 
-        let cluster_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let cluster_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:dax:{}:{}:cache/{}",
                 region, ctx.default_account_id, cluster_name
             )
         });
 
-        let _notification_topic_arn = optional_str(attrs, "notification_topic_arn");
-        let _parameter_group_name = optional_str(attrs, "parameter_group_name");
-        let _subnet_group_name = optional_str(attrs, "subnet_group_name");
-        let mut tag_map = extract_tags(attrs);
+        let mut tag_map = model.tags;
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
@@ -105,7 +106,7 @@ impl AwsDaxClusterConverter {
             .collect();
 
         let cluster_view = DaxClusterView {
-            cluster_name: cluster_name.to_string(),
+            cluster_name: cluster_name.clone(),
             cluster_arn,
             node_type,
             status: "available".to_string(),
@@ -118,9 +119,7 @@ impl AwsDaxClusterConverter {
         };
 
         let mut state_view = DaxStateView::default();
-        state_view
-            .clusters
-            .insert(cluster_name.to_string(), cluster_view);
+        state_view.clusters.insert(cluster_name, cluster_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -218,10 +217,13 @@ impl AwsDaxSubnetGroupConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_dax_subnet_group")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: dax_gen::DaxSubnetGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_dax_subnet_group", e))?;
 
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let name = model.name.clone();
+        let description = model.description.unwrap_or_default();
+        // subnet_ids is Vec<String>; not part of the strongly-typed model.
         let subnet_ids: Vec<String> = attrs
             .get("subnet_ids")
             .and_then(|v| v.as_array())
@@ -231,17 +233,16 @@ impl AwsDaxSubnetGroupConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let vpc_id = optional_str(attrs, "vpc_id");
 
         let view = DaxSubnetGroupView {
-            subnet_group_name: name.to_string(),
+            subnet_group_name: name.clone(),
             description,
             subnet_ids,
-            vpc_id,
+            vpc_id: model.vpc_id,
         };
 
         let mut state_view = DaxStateView::default();
-        state_view.subnet_groups.insert(name.to_string(), view);
+        state_view.subnet_groups.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -324,18 +325,20 @@ impl AwsDaxParameterGroupConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_dax_parameter_group")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: dax_gen::DaxParameterGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_dax_parameter_group", e))?;
 
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let name = model.name.clone();
+        let description = model.description.unwrap_or_default();
 
         let view = DaxParameterGroupView {
-            parameter_group_name: name.to_string(),
+            parameter_group_name: name.clone(),
             description,
         };
 
         let mut state_view = DaxStateView::default();
-        state_view.parameter_groups.insert(name.to_string(), view);
+        state_view.parameter_groups.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

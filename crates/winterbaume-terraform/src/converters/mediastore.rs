@@ -1,4 +1,10 @@
 //! Terraform converter for MediaStore resources.
+//!
+//! `ContainerTfModel` is generated from `specs/mediastore.toml`. The
+//! ARN template, the synthesised endpoint URL, the constant
+//! `status = "ACTIVE"`, and the translation from a flat HCL `tags` map
+//! to the `Vec<TagView>` representation used by the view are wired up
+//! here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::mediastore as mediastore_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_media_store_container
@@ -59,17 +66,18 @@ impl AwsMediaStoreContainerConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_media_store_container")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: mediastore_gen::ContainerTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_media_store_container", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:mediastore:{}:{}:container/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
-        let endpoint = optional_str(attrs, "endpoint").unwrap_or_else(|| {
+        let endpoint = model.endpoint.unwrap_or_else(|| {
             format!(
                 "https://{}.mediastore.{}.amazonaws.com",
                 uuid::Uuid::new_v4().to_string().replace('-', ""),
@@ -77,20 +85,18 @@ impl AwsMediaStoreContainerConverter {
             )
         });
 
-        let tags = if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            obj.iter()
-                .map(|(k, v)| TagView {
-                    key: k.clone(),
-                    value: v.as_str().map(|s| s.to_string()),
-                })
-                .collect()
-        } else {
-            vec![]
-        };
+        let tags: Vec<TagView> = model
+            .tags
+            .into_iter()
+            .map(|(k, v)| TagView {
+                key: k,
+                value: Some(v),
+            })
+            .collect();
 
         let container_view = ContainerView {
             arn,
-            name: name.to_string(),
+            name: model.name.clone(),
             endpoint,
             status: "ACTIVE".to_string(),
             creation_time: chrono::Utc::now().to_rfc3339(),
@@ -103,9 +109,7 @@ impl AwsMediaStoreContainerConverter {
         let mut state_view = MediaStoreStateView {
             containers: HashMap::new(),
         };
-        state_view
-            .containers
-            .insert(name.to_string(), container_view);
+        state_view.containers.insert(model.name, container_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

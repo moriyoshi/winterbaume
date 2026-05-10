@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::appmesh as appmesh_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // helpers
@@ -76,39 +77,46 @@ impl AwsAppmeshMeshConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: appmesh_gen::MeshTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_appmesh_mesh", e))?;
 
-        let mesh_name = require_str(attrs, "name", "aws_appmesh_mesh")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let mesh_name = model.name;
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:appmesh:{}:{}:mesh/{}",
                 region, ctx.default_account_id, mesh_name
             )
         });
-        let egress_filter_type = optional_str(attrs, "spec")
-            .and_then(|_| {
-                attrs
-                    .get("spec")
-                    .and_then(|s| s.get("egress_filter"))
-                    .and_then(|e| e.get("type"))
-                    .and_then(|t| t.as_str())
-                    .map(|s| s.to_string())
-            })
+        // spec is a nested block — read raw to extract egress_filter.type.
+        let egress_filter_type = attrs
+            .get("spec")
+            .and_then(|s| s.get("egress_filter"))
+            .and_then(|e| e.get("type"))
+            .and_then(|t| t.as_str())
+            .map(|s| s.to_string())
             .unwrap_or_else(|| "DROP_ALL".to_string());
-        let mesh_owner =
-            optional_str(attrs, "mesh_owner").unwrap_or_else(|| ctx.default_account_id.clone());
-        let resource_owner =
-            optional_str(attrs, "resource_owner").unwrap_or_else(|| ctx.default_account_id.clone());
-        let tags = tags_from_hashmap(&extract_tags(attrs));
+        let mesh_owner = model
+            .mesh_owner
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+        let resource_owner = model
+            .resource_owner
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+        let tags = tags_from_hashmap(&model.tags);
+
+        // version is Option<i64> — read raw rather than via the model.
+        let version = attrs.get("version").and_then(|v| v.as_i64()).unwrap_or(1);
 
         let mesh_view = MeshView {
-            mesh_name: mesh_name.to_string(),
+            mesh_name: mesh_name.clone(),
             arn,
-            uid: optional_str(attrs, "id").unwrap_or_default(),
+            uid: model.id.unwrap_or_default(),
             status: "ACTIVE".to_string(),
-            version: optional_i64(attrs, "version").unwrap_or(1),
-            created_at: optional_str(attrs, "created_date")
+            version,
+            created_at: model
+                .created_date
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
-            last_updated_at: optional_str(attrs, "last_updated_date")
+            last_updated_at: model
+                .last_updated_date
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
             mesh_owner,
             resource_owner,
@@ -210,35 +218,43 @@ impl AwsAppmeshVirtualNodeConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: appmesh_gen::VirtualNodeTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_appmesh_virtual_node", e))?;
 
-        let name = require_str(attrs, "name", "aws_appmesh_virtual_node")?;
-        let mesh_name = require_str(attrs, "mesh_name", "aws_appmesh_virtual_node")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name;
+        let mesh_name = model.mesh_name;
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:appmesh:{}:{}:mesh/{}/virtualNode/{}",
                 region, ctx.default_account_id, mesh_name, name
             )
         });
-        let mesh_owner =
-            optional_str(attrs, "mesh_owner").unwrap_or_else(|| ctx.default_account_id.clone());
-        let resource_owner =
-            optional_str(attrs, "resource_owner").unwrap_or_else(|| ctx.default_account_id.clone());
+        let mesh_owner = model
+            .mesh_owner
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+        let resource_owner = model
+            .resource_owner
+            .unwrap_or_else(|| ctx.default_account_id.clone());
         let spec = attrs
             .get("spec")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
-        let tags = tags_from_hashmap(&extract_tags(attrs));
+        let tags = tags_from_hashmap(&model.tags);
+
+        let version = attrs.get("version").and_then(|v| v.as_i64()).unwrap_or(1);
 
         let vn_view = VirtualNodeView {
-            mesh_name: mesh_name.to_string(),
-            virtual_node_name: name.to_string(),
+            mesh_name: mesh_name.clone(),
+            virtual_node_name: name.clone(),
             arn,
-            uid: optional_str(attrs, "id").unwrap_or_default(),
+            uid: model.id.unwrap_or_default(),
             status: "ACTIVE".to_string(),
-            version: optional_i64(attrs, "version").unwrap_or(1),
-            created_at: optional_str(attrs, "created_date")
+            version,
+            created_at: model
+                .created_date
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
-            last_updated_at: optional_str(attrs, "last_updated_date")
+            last_updated_at: model
+                .last_updated_date
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
             mesh_owner,
             resource_owner,
@@ -337,35 +353,43 @@ impl AwsAppmeshVirtualServiceConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: appmesh_gen::VirtualServiceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_appmesh_virtual_service", e))?;
 
-        let name = require_str(attrs, "name", "aws_appmesh_virtual_service")?;
-        let mesh_name = require_str(attrs, "mesh_name", "aws_appmesh_virtual_service")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name;
+        let mesh_name = model.mesh_name;
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:appmesh:{}:{}:mesh/{}/virtualService/{}",
                 region, ctx.default_account_id, mesh_name, name
             )
         });
-        let mesh_owner =
-            optional_str(attrs, "mesh_owner").unwrap_or_else(|| ctx.default_account_id.clone());
-        let resource_owner =
-            optional_str(attrs, "resource_owner").unwrap_or_else(|| ctx.default_account_id.clone());
+        let mesh_owner = model
+            .mesh_owner
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+        let resource_owner = model
+            .resource_owner
+            .unwrap_or_else(|| ctx.default_account_id.clone());
         let spec = attrs
             .get("spec")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
-        let tags = tags_from_hashmap(&extract_tags(attrs));
+        let tags = tags_from_hashmap(&model.tags);
+
+        let version = attrs.get("version").and_then(|v| v.as_i64()).unwrap_or(1);
 
         let vs_view = VirtualServiceView {
-            mesh_name: mesh_name.to_string(),
-            virtual_service_name: name.to_string(),
+            mesh_name: mesh_name.clone(),
+            virtual_service_name: name.clone(),
             arn,
-            uid: optional_str(attrs, "id").unwrap_or_default(),
+            uid: model.id.unwrap_or_default(),
             status: "ACTIVE".to_string(),
-            version: optional_i64(attrs, "version").unwrap_or(1),
-            created_at: optional_str(attrs, "created_date")
+            version,
+            created_at: model
+                .created_date
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
-            last_updated_at: optional_str(attrs, "last_updated_date")
+            last_updated_at: model
+                .last_updated_date
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
             mesh_owner,
             resource_owner,

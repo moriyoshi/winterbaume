@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::budgets as budgets_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_budgets_budget
@@ -59,20 +60,18 @@ impl AwsBudgetsBudgetConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let budget_name = require_str(attrs, "name", "aws_budgets_budget")?;
-        let budget_type = optional_str(attrs, "budget_type").unwrap_or_else(|| "COST".to_string());
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: budgets_gen::BudgetTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_budgets_budget", e))?;
 
-        let budget_limit_amount =
-            optional_str(attrs, "limit_amount").unwrap_or_else(|| "0".to_string());
-        let budget_limit_unit =
-            optional_str(attrs, "limit_unit").unwrap_or_else(|| "USD".to_string());
-        let time_unit = optional_str(attrs, "time_unit").unwrap_or_else(|| "MONTHLY".to_string());
-        let _tags_all = attrs.get("tags_all");
-        let _time_period_start = optional_str(attrs, "time_period_start");
-        let _time_period_end = optional_str(attrs, "time_period_end");
-        let _cost_filter = attrs.get("cost_filter");
+        let budget_name = model.name.clone();
+        let budget_type = model.budget_type.unwrap_or_else(|| "COST".to_string());
+        let budget_limit_amount = model.limit_amount.unwrap_or_else(|| "0".to_string());
+        let budget_limit_unit = model.limit_unit.unwrap_or_else(|| "USD".to_string());
+        let time_unit = model.time_unit.unwrap_or_else(|| "MONTHLY".to_string());
+
+        // Raw-attribute passthrough blobs (not part of the strongly-typed model).
+        let attrs = &instance.attributes;
         let auto_adjust_data = attrs.get("auto_adjust_data").cloned();
         let cost_types = attrs.get("cost_types").cloned();
         let planned_limit = attrs.get("planned_limit").cloned();
@@ -105,7 +104,7 @@ impl AwsBudgetsBudgetConverter {
         };
 
         let budget_view = BudgetView {
-            budget_name: budget_name.to_string(),
+            budget_name: budget_name.clone(),
             budget_type,
             budget_limit_amount,
             budget_limit_unit,
@@ -120,9 +119,7 @@ impl AwsBudgetsBudgetConverter {
             budgets: HashMap::new(),
             ..Default::default()
         };
-        state_view
-            .budgets
-            .insert(budget_name.to_string(), budget_view);
+        state_view.budgets.insert(budget_name, budget_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

@@ -1,4 +1,10 @@
 //! Terraform converter for `aws_acm_certificate` resources.
+//!
+//! `CertificateTfModel` is generated from `specs/acm.toml`. The ARN
+//! template (with the `id` fallback chain), the synthesised UUID body
+//! when neither is supplied, the `subject_alternative_names` /
+//! `options` / `validation_option` nested-array reads, and the merged
+//! `tags` / `tags_all` projection into `Vec<TagView>` are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -17,7 +23,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::acm as acm_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Converts `aws_acm_certificate` Terraform resources to/from ACM state.
 pub struct AwsAcmCertificateConverter {
@@ -58,20 +65,22 @@ impl AwsAcmCertificateConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let domain_name = require_str(attrs, "domain_name", "aws_acm_certificate")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: acm_gen::CertificateTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_acm_certificate", e))?;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:acm:{}:{}:certificate/{}",
-                    region,
-                    ctx.default_account_id,
-                    uuid::Uuid::new_v4()
-                )
-            });
+        let attrs = &instance.attributes;
+        let domain_name = model.domain_name.clone();
+
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:acm:{}:{}:certificate/{}",
+                region,
+                ctx.default_account_id,
+                uuid::Uuid::new_v4()
+            )
+        });
 
         // SANs from subject_alternative_names list
         let sans: Vec<String> = attrs
@@ -110,13 +119,7 @@ impl AwsAcmCertificateConverter {
                 .collect()
         };
 
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "ISSUED".to_string());
-        let _validation_method = optional_str(attrs, "validation_method");
-        let _subject_alternative_names = attrs.get("subject_alternative_names");
-        let _early_renewal_duration = optional_str(attrs, "early_renewal_duration");
-        let _lifecycle = attrs.get("lifecycle");
-        let _private_key = optional_str(attrs, "private_key");
-        let _pending_renewal = attrs.get("pending_renewal");
+        let status = model.status.unwrap_or_else(|| "ISSUED".to_string());
 
         // Parse `options` block: [{"certificate_transparency_logging_preference": "ENABLED"}]
         let options = attrs
@@ -160,14 +163,15 @@ impl AwsAcmCertificateConverter {
 
         let cert_view = CertificateView {
             arn: arn.clone(),
-            domain_name: domain_name.to_string(),
+            domain_name,
             status,
             subject_alternative_names: sans,
             created_at: Some(Utc::now().to_rfc3339()),
             certificate_type: "AMAZON_ISSUED".to_string(),
             tags,
             issuer: "Amazon".to_string(),
-            key_algorithm: optional_str(attrs, "key_algorithm")
+            key_algorithm: model
+                .key_algorithm
                 .unwrap_or_else(|| "RSA_2048".to_string()),
             renewal_eligibility: "ELIGIBLE".to_string(),
             options: Some(options.unwrap_or(CertificateOptionsView {
@@ -176,7 +180,7 @@ impl AwsAcmCertificateConverter {
             domain_validation_options,
             not_before: None,
             not_after: None,
-            certificate_authority_arn: optional_str(attrs, "certificate_authority_arn"),
+            certificate_authority_arn: model.certificate_authority_arn,
             certificate_pem: None,
             certificate_chain: None,
             private_key: None,

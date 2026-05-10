@@ -1,6 +1,11 @@
 //! Terraform converters for Audit Manager resources.
+//!
+//! `ControlTfModel` and `FrameworkTfModel` are generated from
+//! `specs/auditmanager.toml`. The synthesised UUID identifiers, the
+//! `control_type` / `framework_type` constants, and the
+//! `control_mapping_sources` / `control_sets` nested arrays are wired
+//! up here.
 
-use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::auditmanager as auditmanager_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_auditmanager_control
@@ -58,17 +64,14 @@ impl AwsAuditManagerControlConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: auditmanager_gen::ControlTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_auditmanager_control", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let name = require_str(attrs, "name", "aws_auditmanager_control")?;
-        let description = optional_str(attrs, "description");
-        let _tags_all = attrs.get("tags_all");
-        let _action_plan_instructions = optional_str(attrs, "action_plan_instructions");
-        let _testing_information = optional_str(attrs, "testing_information");
-
-        let tags = extract_tags(attrs);
+        let id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
         let control_mapping_sources: Vec<serde_json::Value> = attrs
             .get("control_mapping_sources")
             .and_then(|v| v.as_array())
@@ -76,17 +79,17 @@ impl AwsAuditManagerControlConverter {
             .unwrap_or_default();
 
         let control_view = ControlView {
-            id: id.to_string(),
-            name: name.to_string(),
-            description: description.map(|s| s.to_string()),
+            id: id.clone(),
+            name: model.name,
+            description: model.description,
             control_type: "Custom".to_string(),
             created_at: 0.0,
-            tags,
+            tags: model.tags,
             control_mapping_sources,
         };
 
         let mut state_view = AuditManagerStateView::default();
-        state_view.controls.insert(id.to_string(), control_view);
+        state_view.controls.insert(id, control_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -169,15 +172,14 @@ impl AwsAuditManagerFrameworkConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: auditmanager_gen::FrameworkTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_auditmanager_framework", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let name = require_str(attrs, "name", "aws_auditmanager_framework")?;
-        let description = optional_str(attrs, "description");
-        let compliance_type = optional_str(attrs, "compliance_type");
-
-        let tags = extract_tags(attrs);
+        let id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
         let control_sets: Vec<serde_json::Value> = attrs
             .get("control_sets")
             .and_then(|v| v.as_array())
@@ -185,18 +187,18 @@ impl AwsAuditManagerFrameworkConverter {
             .unwrap_or_default();
 
         let framework_view = FrameworkView {
-            id: id.to_string(),
-            name: name.to_string(),
-            description: description.map(|s| s.to_string()),
-            compliance_type: compliance_type.map(|s| s.to_string()),
+            id: id.clone(),
+            name: model.name,
+            description: model.description,
+            compliance_type: model.compliance_type,
             framework_type: "Custom".to_string(),
             created_at: 0.0,
-            tags,
+            tags: model.tags,
             control_sets,
         };
 
         let mut state_view = AuditManagerStateView::default();
-        state_view.frameworks.insert(id.to_string(), framework_view);
+        state_view.frameworks.insert(id, framework_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -234,20 +236,4 @@ impl AwsAuditManagerFrameworkConverter {
         }
         Ok(results)
     }
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-fn extract_tags(attrs: &serde_json::Value) -> HashMap<String, String> {
-    let mut tags = HashMap::new();
-    if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-        for (k, v) in obj {
-            if let Some(s) = v.as_str() {
-                tags.insert(k.clone(), s.to_string());
-            }
-        }
-    }
-    tags
 }

@@ -1,4 +1,11 @@
 //! Terraform converters for Secrets Manager resources.
+//!
+//! `SecretTfModel` and `SecretVersionTfModel` are generated from
+//! `specs/secretsmanager.toml`. The ARN fall-back chain
+//! (arn → id → templated), the `id`-suffix parsing for the version
+//! `version_id`, the `version_stages` raw read, the AWSCURRENT
+//! demote/promote logic, and the placeholder-secret creation when a
+//! version arrives before its parent secret are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::secretsmanager as secretsmanager_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_secretsmanager_secret
@@ -60,34 +68,32 @@ impl AwsSecretsmanagerSecretConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_secretsmanager_secret")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: secretsmanager_gen::SecretTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_secretsmanager_secret", e))?;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                let suffix = &uuid::Uuid::new_v4().to_string()[..6];
-                format!(
-                    "arn:aws:secretsmanager:{}:{}:secret:{}-{}",
-                    region, ctx.default_account_id, name, suffix
-                )
-            });
-
-        let _force_overwrite_replica_secret = optional_str(attrs, "force_overwrite_replica_secret");
+        let name = model.name;
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            let suffix = &uuid::Uuid::new_v4().to_string()[..6];
+            format!(
+                "arn:aws:secretsmanager:{}:{}:secret:{}-{}",
+                region, ctx.default_account_id, name, suffix
+            )
+        });
 
         let now = Utc::now().to_rfc3339();
         let secret_view = SecretView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
-            description: optional_str(attrs, "description").unwrap_or_default(),
+            description: model.description.unwrap_or_default(),
             created_date: now.clone(),
             last_changed_date: now,
             versions: HashMap::new(),
             current_version_id: None,
             deleted_date: None,
-            tags: extract_tags(attrs),
-            resource_policy: optional_str(attrs, "policy"),
+            tags: model.tags,
+            resource_policy: model.policy,
             rotation_enabled: None,
             rotation_lambda_arn: None,
             rotation_rules: None,
@@ -99,7 +105,7 @@ impl AwsSecretsmanagerSecretConverter {
         let mut state_view = SecretsmanagerStateView {
             secrets: HashMap::new(),
         };
-        state_view.secrets.insert(name.to_string(), secret_view);
+        state_view.secrets.insert(name, secret_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -190,22 +196,26 @@ impl AwsSecretsmanagerSecretVersionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let secret_id = require_str(attrs, "secret_id", "aws_secretsmanager_secret_version")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: secretsmanager_gen::SecretVersionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_secretsmanager_secret_version", e))?;
+
+        let secret_id = model.secret_id;
 
         // Parse version_id from the compound id "<secret_arn>|<version_id>" or use field directly
-        let version_id = optional_str(attrs, "version_id").unwrap_or_else(|| {
-            optional_str(attrs, "id")
-                .and_then(|id| id.split_once('|').map(|x| x.1).map(String::from))
+        let version_id = model.version_id.unwrap_or_else(|| {
+            model
+                .id
+                .as_deref()
+                .and_then(|id| id.split_once('|').map(|x| x.1.to_string()))
                 .unwrap_or_else(|| uuid::Uuid::new_v4().to_string())
         });
 
-        let secret_string = optional_str(attrs, "secret_string");
-        let _secret_binary = optional_str(attrs, "secret_binary");
-        let _ = attrs.get("secret_string_wo");
+        let secret_string = model.secret_string;
         let now = Utc::now().to_rfc3339();
 
+        let attrs = &instance.attributes;
         let version_stages: Vec<String> = attrs
             .get("version_stages")
             .and_then(|v| v.as_array())
@@ -242,7 +252,7 @@ impl AwsSecretsmanagerSecretVersionConverter {
             Some(n) => n,
             None => {
                 // Secret not injected yet - use secret_id as name (best-effort)
-                secret_id.to_string()
+                secret_id
             }
         };
 

@@ -1,4 +1,9 @@
 //! Terraform converters for IAM Access Analyzer resources.
+//!
+//! `AnalyzerTfModel` is generated from `specs/accessanalyzer.toml`. The
+//! `analyzer_type` default ("ACCOUNT"), the ARN template, and the
+//! constant `status` ("ACTIVE") and `created_at`
+//! ("2024-01-01T00:00:00.000Z") view fields are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::accessanalyzer as accessanalyzer_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_accessanalyzer_analyzer
@@ -58,48 +64,34 @@ impl AwsAccessAnalyzerAnalyzerConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let analyzer_name = require_str(attrs, "analyzer_name", "aws_accessanalyzer_analyzer")?;
-        let analyzer_type = optional_str(attrs, "type").unwrap_or_else(|| "ACCOUNT".to_string());
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: accessanalyzer_gen::AnalyzerTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_accessanalyzer_analyzer", e))?;
 
-        let arn = attrs
-            .get("arn")
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:access-analyzer:{region}:{account_id}:analyzer/{analyzer_name}",
-                    region = region,
-                    account_id = ctx.default_account_id,
-                )
-            });
-
-        // Extract tags
-        let tags: HashMap<String, String> = attrs
-            .get("tags")
-            .and_then(|v| v.as_object())
-            .map(|obj| {
-                obj.iter()
-                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let analyzer_name = model.analyzer_name.clone();
+        let analyzer_type = model.analyzer_type.unwrap_or_else(|| "ACCOUNT".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:access-analyzer:{region}:{account_id}:analyzer/{analyzer_name}",
+                region = region,
+                account_id = ctx.default_account_id,
+                analyzer_name = analyzer_name,
+            )
+        });
 
         let analyzer_view = AnalyzerView {
             arn,
-            name: analyzer_name.to_string(),
-            analyzer_type: analyzer_type.to_string(),
+            name: analyzer_name.clone(),
+            analyzer_type,
             status: "ACTIVE".to_string(),
             created_at: "2024-01-01T00:00:00.000Z".to_string(),
-            tags,
+            tags: model.tags,
             archive_rules: HashMap::new(),
         };
 
         let mut state_view = AccessAnalyzerStateView::default();
-        state_view
-            .analyzers
-            .insert(analyzer_name.to_string(), analyzer_view);
+        state_view.analyzers.insert(analyzer_name, analyzer_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

@@ -1,0 +1,82 @@
+# Auto-ingested by `tf-converter-codegen ingest auditmanager`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (control / framework). Dropped unused / nested-block fields
+# (`action_plan_instructions`, `testing_information`, `tags_all`,
+# `control_mapping_sources`, `control_sets`) — those are read straight
+# from instance.attributes in the converter.
+
+[service]
+name = "auditmanager"
+crate_name = "winterbaume_auditmanager"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_auditmanager_control
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_auditmanager_control"
+model = "ControlTfModel"
+view = "ControlView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_auditmanager_framework
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_auditmanager_framework"
+model = "FrameworkTfModel"
+view = "FrameworkView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "compliance_type"
+view = "compliance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

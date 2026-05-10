@@ -1,0 +1,43 @@
+# Auto-ingested by `tf-converter-codegen ingest kafka`.
+# Hand-tuned: kept only the strongly-typed scalar inputs. The nested
+# blocks (`broker_node_group_info`, `client_authentication`,
+# `configuration_info`, `encryption_info`, `logging_info`,
+# `open_monitoring`), the i32 `number_of_broker_nodes`, and the
+# discarded fields (`cluster_name_prefix`, `vpc_connectivity_authentication`,
+# `node_exporter`, `storage_mode`, `tags_all`, the various `bootstrap_brokers_*`
+# computed outputs, `broker_count`) are read straight from instance.attributes
+# in the converter.
+
+[service]
+name = "kafka"
+crate_name = "winterbaume_kafka"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_msk_cluster"
+model = "ClusterTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "kafka_version"
+view = "kafka_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

@@ -1,0 +1,45 @@
+# Auto-ingested by `tf-converter-codegen ingest fis`.
+# Hand-tuned: renamed model from ExperimentTemplateActionTfModel to
+# ExperimentTemplateTfModel. Dropped nested-block fields (action, target,
+# stop_condition) — those are read straight from instance.attributes in
+# the converter.
+
+[service]
+name = "fis"
+crate_name = "winterbaume_fis"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_fis_experiment_template"
+model = "ExperimentTemplateTfModel"
+view = "ExperimentTemplateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

@@ -1,0 +1,73 @@
+# Auto-ingested by `tf-converter-codegen ingest athena`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `configuration` (nested-block array on the workgroup — read raw)
+#   - `parameters` (HashMap<String,String> — not in spec vocab, read raw)
+#   - `tags_all` (discarded by the original converter — read raw)
+
+[service]
+name = "athena"
+crate_name = "winterbaume_athena"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_athena_workgroup
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_athena_workgroup"
+model = "WorkgroupTfModel"
+view = "WorkGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_athena_data_catalog
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_athena_data_catalog"
+model = "DataCatalogTfModel"
+view = "DataCatalogView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "catalog_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

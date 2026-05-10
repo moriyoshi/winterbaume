@@ -1,4 +1,9 @@
 //! Terraform converter for Comprehend resources.
+//!
+//! `EntityRecognizerTfModel` is generated from `specs/comprehend.toml`. The
+//! ARN template, the `language_code = "en"` and `status = "TRAINED"`
+//! defaults, and the nested-block extraction for `input_data_config`
+//! (S3 URI + entity types) are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::comprehend as comprehend_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_comprehend_entity_recognizer
@@ -59,20 +65,26 @@ impl AwsComprehendEntityRecognizerConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_comprehend_entity_recognizer")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: comprehend_gen::EntityRecognizerTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_comprehend_entity_recognizer", e))?;
+
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:comprehend:{}:{}:entity-recognizer/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let language_code =
-            optional_str(attrs, "language_code").unwrap_or_else(|| "en".to_string());
-        let data_access_role_arn = optional_str(attrs, "data_access_role_arn").unwrap_or_default();
+        let language_code = model.language_code.unwrap_or_else(|| "en".to_string());
+        let data_access_role_arn = model.data_access_role_arn.unwrap_or_default();
+        let status = model.status.unwrap_or_else(|| "TRAINED".to_string());
 
-        // Extract input_data_config S3 URI
+        // Nested `input_data_config` block: pull S3 URI and entity types
+        // straight from the raw attributes since the spec can't express
+        // nested arrays of objects.
+        let attrs = &instance.attributes;
         let input_data_config_s3_uri = attrs
             .get("input_data_config")
             .and_then(|v| v.as_array())
@@ -84,8 +96,6 @@ impl AwsComprehendEntityRecognizerConverter {
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
-
-        // Extract entity types
         let entity_types: Vec<String> = attrs
             .get("input_data_config")
             .and_then(|v| v.as_array())
@@ -103,28 +113,16 @@ impl AwsComprehendEntityRecognizerConverter {
             })
             .unwrap_or_default();
 
-        let _version_name = optional_str(attrs, "version_name");
-        let _model_kms_key_id = optional_str(attrs, "model_kms_key_id");
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "TRAINED".to_string());
-        let mut tags = extract_tags(attrs);
-        if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.entry(k.clone()).or_insert_with(|| s.to_string());
-                }
-            }
-        }
-
         let recognizer_view = EntityRecognizerView {
             arn: arn.clone(),
-            name: name.to_string(),
+            name: name.clone(),
             language_code,
             data_access_role_arn,
             input_data_config_s3_uri,
             entity_types,
             status,
             submit_time: 0.0,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = ComprehendStateView {

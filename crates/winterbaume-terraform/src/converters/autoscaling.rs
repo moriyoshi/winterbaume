@@ -17,9 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::autoscaling as autoscaling_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags, optional_i64};
 
 // ---------------------------------------------------------------------------
 // aws_autoscaling_group
@@ -67,11 +66,14 @@ impl AwsAutoscalingGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: autoscaling_gen::AutoScalingGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_autoscaling_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_autoscaling_group")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:autoscaling:{}:{}:autoScalingGroup:{}:autoScalingGroupName/{}",
                 region,
@@ -81,16 +83,13 @@ impl AwsAutoscalingGroupConverter {
             )
         });
 
-        let min_size = optional_i64(attrs, "min_size").unwrap_or(0) as i32;
-        let max_size = optional_i64(attrs, "max_size").unwrap_or(1) as i32;
-        let desired = optional_i64(attrs, "desired_capacity").unwrap_or(min_size as i64) as i32;
+        let min_size = model.min_size as i32;
+        let max_size = model.max_size as i32;
+        let desired = optional_i64(attrs, "desired_capacity").unwrap_or(model.min_size) as i32;
         let azs = extract_string_array(attrs, "availability_zones");
-        let vpc_zone_id = optional_str(attrs, "vpc_zone_identifier");
-        let health_check_type =
-            optional_str(attrs, "health_check_type").unwrap_or_else(|| "EC2".to_string());
-        let health_check_grace =
-            optional_i64(attrs, "health_check_grace_period").unwrap_or(300) as i32;
-        let cooldown = optional_i64(attrs, "default_cooldown").unwrap_or(300) as i32;
+        let health_check_type = model.health_check_type.unwrap_or_else(|| "EC2".to_string());
+        let health_check_grace = model.health_check_grace_period as i32;
+        let cooldown = model.default_cooldown as i32;
         let termination_policies = extract_string_array(attrs, "termination_policies");
 
         let tf_tags = extract_tags(attrs);
@@ -99,20 +98,20 @@ impl AwsAutoscalingGroupConverter {
             .map(|(k, v)| TagView {
                 key: k,
                 value: v,
-                resource_id: name.to_string(),
+                resource_id: name.clone(),
                 resource_type: "auto-scaling-group".to_string(),
                 propagate_at_launch: true,
             })
             .collect();
 
         let view = AutoScalingGroupView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             min_size,
             max_size,
             desired_capacity: desired,
-            launch_configuration_name: optional_str(attrs, "launch_configuration"),
-            vpc_zone_identifier: vpc_zone_id,
+            launch_configuration_name: model.launch_configuration,
+            vpc_zone_identifier: model.vpc_zone_identifier,
             availability_zones: azs,
             health_check_type,
             health_check_grace_period: health_check_grace,
@@ -131,7 +130,7 @@ impl AwsAutoscalingGroupConverter {
         };
 
         let mut state_view = minimal_asg_state_view();
-        state_view.groups.insert(name.to_string(), view);
+        state_view.groups.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -226,11 +225,14 @@ impl AwsLaunchConfigurationConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: autoscaling_gen::LaunchConfigurationTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_launch_configuration", e))?;
 
-        let name = require_str(attrs, "name", "aws_launch_configuration")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:autoscaling:{}:{}:launchConfiguration:{}:launchConfigurationName/{}",
                 region,
@@ -240,24 +242,27 @@ impl AwsLaunchConfigurationConverter {
             )
         });
         let security_groups = extract_string_array(attrs, "security_groups");
+        let associate_public_ip_address = attrs
+            .get("associate_public_ip_address")
+            .and_then(|v| v.as_bool());
 
         let view = LaunchConfigurationView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
-            image_id: optional_str(attrs, "image_id"),
-            instance_type: optional_str(attrs, "instance_type"),
-            key_name: optional_str(attrs, "key_name"),
-            iam_instance_profile: optional_str(attrs, "iam_instance_profile"),
-            user_data: optional_str(attrs, "user_data"),
+            image_id: model.image_id,
+            instance_type: model.instance_type,
+            key_name: model.key_name,
+            iam_instance_profile: model.iam_instance_profile,
+            user_data: model.user_data,
             security_groups,
-            ebs_optimized: optional_bool(attrs, "ebs_optimized").unwrap_or(false),
-            associate_public_ip_address: optional_bool(attrs, "associate_public_ip_address"),
-            spot_price: optional_str(attrs, "spot_price"),
+            ebs_optimized: model.ebs_optimized,
+            associate_public_ip_address,
+            spot_price: model.spot_price,
             created_time: chrono::Utc::now().to_rfc3339(),
         };
 
         let mut state_view = minimal_asg_state_view();
-        state_view.launch_configs.insert(name.to_string(), view);
+        state_view.launch_configs.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -348,12 +353,15 @@ impl AwsAutoscalingPolicyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: autoscaling_gen::ScalingPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_autoscaling_policy", e))?;
 
-        let name = require_str(attrs, "name", "aws_autoscaling_policy")?;
-        let group_name = require_str(attrs, "autoscaling_group_name", "aws_autoscaling_policy")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let group_name = model.autoscaling_group_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:autoscaling:{}:{}:scalingPolicy:{}:autoScalingGroupName/{}:policyName/{}",
                 region,
@@ -365,11 +373,11 @@ impl AwsAutoscalingPolicyConverter {
         });
 
         let view = ScalingPolicyView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
-            group_name: group_name.to_string(),
-            policy_type: optional_str(attrs, "policy_type"),
-            adjustment_type: optional_str(attrs, "adjustment_type"),
+            group_name,
+            policy_type: model.policy_type,
+            adjustment_type: model.adjustment_type,
             scaling_adjustment: optional_i64(attrs, "scaling_adjustment").map(|v| v as i32),
             cooldown: optional_i64(attrs, "cooldown").map(|v| v as i32),
             min_adjustment_magnitude: optional_i64(attrs, "min_adjustment_magnitude")
@@ -377,7 +385,7 @@ impl AwsAutoscalingPolicyConverter {
         };
 
         let mut state_view = minimal_asg_state_view();
-        state_view.policies.insert(name.to_string(), view);
+        state_view.policies.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -465,12 +473,15 @@ impl AwsAutoscalingScheduleConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: autoscaling_gen::ScheduledActionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_autoscaling_schedule", e))?;
 
-        let name = require_str(attrs, "scheduled_action_name", "aws_autoscaling_schedule")?;
-        let group_name = require_str(attrs, "autoscaling_group_name", "aws_autoscaling_schedule")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.scheduled_action_name.clone();
+        let group_name = model.autoscaling_group_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:autoscaling:{}:{}:scheduledUpdateGroupAction:{}",
                 region, ctx.default_account_id, name
@@ -478,20 +489,20 @@ impl AwsAutoscalingScheduleConverter {
         });
 
         let view = ScheduledActionView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
-            group_name: group_name.to_string(),
+            group_name,
             desired_capacity: optional_i64(attrs, "desired_capacity").map(|v| v as i32),
             min_size: optional_i64(attrs, "min_size").map(|v| v as i32),
             max_size: optional_i64(attrs, "max_size").map(|v| v as i32),
-            start_time: optional_str(attrs, "start_time"),
-            end_time: optional_str(attrs, "end_time"),
-            recurrence: optional_str(attrs, "recurrence"),
-            time_zone: optional_str(attrs, "time_zone"),
+            start_time: model.start_time,
+            end_time: model.end_time,
+            recurrence: model.recurrence,
+            time_zone: model.time_zone,
         };
 
         let mut state_view = minimal_asg_state_view();
-        state_view.scheduled_actions.insert(name.to_string(), view);
+        state_view.scheduled_actions.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

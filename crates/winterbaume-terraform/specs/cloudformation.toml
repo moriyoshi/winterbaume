@@ -1,0 +1,40 @@
+# Auto-ingested by `tf-converter-codegen ingest cloudformation`.
+# Hand-tuned: dropped tags_all, capabilities (Vec<String>), on_failure
+# (unused), the parameters/tags HCL fields whose StateView shape is
+# Vec<StackParameter>/Vec<StackTag>, timeout_in_minutes (Option<i32> in
+# view; spec's `i64` would not fit) and disable_rollback. Those fields
+# are read straight from instance.attributes in the converter.
+
+[service]
+name = "cloudformation"
+crate_name = "winterbaume_cloudformation"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_cloudformation_stack"
+model = "StackTfModel"
+view = "StackView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "template_body"
+view = "template_body"
+type = "string?"

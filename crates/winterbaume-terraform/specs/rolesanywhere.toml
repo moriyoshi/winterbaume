@@ -1,0 +1,96 @@
+# Auto-ingested by `tf-converter-codegen ingest rolesanywhere`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (profile / trust_anchor). Dropped Option<bool> fields
+# (`require_instance_properties`, `accept_role_session_name`),
+# Option<i64> (`duration_seconds`), the `role_arns` /
+# `managed_policy_arns` Vec<String> fields, and the nested `source`
+# block — those are read straight from instance.attributes in the
+# converter.
+
+[service]
+name = "rolesanywhere"
+crate_name = "winterbaume_rolesanywhere"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_rolesanywhere_profile
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rolesanywhere_profile"
+model = "ProfileTfModel"
+view = "ProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "session_policy"
+view = "session_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_rolesanywhere_trust_anchor
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rolesanywhere_trust_anchor"
+model = "TrustAnchorTfModel"
+view = "TrustAnchorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

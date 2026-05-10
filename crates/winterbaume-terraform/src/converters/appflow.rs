@@ -1,6 +1,13 @@
 //! Terraform converters for AWS AppFlow resources.
+//!
+//! Flat field projection (`name`, `arn`, `description`, `kms_arn`, `tags`)
+//! is generated from `specs/appflow.toml` into `crate::generated::appflow`.
+//! The nested-block reshaping that turns Terraform singleton-array blocks
+//! into AWS REST JSON discriminated objects is the genuinely service-
+//! specific logic and stays hand-written in this file (the
+//! `tf_to_aws_*` helpers below). This is the documented escape-hatch
+//! pattern from the migration plan.
 
-use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -15,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::appflow as appflow_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_appflow_flow
@@ -60,15 +68,14 @@ impl AwsAppFlowFlowConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_appflow_flow")?;
         let region = extract_region(attrs, &ctx.default_region);
-        let description = optional_str(attrs, "description");
-        let kms_arn = optional_str(attrs, "kms_arn");
+        let model: appflow_gen::FlowTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_appflow_flow", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:appflow:{}:{}:flow/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
 
@@ -76,7 +83,9 @@ impl AwsAppFlowFlowConverter {
         // Terraform uses snake_case keys and represents singleton blocks as
         // length-1 arrays; the AppFlow handlers downstream try to deserialize
         // these via `serde_json::from_value` against the AWS shapes, so the
-        // converter must do the translation here.
+        // converter must do the translation here. These helpers remain
+        // hand-written: the reshape is too service-specific to express in
+        // the spec.
         let trigger_config = tf_to_aws_trigger_config(attrs.get("trigger_config"))
             .unwrap_or(Value::Object(Map::new()));
         let source_flow_config = tf_to_aws_source_flow_config(attrs.get("source_flow_config"))
@@ -85,27 +94,17 @@ impl AwsAppFlowFlowConverter {
             tf_to_aws_destination_flow_config_list(attrs.get("destination_flow_config"));
         let tasks = tf_to_aws_tasks(attrs.get("task"));
 
-        let tags: HashMap<String, String> = attrs
-            .get("tags")
-            .and_then(|v| v.as_object())
-            .map(|obj| {
-                obj.iter()
-                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
-                    .collect()
-            })
-            .unwrap_or_default();
-
         let user = format!("arn:aws:iam::{}:user/terraform", ctx.default_account_id);
         let now = chrono::Utc::now().timestamp();
 
         let mut state_view = AppFlowStateView::default();
         state_view.flows.insert(
-            name.to_string(),
+            model.name.clone(),
             FlowView {
-                flow_name: name.to_string(),
+                flow_name: model.name,
                 flow_arn: arn,
-                description,
-                kms_arn,
+                description: model.description,
+                kms_arn: model.kms_arn,
                 flow_status: "Active".to_string(),
                 flow_status_message: None,
                 trigger_config,
@@ -118,7 +117,7 @@ impl AwsAppFlowFlowConverter {
                 created_by: user.clone(),
                 last_updated_by: user,
                 schema_version: 1,
-                tags,
+                tags: model.tags,
                 last_execution_id: None,
             },
         );

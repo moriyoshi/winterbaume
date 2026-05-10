@@ -1,4 +1,10 @@
 //! Terraform converter for Service Quotas resources.
+//!
+//! `ServiceQuotaTfModel` is generated from `specs/servicequotas.toml`.
+//! The ARN template, the `service_name` / `quota_name` fallbacks, the
+//! `unit` default ("None"), and the manual `value` (f64) read are wired
+//! up here. f64 fields are not supported by the codegen yet, so `value`
+//! stays off-model.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_str, require_str};
+use crate::generated::servicequotas as servicequotas_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_servicequotas_service_quota
@@ -59,36 +66,41 @@ impl AwsServicequotasServiceQuotaConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let service_code = require_str(attrs, "service_code", "aws_servicequotas_service_quota")?;
-        let quota_code = require_str(attrs, "quota_code", "aws_servicequotas_service_quota")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let service_name =
-            optional_str(attrs, "service_name").unwrap_or_else(|| service_code.to_string());
-        let quota_name =
-            optional_str(attrs, "quota_name").unwrap_or_else(|| quota_code.to_string());
-        let quota_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: servicequotas_gen::ServiceQuotaTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_servicequotas_service_quota", e))?;
+
+        let service_code = model.service_code.clone();
+        let quota_code = model.quota_code.clone();
+        let service_name = model.service_name.unwrap_or_else(|| service_code.clone());
+        let quota_name = model.quota_name.unwrap_or_else(|| quota_code.clone());
+        let quota_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:servicequotas:{}:{}:{}/{}",
                 region, ctx.default_account_id, service_code, quota_code
             )
         });
-        let value = attrs.get("value").and_then(|v| v.as_f64()).unwrap_or(0.0);
-        let unit = optional_str(attrs, "unit").unwrap_or_else(|| "None".to_string());
-        let adjustable = optional_bool(attrs, "adjustable").unwrap_or(false);
-        let global_quota = optional_bool(attrs, "global_quota").unwrap_or(false);
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        // `value` is f64, which the codegen does not currently model; read it
+        // straight from the TF attributes.
+        let value = instance
+            .attributes
+            .get("value")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        let unit = model.unit.unwrap_or_else(|| "None".to_string());
+        let description = model.description.unwrap_or_default();
 
         let quota_view = ServiceQuotaEntryView {
-            service_code: service_code.to_string(),
+            service_code: service_code.clone(),
             service_name,
-            quota_code: quota_code.to_string(),
+            quota_code: quota_code.clone(),
             quota_name,
             quota_arn,
             value,
             unit,
-            adjustable,
-            global_quota,
+            adjustable: model.adjustable,
+            global_quota: model.global_quota,
             description,
         };
 

@@ -1,0 +1,169 @@
+# Auto-ingested by `tf-converter-codegen ingest bedrockagent`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (agent / knowledge_base). Dropped Option<i64> field
+# (`idle_session_ttl_in_seconds`), nested-block fields
+# (`knowledge_base_configuration`, `storage_configuration`), the
+# Vec<String> fields (`failure_reasons`, `recommended_actions`), the
+# `tags_all` overlay and the `prepare_agent` bool — those are read
+# straight from instance.attributes in the converter.
+
+[service]
+name = "bedrockagent"
+crate_name = "winterbaume_bedrockagent"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_bedrockagent_agent
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrockagent_agent"
+model = "AgentTfModel"
+view = "AgentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "agent_name"
+view = "agent_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "agent_id"
+view = "agent_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "agent_arn"
+view = "agent_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "agent_version"
+view = "agent_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "client_token"
+view = "client_token"
+type = "string?"
+
+[[resource.field]]
+hcl = "instruction"
+view = "instruction"
+type = "string?"
+
+[[resource.field]]
+hcl = "agent_status"
+view = "agent_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "foundation_model"
+view = "foundation_model"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "agent_resource_role_arn"
+view = "agent_resource_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_encryption_key_arn"
+view = "customer_encryption_key_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "prepared_at"
+view = "prepared_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_bedrockagent_knowledge_base
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrockagent_knowledge_base"
+model = "KnowledgeBaseTfModel"
+view = "KnowledgeBaseView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "knowledge_base_id"
+view = "knowledge_base_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "knowledge_base_arn"
+view = "knowledge_base_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

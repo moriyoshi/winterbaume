@@ -1,0 +1,50 @@
+# Auto-ingested by `tf-converter-codegen ingest cloudhsmv2`.
+# Hand-tuned: dropped subnet_ids (Vec<String>), tags/tags_all
+# (Vec<TagView> shape doesn't match spec's HashMap projection), and
+# vpc_id (kept as model field). Renamed view names where the StateView
+# field name differs from the HCL key (cluster_state -> state,
+# security_group_id -> security_group).
+
+[service]
+name = "cloudhsmv2"
+crate_name = "winterbaume_cloudhsmv2"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_cloudhsm_v2_cluster"
+model = "ClusterTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "hsm_type"
+view = "hsm_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cluster_id"
+view = "cluster_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "cluster_state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "security_group_id"
+view = "security_group"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_backup_id"
+view = "source_backup_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"

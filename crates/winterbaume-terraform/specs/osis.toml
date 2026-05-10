@@ -1,0 +1,52 @@
+# Auto-ingested by `tf-converter-codegen ingest osis`.
+# Hand-tuned: dropped json-blob fields (`buffer_options`,
+# `encryption_at_rest_options`, `log_publishing_options`, `vpc_options`)
+# and the array-of-strings `ingest_endpoint_urls` so the converter reads
+# them straight from instance.attributes; gave the unit counts a
+# default of 1 to match the original `optional_i64(...).unwrap_or(1)`.
+
+[service]
+name = "osis"
+crate_name = "winterbaume_osis"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_osis_pipeline"
+model = "PipelineTfModel"
+view = "PipelineView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "pipeline_name"
+view = "pipeline_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "pipeline_arn"
+view = "pipeline_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "pipeline_configuration_body"
+view = "pipeline_configuration_body"
+type = "string?"
+
+[[resource.field]]
+hcl = "min_units"
+view = "min_units"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "max_units"
+view = "max_units"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

@@ -1,0 +1,76 @@
+# Auto-ingested by `tf-converter-codegen ingest logs`.
+# Hand-tuned: split into one [[resource]] per resource type
+# (log_group / log_stream). Dropped `retention_in_days` (Option<i64>,
+# not in spec vocabulary — read raw in the converter).
+
+[service]
+name = "logs"
+crate_name = "winterbaume_cloudwatchlogs"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_log_group"
+model = "LogGroupTfModel"
+view = "LogGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_stream
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_log_stream"
+model = "LogStreamTfModel"
+view = "LogStreamView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "log_group_name"
+view = "log_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"

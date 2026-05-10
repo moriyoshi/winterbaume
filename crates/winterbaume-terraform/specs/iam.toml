@@ -1,0 +1,216 @@
+# Auto-ingested by `tf-converter-codegen ingest iam`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (user / role / policy / group / instance_profile +
+# role_policy_attachment / user_policy_attachment).
+# ARN templates and synthesised unique IDs are wired up by hand. Tags are
+# merged via the standard extract_tags() helper (tags + tags_all) in the
+# converter rather than read directly from a model field. The attachment
+# converters keep operating directly on instance.attributes because they
+# snapshot+modify-existing-state rather than ingest a fresh struct, so
+# they live without a TfModel.
+# `aws_iam_policy` reads its name with a `name -> policy_name` fallback
+# in the converter; the spec format only supports a single hcl key per
+# field so the fallback stays hand-written.
+
+[service]
+name = "iam"
+crate_name = "winterbaume_iam"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_iam_user
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_iam_user"
+model = "IamUserTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "path"
+view = "path"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "unique_id"
+view = "unique_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_iam_role
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_iam_role"
+model = "IamRoleTfModel"
+view = "RoleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "path"
+view = "path"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "unique_id"
+view = "unique_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "assume_role_policy"
+view = "assume_role_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "max_session_duration"
+view = "max_session_duration"
+type = "i64"
+default = 3600
+
+[[resource.field]]
+hcl = "permissions_boundary"
+view = "permissions_boundary"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_iam_policy
+# ---------------------------------------------------------------------------
+# `name` is read with a fallback to `policy_name`; the converter handles the
+# fallback by hand because the spec format only supports a single hcl key
+# per field.
+
+[[resource]]
+type = "aws_iam_policy"
+model = "IamPolicyTfModel"
+view = "ManagedPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "path"
+view = "path"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy_id"
+view = "policy_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_iam_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_iam_group"
+model = "IamGroupTfModel"
+view = "GroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "path"
+view = "path"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "unique_id"
+view = "unique_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_iam_instance_profile
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_iam_instance_profile"
+model = "IamInstanceProfileTfModel"
+view = "InstanceProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "path"
+view = "path"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "unique_id"
+view = "unique_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "role"
+view = "role"
+type = "string?"

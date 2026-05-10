@@ -1,0 +1,267 @@
+# Auto-ingested by `tf-converter-codegen ingest neptune`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (cluster / cluster_instance / subnet_group / parameter_group).
+# Dropped Vec<String> fields (vpc_security_group_ids,
+# availability_zones, iam_roles, subnet_ids), nested-block fields
+# (serverless_v2_scaling_configuration, parameter), Option<i32>
+# `port` (no Option<i64> in the spec vocabulary), discarded
+# scalars (skip_final_snapshot, apply_immediately,
+# preferred_backup_window, iam_database_authentication_enabled),
+# Vec<TagView> tags, and tags_all — those are read straight from
+# instance.attributes in the converter. ARN / endpoint templates
+# and the many default values are hand-written in the converter.
+
+[service]
+name = "neptune"
+crate_name = "winterbaume_neptune"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_neptune_cluster
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_cluster"
+model = "DbClusterTfModel"
+view = "DbClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_mode"
+view = "engine_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "master_username"
+view = "master_username"
+type = "string?"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "neptune_subnet_group_name"
+view = "neptune_subnet_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "neptune_cluster_parameter_group_name"
+view = "neptune_cluster_parameter_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_arn"
+view = "kms_key_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "reader_endpoint"
+view = "reader_endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "copy_tags_to_snapshot"
+view = "copy_tags_to_snapshot"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "deletion_protection"
+view = "deletion_protection"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "backup_retention_period"
+view = "backup_retention_period"
+type = "i64"
+default = 1
+
+# ---------------------------------------------------------------------------
+# aws_neptune_cluster_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_cluster_instance"
+model = "DbInstanceTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identifier"
+view = "identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_class"
+view = "instance_class"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "neptune_subnet_group_name"
+view = "neptune_subnet_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "auto_minor_version_upgrade"
+view = "auto_minor_version_upgrade"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "publicly_accessible"
+view = "publicly_accessible"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "neptune_parameter_group_name"
+view = "neptune_parameter_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "kms_key_arn"
+view = "kms_key_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_neptune_subnet_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_subnet_group"
+model = "DbSubnetGroupTfModel"
+view = "DbSubnetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_neptune_parameter_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_parameter_group"
+model = "DbParameterGroupTfModel"
+view = "DbParameterGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "family"
+view = "family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"

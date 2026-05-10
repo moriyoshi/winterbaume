@@ -1,4 +1,10 @@
 //! Terraform converter for Timestream InfluxDB resources.
+//!
+//! `DbInstanceTfModel` is generated from `specs/timestreaminfluxdb.toml`. The
+//! ARN template, the `status = "AVAILABLE"` constant, the
+//! `Option<i32>`/`Option<bool>` numeric/bool fields, and the
+//! `Vec<String>` VPC arrays are wired up here from the raw
+//! `instance.attributes`.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,9 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::timestreaminfluxdb as timestreaminfluxdb_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_timestreaminfluxdb_db_instance
@@ -73,62 +78,56 @@ impl AwsTimestreaminfluxdbDbInstanceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_timestreaminfluxdb_db_instance")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: timestreaminfluxdb_gen::DbInstanceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_timestreaminfluxdb_db_instance", e))?;
 
-        let id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let id = model
+            .id
+            .clone()
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:timestream-influxdb:{}:{}:db-instance/{}",
                 region, ctx.default_account_id, id
             )
         });
 
-        let db_instance_type = optional_str(attrs, "db_instance_type")
+        let db_instance_type = model
+            .db_instance_type
             .unwrap_or_else(|| "db.influx.medium".to_string());
-        let db_storage_type = optional_str(attrs, "db_storage_type");
-        let allocated_storage = optional_i64(attrs, "allocated_storage").unwrap_or(20) as i32;
-        let deployment_type = optional_str(attrs, "deployment_type");
-        let publicly_accessible = optional_bool(attrs, "publicly_accessible");
-        let db_parameter_group_identifier = optional_str(attrs, "db_parameter_group_identifier");
-        let availability_zone = optional_str(attrs, "availability_zone");
-        let endpoint = optional_str(attrs, "endpoint");
-        let port = optional_i64(attrs, "port").map(|v| v as i32);
 
-        let _username = optional_str(attrs, "username");
-        // log_delivery_configuration block (accepted but not stored in mock state)
-        let _log_delivery_configuration = attrs.get("log_delivery_configuration");
-
-        let mut tags_map = extract_tags(attrs);
-        if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags_map.entry(k.clone()).or_insert_with(|| s.to_string());
-                }
-            }
-        }
+        // Numeric/bool fields with Option semantics on the view side stay as
+        // raw reads so we preserve the "missing" distinction.
+        let attrs = &instance.attributes;
+        let allocated_storage = attrs
+            .get("allocated_storage")
+            .and_then(|v| v.as_i64())
+            .unwrap_or(20) as i32;
+        let publicly_accessible = attrs.get("publicly_accessible").and_then(|v| v.as_bool());
+        let port = attrs.get("port").and_then(|v| v.as_i64()).map(|v| v as i32);
 
         let vpc_subnet_ids = extract_string_array(attrs, "vpc_subnet_ids");
         let vpc_security_group_ids = extract_string_array(attrs, "vpc_security_group_ids");
 
         let instance_view = DbInstanceView {
             id: id.clone(),
-            name: name.to_string(),
+            name: model.name.clone(),
             arn,
             status: "AVAILABLE".to_string(),
-            endpoint,
+            endpoint: model.endpoint,
             port,
             db_instance_type,
-            db_storage_type,
+            db_storage_type: model.db_storage_type,
             allocated_storage,
-            deployment_type,
+            deployment_type: model.deployment_type,
             vpc_subnet_ids,
             vpc_security_group_ids,
             publicly_accessible,
-            db_parameter_group_identifier,
-            availability_zone,
-            tags: tags_map,
+            db_parameter_group_identifier: model.db_parameter_group_identifier,
+            availability_zone: model.availability_zone,
+            tags: model.tags,
         };
 
         let mut state_view = TimestreamInfluxDbStateView {

@@ -1,4 +1,12 @@
 //! Terraform converters for AWS Organizations resources.
+//!
+//! `AccountTfModel`, `OrganizationalUnitTfModel`, and
+//! `OrganizationsPolicyTfModel` are generated from
+//! `specs/organizations.toml`. The ARN templates, the random/UUID-derived
+//! IDs, the parent_id / status / joined_method / aws_managed constants,
+//! the `create_account_status_id`, and the tags side-channel for accounts
+//! are wired up here. The management account ID is read straight from
+//! `instance.attributes` because the model does not surface `account_id`.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +23,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_account_id, extract_region, optional_str, require_str};
+use crate::generated::organizations as organizations_gen;
+use crate::util::{classify_deserialize_error, extract_account_id, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_organizations_account
@@ -63,23 +72,26 @@ impl AwsOrganizationsAccountConverter {
         let region = extract_region(attrs, &ctx.default_region);
         let mgmt_account_id = extract_account_id(attrs, &ctx.default_account_id);
 
-        let name = require_str(attrs, "name", "aws_organizations_account")?;
-        let email = require_str(attrs, "email", "aws_organizations_account")?;
-        let member_account_id =
-            optional_str(attrs, "id").unwrap_or_else(|| format!("{:012}", rand_account_id()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: organizations_gen::AccountTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_organizations_account", e))?;
+
+        let member_account_id = model
+            .id
+            .unwrap_or_else(|| format!("{:012}", rand_account_id()));
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:organizations::{}:account/o-example/{}",
                 mgmt_account_id, member_account_id
             )
         });
-        let parent_id = optional_str(attrs, "parent_id").unwrap_or_else(|| "r-root".to_string());
+        let parent_id = model.parent_id.unwrap_or_else(|| "r-root".to_string());
+        let name = model.name.clone();
 
         let view = AccountView {
             id: member_account_id.clone(),
             arn,
-            name: name.to_string(),
-            email: email.to_string(),
+            name: name.clone(),
+            email: model.email,
             status: "ACTIVE".to_string(),
             joined_method: "CREATED".to_string(),
             joined_timestamp: chrono::Utc::now().to_rfc3339(),
@@ -93,7 +105,7 @@ impl AwsOrganizationsAccountConverter {
         // Handle tags
         let tags = extract_org_tags(attrs);
         if !tags.is_empty() {
-            state_view.tags.insert(name.to_string(), tags);
+            state_view.tags.insert(name, tags);
         }
 
         self.service
@@ -181,11 +193,15 @@ impl AwsOrganizationsOuConverter {
         let region = extract_region(attrs, &ctx.default_region);
         let account_id = extract_account_id(attrs, &ctx.default_account_id);
 
-        let name = require_str(attrs, "name", "aws_organizations_organizational_unit")?;
-        let parent_id = require_str(attrs, "parent_id", "aws_organizations_organizational_unit")?;
-        let ou_id = optional_str(attrs, "id")
+        let model: organizations_gen::OrganizationalUnitTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_organizations_organizational_unit", e)
+            })?;
+
+        let ou_id = model
+            .id
             .unwrap_or_else(|| format!("ou-{}", &uuid::Uuid::new_v4().to_string()[..12]));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:organizations::{}:ou/o-example/{}",
                 account_id, ou_id
@@ -195,8 +211,8 @@ impl AwsOrganizationsOuConverter {
         let view = OrganizationalUnitView {
             id: ou_id.clone(),
             arn,
-            name: name.to_string(),
-            parent_id: parent_id.to_string(),
+            name: model.name,
+            parent_id: model.parent_id,
         };
 
         let mut state_view = minimal_org_state_view();
@@ -282,14 +298,18 @@ impl AwsOrganizationsPolicyConverter {
         let region = extract_region(attrs, &ctx.default_region);
         let account_id = extract_account_id(attrs, &ctx.default_account_id);
 
-        let name = require_str(attrs, "name", "aws_organizations_policy")?;
-        let content = require_str(attrs, "content", "aws_organizations_policy")?;
-        let policy_type =
-            optional_str(attrs, "type").unwrap_or_else(|| "SERVICE_CONTROL_POLICY".to_string());
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let policy_id = optional_str(attrs, "id")
+        let model: organizations_gen::OrganizationsPolicyTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_organizations_policy", e))?;
+
+        let policy_type = model
+            .policy_type
+            .unwrap_or_else(|| "SERVICE_CONTROL_POLICY".to_string());
+        let description = model.description.unwrap_or_default();
+        let policy_id = model
+            .id
             .unwrap_or_else(|| format!("p-{}", &uuid::Uuid::new_v4().to_string()[..12]));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:organizations::{}:policy/o-example/{}/{}",
                 account_id,
@@ -301,10 +321,10 @@ impl AwsOrganizationsPolicyConverter {
         let view = OrgPolicyView {
             id: policy_id.clone(),
             arn,
-            name: name.to_string(),
+            name: model.name,
             description,
             policy_type,
-            content: content.to_string(),
+            content: model.content,
             aws_managed: false,
         };
 

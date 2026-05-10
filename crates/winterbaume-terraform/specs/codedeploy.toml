@@ -1,0 +1,75 @@
+# Auto-ingested by `tf-converter-codegen ingest codedeploy`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (app / deployment_group). Dropped nested-block / Vec<Value> fields
+# (`alarm_configuration`, `auto_rollback_configuration`,
+# `blue_green_deployment_config`, `deployment_style`, `ec2_tag_filter`,
+# `ec2_tag_set`, `ecs_service`, `load_balancer_info`,
+# `trigger_configuration`, `tags_all`, `tags`) — those are read straight
+# from instance.attributes in the converter.
+
+[service]
+name = "codedeploy"
+crate_name = "winterbaume_codedeploy"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_codedeploy_app
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codedeploy_app"
+model = "ApplicationTfModel"
+view = "ApplicationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "compute_platform"
+view = "compute_platform"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_codedeploy_deployment_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codedeploy_deployment_group"
+model = "DeploymentGroupTfModel"
+view = "DeploymentGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "app_name"
+view = "app_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "deployment_group_name"
+view = "deployment_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_role_arn"
+view = "service_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_config_name"
+view = "deployment_config_name"
+type = "string?"

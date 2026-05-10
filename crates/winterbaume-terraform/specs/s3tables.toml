@@ -1,0 +1,116 @@
+# Auto-ingested by `tf-converter-codegen ingest s3tables`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `maintenance_config` on the table_bucket (HashMap<String,String> in
+#     the view, not in spec vocabulary — read raw)
+#   - `namespace_list` on the namespace (Vec<String> in the view, not in
+#     spec vocabulary — read raw)
+
+[service]
+name = "s3tables"
+crate_name = "winterbaume_s3tables"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_s3tables_table_bucket"
+model = "TableBucketTfModel"
+view = "TableBucketView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "encryption_sse_algorithm"
+view = "encryption_sse_algorithm"
+type = "string?"
+
+[[resource.field]]
+hcl = "encryption_kms_key_arn"
+view = "encryption_kms_key_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "metrics_config"
+view = "metrics_config"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_class"
+view = "storage_class"
+type = "string?"
+
+[[resource.field]]
+hcl = "replication_config"
+view = "replication_config"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_s3tables_namespace"
+model = "NamespaceTfModel"
+view = "NamespaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "namespace"
+view = "namespace"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "table_bucket_arn"
+view = "table_bucket_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_by"
+view = "created_by"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

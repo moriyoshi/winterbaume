@@ -1,4 +1,11 @@
 //! Terraform converters for EventBridge Scheduler resources.
+//!
+//! `ScheduleGroupTfModel` and `ScheduleTfModel` are generated from
+//! `specs/scheduler.toml`. The ARN templates, the constants
+//! (`state = "ACTIVE"` for groups, `state = "ENABLED"` for schedules,
+//! retry policy defaults), the nested `flexible_time_window` /
+//! `target` blocks, and the `Vec<TagView>` projection from the HCL
+//! `tags` map are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -18,7 +25,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::scheduler as scheduler_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_scheduler_schedule_group
@@ -64,15 +72,13 @@ impl AwsSchedulerScheduleGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: scheduler_gen::ScheduleGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_scheduler_schedule_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_scheduler_schedule_group")?;
-        let _tags_all = attrs.get("tags_all");
-        let _state = optional_str(attrs, "state");
-        let _creation_date = optional_str(attrs, "creation_date");
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:scheduler:{}:{}:schedule-group/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
 
@@ -93,7 +99,7 @@ impl AwsSchedulerScheduleGroupConverter {
 
         let now = Utc::now().to_rfc3339();
         let group_view = ScheduleGroupView {
-            name: name.to_string(),
+            name: model.name.clone(),
             arn,
             state: "ACTIVE".to_string(),
             creation_date: now.clone(),
@@ -105,7 +111,7 @@ impl AwsSchedulerScheduleGroupConverter {
             groups: HashMap::new(),
             schedules: HashMap::new(),
         };
-        state_view.groups.insert(name.to_string(), group_view);
+        state_view.groups.insert(model.name, group_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -198,20 +204,20 @@ impl AwsSchedulerScheduleConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: scheduler_gen::ScheduleTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_scheduler_schedule", e))?;
 
-        let name = require_str(attrs, "name", "aws_scheduler_schedule")?;
-        let group_name = optional_str(attrs, "group_name").unwrap_or_else(|| "default".to_string());
-        let key = format!("{}\x00{}", group_name, name);
+        let group_name = model.group_name.unwrap_or_else(|| "default".to_string());
+        let key = format!("{}\x00{}", group_name, model.name);
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:scheduler:{}:{}:schedule/{}/{}",
-                region, ctx.default_account_id, group_name, name
+                region, ctx.default_account_id, group_name, model.name
             )
         });
-        let schedule_expression = optional_str(attrs, "schedule_expression").unwrap_or_default();
-        let description = optional_str(attrs, "description");
-        let state_str = optional_str(attrs, "state").unwrap_or_else(|| "ENABLED".to_string());
+        let schedule_expression = model.schedule_expression.unwrap_or_default();
+        let state_str = model.state.unwrap_or_else(|| "ENABLED".to_string());
 
         // flexible_time_window
         let flexible_time_window_mode = attrs
@@ -264,7 +270,7 @@ impl AwsSchedulerScheduleConverter {
 
         let now = Utc::now().to_rfc3339();
         let schedule_view = ScheduleView {
-            name: name.to_string(),
+            name: model.name.clone(),
             arn,
             group_name: group_name.clone(),
             schedule_expression,
@@ -281,7 +287,7 @@ impl AwsSchedulerScheduleConverter {
                 },
             },
             state: state_str,
-            description,
+            description: model.description,
             action_after_completion: None,
             start_date: None,
             end_date: None,

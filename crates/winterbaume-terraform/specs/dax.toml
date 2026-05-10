@@ -1,0 +1,116 @@
+# Auto-ingested by `tf-converter-codegen ingest dax`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (cluster / subnet_group / parameter_group). Dropped discarded fields
+# (`notification_topic_arn`, `parameter_group_name`, `subnet_group_name`),
+# `tags_all` (merged into tags from raw attrs), `server_side_encryption`
+# (nested-block array), and `subnet_ids` (Vec<String>) — those are read
+# straight from instance.attributes in the converter.
+
+[service]
+name = "dax"
+crate_name = "winterbaume_dax"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_dax_cluster
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dax_cluster"
+model = "DaxClusterTfModel"
+view = "DaxClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "node_type"
+view = "node_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "replication_factor"
+view = "replication_factor"
+type = "i64"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "cluster_endpoint_encryption_type"
+view = "cluster_endpoint_encryption_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dax_subnet_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dax_subnet_group"
+model = "DaxSubnetGroupTfModel"
+view = "DaxSubnetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dax_parameter_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dax_parameter_group"
+model = "DaxParameterGroupTfModel"
+view = "DaxParameterGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"

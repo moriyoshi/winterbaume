@@ -1,0 +1,105 @@
+# Auto-ingested by `tf-converter-codegen ingest cognitoidp`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (user_pool / user_pool_client). Dropped Vec<T>/nested-block fields
+# (custom_attributes, auto_verified_attributes, username_attributes,
+# explicit_auth_flows, allowed_oauth_flows, allowed_oauth_scopes,
+# callback_urls, logout_urls, supported_identity_providers,
+# account_recovery_setting, admin_create_user_config, alias_attributes,
+# device_configuration, email_configuration, lambda_config, password_policy,
+# schema, sms_configuration, verification_message_template, user_pool_add_ons,
+# analytics_configuration, token_validity_units, tags_all) and the
+# Option<i32> refresh_token_validity field. Those are read straight from
+# instance.attributes in the converter.
+
+[service]
+name = "cognitoidp"
+crate_name = "winterbaume_cognitoidentityprovider"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_cognito_user_pool
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cognito_user_pool"
+model = "UserPoolTfModel"
+view = "UserPoolView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "mfa_configuration"
+view = "mfa_configuration"
+type = "string?"
+
+[[resource.field]]
+hcl = "deletion_protection"
+view = "deletion_protection"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_cognito_user_pool_client
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cognito_user_pool_client"
+model = "UserPoolClientTfModel"
+view = "UserPoolClientView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_pool_id"
+view = "user_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "client_secret"
+view = "client_secret"
+type = "string?"
+
+[[resource.field]]
+hcl = "allowed_oauth_flows_user_pool_client"
+view = "allowed_oauth_flows_user_pool_client"
+type = "bool"
+default = false

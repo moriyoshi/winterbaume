@@ -1,4 +1,10 @@
 //! Terraform converter for EC2 Instance Connect resources.
+//!
+//! `EndpointTfModel` is generated from `specs/ec2instanceconnect.toml`. The
+//! synthesised endpoint id (`eice-...`), the `state` / `owner_id` /
+//! `availability_zone` / `created_at` fallbacks, and the
+//! `security_group_ids` / `network_interface_ids` Vec<String> projections
+//! are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::ec2instanceconnect as ec2instanceconnect_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_ec2_instance_connect_endpoint
@@ -58,18 +65,21 @@ impl AwsEc2InstanceConnectEndpointConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let subnet_id = require_str(attrs, "subnet_id", "aws_ec2_instance_connect_endpoint")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: ec2instanceconnect_gen::EndpointTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ec2_instance_connect_endpoint", e))?;
 
-        let endpoint_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "instance_connect_endpoint_id"))
+        let endpoint_id = model
+            .id
+            .clone()
+            .or_else(|| model.instance_connect_endpoint_id.clone())
             .unwrap_or_else(|| {
                 format!("eice-{}", &uuid::Uuid::new_v4().simple().to_string()[..17])
             });
 
-        let vpc_id = optional_str(attrs, "vpc_id").unwrap_or_default();
-        let security_group_ids: Vec<String> = attrs
+        let security_group_ids: Vec<String> = instance
+            .attributes
             .get("security_group_ids")
             .and_then(|v| v.as_array())
             .map(|arr| {
@@ -78,10 +88,8 @@ impl AwsEc2InstanceConnectEndpointConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let state = optional_str(attrs, "state").unwrap_or_else(|| "create-complete".to_string());
-        let dns_name = optional_str(attrs, "dns_name");
-        let fips_dns_name = optional_str(attrs, "fips_dns_name");
-        let network_interface_ids: Vec<String> = attrs
+        let network_interface_ids: Vec<String> = instance
+            .attributes
             .get("network_interface_ids")
             .and_then(|v| v.as_array())
             .map(|arr| {
@@ -90,27 +98,26 @@ impl AwsEc2InstanceConnectEndpointConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
-        let availability_zone =
-            optional_str(attrs, "availability_zone").unwrap_or_else(|| format!("{}a", region));
-        let created_at =
-            optional_str(attrs, "created_at").unwrap_or_else(|| "2024-01-01T00:00:00Z".to_string());
-        let tags = extract_tags(attrs);
 
         let endpoint_view = EndpointView {
             instance_connect_endpoint_id: endpoint_id.clone(),
-            subnet_id: subnet_id.to_string(),
-            vpc_id,
+            subnet_id: model.subnet_id,
+            vpc_id: model.vpc_id.unwrap_or_default(),
             security_group_ids,
-            state,
-            dns_name,
-            fips_dns_name,
+            state: model.state.unwrap_or_else(|| "create-complete".to_string()),
+            dns_name: model.dns_name,
+            fips_dns_name: model.fips_dns_name,
             network_interface_ids,
-            owner_id,
-            availability_zone,
-            created_at,
-            tags,
+            owner_id: model
+                .owner_id
+                .unwrap_or_else(|| ctx.default_account_id.clone()),
+            availability_zone: model
+                .availability_zone
+                .unwrap_or_else(|| format!("{}a", region)),
+            created_at: model
+                .created_at
+                .unwrap_or_else(|| "2024-01-01T00:00:00Z".to_string()),
+            tags: model.tags,
         };
 
         let mut state_view = Ec2InstanceConnectStateView::default();

@@ -1,0 +1,111 @@
+# Per-service Terraform converter mapping spec.
+#
+# Generated code lives at crates/winterbaume-terraform/src/generated/sqs.rs.
+# Regenerate with: cargo run -p tf-converter-codegen -- gen sqs
+
+[service]
+name = "sqs"
+crate_name = "winterbaume_sqs"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_sqs_queue"
+model = "SqsQueueTfModel"
+view = "QueueStateView"
+
+[resource.computed.arn]
+template = "arn:aws:sqs:{region}:{account}:{name}"
+attr_override = "arn"
+
+[resource.computed.url]
+template = "https://sqs.{region}.amazonaws.com/{account}/{name}"
+attr_override_chain = ["url", "id"]
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "visibility_timeout_seconds"
+view = "visibility_timeout"
+type = "u32"
+default = 30
+
+[[resource.field]]
+hcl = "delay_seconds"
+view = "delay_seconds"
+type = "u32"
+default = 0
+
+[[resource.field]]
+hcl = "max_message_size"
+view = "maximum_message_size"
+type = "u32"
+default = 262144
+
+[[resource.field]]
+hcl = "message_retention_seconds"
+view = "message_retention_period"
+type = "u32"
+default = 345600
+
+[[resource.field]]
+hcl = "receive_wait_time_seconds"
+view = "receive_wait_time_seconds"
+type = "u32"
+default = 0
+
+[[resource.field]]
+hcl = "fifo_queue"
+view = "fifo_queue"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "content_based_deduplication"
+view = "content_based_deduplication"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource.field]]
+hcl = "redrive_policy"
+view = "redrive_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.computed_extract]]
+hcl = "id"
+source = "url"
+type = "string"
+
+[[resource.computed_extract]]
+hcl = "tags_all"
+source = "tags"
+type = "tags"
+
+[[resource.view_extra]]
+view = "region"
+source = "region"
+
+[[resource.view_extra]]
+view = "account_id"
+source = "account_id"
+
+[[resource.view_extra]]
+view = "created_timestamp"
+source = "none"
+
+[[resource.view_extra]]
+view = "last_modified_timestamp"
+source = "none"

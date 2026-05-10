@@ -1,0 +1,34 @@
+[service]
+name = "ram"
+crate_name = "winterbaume_ram"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_ram_resource_share"
+model = "ResourceShareTfModel"
+view = "ResourceShareView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "allow_external_principals"
+view = "allow_external_principals"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

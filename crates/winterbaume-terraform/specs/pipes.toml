@@ -1,0 +1,82 @@
+# Auto-ingested by `tf-converter-codegen ingest pipes`.
+# Hand-tuned: dropped `tags_all` (it is a HashMap, not a string, and the
+# converter merges it into `tags` directly from raw attributes) and the
+# four `*_parameters` / `log_configuration` JSON-Value fields (the spec
+# vocabulary has no untyped JSON; the converter projects them straight
+# from raw attributes onto Option<serde_json::Value>).
+
+[service]
+name = "pipes"
+crate_name = "winterbaume_pipes"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_pipes_pipe"
+model = "PipeTfModel"
+view = "PipeView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source"
+view = "source"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target"
+view = "target"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "current_state"
+view = "current_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "desired_state"
+view = "desired_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "enrichment"
+view = "enrichment"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

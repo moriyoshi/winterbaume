@@ -1,0 +1,84 @@
+# Auto-ingested by `tf-converter-codegen ingest codeartifact`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type
+# (domain / repository). Dropped:
+#   - `external_connections`, `upstream` on the repository (raw Value blobs
+#     read straight from instance.attributes).
+#   - `s3_bucket_arn` (discarded by the original converter — read raw).
+#   - `tags_all` (merged into tags raw in the converter).
+
+[service]
+name = "codeartifact"
+crate_name = "winterbaume_codeartifact"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_codeartifact_domain
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codeartifact_domain"
+model = "DomainTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "encryption_key"
+view = "encryption_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_codeartifact_repository
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codeartifact_repository"
+model = "RepositoryTfModel"
+view = "RepositoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "repository"
+view = "repository"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

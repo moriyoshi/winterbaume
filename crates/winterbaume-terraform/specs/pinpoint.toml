@@ -1,0 +1,96 @@
+# Auto-ingested by `tf-converter-codegen ingest pinpoint`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (app / email_channel). Dropped the `tags_all` and the nested-block
+# fields (`campaign_hook`, `limits`, `quiet_time`) — those are read
+# straight from instance.attributes in the converter.
+
+[service]
+name = "pinpoint"
+crate_name = "winterbaume_pinpoint"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_app
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_app"
+model = "PinpointAppTfModel"
+view = "PinpointAppView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_date"
+view = "creation_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_email_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_email_channel"
+model = "EmailChannelTfModel"
+view = "EmailChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "from_address"
+view = "from_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "identity"
+view = "identity"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "configuration_set"
+view = "configuration_set"
+type = "string?"

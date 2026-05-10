@@ -1,4 +1,9 @@
 //! Terraform converter for CloudTrail resources.
+//!
+//! `TrailTfModel` is generated from `specs/cloudtrail.toml`. The ARN
+//! template, the `event_selector` / `insight_selector` nested-block
+//! arrays, and the `advanced_event_selector` raw JSON value are wired
+//! up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str, require_str};
+use crate::generated::cloudtrail as cloudtrail_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_cloudtrail
@@ -58,19 +64,20 @@ impl AwsCloudtrailConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: cloudtrail_gen::TrailTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudtrail", e))?;
 
-        let name = require_str(attrs, "name", "aws_cloudtrail")?;
-        let s3_bucket = require_str(attrs, "s3_bucket_name", "aws_cloudtrail")?;
-        let s3_key_prefix = optional_str(attrs, "s3_key_prefix").unwrap_or_default();
-        let trail_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+
+        let trail_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:cloudtrail:{}:{}:trail/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
-        let tags = extract_tags(attrs);
+        let s3_key_prefix = model.s3_key_prefix.unwrap_or_default();
         let advanced_event_selectors = attrs.get("advanced_event_selector").cloned();
 
         // Parse event_selector nested blocks for round-tripping.
@@ -148,17 +155,16 @@ impl AwsCloudtrailConverter {
             .unwrap_or_default();
 
         let view = TrailView {
-            name: name.to_string(),
-            s3_bucket_name: s3_bucket.to_string(),
+            name: model.name.clone(),
+            s3_bucket_name: model.s3_bucket_name,
             s3_key_prefix,
-            include_global_service_events: optional_bool(attrs, "include_global_service_events")
-                .unwrap_or(true),
-            is_multi_region_trail: optional_bool(attrs, "is_multi_region_trail").unwrap_or(false),
+            include_global_service_events: model.include_global_service_events,
+            is_multi_region_trail: model.is_multi_region_trail,
             trail_arn,
             home_region: region.clone(),
-            is_logging: optional_bool(attrs, "enable_logging").unwrap_or(true),
+            is_logging: model.enable_logging,
             latest_delivery_time: None,
-            tags,
+            tags: model.tags,
             event_selectors,
             insight_selectors,
             advanced_event_selectors,
@@ -168,7 +174,7 @@ impl AwsCloudtrailConverter {
             trails: HashMap::new(),
             event_data_stores: HashMap::new(),
         };
-        state_view.trails.insert(name.to_string(), view);
+        state_view.trails.insert(model.name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

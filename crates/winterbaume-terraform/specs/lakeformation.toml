@@ -1,0 +1,63 @@
+# Auto-ingested by `tf-converter-codegen ingest lakeformation`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `hybrid_access_enabled` (discarded by the original converter — read raw)
+#   - `external_data_filtering_allow_list`, `trusted_resource_owners`
+#     (Vec<String> on the data_lake_settings — not in spec vocab,
+#     read raw)
+#   - `admins`, `authorized_session_tag_value_list` (Vec<String> — not
+#     in spec vocab, read raw)
+#   - `create_database_default_permissions`,
+#     `create_table_default_permissions` (nested-block arrays — read raw)
+
+[service]
+name = "lakeformation"
+crate_name = "winterbaume_lakeformation"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_lakeformation_resource
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lakeformation_resource"
+model = "RegisteredResourceTfModel"
+view = "RegisteredResourceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "use_service_linked_role"
+view = "use_service_linked_role"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_lakeformation_data_lake_settings
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lakeformation_data_lake_settings"
+model = "DataLakeSettingsTfModel"
+view = "DataLakeSettingsView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "allow_external_data_filtering"
+view = "allow_external_data_filtering"
+type = "bool"
+default = false

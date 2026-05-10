@@ -1,4 +1,15 @@
 //! Terraform converters for Bedrock resources.
+//!
+//! `GuardrailTfModel` is generated from `specs/bedrock.toml`. The ARN
+//! template, default `guardrail_id` (= name), the `READY` / `DRAFT`
+//! constants, the `tags_all` merge, and the nested-block reads
+//! (`content_policy_config`, `contextual_grounding_policy_config`,
+//! `sensitive_information_policy_config`, `topic_policy_config`,
+//! `word_policy_config`) are wired up here. The
+//! `aws_bedrock_model_invocation_logging_configuration` resource has
+//! no strongly-typed scalar inputs — its sole field is the
+//! `logging_config` nested block — so its converter remains
+//! hand-written.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::bedrock as bedrock_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_bedrock_guardrail
@@ -58,28 +70,28 @@ impl AwsBedrockGuardrailConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: bedrock_gen::GuardrailTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_bedrock_guardrail", e))?;
 
-        let name = require_str(attrs, "name", "aws_bedrock_guardrail")?;
-        let guardrail_id = optional_str(attrs, "guardrail_id").unwrap_or_else(|| name.to_string());
-        let guardrail_arn = optional_str(attrs, "guardrail_arn").unwrap_or_else(|| {
+        let name = model.name;
+        let guardrail_id = model.guardrail_id.unwrap_or_else(|| name.clone());
+        let guardrail_arn = model.guardrail_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:bedrock:{}:{}:guardrail/{}",
                 region, ctx.default_account_id, guardrail_id
             )
         });
-        let description = optional_str(attrs, "description");
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "READY".to_string());
-        let version = optional_str(attrs, "version").unwrap_or_else(|| "DRAFT".to_string());
-        let created_at = optional_str(attrs, "created_at").unwrap_or_default();
-        let updated_at = optional_str(attrs, "updated_at").unwrap_or_default();
-        let blocked_input_messaging =
-            optional_str(attrs, "blocked_input_messaging").unwrap_or_default();
-        let blocked_outputs_messaging =
-            optional_str(attrs, "blocked_outputs_messaging").unwrap_or_default();
-        let _kms_key_arn = optional_str(attrs, "kms_key_arn");
-        let mut _tags = extract_tags(attrs);
+        let status = model.status.unwrap_or_else(|| "READY".to_string());
+        let version = model.version.unwrap_or_else(|| "DRAFT".to_string());
+        let created_at = model.created_at.unwrap_or_default();
+        let updated_at = model.updated_at.unwrap_or_default();
+        let blocked_input_messaging = model.blocked_input_messaging.unwrap_or_default();
+        let blocked_outputs_messaging = model.blocked_outputs_messaging.unwrap_or_default();
+
+        let attrs = &instance.attributes;
+        let mut _tags = model.tags;
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
@@ -99,8 +111,8 @@ impl AwsBedrockGuardrailConverter {
         let guardrail = winterbaume_bedrock::types::Guardrail {
             guardrail_id: guardrail_id.clone(),
             guardrail_arn,
-            name: name.to_string(),
-            description,
+            name,
+            description: model.description,
             status,
             version,
             created_at,
@@ -170,6 +182,12 @@ impl AwsBedrockGuardrailConverter {
 // ---------------------------------------------------------------------------
 // aws_bedrock_model_invocation_logging_configuration
 // ---------------------------------------------------------------------------
+//
+// This resource has no strongly-typed scalar inputs. Its sole field
+// (`logging_config`) is a nested block carrying further nested blocks
+// (`s3_configuration`, `cloudwatch_configuration`). The converter
+// reads them straight from instance.attributes and writes directly to
+// the `LoggingConfiguration` Rust struct, so it remains hand-written.
 
 /// Converts `aws_bedrock_model_invocation_logging_configuration` Terraform
 /// resources to/from Bedrock state.

@@ -1,0 +1,182 @@
+# Auto-ingested by `tf-converter-codegen ingest appmesh`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (mesh / virtual_node / virtual_service). Dropped `spec` (read as a raw
+# Value blob in the converter — for mesh we extract egress_filter.type,
+# for virtual_node/virtual_service we deserialize into the nested spec
+# struct) and `version` (Option<i64> needs hand-rolled fallback).
+
+[service]
+name = "appmesh"
+crate_name = "winterbaume_appmesh"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_appmesh_mesh
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appmesh_mesh"
+model = "MeshTfModel"
+view = "MeshView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "mesh_owner"
+view = "mesh_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_owner"
+view = "resource_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_date"
+view = "created_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date"
+view = "last_updated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appmesh_virtual_node
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appmesh_virtual_node"
+model = "VirtualNodeTfModel"
+view = "VirtualNodeView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mesh_name"
+view = "mesh_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "mesh_owner"
+view = "mesh_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_owner"
+view = "resource_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_date"
+view = "created_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date"
+view = "last_updated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appmesh_virtual_service
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appmesh_virtual_service"
+model = "VirtualServiceTfModel"
+view = "VirtualServiceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mesh_name"
+view = "mesh_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "mesh_owner"
+view = "mesh_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_owner"
+view = "resource_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_date"
+view = "created_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date"
+view = "last_updated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

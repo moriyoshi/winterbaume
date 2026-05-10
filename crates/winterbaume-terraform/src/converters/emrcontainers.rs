@@ -1,4 +1,9 @@
 //! Terraform converter for EMR Containers resources.
+//!
+//! `VirtualClusterTfModel` is generated from `specs/emrcontainers.toml`. The
+//! ARN template, the `state = "RUNNING"` constant, the `created_at`
+//! timestamp, and the nested `container_provider` block (with its `info`
+//! / `eks_info` sub-blocks) are wired up here from raw attributes.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -17,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::emrcontainers as emrcontainers_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_emrcontainers_virtual_cluster
@@ -62,19 +68,25 @@ impl AwsEmrcontainersVirtualClusterConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_emrcontainers_virtual_cluster")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: emrcontainers_gen::VirtualClusterTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_emrcontainers_virtual_cluster", e))?;
 
-        let id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let id = model
+            .id
+            .clone()
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:emr-containers:{}:{}:/virtualclusters/{}",
                 region, ctx.default_account_id, id
             )
         });
 
-        // Parse container_provider block
+        // Parse container_provider block from raw attributes (nested
+        // object-or-array shape isn't expressible in the spec).
+        let attrs = &instance.attributes;
         let cp = attrs.get("container_provider");
         let container_provider = if let Some(cp_val) = cp {
             let cp_obj = cp_val.as_array().and_then(|a| a.first()).unwrap_or(cp_val);
@@ -122,12 +134,12 @@ impl AwsEmrcontainersVirtualClusterConverter {
 
         let vc_view = VirtualClusterView {
             id: id.clone(),
-            name: name.to_string(),
+            name: model.name.clone(),
             arn,
             state: "RUNNING".to_string(),
             container_provider,
             created_at: chrono::Utc::now(),
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let mut state_view = EmrContainersStateView {

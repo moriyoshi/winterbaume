@@ -1,0 +1,94 @@
+# Auto-ingested by `tf-converter-codegen ingest ebs`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `iops` and `throughput` on the volume (Option<i64> in the view, not in
+#     spec vocabulary — read raw)
+#   - `block_size` on the snapshot (i32, not in spec vocabulary — read raw)
+#   - `id` (handled as a fallback for the synthesised primary key — read raw)
+#   - `outpost_arn`, `permanent_restore`, `storage_tier`, `tags_all`,
+#     `temporary_restore_days`, `timeouts`, `volume_id` on the snapshot
+#     (discarded by the original converter — read raw)
+
+[service]
+name = "ebs"
+crate_name = "winterbaume_ebs"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_ebs_volume"
+model = "VolumeTfModel"
+view = "VolumeView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "size"
+view = "size"
+type = "i64"
+default = 8
+
+[[resource.field]]
+hcl = "type"
+view = "volume_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "encrypted"
+view = "encrypted"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_id"
+view = "snapshot_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "volume_id"
+view = "volume_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_ebs_snapshot"
+model = "SnapshotTfModel"
+view = "SnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "snapshot_id"
+view = "snapshot_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "volume_size"
+view = "volume_size"
+type = "i64"
+default = 8
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"

@@ -1,0 +1,72 @@
+# Auto-ingested by `tf-converter-codegen ingest ec2instanceconnect`.
+# Review and hand-tune before regenerating.
+
+[service]
+name = "ec2instanceconnect"
+crate_name = "winterbaume_ec2instanceconnect"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_ec2_instance_connect_endpoint"
+model = "EndpointTfModel"
+view = "EndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "dns_name"
+view = "dns_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "fips_dns_name"
+view = "fips_dns_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_connect_endpoint_id"
+view = "instance_connect_endpoint_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+

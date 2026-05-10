@@ -1,0 +1,148 @@
+# Auto-ingested by `tf-converter-codegen ingest events`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (event_bus / rule / target). Dropped nested-block fields
+# (dead_letter_config, retry_policy, input_transformer, ecs_target,
+# batch_target, etc.), Vec<TagView>, and tags_all — those are read
+# straight from instance.attributes in the converter. ARN/URL
+# templates are hand-written in the converter.
+
+[service]
+name = "events"
+crate_name = "winterbaume_eventbridge"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_bus
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_bus"
+model = "EventBusTfModel"
+view = "EventBusView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "event_source_name"
+view = "event_source_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_rule"
+model = "EventRuleTfModel"
+view = "RuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "event_pattern"
+view = "event_pattern"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule_expression"
+view = "schedule_expression"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "event_bus_name"
+view = "event_bus_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_target
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_target"
+model = "EventTargetTfModel"
+view = "TargetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rule"
+view = "rule"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_id"
+view = "target_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "input"
+view = "input"
+type = "string?"
+
+[[resource.field]]
+hcl = "input_path"
+view = "input_path"
+type = "string?"
+
+[[resource.field]]
+hcl = "event_bus_name"
+view = "event_bus_name"
+type = "string?"

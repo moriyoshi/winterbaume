@@ -1,4 +1,9 @@
 //! Terraform converter for Direct Connect resources.
+//!
+//! `ConnectionTfModel` is generated from `specs/directconnect.toml`. The
+//! `bandwidth` default ("1Gbps"), the `connection_state` default
+//! ("available"), the `owner_account` fallback to the conversion context,
+//! and the i64-to-i32 vlan narrowing are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::directconnect as directconnect_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_dx_connection
@@ -59,37 +65,34 @@ impl AwsDxConnectionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_dx_connection")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: directconnect_gen::ConnectionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_dx_connection", e))?;
 
-        let connection_id = optional_str(attrs, "id").unwrap_or_default();
-        let bandwidth = optional_str(attrs, "bandwidth").unwrap_or_else(|| "1Gbps".to_string());
-        let location = optional_str(attrs, "location").unwrap_or_default();
-        let vlan = optional_i64(attrs, "vlan").unwrap_or(0) as i32;
-        let partner_name = optional_str(attrs, "partner_name");
-        let owner_account = optional_str(attrs, "owner_account_id")
+        let connection_id = model.id.unwrap_or_default();
+        let bandwidth = model.bandwidth.unwrap_or_else(|| "1Gbps".to_string());
+        let location = model.location.unwrap_or_default();
+        let vlan = model.vlan as i32;
+        let owner_account = model
+            .owner_account_id
             .unwrap_or_else(|| ctx.default_account_id.clone());
-        let connection_state =
-            optional_str(attrs, "connection_state").unwrap_or_else(|| "available".to_string());
-        let _tags_all = attrs.get("tags_all");
-        let _provider_name = optional_str(attrs, "provider_name");
-        let _request_macsec = attrs.get("request_macsec");
-        let _skip_destroy = attrs.get("skip_destroy");
-        let _ = attrs.get("encryption_mode");
+        let connection_state = model
+            .connection_state
+            .unwrap_or_else(|| "available".to_string());
 
         let conn_view = ConnectionView {
             connection_id: connection_id.clone(),
-            connection_name: name.to_string(),
+            connection_name: model.name.clone(),
             connection_state,
             region: region.clone(),
             location,
             bandwidth,
             owner_account,
             vlan,
-            partner_name,
+            partner_name: model.partner_name,
             loa_issue_time: None,
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let state_view = DirectConnectStateView {

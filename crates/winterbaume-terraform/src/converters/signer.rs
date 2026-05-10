@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::signer as signer_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_signer_signing_profile
@@ -59,25 +60,30 @@ impl AwsSignerSigningProfileConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let profile_name = require_str(attrs, "name", "aws_signer_signing_profile")?;
-        let platform_id = require_str(attrs, "platform_id", "aws_signer_signing_profile")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: signer_gen::SigningProfileTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_signer_signing_profile", e))?;
+
+        let profile_name = model.name.clone();
+        let platform_id = model.platform_id.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:signer:{}:{}:/signing-profiles/{}",
                 region, ctx.default_account_id, profile_name
             )
         });
-        let profile_version = optional_str(attrs, "version").unwrap_or_else(|| "1".to_string());
-        let profile_version_arn = optional_str(attrs, "version_arn")
+        let profile_version = model.version.unwrap_or_else(|| "1".to_string());
+        let profile_version_arn = model
+            .version_arn
             .unwrap_or_else(|| format!("{}/{}", arn, profile_version));
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "Active".to_string());
-        let revision_id = optional_str(attrs, "revision_id").unwrap_or_default();
-        let tags = extract_tags(attrs);
+        let status = model.status.unwrap_or_else(|| "Active".to_string());
+        let revision_id = model.revision_id.unwrap_or_default();
+        let tags = extract_tags(&instance.attributes);
 
         // Parse `signature_validity_period` nested block: [{type: ..., value: ...}]
-        let signature_validity_period: Option<serde_json::Value> = attrs
+        let signature_validity_period: Option<serde_json::Value> = instance
+            .attributes
             .get("signature_validity_period")
             .and_then(|v| v.as_array())
             .and_then(|arr| arr.first())
@@ -89,7 +95,8 @@ impl AwsSignerSigningProfileConverter {
             });
 
         // Parse `signing_material` nested block: [{certificate_arn: ...}]
-        let signing_material_certificate_arn: Option<String> = attrs
+        let signing_material_certificate_arn: Option<String> = instance
+            .attributes
             .get("signing_material")
             .and_then(|v| v.as_array())
             .and_then(|arr| arr.first())
@@ -98,10 +105,10 @@ impl AwsSignerSigningProfileConverter {
             .map(String::from);
 
         let profile_view = SigningProfileView {
-            profile_name: profile_name.to_string(),
+            profile_name: profile_name.clone(),
             profile_version,
             profile_version_arn,
-            platform_id: platform_id.to_string(),
+            platform_id,
             status,
             arn,
             tags,
@@ -115,9 +122,7 @@ impl AwsSignerSigningProfileConverter {
             profiles: HashMap::new(),
             jobs: HashMap::new(),
         };
-        state_view
-            .profiles
-            .insert(profile_name.to_string(), profile_view);
+        state_view.profiles.insert(profile_name, profile_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

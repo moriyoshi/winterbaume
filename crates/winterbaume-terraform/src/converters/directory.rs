@@ -1,4 +1,11 @@
 //! Terraform converter for Directory Service resources.
+//!
+//! `DirectoryTfModel` is generated from `specs/directory.toml`. The
+//! synthesised `directory_id` (`d-<uuid[..10]>`), the alias / access_url
+//! defaults, the DateTime<Utc>-typed `launch_time` /
+//! `stage_last_updated_date_time` parses, the `dns_ip_addresses`
+//! Vec<String>, and the nested `vpc_settings` / `connect_settings`
+//! blocks are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_str, require_str};
+use crate::generated::directory as directory_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_directory_service_directory
@@ -60,32 +68,39 @@ impl AwsDirectoryServiceDirectoryConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: directory_gen::DirectoryTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_directory_service_directory", e))?;
+
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_directory_service_directory")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let directory_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "directory_id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "d-{}",
-                    &uuid::Uuid::new_v4().to_string().replace('-', "")[..10]
-                )
-            });
-        let short_name = optional_str(attrs, "short_name");
-        let description = optional_str(attrs, "description");
-        let size = optional_str(attrs, "size").unwrap_or_else(|| "Small".to_string());
-        let directory_type = optional_str(attrs, "type").unwrap_or_else(|| "SimpleAD".to_string());
-        let alias = optional_str(attrs, "alias").unwrap_or_else(|| directory_id.clone());
-        let access_url =
-            optional_str(attrs, "access_url").unwrap_or_else(|| format!("{}.awsapps.com", alias));
-        let stage = optional_str(attrs, "stage").unwrap_or_else(|| "Active".to_string());
+
+        let directory_id = model.id.or(model.directory_id).unwrap_or_else(|| {
+            format!(
+                "d-{}",
+                &uuid::Uuid::new_v4().to_string().replace('-', "")[..10]
+            )
+        });
+        let size = model.size.unwrap_or_else(|| "Small".to_string());
+        let directory_type = model
+            .directory_type
+            .unwrap_or_else(|| "SimpleAD".to_string());
+        let alias = model.alias.unwrap_or_else(|| directory_id.clone());
+        let access_url = model
+            .access_url
+            .unwrap_or_else(|| format!("{}.awsapps.com", alias));
+        let stage = model.stage.unwrap_or_else(|| "Active".to_string());
         let now = chrono::Utc::now();
-        let launch_time = optional_str(attrs, "launch_time")
-            .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
+        let launch_time = attrs
+            .get("launch_time")
+            .and_then(|v| v.as_str())
+            .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or(now);
-        let stage_last_updated = optional_str(attrs, "stage_last_updated_date_time")
-            .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
+        let stage_last_updated = attrs
+            .get("stage_last_updated_date_time")
+            .and_then(|v| v.as_str())
+            .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or(now);
         let dns_ip_addrs = attrs
@@ -97,7 +112,7 @@ impl AwsDirectoryServiceDirectoryConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let ssoid_enabled = optional_bool(attrs, "enable_sso").unwrap_or(false);
+        let ssoid_enabled = model.enable_sso;
 
         // Parse vpc_settings
         let vpc_settings = attrs.get("vpc_settings").and_then(|v| {
@@ -217,9 +232,9 @@ impl AwsDirectoryServiceDirectoryConverter {
 
         let dir_view = DirectoryView {
             directory_id: directory_id.clone(),
-            name: name.to_string(),
-            short_name,
-            description,
+            name: model.name,
+            short_name: model.short_name,
+            description: model.description,
             size,
             directory_type,
             alias,

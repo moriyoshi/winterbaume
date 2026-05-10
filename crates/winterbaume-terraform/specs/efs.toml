@@ -1,0 +1,51 @@
+# Auto-ingested by `tf-converter-codegen ingest efs`.
+# Hand-tuned: dropped the nested `lifecycle_policy` and `protection`
+# blocks (read raw and parsed into LifecyclePolicyView /
+# FileSystemProtectionView in the converter), the `tags` /
+# `tags_all` HashMap-structured maps (the view stores Vec<TagView>, so
+# we merge them by hand), and the discarded `availability_zone_name`
+# / `kms_key_id` / `provisioned_throughput_in_mibps` raw reads.
+
+[service]
+name = "efs"
+crate_name = "winterbaume_efs"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_efs_file_system"
+model = "FileSystemTfModel"
+view = "FileSystemView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_token"
+view = "creation_token"
+type = "string?"
+
+[[resource.field]]
+hcl = "performance_mode"
+view = "performance_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "throughput_mode"
+view = "throughput_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "encrypted"
+view = "encrypted"
+type = "bool"
+default = false

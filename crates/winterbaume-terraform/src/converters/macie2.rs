@@ -1,4 +1,12 @@
-//! Terraform converter for Macie2 resources.
+//! Terraform converters for Macie2 resources.
+//!
+//! `AccountTfModel` and `ClassificationJobTfModel` are generated from
+//! `specs/macie2.toml`. The synthesised job IDs and ARN templates, the
+//! default service-role IAM ARN, the `s3_job_definition` /
+//! `schedule_frequency` raw-JSON blobs, the `allow_list_ids` /
+//! `custom_data_identifier_ids` / `managed_data_identifier_ids`
+//! Vec<String> arrays, and the Option<i32> `sampling_percentage` are
+//! wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str, require_str};
+use crate::generated::macie2 as macie2_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_macie2_account
@@ -58,15 +67,18 @@ impl AwsMacie2AccountConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let finding_publishing_frequency = optional_str(attrs, "finding_publishing_frequency")
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: macie2_gen::AccountTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_macie2_account", e))?;
+
+        let finding_publishing_frequency = model
+            .finding_publishing_frequency
             .unwrap_or_else(|| "FIFTEEN_MINUTES".to_string());
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "ENABLED".to_string());
+        let status = model.status.unwrap_or_else(|| "ENABLED".to_string());
         let now = chrono::Utc::now().to_rfc3339();
-        let created_at = optional_str(attrs, "created_at").unwrap_or_else(|| now.clone());
-        let updated_at = optional_str(attrs, "updated_at").unwrap_or_else(|| now.clone());
-        let service_role = optional_str(attrs, "service_role").unwrap_or_else(|| {
+        let created_at = model.created_at.unwrap_or_else(|| now.clone());
+        let updated_at = model.updated_at.unwrap_or_else(|| now.clone());
+        let service_role = model.service_role.unwrap_or_else(|| {
             format!(
                 "arn:aws:iam::{}:role/aws-service-role/macie.amazonaws.com/AWSServiceRoleForAmazonMacie",
                 ctx.default_account_id
@@ -167,38 +179,44 @@ impl AwsMacie2ClassificationJobConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: macie2_gen::ClassificationJobTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_macie2_classification_job", e))?;
+
         let attrs = &instance.attributes;
-        let job_type = require_str(attrs, "job_type", "aws_macie2_classification_job")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let job_id = optional_str(attrs, "job_id")
-            .or_else(|| optional_str(attrs, "id"))
+
+        let job_id = model
+            .job_id
+            .or(model.id)
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let job_arn = optional_str(attrs, "job_arn").unwrap_or_else(|| {
+        let job_arn = model.job_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:macie2:{}:{}:classification-job/{}",
                 region, ctx.default_account_id, job_id
             )
         });
-        let name = optional_str(attrs, "name").unwrap_or_default();
-        let description = optional_str(attrs, "description");
-        let job_status = optional_str(attrs, "job_status").unwrap_or_else(|| "RUNNING".to_string());
-        let client_token =
-            optional_str(attrs, "client_token").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let name = model.name.unwrap_or_default();
+        let job_status = model.job_status.unwrap_or_else(|| "RUNNING".to_string());
+        let client_token = model
+            .client_token
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        // Raw JSON blob — read raw.
         let s3_job_definition = attrs
             .get("s3_job_definition")
             .cloned()
             .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
-        let initial_run = optional_bool(attrs, "initial_run").unwrap_or(false);
+        // Option<i32> not in spec vocabulary — read raw.
         let sampling_percentage = attrs
             .get("sampling_percentage")
             .and_then(|v| v.as_i64())
             .map(|v| v as i32);
+        // Raw JSON object — read raw.
         let schedule_frequency = attrs.get("schedule_frequency").cloned();
         let now = chrono::Utc::now().to_rfc3339();
-        let created_at = optional_str(attrs, "created_at").unwrap_or_else(|| now.clone());
-        let last_run_time = optional_str(attrs, "last_run_time");
-        let tags = extract_tags(attrs);
+        let created_at = model.created_at.unwrap_or_else(|| now.clone());
 
+        // Vec<String> arrays — read raw.
         let allow_list_ids = attrs
             .get("allow_list_ids")
             .and_then(|v| v.as_array())
@@ -226,28 +244,36 @@ impl AwsMacie2ClassificationJobConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let managed_data_identifier_selector =
-            optional_str(attrs, "managed_data_identifier_selector");
+
+        // Merge `tags_all` into `tags` (tags wins).
+        let mut tags = model.tags;
+        if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
+            for (k, v) in obj {
+                if let Some(s) = v.as_str() {
+                    tags.entry(k.clone()).or_insert_with(|| s.to_string());
+                }
+            }
+        }
 
         let job_view = MacieClassificationJobView {
             job_id: job_id.clone(),
             job_arn,
             name,
-            description,
-            job_type: job_type.to_string(),
+            description: model.description,
+            job_type: model.job_type,
             job_status,
             client_token,
             s3_job_definition,
             allow_list_ids,
             custom_data_identifier_ids,
             managed_data_identifier_ids,
-            managed_data_identifier_selector,
+            managed_data_identifier_selector: model.managed_data_identifier_selector,
             sampling_percentage,
             schedule_frequency,
-            initial_run,
+            initial_run: model.initial_run,
             tags,
             created_at,
-            last_run_time,
+            last_run_time: model.last_run_time,
         };
 
         let mut state_view = Macie2StateView::default();

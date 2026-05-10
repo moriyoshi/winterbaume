@@ -1,0 +1,52 @@
+# Auto-ingested by `tf-converter-codegen ingest acm`.
+# Hand-tuned: only kept the strongly-typed scalar inputs. Dropped:
+#   - `subject_alternative_names` (Vec<String> — read raw)
+#   - `options`, `validation_option` (Vec of nested-block objects — read raw)
+#   - `tags`, `tags_all` (the view stores Vec<TagView> with Option<String>
+#     value; the merge is hand-rolled in the converter)
+#   - `lifecycle`, `pending_renewal`, `private_key`, `early_renewal_duration`,
+#     `validation_method` (discarded by the original converter — read raw)
+
+[service]
+name = "acm"
+crate_name = "winterbaume_acm"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_acm_certificate"
+model = "CertificateTfModel"
+view = "CertificateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_algorithm"
+view = "key_algorithm"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_authority_arn"
+view = "certificate_authority_arn"
+type = "string?"

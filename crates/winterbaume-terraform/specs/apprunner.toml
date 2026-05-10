@@ -1,0 +1,50 @@
+# Auto-ingested by `tf-converter-codegen ingest apprunner`.
+# Hand-tuned: dropped json-blob fields (encryption_configuration,
+# health_check_configuration, instance_configuration, network_configuration,
+# observability_configuration, source_configuration, tags_all,
+# auto_scaling_configuration_arn) so the converter reads them straight from
+# instance.attributes. Kept only the strongly-typed scalar inputs.
+
+[service]
+name = "apprunner"
+crate_name = "winterbaume_apprunner"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_apprunner_service"
+model = "AppRunnerServiceTfModel"
+view = "AppRunnerServiceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "service_name"
+view = "service_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_id"
+view = "service_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_url"
+view = "service_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

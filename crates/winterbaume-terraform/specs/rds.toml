@@ -1,0 +1,460 @@
+# Auto-ingested by `tf-converter-codegen ingest rds`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (db_subnet_group / db_parameter_group / rds_cluster_parameter_group /
+# db_option_group / db_instance / rds_cluster / db_event_subscription).
+# Dropped Vec<T>/nested-block fields (subnet_ids, vpc_security_group_ids,
+# availability_zones, parameter, option, source_ids, event_categories,
+# tags, tags_all, name_prefix, timeouts, blue_green_update,
+# restore_to_point_in_time, s3_import, scaling_configuration,
+# serverlessv2_scaling_configuration, plus assorted advanced
+# pass-through scalar fields kept as `_ = attrs.get(...)`),
+# Option<i64>/Option<i32> view fields (port, iops, monitoring_interval,
+# allocated_storage on cluster), and discarded TF-only flags
+# (allow_major_version_upgrade, apply_immediately, skip_final_snapshot,
+# final_snapshot_identifier, etc.). Those are read straight from
+# instance.attributes in the converter. ARN templates and the
+# "Managed by Terraform" description default are wired up by hand.
+
+[service]
+name = "rds"
+crate_name = "winterbaume_rds"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_db_subnet_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_subnet_group"
+model = "DbSubnetGroupTfModel"
+view = "DbSubnetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_db_parameter_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_parameter_group"
+model = "DbParameterGroupTfModel"
+view = "DbParameterGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "family"
+view = "family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_rds_cluster_parameter_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rds_cluster_parameter_group"
+model = "RdsClusterParameterGroupTfModel"
+view = "DbClusterParameterGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "family"
+view = "family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_db_option_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_option_group"
+model = "DbOptionGroupTfModel"
+view = "OptionGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "engine_name"
+view = "engine_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "major_engine_version"
+view = "major_engine_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "option_group_description"
+view = "option_group_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_db_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_instance"
+model = "DbInstanceTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identifier"
+view = "identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "instance_class"
+view = "instance_class"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "username"
+view = "username"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_name"
+view = "db_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "address"
+view = "address"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_type"
+view = "storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_subnet_group_name"
+view = "db_subnet_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "license_model"
+view = "license_model"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ca_cert_identifier"
+view = "ca_cert_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "allocated_storage"
+view = "allocated_storage"
+type = "i64"
+default = 20
+
+[[resource.field]]
+hcl = "backup_retention_period"
+view = "backup_retention_period"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "multi_az"
+view = "multi_az"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "publicly_accessible"
+view = "publicly_accessible"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "auto_minor_version_upgrade"
+view = "auto_minor_version_upgrade"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "deletion_protection"
+view = "deletion_protection"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "copy_tags_to_snapshot"
+view = "copy_tags_to_snapshot"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "performance_insights_enabled"
+view = "performance_insights_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_rds_cluster
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rds_cluster"
+model = "RdsClusterTfModel"
+view = "DbClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_mode"
+view = "engine_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "master_username"
+view = "master_username"
+type = "string?"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_subnet_group_name"
+view = "db_subnet_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_cluster_parameter_group_name"
+view = "db_cluster_parameter_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "reader_endpoint"
+view = "reader_endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_type"
+view = "storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "backup_retention_period"
+view = "backup_retention_period"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "multi_az"
+view = "multi_az"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "deletion_protection"
+view = "deletion_protection"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "copy_tags_to_snapshot"
+view = "copy_tags_to_snapshot"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_db_event_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_event_subscription"
+model = "DbEventSubscriptionTfModel"
+view = "EventSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "sns_topic"
+view = "sns_topic"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_type"
+view = "source_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true

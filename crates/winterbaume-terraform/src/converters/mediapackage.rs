@@ -1,4 +1,8 @@
 //! Terraform converter for MediaPackage resources.
+//!
+//! `ChannelTfModel` is generated from `specs/mediapackage.toml`. The
+//! ARN template and the `created_at` fallback (current time) are
+//! wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,13 +18,9 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::mediapackage as mediapackage_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
-// ---------------------------------------------------------------------------
-// aws_media_package_channel
-// ---------------------------------------------------------------------------
-
-/// Converts `aws_media_package_channel` Terraform resources to/from MediaPackage state.
 pub struct AwsMediaPackageChannelConverter {
     service: Arc<MediaPackageService>,
 }
@@ -59,24 +59,25 @@ impl AwsMediaPackageChannelConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let channel_id = require_str(attrs, "channel_id", "aws_media_package_channel")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: mediapackage_gen::ChannelTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_media_package_channel", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:mediapackage:{}:{}:channels/{}",
-                region, ctx.default_account_id, channel_id
+                region, ctx.default_account_id, model.channel_id
             )
         });
 
         let channel_view = ChannelView {
             arn,
-            id: channel_id.to_string(),
-            description,
-            tags: extract_tags(attrs),
-            created_at: optional_str(attrs, "created_at")
+            id: model.channel_id.clone(),
+            description: model.description.unwrap_or_default(),
+            tags: model.tags,
+            created_at: model
+                .created_at
                 .unwrap_or_else(|| chrono::Utc::now().to_rfc3339()),
         };
 
@@ -84,9 +85,7 @@ impl AwsMediaPackageChannelConverter {
             channels: HashMap::new(),
             origin_endpoints: HashMap::new(),
         };
-        state_view
-            .channels
-            .insert(channel_id.to_string(), channel_view);
+        state_view.channels.insert(model.channel_id, channel_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

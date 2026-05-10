@@ -1,0 +1,199 @@
+# Auto-ingested by `tf-converter-codegen ingest lambda`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (function / alias / permission / event_source_mapping). The spec
+# only covers flat scalars; the nested blocks (environment, vpc_config,
+# dead_letter_config, ephemeral_storage, file_system_config, image_config,
+# logging_config, snap_start, tracing_config, dest/filter/source-access
+# blocks on the event source mapping, tags_all merge, and various Vec<T>
+# fields) are read straight from instance.attributes in the converter.
+# ARN templates and the generated UUID for event source mappings are wired
+# up by hand. The tags merge order from the original (`tags_all` first,
+# then `tags` overriding) is preserved.
+
+[service]
+name = "lambda"
+crate_name = "winterbaume_lambda"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_function
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_function"
+model = "LambdaFunctionTfModel"
+view = "LambdaFunctionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "runtime"
+view = "runtime"
+type = "string?"
+
+[[resource.field]]
+hcl = "handler"
+view = "handler"
+type = "string?"
+
+[[resource.field]]
+hcl = "role"
+view = "role"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "memory_size"
+view = "memory_size"
+type = "i64"
+default = 128
+
+[[resource.field]]
+hcl = "timeout"
+view = "timeout"
+type = "i64"
+default = 3
+
+[[resource.field]]
+hcl = "code_signing_config_arn"
+view = "code_signing_config_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_alias
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_alias"
+model = "LambdaAliasTfModel"
+view = "AliasView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "function_version"
+view = "function_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_permission
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_permission"
+model = "LambdaPermissionTfModel"
+view = "PermissionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "statement_id"
+view = "statement_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "action"
+view = "action"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal"
+view = "principal"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_org_id"
+view = "principal_org_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_arn"
+view = "source_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_account"
+view = "source_account"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_event_source_mapping
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_event_source_mapping"
+model = "LambdaEventSourceMappingTfModel"
+view = "EventSourceMappingView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "uuid"
+view = "uuid"
+type = "string?"
+
+[[resource.field]]
+hcl = "event_source_arn"
+view = "event_source_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "starting_position"
+view = "starting_position"
+type = "string?"

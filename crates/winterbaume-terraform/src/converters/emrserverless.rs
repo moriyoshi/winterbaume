@@ -18,7 +18,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::emrserverless as emrserverless_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_emrserverless_application
@@ -76,15 +77,22 @@ impl AwsEmrserverlessApplicationConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_emrserverless_application")?;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let release_label =
-            optional_str(attrs, "release_label").unwrap_or_else(|| "emr-6.15.0".to_string());
-        let application_type = optional_str(attrs, "type").unwrap_or_else(|| "SPARK".to_string());
+        let model: emrserverless_gen::ApplicationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_emrserverless_application", e))?;
 
-        let app_id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+
+        let release_label = model
+            .release_label
+            .unwrap_or_else(|| "emr-6.15.0".to_string());
+        let application_type = model
+            .application_type
+            .unwrap_or_else(|| "SPARK".to_string());
+
+        let app_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:emr-serverless:{}:{}:/applications/{}",
                 region, ctx.default_account_id, app_id
@@ -241,7 +249,7 @@ impl AwsEmrserverlessApplicationConverter {
         let now = chrono::Utc::now().to_rfc3339();
         let app_view = ApplicationView {
             application_id: app_id.clone(),
-            name: name.to_string(),
+            name,
             arn,
             release_label,
             application_type,

@@ -1,4 +1,9 @@
 //! Terraform converters for SES v1 (2010-12-01) resources.
+//!
+//! `EmailIdentityTfModel` and `DomainIdentityTfModel` are generated
+//! from `specs/sesv1.toml`. The ARN templates and the shared
+//! `IdentityView` constant fields (verification status, DKIM tokens,
+//! forwarding) are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +18,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::sesv1 as sesv1_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_ses_email_identity
@@ -57,19 +63,20 @@ impl AwsSesEmailIdentityConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: sesv1_gen::EmailIdentityTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ses_email_identity", e))?;
 
-        let email = require_str(attrs, "email", "aws_ses_email_identity")?;
-        let _arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let _arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ses:{}:{}:identity/{}",
-                region, ctx.default_account_id, email
+                region, ctx.default_account_id, model.email
             )
         });
 
         let identity_view = IdentityView {
-            name: email.to_string(),
+            name: model.email.clone(),
             identity_type: "EmailAddress".to_string(),
             verification_status: "Success".to_string(),
             verification_token: None,
@@ -83,9 +90,7 @@ impl AwsSesEmailIdentityConverter {
         };
 
         let mut state_view = SesV1StateView::default();
-        state_view
-            .identities
-            .insert(email.to_string(), identity_view);
+        state_view.identities.insert(model.email, identity_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -166,27 +171,23 @@ impl AwsSesDomainIdentityConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: sesv1_gen::DomainIdentityTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ses_domain_identity", e))?;
 
-        let domain = require_str(attrs, "domain", "aws_ses_domain_identity")?;
-
-        let arn = format!(
-            "arn:aws:ses:{}:{}:identity/{}",
-            region, ctx.default_account_id, domain
-        );
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ses:{}:{}:identity/{}",
+                region, ctx.default_account_id, model.domain
+            )
+        });
 
         let identity_view = IdentityView {
-            name: domain.to_string(),
+            name: model.domain.clone(),
             identity_type: "Domain".to_string(),
             verification_status: "Success".to_string(),
-            verification_token: Some(
-                attrs
-                    .get("verification_token")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or_default()
-                    .to_string(),
-            ),
+            verification_token: Some(model.verification_token.unwrap_or_default()),
             dkim_tokens: vec![],
             dkim_enabled: false,
             mail_from_domain: None,
@@ -197,9 +198,7 @@ impl AwsSesDomainIdentityConverter {
         };
 
         let mut state_view = SesV1StateView::default();
-        state_view
-            .identities
-            .insert(domain.to_string(), identity_view);
+        state_view.identities.insert(model.domain, identity_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

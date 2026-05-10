@@ -1,4 +1,9 @@
 //! Terraform converter for `aws_s3_bucket` resources.
+//!
+//! `BucketStateTfModel` is generated from `specs/s3.toml`. The bucket
+//! name fallback chain (`bucket` -> `id`), the ARN / domain name
+//! templates, the `force_destroy` discard, and the
+//! `request_payment_payer` default are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str, require_str};
+use crate::generated::s3 as s3_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 /// Converts `aws_s3_bucket` Terraform resources to/from S3 service state.
 pub struct AwsS3BucketConverter {
@@ -57,42 +63,51 @@ impl AwsS3BucketConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let bucket_name = require_str(attrs, "bucket", "aws_s3_bucket")
-            .or_else(|_| require_str(attrs, "id", "aws_s3_bucket"))?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: s3_gen::BucketStateTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_s3_bucket", e))?;
 
-        let _force_destroy = optional_bool(attrs, "force_destroy").unwrap_or(false);
+        // bucket has a fallback chain (`bucket` -> `id`); both are spec-`string?`.
+        let bucket_name = model
+            .bucket
+            .clone()
+            .or_else(|| model.id.clone())
+            .ok_or_else(|| ConversionError::MissingAttribute {
+                resource_type: "aws_s3_bucket".to_string(),
+                attribute: "bucket".to_string(),
+            })?;
+
+        // force_destroy is accepted but not stored (Terraform-only lifecycle flag).
+        let _force_destroy = attrs.get("force_destroy").and_then(|v| v.as_bool());
 
         let bucket_view = BucketStateView {
-            name: bucket_name.to_string(),
+            name: bucket_name.clone(),
             region: region.clone(),
-            creation_date: optional_str(attrs, "creation_date"),
+            creation_date: model.creation_date,
             tags: extract_tags(attrs),
-            acl: optional_str(attrs, "acl"),
-            policy: optional_str(attrs, "policy"),
-            versioning_status: optional_str(attrs, "versioning")
-                .or_else(|| optional_str(attrs, "versioning_status")),
-            accelerate_status: optional_str(attrs, "acceleration_status"),
-            request_payment_payer: optional_str(attrs, "request_payer")
+            acl: model.acl,
+            policy: model.policy,
+            versioning_status: model.versioning.or(model.versioning_status),
+            accelerate_status: model.acceleration_status,
+            request_payment_payer: model
+                .request_payer
                 .unwrap_or_else(|| "BucketOwner".to_string()),
-            encryption_configuration: optional_str(attrs, "server_side_encryption_configuration"),
-            logging_configuration: optional_str(attrs, "logging"),
-            cors_configuration: optional_str(attrs, "cors_rule"),
-            lifecycle_configuration: optional_str(attrs, "lifecycle_rule"),
-            website_configuration: optional_str(attrs, "website"),
-            replication_configuration: optional_str(attrs, "replication_configuration"),
-            object_lock_configuration: optional_str(attrs, "object_lock_configuration"),
-            notification_configuration: optional_str(attrs, "notification_configuration"),
-            ownership_controls: optional_str(attrs, "ownership_controls"),
+            encryption_configuration: model.server_side_encryption_configuration,
+            logging_configuration: model.logging,
+            cors_configuration: model.cors_rule,
+            lifecycle_configuration: model.lifecycle_rule,
+            website_configuration: model.website,
+            replication_configuration: model.replication_configuration,
+            object_lock_configuration: model.object_lock_configuration,
+            notification_configuration: model.notification_configuration,
+            ownership_controls: model.ownership_controls,
             ..Default::default()
         };
 
         let mut state_view = S3StateView {
             buckets: HashMap::new(),
         };
-        state_view
-            .buckets
-            .insert(bucket_name.to_string(), bucket_view);
+        state_view.buckets.insert(bucket_name, bucket_view);
 
         self.service
             .merge(&ctx.default_account_id, &region, state_view)

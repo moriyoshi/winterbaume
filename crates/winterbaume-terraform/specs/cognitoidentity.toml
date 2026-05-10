@@ -1,0 +1,47 @@
+# Auto-ingested by `tf-converter-codegen ingest cognitoidentity`.
+# Hand-tuned: switched view to IdentityPoolView, renamed `id` to
+# identity_pool_id. Dropped supported_login_providers (HashMap<String,String>
+# nested raw blob), openid_connect_provider_arns / saml_provider_arns
+# (Vec<String>) and cognito_identity_providers (Vec<CognitoIdentityProviderView>);
+# those are read straight from instance.attributes in the converter.
+
+[service]
+name = "cognitoidentity"
+crate_name = "winterbaume_cognitoidentity"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_cognito_identity_pool"
+model = "IdentityPoolTfModel"
+view = "IdentityPoolView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "identity_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "identity_pool_name"
+view = "identity_pool_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "allow_unauthenticated_identities"
+view = "allow_unauthenticated_identities"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "developer_provider_name"
+view = "developer_provider_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

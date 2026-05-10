@@ -1,4 +1,8 @@
 //! Terraform converter for Account resources.
+//!
+//! `AlternateContactTfModel` is generated from `specs/account.toml`. The
+//! StateView assembly (which uses the contact type as the map key) is
+//! wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +18,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, require_str};
+use crate::generated::account as account_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_account_alternate_contact
@@ -59,24 +64,17 @@ impl AwsAccountAlternateContactConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let contact_type = require_str(
-            attrs,
-            "alternate_contact_type",
-            "aws_account_alternate_contact",
-        )?;
-        let name = require_str(attrs, "name", "aws_account_alternate_contact")?;
-        let email_address = require_str(attrs, "email_address", "aws_account_alternate_contact")?;
-        let phone_number = require_str(attrs, "phone_number", "aws_account_alternate_contact")?;
-        let title = require_str(attrs, "title", "aws_account_alternate_contact")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: account_gen::AlternateContactTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_account_alternate_contact", e))?;
 
         let contact_view = AlternateContactView {
-            alternate_contact_type: contact_type.to_string(),
-            name: name.to_string(),
-            email_address: email_address.to_string(),
-            phone_number: phone_number.to_string(),
-            title: title.to_string(),
+            alternate_contact_type: model.alternate_contact_type.clone(),
+            name: model.name,
+            email_address: model.email_address,
+            phone_number: model.phone_number,
+            title: model.title,
         };
 
         let mut state_view = AccountStateView {
@@ -88,7 +86,7 @@ impl AwsAccountAlternateContactConverter {
         };
         state_view
             .alternate_contacts
-            .insert(contact_type.to_string(), contact_view);
+            .insert(model.alternate_contact_type, contact_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

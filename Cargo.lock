@@ -9260,6 +9260,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tf-converter-codegen"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "heck",
+ "serde",
+ "serde_json",
+ "toml",
+]
+
+[[package]]
 name = "thiserror"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"

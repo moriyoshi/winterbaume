@@ -1,4 +1,15 @@
 //! Terraform converters for ELBv2 resources.
+//!
+//! The TfModel structs are generated from `specs/elbv2.toml`. The
+//! ARN/DNS templates with random UUID suffixes, the `internal`
+//! boolean fallback for `scheme`, the load-balancer/target-group/
+//! listener `attributes` HashMap (idle_timeout, access_logs.*,
+//! health_check.*, stickiness.*, deregistration_delay,
+//! protocol_version, ssl_policy, alpn_policy), and the nested-block
+//! parsing (subnet_mapping, default_action, certificates,
+//! target_failover, target_group_health, target_health_state,
+//! ipam_pools, minimum_load_balancer_capacity, connection_logs)
+//! are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -18,7 +29,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::elbv2 as elbv2_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_lb
@@ -65,20 +77,22 @@ impl AwsLbConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: elbv2_gen::LbTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lb", e))?;
 
-        let name = require_str(attrs, "name", "aws_lb")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:elasticloadbalancing:{}:{}:loadbalancer/app/{}/{}",
                 region,
                 ctx.default_account_id,
-                name,
+                model.name,
                 &uuid::Uuid::new_v4().to_string()[..16]
             )
         });
-        let dns_name = optional_str(attrs, "dns_name")
-            .unwrap_or_else(|| format!("{}-123456789.{}.elb.amazonaws.com", name, region));
-        let scheme = optional_str(attrs, "scheme").unwrap_or_else(|| {
+        let dns_name = model
+            .dns_name
+            .unwrap_or_else(|| format!("{}-123456789.{}.elb.amazonaws.com", model.name, region));
+        let scheme = model.scheme.unwrap_or_else(|| {
             // Fall back to legacy "internal" boolean
             if attrs
                 .get("internal")
@@ -90,11 +104,11 @@ impl AwsLbConverter {
                 "internet-facing".to_string()
             }
         });
-        let lb_type =
-            optional_str(attrs, "load_balancer_type").unwrap_or_else(|| "application".to_string());
-        let vpc_id = optional_str(attrs, "vpc_id").unwrap_or_default();
-        let ip_address_type =
-            optional_str(attrs, "ip_address_type").unwrap_or_else(|| "ipv4".to_string());
+        let lb_type = model
+            .load_balancer_type
+            .unwrap_or_else(|| "application".to_string());
+        let vpc_id = model.vpc_id.unwrap_or_default();
+        let ip_address_type = model.ip_address_type.unwrap_or_else(|| "ipv4".to_string());
 
         let subnets: Vec<String> = attrs
             .get("subnets")
@@ -183,7 +197,7 @@ impl AwsLbConverter {
         let lb_view = LoadBalancerView {
             arn: arn.clone(),
             dns_name,
-            name: name.to_string(),
+            name: model.name,
             scheme,
             state: "active".to_string(),
             lb_type,
@@ -360,22 +374,22 @@ impl AwsLbTargetGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: elbv2_gen::LbTargetGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lb_target_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_lb_target_group")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:elasticloadbalancing:{}:{}:targetgroup/{}/{}",
                 region,
                 ctx.default_account_id,
-                name,
+                model.name,
                 &uuid::Uuid::new_v4().to_string()[..16]
             )
         });
-        let protocol = optional_str(attrs, "protocol").unwrap_or_else(|| "HTTP".to_string());
-        let port = attrs.get("port").and_then(|v| v.as_i64()).unwrap_or(80) as i32;
-        let vpc_id = optional_str(attrs, "vpc_id").unwrap_or_default();
-        let target_type =
-            optional_str(attrs, "target_type").unwrap_or_else(|| "instance".to_string());
+        let protocol = model.protocol.unwrap_or_else(|| "HTTP".to_string());
+        let port = model.port as i32;
+        let vpc_id = model.vpc_id.unwrap_or_default();
+        let target_type = model.target_type.unwrap_or_else(|| "instance".to_string());
         let health_check_path = attrs
             .get("health_check")
             .and_then(|v| v.as_array())
@@ -423,8 +437,8 @@ impl AwsLbTargetGroupConverter {
         if let Some(delay) = attrs.get("deregistration_delay").and_then(|v| v.as_i64()) {
             tg_attributes.insert("deregistration_delay".to_string(), delay.to_string());
         }
-        if let Some(pv) = optional_str(attrs, "protocol_version") {
-            tg_attributes.insert("protocol_version".to_string(), pv);
+        if let Some(pv) = attrs.get("protocol_version").and_then(|v| v.as_str()) {
+            tg_attributes.insert("protocol_version".to_string(), pv.to_string());
         }
 
         // Parse stickiness block: [{ type, enabled, cookie_duration }]
@@ -449,11 +463,9 @@ impl AwsLbTargetGroupConverter {
 
         let _tags_all = attrs.get("tags_all");
         let _slow_start = attrs.get("slow_start");
-        let _load_balancing_algorithm_type = optional_str(attrs, "load_balancing_algorithm_type");
-        let _load_balancing_anomaly_mitigation =
-            optional_str(attrs, "load_balancing_anomaly_mitigation");
-        let _load_balancing_cross_zone_enabled =
-            optional_str(attrs, "load_balancing_cross_zone_enabled");
+        let _load_balancing_algorithm_type = attrs.get("load_balancing_algorithm_type");
+        let _load_balancing_anomaly_mitigation = attrs.get("load_balancing_anomaly_mitigation");
+        let _load_balancing_cross_zone_enabled = attrs.get("load_balancing_cross_zone_enabled");
         let _ = attrs.get("lambda_multi_value_headers_enabled");
 
         let target_failover: Vec<serde_json::Value> = attrs
@@ -476,7 +488,7 @@ impl AwsLbTargetGroupConverter {
 
         let tg_view = TargetGroupView {
             arn: arn.clone(),
-            name: name.to_string(),
+            name: model.name,
             protocol,
             port,
             vpc_id,
@@ -678,12 +690,13 @@ impl AwsLbListenerConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: elbv2_gen::LbListenerTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lb_listener", e))?;
 
-        let load_balancer_arn = require_str(attrs, "load_balancer_arn", "aws_lb_listener")?;
-        let port = attrs.get("port").and_then(|v| v.as_i64()).unwrap_or(80) as i32;
-        let protocol = optional_str(attrs, "protocol").unwrap_or_else(|| "HTTP".to_string());
+        let port = model.port as i32;
+        let protocol = model.protocol.unwrap_or_else(|| "HTTP".to_string());
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:elasticloadbalancing:{}:{}:listener/app/unknown/{}/{}",
                 region,
@@ -716,12 +729,12 @@ impl AwsLbListenerConverter {
             .unwrap_or_default();
 
         // certificates
-        let certificates: Vec<CertificateView> = attrs
-            .get("certificate_arn")
-            .and_then(|v| v.as_str())
-            .map(|arn| {
+        let certificates: Vec<CertificateView> = model
+            .certificate_arn
+            .as_deref()
+            .map(|cert_arn| {
                 vec![CertificateView {
-                    certificate_arn: arn.to_string(),
+                    certificate_arn: cert_arn.to_string(),
                     is_default: Some(true),
                 }]
             })
@@ -743,8 +756,8 @@ impl AwsLbListenerConverter {
 
         // Parse ssl_policy and alpn_policy into attributes map
         let mut listener_attributes: HashMap<String, String> = HashMap::new();
-        if let Some(ssl_policy) = optional_str(attrs, "ssl_policy") {
-            listener_attributes.insert("ssl_policy".to_string(), ssl_policy);
+        if let Some(ssl_policy) = attrs.get("ssl_policy").and_then(|v| v.as_str()) {
+            listener_attributes.insert("ssl_policy".to_string(), ssl_policy.to_string());
         }
         if let Some(alpn) = attrs.get("alpn_policy").and_then(|v| v.as_str()) {
             listener_attributes.insert("alpn_policy".to_string(), alpn.to_string());
@@ -752,7 +765,7 @@ impl AwsLbListenerConverter {
 
         let listener_view = ListenerView {
             arn: arn.clone(),
-            load_balancer_arn: load_balancer_arn.to_string(),
+            load_balancer_arn: model.load_balancer_arn,
             port,
             protocol,
             default_actions,

@@ -1,0 +1,104 @@
+# Auto-ingested by `tf-converter-codegen ingest synthetics`.
+# Hand-tuned: dropped `start_canary` / `delete_lambda` (discarded by the
+# original converter), `tags_all` (string? was wrong; merged via the
+# tags fallback path), and `artifact_config` / `run_config` / `vpc_config`
+# (those are list-of-object nested blocks, not strings, so the converter
+# reads them as Option<serde_json::Value> straight from the raw
+# attributes). Also dropped `schedule_duration_in_seconds` because the
+# view field is `Option<i64>` and the spec's `i64` type forces a default
+# of 0 — the converter falls back to a nested `schedule[0]` lookup.
+# Renamed the `status` field to view `status_state` to match `CanaryView`.
+#
+# Detected ARN/URL `format!()` templates (lift into
+# the hand-written converter, not the spec):
+#   arn:aws:lambda:{}:{}:layer:cwsyn-{}
+
+[service]
+name = "synthetics"
+crate_name = "winterbaume_synthetics"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_synthetics_canary"
+model = "CanaryTfModel"
+view = "CanaryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "handler"
+view = "handler"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "artifact_s3_location"
+view = "artifact_s3_location"
+type = "string?"
+
+[[resource.field]]
+hcl = "runtime_version"
+view = "runtime_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule_expression"
+view = "schedule_expression"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "status_state_reason"
+view = "status_state_reason"
+type = "string?"
+
+[[resource.field]]
+hcl = "status_state_reason_code"
+view = "status_state_reason_code"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified"
+view = "last_modified"
+type = "string?"
+
+[[resource.field]]
+hcl = "execution_role_arn"
+view = "execution_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_encryption_mode"
+view = "s3_encryption_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

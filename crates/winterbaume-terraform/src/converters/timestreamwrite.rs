@@ -1,4 +1,11 @@
-//! Terraform converter for Timestream Write resources.
+//! Terraform converters for Timestream Write resources.
+//!
+//! `DatabaseTfModel` and `TableTfModel` are generated from
+//! `specs/timestreamwrite.toml`. The ARN templates, the constant
+//! `creation_time` / `last_updated_time`, the table_status
+//! constant, and the `retention_properties` /
+//! `magnetic_store_write_properties` nested-block arrays are wired
+//! up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::timestreamwrite as timestreamwrite_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_timestreamwrite_database
@@ -59,12 +67,13 @@ impl AwsTimestreamwriteDatabaseConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let database_name = require_str(attrs, "database_name", "aws_timestreamwrite_database")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let kms_key_id = optional_str(attrs, "kms_key_id");
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: timestreamwrite_gen::DatabaseTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_timestreamwrite_database", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let database_name = model.database_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:timestream:{}:{}:database/{}",
                 region, ctx.default_account_id, database_name
@@ -73,13 +82,13 @@ impl AwsTimestreamwriteDatabaseConverter {
 
         let now = chrono::Utc::now().to_rfc3339();
         let db_view = DatabaseView {
-            database_name: database_name.to_string(),
+            database_name: database_name.clone(),
             arn,
-            kms_key_id,
-            table_count: optional_i64(attrs, "table_count").unwrap_or(0),
+            kms_key_id: model.kms_key_id,
+            table_count: model.table_count,
             creation_time: now.clone(),
             last_updated_time: now,
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let mut state_view = TimestreamWriteStateView {
@@ -87,9 +96,7 @@ impl AwsTimestreamwriteDatabaseConverter {
             tables: HashMap::new(),
             batch_load_tasks: HashMap::new(),
         };
-        state_view
-            .databases
-            .insert(database_name.to_string(), db_view);
+        state_view.databases.insert(database_name, db_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -176,12 +183,14 @@ impl AwsTimestreamwriteTableConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let table_name = require_str(attrs, "table_name", "aws_timestreamwrite_table")?;
-        let database_name = require_str(attrs, "database_name", "aws_timestreamwrite_table")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: timestreamwrite_gen::TableTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_timestreamwrite_table", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let table_name = model.table_name.clone();
+        let database_name = model.database_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:timestream:{}:{}:database/{}/table/{}",
                 region, ctx.default_account_id, database_name, table_name
@@ -189,6 +198,7 @@ impl AwsTimestreamwriteTableConverter {
         });
 
         // Parse retention_properties block
+        let attrs = &instance.attributes;
         let rp = attrs.get("retention_properties");
         let rp_obj = rp.and_then(|v| v.as_array().and_then(|a| a.first()).or(Some(v)));
         let memory_hours = rp_obj
@@ -216,8 +226,8 @@ impl AwsTimestreamwriteTableConverter {
 
         let now = chrono::Utc::now().to_rfc3339();
         let tbl_view = TableView {
-            table_name: table_name.to_string(),
-            database_name: database_name.to_string(),
+            table_name: table_name.clone(),
+            database_name: database_name.clone(),
             arn,
             table_status: "ACTIVE".to_string(),
             memory_store_retention_period_in_hours: memory_hours,
@@ -225,7 +235,7 @@ impl AwsTimestreamwriteTableConverter {
             enable_magnetic_store_writes: enable_magnetic,
             creation_time: now.clone(),
             last_updated_time: now,
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let key = format!("{}\x1f{}", database_name, table_name);

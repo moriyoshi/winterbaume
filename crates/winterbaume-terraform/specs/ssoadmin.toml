@@ -1,0 +1,98 @@
+# Auto-ingested by `tf-converter-codegen ingest ssoadmin`.
+# Hand-tuned: split into one [[resource]] per resource type
+# (permission_set / account_assignment). Dropped `tags_all` (discarded by
+# the original converter) — that's read straight from instance.attributes
+# in the converter.
+
+[service]
+name = "ssoadmin"
+crate_name = "winterbaume_ssoadmin"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_ssoadmin_permission_set
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssoadmin_permission_set"
+model = "PermissionSetTfModel"
+view = "PermissionSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "session_duration"
+view = "session_duration"
+type = "string?"
+
+[[resource.field]]
+hcl = "relay_state"
+view = "relay_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_ssoadmin_account_assignment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssoadmin_account_assignment"
+model = "AccountAssignmentTfModel"
+view = "AccountAssignmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "permission_set_arn"
+view = "permission_set_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_id"
+view = "principal_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_id"
+view = "target_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_type"
+view = "principal_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_type"
+view = "target_type"
+type = "string?"

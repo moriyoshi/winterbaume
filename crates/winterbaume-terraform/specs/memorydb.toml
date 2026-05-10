@@ -1,0 +1,177 @@
+# Auto-ingested by `tf-converter-codegen ingest memorydb`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (cluster / subnet_group / acl). Dropped Vec<String> fields
+# (security_group_ids, subnet_ids, user_names), the discarded
+# fields (final_snapshot_name, snapshot_name, status), and
+# Vec<TagView> on ACL — those are read straight from
+# instance.attributes in the converter. ARN templates and the
+# many string fallback defaults are hand-written in the converter.
+
+[service]
+name = "memorydb"
+crate_name = "winterbaume_memorydb"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_memorydb_cluster
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_memorydb_cluster"
+model = "ClusterTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "node_type"
+view = "node_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "num_shards"
+view = "num_shards"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "num_replicas_per_shard"
+view = "num_replicas_per_shard"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "subnet_group_name"
+view = "subnet_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "acl_name"
+view = "acl_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "parameter_group_name"
+view = "parameter_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "tls_enabled"
+view = "tls_enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "auto_minor_version_upgrade"
+view = "auto_minor_version_upgrade"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "maintenance_window"
+view = "maintenance_window"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_retention_limit"
+view = "snapshot_retention_limit"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "snapshot_window"
+view = "snapshot_window"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_memorydb_subnet_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_memorydb_subnet_group"
+model = "SubnetGroupTfModel"
+view = "SubnetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_memorydb_acl
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_memorydb_acl"
+model = "AclTfModel"
+view = "AclView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "minimum_engine_version"
+view = "minimum_engine_version"
+type = "string?"

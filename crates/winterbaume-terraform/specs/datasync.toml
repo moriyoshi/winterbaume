@@ -1,0 +1,97 @@
+# Auto-ingested by `tf-converter-codegen ingest datasync`.
+# Hand-tuned: split into one [[resource]] block per Terraform resource type
+# (task / location_s3). Dropped:
+#   - `excludes`, `includes`, `schedule`, `task_report_config`, `options`,
+#     `s3_config` (raw Value blobs read straight from instance.attributes)
+#   - `agent_arns`, `tags_all` (discarded by the original converter — read raw)
+
+[service]
+name = "datasync"
+crate_name = "winterbaume_datasync"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_task
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_task"
+model = "DataSyncTaskTfModel"
+view = "DataSyncTaskView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "source_location_arn"
+view = "source_location_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_location_arn"
+view = "destination_location_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "cloudwatch_log_group_arn"
+view = "cloudwatch_log_group_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_s3
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_s3"
+model = "DataSyncLocationS3TfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_bucket_arn"
+view = "s3_bucket_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"

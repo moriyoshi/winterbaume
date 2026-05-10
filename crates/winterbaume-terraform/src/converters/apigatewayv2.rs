@@ -1,4 +1,10 @@
 //! Terraform converters for API Gateway V2 resources.
+//!
+//! `ApiTfModel` is generated from `specs/apigatewayv2.toml`. The
+//! protocol_type default ("HTTP"), the api_endpoint URL template, the
+//! synthesised api_id (UUID), and the constant created_date /
+//! cors_configuration / api_key_selection_expression / execution_arn
+//! values are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::apigatewayv2 as apigatewayv2_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_apigatewayv2_api
@@ -58,39 +65,30 @@ impl AwsApigatewayv2ApiConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_apigatewayv2_api")?;
-        let protocol_type =
-            optional_str(attrs, "protocol_type").unwrap_or_else(|| "HTTP".to_string());
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: apigatewayv2_gen::ApiTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_apigatewayv2_api", e))?;
 
-        let api_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "api_id"))
+        let protocol_type = model.protocol_type.unwrap_or_else(|| "HTTP".to_string());
+        let api_id = model
+            .id
+            .or(model.api_id)
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
-        let description = optional_str(attrs, "description");
-        let route_selection_expression = optional_str(attrs, "route_selection_expression");
-        let tags = extract_tags(attrs);
-
-        let _tags_all = attrs.get("tags_all");
-        let _cors_configuration = attrs.get("cors_configuration");
-        let _disable_execute_api_endpoint = attrs.get("disable_execute_api_endpoint");
-        let _version = optional_str(attrs, "version");
-        let _body = optional_str(attrs, "body");
-        let _fail_on_warnings = attrs.get("fail_on_warnings");
-
-        let api_endpoint = optional_str(attrs, "api_endpoint")
+        let api_endpoint = model
+            .api_endpoint
             .unwrap_or_else(|| format!("https://{api_id}.execute-api.{region}.amazonaws.com"));
 
         let api_view = ApiView {
             api_id: api_id.clone(),
-            name: name.to_string(),
+            name: model.name,
             protocol_type,
-            route_selection_expression,
-            description,
+            route_selection_expression: model.route_selection_expression,
+            description: model.description,
             api_endpoint,
             created_date: "2024-01-01T00:00:00Z".to_string(),
-            tags,
+            tags: model.tags,
         };
 
         let view = ApiGatewayV2StateView {

@@ -1,0 +1,141 @@
+# Auto-ingested by `tf-converter-codegen ingest glue`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (catalog_database / job / crawler). Dropped Vec<T>/nested-block fields
+# (parameters, default_arguments, command, connections,
+# non_overridable_arguments, target_database, s3_target, dynamodb_target,
+# delta_target, jdbc_target, lake_formation_configuration,
+# lineage_configuration, recrawl_policy, schema_change_policy,
+# tags_all, max_capacity (Option<f64>), number_of_workers (Option<i32>)).
+# Those are read straight from instance.attributes in the converter.
+# ARN templates and timestamp constants are wired up by hand.
+
+[service]
+name = "glue"
+crate_name = "winterbaume_glue"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_glue_catalog_database
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_catalog_database"
+model = "CatalogDatabaseTfModel"
+view = "DatabaseView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "location_uri"
+view = "location_uri"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_job
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_job"
+model = "JobTfModel"
+view = "JobView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "worker_type"
+view = "worker_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "glue_version"
+view = "glue_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "max_retries"
+view = "max_retries"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "timeout"
+view = "timeout"
+type = "i64"
+default = 2880
+
+# ---------------------------------------------------------------------------
+# aws_glue_crawler
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_crawler"
+model = "CrawlerTfModel"
+view = "CrawlerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role"
+view = "role"
+type = "string?"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule"
+view = "schedule"
+type = "string?"
+
+[[resource.field]]
+hcl = "table_prefix"
+view = "table_prefix"
+type = "string?"

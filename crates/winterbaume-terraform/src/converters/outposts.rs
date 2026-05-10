@@ -1,4 +1,9 @@
 //! Terraform converters for AWS Outposts resources.
+//!
+//! `SiteTfModel` and `OutpostTfModel` are generated from
+//! `specs/outposts.toml`. The ARN templates, the synthesised
+//! `site_id` / `outpost_id`, and the constant `life_cycle_status`
+//! are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +18,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::outposts as outposts_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_outposts_site
@@ -57,32 +63,33 @@ impl AwsOutpostsSiteConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let name = require_str(attrs, "name", "aws_outposts_site")?;
-        let site_id = optional_str(attrs, "site_id")
-            .or_else(|| optional_str(attrs, "id"))
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: outposts_gen::SiteTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_outposts_site", e))?;
+
+        let site_id = model
+            .site_id
+            .clone()
+            .or_else(|| model.id.clone())
             .unwrap_or_else(|| format!("os-{:017x}", rand_id()));
-        let site_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let site_arn = model.arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:outposts:{}:{}:site/{}",
                 region, ctx.default_account_id, site_id
             )
         });
-        let description = optional_str(attrs, "description");
-        let tags = extract_tags(attrs);
 
         let site_view = SiteView {
             site_id: site_id.clone(),
             site_arn,
             account_id: ctx.default_account_id.clone(),
-            name: name.to_string(),
-            description,
+            name: model.name,
+            description: model.description,
             notes: None,
             operating_address_country_code: None,
             operating_address_state_or_region: None,
             operating_address_city: None,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = OutpostsStateView::default();
@@ -168,44 +175,43 @@ impl AwsOutpostsOutpostConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let name = require_str(attrs, "name", "aws_outposts_outpost")?;
-        let outpost_id = optional_str(attrs, "outpost_id")
-            .or_else(|| optional_str(attrs, "id"))
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: outposts_gen::OutpostTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_outposts_outpost", e))?;
+
+        let outpost_id = model
+            .outpost_id
+            .clone()
+            .or_else(|| model.id.clone())
             .unwrap_or_else(|| format!("op-{:017x}", rand_id()));
-        let outpost_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let outpost_arn = model.arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:outposts:{}:{}:outpost/{}",
                 region, ctx.default_account_id, outpost_id
             )
         });
-        let site_id = optional_str(attrs, "site_id").unwrap_or_default();
-        let site_arn = optional_str(attrs, "site_arn").unwrap_or_else(|| {
+        let site_id = model.site_id.clone().unwrap_or_default();
+        let site_arn = model.site_arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:outposts:{}:{}:site/{}",
                 region, ctx.default_account_id, site_id
             )
         });
-        let description = optional_str(attrs, "description");
-        let availability_zone = optional_str(attrs, "availability_zone");
-        let availability_zone_id = optional_str(attrs, "availability_zone_id");
-        let supported_hardware_type = optional_str(attrs, "supported_hardware_type");
-        let tags = extract_tags(attrs);
 
         let outpost_view = OutpostView {
             outpost_id: outpost_id.clone(),
             outpost_arn,
             owner_id: ctx.default_account_id.clone(),
-            name: name.to_string(),
-            description,
+            name: model.name,
+            description: model.description,
             site_id,
             site_arn,
-            availability_zone,
-            availability_zone_id,
+            availability_zone: model.availability_zone,
+            availability_zone_id: model.availability_zone_id,
             life_cycle_status: "ACTIVE".to_string(),
-            supported_hardware_type,
-            tags,
+            supported_hardware_type: model.supported_hardware_type,
+            tags: model.tags,
         };
 
         let mut state_view = OutpostsStateView::default();

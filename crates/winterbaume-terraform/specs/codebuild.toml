@@ -1,0 +1,46 @@
+# Auto-ingested by `tf-converter-codegen ingest codebuild`.
+# Hand-tuned: kept only the strongly-typed scalar inputs. Dropped:
+#   - `source`, `artifacts`, `environment` (Vec of nested-block objects —
+#     parsed by hand in the converter)
+#   - `build_batch_config`, `cache`, `file_system_locations`, `logs_config`,
+#     `secondary_artifacts`, `secondary_sources`, `vpc_config` (raw Value
+#     blobs read straight from instance.attributes)
+#   - `tags`, `tags_all` (the view stores Vec<TagView>; conversion is
+#     hand-rolled)
+#   - `badge_enabled`, `build_timeout`, `queued_timeout`,
+#     `concurrent_build_limit`, `source_version` (discarded by the
+#     original converter — read raw)
+
+[service]
+name = "codebuild"
+crate_name = "winterbaume_codebuild"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_codebuild_project"
+model = "ProjectTfModel"
+view = "ProjectView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_role"
+view = "service_role"
+type = "string?"

@@ -1,4 +1,8 @@
 //! Terraform converter for SWF resources.
+//!
+//! `DomainTfModel` is generated from `specs/swf.toml`. The constant view
+//! fields (`status = "REGISTERED"`) and the ARN template are wired up
+//! here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,13 +18,9 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::swf as swf_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
-// ---------------------------------------------------------------------------
-// aws_swf_domain
-// ---------------------------------------------------------------------------
-
-/// Converts `aws_swf_domain` Terraform resources to/from SWF state.
 pub struct AwsSwfDomainConverter {
     service: Arc<SwfService>,
 }
@@ -59,27 +59,24 @@ impl AwsSwfDomainConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_swf_domain")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let description = optional_str(attrs, "description");
-        let retention = optional_str(attrs, "workflow_execution_retention_period_in_days")
-            .unwrap_or_else(|| "0".to_string());
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: swf_gen::DomainTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_swf_domain", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:swf:{}:{}:/domain/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
 
-        let _tags = extract_tags(attrs);
-
         let domain_view = DomainView {
-            name: name.to_string(),
-            description,
+            name: model.name.clone(),
+            description: model.description,
             status: "REGISTERED".to_string(),
-            workflow_execution_retention_period_in_days: retention,
+            workflow_execution_retention_period_in_days: model
+                .workflow_execution_retention_period_in_days
+                .unwrap_or_else(|| "0".to_string()),
             arn,
         };
 
@@ -91,7 +88,7 @@ impl AwsSwfDomainConverter {
             activity_tasks: HashMap::new(),
             signals: HashMap::new(),
         };
-        state_view.domains.insert(name.to_string(), domain_view);
+        state_view.domains.insert(model.name, domain_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

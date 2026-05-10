@@ -1,4 +1,10 @@
 //! Terraform converter for `aws_kinesis_stream` resources.
+//!
+//! `StreamTfModel` is generated from `specs/kinesis.toml`. The ARN
+//! template (with `id` fallback), the nested `stream_mode_details`
+//! block, the synthesised provisioned-mode shard list, the
+//! `encryption_type` default, and the `created_timestamp` constant are
+//! wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -14,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::kinesis as kinesis_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Converts `aws_kinesis_stream` Terraform resources to/from Kinesis state.
 pub struct AwsKinesisStreamConverter {
@@ -55,21 +62,21 @@ impl AwsKinesisStreamConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_kinesis_stream")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: kinesis_gen::StreamTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_kinesis_stream", e))?;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:kinesis:{}:{}:stream/{}",
-                    region, ctx.default_account_id, name
-                )
-            });
+        let name = model.name.clone();
+        let arn = model.arn.clone().or(model.id.clone()).unwrap_or_else(|| {
+            format!(
+                "arn:aws:kinesis:{}:{}:stream/{}",
+                region, ctx.default_account_id, name
+            )
+        });
 
         // Stream mode: ON_DEMAND or PROVISIONED (default PROVISIONED)
-        let stream_mode = attrs
+        let stream_mode = instance
+            .attributes
             .get("stream_mode_details")
             .and_then(|v| v.as_array())
             .and_then(|arr| arr.first())
@@ -78,12 +85,11 @@ impl AwsKinesisStreamConverter {
             .unwrap_or("PROVISIONED")
             .to_string();
 
-        let shard_count = optional_i64(attrs, "shard_count").unwrap_or(1) as usize;
-        let retention_period_hours = optional_i64(attrs, "retention_period").unwrap_or(24) as u32;
+        let shard_count = model.shard_count as usize;
+        let retention_period_hours = model.retention_period as u32;
 
-        let encryption_type =
-            optional_str(attrs, "encryption_type").unwrap_or_else(|| "NONE".to_string());
-        let key_id = optional_str(attrs, "kms_key_id");
+        let encryption_type = model.encryption_type.unwrap_or_else(|| "NONE".to_string());
+        let key_id = model.kms_key_id;
 
         // Build fake shards for PROVISIONED mode
         let shards = if stream_mode == "PROVISIONED" {
@@ -109,7 +115,7 @@ impl AwsKinesisStreamConverter {
         };
 
         let stream_view = StreamView {
-            name: name.to_string(),
+            name: name.clone(),
             arn: arn.clone(),
             status: "ACTIVE".to_string(),
             stream_mode,
@@ -117,7 +123,7 @@ impl AwsKinesisStreamConverter {
             retention_period_hours,
             encryption_type,
             key_id,
-            tags: extract_tags(attrs),
+            tags: model.tags,
             consumers: vec![],
             created_timestamp: Some(Utc::now().to_rfc3339()),
             account_id: ctx.default_account_id.clone(),
@@ -127,7 +133,7 @@ impl AwsKinesisStreamConverter {
         };
 
         let mut state_view = KinesisStateView::default();
-        state_view.streams.insert(name.to_string(), stream_view);
+        state_view.streams.insert(name, stream_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

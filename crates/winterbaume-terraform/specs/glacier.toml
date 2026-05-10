@@ -1,0 +1,38 @@
+# Auto-ingested by `tf-converter-codegen ingest glacier`.
+# Hand-tuned: dropped the `notification` block (TF-side it is an
+# array-of-objects, not a string) so the converter parses it directly
+# from instance.attributes.
+
+[service]
+name = "glacier"
+crate_name = "winterbaume_glacier"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_glacier_vault"
+model = "VaultTfModel"
+view = "VaultView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_policy"
+view = "access_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

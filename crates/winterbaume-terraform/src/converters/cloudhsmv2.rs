@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::cloudhsmv2 as cloudhsmv2_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_cloudhsm_v2_cluster
@@ -59,10 +60,12 @@ impl AwsCloudHsmV2ClusterConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let hsm_type = require_str(attrs, "hsm_type", "aws_cloudhsm_v2_cluster")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let cluster_id = optional_str(attrs, "cluster_id").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: cloudhsmv2_gen::ClusterTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudhsm_v2_cluster", e))?;
+
+        let cluster_id = model.cluster_id.unwrap_or_else(|| {
             format!(
                 "cluster-{}",
                 uuid::Uuid::new_v4()
@@ -72,14 +75,13 @@ impl AwsCloudHsmV2ClusterConverter {
                     .unwrap_or("00000000000000000")
             )
         });
-        let vpc_id = optional_str(attrs, "vpc_id").unwrap_or_default();
-        let state =
-            optional_str(attrs, "cluster_state").unwrap_or_else(|| "UNINITIALIZED".to_string());
-        let security_group = optional_str(attrs, "security_group_id").unwrap_or_default();
-        let source_backup_id = optional_str(attrs, "source_backup_id");
+        let vpc_id = model.vpc_id.unwrap_or_default();
+        let state = model.state.unwrap_or_else(|| "UNINITIALIZED".to_string());
+        let security_group = model.security_group.unwrap_or_default();
         let backup_policy = "DEFAULT".to_string();
 
-        // Parse subnet_ids into subnet_mapping
+        // Parse subnet_ids into subnet_mapping (raw — Vec<String> shape).
+        let attrs = &instance.attributes;
         let subnet_mapping: HashMap<String, String> =
             if let Some(arr) = attrs.get("subnet_ids").and_then(|v| v.as_array()) {
                 arr.iter()
@@ -93,7 +95,7 @@ impl AwsCloudHsmV2ClusterConverter {
                 HashMap::new()
             };
 
-        // Parse tags (tags_all first, then tags overrides)
+        // Parse tags (tags_all first, then tags overrides). tag_list is Vec<TagView>.
         let mut tag_map: HashMap<String, String> = HashMap::new();
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
@@ -116,12 +118,12 @@ impl AwsCloudHsmV2ClusterConverter {
 
         let cluster_view = ClusterView {
             cluster_id: cluster_id.clone(),
-            hsm_type: hsm_type.to_string(),
+            hsm_type: model.hsm_type,
             subnet_mapping,
             vpc_id,
             state,
             security_group,
-            source_backup_id,
+            source_backup_id: model.source_backup_id,
             backup_policy,
             backup_retention_policy: None,
             create_timestamp: 0.0,

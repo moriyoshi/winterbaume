@@ -15,7 +15,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::firehose as firehose_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_kinesis_firehose_delivery_stream
@@ -59,62 +60,47 @@ impl AwsKinesisFirehoseDeliveryStreamConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: firehose_gen::DeliveryStreamTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_kinesis_firehose_delivery_stream", e)
+            })?;
 
-        let name = require_str(attrs, "name", "aws_kinesis_firehose_delivery_stream")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:firehose:{}:{}:deliverystream/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let destination = optional_str(attrs, "destination").unwrap_or_else(|| "s3".to_string());
+        let destination = model.destination.unwrap_or_else(|| "s3".to_string());
+        let version_id = model.version_id.unwrap_or_else(|| "1".to_string());
 
-        let _tags_all = attrs.get("tags_all");
-        let _extended_s3_configuration = attrs.get("extended_s3_configuration");
-        let _http_endpoint_configuration = attrs.get("http_endpoint_configuration");
-        let _opensearch_configuration = attrs.get("opensearch_configuration");
-        let _opensearchserverless_configuration = attrs.get("opensearchserverless_configuration");
-        let _splunk_configuration = attrs.get("splunk_configuration");
-
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
+        // server_side_encryption is a nested-block array: [{enabled: bool}]
+        let encryption_status = instance
+            .attributes
+            .get("server_side_encryption")
+            .and_then(|v| v.as_array())
+            .and_then(|arr| arr.first())
+            .and_then(|obj| obj.get("enabled"))
+            .and_then(|v| v.as_bool())
+            .map(|enabled| {
+                if enabled {
+                    "ENABLED".to_string()
+                } else {
+                    "DISABLED".to_string()
                 }
-            }
-        }
-
-        let encryption_status = optional_str(attrs, "server_side_encryption")
-            .and_then(|_| {
-                attrs
-                    .get("server_side_encryption")
-                    .and_then(|v| v.as_array())
-                    .and_then(|arr| arr.first())
-                    .and_then(|obj| obj.get("enabled"))
-                    .and_then(|v| v.as_bool())
-                    .map(|enabled| {
-                        if enabled {
-                            "ENABLED".to_string()
-                        } else {
-                            "DISABLED".to_string()
-                        }
-                    })
             })
             .unwrap_or_else(|| "DISABLED".to_string());
 
-        let version_id = optional_str(attrs, "version_id").unwrap_or_else(|| "1".to_string());
-
         let stream_view = DeliveryStreamView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             status: "ACTIVE".to_string(),
             destination_type: destination,
             destination_id: uuid::Uuid::new_v4().to_string(),
             created_timestamp: Some(Utc::now().to_rfc3339()),
-            tags,
+            tags: model.tags,
             encryption_status,
             version_id,
         };
@@ -122,7 +108,7 @@ impl AwsKinesisFirehoseDeliveryStreamConverter {
         let mut state_view = FirehoseStateView {
             streams: HashMap::new(),
         };
-        state_view.streams.insert(name.to_string(), stream_view);
+        state_view.streams.insert(name, stream_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

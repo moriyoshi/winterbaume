@@ -1,0 +1,63 @@
+# Auto-ingested by `tf-converter-codegen ingest keyspaces`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (keyspace / table). Dropped tags_all (read directly from
+# instance.attributes), the schema_definition nested-block, and
+# the discarded fields. ARN templates are hand-written in the
+# converter.
+
+[service]
+name = "keyspaces"
+crate_name = "winterbaume_keyspaces"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_keyspaces_keyspace
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_keyspaces_keyspace"
+model = "KeyspaceTfModel"
+view = "KeyspaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_keyspaces_table
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_keyspaces_table"
+model = "TableTfModel"
+view = "TableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "keyspace_name"
+view = "keyspace_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "table_name"
+view = "table_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"

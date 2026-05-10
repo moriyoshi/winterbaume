@@ -17,9 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::neptune as neptune_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags, optional_i64};
 
 // ---------------------------------------------------------------------------
 // aws_neptune_cluster
@@ -64,31 +63,27 @@ impl AwsNeptuneClusterConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::DbClusterTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_neptune_cluster", e))?;
+
         let attrs = &instance.attributes;
-        let identifier = require_str(attrs, "cluster_identifier", "aws_neptune_cluster")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let identifier = model.cluster_identifier.clone();
 
-        let engine = optional_str(attrs, "engine").unwrap_or_else(|| "neptune".to_string());
-        let engine_version = optional_str(attrs, "engine_version");
+        let engine = model.engine.unwrap_or_else(|| "neptune".to_string());
+        let engine_version = model.engine_version;
         let port = optional_i64(attrs, "port").map(|v| v as i32);
-        let master_username = optional_str(attrs, "master_username");
-        let database_name = optional_str(attrs, "database_name");
-        let db_subnet_group_name = optional_str(attrs, "neptune_subnet_group_name");
-        let db_cluster_parameter_group =
-            optional_str(attrs, "neptune_cluster_parameter_group_name");
-        let kms_key_id = optional_str(attrs, "kms_key_arn");
-        let engine_mode = optional_str(attrs, "engine_mode");
-        let storage_encrypted = optional_bool(attrs, "storage_encrypted").unwrap_or(false);
-        let copy_tags_to_snapshot = optional_bool(attrs, "copy_tags_to_snapshot").unwrap_or(false);
-        let deletion_protection = optional_bool(attrs, "deletion_protection").unwrap_or(false);
-        let backup_retention_period =
-            optional_i64(attrs, "backup_retention_period").unwrap_or(1) as i32;
-
-        let _skip_final_snapshot = optional_bool(attrs, "skip_final_snapshot").unwrap_or(false);
-        let _apply_immediately = optional_bool(attrs, "apply_immediately").unwrap_or(false);
-        let _preferred_backup_window = optional_str(attrs, "preferred_backup_window");
-        let _iam_database_authentication_enabled =
-            optional_bool(attrs, "iam_database_authentication_enabled").unwrap_or(false);
+        let master_username = model.master_username;
+        let database_name = model.database_name;
+        let db_subnet_group_name = model.neptune_subnet_group_name;
+        let db_cluster_parameter_group = model.neptune_cluster_parameter_group_name;
+        let kms_key_id = model.kms_key_arn;
+        let engine_mode = model.engine_mode;
+        let storage_encrypted = model.storage_encrypted;
+        let copy_tags_to_snapshot = model.copy_tags_to_snapshot;
+        let deletion_protection = model.deletion_protection;
+        let backup_retention_period = model.backup_retention_period as i32;
 
         // Merge tags_all
         let mut tag_map = extract_tags(attrs);
@@ -120,20 +115,20 @@ impl AwsNeptuneClusterConverter {
             })
             .unwrap_or_default();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:cluster:{}",
                 region, ctx.default_account_id, identifier
             )
         });
 
-        let endpoint = optional_str(attrs, "endpoint").unwrap_or_else(|| {
+        let endpoint = model.endpoint.unwrap_or_else(|| {
             format!(
                 "{}.cluster-xxxxxxxxxx.{}.neptune.amazonaws.com",
                 identifier, region
             )
         });
-        let reader_endpoint = optional_str(attrs, "reader_endpoint").unwrap_or_else(|| {
+        let reader_endpoint = model.reader_endpoint.unwrap_or_else(|| {
             format!(
                 "{}.cluster-ro-xxxxxxxxxx.{}.neptune.amazonaws.com",
                 identifier, region
@@ -171,7 +166,7 @@ impl AwsNeptuneClusterConverter {
             });
 
         let cluster_view = DbClusterView {
-            identifier: identifier.to_string(),
+            identifier: identifier.clone(),
             engine,
             engine_version,
             status: "available".to_string(),
@@ -200,9 +195,7 @@ impl AwsNeptuneClusterConverter {
         };
 
         let mut state_view = NeptuneStateView::default();
-        state_view
-            .db_clusters
-            .insert(identifier.to_string(), cluster_view);
+        state_view.db_clusters.insert(identifier, cluster_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -337,21 +330,26 @@ impl AwsNeptuneClusterInstanceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let identifier = require_str(attrs, "identifier", "aws_neptune_cluster_instance")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::DbInstanceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_neptune_cluster_instance", e))?;
 
-        let db_instance_class =
-            optional_str(attrs, "instance_class").unwrap_or_else(|| "db.r5.large".to_string());
-        let engine = optional_str(attrs, "engine").unwrap_or_else(|| "neptune".to_string());
-        let engine_version =
-            optional_str(attrs, "engine_version").unwrap_or_else(|| "1.2.0.2".to_string());
-        let db_subnet_group_name = optional_str(attrs, "neptune_subnet_group_name");
-        let db_cluster_identifier = optional_str(attrs, "cluster_identifier");
-        let availability_zone = optional_str(attrs, "availability_zone");
-        let auto_minor_version_upgrade =
-            optional_bool(attrs, "auto_minor_version_upgrade").unwrap_or(true);
-        let publicly_accessible = optional_bool(attrs, "publicly_accessible").unwrap_or(false);
+        let attrs = &instance.attributes;
+        let identifier = model.identifier.clone();
+
+        let db_instance_class = model
+            .instance_class
+            .unwrap_or_else(|| "db.r5.large".to_string());
+        let engine = model.engine.unwrap_or_else(|| "neptune".to_string());
+        let engine_version = model
+            .engine_version
+            .unwrap_or_else(|| "1.2.0.2".to_string());
+        let db_subnet_group_name = model.neptune_subnet_group_name;
+        let db_cluster_identifier = model.cluster_identifier;
+        let availability_zone = model.availability_zone;
+        let auto_minor_version_upgrade = model.auto_minor_version_upgrade;
+        let publicly_accessible = model.publicly_accessible;
 
         let vpc_security_group_ids: Vec<String> = attrs
             .get("vpc_security_group_ids")
@@ -363,25 +361,25 @@ impl AwsNeptuneClusterInstanceConverter {
             })
             .unwrap_or_default();
 
-        let db_parameter_group_names: Vec<String> =
-            optional_str(attrs, "neptune_parameter_group_name")
-                .map(|n| vec![n])
-                .unwrap_or_default();
+        let db_parameter_group_names: Vec<String> = model
+            .neptune_parameter_group_name
+            .map(|n| vec![n])
+            .unwrap_or_default();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:db:{}",
                 region, ctx.default_account_id, identifier
             )
         });
 
-        let endpoint_address = optional_str(attrs, "endpoint").unwrap_or_else(|| {
+        let endpoint_address = model.endpoint.unwrap_or_else(|| {
             format!("{}.xxxxxxxxxx.{}.neptune.amazonaws.com", identifier, region)
         });
 
         let port = optional_i64(attrs, "port").map(|v| v as i32);
-        let storage_encrypted = optional_bool(attrs, "storage_encrypted").unwrap_or(false);
-        let kms_key_id = optional_str(attrs, "kms_key_arn");
+        let storage_encrypted = model.storage_encrypted;
+        let kms_key_id = model.kms_key_arn;
 
         let tags: Vec<TagView> = extract_tags(attrs)
             .into_iter()
@@ -389,7 +387,7 @@ impl AwsNeptuneClusterInstanceConverter {
             .collect();
 
         let instance_view = DbInstanceView {
-            identifier: identifier.to_string(),
+            identifier: identifier.clone(),
             db_instance_class,
             engine,
             engine_version,
@@ -414,9 +412,7 @@ impl AwsNeptuneClusterInstanceConverter {
         };
 
         let mut state_view = NeptuneStateView::default();
-        state_view
-            .db_instances
-            .insert(identifier.to_string(), instance_view);
+        state_view.db_instances.insert(identifier, instance_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -519,10 +515,14 @@ impl AwsNeptuneSubnetGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::DbSubnetGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_neptune_subnet_group", e))?;
+
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_neptune_subnet_group")?;
-        let description = optional_str(attrs, "description").unwrap_or_else(|| name.to_string());
-        let region = extract_region(attrs, &ctx.default_region);
+        let name = model.name.clone();
+        let description = model.description.unwrap_or_else(|| name.clone());
 
         let subnet_ids: Vec<String> = attrs
             .get("subnet_ids")
@@ -534,7 +534,7 @@ impl AwsNeptuneSubnetGroupConverter {
             })
             .unwrap_or_default();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:subgrp:{}",
                 region, ctx.default_account_id, name
@@ -547,9 +547,9 @@ impl AwsNeptuneSubnetGroupConverter {
             .collect();
 
         let subnet_group_view = DbSubnetGroupView {
-            name: name.to_string(),
+            name: name.clone(),
             description,
-            vpc_id: optional_str(attrs, "vpc_id"),
+            vpc_id: model.vpc_id,
             subnet_ids,
             status: "Complete".to_string(),
             arn: arn.clone(),
@@ -557,9 +557,7 @@ impl AwsNeptuneSubnetGroupConverter {
         };
 
         let mut state_view = NeptuneStateView::default();
-        state_view
-            .db_subnet_groups
-            .insert(name.to_string(), subnet_group_view);
+        state_view.db_subnet_groups.insert(name, subnet_group_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -650,13 +648,17 @@ impl AwsNeptuneParameterGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_neptune_parameter_group")?;
-        let family = require_str(attrs, "family", "aws_neptune_parameter_group")?;
-        let description = optional_str(attrs, "description").unwrap_or_else(|| name.to_string());
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::DbParameterGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_neptune_parameter_group", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let family = model.family.clone();
+        let description = model.description.unwrap_or_else(|| name.clone());
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:pg:{}",
                 region, ctx.default_account_id, name
@@ -693,8 +695,8 @@ impl AwsNeptuneParameterGroupConverter {
             .unwrap_or_default();
 
         let pg_view = DbParameterGroupView {
-            name: name.to_string(),
-            family: family.to_string(),
+            name: name.clone(),
+            family,
             description,
             arn: arn.clone(),
             tags,
@@ -702,9 +704,7 @@ impl AwsNeptuneParameterGroupConverter {
         };
 
         let mut state_view = NeptuneStateView::default();
-        state_view
-            .db_parameter_groups
-            .insert(name.to_string(), pg_view);
+        state_view.db_parameter_groups.insert(name, pg_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

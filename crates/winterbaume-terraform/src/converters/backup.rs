@@ -1,4 +1,10 @@
 //! Terraform converters for AWS Backup resources.
+//!
+//! `VaultTfModel` and `PlanTfModel` are generated from
+//! `specs/backup.toml`. The synthesised plan UUID, the `creation_date`
+//! constant, the ARN templates, and the raw `rule` /
+//! `advanced_backup_setting` nested-block reads are wired up here, plus
+//! the `tags_all` raw merge on the plan.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::backup as backup_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_backup_vault
@@ -59,30 +66,21 @@ impl AwsBackupVaultConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: backup_gen::VaultTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_backup_vault", e))?;
 
-        let name = require_str(attrs, "name", "aws_backup_vault")?;
-        let _force_destroy = optional_str(attrs, "force_destroy");
-        let _tags_all = attrs.get("tags_all");
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:backup:{}:{}:backup-vault:{}",
                 region, ctx.default_account_id, name
             )
         });
 
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
-
         let vault_view = BackupVaultView {
-            backup_vault_name: name.to_string(),
+            backup_vault_name: name.clone(),
             backup_vault_arn: arn,
             creation_date: Utc::now().to_rfc3339(),
             number_of_recovery_points: 0,
@@ -90,11 +88,11 @@ impl AwsBackupVaultConverter {
             min_retention_days: None,
             max_retention_days: None,
             lock_date: None,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = minimal_backup_state_view();
-        state_view.vaults.insert(name.to_string(), vault_view);
+        state_view.vaults.insert(name, vault_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -175,18 +173,22 @@ impl AwsBackupPlanConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: backup_gen::PlanTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_backup_plan", e))?;
 
-        let name = require_str(attrs, "name", "aws_backup_plan")?;
-        let plan_id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let plan_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:backup:{}:{}:backup-plan:{}",
                 region, ctx.default_account_id, plan_id
             )
         });
 
+        // The original converter merges `tags_all` first, then `tags` overrides.
+        // `tags_all` is read raw because the spec field is already used for `tags`.
         let mut tags: HashMap<String, String> = HashMap::new();
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
@@ -195,12 +197,8 @@ impl AwsBackupPlanConverter {
                 }
             }
         }
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
+        for (k, v) in model.tags {
+            tags.insert(k, v);
         }
 
         // Collect rule blocks as JSON for backup_plan_json
@@ -221,7 +219,7 @@ impl AwsBackupPlanConverter {
         let plan_view = BackupPlanView {
             backup_plan_id: plan_id.clone(),
             backup_plan_arn: arn,
-            backup_plan_name: name.to_string(),
+            backup_plan_name: name,
             version_id: uuid::Uuid::new_v4().to_string(),
             creation_date: Utc::now().to_rfc3339(),
             backup_plan_json,

@@ -1,0 +1,187 @@
+# Auto-ingested by `tf-converter-codegen ingest elasticache`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (cluster / replication_group / subnet_group / parameter_group). Dropped
+# Vec<T>/nested-block / raw-blob fields (log_delivery_configuration,
+# parameter, subnet_ids, preferred_cache_cluster_azs, automatic_failover,
+# multi_az_enabled, num_cache_clusters, cluster_mode, tags / tags_all).
+# Those are read straight from instance.attributes in the converter.
+# ARN templates are wired up by hand.
+
+[service]
+name = "elasticache"
+crate_name = "winterbaume_elasticache"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_cluster
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_cluster"
+model = "CacheClusterTfModel"
+view = "CacheClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_id"
+view = "cluster_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "node_type"
+view = "node_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "num_cache_nodes"
+view = "num_cache_nodes"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "subnet_group_name"
+view = "subnet_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "replication_group_id"
+view = "replication_group_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_replication_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_replication_group"
+model = "ReplicationGroupTfModel"
+view = "ReplicationGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "replication_group_id"
+view = "replication_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "replication_group_description"
+view = "replication_group_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "node_type"
+view = "node_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_subnet_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_subnet_group"
+model = "CacheSubnetGroupTfModel"
+view = "CacheSubnetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_parameter_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_parameter_group"
+model = "CacheParameterGroupTfModel"
+view = "CacheParameterGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "family"
+view = "family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"

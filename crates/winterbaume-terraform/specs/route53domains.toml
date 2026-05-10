@@ -1,0 +1,62 @@
+# Auto-ingested by `tf-converter-codegen ingest route53domains`.
+# Hand-tuned: renamed model from ContactDetailTfModel to RegisteredDomainTfModel.
+# Dropped nested-block fields (admin_contact, registrant_contact, tech_contact,
+# billing_contact, name_server) and the discarded scalar fields
+# (abuse_contact_email, abuse_contact_phone, availability_status, domain_price,
+# registrar_name, registrar_url, reseller, tags_all, whois_server). Those are
+# read straight from instance.attributes in the converter.
+
+[service]
+name = "route53domains"
+crate_name = "winterbaume_route53domains"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_route53domains_registered_domain"
+model = "RegisteredDomainTfModel"
+view = "DomainRegistrationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "auto_renew"
+view = "auto_renew"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "transfer_lock"
+view = "transfer_lock"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "admin_privacy"
+view = "admin_privacy"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "registrant_privacy"
+view = "registrant_privacy"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "tech_privacy"
+view = "tech_privacy"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "billing_privacy"
+view = "billing_privacy"
+type = "bool"
+default = true

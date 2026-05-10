@@ -1,4 +1,11 @@
 //! Terraform converters for Cost Explorer resources.
+//!
+//! `AnomalyMonitorTfModel` and `AnomalySubscriptionTfModel` are
+//! generated from `specs/costexplorer.toml`. ARN templates, the
+//! default `creation_date` / `last_updated_date` constants, and the
+//! `monitor_arn_list` Vec<String>, the nested `subscriber` array,
+//! and the `threshold` f64 are read straight from the raw attributes
+//! in the converter.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::costexplorer as costexplorer_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_ce_anomaly_monitor
@@ -59,31 +67,30 @@ impl AwsCeAnomalyMonitorConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: costexplorer_gen::AnomalyMonitorTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ce_anomaly_monitor", e))?;
 
-        let name = require_str(attrs, "name", "aws_ce_anomaly_monitor")?;
-        let monitor_type = require_str(attrs, "monitor_type", "aws_ce_anomaly_monitor")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:ce:{}:{}:anomalymonitor/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
-        let monitor_dimension = optional_str(attrs, "monitor_dimension");
-
-        let _tags = extract_tags(attrs);
 
         let monitor_view = AnomalyMonitorView {
             monitor_arn: arn.clone(),
-            monitor_name: name.to_string(),
-            monitor_type: monitor_type.to_string(),
-            monitor_dimension,
-            creation_date: optional_str(attrs, "creation_date")
+            monitor_name: model.name,
+            monitor_type: model.monitor_type,
+            monitor_dimension: model.monitor_dimension,
+            creation_date: model
+                .creation_date
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
-            last_updated_date: optional_str(attrs, "last_updated_date")
+            last_updated_date: model
+                .last_updated_date
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
-            last_evaluated_date: optional_str(attrs, "last_evaluated_date"),
+            last_evaluated_date: model.last_evaluated_date,
         };
 
         let mut state_view = CostExplorerStateView::default();
@@ -171,15 +178,17 @@ impl AwsCeAnomalySubscriptionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: costexplorer_gen::AnomalySubscriptionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ce_anomaly_subscription", e))?;
 
-        let name = require_str(attrs, "name", "aws_ce_anomaly_subscription")?;
-        let frequency = require_str(attrs, "frequency", "aws_ce_anomaly_subscription")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+
+        let arn = model.arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:ce:{}:{}:anomalysubscription/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
 
@@ -203,16 +212,18 @@ impl AwsCeAnomalySubscriptionConverter {
             .unwrap_or_default();
 
         let threshold = attrs.get("threshold").and_then(|v| v.as_f64());
-        let account_id =
-            optional_str(attrs, "account_id").unwrap_or_else(|| ctx.default_account_id.clone());
+        let account_id = model
+            .account_id
+            .clone()
+            .unwrap_or_else(|| ctx.default_account_id.clone());
 
         let sub_view = AnomalySubscriptionView {
             subscription_arn: arn.clone(),
-            subscription_name: name.to_string(),
+            subscription_name: model.name,
             account_id,
             monitor_arn_list,
             subscribers,
-            frequency: frequency.to_string(),
+            frequency: model.frequency,
             threshold,
         };
 

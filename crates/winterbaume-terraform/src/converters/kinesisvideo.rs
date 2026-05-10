@@ -1,4 +1,9 @@
 //! Terraform converter for Kinesis Video resources.
+//!
+//! `StreamTfModel` is generated from `specs/kinesisvideo.toml`. The
+//! ARN template, the default `kms_key_id` (`aws/kinesisvideo`), and the
+//! constant fall-backs for `version` / `status` / `creation_time` are
+//! wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::kinesisvideo as kinesisvideo_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_kinesis_video_stream
@@ -59,35 +65,33 @@ impl AwsKinesisVideoStreamConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_kinesis_video_stream")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let device_name = optional_str(attrs, "device_name");
-        let media_type = optional_str(attrs, "media_type");
-        let kms_key_id =
-            optional_str(attrs, "kms_key_id").unwrap_or_else(|| "aws/kinesisvideo".to_string());
-        let data_retention_in_hours =
-            optional_i64(attrs, "data_retention_in_hours").unwrap_or(0) as i32;
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: kinesisvideo_gen::StreamTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_kinesis_video_stream", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:kinesisvideo:{}:{}:stream/{}/0000000000000",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
 
         let stream_view = StreamView {
-            stream_name: name.to_string(),
+            stream_name: model.name.clone(),
             stream_arn: arn,
-            device_name,
-            media_type,
-            kms_key_id,
-            version: optional_str(attrs, "version").unwrap_or_else(|| "1".to_string()),
-            status: optional_str(attrs, "status").unwrap_or_else(|| "ACTIVE".to_string()),
-            creation_time: optional_str(attrs, "creation_time")
+            device_name: model.device_name,
+            media_type: model.media_type,
+            kms_key_id: model
+                .kms_key_id
+                .unwrap_or_else(|| "aws/kinesisvideo".to_string()),
+            version: model.version.unwrap_or_else(|| "1".to_string()),
+            status: model.status.unwrap_or_else(|| "ACTIVE".to_string()),
+            creation_time: model
+                .creation_time
                 .unwrap_or_else(|| chrono::Utc::now().to_rfc3339()),
-            data_retention_in_hours,
-            tags: extract_tags(attrs),
+            data_retention_in_hours: model.data_retention_in_hours as i32,
+            tags: model.tags,
             image_generation_config: None,
             notification_config: None,
             storage_config: None,
@@ -98,7 +102,7 @@ impl AwsKinesisVideoStreamConverter {
             streams: HashMap::new(),
             channels: HashMap::new(),
         };
-        state_view.streams.insert(name.to_string(), stream_view);
+        state_view.streams.insert(model.name, stream_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

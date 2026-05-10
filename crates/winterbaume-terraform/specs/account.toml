@@ -1,0 +1,42 @@
+[service]
+name = "account"
+crate_name = "winterbaume_account"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_account_alternate_contact"
+model = "AlternateContactTfModel"
+view = "AlternateContactView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "alternate_contact_type"
+view = "alternate_contact_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "email_address"
+view = "email_address"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "phone_number"
+view = "phone_number"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "title"
+view = "title"
+type = "string"
+required = true

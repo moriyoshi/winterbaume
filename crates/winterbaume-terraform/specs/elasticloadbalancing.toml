@@ -1,0 +1,59 @@
+# Auto-ingested by `tf-converter-codegen ingest elasticloadbalancing`.
+# Hand-tuned: dropped Vec<String> array fields (availability_zones,
+# subnets, security_groups, instances), nested-block fields (listener,
+# health_check, access_logs), the Option<i64> connection_draining_timeout,
+# and discarded fields (name_prefix, source_security_group, tags_all).
+# Those are read straight from instance.attributes in the converter.
+
+[service]
+name = "elasticloadbalancing"
+crate_name = "winterbaume_elasticloadbalancing"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_elb"
+model = "ElbTfModel"
+view = "ElbLoadBalancerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "dns_name"
+view = "dns_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "internal"
+view = "internal"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "cross_zone_load_balancing"
+view = "cross_zone_load_balancing"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "idle_timeout"
+view = "idle_timeout"
+type = "i64"
+default = 60
+
+[[resource.field]]
+hcl = "connection_draining"
+view = "connection_draining"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

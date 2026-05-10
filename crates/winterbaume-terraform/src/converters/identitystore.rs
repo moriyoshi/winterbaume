@@ -15,7 +15,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::identitystore as identitystore_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_identitystore_group
@@ -60,18 +61,19 @@ impl AwsIdentitystoreGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let identity_store_id = require_str(attrs, "identity_store_id", "aws_identitystore_group")?;
-        let group_id = require_str(attrs, "group_id", "aws_identitystore_group")?;
-        let display_name = optional_str(attrs, "display_name");
-        let description = optional_str(attrs, "description");
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: identitystore_gen::GroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_identitystore_group", e))?;
+
+        let identity_store_id = model.identity_store_id;
+        let group_id = model.group_id;
 
         let group_view = GroupView {
-            identity_store_id: identity_store_id.to_string(),
-            group_id: group_id.to_string(),
-            display_name,
-            description,
+            identity_store_id: identity_store_id.clone(),
+            group_id: group_id.clone(),
+            display_name: model.display_name,
+            description: model.description,
             external_ids: vec![],
         };
 
@@ -166,22 +168,14 @@ impl AwsIdentitystoreUserConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let identity_store_id = require_str(attrs, "identity_store_id", "aws_identitystore_user")?;
-        let user_id = require_str(attrs, "user_id", "aws_identitystore_user")?;
-        let user_name = optional_str(attrs, "user_name");
-        let display_name = optional_str(attrs, "display_name");
-        let nick_name = optional_str(attrs, "nick_name");
-        let profile_url = optional_str(attrs, "profile_url");
-        let user_type = optional_str(attrs, "user_type");
-        let title = optional_str(attrs, "title");
-        let preferred_language = optional_str(attrs, "preferred_language");
-        let locale = optional_str(attrs, "locale");
-        let timezone = optional_str(attrs, "timezone");
-        let website = optional_str(attrs, "website");
-        let birthdate = optional_str(attrs, "birthdate");
         let region = extract_region(attrs, &ctx.default_region);
+        let model: identitystore_gen::UserTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_identitystore_user", e))?;
 
-        // Parse nested name block.
+        let identity_store_id = model.identity_store_id;
+        let user_id = model.user_id;
+
+        // Parse nested name block (read raw — not part of strongly-typed model).
         let name_parsed: Option<Name> = attrs
             .get("name")
             .and_then(|v| v.as_array())
@@ -292,25 +286,25 @@ impl AwsIdentitystoreUserConverter {
             });
 
         let user_view = UserView {
-            identity_store_id: identity_store_id.to_string(),
-            user_id: user_id.to_string(),
-            user_name,
+            identity_store_id: identity_store_id.clone(),
+            user_id: user_id.clone(),
+            user_name: model.user_name,
             name: name_parsed,
-            display_name,
-            nick_name,
-            profile_url,
+            display_name: model.display_name,
+            nick_name: model.nick_name,
+            profile_url: model.profile_url,
             emails: emails_parsed,
             addresses: addresses_parsed,
             phone_numbers: phone_numbers_parsed,
-            user_type,
-            title,
-            preferred_language,
-            locale,
-            timezone,
+            user_type: model.user_type,
+            title: model.title,
+            preferred_language: model.preferred_language,
+            locale: model.locale,
+            timezone: model.timezone,
             external_ids: vec![],
             photos: None,
-            website,
-            birthdate,
+            website: model.website,
+            birthdate: model.birthdate,
             roles: None,
         };
 

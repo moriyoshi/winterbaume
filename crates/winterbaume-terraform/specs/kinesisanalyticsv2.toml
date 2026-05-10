@@ -1,0 +1,49 @@
+[service]
+name = "kinesisanalyticsv2"
+crate_name = "winterbaume_kinesisanalyticsv2"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_kinesisanalyticsv2_application"
+model = "ApplicationTfModel"
+view = "ApplicationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "runtime_environment"
+view = "runtime_environment"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_execution_role"
+view = "service_execution_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_id"
+view = "version_id"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

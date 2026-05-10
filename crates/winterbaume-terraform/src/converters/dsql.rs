@@ -1,4 +1,8 @@
 //! Terraform converter for DSQL resources.
+//!
+//! `ClusterTfModel` is generated from `specs/dsql.toml`. The identifier
+//! synthesis (UUID when missing), ARN template, and the `creation_time`
+//! / `status` constants are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,13 +18,9 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str};
+use crate::generated::dsql as dsql_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
-// ---------------------------------------------------------------------------
-// aws_dsql_cluster
-// ---------------------------------------------------------------------------
-
-/// Converts `aws_dsql_cluster` Terraform resources to/from DSQL state.
 pub struct AwsDsqlClusterConverter {
     service: Arc<DsqlService>,
 }
@@ -59,20 +59,13 @@ impl AwsDsqlClusterConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let _tags_all = attrs.get("tags_all");
-        let _linked_cluster_arns = attrs.get("linked_cluster_arns");
-        let _kms_encryption_key = attrs.get("kms_encryption_key");
-        let _multi_region_properties = attrs.get("multi_region_properties");
-        let _endpoint = optional_str(attrs, "endpoint");
-        let _witness_region = optional_str(attrs, "witness_region");
-        let deletion_protection_enabled =
-            optional_bool(attrs, "deletion_protection_enabled").unwrap_or(false);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: dsql_gen::ClusterTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_dsql_cluster", e))?;
 
-        let identifier =
-            optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let identifier = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:dsql:{}:{}:cluster/{}",
                 region, ctx.default_account_id, identifier
@@ -84,8 +77,8 @@ impl AwsDsqlClusterConverter {
             arn,
             status: "ACTIVE".to_string(),
             creation_time: chrono::Utc::now(),
-            deletion_protection_enabled,
-            tags: extract_tags(attrs),
+            deletion_protection_enabled: model.deletion_protection_enabled,
+            tags: model.tags,
         };
 
         let mut state_view = DsqlStateView {

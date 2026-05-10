@@ -1,0 +1,274 @@
+# Auto-ingested by `tf-converter-codegen ingest apigateway`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (rest_api / resource / method / stage / deployment / api_key).
+# Dropped Vec<T>/nested-block fields (binary_media_types, endpoint_configuration,
+# request_models, request_parameters, stage_key, variables, access_log_settings,
+# canary_settings, triggers, tags_all), Option<bool> fields
+# (disable_execute_api_endpoint, api_key_required, xray_tracing_enabled,
+# cache_cluster_enabled, enabled — the spec only emits plain `bool`, but the
+# views model these as `Option<bool>`), and Option<i32>
+# (minimum_compression_size). Tags are merged via the standard
+# extract_tags() helper (tags + tags_all) in the converter rather than
+# read directly from the model field. Those, plus ARN/URL templates and
+# the `created_date` constants, are wired up by hand.
+
+[service]
+name = "apigateway"
+crate_name = "winterbaume_apigateway"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_rest_api
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_rest_api"
+model = "RestApiTfModel"
+view = "RestApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_key_source"
+view = "api_key_source"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "root_resource_id"
+view = "root_resource_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_resource
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_resource"
+model = "ApiGatewayResourceTfModel"
+view = "ResourceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "parent_id"
+view = "parent_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "path_part"
+view = "path_part"
+type = "string?"
+
+[[resource.field]]
+hcl = "path"
+view = "path"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_method
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_method"
+model = "ApiGatewayMethodTfModel"
+view = "MethodView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "http_method"
+view = "http_method"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "authorization"
+view = "authorization"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorizer_id"
+view = "authorizer_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "operation_name"
+view = "operation_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "request_validator_id"
+view = "request_validator_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_stage
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_stage"
+model = "ApiGatewayStageTfModel"
+view = "StageView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "stage_name"
+view = "stage_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "deployment_id"
+view = "deployment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "cache_cluster_size"
+view = "cache_cluster_size"
+type = "string?"
+
+[[resource.field]]
+hcl = "documentation_version"
+view = "documentation_version"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_deployment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_deployment"
+model = "ApiGatewayDeploymentTfModel"
+view = "DeploymentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "stage_name"
+view = "stage_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "stage_description"
+view = "stage_description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_api_key
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_api_key"
+model = "ApiKeyTfModel"
+view = "ApiKeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"

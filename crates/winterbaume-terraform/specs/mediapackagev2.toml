@@ -1,0 +1,53 @@
+[service]
+name = "mediapackagev2"
+crate_name = "winterbaume_mediapackagev2"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_media_packagev2_channel_group"
+model = "ChannelGroupTfModel"
+view = "ChannelGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "egress_domain"
+view = "egress_domain"
+type = "string?"
+
+[[resource.field]]
+hcl = "e_tag"
+view = "e_tag"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "modified_at"
+view = "modified_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

@@ -1,0 +1,111 @@
+# Auto-ingested by `tf-converter-codegen ingest xray`.
+# Hand-tuned: split into one [[resource]] per resource type
+# (group / sampling_rule). Dropped:
+#   - `insights_configuration` on the group (nested-block array — read
+#     raw)
+#   - `fixed_rate`, `created_at`, `modified_at` on the sampling rule
+#     (f64, not in spec vocabulary — read raw)
+
+[service]
+name = "xray"
+crate_name = "winterbaume_xray"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_xray_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_xray_group"
+model = "GroupTfModel"
+view = "GroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "group_name"
+view = "group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "filter_expression"
+view = "filter_expression"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_xray_sampling_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_xray_sampling_rule"
+model = "SamplingRuleTfModel"
+view = "SamplingRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rule_name"
+view = "rule_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "priority"
+view = "priority"
+type = "i64"
+default = 1000
+
+[[resource.field]]
+hcl = "reservoir_size"
+view = "reservoir_size"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "service_name"
+view = "service_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_type"
+view = "service_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "host"
+view = "host"
+type = "string?"
+
+[[resource.field]]
+hcl = "http_method"
+view = "http_method"
+type = "string?"
+
+[[resource.field]]
+hcl = "url_path"
+view = "url_path"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "i64"
+default = 1

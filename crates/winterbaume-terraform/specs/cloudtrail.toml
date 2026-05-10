@@ -1,0 +1,64 @@
+# Auto-ingested by `tf-converter-codegen ingest cloudtrail`.
+# Hand-tuned: dropped `advanced_event_selector` (JSON value, not string),
+# `event_selector`, and `insight_selector` (nested-block arrays). Those
+# are read straight from instance.attributes in the converter. Set
+# defaults for `enable_logging` and `include_global_service_events` to
+# true to match the original optional_bool fallback.
+
+[service]
+name = "cloudtrail"
+crate_name = "winterbaume_cloudtrail"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_cloudtrail"
+model = "TrailTfModel"
+view = "TrailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "s3_bucket_name"
+view = "s3_bucket_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_key_prefix"
+view = "s3_key_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "enable_logging"
+view = "enable_logging"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "include_global_service_events"
+view = "include_global_service_events"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "is_multi_region_trail"
+view = "is_multi_region_trail"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

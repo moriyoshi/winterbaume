@@ -1,4 +1,13 @@
-//! Terraform converter for Bedrock Agent resources.
+//! Terraform converters for Bedrock Agent resources.
+//!
+//! `AgentTfModel` and `KnowledgeBaseTfModel` are generated from
+//! `specs/bedrockagent.toml`. The ARN templates, the synthesised IDs,
+//! the constants (`agent_version = "DRAFT"`, `agent_status =
+//! "NOT_PREPARED"`, `status = "ACTIVE"`), the `Option<i64>`
+//! `idle_session_ttl_in_seconds`, the `failure_reasons` /
+//! `recommended_actions` Vec<String> fields, the
+//! `knowledge_base_configuration` / `storage_configuration` raw JSON
+//! blobs, and the `tags_all` overlay are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,9 +23,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::bedrockagent as bedrockagent_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_bedrockagent_agent
@@ -62,33 +70,32 @@ impl AwsBedrockagentAgentConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let agent_name = require_str(attrs, "agent_name", "aws_bedrockagent_agent")?;
         let region = extract_region(attrs, &ctx.default_region);
-        let agent_id = optional_str(attrs, "agent_id")
-            .or_else(|| optional_str(attrs, "id"))
+        let model: bedrockagent_gen::AgentTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_bedrockagent_agent", e))?;
+
+        let agent_id = model
+            .agent_id
+            .or(model.id)
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string().replace('-', "")[..10].to_string());
-        let agent_arn = optional_str(attrs, "agent_arn").unwrap_or_else(|| {
+        let agent_arn = model.agent_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:bedrock:{}:{}:agent/{}",
                 region, ctx.default_account_id, agent_id
             )
         });
-        let agent_version =
-            optional_str(attrs, "agent_version").unwrap_or_else(|| "DRAFT".to_string());
-        let client_token = optional_str(attrs, "client_token");
-        let instruction = optional_str(attrs, "instruction");
-        let agent_status =
-            optional_str(attrs, "agent_status").unwrap_or_else(|| "NOT_PREPARED".to_string());
-        let foundation_model = optional_str(attrs, "foundation_model");
-        let description = optional_str(attrs, "description");
-        let idle_session_ttl_in_seconds = optional_i64(attrs, "idle_session_ttl_in_seconds");
-        let agent_resource_role_arn =
-            optional_str(attrs, "agent_resource_role_arn").unwrap_or_default();
-        let customer_encryption_key_arn = optional_str(attrs, "customer_encryption_key_arn");
+        let agent_version = model.agent_version.unwrap_or_else(|| "DRAFT".to_string());
+        let agent_status = model
+            .agent_status
+            .unwrap_or_else(|| "NOT_PREPARED".to_string());
+        let agent_resource_role_arn = model.agent_resource_role_arn.unwrap_or_default();
         let now = chrono::Utc::now().to_rfc3339();
-        let created_at = optional_str(attrs, "created_at").unwrap_or_else(|| now.clone());
-        let updated_at = optional_str(attrs, "updated_at").unwrap_or_else(|| now.clone());
-        let prepared_at = optional_str(attrs, "prepared_at").unwrap_or_else(|| now.clone());
+        let created_at = model.created_at.unwrap_or_else(|| now.clone());
+        let updated_at = model.updated_at.unwrap_or_else(|| now.clone());
+        let prepared_at = model.prepared_at.unwrap_or_else(|| now.clone());
+        let idle_session_ttl_in_seconds = attrs
+            .get("idle_session_ttl_in_seconds")
+            .and_then(|v| v.as_i64());
         let failure_reasons = attrs
             .get("failure_reasons")
             .and_then(|v| v.as_array())
@@ -107,8 +114,11 @@ impl AwsBedrockagentAgentConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let _prepare_agent = optional_bool(attrs, "prepare_agent").unwrap_or(true);
-        let mut _tags = extract_tags(attrs);
+        let _prepare_agent = attrs
+            .get("prepare_agent")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
+        let mut _tags = model.tags;
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
@@ -119,17 +129,17 @@ impl AwsBedrockagentAgentConverter {
 
         let agent_view = AgentView {
             agent_id: agent_id.clone(),
-            agent_name: agent_name.to_string(),
+            agent_name: model.agent_name,
             agent_arn,
             agent_version,
-            client_token,
-            instruction,
+            client_token: model.client_token,
+            instruction: model.instruction,
             agent_status,
-            foundation_model,
-            description,
+            foundation_model: model.foundation_model,
+            description: model.description,
             idle_session_ttl_in_seconds,
             agent_resource_role_arn,
-            customer_encryption_key_arn,
+            customer_encryption_key_arn: model.customer_encryption_key_arn,
             created_at,
             updated_at,
             prepared_at,
@@ -251,19 +261,22 @@ impl AwsBedrockagentKnowledgeBaseConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_bedrockagent_knowledge_base")?;
         let region = extract_region(attrs, &ctx.default_region);
-        let kb_id = optional_str(attrs, "knowledge_base_id")
-            .or_else(|| optional_str(attrs, "id"))
+        let model: bedrockagent_gen::KnowledgeBaseTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_bedrockagent_knowledge_base", e))?;
+
+        let kb_id = model
+            .knowledge_base_id
+            .or(model.id)
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string().replace('-', "")[..10].to_string());
-        let kb_arn = optional_str(attrs, "knowledge_base_arn").unwrap_or_else(|| {
+        let kb_arn = model.knowledge_base_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:bedrock:{}:{}:knowledge-base/{}",
                 region, ctx.default_account_id, kb_id
             )
         });
-        let description = optional_str(attrs, "description");
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
+        let role_arn = model.role_arn.unwrap_or_default();
         let knowledge_base_configuration = attrs
             .get("knowledge_base_configuration")
             .cloned()
@@ -272,10 +285,10 @@ impl AwsBedrockagentKnowledgeBaseConverter {
             .get("storage_configuration")
             .cloned()
             .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "ACTIVE".to_string());
+        let status = model.status.unwrap_or_else(|| "ACTIVE".to_string());
         let now = chrono::Utc::now().to_rfc3339();
-        let created_at = optional_str(attrs, "created_at").unwrap_or_else(|| now.clone());
-        let updated_at = optional_str(attrs, "updated_at").unwrap_or_else(|| now.clone());
+        let created_at = model.created_at.unwrap_or_else(|| now.clone());
+        let updated_at = model.updated_at.unwrap_or_else(|| now.clone());
         let failure_reasons = attrs
             .get("failure_reasons")
             .and_then(|v| v.as_array())
@@ -288,9 +301,9 @@ impl AwsBedrockagentKnowledgeBaseConverter {
 
         let kb_view = KnowledgeBaseView {
             knowledge_base_id: kb_id.clone(),
-            name: name.to_string(),
+            name: model.name,
             knowledge_base_arn: kb_arn,
-            description,
+            description: model.description,
             role_arn,
             knowledge_base_configuration,
             storage_configuration,

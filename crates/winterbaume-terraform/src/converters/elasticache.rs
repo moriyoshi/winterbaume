@@ -17,7 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::elasticache as elasticache_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_elasticache_cluster
@@ -63,8 +64,12 @@ impl AwsElastiCacheClusterConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let cluster_id = require_str(attrs, "cluster_id", "aws_elasticache_cluster")?;
         let region = extract_region(attrs, &ctx.default_region);
+
+        let model: elasticache_gen::CacheClusterTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_elasticache_cluster", e))?;
+
+        let cluster_id = model.cluster_id.clone();
 
         // Additional fields for coverage
         let _ = attrs.get("tags_all");
@@ -81,26 +86,21 @@ impl AwsElastiCacheClusterConverter {
         let _ = attrs.get("snapshot_retention_limit");
         let _ = attrs.get("preferred_outpost_arn");
 
-        let engine = optional_str(attrs, "engine").unwrap_or_else(|| "redis".to_string());
-        let engine_version =
-            optional_str(attrs, "engine_version").unwrap_or_else(|| "7.0".to_string());
-        let node_type =
-            optional_str(attrs, "node_type").unwrap_or_else(|| "cache.t3.micro".to_string());
-        let num_cache_nodes = attrs
-            .get("num_cache_nodes")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(1) as i32;
-        let cache_subnet_group_name = optional_str(attrs, "subnet_group_name");
-        let replication_group_id = optional_str(attrs, "replication_group_id");
+        let engine = model.engine.unwrap_or_else(|| "redis".to_string());
+        let engine_version = model.engine_version.unwrap_or_else(|| "7.0".to_string());
+        let node_type = model
+            .node_type
+            .unwrap_or_else(|| "cache.t3.micro".to_string());
+        let num_cache_nodes = model.num_cache_nodes as i32;
+        let cache_subnet_group_name = model.subnet_group_name;
+        let replication_group_id = model.replication_group_id;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:elasticache:{}:{}:cluster:{}",
-                    region, ctx.default_account_id, cluster_id
-                )
-            });
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:elasticache:{}:{}:cluster:{}",
+                region, ctx.default_account_id, cluster_id
+            )
+        });
 
         let tags: Vec<TagView> = extract_tags(attrs)
             .into_iter()
@@ -108,7 +108,7 @@ impl AwsElastiCacheClusterConverter {
             .collect();
 
         let cluster_view = CacheClusterView {
-            cache_cluster_id: cluster_id.to_string(),
+            cache_cluster_id: cluster_id.clone(),
             status: "available".to_string(),
             engine,
             engine_version,
@@ -123,9 +123,7 @@ impl AwsElastiCacheClusterConverter {
         };
 
         let mut state_view = ElastiCacheStateView::default();
-        state_view
-            .cache_clusters
-            .insert(cluster_id.to_string(), cluster_view);
+        state_view.cache_clusters.insert(cluster_id, cluster_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -253,18 +251,19 @@ impl AwsElastiCacheReplicationGroupConverter {
         let _ = attrs.get("transit_encryption_enabled");
         let _ = attrs.get("replicas_per_node_group");
 
-        let group_id = require_str(
-            attrs,
-            "replication_group_id",
-            "aws_elasticache_replication_group",
-        )?;
-        let description = optional_str(attrs, "description")
-            .or_else(|| optional_str(attrs, "replication_group_description"))
-            .unwrap_or_else(|| group_id.to_string());
+        let model: elasticache_gen::ReplicationGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_elasticache_replication_group", e))?;
+
+        let group_id = model.replication_group_id.clone();
+        let description = model
+            .description
+            .or(model.replication_group_description)
+            .unwrap_or_else(|| group_id.clone());
         let region = extract_region(attrs, &ctx.default_region);
 
-        let node_type =
-            optional_str(attrs, "node_type").unwrap_or_else(|| "cache.t3.micro".to_string());
+        let node_type = model
+            .node_type
+            .unwrap_or_else(|| "cache.t3.micro".to_string());
         let num_cache_clusters = attrs
             .get("num_cache_clusters")
             .and_then(|v| v.as_i64())
@@ -292,14 +291,12 @@ impl AwsElastiCacheReplicationGroupConverter {
         }
         .to_string();
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:elasticache:{}:{}:replicationgroup:{}",
-                    region, ctx.default_account_id, group_id
-                )
-            });
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:elasticache:{}:{}:replicationgroup:{}",
+                region, ctx.default_account_id, group_id
+            )
+        });
 
         let tags: Vec<TagView> = extract_tags(attrs)
             .into_iter()
@@ -307,7 +304,7 @@ impl AwsElastiCacheReplicationGroupConverter {
             .collect();
 
         let group_view = ReplicationGroupView {
-            replication_group_id: group_id.to_string(),
+            replication_group_id: group_id.clone(),
             description,
             status: "available".to_string(),
             member_clusters: vec![],
@@ -322,9 +319,7 @@ impl AwsElastiCacheReplicationGroupConverter {
         };
 
         let mut state_view = ElastiCacheStateView::default();
-        state_view
-            .replication_groups
-            .insert(group_id.to_string(), group_view);
+        state_view.replication_groups.insert(group_id, group_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -443,8 +438,11 @@ impl AwsElastiCacheSubnetGroupConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_elasticache_subnet_group")?;
-        let description = optional_str(attrs, "description").unwrap_or_else(|| name.to_string());
+        let model: elasticache_gen::CacheSubnetGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_elasticache_subnet_group", e))?;
+
+        let name = model.name.clone();
+        let description = model.description.unwrap_or_else(|| name.clone());
         let region = extract_region(attrs, &ctx.default_region);
 
         let subnet_ids: Vec<String> = attrs
@@ -457,14 +455,12 @@ impl AwsElastiCacheSubnetGroupConverter {
             })
             .unwrap_or_default();
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:elasticache:{}:{}:subnetgroup:{}",
-                    region, ctx.default_account_id, name
-                )
-            });
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:elasticache:{}:{}:subnetgroup:{}",
+                region, ctx.default_account_id, name
+            )
+        });
 
         let tags: Vec<TagView> = extract_tags(attrs)
             .into_iter()
@@ -472,7 +468,7 @@ impl AwsElastiCacheSubnetGroupConverter {
             .collect();
 
         let subnet_view = CacheSubnetGroupView {
-            name: name.to_string(),
+            name: name.clone(),
             description,
             subnet_ids,
             vpc_id: String::new(),
@@ -481,9 +477,7 @@ impl AwsElastiCacheSubnetGroupConverter {
         };
 
         let mut state_view = ElastiCacheStateView::default();
-        state_view
-            .cache_subnet_groups
-            .insert(name.to_string(), subnet_view);
+        state_view.cache_subnet_groups.insert(name, subnet_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -572,19 +566,21 @@ impl AwsElastiCacheParameterGroupConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_elasticache_parameter_group")?;
-        let family = require_str(attrs, "family", "aws_elasticache_parameter_group")?;
-        let description = optional_str(attrs, "description").unwrap_or_else(|| name.to_string());
+        let model: elasticache_gen::CacheParameterGroupTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_elasticache_parameter_group", e))?;
+
+        let name = model.name.clone();
+        let family = model.family.clone();
+        let description = model.description.unwrap_or_else(|| name.clone());
         let region = extract_region(attrs, &ctx.default_region);
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:elasticache:{}:{}:parametergroup:{}",
-                    region, ctx.default_account_id, name
-                )
-            });
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:elasticache:{}:{}:parametergroup:{}",
+                region, ctx.default_account_id, name
+            )
+        });
 
         let tags: Vec<TagView> = extract_tags(attrs)
             .into_iter()
@@ -593,8 +589,8 @@ impl AwsElastiCacheParameterGroupConverter {
 
         let parameter = attrs.get("parameter").cloned();
         let pg_view = CacheParameterGroupView {
-            name: name.to_string(),
-            family: family.to_string(),
+            name: name.clone(),
+            family,
             description,
             arn: arn.clone(),
             tags,
@@ -602,9 +598,7 @@ impl AwsElastiCacheParameterGroupConverter {
         };
 
         let mut state_view = ElastiCacheStateView::default();
-        state_view
-            .cache_parameter_groups
-            .insert(name.to_string(), pg_view);
+        state_view.cache_parameter_groups.insert(name, pg_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

@@ -1,0 +1,46 @@
+# Auto-ingested by `tf-converter-codegen ingest emrserverless`.
+# Hand-tuned: kept the flat scalar fields. Dropped Vec<T>/nested-block /
+# raw-blob fields (auto_start_configuration, auto_stop_configuration,
+# initial_capacity, maximum_capacity, network_configuration,
+# image_configuration, interactive_configuration, tags / tags_all).
+# Those are read straight from instance.attributes in the converter.
+# ARN templates and the synthesised application id are wired up by hand.
+
+[service]
+name = "emrserverless"
+crate_name = "winterbaume_emrserverless"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_emrserverless_application"
+model = "ApplicationTfModel"
+view = "ApplicationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "release_label"
+view = "release_label"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "application_type"
+type = "string?"

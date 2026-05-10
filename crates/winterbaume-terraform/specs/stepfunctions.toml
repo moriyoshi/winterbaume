@@ -1,0 +1,52 @@
+# Auto-ingested by `tf-converter-codegen ingest stepfunctions`.
+# Hand-tuned: kept only the strongly-typed scalar inputs. Dropped:
+#   - `logging_configuration`, `tracing_configuration`,
+#     `encryption_configuration` (Vec of nested-block objects — read raw)
+#   - `tags`, `tags_all` (the view stores Vec<TagView>; merge is hand-rolled)
+#   - `name_prefix`, `publish` (discarded by the original converter — read raw)
+
+[service]
+name = "stepfunctions"
+crate_name = "winterbaume_sfn"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_sfn_state_machine"
+model = "StateMachineTfModel"
+view = "StateMachineView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "definition"
+view = "definition"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "type"
+type = "string?"

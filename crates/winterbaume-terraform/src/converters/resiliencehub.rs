@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::resiliencehub as resiliencehub_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_resiliencehub_resiliency_policy
@@ -61,27 +62,32 @@ impl AwsResilienceHubResiliencyPolicyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let policy_name = require_str(attrs, "policy_name", "aws_resiliencehub_resiliency_policy")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let policy_description = optional_str(attrs, "policy_description").unwrap_or_default();
-        let data_location_constraint = optional_str(attrs, "data_location_constraint")
-            .unwrap_or_else(|| "AnyLocation".to_string());
-        let tier = optional_str(attrs, "tier").unwrap_or_else(|| "NonCritical".to_string());
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: resiliencehub_gen::ResiliencyPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_resiliencehub_resiliency_policy", e)
+            })?;
 
-        let policy_arn = optional_str(attrs, "policy_arn").unwrap_or_else(|| {
+        let policy_name = model.policy_name.clone();
+        let policy_description = model.policy_description.unwrap_or_default();
+        let data_location_constraint = model
+            .data_location_constraint
+            .unwrap_or_else(|| "AnyLocation".to_string());
+        let tier = model.tier.unwrap_or_else(|| "NonCritical".to_string());
+        let policy_arn = model.policy_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:resiliencehub:{}:{}:resiliency-policy/{}",
                 region, ctx.default_account_id, policy_name
             )
         });
 
-        let _tags_all = attrs.get("tags_all");
-        let _timeouts = attrs.get("timeouts");
-
         // Extract failure policies from the "policy" attribute (map of disruption type -> {rpo, rto})
         let mut policy_map: HashMap<String, FailurePolicyView> = HashMap::new();
-        if let Some(policy_obj) = attrs.get("policy").and_then(|v| v.as_object()) {
+        if let Some(policy_obj) = instance
+            .attributes
+            .get("policy")
+            .and_then(|v| v.as_object())
+        {
             for (disruption_type, fp_val) in policy_obj {
                 let rpo = fp_val
                     .get("rpo_in_secs")
@@ -103,13 +109,13 @@ impl AwsResilienceHubResiliencyPolicyConverter {
 
         let policy_view = ResiliencyPolicyView {
             policy_arn: policy_arn.clone(),
-            policy_name: policy_name.to_string(),
+            policy_name: policy_name.clone(),
             policy_description,
             data_location_constraint,
             tier,
             policy: policy_map,
             creation_time: chrono::Utc::now(),
-            tags: extract_tags(attrs),
+            tags: extract_tags(&instance.attributes),
         };
 
         let mut state_view = ResilienceHubStateView {

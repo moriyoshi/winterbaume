@@ -1,4 +1,9 @@
 //! Terraform converters for CloudWatch Logs resources.
+//!
+//! `LogGroupTfModel` and `LogStreamTfModel` are generated from
+//! `specs/logs.toml`. The ARN templates, the synthesised
+//! `creation_time`, the `Option<i64>` `retention_in_days` raw read, and
+//! the parent log-group placeholder fallback are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::logs as logs_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_cloudwatch_log_group
@@ -60,30 +66,33 @@ impl AwsCloudwatchLogGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: logs_gen::LogGroupTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_cloudwatch_log_group", e))?;
+
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_cloudwatch_log_group")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let name = model.name.clone();
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:logs:{}:{}:log-group:{}",
+                region, ctx.default_account_id, name
+            )
+        });
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:logs:{}:{}:log-group:{}",
-                    region, ctx.default_account_id, name
-                )
-            });
-
-        let retention_in_days = optional_i64(attrs, "retention_in_days").map(|v| v as i32);
-        let kms_key_id = optional_str(attrs, "kms_key_id");
+        // Option<i64> not in spec vocabulary — read raw.
+        let retention_in_days = attrs
+            .get("retention_in_days")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32);
 
         let group_view = LogGroupView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             creation_time: Utc::now().timestamp_millis(),
             retention_in_days,
             streams: HashMap::new(),
-            tags: extract_tags(attrs),
-            kms_key_id,
+            tags: model.tags,
+            kms_key_id: model.kms_key_id,
             data_protection_policy: None,
             deletion_protection_enabled: false,
         };
@@ -175,12 +184,13 @@ impl AwsCloudwatchLogStreamConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_cloudwatch_log_stream")?;
-        let log_group_name = require_str(attrs, "log_group_name", "aws_cloudwatch_log_stream")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: logs_gen::LogStreamTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_cloudwatch_log_stream", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let log_group_name = model.log_group_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:logs:{}:{}:log-group:{}:log-stream:{}",
                 region, ctx.default_account_id, log_group_name, name
@@ -188,7 +198,7 @@ impl AwsCloudwatchLogStreamConverter {
         });
 
         let stream_view = LogStreamView {
-            name: name.to_string(),
+            name: name.clone(),
             arn: arn.clone(),
             creation_time: Utc::now().timestamp_millis(),
             first_event_timestamp: None,
@@ -201,8 +211,8 @@ impl AwsCloudwatchLogStreamConverter {
             .service
             .snapshot(&ctx.default_account_id, &region)
             .await;
-        if let Some(group) = state_view.log_groups.get_mut(log_group_name) {
-            group.streams.insert(name.to_string(), stream_view);
+        if let Some(group) = state_view.log_groups.get_mut(&log_group_name) {
+            group.streams.insert(name, stream_view);
         } else {
             // Parent group not injected yet: create a placeholder.
             let group_arn = format!(
@@ -210,7 +220,7 @@ impl AwsCloudwatchLogStreamConverter {
                 region, ctx.default_account_id, log_group_name
             );
             let mut group = LogGroupView {
-                name: log_group_name.to_string(),
+                name: log_group_name.clone(),
                 arn: group_arn,
                 creation_time: Utc::now().timestamp_millis(),
                 retention_in_days: None,
@@ -220,10 +230,8 @@ impl AwsCloudwatchLogStreamConverter {
                 data_protection_policy: None,
                 deletion_protection_enabled: false,
             };
-            group.streams.insert(name.to_string(), stream_view);
-            state_view
-                .log_groups
-                .insert(log_group_name.to_string(), group);
+            group.streams.insert(name, stream_view);
+            state_view.log_groups.insert(log_group_name, group);
         }
         self.service
             .restore(&ctx.default_account_id, &region, state_view)

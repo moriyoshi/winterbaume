@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::appconfig as appconfig_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 fn minimal_state_view() -> AppconfigStateView {
     AppconfigStateView::default()
@@ -64,22 +65,21 @@ impl AwsAppconfigApplicationConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appconfig_gen::ApplicationTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appconfig_application", e))?;
 
-        let id = require_str(attrs, "id", "aws_appconfig_application")?;
-        let name = require_str(attrs, "name", "aws_appconfig_application")?;
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let _tags_all = attrs.get("tags_all");
+        let description = model.description.unwrap_or_default();
 
         let app_view = ApplicationView {
-            id: id.to_string(),
-            name: name.to_string(),
+            id: model.id.clone(),
+            name: model.name,
             description,
         };
 
         let mut state_view = minimal_state_view();
-        state_view.applications.insert(id.to_string(), app_view);
+        state_view.applications.insert(model.id, app_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -159,15 +159,16 @@ impl AwsAppconfigEnvironmentConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appconfig_gen::EnvironmentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appconfig_environment", e))?;
 
-        let environment_id = require_str(attrs, "environment_id", "aws_appconfig_environment")?;
-        let application_id = require_str(attrs, "application_id", "aws_appconfig_environment")?;
-        let name = require_str(attrs, "name", "aws_appconfig_environment")?;
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let description = model.description.unwrap_or_default();
 
-        let monitors: Vec<MonitorView> = attrs
+        // monitor is a nested-block array; read raw from instance attributes.
+        let monitors: Vec<MonitorView> = instance
+            .attributes
             .get("monitor")
             .and_then(|v| v.as_array())
             .map(|arr| {
@@ -188,21 +189,19 @@ impl AwsAppconfigEnvironmentConverter {
             .unwrap_or_default();
 
         let env_view = EnvironmentView {
-            id: environment_id.to_string(),
-            application_id: application_id.to_string(),
-            name: name.to_string(),
+            id: model.environment_id.clone(),
+            application_id: model.application_id.clone(),
+            name: model.name,
             description,
             state: "READY_FOR_DEPLOYMENT".to_string(),
             monitors,
         };
 
-        let tags = extract_tags(attrs);
-
-        let key = format!("{}/{}", application_id, environment_id);
+        let key = format!("{}/{}", model.application_id, model.environment_id);
         let mut state_view = minimal_state_view();
         state_view.environments.insert(key.clone(), env_view);
-        if !tags.is_empty() {
-            state_view.tags.insert(key, tags);
+        if !model.tags.is_empty() {
+            state_view.tags.insert(key, model.tags);
         }
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
@@ -296,43 +295,34 @@ impl AwsAppconfigConfigurationProfileConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appconfig_gen::ConfigurationProfileTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_appconfig_configuration_profile", e)
+            })?;
 
-        let configuration_profile_id = require_str(
-            attrs,
-            "configuration_profile_id",
-            "aws_appconfig_configuration_profile",
-        )?;
-        let application_id = require_str(
-            attrs,
-            "application_id",
-            "aws_appconfig_configuration_profile",
-        )?;
-        let name = require_str(attrs, "name", "aws_appconfig_configuration_profile")?;
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let location_uri =
-            optional_str(attrs, "location_uri").unwrap_or_else(|| "hosted".to_string());
-        let r#type = optional_str(attrs, "type").unwrap_or_else(|| "AWS.Freeform".to_string());
-        let retrieval_role_arn = optional_str(attrs, "retrieval_role_arn");
+        let description = model.description.unwrap_or_default();
+        let location_uri = model.location_uri.unwrap_or_else(|| "hosted".to_string());
+        let r#type = model.r#type.unwrap_or_else(|| "AWS.Freeform".to_string());
 
         let profile_view = ConfigurationProfileView {
-            id: configuration_profile_id.to_string(),
-            application_id: application_id.to_string(),
-            name: name.to_string(),
+            id: model.configuration_profile_id.clone(),
+            application_id: model.application_id.clone(),
+            name: model.name,
             description,
             location_uri,
             r#type,
-            retrieval_role_arn,
+            retrieval_role_arn: model.retrieval_role_arn,
         };
-
-        let tags = extract_tags(attrs);
 
         let mut state_view = minimal_state_view();
         state_view.configuration_profiles.push(profile_view);
-        if !tags.is_empty() {
-            let tag_key = format!("{}/{}", application_id, configuration_profile_id);
-            state_view.tags.insert(tag_key, tags);
+        if !model.tags.is_empty() {
+            let tag_key = format!(
+                "{}/{}",
+                model.application_id, model.configuration_profile_id
+            );
+            state_view.tags.insert(tag_key, model.tags);
         }
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
@@ -417,28 +407,26 @@ impl AwsAppconfigDeploymentStrategyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appconfig_gen::DeploymentStrategyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appconfig_deployment_strategy", e))?;
 
-        let id = require_str(attrs, "id", "aws_appconfig_deployment_strategy")?;
-        let name = require_str(attrs, "name", "aws_appconfig_deployment_strategy")?;
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let deployment_duration_in_minutes =
-            optional_i64(attrs, "deployment_duration_in_minutes").unwrap_or(0) as i32;
-        let final_bake_time_in_minutes =
-            optional_i64(attrs, "final_bake_time_in_minutes").unwrap_or(0) as i32;
-        let growth_factor = attrs
+        let description = model.description.unwrap_or_default();
+        let deployment_duration_in_minutes = model.deployment_duration_in_minutes as i32;
+        let final_bake_time_in_minutes = model.final_bake_time_in_minutes as i32;
+        // growth_factor is f32; not part of strongly-typed model — read raw.
+        let growth_factor = instance
+            .attributes
             .get("growth_factor")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0) as f32;
-        let growth_type =
-            optional_str(attrs, "growth_type").unwrap_or_else(|| "LINEAR".to_string());
-        let replicate_to =
-            optional_str(attrs, "replicate_to").unwrap_or_else(|| "NONE".to_string());
+        let growth_type = model.growth_type.unwrap_or_else(|| "LINEAR".to_string());
+        let replicate_to = model.replicate_to.unwrap_or_else(|| "NONE".to_string());
 
         let ds_view = DeploymentStrategyView {
-            id: id.to_string(),
-            name: name.to_string(),
+            id: model.id.clone(),
+            name: model.name,
             description,
             deployment_duration_in_minutes,
             final_bake_time_in_minutes,
@@ -448,9 +436,7 @@ impl AwsAppconfigDeploymentStrategyConverter {
         };
 
         let mut state_view = minimal_state_view();
-        state_view
-            .deployment_strategies
-            .insert(id.to_string(), ds_view);
+        state_view.deployment_strategies.insert(model.id, ds_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

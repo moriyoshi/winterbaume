@@ -1,4 +1,9 @@
 //! Terraform converters for AWS FIS resources.
+//!
+//! `ExperimentTemplateTfModel` is generated from `specs/fis.toml`. The
+//! synthesised template `id` (UUID-based), the ARN template, the
+//! `creation_time` / `last_update_time` constants, and the nested-block
+//! `stop_condition` / `action` / `target` projections are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -17,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::fis as fis_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_fis_experiment_template
@@ -61,18 +67,20 @@ impl AwsFisExperimentTemplateConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: fis_gen::ExperimentTemplateTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_fis_experiment_template", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let description = require_str(attrs, "description", "aws_fis_experiment_template")?;
-        let role_arn = require_str(attrs, "role_arn", "aws_fis_experiment_template")?;
-        let id = optional_str(attrs, "id").unwrap_or_else(|| format!("EXT{:016x}", rand_id()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+
+        let id = model.id.unwrap_or_else(|| format!("EXT{:016x}", rand_id()));
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:fis:{}:{}:experiment-template/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let tags = extract_tags(attrs);
 
         // Parse stop conditions from Terraform nested blocks
         let stop_conditions = attrs
@@ -168,12 +176,12 @@ impl AwsFisExperimentTemplateConverter {
         let template_view = ExperimentTemplateView {
             id: id.clone(),
             arn,
-            description: description.to_string(),
-            role_arn: role_arn.to_string(),
+            description: model.description,
+            role_arn: model.role_arn,
             targets,
             actions,
             stop_conditions,
-            tags,
+            tags: model.tags,
             creation_time: now.clone(),
             last_update_time: now,
         };

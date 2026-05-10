@@ -1,4 +1,11 @@
 //! Terraform converter for Classic ELB resources.
+//!
+//! `ElbTfModel` is generated from `specs/elasticloadbalancing.toml`. The
+//! Vec<String> array fields (availability_zones / subnets /
+//! security_groups / instances), the listener / health_check /
+//! access_logs nested-block parsers, the Option<i64>
+//! connection_draining_timeout raw read, the dns_name template, and the
+//! tags_all raw merge are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,9 +23,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::elasticloadbalancing as elb_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_elb
@@ -75,20 +81,21 @@ impl AwsElbConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_elb")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let _name_prefix = optional_str(attrs, "name_prefix");
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: elb_gen::ElbTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_elb", e))?;
 
-        let dns_name = optional_str(attrs, "dns_name")
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+
+        let dns_name = model
+            .dns_name
             .unwrap_or_else(|| format!("{}-000000000.{}.elb.amazonaws.com", name, region));
-        let internal = optional_bool(attrs, "internal").unwrap_or(false);
-        let scheme = if internal {
+        let scheme = if model.internal {
             "internal".to_string()
         } else {
             "internet-facing".to_string()
         };
-        let _source_security_group = optional_str(attrs, "source_security_group");
 
         let availability_zones = extract_string_array(attrs, "availability_zones");
         let subnets = extract_string_array(attrs, "subnets");
@@ -181,24 +188,24 @@ impl AwsElbConverter {
             .and_then(|v| v.as_i64())
             .map(|v| v as i32);
 
-        let cross_zone = optional_bool(attrs, "cross_zone_load_balancing").unwrap_or(true);
-        let idle_timeout = optional_i64(attrs, "idle_timeout").unwrap_or(60) as i32;
-        let connection_draining = optional_bool(attrs, "connection_draining").unwrap_or(false);
-        let connection_draining_timeout =
-            optional_i64(attrs, "connection_draining_timeout").map(|v| v as i32);
+        // Option<i64> not in spec vocabulary — read raw.
+        let connection_draining_timeout = attrs
+            .get("connection_draining_timeout")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32);
 
         let elb_attributes = ElbAttributesView {
-            cross_zone_load_balancing_enabled: cross_zone,
+            cross_zone_load_balancing_enabled: model.cross_zone_load_balancing,
             access_log_enabled,
             access_log_emit_interval: access_log_interval,
             access_log_s3_bucket_name: access_log_s3_bucket,
             access_log_s3_bucket_prefix: access_log_s3_prefix,
-            connection_draining_enabled: connection_draining,
+            connection_draining_enabled: model.connection_draining,
             connection_draining_timeout,
-            connection_idle_timeout: idle_timeout,
+            connection_idle_timeout: model.idle_timeout as i32,
         };
 
-        let mut tags_map = extract_tags(attrs);
+        let mut tags_map = model.tags;
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
@@ -208,7 +215,7 @@ impl AwsElbConverter {
         }
 
         let lb_view = ElbLoadBalancerView {
-            name: name.to_string(),
+            name: name.clone(),
             dns_name,
             scheme,
             availability_zones,
@@ -226,7 +233,7 @@ impl AwsElbConverter {
         let mut state_view = ElbStateView {
             load_balancers: HashMap::new(),
         };
-        state_view.load_balancers.insert(name.to_string(), lb_view);
+        state_view.load_balancers.insert(name, lb_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

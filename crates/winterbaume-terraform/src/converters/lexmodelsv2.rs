@@ -13,7 +13,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::lexmodelsv2 as lexmodelsv2_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_lexv2models_bot
@@ -57,25 +58,21 @@ impl AwsLexv2modelsBotConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: lexmodelsv2_gen::BotTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_lexv2models_bot", e))?;
 
-        let bot_id = optional_str(attrs, "id")
+        let bot_id = model
+            .id
             .unwrap_or_else(|| format!("bot-{}", uuid::Uuid::new_v4().simple()));
-        let name = require_str(attrs, "name", "aws_lexv2models_bot")?;
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
-        let description = optional_str(attrs, "description");
-        let idle_session_ttl_in_seconds = attrs
-            .get("idle_session_ttl_in_seconds")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(300) as i32;
-        let _bot_type = optional_str(attrs, "type");
-        let _test_bot_alias_tags = attrs.get("test_bot_alias_tags");
-        let _members = attrs.get("members");
-        let _timeouts = attrs.get("timeouts");
+        let role_arn = model.role_arn.unwrap_or_default();
+        let idle_session_ttl_in_seconds = model.idle_session_ttl_in_seconds as i32;
 
-        // TF schema nests child_directed inside a `data_privacy` block.
-        let data_privacy_child_directed = attrs
+        // TF schema nests child_directed inside a `data_privacy` block — parse
+        // straight from raw attributes since the spec can't model array-of-object.
+        let data_privacy_child_directed = instance
+            .attributes
             .get("data_privacy")
             .and_then(|dp| dp.as_array())
             .and_then(|arr| arr.first())
@@ -83,27 +80,24 @@ impl AwsLexv2modelsBotConverter {
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
 
-        let tags = extract_tags(attrs);
+        let create_time = instance
+            .attributes
+            .get("create_time")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
 
         let bot_view = BotView {
             bot_id: bot_id.clone(),
-            bot_name: name.to_string(),
+            bot_name: model.name,
             role_arn,
             data_privacy_child_directed,
             idle_session_ttl_in_seconds,
             bot_status: "Available".to_string(),
-            description,
-            creation_date_time: attrs
-                .get("create_time")
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string(),
-            last_updated_date_time: attrs
-                .get("create_time")
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string(),
-            tags,
+            description: model.description,
+            creation_date_time: create_time.clone(),
+            last_updated_date_time: create_time,
+            tags: model.tags,
         };
 
         let mut state_view = LexStateView::default();

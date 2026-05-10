@@ -1,4 +1,9 @@
 //! Terraform converters for S3 Tables resources.
+//!
+//! `TableBucketTfModel` and `NamespaceTfModel` are generated from
+//! `specs/s3tables.toml`. The ARN template, the `created_at` constant,
+//! the raw `maintenance_config` (HashMap<String,String>), and the
+//! `namespace_list` raw read are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::s3tables as s3tables_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_s3tables_table_bucket
@@ -58,45 +64,45 @@ impl AwsS3tablesTableBucketConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: s3tables_gen::TableBucketTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_s3tables_table_bucket", e))?;
 
-        let name = require_str(attrs, "name", "aws_s3tables_table_bucket")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:s3tables:{}:{}:bucket/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let owner_account_id = optional_str(attrs, "owner_account_id")
+        let owner_account_id = model
+            .owner_account_id
             .unwrap_or_else(|| ctx.default_account_id.clone());
-        let tags = extract_tags(attrs);
 
-        let encryption_sse_algorithm = optional_str(attrs, "encryption_sse_algorithm");
-        let encryption_kms_key_arn = optional_str(attrs, "encryption_kms_key_arn");
+        // HashMap<String,String> not in spec vocabulary — read raw.
         let maintenance_config: HashMap<String, String> = attrs
             .get("maintenance_config")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
-        let metrics_config = optional_str(attrs, "metrics_config");
-        let policy = optional_str(attrs, "policy");
-        let storage_class = optional_str(attrs, "storage_class");
-        let replication_config = optional_str(attrs, "replication_config");
 
         let tb_view = TableBucketView {
-            name: name.to_string(),
+            name: name.clone(),
             arn: arn.clone(),
             owner_account_id,
-            created_at: optional_str(attrs, "created_at")
+            created_at: model
+                .created_at
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
-            tags,
-            encryption_sse_algorithm,
-            encryption_kms_key_arn,
+            tags: model.tags,
+            encryption_sse_algorithm: model.encryption_sse_algorithm,
+            encryption_kms_key_arn: model.encryption_kms_key_arn,
             maintenance_config,
-            metrics_config,
-            policy,
-            storage_class,
-            replication_config,
+            metrics_config: model.metrics_config,
+            policy: model.policy,
+            storage_class: model.storage_class,
+            replication_config: model.replication_config,
         };
 
         let mut state_view = S3TablesStateView::default();
@@ -189,31 +195,37 @@ impl AwsS3tablesNamespaceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: s3tables_gen::NamespaceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_s3tables_namespace", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
 
-        let namespace_name = require_str(attrs, "namespace", "aws_s3tables_namespace")?;
-        let table_bucket_arn = require_str(attrs, "table_bucket_arn", "aws_s3tables_namespace")?;
-        let owner_account_id = optional_str(attrs, "owner_account_id")
+        let namespace_name = model.namespace.clone();
+        let owner_account_id = model
+            .owner_account_id
             .unwrap_or_else(|| ctx.default_account_id.clone());
-        let created_by =
-            optional_str(attrs, "created_by").unwrap_or_else(|| ctx.default_account_id.clone());
-        let tags = extract_tags(attrs);
+        let created_by = model
+            .created_by
+            .unwrap_or_else(|| ctx.default_account_id.clone());
 
+        // Vec<String> not in spec vocabulary — read raw.
         let namespace_list: Vec<String> = attrs
             .get("namespace_list")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
-            .unwrap_or_else(|| vec![namespace_name.to_string()]);
+            .unwrap_or_else(|| vec![namespace_name.clone()]);
 
         let ns_view = NamespaceView {
-            table_bucket_arn: table_bucket_arn.to_string(),
+            table_bucket_arn: model.table_bucket_arn,
             namespace: namespace_list,
-            name: namespace_name.to_string(),
+            name: namespace_name,
             owner_account_id,
-            created_at: optional_str(attrs, "created_at")
+            created_at: model
+                .created_at
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
             created_by,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = S3TablesStateView::default();

@@ -1,0 +1,134 @@
+# Auto-ingested by `tf-converter-codegen ingest chatbot`.
+# Hand-tuned: split the union spec into one [[resource]] block per
+# resource type (slack / microsoft-teams). The chat-configuration ARN
+# template is hand-written in the converter; sns_topic_arns,
+# guardrail_policy_arns, and user_authorization_required are not
+# projected (kept at vec![]/None in inject).
+
+[service]
+name = "chatbot"
+crate_name = "winterbaume_chatbot"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_chatbot_slack_channel_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_chatbot_slack_channel_configuration"
+model = "SlackConfigTfModel"
+view = "SlackConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "configuration_name"
+view = "configuration_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "slack_team_id"
+view = "slack_team_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "slack_channel_id"
+view = "slack_channel_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "slack_channel_name"
+view = "slack_channel_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "chat_configuration_arn"
+view = "chat_configuration_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "logging_level"
+view = "logging_level"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_chatbot_microsoft_teams_channel_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_chatbot_microsoft_teams_channel_configuration"
+model = "TeamsConfigTfModel"
+view = "TeamsConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "configuration_name"
+view = "configuration_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "team_id"
+view = "team_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "team_name"
+view = "team_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "tenant_id"
+view = "tenant_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "channel_id"
+view = "channel_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "channel_name"
+view = "channel_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "chat_configuration_arn"
+view = "chat_configuration_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "logging_level"
+view = "logging_level"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

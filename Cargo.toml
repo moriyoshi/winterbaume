@@ -272,6 +272,7 @@ members = [
     "tools/release-batch",
     "tools/sccache-wrapper",
     "tools/smithy-codegen",
+    "tools/tf-converter-codegen",
 ]
 # winterbaume-sqlengine-duckdb is excluded from the default build because it
 # compiles DuckDB from source (bundled feature), which takes several minutes.
@@ -515,6 +516,7 @@ default-members = [
     "crates/winterbaume-workspacesweb",
     "crates/winterbaume-xray",
     "tools/smithy-codegen",
+    "tools/tf-converter-codegen",
 ]
 resolver = "3"
 

@@ -1,0 +1,127 @@
+# Auto-ingested by `tf-converter-codegen ingest medialive`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (channel / input). The `channel_id`/`input_id` and `id` fields are both
+# optional in the spec because the original converter accepts either —
+# the converter raises MissingAttribute when both are absent. Dropped
+# nested-block / Vec<Value> / Vec<String> fields (`input_attachments`,
+# `destinations`, `encoder_settings`, `input_specification`,
+# `cdi_input_specification`, `maintenance`, `vpc`, `attached_channels`,
+# `input_devices`, `media_connect_flows`, `security_groups`, `sources`)
+# and the i32 `pipelines_running_count` — those are read straight from
+# instance.attributes in the converter.
+
+[service]
+name = "medialive"
+crate_name = "winterbaume_medialive"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_medialive_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_medialive_channel"
+model = "MediaLiveChannelTfModel"
+view = "MediaLiveChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "channel_id"
+view = "channel_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "channel_class"
+view = "channel_class"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "log_level"
+view = "log_level"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_medialive_input
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_medialive_input"
+model = "MediaLiveInputTfModel"
+view = "MediaLiveInputView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "input_id"
+view = "input_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "input_class"
+view = "input_class"
+type = "string?"
+
+[[resource.field]]
+hcl = "input_source_type"
+view = "input_source_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "input_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

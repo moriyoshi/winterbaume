@@ -1,0 +1,123 @@
+# Auto-ingested by `tf-converter-codegen ingest emr`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (cluster / security_configuration). Dropped Vec<T>/nested-block /
+# raw-blob fields (auto_termination_policy, bootstrap_action,
+# master_instance_fleet, core_instance_fleet, master_instance_group,
+# core_instance_group, ec2_attributes, kerberos_attributes,
+# step, configurations, configurations_json, applications,
+# additional_info, custom_ami_id, ebs_root_volume_size,
+# keep_job_flow_alive_when_no_steps, termination_protection,
+# visible_to_all_users, step_concurrency_level, tags / tags_all).
+# Those are read straight from instance.attributes in the converter.
+# ARN templates and the synthesised id are wired up by hand.
+# Both `name` and `id` on aws_emr_cluster are optional because the
+# converter falls back across them; same on aws_emr_security_configuration.
+
+[service]
+name = "emr"
+crate_name = "winterbaume_emr"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_emr_cluster
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_emr_cluster"
+model = "ClusterTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "cluster_arn"
+view = "cluster_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "release_label"
+view = "release_label"
+type = "string?"
+
+[[resource.field]]
+hcl = "log_uri"
+view = "log_uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_role"
+view = "service_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "job_flow_role"
+view = "job_flow_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "autoscaling_role"
+view = "autoscaling_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "scale_down_behavior"
+view = "scale_down_behavior"
+type = "string?"
+
+[[resource.field]]
+hcl = "security_configuration"
+view = "security_configuration"
+type = "string?"
+
+[[resource.field]]
+hcl = "master_public_dns_name"
+view = "master_public_dns_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_emr_security_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_emr_security_configuration"
+model = "SecurityConfigurationTfModel"
+view = "SecurityConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "configuration"
+view = "configuration"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_date"
+view = "creation_date"
+type = "string?"

@@ -1,4 +1,9 @@
 //! Terraform converters for CodeCommit resources.
+//!
+//! `RepositoryTfModel` is generated from `specs/codecommit.toml`. The
+//! ARN template, the synthesised `repository_id` (UUID), the clone-URL
+//! templates, and the `creation_date` / `last_modified_date`
+//! constants are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::codecommit as codecommit_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_codecommit_repository
@@ -59,26 +65,29 @@ impl AwsCodecommitRepositoryConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: codecommit_gen::RepositoryTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_codecommit_repository", e))?;
 
-        let name = require_str(attrs, "repository_name", "aws_codecommit_repository")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.repository_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:codecommit:{}:{}:{}",
                 region, ctx.default_account_id, name
             )
         });
-        let repository_id = optional_str(attrs, "repository_id")
+        let repository_id = model
+            .repository_id
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let clone_url_http = optional_str(attrs, "clone_url_http").unwrap_or_else(|| {
+        let description = model.description.unwrap_or_default();
+        let clone_url_http = model.clone_url_http.unwrap_or_else(|| {
             format!(
                 "https://git-codecommit.{}.amazonaws.com/v1/repos/{}",
                 region, name
             )
         });
-        let clone_url_ssh = optional_str(attrs, "clone_url_ssh").unwrap_or_else(|| {
+        let clone_url_ssh = model.clone_url_ssh.unwrap_or_else(|| {
             format!(
                 "ssh://git-codecommit.{}.amazonaws.com/v1/repos/{}",
                 region, name
@@ -88,7 +97,7 @@ impl AwsCodecommitRepositoryConverter {
 
         let repo_view = RepositoryView {
             repository_id,
-            repository_name: name.to_string(),
+            repository_name: name.clone(),
             arn,
             description,
             clone_url_http,
@@ -103,7 +112,7 @@ impl AwsCodecommitRepositoryConverter {
         let mut state_view = CodeCommitStateView {
             ..Default::default()
         };
-        state_view.repositories.insert(name.to_string(), repo_view);
+        state_view.repositories.insert(name, repo_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

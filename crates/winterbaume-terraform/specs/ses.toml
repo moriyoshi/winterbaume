@@ -1,0 +1,89 @@
+# Auto-ingested by `tf-converter-codegen ingest ses`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (email_identity / configuration_set / dedicated_ip_pool). Dropped
+# the nested-block fields (dkim_signing_attributes for email_identity;
+# delivery_options / reputation_options / sending_options /
+# suppression_options / tracking_options / vdm_options for
+# configuration_set) so the converter reads them straight from
+# instance.attributes. The identity_type derivation, the verification
+# / forwarding / configuration-set-name plumbing, and the SES tags
+# merge are wired up by hand.
+
+[service]
+name = "ses"
+crate_name = "winterbaume_sesv2"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_email_identity
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sesv2_email_identity"
+model = "EmailIdentityTfModel"
+view = "EmailIdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "email_identity"
+view = "email_identity"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "configuration_set_name"
+view = "configuration_set_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_configuration_set
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sesv2_configuration_set"
+model = "ConfigurationSetTfModel"
+view = "ConfigurationSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "configuration_set_name"
+view = "configuration_set_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_dedicated_ip_pool
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sesv2_dedicated_ip_pool"
+model = "DedicatedIpPoolTfModel"
+view = "DedicatedIpPoolView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "pool_name"
+view = "pool_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "scaling_mode"
+view = "scaling_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

@@ -1,0 +1,50 @@
+# Auto-ingested by `tf-converter-codegen ingest comprehend`.
+# Hand-tuned: dropped `tags_all` (string? was wrong; the original converter
+# only consults its object value via extract_tags), and `version_name` /
+# `model_kms_key_id` (the original converter discards them with `let _`).
+# `input_data_config` is a nested block that the spec can't express; the
+# converter pulls `s3_uri` and `entity_types` from raw `instance.attributes`.
+
+[service]
+name = "comprehend"
+crate_name = "winterbaume_comprehend"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_comprehend_entity_recognizer"
+model = "EntityRecognizerTfModel"
+view = "EntityRecognizerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "language_code"
+view = "language_code"
+type = "string?"
+
+[[resource.field]]
+hcl = "data_access_role_arn"
+view = "data_access_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

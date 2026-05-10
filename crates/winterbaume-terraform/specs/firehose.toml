@@ -1,0 +1,45 @@
+# Auto-ingested by `tf-converter-codegen ingest firehose`.
+# Hand-tuned: dropped destination-config blob fields (extended_s3_configuration,
+# http_endpoint_configuration, opensearch_configuration,
+# opensearchserverless_configuration, splunk_configuration), the
+# nested-array server_side_encryption block, and the discarded tags_all
+# field. Those are read straight from instance.attributes in the converter.
+
+[service]
+name = "firehose"
+crate_name = "winterbaume_firehose"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_kinesis_firehose_delivery_stream"
+model = "DeliveryStreamTfModel"
+view = "DeliveryStreamView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "destination"
+view = "destination"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_id"
+view = "version_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

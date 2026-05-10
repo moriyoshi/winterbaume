@@ -1,0 +1,106 @@
+# Auto-ingested by `tf-converter-codegen ingest costexplorer`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (anomaly_monitor / anomaly_subscription). ARN templates, the
+# default `creation_date` / `last_updated_date` constants, the
+# `monitor_arn_list` Vec<String>, the nested `subscriber` array,
+# and the `threshold` f64 are all read straight from
+# instance.attributes in the converter (Vec<T> / Option<f64> are
+# not part of the spec field-type vocabulary).
+
+[service]
+name = "costexplorer"
+crate_name = "winterbaume_costexplorer"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_ce_anomaly_monitor
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ce_anomaly_monitor"
+model = "AnomalyMonitorTfModel"
+view = "AnomalyMonitorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "monitor_type"
+view = "monitor_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "monitor_dimension"
+view = "monitor_dimension"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_date"
+view = "creation_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date"
+view = "last_updated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_evaluated_date"
+view = "last_evaluated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_ce_anomaly_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ce_anomaly_subscription"
+model = "AnomalySubscriptionTfModel"
+view = "AnomalySubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "frequency"
+view = "frequency"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

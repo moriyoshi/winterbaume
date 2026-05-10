@@ -1,4 +1,12 @@
-//! Terraform converter for Lake Formation resources.
+//! Terraform converters for Lake Formation resources.
+//!
+//! `RegisteredResourceTfModel` and `DataLakeSettingsTfModel` are
+//! generated from `specs/lakeformation.toml`. The discarded
+//! `hybrid_access_enabled` flag, the `admins` /
+//! `authorized_session_tag_value_list` Vec<String>s, and the
+//! `create_database_default_permissions` /
+//! `create_table_default_permissions` nested-block arrays are wired
+//! up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +23,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_str, require_str};
+use crate::generated::lakeformation as lakeformation_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_lakeformation_resource
@@ -60,22 +69,21 @@ impl AwsLakeformationResourceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let arn = require_str(attrs, "arn", "aws_lakeformation_resource")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let role_arn = optional_str(attrs, "role_arn");
-        let use_service_linked_role =
-            optional_bool(attrs, "use_service_linked_role").unwrap_or(false);
-        let _hybrid_access_enabled = optional_bool(attrs, "hybrid_access_enabled").unwrap_or(false);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: lakeformation_gen::RegisteredResourceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_lakeformation_resource", e))?;
 
         let resource_view = RegisteredResourceView {
-            resource_arn: arn.to_string(),
-            role_arn,
-            use_service_linked_role,
+            resource_arn: model.resource_arn.clone(),
+            role_arn: model.role_arn,
+            use_service_linked_role: model.use_service_linked_role,
         };
 
         let mut state_view = LakeFormationStateView::default();
-        state_view.resources.insert(arn.to_string(), resource_view);
+        state_view
+            .resources
+            .insert(model.resource_arn, resource_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -156,11 +164,13 @@ impl AwsLakeformationDataLakeSettingsConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: lakeformation_gen::DataLakeSettingsTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_lakeformation_data_lake_settings", e)
+            })?;
 
-        let _external_data_filtering_allow_list = attrs.get("external_data_filtering_allow_list");
-        let _trusted_resource_owners = attrs.get("trusted_resource_owners");
+        let attrs = &instance.attributes;
 
         let admins: Vec<String> = attrs
             .get("admins")
@@ -171,9 +181,6 @@ impl AwsLakeformationDataLakeSettingsConverter {
                     .collect()
             })
             .unwrap_or_default();
-
-        let allow_external_data_filtering =
-            optional_bool(attrs, "allow_external_data_filtering").unwrap_or(false);
 
         let authorized_session_tag_value_list: Vec<String> = attrs
             .get("authorized_session_tag_value_list")
@@ -192,7 +199,7 @@ impl AwsLakeformationDataLakeSettingsConverter {
 
         let settings_view = DataLakeSettingsView {
             data_lake_admins: admins,
-            allow_external_data_filtering,
+            allow_external_data_filtering: model.allow_external_data_filtering,
             authorized_session_tag_value_list,
             create_database_default_permissions,
             create_table_default_permissions,

@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::quicksight as quicksight_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_quicksight_data_source
@@ -61,27 +62,31 @@ impl AwsQuicksightDataSourceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let data_source_id = require_str(attrs, "data_source_id", "aws_quicksight_data_source")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: quicksight_gen::QuickSightDataSourceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_quicksight_data_source", e))?;
 
-        let name = optional_str(attrs, "name").unwrap_or_else(|| data_source_id.to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let data_source_id = model.data_source_id.clone();
+        let name = model.name.unwrap_or_else(|| data_source_id.clone());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:quicksight:{}:{}:datasource/{}",
                 region, ctx.default_account_id, data_source_id
             )
         });
-        let ds_type = optional_str(attrs, "type").unwrap_or_else(|| "MANUAL".to_string());
-        let status =
-            optional_str(attrs, "status").unwrap_or_else(|| "CREATION_SUCCESSFUL".to_string());
-        let created_time =
-            optional_str(attrs, "created_time").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
-        let last_updated_time =
-            optional_str(attrs, "last_updated_time").unwrap_or_else(|| created_time.clone());
+        let ds_type = model.ds_type.unwrap_or_else(|| "MANUAL".to_string());
+        let status = model
+            .status
+            .unwrap_or_else(|| "CREATION_SUCCESSFUL".to_string());
+        let created_time = model
+            .created_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string());
+        let last_updated_time = model
+            .last_updated_time
+            .unwrap_or_else(|| created_time.clone());
 
-        let _tags_all = attrs.get("tags_all");
-        let _ssl_properties = attrs.get("ssl_properties");
         let credentials = attrs
             .get("credentials")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
@@ -98,7 +103,7 @@ impl AwsQuicksightDataSourceConverter {
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
         let ds_view = QuickSightDataSourceView {
-            data_source_id: data_source_id.to_string(),
+            data_source_id: data_source_id.clone(),
             name,
             arn,
             r#type: ds_type,
@@ -115,9 +120,7 @@ impl AwsQuicksightDataSourceConverter {
             data_sources: HashMap::new(),
             ..Default::default()
         };
-        state_view
-            .data_sources
-            .insert(data_source_id.to_string(), ds_view);
+        state_view.data_sources.insert(data_source_id, ds_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -208,22 +211,24 @@ impl AwsQuicksightGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let group_name = require_str(attrs, "group_name", "aws_quicksight_group")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: quicksight_gen::QuickSightGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_quicksight_group", e))?;
 
-        let namespace = optional_str(attrs, "namespace").unwrap_or_else(|| "default".to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let group_name = model.group_name.clone();
+        let namespace = model.namespace.unwrap_or_else(|| "default".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:quicksight:{}:{}:group/{}/{}",
                 region, ctx.default_account_id, namespace, group_name
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let principal_id = optional_str(attrs, "principal_id").unwrap_or_default();
+        let description = model.description.unwrap_or_default();
+        let principal_id = model.principal_id.unwrap_or_default();
 
         let group_view = QuickSightGroupView {
-            group_name: group_name.to_string(),
+            group_name: group_name.clone(),
             arn,
             description,
             principal_id,
@@ -231,7 +236,7 @@ impl AwsQuicksightGroupConverter {
 
         let mut state_view = QuickSightStateView::default();
         let ns_groups = state_view.groups.entry(namespace).or_default();
-        ns_groups.insert(group_name.to_string(), group_view);
+        ns_groups.insert(group_name, group_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -316,25 +321,26 @@ impl AwsQuicksightUserConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let user_name = require_str(attrs, "user_name", "aws_quicksight_user")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: quicksight_gen::QuickSightUserTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_quicksight_user", e))?;
 
-        let namespace = optional_str(attrs, "namespace").unwrap_or_else(|| "default".to_string());
-        let email = optional_str(attrs, "email").unwrap_or_default();
-        let role = optional_str(attrs, "user_role").unwrap_or_else(|| "READER".to_string());
-        let identity_type =
-            optional_str(attrs, "identity_type").unwrap_or_else(|| "IAM".to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let user_name = model.user_name.clone();
+        let namespace = model.namespace.unwrap_or_else(|| "default".to_string());
+        let email = model.email.unwrap_or_default();
+        let role = model.user_role.unwrap_or_else(|| "READER".to_string());
+        let identity_type = model.identity_type.unwrap_or_else(|| "IAM".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:quicksight:{}:{}:user/{}/{}",
                 region, ctx.default_account_id, namespace, user_name
             )
         });
-        let principal_id = optional_str(attrs, "principal_id").unwrap_or_default();
+        let principal_id = model.principal_id.unwrap_or_default();
 
         let user_view = QuickSightUserView {
-            user_name: user_name.to_string(),
+            user_name: user_name.clone(),
             arn,
             email,
             role,
@@ -345,7 +351,7 @@ impl AwsQuicksightUserConverter {
 
         let mut state_view = QuickSightStateView::default();
         let ns_users = state_view.users.entry(namespace).or_default();
-        ns_users.insert(user_name.to_string(), user_view);
+        ns_users.insert(user_name, user_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

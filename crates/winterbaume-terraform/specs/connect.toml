@@ -1,0 +1,59 @@
+[service]
+name = "connect"
+crate_name = "winterbaume_connect"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_connect_instance"
+model = "ConnectInstanceTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "identity_management_type"
+view = "identity_management_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_alias"
+view = "instance_alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "instance_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_time"
+view = "created_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "inbound_calls_enabled"
+view = "inbound_calls_enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "outbound_calls_enabled"
+view = "outbound_calls_enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
