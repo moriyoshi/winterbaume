@@ -407,6 +407,64 @@ enum ChunkOutcome {
     Failure(ExitStatus),
 }
 
+enum BackfillOutcome {
+    AlreadyExists,
+    Created,
+}
+
+/// Create a (signed when requested) annotated tag at HEAD if it doesn't exist
+/// and push it to origin. Used to recover tags for crates that were uploaded
+/// to crates.io in the same chunk but where cargo-release failed before
+/// reaching its tag step (typically on a partial-batch 429).
+fn backfill_tag(tag: &str, sign: bool, root: &Path) -> Result<BackfillOutcome, Error> {
+    let exists = Command::new("git")
+        .args(["tag", "-l", tag])
+        .current_dir(root)
+        .output()?;
+    if !exists.status.success() {
+        return Err(Error::CargoFailed {
+            cmd: "git tag -l",
+            status: exists.status.to_string(),
+            stderr: String::from_utf8_lossy(&exists.stderr).into_owned(),
+        });
+    }
+    if !exists.stdout.is_empty() {
+        return Ok(BackfillOutcome::AlreadyExists);
+    }
+
+    // Empty message keeps the tag body identical to cargo-release's own
+    // output: the workspace's `tag-message` template depends on cargo-release
+    // template variables that aren't available here.
+    let mut create = Command::new("git");
+    create
+        .arg("tag")
+        .arg(if sign { "-s" } else { "-a" })
+        .args(["-m", ""])
+        .arg(tag)
+        .current_dir(root);
+    let create_out = create.output()?;
+    if !create_out.status.success() {
+        return Err(Error::CargoFailed {
+            cmd: "git tag",
+            status: create_out.status.to_string(),
+            stderr: String::from_utf8_lossy(&create_out.stderr).into_owned(),
+        });
+    }
+
+    let push_out = Command::new("git")
+        .args(["push", "origin", tag])
+        .current_dir(root)
+        .output()?;
+    if !push_out.status.success() {
+        return Err(Error::CargoFailed {
+            cmd: "git push origin <tag>",
+            status: push_out.status.to_string(),
+            stderr: String::from_utf8_lossy(&push_out.stderr).into_owned(),
+        });
+    }
+    Ok(BackfillOutcome::Created)
+}
+
 fn run() -> Result<ExitCode, Error> {
     let args = Args::parse();
 
@@ -555,17 +613,35 @@ fn run() -> Result<ExitCode, Error> {
             //     probe the crates.io API as a best-effort secondary path.
             let version = args.version.as_ref().unwrap();
             let before = working_chunk.len();
+            let mut pruned: Vec<String> = Vec::new();
             working_chunk.retain(|name| {
                 if already_published.contains(name) {
                     eprintln!("skip {name} v{version}: cargo reports already published");
+                    pruned.push(name.clone());
                     return false;
                 }
                 if rate_limit_deadline.is_some() && already_on_crates_io(name, version) {
                     eprintln!("skip {name} v{version}: published during previous attempt");
+                    pruned.push(name.clone());
                     return false;
                 }
                 true
             });
+
+            // cargo-release pushes tags only as part of the same invocation
+            // that publishes the crate. When a chunk is interrupted mid-batch
+            // by a 429, the crates that landed before the failure never get
+            // tagged, and the retry's `cargo release` invocation no longer
+            // includes them (we just pruned them above) — so the tag would be
+            // dropped on the floor unless we backfill it here.
+            for name in &pruned {
+                let tag = format!("{name}-v{version}");
+                match backfill_tag(&tag, args.sign, &root) {
+                    Ok(BackfillOutcome::AlreadyExists) => {}
+                    Ok(BackfillOutcome::Created) => eprintln!("backfilled tag: {tag}"),
+                    Err(e) => eprintln!("warn: failed to backfill tag {tag}: {e}"),
+                }
+            }
 
             if working_chunk.is_empty() {
                 eprintln!("chunk {i1} fully landed during previous attempt; nothing left to retry");

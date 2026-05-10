@@ -531,3 +531,50 @@ Make cargo's own error message the primary recovery signal, and treat the HTTP p
 ### Operator note
 
 If `release-batch` is invoked through a pre-built binary on `$PATH` rather than `cargo run -p release-batch`, the operator must rebuild after pulling this change for the new recovery path to take effect. The retry-loop fix only exists in the binary, not in the input data.
+
+## 2026-05-10: mass-publish post-mortem — dropped tags after partial 429s, umbrella over the 500-dep limit
+
+### Context
+
+The first mass-publish run via `release-batch` ( 44 chunks of 5 crates ) completed most of the workspace but surfaced two issues the operator caught after the fact: (1) many published crates lack their `<crate>-v0.1.0` git tag, and (2) the `winterbaume` umbrella crate failed in chunk 43 with `error: ... status 400 Bad Request: crates.io only allows a maximum number of 500 dependencies`. Chunk 43 aborted before chunk 44, so `winterbaume-server` and `winterbaume-terraform` were never reached either.
+
+### Symptom 1: dropped tags
+
+Per chunk, only the *last* crate to publish in the final retry attempt got its `Pushing` tag step. Every earlier crate that landed during a 429-interrupted attempt was missing a tag. From the operator-supplied chunk-39–chunk-43 log alone, the visible drops were `winterbaume-{synthetics,taxsettings,textract,timestreaminfluxdb,timestreamwrite,transcribe,transfer,trustedadvisor,workspaces,workspacesweb,dynamodb,sfn,bedrockagent,ec2,sqlengine-duckdb,sqs-redis,iam,dynamodb-redis,dynamodbstreams,wafv2}` ( 20 crates ). Probing crates.io for every publishable workspace member showed the real total was **167 published-but-untagged crates** across all chunks, not just the late ones — the same race had happened repeatedly throughout the run.
+
+### Root cause: chunk-level tag push is part of the same `cargo release` invocation that publishes
+
+`cargo release` uploads each crate, then ( after the whole batch completes ) creates and pushes the per-crate annotated tags. When a 429 splits a chunk — say `[A, B, C, D, E]` where A/B uploaded, C hit the rate limit — cargo errors out before the tag step, so A, B, and C ( the in-flight one ) are unsigned, untagged. The previous `release-batch` recovery path then prunes the crates that landed during the failed attempt ( "skip A: published during previous attempt" ) and reissues `cargo release -p C -p D -p E`. That second invocation only knows about C/D/E — it has no way to retroactively tag A and B. cargo-release's tag step runs once per invocation, so dropped tags stay dropped.
+
+This is the mirror image of the `2026-05-09: release-batch retry pruning after partial 429` fix: that change correctly prevented re-uploading already-uploaded crates, but it inherited the assumption that "if cargo skips it, cargo will tag it later" — which doesn't hold across separate cargo-release invocations.
+
+### Symptom 2: umbrella exceeds 500-dep limit
+
+`winterbaume`'s root `Cargo.toml` listed 214 optional service crates under `[dependencies]` plus 455 entries under `[dev-dependencies]` ( 211 `aws-sdk-*` clients + 244 `winterbaume-*` re-imports ), totalling 669. cargo-publish keeps `[dev-dependencies]` in the published manifest when each entry has a version ( workspace inheritance counts ), and crates.io applies the `total dependencies <= 500` cap to that combined list. The 224 example files under `examples/*.rs` were the apparent reason for the dev-deps to exist, but the umbrella sets `autoexamples = false` and never declares any `[[example]]` entry — so cargo never compiles those files, and the dev-deps are entirely unused. Their only effect was to inflate the published manifest above the limit.
+
+### Fixes
+
+- **`Cargo.toml`** ( umbrella ): delete the entire `[dev-dependencies]` block ( 455 lines, lines 1292–1747 of the pre-fix file ). Verified with `cargo check -p winterbaume` ( clean, src/lib.rs imports nothing from `aws_*` ) and `cargo package -p winterbaume --no-verify`: produced manifest now lists 214 `[dependencies.<name>]` entries and 0 dev-deps. Crate size dropped from 519.8 KiB / 87.8 KiB compressed to 339.7 KiB / 66.8 KiB compressed.
+
+- **`tools/release-batch/src/main.rs`**: when a chunk is interrupted by a 429 and the recovery path prunes "published during previous attempt" or "cargo reports already published" crates from `working_chunk`, also call a new `backfill_tag(&tag, args.sign, &root)` for each pruned name. The helper checks `git tag -l <tag>`, and if absent, runs `git tag -s -m "" <tag>` ( or `-a -m ""` if `--sign` was off ) at HEAD followed by `git push origin <tag>`. Failures log a warning and continue rather than aborting the chunk — a missing tag is a recoverable bookkeeping issue, not worth wedging the publish run. Empty tag message matches the existing tags' contents ( cargo-release's `tag-message = "chore: release {{crate_name}} v{{version}}"` template never gets substituted in this workspace, so cargo-release's own tags also have empty subjects/bodies — `git for-each-ref` confirmed `msg=[] body=[]` ).
+
+- **Tag backfill** ( one-off ): create signed annotated tags for the 167 published-but-untagged crates locally, all pointing to HEAD ( `b14f5d40` ) to match the tag-target of the existing 70 tags. Each existing tag in this run targets HEAD via a distinct annotated-tag object ( different SHAs because the tag name and signature differ ), so the backfilled tags are structurally identical apart from the name. The 3 publishable members that are *genuinely* unpublished — `winterbaume`, `winterbaume-server`, `winterbaume-terraform` — were excluded from the backfill via a crates.io probe loop ( 167 returned HTTP 200, 3 returned 404 ).
+
+### Verification
+
+- `./.agents/bin/cargo.sh fmt -p release-batch -- --check` clean; `clippy -p release-batch --all-targets --all-features -- -D warnings` clean; `cargo test -p release-batch` — 8 tests pass ( previous suite, no new ones added; the new helper drives `git` and the network and is awkward to mock without restructuring ).
+- Local tag count after backfill: `git tag -l 'winterbaume-*-v0.1.0' | wc -l` reports 237 ( 70 pre-existing + 167 backfilled ). Spot-checked `winterbaume-iam-v0.1.0` via `git cat-file -p`: signed annotated tag, points at `b14f5d40`, empty body — matches the existing tags' shape.
+- `cargo package -p winterbaume --no-verify --allow-dirty` succeeded post-fix; extracted `Cargo.toml` from the produced `.crate` and counted `^\[dependencies\.` ( 214 ) and `^\[dev-dependencies\.` ( 0 ).
+
+### Out of scope ( awaiting operator confirmation before pushing )
+
+The local state is ready, but four shared-state actions remain and were not taken in this session:
+
+1. Commit the `Cargo.toml` / `Cargo.lock` / `tools/release-batch/src/main.rs` changes ( signed, per the always-sign-commits rule on this repo ).
+2. `git push origin --tags` to push the 167 backfilled tags.
+3. `cargo release 0.1.0 -p winterbaume --execute` to publish the umbrella now that the dep count is under the cap.
+4. Decide whether to publish `winterbaume-server` and `winterbaume-terraform` as part of the same wave — they were in the original publish plan but never reached because chunk 43 aborted on the umbrella's 400.
+
+### Operator note
+
+The `release-batch` tag-backfill path only triggers on the 429 / "is already published" recovery branch. If a future chunk fails for *any other* reason after partially uploading ( e.g., a transient network 5xx between cargo's `Uploaded X` and the tag push ), the dropped tags will still need a manual `git tag -s ... && git push` cleanup. A more general guard would be to scan cargo's `Uploaded <crate> v<ver>` lines on every failure, not just the 429 path, and tag any uploaded crate whose tag is missing. Not done now because the only failure mode observed in 44 chunks was the 429.
