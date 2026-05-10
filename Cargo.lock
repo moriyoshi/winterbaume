@@ -15578,6 +15578,7 @@ dependencies = [
  "winterbaume-swf",
  "winterbaume-synthetics",
  "winterbaume-tfstate",
+ "winterbaume-tfstate-resource-models",
  "winterbaume-timestreaminfluxdb",
  "winterbaume-timestreamquery",
  "winterbaume-timestreamwrite",
@@ -15616,6 +15617,13 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "winterbaume-tfstate-resource-models"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

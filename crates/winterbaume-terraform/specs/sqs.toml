@@ -1,8 +1,3 @@
-# Per-service Terraform converter mapping spec.
-#
-# Generated code lives at crates/winterbaume-terraform/src/generated/sqs.rs.
-# Regenerate with: cargo run -p tf-converter-codegen -- gen sqs
-
 [service]
 name = "sqs"
 crate_name = "winterbaume_sqs"
@@ -13,19 +8,29 @@ type = "aws_sqs_queue"
 model = "SqsQueueTfModel"
 view = "QueueStateView"
 
-[resource.computed.arn]
-template = "arn:aws:sqs:{region}:{account}:{name}"
-attr_override = "arn"
-
-[resource.computed.url]
-template = "https://sqs.{region}.amazonaws.com/{account}/{name}"
-attr_override_chain = ["url", "id"]
+[resource.modes]
+mode = "model_only"
 
 [[resource.field]]
 hcl = "name"
 view = "name"
 type = "string"
 required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "url"
+view = "url"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
 
 [[resource.field]]
 hcl = "visibility_timeout_seconds"
@@ -83,29 +88,3 @@ type = "string?"
 hcl = "policy"
 view = "policy"
 type = "string?"
-
-[[resource.computed_extract]]
-hcl = "id"
-source = "url"
-type = "string"
-
-[[resource.computed_extract]]
-hcl = "tags_all"
-source = "tags"
-type = "tags"
-
-[[resource.view_extra]]
-view = "region"
-source = "region"
-
-[[resource.view_extra]]
-view = "account_id"
-source = "account_id"
-
-[[resource.view_extra]]
-view = "created_timestamp"
-source = "none"
-
-[[resource.view_extra]]
-view = "last_modified_timestamp"
-source = "none"

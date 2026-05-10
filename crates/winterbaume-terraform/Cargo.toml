@@ -10,6 +10,7 @@ description = "Terraform state injection and extraction for winterbaume"
 
 [dependencies]
 winterbaume-tfstate = { workspace = true }
+winterbaume-tfstate-resource-models = { workspace = true }
 winterbaume-core = { workspace = true }
 winterbaume-accessanalyzer = { workspace = true }
 winterbaume-acm = { workspace = true }

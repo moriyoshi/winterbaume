@@ -25,9 +25,12 @@ struct Cli {
     specs_dir: PathBuf,
 
     /// Path to the directory where generated projection modules are written.
+    /// Files named `<service>.rs` go directly into this directory; the parent
+    /// `winterbaume-tfstate-resource-models` crate's `lib.rs` declares the
+    /// modules.
     #[arg(
         long,
-        default_value = "crates/winterbaume-terraform/src/generated",
+        default_value = "crates/winterbaume-tfstate-resource-models/src",
         global = true
     )]
     output_dir: PathBuf,

@@ -675,6 +675,153 @@ sweep. Future converter changes should:
 3. Update the converter body to consume new fields off the typed model.
 4. Run the per-crate lint gate ( `clippy --all-targets --all-features
    -- -D warnings` and `fmt --check` ) before committing.
+
+---
+
+## 2026-05-10 (cont.): Extract generated models into `winterbaume-tfstate-resource-models`
+
+### Context
+
+The migration above landed all 145 auto-generated `*TfModel` files at
+`crates/winterbaume-terraform/src/generated/<svc>.rs` (~6,800 LOC and growing
+as services and resources expand). The user observed that this generated tree
+will keep growing fast and asked to isolate it into its own crate so:
+
+- Hand-written changes to `winterbaume-terraform` don't recompile the entire
+  generated tree.
+- The generated code's footprint sits at a separate, easily-auditable crate
+  boundary.
+- Future regenerations don't churn diffs in the main converter crate.
+
+The plan is at `~/.claude/plans/currently-terraform-converters-consist-cuddly-lovelace.md`.
+
+### Findings
+
+**SQS was the only blocker.** It was the lone service still in thin-projection
+mode (the others all use `mode = "model_only"`), and its generated file
+referenced `crate::converter::ConversionContext` (in `winterbaume-terraform`)
+plus `winterbaume_sqs::views::QueueStateView` (in the SQS service crate). The
+first reference would have created a cyclic dependency the moment the
+generated code moved to a separate crate: the new crate would need
+`ConversionContext`, which lived in `winterbaume-terraform`, which would need
+to depend on the new crate.
+
+The fix was to convert SQS to `mode = "model_only"` like the other 144
+services. The `into_state_view` and `From<&QueueStateView>` impls move out of
+the generated file and into the hand-written `converters/sqs.rs` (~30 extra
+lines of explicit field assignment, mirroring the swf/amp/ivs pattern). The
+generated SQS file then needs only `serde`, so the new crate becomes a leaf
+with `serde` as its only `[dependencies]` entry. This is a one-time cost; no
+future service needs to be in thin-projection mode.
+
+**The re-export trick lets converter source stay unchanged.** Every existing
+converter file already wrote `use crate::generated::<svc> as <svc>_gen;`, so a
+single line in `winterbaume-terraform/src/lib.rs`:
+
+```rust
+pub use winterbaume_tfstate_resource_models as generated;
+```
+
+makes that path continue to resolve through the alias. None of the 145 hand-
+written converter files ( ~50,000 LOC ) needed to change. Git tracked the
+generated-file moves as `R100` renames, so the diff is essentially zero-byte
+for those files — only the path changed.
+
+**The codegen tool's default path was the only other knob to turn.** In
+`tools/tf-converter-codegen/src/main.rs`, the `--output-dir` default went from
+`crates/winterbaume-terraform/src/generated` to
+`crates/winterbaume-tfstate-resource-models/src`. The `gen`, `gen-all`, and
+`check` subcommands all share that default, so a single one-line change kept
+the whole CLI consistent. The golden test at
+`tools/tf-converter-codegen/tests/check.rs` runs the binary with the workspace
+root as cwd and uses workspace-relative defaults, so it picked up the new
+path without any test changes.
+
+**The crate name `winterbaume-tfstate-resource-models` was chosen by the
+user.** The implication is that it's a sibling of `winterbaume-tfstate`
+( the existing Terraform state-file parser crate ) rather than a sibling of
+`winterbaume-terraform` ( the converter crate ). The naming suggests the
+generated models are conceptually closer to the state representation than to
+the converter logic, which is true: each `*TfModel` is a serde-decoded view of
+one TF state resource attribute set. The Rust module identifier
+( `winterbaume_tfstate_resource_models`, snake-cased automatically ) is what
+the re-export aliases.
+
+### Architecture after split
+
+```
+crates/
+  winterbaume-tfstate-resource-models/        ← NEW
+    Cargo.toml                          (deps: serde with derive)
+    src/
+      lib.rs                            (mod declarations × 145)
+      <service>.rs × 145                (renamed from old generated/)
+  winterbaume-terraform/
+    Cargo.toml                          (adds winterbaume-tfstate-resource-models dep)
+    src/
+      lib.rs                            (drops `pub mod generated;`,
+                                          adds `pub use winterbaume_tfstate_resource_models as generated;`)
+      converters/<service>.rs × 145     (UNCHANGED)
+      generated/                        ← REMOVED (moved out)
+```
+
+### Repository deltas
+
+- New crate: `crates/winterbaume-tfstate-resource-models/` ( `Cargo.toml` +
+  `src/lib.rs` + 145 module files ).
+- `Cargo.toml` ( workspace ): added the crate to `members`, `default-members`,
+  and `workspace.dependencies`.
+- `crates/winterbaume-terraform/Cargo.toml`: added the new crate as a
+  dependency.
+- `crates/winterbaume-terraform/src/lib.rs`: removed `pub mod generated;` line,
+  added `pub use winterbaume_tfstate_resource_models as generated;`.
+- `crates/winterbaume-terraform/src/generated/`: directory removed entirely.
+- `crates/winterbaume-terraform/specs/sqs.toml`: added
+  `[resource.modes] mode = "model_only"`, removed `[resource.computed.arn]`,
+  `[resource.computed.url]`, `[[resource.computed_extract]]` × 2,
+  `[[resource.view_extra]]` × 4. Added `arn` / `url` / `id` as plain optional
+  string fields ( previously they were captured by the computed-template /
+  attr-override-chain machinery in the generated code ).
+- `crates/winterbaume-terraform/src/converters/sqs.rs`: rewrote `do_inject` to
+  build `QueueStateView` explicitly with the ARN and URL templates inline,
+  matching the hand-written pattern used by every other service.
+- `tools/tf-converter-codegen/src/main.rs`: default `--output-dir` switched.
+- 145 generated files renamed ( git rename detection caught all of them with
+  `R100` similarity ).
+
+### Verification
+
+- `cargo run -p tf-converter-codegen -- gen-all`: writes 145 files into the
+  new crate's `src/`.
+- `cargo run -p tf-converter-codegen -- check`: passes ( zero stale files ).
+- `./.agents/bin/cargo.sh build -p winterbaume-tfstate-resource-models`:
+  clean ( ~22 s, depends only on `serde` ).
+- `./.agents/bin/cargo.sh build -p winterbaume-terraform`: clean.
+- `./.agents/bin/cargo.sh test -p winterbaume-terraform --no-fail-fast`:
+  293 integration tests + 6 reshape tests pass; 22 ignored ( terraform-CLI
+  E2E ).
+- `./.agents/bin/cargo.sh clippy -p winterbaume-tfstate-resource-models
+  --all-targets --all-features -- -D warnings`: clean.
+- `./.agents/bin/cargo.sh clippy -p winterbaume-terraform --all-targets
+  --all-features -- -D warnings`: clean.
+- `./.agents/bin/cargo.sh clippy -p tf-converter-codegen --all-targets
+  --all-features -- -D warnings`: clean.
+- `./.agents/bin/cargo.sh test -p tf-converter-codegen`: golden test passes.
+
+### Operational notes
+
+- Future regenerations from spec edits land in
+  `crates/winterbaume-tfstate-resource-models/src/<svc>.rs`. The codegen
+  tool's default output path handles this automatically; no extra flags
+  needed.
+- The new crate's compile time should drop materially from the previous
+  in-tree position because `winterbaume-tfstate-resource-models` only
+  depends on `serde`. Any change to a hand-written `winterbaume-terraform`
+  converter no longer recompiles the 145-module generated tree.
+- The publication-readiness gate ( `RELEASE.md` + `verify-publish-ready`
+  skill ) needs to be aware of the new crate. Adding it to the public
+  workspace surface is a follow-up task ( not done in this commit ).
+
 ---
 
 ## 2026-05-11 — Skip CI pipeline for docs-only pushes to `main`
