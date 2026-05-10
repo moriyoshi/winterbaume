@@ -15,7 +15,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::codepipeline as codepipeline_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_codepipeline
@@ -59,40 +60,35 @@ impl AwsCodepipelinePipelineConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: codepipeline_gen::PipelineTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_codepipeline", e))?;
 
-        let name = require_str(attrs, "name", "aws_codepipeline")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:codepipeline:{}:{}:{}",
                 region, ctx.default_account_id, name
             )
         });
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
+        let role_arn = model.role_arn.unwrap_or_default();
+
+        // JSON-blob fields stay as raw attributes (not part of the strongly-typed model).
+        let attrs = &instance.attributes;
         let stages = attrs
             .get("stage")
             .cloned()
             .unwrap_or(serde_json::Value::Array(vec![]));
-
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
-        let _tags_all = attrs.get("tags_all");
-        let execution_mode = optional_str(attrs, "execution_mode");
-        let pipeline_type = optional_str(attrs, "pipeline_type");
         let artifact_store = attrs.get("artifact_store").cloned();
         let trigger = attrs.get("trigger").cloned();
         let variable = attrs.get("variable").cloned();
 
+        let tags: HashMap<String, String> = model.tags;
+
         let now = Utc::now().to_rfc3339();
         let pipeline_view = PipelineView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             role_arn,
             stages,
@@ -100,8 +96,8 @@ impl AwsCodepipelinePipelineConverter {
             created: now.clone(),
             updated: now,
             tags,
-            execution_mode,
-            pipeline_type,
+            execution_mode: model.execution_mode,
+            pipeline_type: model.pipeline_type,
             artifact_store,
             trigger,
             variable,
@@ -112,7 +108,7 @@ impl AwsCodepipelinePipelineConverter {
             pipelines: HashMap::new(),
             ..Default::default()
         };
-        state_view.pipelines.insert(name.to_string(), pipeline_view);
+        state_view.pipelines.insert(name, pipeline_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

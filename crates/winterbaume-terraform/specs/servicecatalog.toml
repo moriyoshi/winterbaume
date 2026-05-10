@@ -1,0 +1,128 @@
+# Auto-ingested by `tf-converter-codegen ingest servicecatalog`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+
+[service]
+name = "servicecatalog"
+crate_name = "winterbaume_servicecatalog"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_portfolio
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_portfolio"
+model = "PortfolioTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "provider_name"
+view = "provider_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_time"
+view = "created_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_product
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_product"
+model = "ProductTfModel"
+view = "ProductView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner"
+view = "owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "product_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "distributor"
+view = "distributor"
+type = "string?"
+
+[[resource.field]]
+hcl = "support_description"
+view = "support_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "support_email"
+view = "support_email"
+type = "string?"
+
+[[resource.field]]
+hcl = "support_url"
+view = "support_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_time"
+view = "created_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

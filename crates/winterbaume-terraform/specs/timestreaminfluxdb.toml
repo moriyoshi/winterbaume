@@ -1,0 +1,71 @@
+# Auto-ingested by `tf-converter-codegen ingest timestreaminfluxdb`.
+# Hand-tuned: dropped `log_delivery_configuration` (nested block), `tags_all`
+# (merged by extract_tags fallback), `username` (discarded),
+# `vpc_subnet_ids` / `vpc_security_group_ids` (Vec<String> not expressible),
+# and `allocated_storage` / `port` / `publicly_accessible` (need
+# Option<numeric>/Option<bool> semantics that the spec types can't express).
+# The converter reads those raw from `instance.attributes`.
+
+[service]
+name = "timestreaminfluxdb"
+crate_name = "winterbaume_timestreaminfluxdb"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_timestreaminfluxdb_db_instance"
+model = "DbInstanceTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_instance_type"
+view = "db_instance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_storage_type"
+view = "db_storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_type"
+view = "deployment_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_parameter_group_identifier"
+view = "db_parameter_group_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

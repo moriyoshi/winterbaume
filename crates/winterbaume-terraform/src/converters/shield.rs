@@ -1,4 +1,9 @@
 //! Terraform converter for Shield resources.
+//!
+//! `ProtectionTfModel` is generated from `specs/shield.toml`. The
+//! protection ID synthesis (UUID when missing), the ARN template, and
+//! the conversion from the flat `tags` map to `Vec<TagView>` are wired
+//! up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::shield as shield_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_shield_protection
@@ -59,31 +65,30 @@ impl AwsShieldProtectionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_shield_protection")?;
-        let resource_arn = require_str(attrs, "resource_arn", "aws_shield_protection")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: shield_gen::ProtectionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_shield_protection", e))?;
 
-        let protection_id =
-            optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let protection_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let protection_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let protection_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:shield::{}:protection/{}",
                 ctx.default_account_id, protection_id
             )
         });
 
-        // Convert tags from HashMap<String, String> to Vec<TagView>
-        let tags_map = extract_tags(attrs);
-        let tags: Vec<TagView> = tags_map
+        // Convert tags from HashMap<String, String> to Vec<TagView>.
+        let tags: Vec<TagView> = model
+            .tags
             .into_iter()
             .map(|(k, v)| TagView { key: k, value: v })
             .collect();
 
         let protection_view = ProtectionView {
             id: protection_id.clone(),
-            name: name.to_string(),
-            resource_arn: resource_arn.to_string(),
+            name: model.name,
+            resource_arn: model.resource_arn,
             protection_arn,
             health_check_ids: vec![],
             tags,

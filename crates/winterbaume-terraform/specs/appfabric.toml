@@ -1,0 +1,27 @@
+[service]
+name = "appfabric"
+crate_name = "winterbaume_appfabric"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_appfabric_app_bundle"
+model = "AppBundleTfModel"
+view = "AppBundleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_managed_key_arn"
+view = "customer_managed_key_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

@@ -1,0 +1,33 @@
+[service]
+name = "accessanalyzer"
+crate_name = "winterbaume_accessanalyzer"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_accessanalyzer_analyzer"
+model = "AnalyzerTfModel"
+view = "AnalyzerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "analyzer_name"
+view = "analyzer_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "analyzer_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

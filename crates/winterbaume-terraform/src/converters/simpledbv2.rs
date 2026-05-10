@@ -1,4 +1,8 @@
 //! Terraform converter for SimpleDB resources.
+//!
+//! `DomainTfModel` is generated from `specs/simpledbv2.toml`. The
+//! `SdbStateView` stores domain names as a `HashSet<String>`, so the
+//! converter just reads the model's `name` and inserts it.
 
 use std::collections::HashSet;
 use std::future::Future;
@@ -14,13 +18,9 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, require_str};
+use crate::generated::simpledbv2 as simpledbv2_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
-// ---------------------------------------------------------------------------
-// aws_simpledb_domain
-// ---------------------------------------------------------------------------
-
-/// Converts `aws_simpledb_domain` Terraform resources to/from SimpleDB state.
 pub struct AwsSimpleDbDomainConverter {
     service: Arc<SimpleDbV2Service>,
 }
@@ -59,12 +59,13 @@ impl AwsSimpleDbDomainConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_simpledb_domain")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: simpledbv2_gen::DomainTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_simpledb_domain", e))?;
 
         let mut domains = HashSet::new();
-        domains.insert(name.to_string());
+        domains.insert(model.name);
 
         let state_view = SdbStateView {
             exports: std::collections::HashMap::new(),

@@ -1,4 +1,10 @@
 //! Terraform converter for `aws_sfn_state_machine` resources.
+//!
+//! `StateMachineTfModel` is generated from `specs/stepfunctions.toml`.
+//! The ARN template (with the `id` fallback chain), the merged
+//! `tags` / `tags_all` projection into `Vec<TagView>`, and the
+//! `logging_configuration` / `tracing_configuration` /
+//! `encryption_configuration` nested-block parsing are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -19,7 +25,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::stepfunctions as stepfunctions_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Converts `aws_sfn_state_machine` Terraform resources to/from Step Functions state.
 pub struct AwsSfnStateMachineConverter {
@@ -60,27 +67,24 @@ impl AwsSfnStateMachineConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: stepfunctions_gen::StateMachineTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sfn_state_machine", e))?;
+
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_sfn_state_machine")?;
-        let definition = require_str(attrs, "definition", "aws_sfn_state_machine")?;
-        let role_arn = require_str(attrs, "role_arn", "aws_sfn_state_machine")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let name = model.name.clone();
+        let definition = model.definition;
+        let role_arn = model.role_arn;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:states:{}:{}:stateMachine:{}",
-                    region, ctx.default_account_id, name
-                )
-            });
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:states:{}:{}:stateMachine:{}",
+                region, ctx.default_account_id, name
+            )
+        });
 
-        let sm_type = optional_str(attrs, "type").unwrap_or_else(|| "STANDARD".to_string());
-        let _publish = optional_str(attrs, "publish");
-        let _name_prefix = optional_str(attrs, "name_prefix");
-        let _logging_configuration = attrs.get("logging_configuration");
-        let _tracing_configuration = attrs.get("tracing_configuration");
-        let _encryption_configuration = attrs.get("encryption_configuration");
+        let sm_type = model.r#type.unwrap_or_else(|| "STANDARD".to_string());
 
         // Tags from tags / tags_all
         let tags: Vec<TagView> = {
@@ -175,10 +179,10 @@ impl AwsSfnStateMachineConverter {
             });
 
         let sm_view = StateMachineView {
-            name: name.to_string(),
+            name,
             arn: arn.clone(),
-            definition: definition.to_string(),
-            role_arn: role_arn.to_string(),
+            definition,
+            role_arn,
             status: "ACTIVE".to_string(),
             creation_date: Utc::now().to_rfc3339(),
             r#type: sm_type,

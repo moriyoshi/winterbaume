@@ -1,0 +1,143 @@
+# Auto-ingested by `tf-converter-codegen ingest elasticbeanstalk`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `appversion_lifecycle` (raw JSON nested-block — read raw)
+#   - `tags_all` (Option<String> in spec was bogus — actually a map; merged
+#     in the converter)
+#   - `setting` (nested-block array — read raw)
+#   - `wait_for_ready_timeout` / `poll_interval` (consumed and discarded)
+#   - `id` on the environment (synthesised — read raw)
+#   - `cname` / `endpoint_url` were union-only on the auto-ingest;
+#     environment-only here.
+
+[service]
+name = "elasticbeanstalk"
+crate_name = "winterbaume_elasticbeanstalk"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_elastic_beanstalk_application
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elastic_beanstalk_application"
+model = "ApplicationTfModel"
+view = "ApplicationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "date_created"
+view = "date_created"
+type = "string?"
+
+[[resource.field]]
+hcl = "date_updated"
+view = "date_updated"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_elastic_beanstalk_environment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elastic_beanstalk_environment"
+model = "EnvironmentTfModel"
+view = "EnvironmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "application"
+view = "application"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tier"
+view = "tier"
+type = "string?"
+
+[[resource.field]]
+hcl = "solution_stack_name"
+view = "solution_stack_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "cname"
+view = "cname"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint_url"
+view = "endpoint_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "platform_arn"
+view = "platform_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_label"
+view = "version_label"
+type = "string?"
+
+[[resource.field]]
+hcl = "template_name"
+view = "template_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "date_created"
+view = "date_created"
+type = "string?"
+
+[[resource.field]]
+hcl = "date_updated"
+view = "date_updated"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

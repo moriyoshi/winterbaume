@@ -1,4 +1,10 @@
 //! Terraform converters for Athena resources.
+//!
+//! `WorkgroupTfModel` and `DataCatalogTfModel` are generated from
+//! `specs/athena.toml`. The workgroup `state` constant, the
+//! `configuration` nested-block parsing (output_location and
+//! enforce_workgroup_configuration), the catalog `parameters`
+//! HashMap, and the `tags_all` merge are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::athena as athena_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_athena_workgroup
@@ -58,11 +65,13 @@ impl AwsAthenaWorkgroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: athena_gen::WorkgroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_athena_workgroup", e))?;
 
-        let name = require_str(attrs, "name", "aws_athena_workgroup")?;
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let attrs = &instance.attributes;
+        let description = model.description.unwrap_or_default();
 
         // configuration.result_configuration.output_location
         let output_location = attrs
@@ -85,14 +94,8 @@ impl AwsAthenaWorkgroupConverter {
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
 
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
+        // Merge tags_all into tags (tags wins — it's already in `model.tags`).
+        let mut tags: HashMap<String, String> = model.tags;
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
@@ -102,7 +105,7 @@ impl AwsAthenaWorkgroupConverter {
         }
 
         let wg_view = WorkGroupView {
-            name: name.to_string(),
+            name: model.name.clone(),
             state: "ENABLED".to_string(),
             description,
             creation_time: None,
@@ -112,7 +115,7 @@ impl AwsAthenaWorkgroupConverter {
         };
 
         let mut state_view = minimal_athena_state_view();
-        state_view.work_groups.insert(name.to_string(), wg_view);
+        state_view.work_groups.insert(model.name, wg_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -194,12 +197,13 @@ impl AwsAthenaDataCatalogConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: athena_gen::DataCatalogTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_athena_data_catalog", e))?;
 
-        let name = require_str(attrs, "name", "aws_athena_data_catalog")?;
-        let catalog_type = require_str(attrs, "type", "aws_athena_data_catalog")?;
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let attrs = &instance.attributes;
+        let description = model.description.unwrap_or_default();
 
         let parameters: HashMap<String, String> = attrs
             .get("parameters")
@@ -211,27 +215,16 @@ impl AwsAthenaDataCatalogConverter {
             })
             .unwrap_or_default();
 
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
-
         let catalog_view = DataCatalogView {
-            name: name.to_string(),
-            catalog_type: catalog_type.to_string(),
+            name: model.name.clone(),
+            catalog_type: model.catalog_type,
             description,
             parameters,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = minimal_athena_state_view();
-        state_view
-            .data_catalogs
-            .insert(name.to_string(), catalog_view);
+        state_view.data_catalogs.insert(model.name, catalog_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

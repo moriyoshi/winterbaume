@@ -15,9 +15,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::dms as dms_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_dms_endpoint
@@ -63,30 +62,22 @@ impl AwsDmsEndpointConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let endpoint_id = require_str(attrs, "endpoint_id", "aws_dms_endpoint")?;
-        let endpoint_type = require_str(attrs, "endpoint_type", "aws_dms_endpoint")?;
-        let engine_name = require_str(attrs, "engine_name", "aws_dms_endpoint")?;
         let region = extract_region(attrs, &ctx.default_region);
-        let endpoint_arn = optional_str(attrs, "endpoint_arn").unwrap_or_else(|| {
+        let model: dms_gen::EndpointTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_dms_endpoint", e))?;
+
+        let endpoint_id = model.endpoint_id.clone();
+        let endpoint_arn = model.endpoint_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:dms:{}:{}:endpoint:{}",
                 region, ctx.default_account_id, endpoint_id
             )
         });
-        let username = optional_str(attrs, "username");
-        let server_name = optional_str(attrs, "server_name");
-        let port = optional_i64(attrs, "port").map(|v| v as i32);
-        let database_name = optional_str(attrs, "database_name");
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "active".to_string());
-        let extra_connection_attributes = optional_str(attrs, "extra_connection_attributes");
-        let _tags_all = attrs.get("tags_all");
-        let _ssl_mode = optional_str(attrs, "ssl_mode");
-        let _secrets_manager_access_role_arn =
-            optional_str(attrs, "secrets_manager_access_role_arn");
-        let _secrets_manager_arn = optional_str(attrs, "secrets_manager_arn");
-        let _certificate_arn = optional_str(attrs, "certificate_arn");
-        let tags = extract_tags(attrs);
+        // port is Option<i32>; not part of the strongly-typed model — read raw.
+        let port = attrs.get("port").and_then(|v| v.as_i64()).map(|v| v as i32);
+        let status = model.status.unwrap_or_else(|| "active".to_string());
 
+        // Settings nested blobs are not part of the strongly-typed model.
         let s3_settings = attrs
             .get("s3_settings")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
@@ -107,17 +98,17 @@ impl AwsDmsEndpointConverter {
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
         let ep_view = EndpointView {
-            endpoint_identifier: endpoint_id.to_string(),
-            endpoint_type: endpoint_type.to_string(),
-            engine_name: engine_name.to_string(),
-            username,
-            server_name,
+            endpoint_identifier: endpoint_id.clone(),
+            endpoint_type: model.endpoint_type,
+            engine_name: model.engine_name,
+            username: model.username,
+            server_name: model.server_name,
             port,
-            database_name,
+            database_name: model.database_name,
             status,
             endpoint_arn,
-            extra_connection_attributes,
-            tags,
+            extra_connection_attributes: model.extra_connection_attributes,
+            tags: model.tags,
             s3_settings,
             kafka_settings,
             kinesis_settings,
@@ -127,9 +118,7 @@ impl AwsDmsEndpointConverter {
         };
 
         let mut state_view = DmsStateView::default();
-        state_view
-            .endpoints
-            .insert(endpoint_id.to_string(), ep_view);
+        state_view.endpoints.insert(endpoint_id, ep_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -227,57 +216,41 @@ impl AwsDmsReplicationInstanceConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let ri_id = require_str(
-            attrs,
-            "replication_instance_id",
-            "aws_dms_replication_instance",
-        )?;
-        let ri_class = require_str(
-            attrs,
-            "replication_instance_class",
-            "aws_dms_replication_instance",
-        )?;
         let region = extract_region(attrs, &ctx.default_region);
-        let _tags_all = attrs.get("tags_all");
-        let _apply_immediately = optional_bool(attrs, "apply_immediately");
-        let _auto_minor_version_upgrade = optional_bool(attrs, "auto_minor_version_upgrade");
-        let _vpc_security_group_ids = attrs.get("vpc_security_group_ids");
-        let ri_arn = optional_str(attrs, "replication_instance_arn").unwrap_or_else(|| {
+        let model: dms_gen::ReplicationInstanceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_dms_replication_instance", e))?;
+
+        let ri_id = model.replication_instance_id.clone();
+        let ri_arn = model.replication_instance_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:dms:{}:{}:rep:{}",
                 region, ctx.default_account_id, ri_id
             )
         });
-        let allocated_storage = optional_i64(attrs, "allocated_storage").unwrap_or(50) as i32;
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "available".to_string());
-        let availability_zone = optional_str(attrs, "availability_zone");
-        let publicly_accessible = optional_bool(attrs, "publicly_accessible").unwrap_or(false);
-        let multi_az = optional_bool(attrs, "multi_az").unwrap_or(false);
-        let engine_version = optional_str(attrs, "engine_version");
+        let allocated_storage = model.allocated_storage as i32;
+        let status = model.status.unwrap_or_else(|| "available".to_string());
+        // f64 timestamp not part of strongly-typed model — read raw.
         let instance_create_time = attrs
             .get("replication_instance_create_time")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0);
-        let tags = extract_tags(attrs);
 
         let ri_view = ReplicationInstanceView {
-            replication_instance_identifier: ri_id.to_string(),
-            replication_instance_class: ri_class.to_string(),
+            replication_instance_identifier: ri_id.clone(),
+            replication_instance_class: model.replication_instance_class,
             allocated_storage,
             status,
             replication_instance_arn: ri_arn,
-            availability_zone,
-            publicly_accessible,
-            multi_az,
-            engine_version,
+            availability_zone: model.availability_zone,
+            publicly_accessible: model.publicly_accessible,
+            multi_az: model.multi_az,
+            engine_version: model.engine_version,
             instance_create_time,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = DmsStateView::default();
-        state_view
-            .replication_instances
-            .insert(ri_id.to_string(), ri_view);
+        state_view.replication_instances.insert(ri_id, ri_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -369,27 +342,19 @@ impl AwsDmsReplicationTaskConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let task_id = require_str(attrs, "replication_task_id", "aws_dms_replication_task")?;
-        let source_endpoint_arn =
-            require_str(attrs, "source_endpoint_arn", "aws_dms_replication_task")?;
-        let target_endpoint_arn =
-            require_str(attrs, "target_endpoint_arn", "aws_dms_replication_task")?;
-        let replication_instance_arn = require_str(
-            attrs,
-            "replication_instance_arn",
-            "aws_dms_replication_task",
-        )?;
-        let migration_type = require_str(attrs, "migration_type", "aws_dms_replication_task")?;
-        let table_mappings = require_str(attrs, "table_mappings", "aws_dms_replication_task")?;
         let region = extract_region(attrs, &ctx.default_region);
-        let task_arn = optional_str(attrs, "replication_task_arn").unwrap_or_else(|| {
+        let model: dms_gen::ReplicationTaskTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_dms_replication_task", e))?;
+
+        let task_id = model.replication_task_id.clone();
+        let task_arn = model.replication_task_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:dms:{}:{}:task:{}",
                 region, ctx.default_account_id, task_id
             )
         });
-        let replication_task_settings = optional_str(attrs, "replication_task_settings");
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "ready".to_string());
+        let status = model.status.unwrap_or_else(|| "ready".to_string());
+        // f64 timestamps not part of strongly-typed model — read raw.
         let creation_date = attrs
             .get("replication_task_creation_date")
             .and_then(|v| v.as_f64())
@@ -397,27 +362,24 @@ impl AwsDmsReplicationTaskConverter {
         let start_date = attrs
             .get("replication_task_start_date")
             .and_then(|v| v.as_f64());
-        let tags = extract_tags(attrs);
 
         let task_view = ReplicationTaskView {
-            replication_task_identifier: task_id.to_string(),
-            source_endpoint_arn: source_endpoint_arn.to_string(),
-            target_endpoint_arn: target_endpoint_arn.to_string(),
-            replication_instance_arn: replication_instance_arn.to_string(),
-            migration_type: migration_type.to_string(),
-            table_mappings: table_mappings.to_string(),
-            replication_task_settings,
+            replication_task_identifier: task_id.clone(),
+            source_endpoint_arn: model.source_endpoint_arn,
+            target_endpoint_arn: model.target_endpoint_arn,
+            replication_instance_arn: model.replication_instance_arn,
+            migration_type: model.migration_type,
+            table_mappings: model.table_mappings,
+            replication_task_settings: model.replication_task_settings,
             status,
             replication_task_arn: task_arn,
             replication_task_creation_date: creation_date,
             replication_task_start_date: start_date,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = DmsStateView::default();
-        state_view
-            .replication_tasks
-            .insert(task_id.to_string(), task_view);
+        state_view.replication_tasks.insert(task_id, task_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

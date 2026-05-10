@@ -1,0 +1,38 @@
+[service]
+name = "servicecatalogappregistry"
+crate_name = "winterbaume_servicecatalogappregistry"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_servicecatalogappregistry_application"
+model = "ApplicationTfModel"
+view = "ApplicationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

@@ -1,0 +1,93 @@
+# Auto-ingested by `tf-converter-codegen ingest eks`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (cluster / node_group). Dropped Vec<T>/nested-block /
+# raw-blob fields (vpc_config, kubernetes_network_config,
+# encryption_config, access_config, bootstrap_self_managed_addons,
+# compute_config, storage_config, remote_network_config,
+# zonal_shift_config, scaling_config, remote_access, update_config,
+# instance_types, ami_type, capacity_type, disk_size,
+# force_update_version, labels, tags / tags_all). Those are read
+# straight from instance.attributes in the converter. ARN templates
+# and the synthesised endpoint URL are wired up by hand.
+
+[service]
+name = "eks"
+crate_name = "winterbaume_eks"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_eks_cluster
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_eks_cluster"
+model = "ClusterTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eks_node_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_eks_node_group"
+model = "NodeGroupTfModel"
+view = "NodegroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "node_group_name"
+view = "node_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "node_role_arn"
+view = "node_role_arn"
+type = "string?"

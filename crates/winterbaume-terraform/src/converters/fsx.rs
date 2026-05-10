@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_i64, optional_str};
+use crate::generated::fsx as fsx_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_fsx_lustre_file_system
@@ -59,19 +60,23 @@ impl AwsFsxLustreFileSystemConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: fsx_gen::LustreFileSystemTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_fsx_lustre_file_system", e))?;
 
-        let file_system_id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let file_system_id = model.id.unwrap_or_else(|| {
             format!(
                 "fs-lustre-{}",
                 &ctx.default_account_id[..8.min(ctx.default_account_id.len())]
             )
         });
-        let storage_capacity = optional_i64(attrs, "storage_capacity").unwrap_or(1200);
-        let storage_type = optional_str(attrs, "storage_type").unwrap_or_else(|| "SSD".to_string());
-        let kms_key_id = optional_str(attrs, "kms_key_id");
-        let dns_name = optional_str(attrs, "dns_name")
+        let storage_capacity = model.storage_capacity;
+        let storage_type = model.storage_type.unwrap_or_else(|| "SSD".to_string());
+        let kms_key_id = model.kms_key_id;
+        let dns_name = model
+            .dns_name
             .unwrap_or_else(|| format!("{}.fsx.{}.amazonaws.com", file_system_id, region));
 
         let subnet_ids: Vec<String> = attrs
@@ -94,7 +99,7 @@ impl AwsFsxLustreFileSystemConverter {
             })
             .unwrap_or_default();
 
-        let resource_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let resource_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:fsx:{}:{}:file-system/{}",
                 region, ctx.default_account_id, file_system_id
@@ -105,14 +110,6 @@ impl AwsFsxLustreFileSystemConverter {
             .into_iter()
             .map(|(k, v)| TagView { key: k, value: v })
             .collect();
-
-        // Additional inject fields for coverage
-        let _auto_import_policy = optional_str(attrs, "auto_import_policy");
-        let _data_compression_type = optional_str(attrs, "data_compression_type");
-        let _drive_cache_type = optional_str(attrs, "drive_cache_type");
-        let _export_path = optional_str(attrs, "export_path");
-        let _file_system_type_version = optional_str(attrs, "file_system_type_version");
-        let _import_path = optional_str(attrs, "import_path");
 
         // Capture lustre_configuration as opaque JSON, merging nested blocks into it
         let lustre_configuration = {
@@ -137,19 +134,10 @@ impl AwsFsxLustreFileSystemConverter {
             Some(base)
         };
 
-        let creation_time = optional_str(attrs, "creation_time");
-        let lifecycle = optional_str(attrs, "lifecycle")
-            .or_else(|| optional_str(attrs, "lifecycle_status"))
+        let lifecycle = model
+            .lifecycle
+            .or(model.lifecycle_status)
             .unwrap_or_else(|| "AVAILABLE".to_string());
-        let owner_id = optional_str(attrs, "owner_id");
-        let vpc_id = optional_str(attrs, "vpc_id");
-        let deployment_type = optional_str(attrs, "deployment_type");
-        let copy_tags_to_backups = optional_bool(attrs, "copy_tags_to_backups").unwrap_or(false);
-        let automatic_backup_retention_days =
-            optional_i64(attrs, "automatic_backup_retention_days").unwrap_or(0) as i32;
-        let daily_automatic_backup_start_time =
-            optional_str(attrs, "daily_automatic_backup_start_time");
-        let weekly_maintenance_start_time = optional_str(attrs, "weekly_maintenance_start_time");
 
         let fs_view = FileSystemView {
             file_system_id: file_system_id.clone(),
@@ -166,15 +154,15 @@ impl AwsFsxLustreFileSystemConverter {
             lustre_configuration,
             ontap_configuration: None,
             open_zfs_configuration: None,
-            creation_time,
+            creation_time: model.creation_time,
             lifecycle,
-            owner_id,
-            vpc_id,
-            deployment_type,
-            copy_tags_to_backups,
-            automatic_backup_retention_days,
-            daily_automatic_backup_start_time,
-            weekly_maintenance_start_time,
+            owner_id: model.owner_id,
+            vpc_id: model.vpc_id,
+            deployment_type: model.deployment_type,
+            copy_tags_to_backups: model.copy_tags_to_backups,
+            automatic_backup_retention_days: model.automatic_backup_retention_days as i32,
+            daily_automatic_backup_start_time: model.daily_automatic_backup_start_time,
+            weekly_maintenance_start_time: model.weekly_maintenance_start_time,
         };
 
         let state_view = FsxStateView {
@@ -314,19 +302,23 @@ impl AwsFsxWindowsFileSystemConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: fsx_gen::WindowsFileSystemTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_fsx_windows_file_system", e))?;
 
-        let file_system_id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let file_system_id = model.id.unwrap_or_else(|| {
             format!(
                 "fs-windows-{}",
                 &ctx.default_account_id[..8.min(ctx.default_account_id.len())]
             )
         });
-        let storage_capacity = optional_i64(attrs, "storage_capacity").unwrap_or(300);
-        let storage_type = optional_str(attrs, "storage_type").unwrap_or_else(|| "SSD".to_string());
-        let kms_key_id = optional_str(attrs, "kms_key_id");
-        let dns_name = optional_str(attrs, "dns_name")
+        let storage_capacity = model.storage_capacity;
+        let storage_type = model.storage_type.unwrap_or_else(|| "SSD".to_string());
+        let kms_key_id = model.kms_key_id;
+        let dns_name = model
+            .dns_name
             .unwrap_or_else(|| format!("{}.fsx.{}.amazonaws.com", file_system_id, region));
 
         let subnet_ids: Vec<String> = attrs
@@ -349,7 +341,7 @@ impl AwsFsxWindowsFileSystemConverter {
             })
             .unwrap_or_default();
 
-        let resource_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let resource_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:fsx:{}:{}:file-system/{}",
                 region, ctx.default_account_id, file_system_id
@@ -361,9 +353,12 @@ impl AwsFsxWindowsFileSystemConverter {
             .map(|(k, v)| TagView { key: k, value: v })
             .collect();
 
-        // Build windows_configuration from TF attributes
-        let active_directory_id = optional_str(attrs, "active_directory_id");
-        let throughput_capacity = optional_i64(attrs, "throughput_capacity");
+        // Build windows_configuration from TF attributes (raw blobs not in the model)
+        let active_directory_id = attrs
+            .get("active_directory_id")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        let throughput_capacity = attrs.get("throughput_capacity").and_then(|v| v.as_i64());
         let audit_log_configuration = attrs.get("audit_log_configuration").cloned();
         let disk_iops_configuration = attrs.get("disk_iops_configuration").cloned();
         let self_managed_active_directory = attrs.get("self_managed_active_directory").cloned();
@@ -375,19 +370,10 @@ impl AwsFsxWindowsFileSystemConverter {
             "self_managed_active_directory": self_managed_active_directory,
         }));
 
-        let creation_time = optional_str(attrs, "creation_time");
-        let lifecycle = optional_str(attrs, "lifecycle")
-            .or_else(|| optional_str(attrs, "lifecycle_status"))
+        let lifecycle = model
+            .lifecycle
+            .or(model.lifecycle_status)
             .unwrap_or_else(|| "AVAILABLE".to_string());
-        let owner_id = optional_str(attrs, "owner_id");
-        let vpc_id = optional_str(attrs, "vpc_id");
-        let deployment_type = optional_str(attrs, "deployment_type");
-        let copy_tags_to_backups = optional_bool(attrs, "copy_tags_to_backups").unwrap_or(false);
-        let automatic_backup_retention_days =
-            optional_i64(attrs, "automatic_backup_retention_days").unwrap_or(0) as i32;
-        let daily_automatic_backup_start_time =
-            optional_str(attrs, "daily_automatic_backup_start_time");
-        let weekly_maintenance_start_time = optional_str(attrs, "weekly_maintenance_start_time");
 
         let fs_view = FileSystemView {
             file_system_id: file_system_id.clone(),
@@ -404,15 +390,15 @@ impl AwsFsxWindowsFileSystemConverter {
             lustre_configuration: None,
             ontap_configuration: None,
             open_zfs_configuration: None,
-            creation_time,
+            creation_time: model.creation_time,
             lifecycle,
-            owner_id,
-            vpc_id,
-            deployment_type,
-            copy_tags_to_backups,
-            automatic_backup_retention_days,
-            daily_automatic_backup_start_time,
-            weekly_maintenance_start_time,
+            owner_id: model.owner_id,
+            vpc_id: model.vpc_id,
+            deployment_type: model.deployment_type,
+            copy_tags_to_backups: model.copy_tags_to_backups,
+            automatic_backup_retention_days: model.automatic_backup_retention_days as i32,
+            daily_automatic_backup_start_time: model.daily_automatic_backup_start_time,
+            weekly_maintenance_start_time: model.weekly_maintenance_start_time,
         };
 
         let state_view = FsxStateView {

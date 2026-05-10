@@ -1,0 +1,84 @@
+# Auto-ingested by `tf-converter-codegen ingest timestreamquery`.
+# Hand-tuned: dropped tags_all (read raw), kms_key_id (unused), the JSON-blob
+# nested-block fields (error_report_configuration, target_configuration,
+# notification_configuration, schedule_configuration). Kept only the
+# strongly-typed scalar inputs.
+
+[service]
+name = "timestreamquery"
+crate_name = "winterbaume_timestreamquery"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_timestreamquery_scheduled_query"
+model = "ScheduledQueryTfModel"
+view = "ScheduledQueryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_run_status"
+view = "last_run_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "notification_topic_arn"
+view = "notification_topic_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "query_string"
+view = "query_string"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_error_report_bucket"
+view = "s3_error_report_bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule_expression"
+view = "schedule_expression"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_database"
+view = "target_database"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_table"
+view = "target_table"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

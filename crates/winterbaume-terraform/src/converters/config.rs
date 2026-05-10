@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::config as config_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_config_configuration_recorder
@@ -60,11 +61,14 @@ impl AwsConfigConfigurationRecorderConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: config_gen::ConfigurationRecorderTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_config_configuration_recorder", e))?;
 
-        let name = optional_str(attrs, "name").unwrap_or_else(|| "default".to_string());
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
+        let attrs = &instance.attributes;
+        let name = model.name.unwrap_or_else(|| "default".to_string());
+        let role_arn = model.role_arn.unwrap_or_default();
 
         let all_supported = attrs
             .get("recording_group")
@@ -179,20 +183,24 @@ impl AwsConfigConfigRuleConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: config_gen::ConfigRuleTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_config_config_rule", e))?;
 
-        let name = require_str(attrs, "name", "aws_config_config_rule")?;
-        let rule_id = optional_str(attrs, "rule_id")
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let rule_id = model
+            .rule_id
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string().replace('-', "")[..8].to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:config:{}:{}:config-rule/config-rule-{}",
                 region, ctx.default_account_id, rule_id
             )
         });
-        let description = optional_str(attrs, "description");
-        let input_parameters = optional_str(attrs, "input_parameters");
+        let description = model.description;
+        let input_parameters = model.input_parameters;
 
         let source_owner = attrs
             .get("source")
@@ -226,7 +234,7 @@ impl AwsConfigConfigRuleConverter {
         let scope_val = attrs.get("scope").cloned();
 
         let rule_view = ConfigRuleView {
-            config_rule_name: name.to_string(),
+            config_rule_name: name.clone(),
             config_rule_arn: arn,
             config_rule_id: rule_id,
             config_rule_state: "ACTIVE".to_string(),
@@ -241,7 +249,7 @@ impl AwsConfigConfigRuleConverter {
         };
 
         let mut state_view = minimal_config_state_view();
-        state_view.config_rules.insert(name.to_string(), rule_view);
+        state_view.config_rules.insert(name, rule_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -330,12 +338,15 @@ impl AwsConfigDeliveryChannelConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: config_gen::DeliveryChannelTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_config_delivery_channel", e))?;
 
-        let name = optional_str(attrs, "name").unwrap_or_else(|| "default".to_string());
-        let s3_bucket_name = optional_str(attrs, "s3_bucket_name").unwrap_or_default();
-        let s3_key_prefix = optional_str(attrs, "s3_key_prefix").unwrap_or_default();
+        let attrs = &instance.attributes;
+        let name = model.name.unwrap_or_else(|| "default".to_string());
+        let s3_bucket_name = model.s3_bucket_name.unwrap_or_default();
+        let s3_key_prefix = model.s3_key_prefix.unwrap_or_default();
         let snapshot_delivery_properties = attrs.get("snapshot_delivery_properties").cloned();
 
         let channel_view = DeliveryChannelView {

@@ -17,9 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::batch as batch_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_batch_compute_environment
@@ -63,19 +62,22 @@ impl AwsBatchComputeEnvironmentConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: batch_gen::ComputeEnvironmentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_batch_compute_environment", e))?;
 
-        let name = require_str(attrs, "name", "aws_batch_compute_environment")?;
-        let ce_type = require_str(attrs, "type", "aws_batch_compute_environment")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let ce_type = model.ce_type.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:batch:{}:{}:compute-environment/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let state = optional_str(attrs, "state").unwrap_or_else(|| "ENABLED".to_string());
-        let service_role = optional_str(attrs, "service_role");
+        let state = model.state.unwrap_or_else(|| "ENABLED".to_string());
+        let service_role = model.service_role;
         let compute_resources: Vec<serde_json::Value> = attrs
             .get("compute_resources")
             .and_then(|v| v.as_array())
@@ -99,9 +101,9 @@ impl AwsBatchComputeEnvironmentConverter {
         let _update_policy = attrs.get("update_policy");
 
         let view = ComputeEnvironmentView {
-            compute_environment_name: name.to_string(),
+            compute_environment_name: name.clone(),
             compute_environment_arn: arn,
-            ce_type: ce_type.to_string(),
+            ce_type,
             state,
             status: "VALID".to_string(),
             status_reason: String::new(),
@@ -113,9 +115,7 @@ impl AwsBatchComputeEnvironmentConverter {
         };
 
         let mut state_view = minimal_batch_state_view();
-        state_view
-            .compute_environments
-            .insert(name.to_string(), view);
+        state_view.compute_environments.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -210,18 +210,20 @@ impl AwsBatchJobQueueConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: batch_gen::JobQueueTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_batch_job_queue", e))?;
 
-        let name = require_str(attrs, "name", "aws_batch_job_queue")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:batch:{}:{}:job-queue/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let state = optional_str(attrs, "state").unwrap_or_else(|| "ENABLED".to_string());
-        let priority = optional_i64(attrs, "priority").unwrap_or(1) as i32;
+        let state = model.state.unwrap_or_else(|| "ENABLED".to_string());
+        let priority = model.priority as i32;
         let tags = extract_tags(attrs);
 
         let ce_order: Vec<ComputeEnvironmentOrderView> = attrs
@@ -258,7 +260,7 @@ impl AwsBatchJobQueueConverter {
             .unwrap_or_default();
 
         let view = JobQueueView {
-            job_queue_name: name.to_string(),
+            job_queue_name: name.clone(),
             job_queue_arn: arn,
             state,
             status: "VALID".to_string(),
@@ -267,12 +269,12 @@ impl AwsBatchJobQueueConverter {
             compute_environment_order: ce_order,
             tags,
             created_at: Some(chrono::Utc::now().to_rfc3339()),
-            scheduling_policy_arn: optional_str(attrs, "scheduling_policy_arn"),
+            scheduling_policy_arn: model.scheduling_policy_arn,
             job_state_time_limit_action,
         };
 
         let mut state_view = minimal_batch_state_view();
-        state_view.job_queues.insert(name.to_string(), view);
+        state_view.job_queues.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -367,12 +369,15 @@ impl AwsBatchJobDefinitionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: batch_gen::JobDefinitionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_batch_job_definition", e))?;
 
-        let name = require_str(attrs, "name", "aws_batch_job_definition")?;
-        let job_type = require_str(attrs, "type", "aws_batch_job_definition")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let job_type = model.job_type.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:batch:{}:{}:job-definition/{}:1",
                 region, ctx.default_account_id, name
@@ -381,7 +386,7 @@ impl AwsBatchJobDefinitionConverter {
         let tags = extract_tags(attrs);
         let _tags_all = attrs.get("tags_all");
         let _timeout = attrs.get("timeout");
-        let _propagate_tags = optional_bool(attrs, "propagate_tags");
+        let _propagate_tags = attrs.get("propagate_tags").and_then(|v| v.as_bool());
         let _scheduling_priority = attrs.get("scheduling_priority");
 
         let eks_properties: Vec<serde_json::Value> = attrs
@@ -446,11 +451,11 @@ impl AwsBatchJobDefinitionConverter {
             });
 
         let view = JobDefinitionView {
-            job_definition_name: name.to_string(),
+            job_definition_name: name.clone(),
             job_definition_arn: arn,
-            revision: optional_i64(attrs, "revision").unwrap_or(1) as i32,
+            revision: model.revision as i32,
             status: "ACTIVE".to_string(),
-            job_definition_type: job_type.to_string(),
+            job_definition_type: job_type,
             container_properties,
             tags,
             created_at: Some(chrono::Utc::now().to_rfc3339()),
@@ -459,9 +464,7 @@ impl AwsBatchJobDefinitionConverter {
         };
 
         let mut state_view = minimal_batch_state_view();
-        state_view
-            .job_definitions
-            .insert(name.to_string(), vec![view]);
+        state_view.job_definitions.insert(name, vec![view]);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -570,11 +573,14 @@ impl AwsBatchSchedulingPolicyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: batch_gen::SchedulingPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_batch_scheduling_policy", e))?;
 
-        let name = require_str(attrs, "name", "aws_batch_scheduling_policy")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:batch:{}:{}:scheduling-policy/{}",
                 region, ctx.default_account_id, name
@@ -624,16 +630,14 @@ impl AwsBatchSchedulingPolicyConverter {
             });
 
         let view = SchedulingPolicyView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             fairshare_policy,
             tags,
         };
 
         let mut state_view = minimal_batch_state_view();
-        state_view
-            .scheduling_policies
-            .insert(name.to_string(), view);
+        state_view.scheduling_policies.insert(name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

@@ -1,4 +1,11 @@
-//! Terraform converter for Service Discovery resources.
+//! Terraform converters for Service Discovery resources.
+//!
+//! `PrivateDnsNamespaceTfModel` and `ServiceTfModel` are generated from
+//! `specs/servicediscovery.toml`. The ARN templates, the synthesised
+//! `ns-` / `srv-` UUID identifiers, the `namespace_type =
+//! "DNS_PRIVATE"` constant, the `Option<i64>` `soa_ttl`, and the
+//! nested `dns_config` / `health_check_config` /
+//! `health_check_custom_config` blocks are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -17,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::servicediscovery as servicediscovery_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_service_discovery_private_dns_namespace
@@ -63,34 +71,37 @@ impl AwsServiceDiscoveryPrivateDnsNamespaceConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_service_discovery_private_dns_namespace")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: servicediscovery_gen::PrivateDnsNamespaceTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_service_discovery_private_dns_namespace", e)
+            })?;
 
-        let id = optional_str(attrs, "id")
+        let id = model
+            .id
             .unwrap_or_else(|| format!("ns-{}", uuid::Uuid::new_v4().simple()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:servicediscovery:{}:{}:namespace/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let description = optional_str(attrs, "description");
-        let vpc = optional_str(attrs, "vpc");
-        let hosted_zone_id = optional_str(attrs, "hosted_zone_id");
+
+        let soa_ttl = attrs.get("soa_ttl").and_then(|v| v.as_i64());
 
         let ns_view = NamespaceView {
             id: id.clone(),
             arn,
-            name: name.to_string(),
+            name: model.name,
             namespace_type: "DNS_PRIVATE".to_string(),
-            description,
+            description: model.description,
             creator_request_id: None,
-            vpc,
-            hosted_zone_id,
-            soa_ttl: optional_i64(attrs, "soa_ttl"),
+            vpc: model.vpc,
+            hosted_zone_id: model.hosted_zone_id,
+            soa_ttl,
             service_count: 0,
             create_date: chrono::Utc::now().to_rfc3339(),
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let mut state_view = ServiceDiscoveryStateView {
@@ -189,19 +200,20 @@ impl AwsServiceDiscoveryServiceConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_service_discovery_service")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: servicediscovery_gen::ServiceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_service_discovery_service", e))?;
 
-        let id = optional_str(attrs, "id")
+        let id = model
+            .id
             .unwrap_or_else(|| format!("srv-{}", uuid::Uuid::new_v4().simple()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:servicediscovery:{}:{}:service/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let namespace_id = optional_str(attrs, "namespace_id").unwrap_or_default();
-        let description = optional_str(attrs, "description");
+        let namespace_id = model.namespace_id.unwrap_or_default();
 
         // Parse dns_config
         let dns_config = attrs.get("dns_config").and_then(|v| {
@@ -285,17 +297,17 @@ impl AwsServiceDiscoveryServiceConverter {
         let svc_view = ServiceEntryView {
             id: id.clone(),
             arn,
-            name: name.to_string(),
+            name: model.name,
             namespace_id,
-            description,
+            description: model.description,
             creator_request_id: None,
             dns_config,
             health_check_config,
             health_check_custom_config,
             instance_count: 0,
             create_date: chrono::Utc::now().to_rfc3339(),
-            tags: extract_tags(attrs),
-            service_type: optional_str(attrs, "type"),
+            tags: model.tags,
+            service_type: model.service_type,
             include_namespace_id_in_response: false,
         };
 

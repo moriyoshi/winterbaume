@@ -17,7 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::lambda as lambda_gen;
+use crate::util::{classify_deserialize_error, extract_region, optional_str};
 
 // ---------------------------------------------------------------------------
 // aws_lambda_function
@@ -64,8 +65,10 @@ impl AwsLambdaFunctionConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaFunctionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lambda_function", e))?;
 
-        // Additional fields for coverage
+        // Additional fields for coverage (TF-only / not stored in state).
         let _ = attrs.get("tags_all");
         let _ = attrs.get("architectures");
         let _ = attrs.get("image_uri");
@@ -77,7 +80,7 @@ impl AwsLambdaFunctionConverter {
         let _ = attrs.get("replace_security_groups_on_destroy");
         let _ = attrs.get("skip_destroy");
 
-        // Nested blocks — stored for round-trip fidelity
+        // Nested blocks — stored for round-trip fidelity.
         let dead_letter_config = attrs.get("dead_letter_config").cloned();
         let ephemeral_storage = attrs.get("ephemeral_storage").cloned();
         let file_system_config = attrs.get("file_system_config").cloned();
@@ -87,24 +90,21 @@ impl AwsLambdaFunctionConverter {
         let tracing_config = attrs.get("tracing_config").cloned();
         let vpc_config = attrs.get("vpc_config").cloned();
 
-        let function_name = require_str(attrs, "function_name", "aws_lambda_function")?;
-        let runtime = optional_str(attrs, "runtime").unwrap_or_else(|| "provided".to_string());
-        let handler = optional_str(attrs, "handler").unwrap_or_default();
-        let role = optional_str(attrs, "role").unwrap_or_default();
+        let function_name = model.function_name.clone();
+        let runtime = model.runtime.unwrap_or_else(|| "provided".to_string());
+        let handler = model.handler.unwrap_or_default();
+        let role = model.role.unwrap_or_default();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:lambda:{}:{}:function:{}",
                 region, ctx.default_account_id, function_name
             )
         });
 
-        let memory_size = attrs
-            .get("memory_size")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(128) as i32;
-        let timeout = attrs.get("timeout").and_then(|v| v.as_i64()).unwrap_or(3) as i32;
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let memory_size = model.memory_size as i32;
+        let timeout = model.timeout as i32;
+        let description = model.description.unwrap_or_default();
 
         // environment variables
         let environment: HashMap<String, String> = attrs
@@ -120,7 +120,7 @@ impl AwsLambdaFunctionConverter {
             })
             .unwrap_or_default();
 
-        // Tags
+        // Tags: original semantics insert tags_all first, then tags overrides.
         let mut tags: HashMap<String, String> = HashMap::new();
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
@@ -138,7 +138,7 @@ impl AwsLambdaFunctionConverter {
         }
 
         let fn_view = LambdaFunctionView {
-            function_name: function_name.to_string(),
+            function_name: function_name.clone(),
             function_arn: arn,
             runtime,
             handler,
@@ -158,7 +158,7 @@ impl AwsLambdaFunctionConverter {
                 .get("reserved_concurrent_executions")
                 .and_then(|v| v.as_i64())
                 .map(|v| v as i32),
-            code_signing_config_arn: optional_str(attrs, "code_signing_config_arn"),
+            code_signing_config_arn: model.code_signing_config_arn,
             dead_letter_config,
             ephemeral_storage,
             file_system_config,
@@ -170,9 +170,7 @@ impl AwsLambdaFunctionConverter {
         };
 
         let mut state_view = minimal_lambda_state_view(&ctx.default_account_id, &region);
-        state_view
-            .functions
-            .insert(function_name.to_string(), fn_view);
+        state_view.functions.insert(function_name, fn_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -306,14 +304,17 @@ impl AwsLambdaAliasConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaAliasTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lambda_alias", e))?;
 
-        let name = require_str(attrs, "name", "aws_lambda_alias")?;
-        let function_name = require_str(attrs, "function_name", "aws_lambda_alias")?;
-        let function_version =
-            optional_str(attrs, "function_version").unwrap_or_else(|| "$LATEST".to_string());
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let name = model.name.clone();
+        let function_name = model.function_name.clone();
+        let function_version = model
+            .function_version
+            .unwrap_or_else(|| "$LATEST".to_string());
+        let description = model.description.unwrap_or_default();
 
-        let alias_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let alias_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:lambda:{}:{}:function:{}:{}",
                 region, ctx.default_account_id, function_name, name
@@ -322,8 +323,8 @@ impl AwsLambdaAliasConverter {
 
         let key = format!("{}:{}", function_name, name);
         let alias_view = AliasView {
-            name: name.to_string(),
-            function_name: function_name.to_string(),
+            name,
+            function_name,
             function_version,
             description,
             alias_arn,
@@ -424,20 +425,19 @@ impl AwsLambdaPermissionConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaPermissionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lambda_permission", e))?;
 
-        let statement_id = require_str(attrs, "statement_id", "aws_lambda_permission")?;
-        let action = require_str(attrs, "action", "aws_lambda_permission")?;
-        let function_name = require_str(attrs, "function_name", "aws_lambda_permission")?;
-        let principal = require_str(attrs, "principal", "aws_lambda_permission")?;
+        let _principal_org_id = model.principal_org_id;
 
-        let _principal_org_id = optional_str(attrs, "principal_org_id");
-
+        let function_name = model.function_name.clone();
+        let statement_id = model.statement_id.clone();
         let perm_view = PermissionView {
-            statement_id: statement_id.to_string(),
-            action: action.to_string(),
-            principal: principal.to_string(),
-            source_arn: optional_str(attrs, "source_arn"),
-            source_account: optional_str(attrs, "source_account"),
+            statement_id: statement_id.clone(),
+            action: model.action,
+            principal: model.principal,
+            source_arn: model.source_arn,
+            source_account: model.source_account,
         };
 
         let mut state_view = self
@@ -446,7 +446,7 @@ impl AwsLambdaPermissionConverter {
             .await;
         let perms = state_view
             .function_permissions
-            .entry(function_name.to_string())
+            .entry(function_name)
             .or_default();
         perms.retain(|p| p.statement_id != statement_id);
         perms.push(perm_view);
@@ -542,8 +542,11 @@ impl AwsLambdaEventSourceMappingConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaEventSourceMappingTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_lambda_event_source_mapping", e))?;
 
-        // Additional fields for coverage
+        // Additional fields for coverage (TF-only / not stored in state).
         let _ = attrs.get("tags_all");
         let _ = attrs.get("bisect_batch_on_function_error");
         let _ = attrs.get("function_response_types");
@@ -556,7 +559,7 @@ impl AwsLambdaEventSourceMappingConverter {
         let _ = attrs.get("tumbling_window_in_seconds");
         let _ = attrs.get("scaling_config");
 
-        // Nested blocks — stored for round-trip fidelity
+        // Nested blocks — stored for round-trip fidelity.
         let destination_config = attrs.get("destination_config").cloned();
         let filter_criteria = attrs.get("filter_criteria").cloned();
         let self_managed_event_source = attrs.get("self_managed_event_source").cloned();
@@ -570,10 +573,12 @@ impl AwsLambdaEventSourceMappingConverter {
         let metrics_config = attrs.get("metrics_config").cloned();
         let provisioned_poller_config = attrs.get("provisioned_poller_config").cloned();
 
-        let function_name = require_str(attrs, "function_name", "aws_lambda_event_source_mapping")?;
-        let event_source_arn = optional_str(attrs, "event_source_arn");
+        let function_name = model.function_name;
+        let event_source_arn = model.event_source_arn;
 
-        let uuid = optional_str(attrs, "uuid")
+        // Preserve original lookup chain: uuid -> id -> generate.
+        let uuid = model
+            .uuid
             .or_else(|| optional_str(attrs, "id"))
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
@@ -590,7 +595,6 @@ impl AwsLambdaEventSourceMappingConverter {
             .get("enabled")
             .and_then(|v| v.as_bool())
             .unwrap_or(true);
-        let starting_position = optional_str(attrs, "starting_position");
 
         let esm_view = EventSourceMappingView {
             uuid: uuid.clone(),
@@ -600,7 +604,7 @@ impl AwsLambdaEventSourceMappingConverter {
             enabled,
             state: "Enabled".to_string(),
             last_modified: Utc::now().to_rfc3339(),
-            starting_position,
+            starting_position: model.starting_position,
             destination_config,
             filter_criteria,
             self_managed_event_source,

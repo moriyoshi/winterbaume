@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_i64, optional_str, require_str};
+use crate::generated::networkfirewall as networkfirewall_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Extract tags as `Vec<(String, String)>` from Terraform attributes.
 fn extract_tags_vec(attrs: &serde_json::Value) -> Vec<(String, String)> {
@@ -101,26 +102,22 @@ impl AwsNetworkFirewallFirewallConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_networkfirewall_firewall")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: networkfirewall_gen::FirewallTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_networkfirewall_firewall", e))?;
 
-        let firewall_id =
-            optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let firewall_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let firewall_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let firewall_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:network-firewall:{}:{}:firewall/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let firewall_policy_arn = optional_str(attrs, "firewall_policy_arn").unwrap_or_default();
-        let vpc_id = optional_str(attrs, "vpc_id").unwrap_or_default();
-        let delete_protection = optional_bool(attrs, "delete_protection").unwrap_or(false);
-        let subnet_change_protection =
-            optional_bool(attrs, "subnet_change_protection").unwrap_or(false);
-        let firewall_policy_change_protection =
-            optional_bool(attrs, "firewall_policy_change_protection").unwrap_or(false);
-        let description = optional_str(attrs, "description");
+        let firewall_policy_arn = model.firewall_policy_arn.unwrap_or_default();
+        let vpc_id = model.vpc_id.unwrap_or_default();
         let _firewall_status = attrs.get("firewall_status");
 
         // Parse subnet_mapping
@@ -141,17 +138,17 @@ impl AwsNetworkFirewallFirewallConverter {
             .unwrap_or_default();
 
         let fw_view = FirewallView {
-            firewall_name: name.to_string(),
+            firewall_name: name,
             firewall_arn: firewall_arn.clone(),
             firewall_id,
             firewall_policy_arn,
             vpc_id,
             subnet_mappings,
-            delete_protection,
-            subnet_change_protection,
-            firewall_policy_change_protection,
+            delete_protection: model.delete_protection,
+            subnet_change_protection: model.subnet_change_protection,
+            firewall_policy_change_protection: model.firewall_policy_change_protection,
             availability_zone_change_protection: false,
-            description,
+            description: model.description,
             tags: extract_tags_vec(attrs),
             encryption_configuration: parse_encryption_config(attrs),
         };
@@ -258,19 +255,21 @@ impl AwsNetworkFirewallFirewallPolicyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_networkfirewall_firewall_policy")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: networkfirewall_gen::FirewallPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_networkfirewall_firewall_policy", e)
+            })?;
 
-        let policy_id =
-            optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let policy_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let policy_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let policy_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:network-firewall:{}:{}:firewall-policy/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let description = optional_str(attrs, "description");
 
         // The firewall_policy block is typically a JSON structure
         let firewall_policy_body = attrs
@@ -279,10 +278,10 @@ impl AwsNetworkFirewallFirewallPolicyConverter {
             .unwrap_or(serde_json::json!({}));
 
         let fp_view = FirewallPolicyView {
-            firewall_policy_name: name.to_string(),
+            firewall_policy_name: name,
             firewall_policy_arn: policy_arn.clone(),
             firewall_policy_id: policy_id,
-            description,
+            description: model.description,
             tags: extract_tags_vec(attrs),
             firewall_policy_body,
             encryption_configuration: parse_encryption_config(attrs),
@@ -380,15 +379,18 @@ impl AwsNetworkFirewallRuleGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_networkfirewall_rule_group")?;
-        let rule_group_type = require_str(attrs, "type", "aws_networkfirewall_rule_group")?;
-        let capacity = optional_i64(attrs, "capacity").unwrap_or(100) as i32;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: networkfirewall_gen::RuleGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_networkfirewall_rule_group", e))?;
 
-        let rule_group_id =
-            optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let rule_group_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let rule_group_type = model.rule_group_type.clone();
+        let capacity = model.capacity as i32;
+
+        let rule_group_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let rule_group_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:network-firewall:{}:{}:{}rule-group/{}",
                 region,
@@ -401,22 +403,20 @@ impl AwsNetworkFirewallRuleGroupConverter {
                 name
             )
         });
-        let description = optional_str(attrs, "description");
-        let rules = optional_str(attrs, "rules");
 
         // The rule_group block is typically a JSON structure
         let rule_group_body = attrs.get("rule_group").cloned();
 
         let rg_view = RuleGroupView {
-            rule_group_name: name.to_string(),
+            rule_group_name: name,
             rule_group_arn: rule_group_arn.clone(),
             rule_group_id,
-            rule_group_type: rule_group_type.to_string(),
+            rule_group_type,
             capacity,
-            description,
+            description: model.description,
             tags: extract_tags_vec(attrs),
             rule_group_body,
-            rules,
+            rules: model.rules,
             encryption_configuration: parse_encryption_config(attrs),
         };
 

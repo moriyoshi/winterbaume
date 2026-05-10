@@ -1,4 +1,9 @@
 //! Terraform converters for OpenSearch resources.
+//!
+//! `DomainTfModel` is generated from `specs/opensearch.toml`. The ARN
+//! template, the synthesised `domain_id`, the `engine_version` default,
+//! the nested `cluster_config` / `ebs_options` blocks, and the
+//! `created`/`deleted`/`processing` constants are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::opensearch as opensearch_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_opensearch_domain
@@ -58,21 +64,25 @@ impl AwsOpensearchDomainConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: opensearch_gen::DomainTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_opensearch_domain", e))?;
 
-        let domain_name = require_str(attrs, "domain_name", "aws_opensearch_domain")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:es:{}:{}:domain/{}",
-                region, ctx.default_account_id, domain_name
+                region, ctx.default_account_id, model.domain_name
             )
         });
-        let domain_id = optional_str(attrs, "domain_id")
-            .unwrap_or_else(|| format!("{}/{}", ctx.default_account_id, domain_name));
-        let engine_version =
-            optional_str(attrs, "engine_version").unwrap_or_else(|| "OpenSearch_2.11".to_string());
-        let endpoint = optional_str(attrs, "endpoint");
+        let domain_id = model
+            .domain_id
+            .unwrap_or_else(|| format!("{}/{}", ctx.default_account_id, model.domain_name));
+        let engine_version = model
+            .engine_version
+            .unwrap_or_else(|| "OpenSearch_2.11".to_string());
 
         // cluster_config block
         let instance_type = attrs
@@ -130,26 +140,13 @@ impl AwsOpensearchDomainConverter {
             .and_then(|v| v.as_bool())
             .unwrap_or(false);
 
-        // Additional fields for coverage
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("advanced_options");
-        let _ = attrs.get("auto_tune_options");
-        let _ = attrs.get("cognito_options");
-        let _ = attrs.get("domain_endpoint_options");
-        let _ = attrs.get("encrypt_at_rest");
-        let _ = attrs.get("log_publishing_options");
-        let _ = attrs.get("node_to_node_encryption");
-        let _ = attrs.get("off_peak_window_options");
-
-        let access_policies = optional_str(attrs, "access_policies").unwrap_or_default();
-
-        let tags = extract_tags(attrs);
+        let access_policies = model.access_policies.unwrap_or_default();
 
         let domain_view = DomainView {
-            domain_name: domain_name.to_string(),
+            domain_name: model.domain_name.clone(),
             arn,
             domain_id,
-            endpoint,
+            endpoint: model.endpoint,
             engine_version,
             created: true,
             deleted: false,
@@ -162,7 +159,7 @@ impl AwsOpensearchDomainConverter {
             ebs_volume_size,
             ebs_volume_type,
             access_policies,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = OpenSearchStateView {
@@ -177,9 +174,7 @@ impl AwsOpensearchDomainConverter {
             inbound_connections: HashMap::new(),
             reserved_instances: HashMap::new(),
         };
-        state_view
-            .domains
-            .insert(domain_name.to_string(), domain_view);
+        state_view.domains.insert(model.domain_name, domain_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

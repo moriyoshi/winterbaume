@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::osis as osis_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_osis_pipeline
@@ -59,22 +60,23 @@ impl AwsOsisPipelineConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let pipeline_name = require_str(attrs, "pipeline_name", "aws_osis_pipeline")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: osis_gen::PipelineTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_osis_pipeline", e))?;
 
-        let pipeline_configuration_body =
-            optional_str(attrs, "pipeline_configuration_body").unwrap_or_default();
-        let min_units = optional_i64(attrs, "min_units").unwrap_or(1) as i32;
-        let max_units = optional_i64(attrs, "max_units").unwrap_or(1) as i32;
-
-        let pipeline_arn = optional_str(attrs, "pipeline_arn").unwrap_or_else(|| {
+        let pipeline_name = model.pipeline_name.clone();
+        let pipeline_arn = model.pipeline_arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:osis:{}:{}:pipeline/{}",
                 region, ctx.default_account_id, pipeline_name
             )
         });
+        let pipeline_configuration_body = model.pipeline_configuration_body.unwrap_or_default();
+        let min_units = model.min_units as i32;
+        let max_units = model.max_units as i32;
 
+        // JSON-blob and array-of-strings fields stay as raw attributes.
+        let attrs = &instance.attributes;
         let ingest_endpoint_urls = attrs
             .get("ingest_endpoint_urls")
             .and_then(|v| v.as_array())
@@ -84,7 +86,6 @@ impl AwsOsisPipelineConverter {
                     .collect()
             })
             .unwrap_or_default();
-
         let buffer_options = attrs.get("buffer_options").cloned();
         let encryption_at_rest_options = attrs.get("encryption_at_rest_options").cloned();
         let log_publishing_options = attrs.get("log_publishing_options").cloned();
@@ -92,7 +93,7 @@ impl AwsOsisPipelineConverter {
 
         let now = chrono::Utc::now().to_rfc3339();
         let pipeline_view = PipelineView {
-            pipeline_name: pipeline_name.to_string(),
+            pipeline_name: pipeline_name.clone(),
             pipeline_arn,
             min_units,
             max_units,
@@ -101,7 +102,7 @@ impl AwsOsisPipelineConverter {
             created_at: now.clone(),
             last_updated_at: now,
             ingest_endpoint_urls,
-            tags: extract_tags(attrs),
+            tags: model.tags,
             buffer_options,
             encryption_at_rest_options,
             log_publishing_options,
@@ -111,9 +112,7 @@ impl AwsOsisPipelineConverter {
         let mut state_view = OsisStateView {
             pipelines: HashMap::new(),
         };
-        state_view
-            .pipelines
-            .insert(pipeline_name.to_string(), pipeline_view);
+        state_view.pipelines.insert(pipeline_name, pipeline_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

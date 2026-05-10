@@ -1,4 +1,11 @@
 //! Terraform converters for Application Auto Scaling resources.
+//!
+//! `ScalableTargetTfModel` and `ScalingPolicyTfModel` are generated from
+//! `specs/applicationautoscaling.toml`. The `suspended_state` nested
+//! block (target), the `target_tracking_scaling_policy_configuration` and
+//! `step_scaling_policy_configuration` nested blocks (policy), the
+//! `creation_time` constants, and the `policy_type` default are wired up
+//! here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,7 +23,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_i64, optional_str, require_str};
+use crate::generated::applicationautoscaling as appautoscaling_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 fn minimal_state_view() -> ApplicationAutoScalingStateView {
     ApplicationAutoScalingStateView {
@@ -69,21 +77,15 @@ impl AwsAppautoscalingTargetConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appautoscaling_gen::ScalableTargetTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appautoscaling_target", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
 
-        let service_namespace =
-            require_str(attrs, "service_namespace", "aws_appautoscaling_target")?;
-        let resource_id = require_str(attrs, "resource_id", "aws_appautoscaling_target")?;
-        let scalable_dimension =
-            require_str(attrs, "scalable_dimension", "aws_appautoscaling_target")?;
-        let min_capacity = optional_i64(attrs, "min_capacity").unwrap_or(0);
-        let max_capacity = optional_i64(attrs, "max_capacity").unwrap_or(0);
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
-        let scalable_target_arn = optional_str(attrs, "arn").unwrap_or_default();
-
+        // suspended_state is a nested-block array: [{...}]
         let suspended_state = attrs.get("suspended_state").map(|v| {
-            // Terraform represents this as a list with one element
             let obj = v.as_array().and_then(|a| a.first()).unwrap_or(v);
             let dynamic_scaling_in_suspended = obj
                 .get("dynamic_scaling_in_suspended")
@@ -105,15 +107,15 @@ impl AwsAppautoscalingTargetConverter {
         });
 
         let target_view = ScalableTargetView {
-            service_namespace: service_namespace.to_string(),
-            resource_id: resource_id.to_string(),
-            scalable_dimension: scalable_dimension.to_string(),
-            min_capacity,
-            max_capacity,
-            role_arn,
+            service_namespace: model.service_namespace,
+            resource_id: model.resource_id,
+            scalable_dimension: model.scalable_dimension,
+            min_capacity: model.min_capacity,
+            max_capacity: model.max_capacity,
+            role_arn: model.role_arn.unwrap_or_default(),
             creation_time: chrono::Utc::now().to_rfc3339(),
             suspended_state,
-            scalable_target_arn,
+            scalable_target_arn: model.arn.unwrap_or_default(),
         };
 
         let mut state_view = minimal_state_view();
@@ -212,24 +214,17 @@ impl AwsAppautoscalingPolicyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appautoscaling_gen::ScalingPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appautoscaling_policy", e))?;
 
-        let policy_name = require_str(attrs, "name", "aws_appautoscaling_policy")?;
-        let service_namespace =
-            require_str(attrs, "service_namespace", "aws_appautoscaling_policy")?;
-        let resource_id = require_str(attrs, "resource_id", "aws_appautoscaling_policy")?;
-        let scalable_dimension =
-            require_str(attrs, "scalable_dimension", "aws_appautoscaling_policy")?;
-        let policy_type = optional_str(attrs, "policy_type")
-            .unwrap_or_else(|| "TargetTrackingScaling".to_string());
-        let policy_arn = optional_str(attrs, "arn").unwrap_or_default();
+        let attrs = &instance.attributes;
 
         // Preserve the raw JSON for target_tracking and step_scaling configs
         let target_tracking_scaling_policy_configuration = attrs
             .get("target_tracking_scaling_policy_configuration")
             .and_then(|v| {
-                // Terraform wraps in array
                 if let Some(arr) = v.as_array() {
                     arr.first().cloned()
                 } else {
@@ -247,12 +242,14 @@ impl AwsAppautoscalingPolicyConverter {
             });
 
         let policy_view = ScalingPolicyView {
-            policy_arn,
-            policy_name: policy_name.to_string(),
-            service_namespace: service_namespace.to_string(),
-            resource_id: resource_id.to_string(),
-            scalable_dimension: scalable_dimension.to_string(),
-            policy_type,
+            policy_arn: model.arn.unwrap_or_default(),
+            policy_name: model.name,
+            service_namespace: model.service_namespace,
+            resource_id: model.resource_id,
+            scalable_dimension: model.scalable_dimension,
+            policy_type: model
+                .policy_type
+                .unwrap_or_else(|| "TargetTrackingScaling".to_string()),
             creation_time: chrono::Utc::now().to_rfc3339(),
             target_tracking_scaling_policy_configuration,
             step_scaling_policy_configuration,

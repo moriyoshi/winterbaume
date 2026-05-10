@@ -1,4 +1,11 @@
 //! Terraform converter for `aws_dynamodb_table` resources.
+//!
+//! `TableTfModel` is generated from `specs/dynamodb.toml`. The ARN
+//! template (with `id` fallback), the `attribute` /
+//! `global_secondary_index` / `local_secondary_index` / `replica`
+//! nested-block parsing, the merged tags_all+tags collection, the
+//! `import_table` / `on_demand_throughput` raw-JSON capture, and the
+//! `creation_date_time` / `table_status` constants are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -18,7 +25,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_i64, optional_str, require_str};
+use crate::generated::dynamodb as dynamodb_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Converts `aws_dynamodb_table` Terraform resources to/from DynamoDB state.
 pub struct AwsDynamodbTableConverter {
@@ -59,25 +67,24 @@ impl AwsDynamodbTableConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: dynamodb_gen::TableTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_dynamodb_table", e))?;
+
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_dynamodb_table")?;
-        let hash_key = require_str(attrs, "hash_key", "aws_dynamodb_table")?;
-        let region = extract_region(attrs, &ctx.default_region);
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:dynamodb:{}:{}:table/{}",
-                    region, ctx.default_account_id, name
-                )
-            });
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:dynamodb:{}:{}:table/{}",
+                region, ctx.default_account_id, model.name
+            )
+        });
 
-        let range_key = optional_str(attrs, "range_key");
-        let billing_mode =
-            optional_str(attrs, "billing_mode").unwrap_or_else(|| "PAY_PER_REQUEST".to_string());
+        let billing_mode = model
+            .billing_mode
+            .unwrap_or_else(|| "PAY_PER_REQUEST".to_string());
 
-        // Attribute definitions
+        // Attribute definitions (nested-block array).
         let attribute_defs: Vec<AttributeDefinitionView> = attrs
             .get("attribute")
             .and_then(|v| v.as_array())
@@ -98,11 +105,11 @@ impl AwsDynamodbTableConverter {
         // Determine hash key type
         let hash_key_type = attribute_defs
             .iter()
-            .find(|a| a.attribute_name == hash_key)
+            .find(|a| a.attribute_name == model.hash_key)
             .map(|a| a.attribute_type.clone())
             .unwrap_or_else(|| "S".to_string());
 
-        let range_key_type = range_key.as_deref().and_then(|rk| {
+        let range_key_type = model.range_key.as_deref().and_then(|rk| {
             attribute_defs
                 .iter()
                 .find(|a| a.attribute_name == rk)
@@ -111,10 +118,10 @@ impl AwsDynamodbTableConverter {
 
         // Key schema
         let mut key_schema = vec![KeySchemaElementView {
-            attribute_name: hash_key.to_string(),
+            attribute_name: model.hash_key.clone(),
             key_type: "HASH".to_string(),
         }];
-        if let Some(rk) = &range_key {
+        if let Some(rk) = &model.range_key {
             key_schema.push(KeySchemaElementView {
                 attribute_name: rk.clone(),
                 key_type: "RANGE".to_string(),
@@ -123,14 +130,14 @@ impl AwsDynamodbTableConverter {
 
         let provisioned_throughput = if billing_mode == "PROVISIONED" {
             Some(ProvisionedThroughputView {
-                read_capacity_units: optional_i64(attrs, "read_capacity").unwrap_or(5),
-                write_capacity_units: optional_i64(attrs, "write_capacity").unwrap_or(5),
+                read_capacity_units: model.read_capacity,
+                write_capacity_units: model.write_capacity,
             })
         } else {
             None
         };
 
-        // Tags
+        // Tags: merge tags_all (lower precedence) + tags (higher).
         let mut tags_map: HashMap<String, String> = HashMap::new();
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
@@ -151,12 +158,6 @@ impl AwsDynamodbTableConverter {
             .map(|(k, v)| DynamoDbTagView { key: k, value: v })
             .collect();
 
-        // Additional fields for coverage
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("ttl");
-        let _ = attrs.get("point_in_time_recovery");
-        let _ = attrs.get("server_side_encryption");
-
         let global_secondary_index = parse_secondary_index_blocks(attrs, "global_secondary_index");
         let local_secondary_index = parse_secondary_index_blocks(attrs, "local_secondary_index");
         let replica: Vec<serde_json::Value> = attrs
@@ -172,7 +173,7 @@ impl AwsDynamodbTableConverter {
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
         let table_view = TableStateView {
-            name: name.to_string(),
+            name: model.name.clone(),
             arn: arn.clone(),
             key_schema,
             attribute_definitions: attribute_defs,
@@ -180,13 +181,13 @@ impl AwsDynamodbTableConverter {
             provisioned_throughput,
             creation_date_time: Utc::now().to_rfc3339(),
             table_status: "ACTIVE".to_string(),
-            hash_key_attr: hash_key.to_string(),
+            hash_key_attr: model.hash_key,
             hash_key_type,
-            range_key_attr: range_key,
+            range_key_attr: model.range_key,
             range_key_type,
             items: HashMap::new(),
-            stream_enabled: optional_bool(attrs, "stream_enabled").unwrap_or(false),
-            stream_view_type: optional_str(attrs, "stream_view_type"),
+            stream_enabled: model.stream_enabled,
+            stream_view_type: model.stream_view_type,
             latest_stream_arn: None,
             latest_stream_label: None,
             global_secondary_index,
@@ -199,7 +200,7 @@ impl AwsDynamodbTableConverter {
         let mut state_view = DynamodbStateView {
             ..Default::default()
         };
-        state_view.tables.insert(name.to_string(), table_view);
+        state_view.tables.insert(model.name, table_view);
         if !tags.is_empty() {
             state_view.tags.insert(arn, tags);
         }

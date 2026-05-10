@@ -1,0 +1,151 @@
+# Auto-ingested by `tf-converter-codegen ingest elbv2`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (aws_lb / aws_lb_target_group / aws_lb_listener). Dropped the
+# nested-block / Vec<T> fields (subnets, security_groups,
+# subnet_mapping, ipam_pools, minimum_load_balancer_capacity,
+# access_logs, connection_logs, health_check, stickiness,
+# target_failover, target_group_health, target_health_state,
+# default_action, mutual_authentication, tags, tags_all, plus the
+# many discarded routing_/load_balancing_/preserve_ flat strings)
+# and the attribute-map scalars (idle_timeout, deregistration_delay,
+# protocol_version, ssl_policy, alpn_policy) which the converter
+# threads into the LoadBalancerView/TargetGroupView/ListenerView
+# `attributes` HashMap by hand. The legacy `internal` boolean
+# fallback for `scheme` and the synthesised ARN/DNS templates are
+# wired up in the converter.
+
+[service]
+name = "elbv2"
+crate_name = "winterbaume_elasticloadbalancingv2"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_lb
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb"
+model = "LbTfModel"
+view = "LoadBalancerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "dns_name"
+view = "dns_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "scheme"
+view = "scheme"
+type = "string?"
+
+[[resource.field]]
+hcl = "load_balancer_type"
+view = "load_balancer_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ip_address_type"
+view = "ip_address_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lb_target_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_target_group"
+model = "LbTargetGroupTfModel"
+view = "TargetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "protocol"
+view = "protocol"
+type = "string?"
+
+[[resource.field]]
+hcl = "port"
+view = "port"
+type = "i64"
+default = 80
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_type"
+view = "target_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lb_listener
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_listener"
+model = "LbListenerTfModel"
+view = "ListenerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "load_balancer_arn"
+view = "load_balancer_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "port"
+view = "port"
+type = "i64"
+default = 80
+
+[[resource.field]]
+hcl = "protocol"
+view = "protocol"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_arn"
+view = "certificate_arn"
+type = "string?"

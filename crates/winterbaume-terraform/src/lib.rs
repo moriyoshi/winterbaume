@@ -9,6 +9,7 @@
 pub mod converter;
 pub mod converters;
 pub mod error;
+pub mod generated;
 pub mod injector;
 pub mod report;
 pub mod util;

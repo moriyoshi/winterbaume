@@ -1,0 +1,139 @@
+# Auto-ingested by `tf-converter-codegen ingest wafv2`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (web_acl / ip_set / rule_group). The spec only covers flat scalars.
+# Nested blocks (default_action, rule, visibility_config, association_config,
+# challenge_config, captcha_config, custom_response_body,
+# data_protection_config, addresses, token_domains, tags_all) and the tags
+# vector are read straight from instance.attributes in the converter.
+# ARN templates, the synthesised id/lock_token UUIDs, and the
+# label_namespace string are wired up by hand.
+
+[service]
+name = "wafv2"
+crate_name = "winterbaume_wafv2"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_wafv2_web_acl
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_wafv2_web_acl"
+model = "Wafv2WebAclTfModel"
+view = "WebAclView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "scope"
+view = "scope"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_wafv2_ip_set
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_wafv2_ip_set"
+model = "Wafv2IpSetTfModel"
+view = "IpSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "scope"
+view = "scope"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "ip_address_version"
+view = "ip_address_version"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_wafv2_rule_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_wafv2_rule_group"
+model = "Wafv2RuleGroupTfModel"
+view = "RuleGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "scope"
+view = "scope"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "capacity"
+view = "capacity"
+type = "i64"
+default = 100

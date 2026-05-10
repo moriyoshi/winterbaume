@@ -1,4 +1,9 @@
 //! Terraform converter for Data Pipeline resources.
+//!
+//! `PipelineTfModel` is generated from `specs/datapipeline.toml`. The
+//! identifier synthesis (`df-<uuid>` when missing), the unique-id default,
+//! the structured `tags` projection (Vec<PipelineTagView>), and the
+//! `created_at` / `status` constants are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::datapipeline as datapipeline_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_datapipeline_pipeline
@@ -59,17 +65,22 @@ impl AwsDatapipelinePipelineConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_datapipeline_pipeline")?;
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: datapipeline_gen::PipelineTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_datapipeline_pipeline", e))?;
 
-        let pipeline_id = optional_str(attrs, "id")
+        let description = model.description.unwrap_or_default();
+        let pipeline_id = model
+            .id
             .unwrap_or_else(|| format!("df-{}", uuid::Uuid::new_v4().to_string().replace('-', "")));
-        let unique_id =
-            optional_str(attrs, "unique_id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let unique_id = model
+            .unique_id
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
-        let tags = if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
+        // `tags` on the StateView is a Vec<PipelineTagView>, which the codegen
+        // does not support. Read the tag map straight off the TF attributes.
+        let tags = if let Some(obj) = instance.attributes.get("tags").and_then(|v| v.as_object()) {
             obj.iter()
                 .filter_map(|(k, v)| {
                     v.as_str().map(|s| PipelineTagView {
@@ -84,7 +95,7 @@ impl AwsDatapipelinePipelineConverter {
 
         let pipeline_view = PipelineView {
             pipeline_id: pipeline_id.clone(),
-            name: name.to_string(),
+            name: model.name.clone(),
             description,
             unique_id,
             tags,

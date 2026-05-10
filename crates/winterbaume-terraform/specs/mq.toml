@@ -1,0 +1,141 @@
+# Auto-ingested by `tf-converter-codegen ingest mq`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (broker / configuration). Dropped Vec<T>/nested-block fields (user,
+# logs, configuration, encryption_options, ldap_server_metadata,
+# maintenance_window_start_time, apply_immediately, data_replication_mode,
+# tags_all). Those are read straight from instance.attributes in the
+# converter. ARN templates and constants are wired up by hand.
+
+[service]
+name = "mq"
+crate_name = "winterbaume_mq"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_mq_broker
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_mq_broker"
+model = "BrokerTfModel"
+view = "BrokerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "broker_name"
+view = "broker_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_type"
+view = "engine_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "host_instance_type"
+view = "host_instance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_mode"
+view = "deployment_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "publicly_accessible"
+view = "publicly_accessible"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "auto_minor_version_upgrade"
+view = "auto_minor_version_upgrade"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_mq_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_mq_configuration"
+model = "MqConfigurationTfModel"
+view = "MqConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_type"
+view = "engine_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "authentication_strategy"
+view = "authentication_strategy"
+type = "string?"
+
+[[resource.field]]
+hcl = "data"
+view = "data"
+type = "string?"
+
+[[resource.field]]
+hcl = "latest_revision"
+view = "latest_revision"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

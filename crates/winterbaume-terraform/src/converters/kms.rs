@@ -1,4 +1,10 @@
 //! Terraform converters for KMS resources.
+//!
+//! `KeyTfModel` and `AliasTfModel` are generated from `specs/kms.toml`.
+//! The synthesised key UUID, the key/alias ARN templates, the
+//! `key_spec` chain (`key_spec` then `customer_master_key_spec`), the
+//! `key_usage` derivation from `key_spec`, the random `key_material`
+//! bytes, and the `tags_all` merge into the `tags` map are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str, require_str};
+use crate::generated::kms as kms_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_kms_key
@@ -60,14 +67,18 @@ impl AwsKmsKeyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: kms_gen::KeyTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_kms_key", e))?;
 
-        let key_id = optional_str(attrs, "key_id")
-            .or_else(|| optional_str(attrs, "id"))
+        let attrs = &instance.attributes;
+
+        let key_id = model
+            .key_id
+            .or(model.id)
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:kms:{}:{}:key/{}",
                 region, ctx.default_account_id, key_id
@@ -75,11 +86,12 @@ impl AwsKmsKeyConverter {
         });
 
         // Terraform uses `customer_master_key_spec` (older) or `key_spec` (newer)
-        let key_spec = optional_str(attrs, "key_spec")
-            .or_else(|| optional_str(attrs, "customer_master_key_spec"))
+        let key_spec = model
+            .key_spec
+            .or(model.customer_master_key_spec)
             .unwrap_or_else(|| "SYMMETRIC_DEFAULT".to_string());
 
-        let key_usage = optional_str(attrs, "key_usage").unwrap_or_else(|| {
+        let key_usage = model.key_usage.unwrap_or_else(|| {
             if key_spec.contains("HMAC") {
                 "GENERATE_VERIFY_MAC".to_string()
             } else if key_spec.starts_with("ECC") || key_spec.starts_with("SM2") {
@@ -89,20 +101,20 @@ impl AwsKmsKeyConverter {
             }
         });
 
-        let enabled = optional_bool(attrs, "is_enabled").unwrap_or(true);
-        let key_rotation_enabled = optional_bool(attrs, "enable_key_rotation").unwrap_or(false);
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let enabled = model.is_enabled;
+        let key_rotation_enabled = model.enable_key_rotation;
+        let description = model.description.unwrap_or_default();
         let _deletion_window_in_days = attrs
             .get("deletion_window_in_days")
             .and_then(|v| v.as_i64())
             .unwrap_or(30);
-        let _policy = optional_str(attrs, "policy");
-        let multi_region = optional_bool(attrs, "multi_region").unwrap_or(false);
+        let _policy = attrs.get("policy").and_then(|v| v.as_str());
+        let multi_region = model.multi_region;
 
         // Generate fake key material bytes for the mock.
         let key_material = uuid::Uuid::new_v4().as_bytes().to_vec();
 
-        let mut key_tags = extract_tags(attrs);
+        let mut key_tags = model.tags;
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
@@ -237,12 +249,14 @@ impl AwsKmsAliasConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let alias_name = require_str(attrs, "name", "aws_kms_alias")?;
-        let target_key_id = require_str(attrs, "target_key_id", "aws_kms_alias")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: kms_gen::AliasTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_kms_alias", e))?;
 
-        let alias_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let alias_name = model.name;
+        let target_key_id = model.target_key_id;
+
+        let alias_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:kms:{}:{}:{}",
                 region, ctx.default_account_id, alias_name
@@ -250,9 +264,9 @@ impl AwsKmsAliasConverter {
         });
 
         let alias_view = AliasView {
-            alias_name: alias_name.to_string(),
+            alias_name: alias_name.clone(),
             alias_arn,
-            target_key_id: target_key_id.to_string(),
+            target_key_id,
         };
 
         let mut state_view = KmsStateView {
@@ -264,9 +278,7 @@ impl AwsKmsAliasConverter {
             custom_key_stores: HashMap::new(),
             imported_key_material: HashMap::new(),
         };
-        state_view
-            .aliases
-            .insert(alias_name.to_string(), alias_view);
+        state_view.aliases.insert(alias_name, alias_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

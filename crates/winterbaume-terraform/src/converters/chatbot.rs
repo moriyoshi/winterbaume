@@ -1,6 +1,10 @@
 //! Terraform converters for AWS Chatbot resources.
+//!
+//! `SlackConfigTfModel` and `TeamsConfigTfModel` are generated from
+//! `specs/chatbot.toml`. The chat-configuration ARN template, the
+//! constant-empty `sns_topic_arns` / `guardrail_policy_arns` lists, and
+//! the `user_authorization_required = None` default are wired up here.
 
-use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -14,7 +18,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::chatbot as chatbot_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_chatbot_slack_channel_configuration
@@ -58,53 +63,31 @@ impl AwsChatbotSlackChannelConfigurationConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: chatbot_gen::SlackConfigTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_chatbot_slack_channel_configuration", e)
+            })?;
 
-        let configuration_name = require_str(
-            attrs,
-            "configuration_name",
-            "aws_chatbot_slack_channel_configuration",
-        )?;
-        let slack_team_id = require_str(
-            attrs,
-            "slack_team_id",
-            "aws_chatbot_slack_channel_configuration",
-        )?;
-        let slack_channel_id = require_str(
-            attrs,
-            "slack_channel_id",
-            "aws_chatbot_slack_channel_configuration",
-        )?;
-        let iam_role_arn = require_str(
-            attrs,
-            "iam_role_arn",
-            "aws_chatbot_slack_channel_configuration",
-        )?;
-
-        let arn = optional_str(attrs, "chat_configuration_arn")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:chatbot:{region}:{}:chat-configuration/slack-channel/{configuration_name}",
-                    ctx.default_account_id
-                )
-            });
-
-        let tags = extract_tags(attrs);
+        let arn = model.chat_configuration_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:chatbot:{region}:{}:chat-configuration/slack-channel/{}",
+                ctx.default_account_id, model.configuration_name
+            )
+        });
 
         let config_view = SlackConfigView {
             arn: arn.clone(),
-            configuration_name: configuration_name.to_string(),
-            slack_team_id: slack_team_id.to_string(),
-            slack_channel_id: slack_channel_id.to_string(),
-            slack_channel_name: optional_str(attrs, "slack_channel_name").map(|s| s.to_string()),
-            iam_role_arn: iam_role_arn.to_string(),
+            configuration_name: model.configuration_name,
+            slack_team_id: model.slack_team_id,
+            slack_channel_id: model.slack_channel_id,
+            slack_channel_name: model.slack_channel_name,
+            iam_role_arn: model.iam_role_arn,
             sns_topic_arns: vec![],
-            logging_level: optional_str(attrs, "logging_level").map(|s| s.to_string()),
+            logging_level: model.logging_level,
             guardrail_policy_arns: vec![],
             user_authorization_required: None,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = ChatbotStateView::default();
@@ -151,7 +134,7 @@ impl AwsChatbotSlackChannelConfigurationConverter {
 }
 
 // ---------------------------------------------------------------------------
-// aws_chatbot_teams_channel_configuration
+// aws_chatbot_microsoft_teams_channel_configuration
 // ---------------------------------------------------------------------------
 
 pub struct AwsChatbotTeamsChannelConfigurationConverter {
@@ -192,60 +175,33 @@ impl AwsChatbotTeamsChannelConfigurationConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: chatbot_gen::TeamsConfigTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_chatbot_microsoft_teams_channel_configuration", e)
+            })?;
 
-        let configuration_name = require_str(
-            attrs,
-            "configuration_name",
-            "aws_chatbot_microsoft_teams_channel_configuration",
-        )?;
-        let team_id = require_str(
-            attrs,
-            "team_id",
-            "aws_chatbot_microsoft_teams_channel_configuration",
-        )?;
-        let tenant_id = require_str(
-            attrs,
-            "tenant_id",
-            "aws_chatbot_microsoft_teams_channel_configuration",
-        )?;
-        let channel_id = require_str(
-            attrs,
-            "channel_id",
-            "aws_chatbot_microsoft_teams_channel_configuration",
-        )?;
-        let iam_role_arn = require_str(
-            attrs,
-            "iam_role_arn",
-            "aws_chatbot_microsoft_teams_channel_configuration",
-        )?;
-
-        let arn = optional_str(attrs, "chat_configuration_arn")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:chatbot:{region}:{}:chat-configuration/microsoft-teams-channel/{configuration_name}",
-                    ctx.default_account_id
-                )
-            });
-
-        let tags = extract_tags(attrs);
+        let arn = model.chat_configuration_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:chatbot:{region}:{}:chat-configuration/microsoft-teams-channel/{}",
+                ctx.default_account_id, model.configuration_name
+            )
+        });
 
         let config_view = TeamsConfigView {
             arn: arn.clone(),
-            configuration_name: configuration_name.to_string(),
-            team_id: team_id.to_string(),
-            team_name: optional_str(attrs, "team_name").map(|s| s.to_string()),
-            tenant_id: tenant_id.to_string(),
-            channel_id: channel_id.to_string(),
-            channel_name: optional_str(attrs, "channel_name").map(|s| s.to_string()),
-            iam_role_arn: iam_role_arn.to_string(),
+            configuration_name: model.configuration_name,
+            team_id: model.team_id,
+            team_name: model.team_name,
+            tenant_id: model.tenant_id,
+            channel_id: model.channel_id,
+            channel_name: model.channel_name,
+            iam_role_arn: model.iam_role_arn,
             sns_topic_arns: vec![],
-            logging_level: optional_str(attrs, "logging_level").map(|s| s.to_string()),
+            logging_level: model.logging_level,
             guardrail_policy_arns: vec![],
             user_authorization_required: None,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = ChatbotStateView::default();
@@ -291,20 +247,4 @@ impl AwsChatbotTeamsChannelConfigurationConverter {
         }
         Ok(results)
     }
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-fn extract_tags(attrs: &serde_json::Value) -> HashMap<String, String> {
-    let mut tags = HashMap::new();
-    if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-        for (k, v) in obj {
-            if let Some(s) = v.as_str() {
-                tags.insert(k.clone(), s.to_string());
-            }
-        }
-    }
-    tags
 }

@@ -1,0 +1,17 @@
+# Inspector2's enabler resource has only Vec<String> inputs (account_ids and
+# resource_types). The spec captures nothing typed; both lists are read raw
+# in the converter from `instance.attributes`. The model exists only as a
+# placeholder so the migration pattern is uniform.
+
+[service]
+name = "inspector2"
+crate_name = "winterbaume_inspector2"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_inspector2_enabler"
+model = "EnablerTfModel"
+view = "Inspector2StateView"
+
+[resource.modes]
+mode = "model_only"

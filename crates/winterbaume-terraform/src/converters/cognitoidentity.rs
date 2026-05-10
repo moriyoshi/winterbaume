@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str, require_str};
+use crate::generated::cognitoidentity as cognitoidentity_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_cognito_identity_pool
@@ -60,16 +61,13 @@ impl AwsCognitoIdentityPoolConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: cognitoidentity_gen::IdentityPoolTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cognito_identity_pool", e))?;
+
+        // Vec/map nested fields stay raw.
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let id = require_str(attrs, "id", "aws_cognito_identity_pool")?;
-        let identity_pool_name =
-            require_str(attrs, "identity_pool_name", "aws_cognito_identity_pool")?;
-        let allow_unauthenticated_identities =
-            optional_bool(attrs, "allow_unauthenticated_identities").unwrap_or(false);
-        let developer_provider_name = optional_str(attrs, "developer_provider_name");
-
         let supported_login_providers: HashMap<String, String> = attrs
             .get("supported_login_providers")
             .and_then(|v| v.as_object())
@@ -122,14 +120,14 @@ impl AwsCognitoIdentityPoolConverter {
             })
             .unwrap_or_default();
 
-        let tags = extract_tags(attrs);
+        let id = model.identity_pool_id.clone();
 
         let pool_view = IdentityPoolView {
-            identity_pool_id: id.to_string(),
-            identity_pool_name: identity_pool_name.to_string(),
-            allow_unauthenticated_identities,
+            identity_pool_id: id.clone(),
+            identity_pool_name: model.identity_pool_name,
+            allow_unauthenticated_identities: model.allow_unauthenticated_identities,
             supported_login_providers,
-            developer_provider_name,
+            developer_provider_name: model.developer_provider_name,
             open_id_connect_provider_arns,
             cognito_identity_providers,
             saml_provider_arns,
@@ -142,9 +140,9 @@ impl AwsCognitoIdentityPoolConverter {
         );
 
         let mut state_view = CognitoIdentityStateView::default();
-        state_view.identity_pools.insert(id.to_string(), pool_view);
-        if !tags.is_empty() {
-            state_view.resource_tags.insert(arn, tags);
+        state_view.identity_pools.insert(id, pool_view);
+        if !model.tags.is_empty() {
+            state_view.resource_tags.insert(arn, model.tags);
         }
         self.service
             .merge(&ctx.default_account_id, &region, state_view)

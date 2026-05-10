@@ -1,4 +1,10 @@
 //! Terraform converter for Pipes resources.
+//!
+//! `PipeTfModel` is generated from `specs/pipes.toml`. The ARN template,
+//! the `desired_state` / `current_state` defaults, the `tags_all` merge
+//! into `tags`, and the four pass-through JSON parameter blocks
+//! (`enrichment_parameters`, `log_configuration`, `source_parameters`,
+//! `target_parameters`) are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::pipes as pipes_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_pipes_pipe
@@ -59,29 +66,23 @@ impl AwsPipesPipeConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: pipes_gen::PipeTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_pipes_pipe", e))?;
 
-        let name = require_str(attrs, "name", "aws_pipes_pipe")?;
-        let source = require_str(attrs, "source", "aws_pipes_pipe")?;
-        let target = require_str(attrs, "target", "aws_pipes_pipe")?;
-        let description = optional_str(attrs, "description");
-        let enrichment = optional_str(attrs, "enrichment");
-        let role_arn = optional_str(attrs, "role_arn");
-        let desired_state =
-            optional_str(attrs, "desired_state").unwrap_or_else(|| "RUNNING".to_string());
-        let current_state =
-            optional_str(attrs, "current_state").unwrap_or_else(|| "RUNNING".to_string());
-        let creation_time = optional_str(attrs, "creation_time").unwrap_or_default();
-        let last_modified_time = optional_str(attrs, "last_modified_time").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:pipes:{}:{}:pipe/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let mut tags = extract_tags(attrs);
-        if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
+        let mut tags = model.tags;
+        if let Some(obj) = instance
+            .attributes
+            .get("tags_all")
+            .and_then(|v| v.as_object())
+        {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
                     tags.entry(k.clone()).or_insert_with(|| s.to_string());
@@ -89,23 +90,23 @@ impl AwsPipesPipeConverter {
             }
         }
 
-        let enrichment_parameters = attrs.get("enrichment_parameters").cloned();
-        let log_configuration = attrs.get("log_configuration").cloned();
-        let source_parameters = attrs.get("source_parameters").cloned();
-        let target_parameters = attrs.get("target_parameters").cloned();
+        let enrichment_parameters = instance.attributes.get("enrichment_parameters").cloned();
+        let log_configuration = instance.attributes.get("log_configuration").cloned();
+        let source_parameters = instance.attributes.get("source_parameters").cloned();
+        let target_parameters = instance.attributes.get("target_parameters").cloned();
 
         let pipe_view = PipeView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
-            source: source.to_string(),
-            target: target.to_string(),
-            description,
-            enrichment,
-            role_arn,
-            desired_state,
-            current_state,
-            creation_time,
-            last_modified_time,
+            source: model.source,
+            target: model.target,
+            description: model.description,
+            enrichment: model.enrichment,
+            role_arn: model.role_arn,
+            desired_state: model.desired_state.unwrap_or_else(|| "RUNNING".to_string()),
+            current_state: model.current_state.unwrap_or_else(|| "RUNNING".to_string()),
+            creation_time: model.creation_time.unwrap_or_default(),
+            last_modified_time: model.last_modified_time.unwrap_or_default(),
             tags,
             enrichment_parameters,
             log_configuration,
@@ -116,7 +117,7 @@ impl AwsPipesPipeConverter {
         let mut state_view = PipesStateView {
             pipes: HashMap::new(),
         };
-        state_view.pipes.insert(name.to_string(), pipe_view);
+        state_view.pipes.insert(name, pipe_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

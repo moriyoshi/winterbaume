@@ -1,0 +1,44 @@
+# Auto-ingested by `tf-converter-codegen ingest budgets`.
+# Hand-tuned: dropped raw-Value blob fields (auto_adjust_data, cost_types,
+# planned_limit, cost_filter, notification — Vec<NotificationView>),
+# discarded fields (tags_all, time_period_start, time_period_end), and
+# kept only the strongly-typed scalar inputs.
+
+[service]
+name = "budgets"
+crate_name = "winterbaume_budgets"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_budgets_budget"
+model = "BudgetTfModel"
+view = "BudgetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "budget_type"
+view = "budget_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "limit_amount"
+view = "limit_amount"
+type = "string?"
+
+[[resource.field]]
+hcl = "limit_unit"
+view = "limit_unit"
+type = "string?"
+
+[[resource.field]]
+hcl = "time_unit"
+view = "time_unit"
+type = "string?"

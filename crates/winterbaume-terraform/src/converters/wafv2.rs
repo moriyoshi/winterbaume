@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::wafv2 as wafv2_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_wafv2_web_acl
@@ -60,13 +61,15 @@ impl AwsWafv2WebAclConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: wafv2_gen::Wafv2WebAclTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_wafv2_web_acl", e))?;
 
-        let name = require_str(attrs, "name", "aws_wafv2_web_acl")?;
-        let scope = optional_str(attrs, "scope").unwrap_or_else(|| "REGIONAL".to_string());
+        let name = model.name.clone();
+        let scope = model.scope.unwrap_or_else(|| "REGIONAL".to_string());
         let key = format!("{}:{}", scope, name);
 
-        let id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:wafv2:{}:{}:{}/webacl/{}/{}",
                 region,
@@ -76,7 +79,7 @@ impl AwsWafv2WebAclConverter {
                 id
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
+        let description = model.description.unwrap_or_default();
 
         let default_action_json = attrs
             .get("default_action")
@@ -118,7 +121,7 @@ impl AwsWafv2WebAclConverter {
             .unwrap_or_default();
 
         let acl_view = WebAclView {
-            name: name.to_string(),
+            name: name.clone(),
             id,
             arn,
             scope: scope.clone(),
@@ -238,13 +241,15 @@ impl AwsWafv2IpSetConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: wafv2_gen::Wafv2IpSetTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_wafv2_ip_set", e))?;
 
-        let name = require_str(attrs, "name", "aws_wafv2_ip_set")?;
-        let scope = optional_str(attrs, "scope").unwrap_or_else(|| "REGIONAL".to_string());
+        let name = model.name.clone();
+        let scope = model.scope.unwrap_or_else(|| "REGIONAL".to_string());
         let key = format!("{}:{}", scope, name);
 
-        let id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:wafv2:{}:{}:{}/ipset/{}/{}",
                 region,
@@ -254,9 +259,10 @@ impl AwsWafv2IpSetConverter {
                 id
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let ip_address_version =
-            optional_str(attrs, "ip_address_version").unwrap_or_else(|| "IPV4".to_string());
+        let description = model.description.unwrap_or_default();
+        let ip_address_version = model
+            .ip_address_version
+            .unwrap_or_else(|| "IPV4".to_string());
 
         let addresses: Vec<String> = attrs
             .get("addresses")
@@ -279,10 +285,10 @@ impl AwsWafv2IpSetConverter {
             .unwrap_or_default();
 
         let ip_set_view = IpSetView {
-            name: name.to_string(),
+            name,
             id,
             arn,
-            scope: scope.clone(),
+            scope,
             description,
             lock_token: uuid::Uuid::new_v4().to_string(),
             ip_address_version,
@@ -381,13 +387,15 @@ impl AwsWafv2RuleGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: wafv2_gen::Wafv2RuleGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_wafv2_rule_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_wafv2_rule_group")?;
-        let scope = optional_str(attrs, "scope").unwrap_or_else(|| "REGIONAL".to_string());
+        let name = model.name.clone();
+        let scope = model.scope.unwrap_or_else(|| "REGIONAL".to_string());
         let key = format!("{}:{}", scope, name);
 
-        let id = optional_str(attrs, "id").unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:wafv2:{}:{}:{}/rulegroup/{}/{}",
                 region,
@@ -397,11 +405,8 @@ impl AwsWafv2RuleGroupConverter {
                 id
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let capacity = attrs
-            .get("capacity")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(100);
+        let description = model.description.unwrap_or_default();
+        let capacity = model.capacity;
         let rules_json = attrs
             .get("rule")
             .cloned()
@@ -423,10 +428,10 @@ impl AwsWafv2RuleGroupConverter {
             .unwrap_or_default();
 
         let rg_view = RuleGroupView {
-            name: name.to_string(),
+            name: name.clone(),
             id,
             arn,
-            scope: scope.clone(),
+            scope,
             description,
             lock_token: uuid::Uuid::new_v4().to_string(),
             capacity,

@@ -1,0 +1,114 @@
+# Auto-ingested by `tf-converter-codegen ingest guardduty`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (detector / filter / member). Dropped Vec<T>/nested-block fields
+# (datasources, finding_criteria, tags_all). Tags are merged via
+# extract_tags() then tags_all in the converter for the detector. The
+# member resource keeps both account_id and detector_id strings only;
+# email / relationship_status / invite are read raw from
+# instance.attributes.
+
+[service]
+name = "guardduty"
+crate_name = "winterbaume_guardduty"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_detector
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_detector"
+model = "DetectorTfModel"
+view = "DetectorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "enable"
+view = "enable"
+type = "string?"
+
+[[resource.field]]
+hcl = "finding_publishing_frequency"
+view = "finding_publishing_frequency"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_filter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_filter"
+model = "FilterTfModel"
+view = "FilterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "action"
+view = "action"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "rank"
+view = "rank"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_member
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_member"
+model = "MemberTfModel"
+view = "MemberView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true

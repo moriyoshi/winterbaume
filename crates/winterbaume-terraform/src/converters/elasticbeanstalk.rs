@@ -1,4 +1,10 @@
 //! Terraform converters for Elastic Beanstalk resources.
+//!
+//! `ApplicationTfModel` and `EnvironmentTfModel` are generated from
+//! `specs/elasticbeanstalk.toml`. The ARN templates, the
+//! `appversion_lifecycle` raw JSON blob, the `setting` nested-block array,
+//! the `tier_type` derivation from `tier_name`, and the `tags_all` merge
+//! are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::elasticbeanstalk as elasticbeanstalk_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_elastic_beanstalk_application
@@ -59,29 +66,44 @@ impl AwsElasticBeanstalkApplicationConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: elasticbeanstalk_gen::ApplicationTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_elastic_beanstalk_application", e))?;
 
-        let name = require_str(attrs, "name", "aws_elastic_beanstalk_application")?;
-        let description = optional_str(attrs, "description");
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:elasticbeanstalk:{}:{}:application/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let tags = extract_tags(attrs);
+        // appversion_lifecycle is a nested-block — read raw.
         let appversion_lifecycle = attrs
             .get("appversion_lifecycle")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
+        // Merge `tags_all` into `tags` (tags wins).
+        let mut tags = model.tags;
+        if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
+            for (k, v) in obj {
+                if let Some(s) = v.as_str() {
+                    tags.entry(k.clone()).or_insert_with(|| s.to_string());
+                }
+            }
+        }
+
         let app_view = ApplicationView {
-            application_name: name.to_string(),
-            description,
+            application_name: name,
+            description: model.description,
             tags,
-            date_created: optional_str(attrs, "date_created")
+            date_created: model
+                .date_created
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
-            date_updated: optional_str(attrs, "date_updated")
+            date_updated: model
+                .date_updated
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
             arn,
             appversion_lifecycle,
@@ -174,28 +196,34 @@ impl AwsElasticBeanstalkEnvironmentConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: elasticbeanstalk_gen::EnvironmentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_elastic_beanstalk_environment", e))?;
 
-        let name = require_str(attrs, "name", "aws_elastic_beanstalk_environment")?;
-        let application = require_str(attrs, "application", "aws_elastic_beanstalk_environment")?;
-        let environment_id = optional_str(attrs, "id")
+        let attrs = &instance.attributes;
+
+        let name = model.name.clone();
+        let application = model.application.clone();
+        let environment_id = attrs
+            .get("id")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
             .unwrap_or_else(|| format!("e-{}", &name[..name.len().min(10)]));
-        let description = optional_str(attrs, "description");
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:elasticbeanstalk:{}:{}:environment/{}/{}",
                 region, ctx.default_account_id, application, name
             )
         });
-        let tier_name = optional_str(attrs, "tier").unwrap_or_else(|| "WebServer".to_string());
+        let tier_name = model.tier.unwrap_or_else(|| "WebServer".to_string());
         let tier_type = if tier_name == "Worker" {
             "SQS/HTTP".to_string()
         } else {
             "Standard".to_string()
         };
-        let solution_stack_name = optional_str(attrs, "solution_stack_name");
-        let mut tags = extract_tags(attrs);
+
+        let mut tags = model.tags;
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
@@ -204,13 +232,7 @@ impl AwsElasticBeanstalkEnvironmentConverter {
             }
         }
 
-        let cname = optional_str(attrs, "cname");
-        let endpoint_url = optional_str(attrs, "endpoint_url");
-        let platform_arn = optional_str(attrs, "platform_arn");
-        let version_label = optional_str(attrs, "version_label");
-        let template_name = optional_str(attrs, "template_name");
-        let _wait_for_ready_timeout = optional_str(attrs, "wait_for_ready_timeout");
-        let _poll_interval = optional_str(attrs, "poll_interval");
+        // setting is a nested-block array — read raw.
         let setting: Vec<serde_json::Value> = attrs
             .get("setting")
             .and_then(|v| v.as_array())
@@ -218,26 +240,28 @@ impl AwsElasticBeanstalkEnvironmentConverter {
             .unwrap_or_default();
 
         let env_view = EnvironmentView {
-            environment_name: name.to_string(),
-            application_name: application.to_string(),
+            environment_name: name,
+            application_name: application,
             environment_id,
-            description,
+            description: model.description,
             status: "Ready".to_string(),
             tier_name,
             tier_type,
             health: "Green".to_string(),
-            solution_stack_name,
+            solution_stack_name: model.solution_stack_name,
             tags,
-            date_created: optional_str(attrs, "date_created")
+            date_created: model
+                .date_created
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
-            date_updated: optional_str(attrs, "date_updated")
+            date_updated: model
+                .date_updated
                 .unwrap_or_else(|| "2023-01-01T00:00:00Z".to_string()),
             arn,
-            cname,
-            endpoint_url,
-            platform_arn,
-            version_label,
-            template_name,
+            cname: model.cname,
+            endpoint_url: model.endpoint_url,
+            platform_arn: model.platform_arn,
+            version_label: model.version_label,
+            template_name: model.template_name,
             setting,
         };
 

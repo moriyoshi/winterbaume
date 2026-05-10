@@ -1,4 +1,8 @@
 //! Terraform converter for MediaPackage V2 resources.
+//!
+//! `ChannelGroupTfModel` is generated from `specs/mediapackagev2.toml`.
+//! The ARN template and the `created_at` / `modified_at` fallbacks
+//! (current time) are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +18,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::mediapackagev2 as mediapackagev2_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_media_packagev2_channel_group
@@ -59,46 +64,36 @@ impl AwsMediaPackageV2ChannelGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_media_packagev2_channel_group")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let egress_domain = optional_str(attrs, "egress_domain").unwrap_or_default();
-        let e_tag = optional_str(attrs, "e_tag").unwrap_or_default();
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: mediapackagev2_gen::ChannelGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_media_packagev2_channel_group", e))?;
 
         let now = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:mediapackagev2:{}:{}:channelGroup/{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
 
         let cg_view = ChannelGroupView {
-            channel_group_name: name.to_string(),
+            channel_group_name: model.name.clone(),
             arn,
-            egress_domain,
-            description,
-            tags: extract_tags(attrs),
-            created_at: attrs
-                .get("created_at")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| now.clone()),
-            modified_at: attrs
-                .get("modified_at")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string())
-                .unwrap_or(now),
-            e_tag,
+            egress_domain: model.egress_domain.unwrap_or_default(),
+            description: model.description.unwrap_or_default(),
+            tags: model.tags,
+            created_at: model.created_at.unwrap_or_else(|| now.clone()),
+            modified_at: model.modified_at.unwrap_or(now),
+            e_tag: model.e_tag.unwrap_or_default(),
             channels: HashMap::new(),
         };
 
         let mut state_view = MediaPackageV2StateView {
             channel_groups: HashMap::new(),
         };
-        state_view.channel_groups.insert(name.to_string(), cg_view);
+        state_view.channel_groups.insert(model.name, cg_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

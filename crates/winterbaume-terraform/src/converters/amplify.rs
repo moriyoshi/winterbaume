@@ -1,4 +1,11 @@
 //! Terraform converters for Amplify resources.
+//!
+//! `AmplifyAppTfModel` and `AmplifyBranchTfModel` are generated from
+//! `specs/amplify.toml`. The ARN templates, the synthesised `app_id`
+//! (lowercased name with spaces replaced), the `default_domain`
+//! template, the nested-block reads (`auto_branch_creation_config`,
+//! `cache_config`, `custom_rule`/`custom_rules`), and the various
+//! constants are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::amplify as amplify_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_amplify_app
@@ -57,35 +65,26 @@ impl AwsAmplifyAppConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: amplify_gen::AmplifyAppTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_amplify_app", e))?;
 
-        let name = require_str(attrs, "name", "aws_amplify_app")?.to_string();
-        let app_id = optional_str(attrs, "app_id")
-            .map(|s| s.to_string())
+        let name = model.name;
+        let app_id = model
+            .app_id
             .unwrap_or_else(|| name.replace(' ', "-").to_lowercase());
-        let app_arn = optional_str(attrs, "arn")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:amplify:{}:{}:apps/{}",
-                    region, ctx.default_account_id, app_id
-                )
-            });
-        let default_domain = optional_str(attrs, "default_domain")
-            .map(|s| s.to_string())
+        let app_arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:amplify:{}:{}:apps/{}",
+                region, ctx.default_account_id, app_id
+            )
+        });
+        let default_domain = model
+            .default_domain
             .unwrap_or_else(|| format!("{app_id}.amplifyapp.com"));
-        let description = optional_str(attrs, "description").map(|s| s.to_string());
-        let repository = optional_str(attrs, "repository").map(|s| s.to_string());
-        let platform = optional_str(attrs, "platform").map(|s| s.to_string());
 
-        let _tags_all = attrs.get("tags_all");
-        let _access_token = optional_str(attrs, "access_token");
-        let _auto_branch_creation_patterns = attrs.get("auto_branch_creation_patterns");
-        let _custom_headers = optional_str(attrs, "custom_headers");
-        let _oauth_token = optional_str(attrs, "oauth_token");
-        let _enable_auto_sub_domain = attrs.get("enable_auto_sub_domain");
-
+        let attrs = &instance.attributes;
         // Parse `auto_branch_creation_config` nested block: [{...}]
         let auto_branch_creation_config: Option<serde_json::Value> = attrs
             .get("auto_branch_creation_config")
@@ -112,19 +111,18 @@ impl AwsAmplifyAppConverter {
             app_id: app_id.clone(),
             app_arn,
             name,
-            description,
-            repository,
-            platform,
+            description: model.description,
+            repository: model.repository,
+            platform: model.platform,
             create_time: 0.0,
             update_time: 0.0,
-            iam_service_role_arn: optional_str(attrs, "iam_service_role_arn")
-                .map(|s| s.to_string()),
+            iam_service_role_arn: model.iam_service_role_arn,
             environment_variables: Default::default(),
             default_domain,
             enable_branch_auto_build: false,
             enable_branch_auto_deletion: false,
             enable_basic_auth: false,
-            build_spec: optional_str(attrs, "build_spec").map(|s| s.to_string()),
+            build_spec: model.build_spec,
             custom_headers: None,
             tags: Default::default(),
             auto_branch_creation_config,
@@ -241,38 +239,26 @@ impl AwsAmplifyBranchConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: amplify_gen::AmplifyBranchTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_amplify_branch", e))?;
 
-        let app_id = require_str(attrs, "app_id", "aws_amplify_branch")?.to_string();
-        let branch_name = require_str(attrs, "branch_name", "aws_amplify_branch")?.to_string();
-        let branch_arn = optional_str(attrs, "arn")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:amplify:{}:{}:apps/{}/branches/{}",
-                    region, ctx.default_account_id, app_id, branch_name
-                )
-            });
-        let description = optional_str(attrs, "description").map(|s| s.to_string());
-        let stage = optional_str(attrs, "stage").map(|s| s.to_string());
-        let framework = optional_str(attrs, "framework").map(|s| s.to_string());
-
-        let _tags_all = attrs.get("tags_all");
-        let _backend_environment_arn = optional_str(attrs, "backend_environment_arn");
-        let _basic_auth_credentials = optional_str(attrs, "basic_auth_credentials");
-        let _enable_performance_mode = attrs.get("enable_performance_mode");
-        let _enable_pull_request_preview = attrs.get("enable_pull_request_preview");
-        let _pull_request_environment_name = optional_str(attrs, "pull_request_environment_name");
-        let _enable_notification = attrs.get("enable_notification");
-        let _ = attrs.get("source_branch");
+        let app_id = model.app_id;
+        let branch_name = model.branch_name;
+        let branch_arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:amplify:{}:{}:apps/{}/branches/{}",
+                region, ctx.default_account_id, app_id, branch_name
+            )
+        });
 
         let branch_view = AmplifyBranchView {
             app_id: app_id.clone(),
             branch_arn,
             branch_name: branch_name.clone(),
-            description,
-            stage,
+            description: model.description,
+            stage: model.stage,
             display_name: None,
             enable_auto_build: true,
             enable_basic_auth: false,
@@ -280,7 +266,7 @@ impl AwsAmplifyBranchConverter {
             enable_performance_mode: false,
             enable_pull_request_preview: false,
             environment_variables: Default::default(),
-            framework,
+            framework: model.framework,
             ttl: None,
             create_time: 0.0,
             update_time: 0.0,

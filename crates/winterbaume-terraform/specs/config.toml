@@ -1,0 +1,99 @@
+# Auto-ingested by `tf-converter-codegen ingest config`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (configuration_recorder / config_rule / delivery_channel). Dropped
+# nested-block fields (recording_group, recording_mode, source, scope,
+# evaluation_mode, snapshot_delivery_properties) which are read straight
+# from instance.attributes in the converter. ARN templates and constants
+# are wired up by hand.
+
+[service]
+name = "config"
+crate_name = "winterbaume_config"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_config_configuration_recorder
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_configuration_recorder"
+model = "ConfigurationRecorderTfModel"
+view = "ConfigurationRecorderView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_config_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_config_rule"
+model = "ConfigRuleTfModel"
+view = "ConfigRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "rule_id"
+view = "rule_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "input_parameters"
+view = "input_parameters"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_delivery_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_delivery_channel"
+model = "DeliveryChannelTfModel"
+view = "DeliveryChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_bucket_name"
+view = "s3_bucket_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_key_prefix"
+view = "s3_key_prefix"
+type = "string?"

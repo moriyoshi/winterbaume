@@ -1,4 +1,11 @@
 //! Terraform converters for EC2 resources (VPC, Subnet, IGW, Route Table, Security Group, etc.).
+//!
+//! The 39 `*TfModel` structs imported from `crate::generated::ec2` are produced
+//! from `specs/ec2.toml`. Each `do_inject` deserialises the model, then layers
+//! on the hand-written ARN/URL templates, snapshot lookups (subnet -> vpc_id,
+//! ipam_scope -> ipam_arn, etc.), tag merging, and nested-block / Vec<T>
+//! parsing that the spec deliberately omits. Every `do_extract` is preserved
+//! byte-identically with the pre-codegen converter.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -30,8 +37,10 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
+use crate::generated::ec2 as ec2_gen;
 use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
+    classify_deserialize_error, extract_region, extract_tags, optional_bool, optional_i64,
+    optional_str,
 };
 
 // ---------------------------------------------------------------------------
@@ -78,21 +87,14 @@ impl AwsVpcConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc", e))?;
 
-        let cidr_block = require_str(attrs, "cidr_block", "aws_vpc")?;
-        let vpc_id = optional_str(attrs, "id")
+        let cidr_block = model.cidr_block;
+        let vpc_id = model
+            .id
             .unwrap_or_else(|| format!("vpc-{}", &uuid::Uuid::new_v4().to_string()[..17]));
         let tags = extract_tags(attrs);
-        let _tags_all = attrs.get("tags_all");
-        let _assign_generated_ipv6_cidr_block =
-            optional_bool(attrs, "assign_generated_ipv6_cidr_block");
-        let _enable_network_address_usage_metrics =
-            optional_bool(attrs, "enable_network_address_usage_metrics");
-        let _ipv4_ipam_pool_id = optional_str(attrs, "ipv4_ipam_pool_id");
-        let _ipv4_netmask_length = attrs.get("ipv4_netmask_length");
-        let _ipv6_cidr_block = optional_str(attrs, "ipv6_cidr_block");
-        let _ipv6_ipam_pool_id = optional_str(attrs, "ipv6_ipam_pool_id");
-        let _ = attrs.get("ipv6_netmask_length");
 
         // Parse secondary CIDR blocks from TF state (list of association_id+cidr pairs).
         let secondary_cidr_blocks: Vec<(String, String)> = attrs
@@ -123,15 +125,17 @@ impl AwsVpcConverter {
 
         let vpc_view = VpcView {
             vpc_id: vpc_id.clone(),
-            cidr_block: cidr_block.to_string(),
+            cidr_block,
             state: "available".to_string(),
-            dhcp_options_id: optional_str(attrs, "dhcp_options_id")
+            dhcp_options_id: model
+                .dhcp_options_id
                 .unwrap_or_else(|| "dopt-default".to_string()),
-            instance_tenancy: optional_str(attrs, "instance_tenancy")
+            instance_tenancy: model
+                .instance_tenancy
                 .unwrap_or_else(|| "default".to_string()),
-            is_default: optional_bool(attrs, "default").unwrap_or(false),
-            enable_dns_hostnames: optional_bool(attrs, "enable_dns_hostnames").unwrap_or(false),
-            enable_dns_support: optional_bool(attrs, "enable_dns_support").unwrap_or(true),
+            is_default: model.default_,
+            enable_dns_hostnames: model.enable_dns_hostnames,
+            enable_dns_support: model.enable_dns_support,
             tags,
             secondary_cidr_blocks,
             classic_link_enabled: false,
@@ -273,12 +277,17 @@ impl AwsSubnetConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::SubnetTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_subnet", e))?;
 
-        let vpc_id = require_str(attrs, "vpc_id", "aws_subnet")?;
-        let cidr_block = require_str(attrs, "cidr_block", "aws_subnet")?;
-        let subnet_id = optional_str(attrs, "id")
+        let vpc_id = model.vpc_id;
+        let cidr_block = model.cidr_block;
+        let subnet_id = model
+            .id
             .unwrap_or_else(|| format!("subnet-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let az = optional_str(attrs, "availability_zone").unwrap_or_else(|| format!("{}a", region));
+        let az = model
+            .availability_zone
+            .unwrap_or_else(|| format!("{}a", region));
         let tags = extract_tags(attrs);
 
         // Parse IPv6 CIDR block associations from TF state.
@@ -317,27 +326,14 @@ impl AwsSubnetConverter {
             })
             .unwrap_or_default();
 
-        let _tags_all = attrs.get("tags_all");
-        let _customer_owned_ipv4_pool = optional_str(attrs, "customer_owned_ipv4_pool");
-        let _enable_dns64 = attrs.get("enable_dns64");
-        let _enable_resource_name_dns_a_record_on_launch =
-            attrs.get("enable_resource_name_dns_a_record_on_launch");
-        let _enable_resource_name_dns_aaaa_record_on_launch =
-            attrs.get("enable_resource_name_dns_aaaa_record_on_launch");
-        let _ipv6_native = attrs.get("ipv6_native");
-        let _private_dns_hostname_type_on_launch =
-            optional_str(attrs, "private_dns_hostname_type_on_launch");
-        let _ = attrs.get("map_customer_owned_ip_on_launch");
-
         let subnet_view = SubnetView {
             subnet_id: subnet_id.clone(),
-            vpc_id: vpc_id.to_string(),
-            cidr_block: cidr_block.to_string(),
+            vpc_id,
+            cidr_block,
             availability_zone: az,
             state: "available".to_string(),
             available_ip_address_count: 251,
-            map_public_ip_on_launch: optional_bool(attrs, "map_public_ip_on_launch")
-                .unwrap_or(false),
+            map_public_ip_on_launch: model.map_public_ip_on_launch,
             tags,
             ipv6_cidr_blocks,
         };
@@ -454,12 +450,13 @@ impl AwsInternetGatewayConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::InternetGatewayTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_internet_gateway", e))?;
 
-        let igw_id = optional_str(attrs, "id")
+        let igw_id = model
+            .id
             .unwrap_or_else(|| format!("igw-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let vpc_id = optional_str(attrs, "vpc_id");
-        let _ = attrs.get("vpc_id");
-        let _ = attrs.get("timeouts");
+        let vpc_id = model.vpc_id;
         let mut tags = extract_tags(attrs);
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
@@ -578,13 +575,13 @@ impl AwsRouteTableConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::RouteTableTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_route_table", e))?;
 
-        let vpc_id = require_str(attrs, "vpc_id", "aws_route_table")?;
-        let rtb_id = optional_str(attrs, "id")
+        let vpc_id = model.vpc_id;
+        let rtb_id = model
+            .id
             .unwrap_or_else(|| format!("rtb-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let _tags_all = attrs.get("tags_all");
-        let _propagating_vgws = attrs.get("propagating_vgws");
-        let _ = attrs.get("route");
         let tags = extract_tags(attrs);
 
         // Inline route blocks (if any)
@@ -595,7 +592,7 @@ impl AwsRouteTableConverter {
 
         let rtb_view = RouteTableView {
             route_table_id: rtb_id.clone(),
-            vpc_id: vpc_id.to_string(),
+            vpc_id,
             routes,
             associations,
             tags,
@@ -781,26 +778,15 @@ impl AwsRouteConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::RouteTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_route", e))?;
 
-        let route_table_id = require_str(attrs, "route_table_id", "aws_route")?;
-        let destination_cidr = optional_str(attrs, "destination_cidr_block");
-        let destination_ipv6 = optional_str(attrs, "destination_ipv6_cidr_block");
-        let gateway_id = optional_str(attrs, "gateway_id");
-        let nat_gateway_id = optional_str(attrs, "nat_gateway_id");
-        let _tags_all = attrs.get("tags_all");
-        let _carrier_gateway_id = optional_str(attrs, "carrier_gateway_id");
-        let _core_network_arn = optional_str(attrs, "core_network_arn");
-        let _egress_only_gateway_id = optional_str(attrs, "egress_only_gateway_id");
-        let _local_gateway_id = optional_str(attrs, "local_gateway_id");
-        let _transit_gateway_id = optional_str(attrs, "transit_gateway_id");
-        let _vpc_endpoint_id = optional_str(attrs, "vpc_endpoint_id");
-        let _ = attrs.get("destination_prefix_list_id");
-
-        let target = gateway_id.or(nat_gateway_id);
+        let route_table_id = model.route_table_id;
+        let target = model.gateway_id.or(model.nat_gateway_id);
 
         let route_view = RouteView {
-            destination_cidr_block: destination_cidr,
-            destination_ipv6_cidr_block: destination_ipv6,
+            destination_cidr_block: model.destination_cidr_block,
+            destination_ipv6_cidr_block: model.destination_ipv6_cidr_block,
             gateway_id: target,
             state: "active".to_string(),
             origin: "CreateRoute".to_string(),
@@ -816,23 +802,19 @@ impl AwsRouteConverter {
             .await;
 
         let mut state_view = minimal_ec2_state_view();
-        if let Some(mut rtb) = snapshot.route_tables.get(route_table_id).cloned() {
+        if let Some(mut rtb) = snapshot.route_tables.get(&route_table_id).cloned() {
             rtb.routes.push(route_view);
-            state_view
-                .route_tables
-                .insert(route_table_id.to_string(), rtb);
+            state_view.route_tables.insert(route_table_id, rtb);
         } else {
             // Route table not yet in state; create a minimal one with just this route
             let rtb_view = RouteTableView {
-                route_table_id: route_table_id.to_string(),
+                route_table_id: route_table_id.clone(),
                 vpc_id: String::new(),
                 routes: vec![route_view],
                 associations: vec![],
                 tags: HashMap::new(),
             };
-            state_view
-                .route_tables
-                .insert(route_table_id.to_string(), rtb_view);
+            state_view.route_tables.insert(route_table_id, rtb_view);
         }
 
         self.service
@@ -894,16 +876,16 @@ impl AwsSecurityGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::SecurityGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_security_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_security_group")?;
-        let _tags_all = attrs.get("tags_all");
-        let _name_prefix = optional_str(attrs, "name_prefix");
-        let _revoke_rules_on_delete = optional_str(attrs, "revoke_rules_on_delete");
-        let _ = attrs.get("egress");
-        let sg_id = optional_str(attrs, "id")
+        let name = model.name;
+        let sg_id = model
+            .id
             .unwrap_or_else(|| format!("sg-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let vpc_id = optional_str(attrs, "vpc_id").unwrap_or_default();
-        let description = optional_str(attrs, "description")
+        let vpc_id = model.vpc_id.unwrap_or_default();
+        let description = model
+            .description
             .unwrap_or_else(|| "Managed by Terraform".to_string());
         let tags = extract_tags(attrs);
 
@@ -912,7 +894,7 @@ impl AwsSecurityGroupConverter {
 
         let sg_view = SecurityGroupView {
             group_id: sg_id.clone(),
-            group_name: name.to_string(),
+            group_name: name,
             description,
             vpc_id,
             owner_id: ctx.default_account_id.clone(),
@@ -1013,25 +995,26 @@ impl AwsKeyPairConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::KeyPairTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_key_pair", e))?;
 
-        let key_name = require_str(attrs, "key_name", "aws_key_pair")?;
-        let key_pair_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "key_pair_id"))
+        let key_name = model.key_name;
+        let key_pair_id = model
+            .id
+            .or(model.key_pair_id)
             .unwrap_or_else(|| format!("key-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let fingerprint = optional_str(attrs, "fingerprint").unwrap_or_default();
-        let _public_key = optional_str(attrs, "public_key");
-        let _key_name_prefix = optional_str(attrs, "key_name_prefix");
+        let fingerprint = model.fingerprint.unwrap_or_default();
         let tags = extract_tags(attrs);
 
         let kp_view = KeyPairView {
             key_pair_id: key_pair_id.clone(),
-            key_name: key_name.to_string(),
+            key_name: key_name.clone(),
             fingerprint,
             tags,
         };
 
         let mut state_view = minimal_ec2_state_view();
-        state_view.key_pairs.insert(key_name.to_string(), kp_view);
+        state_view.key_pairs.insert(key_name, kp_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -1116,21 +1099,15 @@ impl AwsEipConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::EipTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_eip", e))?;
 
-        let _domain = optional_str(attrs, "domain").unwrap_or_else(|| "vpc".to_string());
-        let allocation_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "allocation_id"))
+        let allocation_id = model
+            .id
+            .or(model.allocation_id)
             .unwrap_or_else(|| format!("eipalloc-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let public_ip = optional_str(attrs, "public_ip").unwrap_or_else(|| "0.0.0.0".to_string());
+        let public_ip = model.public_ip.unwrap_or_else(|| "0.0.0.0".to_string());
         let tags = extract_tags(attrs);
-        let _tags_all = attrs.get("tags_all");
-        let _instance = optional_str(attrs, "instance");
-        let _network_interface = optional_str(attrs, "network_interface");
-        let _associate_with_private_ip = optional_str(attrs, "associate_with_private_ip");
-        let _customer_owned_ipv4_pool = optional_str(attrs, "customer_owned_ipv4_pool");
-        let _vpc = attrs.get("vpc");
-        let _address = optional_str(attrs, "address");
-        let _public_ipv4_pool = optional_str(attrs, "public_ipv4_pool");
 
         let eip_view = ElasticIpView {
             allocation_id: allocation_id.clone(),
@@ -1140,7 +1117,7 @@ impl AwsEipConverter {
             network_interface_id: optional_str(attrs, "network_interface"),
             private_ip_address: optional_str(attrs, "private_ip"),
             address_attribute_ptr_record: optional_str(attrs, "ptr_record"),
-            domain: optional_str(attrs, "domain").unwrap_or_else(|| "vpc".to_string()),
+            domain: model.domain.unwrap_or_else(|| "vpc".to_string()),
             tags,
             pending_transfer: None,
         };
@@ -1246,17 +1223,18 @@ impl AwsNatGatewayConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NatGatewayTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_nat_gateway", e))?;
 
-        let _tags_all = attrs.get("tags_all");
-        let subnet_id = require_str(attrs, "subnet_id", "aws_nat_gateway")?;
-        let nat_gw_id = optional_str(attrs, "id")
+        let subnet_id = model.subnet_id;
+        let nat_gw_id = model
+            .id
             .unwrap_or_else(|| format!("nat-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let connectivity_type =
-            optional_str(attrs, "connectivity_type").unwrap_or_else(|| "public".to_string());
-        let allocation_id = optional_str(attrs, "allocation_id");
-        let public_ip = optional_str(attrs, "public_ip");
-        let _private_ip = optional_str(attrs, "private_ip");
-        let _secondary_allocation_ids = attrs.get("secondary_allocation_ids");
+        let connectivity_type = model
+            .connectivity_type
+            .unwrap_or_else(|| "public".to_string());
+        let allocation_id = model.allocation_id;
+        let public_ip = model.public_ip;
         let tags = extract_tags(attrs);
 
         // Resolve the VPC ID from the subnet if possible.
@@ -1266,14 +1244,14 @@ impl AwsNatGatewayConverter {
             .await;
         let vpc_id = snapshot
             .subnets
-            .get(subnet_id)
+            .get(&subnet_id)
             .map(|s| s.vpc_id.clone())
             .unwrap_or_default();
 
         let ng_view = NatGatewayView {
             nat_gateway_id: nat_gw_id.clone(),
             vpc_id,
-            subnet_id: subnet_id.to_string(),
+            subnet_id,
             state: "available".to_string(),
             connectivity_type,
             allocation_id,
@@ -1372,17 +1350,16 @@ impl AwsPlacementGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::PlacementGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_placement_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_placement_group")?;
-        let strategy = require_str(attrs, "strategy", "aws_placement_group")?;
+        let name = model.name;
+        let strategy = model.strategy;
         let partition_count = attrs
             .get("partition_count")
             .and_then(|v| v.as_i64())
             .map(|n| n as i32);
-        let spread_level = optional_str(attrs, "spread_level");
-        let _ = optional_str(attrs, "name_prefix");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
+        let spread_level = model.spread_level;
         let tags = extract_tags(attrs);
 
         // Extract emits `id` as the group name and `placement_group_id` as the
@@ -1390,9 +1367,10 @@ impl AwsPlacementGroupConverter {
         // the GroupId. The `id` attribute is treated as a fallback name source
         // and is not used for the GroupId. Synthesise a `pg-...` identifier
         // only when no `placement_group_id` is present in tfstate.
-        let group_id = optional_str(attrs, "placement_group_id")
+        let group_id = model
+            .placement_group_id
             .unwrap_or_else(|| format!("pg-{}", &uuid::Uuid::new_v4().to_string()[..8]));
-        let group_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let group_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ec2:{}:{}:placement-group/{}",
                 region, ctx.default_account_id, name
@@ -1401,9 +1379,9 @@ impl AwsPlacementGroupConverter {
 
         let pg_view = PlacementGroupView {
             group_id: group_id.clone(),
-            group_name: name.to_string(),
+            group_name: name,
             group_arn,
-            strategy: strategy.to_string(),
+            strategy,
             state: "available".to_string(),
             partition_count,
             spread_level,
@@ -1502,12 +1480,13 @@ impl AwsNetworkAclConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkAclTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_network_acl", e))?;
 
-        let vpc_id = require_str(attrs, "vpc_id", "aws_network_acl")?;
-        let nacl_id = optional_str(attrs, "id")
+        let vpc_id = model.vpc_id;
+        let nacl_id = model
+            .id
             .unwrap_or_else(|| format!("acl-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
         let tags = extract_tags(attrs);
 
         let mut entries = parse_nacl_entries(attrs, "ingress", false);
@@ -1538,7 +1517,7 @@ impl AwsNetworkAclConverter {
 
         let nacl_view = NetworkAclView {
             network_acl_id: nacl_id.clone(),
-            vpc_id: vpc_id.to_string(),
+            vpc_id,
             is_default: false,
             entries,
             associations,
@@ -1657,15 +1636,17 @@ impl AwsNetworkAclRuleConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkAclRuleTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_network_acl_rule", e))?;
 
-        let nacl_id = require_str(attrs, "network_acl_id", "aws_network_acl_rule")?.to_string();
+        let nacl_id = model.network_acl_id;
         let rule_number = attrs
             .get("rule_number")
             .and_then(|v| v.as_i64())
             .map(|n| n as i32)
             .unwrap_or(0);
-        let protocol = optional_str(attrs, "protocol").unwrap_or_else(|| "-1".to_string());
-        let rule_action = optional_str(attrs, "rule_action").unwrap_or_else(|| "allow".to_string());
+        let protocol = model.protocol.unwrap_or_else(|| "-1".to_string());
+        let rule_action = model.rule_action.unwrap_or_else(|| "allow".to_string());
         let egress = attrs
             .get("egress")
             .and_then(|v| v.as_bool())
@@ -1802,12 +1783,14 @@ impl AwsEgressOnlyInternetGatewayConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::EgressOnlyInternetGatewayTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_egress_only_internet_gateway", e))?;
 
-        let vpc_id = require_str(attrs, "vpc_id", "aws_egress_only_internet_gateway")?;
-        let eigw_id = optional_str(attrs, "id")
+        let vpc_id = model.vpc_id;
+        let eigw_id = model
+            .id
             .unwrap_or_else(|| format!("eigw-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
         let mut tags = extract_tags(attrs);
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
@@ -1821,7 +1804,7 @@ impl AwsEgressOnlyInternetGatewayConverter {
             eigw_id: eigw_id.clone(),
             state: "attached".to_string(),
             attachments: vec![EoigwAttachmentView {
-                vpc_id: vpc_id.to_string(),
+                vpc_id,
                 state: "attached".to_string(),
             }],
             tags,
@@ -1915,7 +1898,10 @@ impl AwsCustomerGatewayConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::CustomerGatewayTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_customer_gateway", e))?;
 
+        // bgp_asn may be encoded as a string or an integer in TF state.
         let bgp_asn = optional_str(attrs, "bgp_asn")
             .or_else(|| {
                 attrs
@@ -1924,13 +1910,11 @@ impl AwsCustomerGatewayConverter {
                     .map(|n| n.to_string())
             })
             .unwrap_or_else(|| "65000".to_string());
-        let ip_address = require_str(attrs, "ip_address", "aws_customer_gateway")?.to_string();
-        let gateway_type = optional_str(attrs, "type").unwrap_or_else(|| "ipsec.1".to_string());
-        let cgw_id = optional_str(attrs, "id")
+        let ip_address = model.ip_address;
+        let gateway_type = model.gateway_type.unwrap_or_else(|| "ipsec.1".to_string());
+        let cgw_id = model
+            .id
             .unwrap_or_else(|| format!("cgw-{}", &uuid::Uuid::new_v4().to_string()[..17]));
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("device_name");
-        let _ = attrs.get("certificate_arn");
         let tags = extract_tags(attrs);
 
         let cgw_view = CustomerGatewayView {
@@ -2031,13 +2015,12 @@ impl AwsEc2CapacityReservationConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::CapacityReservationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_capacity_reservation", e))?;
 
-        let instance_type =
-            require_str(attrs, "instance_type", "aws_ec2_capacity_reservation")?.to_string();
-        let instance_platform =
-            require_str(attrs, "instance_platform", "aws_ec2_capacity_reservation")?.to_string();
-        let availability_zone =
-            require_str(attrs, "availability_zone", "aws_ec2_capacity_reservation")?.to_string();
+        let instance_type = model.instance_type;
+        let instance_platform = model.instance_platform;
+        let availability_zone = model.availability_zone;
         let instance_count = optional_i64(attrs, "instance_count")
             .map(|n| n as i32)
             .ok_or_else(|| ConversionError::MissingAttribute {
@@ -2045,38 +2028,39 @@ impl AwsEc2CapacityReservationConverter {
                 attribute: "instance_count".to_string(),
             })?;
 
-        let tenancy = optional_str(attrs, "tenancy").unwrap_or_else(|| "default".to_string());
-        let ebs_optimized = optional_bool(attrs, "ebs_optimized").unwrap_or(false);
-        let ephemeral_storage = optional_bool(attrs, "ephemeral_storage").unwrap_or(false);
-        let end_date = optional_str(attrs, "end_date");
-        let end_date_type =
-            optional_str(attrs, "end_date_type").unwrap_or_else(|| "unlimited".to_string());
-        let instance_match_criteria =
-            optional_str(attrs, "instance_match_criteria").unwrap_or_else(|| "open".to_string());
-        let outpost_arn = optional_str(attrs, "outpost_arn");
-        let placement_group_arn = optional_str(attrs, "placement_group_arn");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
+        let tenancy = model.tenancy.unwrap_or_else(|| "default".to_string());
+        let ebs_optimized = model.ebs_optimized;
+        let ephemeral_storage = model.ephemeral_storage;
+        let end_date = model.end_date;
+        let end_date_type = model
+            .end_date_type
+            .unwrap_or_else(|| "unlimited".to_string());
+        let instance_match_criteria = model
+            .instance_match_criteria
+            .unwrap_or_else(|| "open".to_string());
+        let outpost_arn = model.outpost_arn;
+        let placement_group_arn = model.placement_group_arn;
         let tags = extract_tags(attrs);
 
-        let cr_id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let cr_id = model.id.unwrap_or_else(|| {
             format!(
                 "cr-{}",
                 &uuid::Uuid::new_v4().to_string().replace('-', "")[..17]
             )
         });
-        let cr_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let cr_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ec2:{}:{}:capacity-reservation/{}",
                 region, ctx.default_account_id, cr_id
             )
         });
 
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
         let now = chrono::Utc::now().to_rfc3339();
-        let start_date = optional_str(attrs, "start_date").unwrap_or_else(|| now.clone());
-        let create_date = optional_str(attrs, "create_date").unwrap_or(now);
+        let start_date = model.start_date.unwrap_or_else(|| now.clone());
+        let create_date = model.create_date.unwrap_or(now);
 
         let cr_view = CapacityReservationView {
             capacity_reservation_id: cr_id.clone(),
@@ -2203,19 +2187,15 @@ impl AwsNetworkInterfacePermissionConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkInterfacePermissionTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_network_interface_permission", e))?;
 
-        let network_interface_id = require_str(
-            attrs,
-            "network_interface_id",
-            "aws_network_interface_permission",
-        )?
-        .to_string();
-        let aws_account_id =
-            require_str(attrs, "aws_account_id", "aws_network_interface_permission")?.to_string();
-        let permission =
-            require_str(attrs, "permission", "aws_network_interface_permission")?.to_string();
+        let network_interface_id = model.network_interface_id;
+        let aws_account_id = model.aws_account_id;
+        let permission = model.permission;
 
-        let permission_id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let permission_id = model.id.unwrap_or_else(|| {
             format!(
                 "eni-perm-{}",
                 &uuid::Uuid::new_v4().to_string().replace('-', "")[..17]
@@ -2316,11 +2296,11 @@ impl AwsEc2InstanceConnectEndpointConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::InstanceConnectEndpointTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_instance_connect_endpoint", e))?;
 
-        let subnet_id =
-            require_str(attrs, "subnet_id", "aws_ec2_instance_connect_endpoint")?.to_string();
-        let preserve_client_ip = optional_bool(attrs, "preserve_client_ip").unwrap_or(true);
-        let _ = optional_str(attrs, "client_token");
+        let subnet_id = model.subnet_id;
+        let preserve_client_ip = model.preserve_client_ip;
         let security_group_ids: Vec<String> = attrs
             .get("security_group_ids")
             .and_then(|v| v.as_array())
@@ -2330,17 +2310,15 @@ impl AwsEc2InstanceConnectEndpointConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
         let tags = extract_tags(attrs);
 
-        let endpoint_id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let endpoint_id = model.id.unwrap_or_else(|| {
             format!(
                 "eice-{}",
                 &uuid::Uuid::new_v4().to_string().replace('-', "")[..17]
             )
         });
-        let endpoint_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let endpoint_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ec2:{}:{}:instance-connect-endpoint/{}",
                 region, ctx.default_account_id, endpoint_id
@@ -2358,17 +2336,18 @@ impl AwsEc2InstanceConnectEndpointConverter {
             .map(|s| (s.vpc_id.clone(), s.availability_zone.clone()))
             .unwrap_or_else(|| (String::new(), region.clone() + "a"));
 
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
         let now = chrono::Utc::now().to_rfc3339();
-        let created_at = optional_str(attrs, "created_at").unwrap_or(now);
-        let dns_name = optional_str(attrs, "dns_name").unwrap_or_else(|| {
+        let created_at = model.created_at.unwrap_or(now);
+        let dns_name = model.dns_name.unwrap_or_else(|| {
             format!(
                 "{}.{}.ec2-instance-connect-endpoint.aws",
                 endpoint_id, region
             )
         });
-        let fips_dns_name = optional_str(attrs, "fips_dns_name").unwrap_or_default();
+        let fips_dns_name = model.fips_dns_name.unwrap_or_default();
 
         let view = InstanceConnectEndpointView {
             instance_connect_endpoint_id: endpoint_id.clone(),
@@ -2429,6 +2408,2979 @@ impl AwsEc2InstanceConnectEndpointConverter {
             });
             results.push(ExtractedResource {
                 name: ep.instance_connect_endpoint_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ===========================================================================
+// IPAM converters
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// aws_vpc_ipam
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcIpamConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpamConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpamConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipam"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcIpamConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpamTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_ipam", e))?;
+
+        let description = model.description;
+        let tier = model.tier.unwrap_or_else(|| "advanced".to_string());
+        let enable_private_gua = model.enable_private_gua;
+
+        let operating_regions: Vec<IpamOperatingRegionView> = attrs
+            .get("operating_regions")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|entry| {
+                        entry.get("region_name").and_then(|v| v.as_str()).map(|s| {
+                            IpamOperatingRegionView {
+                                region_name: s.to_string(),
+                            }
+                        })
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let tags = extract_tags(attrs);
+
+        let ipam_id = model.id.unwrap_or_else(|| random_short_id("ipam"));
+        let ipam_arn = model
+            .arn
+            .unwrap_or_else(|| format!("arn:aws:ec2::{}:ipam/{}", ctx.default_account_id, ipam_id));
+        let public_default_scope_id = model.public_default_scope_id.unwrap_or_else(|| {
+            format!(
+                "ipam-scope-{}",
+                random_short_id("public").trim_start_matches("public-")
+            )
+        });
+        let private_default_scope_id = model.private_default_scope_id.unwrap_or_else(|| {
+            format!(
+                "ipam-scope-{}",
+                random_short_id("priv").trim_start_matches("priv-")
+            )
+        });
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+
+        let view = IpamView {
+            ipam_id: ipam_id.clone(),
+            ipam_arn,
+            ipam_region: region.clone(),
+            public_default_scope_id,
+            private_default_scope_id,
+            scope_count: 2,
+            description,
+            operating_regions,
+            state: "create-complete".to_string(),
+            owner_id,
+            default_resource_discovery_id: model.default_resource_discovery_id,
+            default_resource_discovery_association_id: model
+                .default_resource_discovery_association_id,
+            resource_discovery_association_count: 0,
+            tier,
+            enable_private_gua,
+            metered_account: model
+                .metered_account
+                .unwrap_or_else(|| "ipam-owner".to_string()),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.ipams.insert(ipam_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ipam in view.ipams.values() {
+            let operating_regions: Vec<serde_json::Value> = ipam
+                .operating_regions
+                .iter()
+                .map(|r| serde_json::json!({ "region_name": r.region_name }))
+                .collect();
+            let attrs = serde_json::json!({
+                "id": ipam.ipam_id,
+                "arn": ipam.ipam_arn,
+                "ipam_region": ipam.ipam_region,
+                "public_default_scope_id": ipam.public_default_scope_id,
+                "private_default_scope_id": ipam.private_default_scope_id,
+                "scope_count": ipam.scope_count,
+                "description": ipam.description.clone().unwrap_or_default(),
+                "operating_regions": operating_regions,
+                "state": ipam.state,
+                "owner_id": ipam.owner_id,
+                "default_resource_discovery_id": ipam.default_resource_discovery_id.clone().unwrap_or_default(),
+                "default_resource_discovery_association_id": ipam.default_resource_discovery_association_id.clone().unwrap_or_default(),
+                "resource_discovery_association_count": ipam.resource_discovery_association_count,
+                "tier": ipam.tier,
+                "enable_private_gua": ipam.enable_private_gua,
+                "tags": ipam.tags,
+                "tags_all": ipam.tags,
+            });
+            results.push(ExtractedResource {
+                name: ipam.ipam_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_ipam_scope
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcIpamScopeConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpamScopeConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpamScopeConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipam_scope"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_ipam"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcIpamScopeConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpamScopeTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_ipam_scope", e))?;
+
+        let ipam_id = model.ipam_id;
+        let description = model.description;
+        let tags = extract_tags(attrs);
+
+        // Look up the IPAM to derive the ipam_arn / region.
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let ipam_arn = snapshot
+            .ipams
+            .get(&ipam_id)
+            .map(|i| i.ipam_arn.clone())
+            .unwrap_or_else(|| format!("arn:aws:ec2::{}:ipam/{}", ctx.default_account_id, ipam_id));
+
+        let scope_id = model.id.unwrap_or_else(|| random_short_id("ipam-scope"));
+        let scope_arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ec2::{}:ipam-scope/{}",
+                ctx.default_account_id, scope_id
+            )
+        });
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+
+        let view = IpamScopeView {
+            ipam_scope_id: scope_id.clone(),
+            ipam_scope_arn: scope_arn,
+            ipam_arn,
+            ipam_region: region.clone(),
+            ipam_scope_type: model
+                .ipam_scope_type
+                .unwrap_or_else(|| "private".to_string()),
+            is_default: model.is_default,
+            description,
+            pool_count: 0,
+            state: "create-complete".to_string(),
+            tags,
+            owner_id,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.ipam_scopes.insert(scope_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for scope in view.ipam_scopes.values() {
+            let attrs = serde_json::json!({
+                "id": scope.ipam_scope_id,
+                "arn": scope.ipam_scope_arn,
+                "ipam_arn": scope.ipam_arn,
+                "ipam_scope_type": scope.ipam_scope_type,
+                "is_default": scope.is_default,
+                "description": scope.description.clone().unwrap_or_default(),
+                "pool_count": scope.pool_count,
+                "owner_id": scope.owner_id,
+                "tags": scope.tags,
+                "tags_all": scope.tags,
+            });
+            results.push(ExtractedResource {
+                name: scope.ipam_scope_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_ipam_pool
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcIpamPoolConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpamPoolConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpamPoolConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipam_pool"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_ipam_scope"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcIpamPoolConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpamPoolTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_ipam_pool", e))?;
+
+        let address_family = model.address_family;
+        let ipam_scope_id = model.ipam_scope_id;
+        let description = model.description;
+        let auto_import = model.auto_import;
+        let publicly_advertisable = model.publicly_advertisable;
+        let aws_service = model.aws_service;
+        let public_ip_source = model.public_ip_source;
+        let locale = model.locale.unwrap_or_else(|| "None".to_string());
+        let allocation_min_netmask_length =
+            optional_i64(attrs, "allocation_min_netmask_length").map(|n| n as i32);
+        let allocation_max_netmask_length =
+            optional_i64(attrs, "allocation_max_netmask_length").map(|n| n as i32);
+        let allocation_default_netmask_length =
+            optional_i64(attrs, "allocation_default_netmask_length").map(|n| n as i32);
+        let allocation_resource_tags: Vec<(String, String)> = attrs
+            .get("allocation_resource_tags")
+            .and_then(|v| v.as_object())
+            .map(|obj| {
+                obj.iter()
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let tags = extract_tags(attrs);
+
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let (ipam_scope_arn, ipam_scope_type, ipam_arn) = snapshot
+            .ipam_scopes
+            .get(&ipam_scope_id)
+            .map(|s| {
+                (
+                    s.ipam_scope_arn.clone(),
+                    s.ipam_scope_type.clone(),
+                    s.ipam_arn.clone(),
+                )
+            })
+            .unwrap_or_else(|| {
+                (
+                    format!(
+                        "arn:aws:ec2::{}:ipam-scope/{}",
+                        ctx.default_account_id, ipam_scope_id
+                    ),
+                    "private".to_string(),
+                    String::new(),
+                )
+            });
+
+        let pool_id = model.id.unwrap_or_else(|| random_short_id("ipam-pool"));
+        let pool_arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ec2::{}:ipam-pool/{}",
+                ctx.default_account_id, pool_id
+            )
+        });
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+
+        let view = IpamPoolView {
+            ipam_pool_id: pool_id.clone(),
+            source_ipam_pool_id: model.source_ipam_pool_id,
+            ipam_pool_arn: pool_arn,
+            ipam_scope_arn,
+            ipam_scope_type,
+            ipam_arn,
+            ipam_region: region.clone(),
+            locale,
+            pool_depth: 1,
+            state: "create-complete".to_string(),
+            state_message: None,
+            description,
+            auto_import,
+            publicly_advertisable,
+            address_family,
+            allocation_min_netmask_length,
+            allocation_max_netmask_length,
+            allocation_default_netmask_length,
+            allocation_resource_tags,
+            aws_service,
+            public_ip_source,
+            source_resource_id: model.source_resource_id,
+            source_resource_type: model.source_resource_type,
+            source_resource_region: model.source_resource_region,
+            source_resource_owner: model.source_resource_owner,
+            tags,
+            owner_id,
+            allocation_count: 0,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.ipam_pools.insert(pool_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for pool in view.ipam_pools.values() {
+            let alloc_tags: serde_json::Map<String, serde_json::Value> = pool
+                .allocation_resource_tags
+                .iter()
+                .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
+                .collect();
+            let attrs = serde_json::json!({
+                "id": pool.ipam_pool_id,
+                "arn": pool.ipam_pool_arn,
+                "ipam_scope_id": pool.ipam_scope_arn.split('/').next_back().unwrap_or(""),
+                "ipam_scope_arn": pool.ipam_scope_arn,
+                "ipam_scope_type": pool.ipam_scope_type,
+                "address_family": pool.address_family,
+                "auto_import": pool.auto_import,
+                "publicly_advertisable": pool.publicly_advertisable,
+                "aws_service": pool.aws_service.clone().unwrap_or_default(),
+                "public_ip_source": pool.public_ip_source.clone().unwrap_or_default(),
+                "description": pool.description.clone().unwrap_or_default(),
+                "locale": pool.locale,
+                "pool_depth": pool.pool_depth,
+                "state": pool.state,
+                "source_ipam_pool_id": pool.source_ipam_pool_id.clone().unwrap_or_default(),
+                "allocation_min_netmask_length": pool.allocation_min_netmask_length.unwrap_or(0),
+                "allocation_max_netmask_length": pool.allocation_max_netmask_length.unwrap_or(0),
+                "allocation_default_netmask_length": pool.allocation_default_netmask_length.unwrap_or(0),
+                "allocation_resource_tags": alloc_tags,
+                "owner_id": pool.owner_id,
+                "tags": pool.tags,
+                "tags_all": pool.tags,
+            });
+            results.push(ExtractedResource {
+                name: pool.ipam_pool_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_ipam_pool_cidr
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcIpamPoolCidrConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpamPoolCidrConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpamPoolCidrConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipam_pool_cidr"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_ipam_pool"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcIpamPoolCidrConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpamPoolCidrTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_ipam_pool_cidr", e))?;
+
+        let ipam_pool_id = model.ipam_pool_id;
+        let cidr = model.cidr.unwrap_or_default();
+        let netmask_length = optional_i64(attrs, "netmask_length").map(|n| n as i32);
+
+        let cidr_id = model
+            .id
+            .or(model.ipam_pool_cidr_id)
+            .unwrap_or_else(|| random_short_id("ipam-pool-cidr"));
+
+        let view = IpamPoolCidrView {
+            ipam_pool_id,
+            cidr,
+            state: "provisioned".to_string(),
+            failure_reason: None,
+            ipam_pool_cidr_id: cidr_id,
+            netmask_length,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.ipam_pool_cidrs.push(view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for c in view.ipam_pool_cidrs.iter() {
+            let attrs = serde_json::json!({
+                "id": format!("{}_{}", c.ipam_pool_cidr_id, c.ipam_pool_id),
+                "ipam_pool_id": c.ipam_pool_id,
+                "ipam_pool_cidr_id": c.ipam_pool_cidr_id,
+                "cidr": c.cidr,
+                "state": c.state,
+                "netmask_length": c.netmask_length.unwrap_or(0),
+            });
+            results.push(ExtractedResource {
+                name: c.ipam_pool_cidr_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_ipam_resource_discovery
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcIpamResourceDiscoveryConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpamResourceDiscoveryConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpamResourceDiscoveryConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipam_resource_discovery"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcIpamResourceDiscoveryConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpamResourceDiscoveryTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_ipam_resource_discovery", e))?;
+
+        let description = model.description;
+        let tags = extract_tags(attrs);
+
+        let operating_regions: Vec<IpamOperatingRegionView> = attrs
+            .get("operating_regions")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|entry| {
+                        entry.get("region_name").and_then(|v| v.as_str()).map(|s| {
+                            IpamOperatingRegionView {
+                                region_name: s.to_string(),
+                            }
+                        })
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let id = model
+            .id
+            .unwrap_or_else(|| random_short_id("ipam-res-disco"));
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ec2::{}:ipam-resource-discovery/{}",
+                ctx.default_account_id, id
+            )
+        });
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+
+        let view = IpamResourceDiscoveryView {
+            ipam_resource_discovery_id: id.clone(),
+            ipam_resource_discovery_arn: arn,
+            ipam_resource_discovery_region: region.clone(),
+            description,
+            operating_regions,
+            is_default: model.is_default,
+            state: "create-complete".to_string(),
+            owner_id,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.ipam_resource_discoveries.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for r in view.ipam_resource_discoveries.values() {
+            let operating_regions: Vec<serde_json::Value> = r
+                .operating_regions
+                .iter()
+                .map(|o| serde_json::json!({ "region_name": o.region_name }))
+                .collect();
+            let attrs = serde_json::json!({
+                "id": r.ipam_resource_discovery_id,
+                "arn": r.ipam_resource_discovery_arn,
+                "ipam_resource_discovery_region": r.ipam_resource_discovery_region,
+                "description": r.description.clone().unwrap_or_default(),
+                "operating_regions": operating_regions,
+                "is_default": r.is_default,
+                "owner_id": r.owner_id,
+                "tags": r.tags,
+                "tags_all": r.tags,
+            });
+            results.push(ExtractedResource {
+                name: r.ipam_resource_discovery_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ===========================================================================
+// Verified Access converters
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// aws_verifiedaccess_instance
+// ---------------------------------------------------------------------------
+
+pub struct AwsVerifiedaccessInstanceConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVerifiedaccessInstanceConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVerifiedaccessInstanceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_verifiedaccess_instance"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVerifiedaccessInstanceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VerifiedAccessInstanceTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_verifiedaccess_instance", e))?;
+
+        let description = model.description;
+        let fips_enabled = model.fips_enabled;
+        let cidr_endpoints_custom_subdomain = model.cidr_endpoints_custom_subdomain;
+        let name = model.name;
+        let trust_provider_ids = parse_string_array(attrs, "verified_access_trust_provider_ids");
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("vai"));
+        let now = chrono::Utc::now().to_rfc3339();
+        let creation_time = model.creation_time.unwrap_or_else(|| now.clone());
+        let last_updated_time = model.last_updated_time.unwrap_or(now);
+
+        let view = VerifiedAccessInstanceView {
+            verified_access_instance_id: id.clone(),
+            description,
+            creation_time,
+            last_updated_time,
+            fips_enabled,
+            cidr_endpoints_custom_subdomain,
+            name,
+            trust_provider_ids,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.verified_access_instances.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for inst in view.verified_access_instances.values() {
+            let attrs = serde_json::json!({
+                "id": inst.verified_access_instance_id,
+                "description": inst.description.clone().unwrap_or_default(),
+                "creation_time": inst.creation_time,
+                "last_updated_time": inst.last_updated_time,
+                "fips_enabled": inst.fips_enabled,
+                "cidr_endpoints_custom_subdomain": inst.cidr_endpoints_custom_subdomain.clone().unwrap_or_default(),
+                "name": inst.name.clone().unwrap_or_default(),
+                "verified_access_trust_provider_ids": inst.trust_provider_ids,
+                "tags": inst.tags,
+                "tags_all": inst.tags,
+            });
+            results.push(ExtractedResource {
+                name: inst.verified_access_instance_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_verifiedaccess_trust_provider
+// ---------------------------------------------------------------------------
+
+pub struct AwsVerifiedaccessTrustProviderConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVerifiedaccessTrustProviderConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVerifiedaccessTrustProviderConverter {
+    fn resource_type(&self) -> &str {
+        "aws_verifiedaccess_trust_provider"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVerifiedaccessTrustProviderConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VerifiedAccessTrustProviderTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_verifiedaccess_trust_provider", e))?;
+
+        let trust_provider_type = model.trust_provider_type;
+        let policy_reference_name = model.policy_reference_name;
+        let description = model.description;
+        let user_trust_provider_type = model.user_trust_provider_type;
+        let device_trust_provider_type = model.device_trust_provider_type;
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("vatp"));
+        let now = chrono::Utc::now().to_rfc3339();
+        let creation_time = model.creation_time.unwrap_or_else(|| now.clone());
+        let last_updated_time = model.last_updated_time.unwrap_or(now);
+
+        let view = VerifiedAccessTrustProviderView {
+            verified_access_trust_provider_id: id.clone(),
+            description,
+            trust_provider_type,
+            user_trust_provider_type,
+            device_trust_provider_type,
+            oidc_options: None,
+            device_options: None,
+            native_application_oidc_options: None,
+            policy_reference_name,
+            creation_time,
+            last_updated_time,
+            sse_specification: VerifiedAccessSseSpecificationView::default(),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.verified_access_trust_providers.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for tp in view.verified_access_trust_providers.values() {
+            let attrs = serde_json::json!({
+                "id": tp.verified_access_trust_provider_id,
+                "trust_provider_type": tp.trust_provider_type,
+                "user_trust_provider_type": tp.user_trust_provider_type.clone().unwrap_or_default(),
+                "device_trust_provider_type": tp.device_trust_provider_type.clone().unwrap_or_default(),
+                "policy_reference_name": tp.policy_reference_name,
+                "description": tp.description.clone().unwrap_or_default(),
+                "creation_time": tp.creation_time,
+                "last_updated_time": tp.last_updated_time,
+                "tags": tp.tags,
+                "tags_all": tp.tags,
+            });
+            results.push(ExtractedResource {
+                name: tp.verified_access_trust_provider_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_verifiedaccess_group
+// ---------------------------------------------------------------------------
+
+pub struct AwsVerifiedaccessGroupConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVerifiedaccessGroupConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVerifiedaccessGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_verifiedaccess_group"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_verifiedaccess_instance"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVerifiedaccessGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VerifiedAccessGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_verifiedaccess_group", e))?;
+
+        // verifiedaccess_instance_id has both a "verifiedaccess_instance_id"
+        // and "verified_access_instance_id" spelling depending on TF state.
+        let verified_access_instance_id = optional_str(attrs, "verifiedaccess_instance_id")
+            .or_else(|| optional_str(attrs, "verified_access_instance_id"))
+            .ok_or_else(|| ConversionError::MissingAttribute {
+                resource_type: "aws_verifiedaccess_group".to_string(),
+                attribute: "verifiedaccess_instance_id".to_string(),
+            })?;
+        let description = model.description;
+        let policy_document = model.policy_document;
+        let policy_enabled = policy_document.is_some();
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("vagr"));
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ec2:{}:{}:verified-access-group/{}",
+                region, ctx.default_account_id, id
+            )
+        });
+        let now = chrono::Utc::now().to_rfc3339();
+        let creation_time = model.creation_time.unwrap_or_else(|| now.clone());
+        let last_updated_time = model.last_updated_time.unwrap_or(now);
+        let owner = model
+            .owner
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+
+        let view = VerifiedAccessGroupView {
+            verified_access_group_id: id.clone(),
+            verified_access_group_arn: arn,
+            verified_access_instance_id,
+            owner,
+            description,
+            creation_time,
+            last_updated_time,
+            deletion_time: None,
+            sse_specification: VerifiedAccessSseSpecificationView::default(),
+            policy_document,
+            policy_enabled,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.verified_access_groups.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for g in view.verified_access_groups.values() {
+            let attrs = serde_json::json!({
+                "id": g.verified_access_group_id,
+                "verifiedaccess_group_arn": g.verified_access_group_arn,
+                "verifiedaccess_instance_id": g.verified_access_instance_id,
+                "owner": g.owner,
+                "description": g.description.clone().unwrap_or_default(),
+                "creation_time": g.creation_time,
+                "last_updated_time": g.last_updated_time,
+                "policy_document": g.policy_document.clone().unwrap_or_default(),
+                "tags": g.tags,
+                "tags_all": g.tags,
+            });
+            results.push(ExtractedResource {
+                name: g.verified_access_group_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_verifiedaccess_endpoint
+// ---------------------------------------------------------------------------
+
+pub struct AwsVerifiedaccessEndpointConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVerifiedaccessEndpointConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVerifiedaccessEndpointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_verifiedaccess_endpoint"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_verifiedaccess_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVerifiedaccessEndpointConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VerifiedAccessEndpointTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_verifiedaccess_endpoint", e))?;
+
+        let endpoint_type = model.endpoint_type;
+        let attachment_type = model.attachment_type;
+        // group_id has both "verifiedaccess_group_id" and
+        // "verified_access_group_id" spellings depending on TF state.
+        let group_id = optional_str(attrs, "verifiedaccess_group_id")
+            .or_else(|| optional_str(attrs, "verified_access_group_id"))
+            .ok_or_else(|| ConversionError::MissingAttribute {
+                resource_type: "aws_verifiedaccess_endpoint".to_string(),
+                attribute: "verifiedaccess_group_id".to_string(),
+            })?;
+        let application_domain = model.application_domain;
+        let domain_certificate_arn = model.domain_certificate_arn;
+        let endpoint_domain_prefix = model.endpoint_domain_prefix;
+        let endpoint_domain = model.endpoint_domain.or(endpoint_domain_prefix);
+        let device_validation_domain = model.device_validation_domain;
+        let security_group_ids = parse_string_array(attrs, "security_group_ids");
+        let description = model.description;
+        let policy_document = model.policy_document;
+        let policy_enabled = policy_document.is_some();
+        let tags = extract_tags(attrs);
+
+        // Look up group to derive instance id.
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let verified_access_instance_id = snapshot
+            .verified_access_groups
+            .get(&group_id)
+            .map(|g| g.verified_access_instance_id.clone())
+            .unwrap_or_default();
+
+        let id = model.id.unwrap_or_else(|| random_short_id("vae"));
+        let now = chrono::Utc::now().to_rfc3339();
+        let creation_time = model.creation_time.unwrap_or_else(|| now.clone());
+        let last_updated_time = model.last_updated_time.unwrap_or(now);
+
+        let view = VerifiedAccessEndpointView {
+            verified_access_endpoint_id: id.clone(),
+            verified_access_instance_id,
+            verified_access_group_id: group_id,
+            application_domain,
+            endpoint_type,
+            attachment_type,
+            domain_certificate_arn,
+            endpoint_domain,
+            device_validation_domain,
+            security_group_ids,
+            load_balancer_options: None,
+            network_interface_options: None,
+            cidr_options: None,
+            rds_options: None,
+            status_code: "active".to_string(),
+            status_message: None,
+            description,
+            creation_time,
+            last_updated_time,
+            deletion_time: None,
+            sse_specification: VerifiedAccessSseSpecificationView::default(),
+            policy_document,
+            policy_enabled,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.verified_access_endpoints.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ep in view.verified_access_endpoints.values() {
+            let attrs = serde_json::json!({
+                "id": ep.verified_access_endpoint_id,
+                "verifiedaccess_instance_id": ep.verified_access_instance_id,
+                "verifiedaccess_group_id": ep.verified_access_group_id,
+                "application_domain": ep.application_domain.clone().unwrap_or_default(),
+                "endpoint_type": ep.endpoint_type,
+                "attachment_type": ep.attachment_type,
+                "domain_certificate_arn": ep.domain_certificate_arn.clone().unwrap_or_default(),
+                "endpoint_domain": ep.endpoint_domain.clone().unwrap_or_default(),
+                "device_validation_domain": ep.device_validation_domain.clone().unwrap_or_default(),
+                "security_group_ids": ep.security_group_ids,
+                "status_code": ep.status_code,
+                "description": ep.description.clone().unwrap_or_default(),
+                "creation_time": ep.creation_time,
+                "last_updated_time": ep.last_updated_time,
+                "policy_document": ep.policy_document.clone().unwrap_or_default(),
+                "tags": ep.tags,
+                "tags_all": ep.tags,
+            });
+            results.push(ExtractedResource {
+                name: ep.verified_access_endpoint_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ===========================================================================
+// Traffic Mirror converters
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// aws_ec2_traffic_mirror_target
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TrafficMirrorTargetConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TrafficMirrorTargetConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TrafficMirrorTargetConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_traffic_mirror_target"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TrafficMirrorTargetConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TrafficMirrorTargetTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_traffic_mirror_target", e))?;
+
+        let network_interface_id = model.network_interface_id;
+        let network_load_balancer_arn = model.network_load_balancer_arn;
+        let gateway_load_balancer_endpoint_id = model.gateway_load_balancer_endpoint_id;
+        let description = model.description;
+        let tags = extract_tags(attrs);
+
+        let target_type = if network_interface_id.is_some() {
+            "network-interface".to_string()
+        } else if network_load_balancer_arn.is_some() {
+            "network-load-balancer".to_string()
+        } else {
+            "gateway-load-balancer-endpoint".to_string()
+        };
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tmt"));
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+
+        let view = TrafficMirrorTargetView {
+            traffic_mirror_target_id: id.clone(),
+            network_interface_id,
+            network_load_balancer_arn,
+            gateway_load_balancer_endpoint_id,
+            r#type: target_type,
+            description,
+            owner_id,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.traffic_mirror_targets.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for t in view.traffic_mirror_targets.values() {
+            let attrs = serde_json::json!({
+                "id": t.traffic_mirror_target_id,
+                "network_interface_id": t.network_interface_id.clone().unwrap_or_default(),
+                "network_load_balancer_arn": t.network_load_balancer_arn.clone().unwrap_or_default(),
+                "gateway_load_balancer_endpoint_id": t.gateway_load_balancer_endpoint_id.clone().unwrap_or_default(),
+                "type": t.r#type,
+                "description": t.description.clone().unwrap_or_default(),
+                "owner_id": t.owner_id,
+                "tags": t.tags,
+                "tags_all": t.tags,
+            });
+            results.push(ExtractedResource {
+                name: t.traffic_mirror_target_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_traffic_mirror_filter
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TrafficMirrorFilterConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TrafficMirrorFilterConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TrafficMirrorFilterConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_traffic_mirror_filter"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TrafficMirrorFilterConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TrafficMirrorFilterTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_traffic_mirror_filter", e))?;
+
+        let description = model.description;
+        let network_services = parse_string_array(attrs, "network_services");
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tmf"));
+
+        let view = TrafficMirrorFilterView {
+            traffic_mirror_filter_id: id.clone(),
+            description,
+            ingress_filter_rules: vec![],
+            egress_filter_rules: vec![],
+            network_services,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.traffic_mirror_filters.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for f in view.traffic_mirror_filters.values() {
+            let attrs = serde_json::json!({
+                "id": f.traffic_mirror_filter_id,
+                "description": f.description.clone().unwrap_or_default(),
+                "network_services": f.network_services,
+                "tags": f.tags,
+                "tags_all": f.tags,
+            });
+            results.push(ExtractedResource {
+                name: f.traffic_mirror_filter_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_traffic_mirror_filter_rule
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TrafficMirrorFilterRuleConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TrafficMirrorFilterRuleConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TrafficMirrorFilterRuleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_traffic_mirror_filter_rule"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_traffic_mirror_filter"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+fn parse_tm_port_range(attrs: &serde_json::Value, key: &str) -> Option<TrafficMirrorPortRangeView> {
+    attrs
+        .get(key)
+        .and_then(|v| v.as_array())
+        .and_then(|arr| arr.first())
+        .map(|block| TrafficMirrorPortRangeView {
+            from_port: block
+                .get("from_port")
+                .and_then(|v| v.as_i64())
+                .map(|n| n as i32),
+            to_port: block
+                .get("to_port")
+                .and_then(|v| v.as_i64())
+                .map(|n| n as i32),
+        })
+}
+
+impl AwsEc2TrafficMirrorFilterRuleConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TrafficMirrorFilterRuleTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_traffic_mirror_filter_rule", e))?;
+
+        let traffic_mirror_filter_id = model.traffic_mirror_filter_id;
+        let traffic_direction = model.traffic_direction;
+        let rule_action = model.rule_action;
+        let rule_number = optional_i64(attrs, "rule_number")
+            .ok_or_else(|| ConversionError::MissingAttribute {
+                resource_type: "aws_ec2_traffic_mirror_filter_rule".to_string(),
+                attribute: "rule_number".to_string(),
+            })?
+            .try_into()
+            .unwrap_or(0_i32);
+        let destination_cidr_block = model.destination_cidr_block;
+        let source_cidr_block = model.source_cidr_block;
+        let protocol = optional_i64(attrs, "protocol").map(|n| n as i32);
+        let description = model.description;
+        let destination_port_range = parse_tm_port_range(attrs, "destination_port_range");
+        let source_port_range = parse_tm_port_range(attrs, "source_port_range");
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tmfr"));
+
+        let rule = TrafficMirrorFilterRuleView {
+            traffic_mirror_filter_rule_id: id.clone(),
+            traffic_mirror_filter_id: traffic_mirror_filter_id.clone(),
+            traffic_direction: traffic_direction.clone(),
+            rule_number,
+            rule_action,
+            protocol,
+            destination_port_range,
+            source_port_range,
+            destination_cidr_block,
+            source_cidr_block,
+            description,
+            tags,
+        };
+
+        // Read-modify-write the parent filter so we add this rule to its rule list.
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        if let Some(filter) = snapshot
+            .traffic_mirror_filters
+            .get(&traffic_mirror_filter_id)
+        {
+            let mut filter = filter.clone();
+            if traffic_direction == "ingress" {
+                filter.ingress_filter_rules.push(rule);
+            } else {
+                filter.egress_filter_rules.push(rule);
+            }
+            let mut state_view = minimal_ec2_state_view();
+            state_view
+                .traffic_mirror_filters
+                .insert(traffic_mirror_filter_id, filter);
+            self.service
+                .merge(&ctx.default_account_id, &region, state_view)
+                .await?;
+        }
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for filter in view.traffic_mirror_filters.values() {
+            for rule in filter
+                .ingress_filter_rules
+                .iter()
+                .chain(filter.egress_filter_rules.iter())
+            {
+                let dest_pr = rule.destination_port_range.as_ref().map(|pr| {
+                    serde_json::json!([{"from_port": pr.from_port.unwrap_or(0), "to_port": pr.to_port.unwrap_or(0)}])
+                });
+                let src_pr = rule.source_port_range.as_ref().map(|pr| {
+                    serde_json::json!([{"from_port": pr.from_port.unwrap_or(0), "to_port": pr.to_port.unwrap_or(0)}])
+                });
+                let attrs = serde_json::json!({
+                    "id": rule.traffic_mirror_filter_rule_id,
+                    "traffic_mirror_filter_id": rule.traffic_mirror_filter_id,
+                    "traffic_direction": rule.traffic_direction,
+                    "rule_number": rule.rule_number,
+                    "rule_action": rule.rule_action,
+                    "protocol": rule.protocol.unwrap_or(0),
+                    "destination_cidr_block": rule.destination_cidr_block,
+                    "source_cidr_block": rule.source_cidr_block,
+                    "description": rule.description.clone().unwrap_or_default(),
+                    "destination_port_range": dest_pr,
+                    "source_port_range": src_pr,
+                });
+                results.push(ExtractedResource {
+                    name: rule.traffic_mirror_filter_rule_id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_traffic_mirror_session
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TrafficMirrorSessionConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TrafficMirrorSessionConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TrafficMirrorSessionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_traffic_mirror_session"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_ec2_traffic_mirror_target",
+            "aws_ec2_traffic_mirror_filter",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TrafficMirrorSessionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TrafficMirrorSessionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_traffic_mirror_session", e))?;
+
+        let network_interface_id = model.network_interface_id;
+        let traffic_mirror_target_id = model.traffic_mirror_target_id;
+        let traffic_mirror_filter_id = model.traffic_mirror_filter_id;
+        let session_number = optional_i64(attrs, "session_number").ok_or_else(|| {
+            ConversionError::MissingAttribute {
+                resource_type: "aws_ec2_traffic_mirror_session".to_string(),
+                attribute: "session_number".to_string(),
+            }
+        })? as i32;
+        let packet_length = optional_i64(attrs, "packet_length").map(|n| n as i32);
+        let virtual_network_id = optional_i64(attrs, "virtual_network_id").map(|n| n as i32);
+        let description = model.description;
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tms"));
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+
+        let view = TrafficMirrorSessionView {
+            traffic_mirror_session_id: id.clone(),
+            traffic_mirror_target_id,
+            traffic_mirror_filter_id,
+            network_interface_id,
+            owner_id,
+            packet_length,
+            session_number,
+            virtual_network_id,
+            description,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.traffic_mirror_sessions.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for s in view.traffic_mirror_sessions.values() {
+            let attrs = serde_json::json!({
+                "id": s.traffic_mirror_session_id,
+                "network_interface_id": s.network_interface_id,
+                "traffic_mirror_target_id": s.traffic_mirror_target_id,
+                "traffic_mirror_filter_id": s.traffic_mirror_filter_id,
+                "session_number": s.session_number,
+                "packet_length": s.packet_length.unwrap_or(0),
+                "virtual_network_id": s.virtual_network_id.unwrap_or(0),
+                "description": s.description.clone().unwrap_or_default(),
+                "owner_id": s.owner_id,
+                "tags": s.tags,
+                "tags_all": s.tags,
+            });
+            results.push(ExtractedResource {
+                name: s.traffic_mirror_session_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ===========================================================================
+// Transit Gateway extension converters
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_multicast_domain
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayMulticastDomainConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayMulticastDomainConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayMulticastDomainConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_multicast_domain"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayMulticastDomainConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayMulticastDomainTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_multicast_domain", e)
+            })?;
+
+        let transit_gateway_id = model.transit_gateway_id;
+        let igmpv2_support = model
+            .igmpv2_support
+            .unwrap_or_else(|| "disable".to_string());
+        let static_sources_support = model
+            .static_sources_support
+            .unwrap_or_else(|| "disable".to_string());
+        let auto_accept_shared_associations = model
+            .auto_accept_shared_associations
+            .unwrap_or_else(|| "disable".to_string());
+        let tags = extract_tags(attrs);
+
+        let id = model
+            .id
+            .unwrap_or_else(|| random_short_id("tgw-mcast-domain"));
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ec2:{}:{}:transit-gateway-multicast-domain/{}",
+                region, ctx.default_account_id, id
+            )
+        });
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+
+        let view = TransitGatewayMulticastDomainView {
+            transit_gateway_multicast_domain_id: id.clone(),
+            transit_gateway_id,
+            transit_gateway_multicast_domain_arn: arn,
+            owner_id,
+            igmpv2_support,
+            static_sources_support,
+            auto_accept_shared_associations,
+            state: "available".to_string(),
+            creation_time,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_multicast_domains.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for d in view.tgw_multicast_domains.values() {
+            let attrs = serde_json::json!({
+                "id": d.transit_gateway_multicast_domain_id,
+                "arn": d.transit_gateway_multicast_domain_arn,
+                "transit_gateway_id": d.transit_gateway_id,
+                "owner_id": d.owner_id,
+                "igmpv2_support": d.igmpv2_support,
+                "static_sources_support": d.static_sources_support,
+                "auto_accept_shared_associations": d.auto_accept_shared_associations,
+                "state": d.state,
+                "creation_time": d.creation_time,
+                "tags": d.tags,
+                "tags_all": d.tags,
+            });
+            results.push(ExtractedResource {
+                name: d.transit_gateway_multicast_domain_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_connect
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayConnectConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayConnectConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayConnectConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_connect"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayConnectConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayConnectTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_transit_gateway_connect", e))?;
+
+        let transport_attachment_id = model.transport_attachment_id;
+        let protocol = model.protocol.unwrap_or_else(|| "gre".to_string());
+        let tags = extract_tags(attrs);
+
+        // Look up the transport attachment to find the TGW id.
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let transit_gateway_id = snapshot
+            .tgw_vpc_attachments
+            .get(&transport_attachment_id)
+            .map(|a| a.transit_gateway_id.clone())
+            .unwrap_or_else(|| model.transit_gateway_id.unwrap_or_default());
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tgw-attach"));
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+
+        let view = TransitGatewayConnectView {
+            transit_gateway_attachment_id: id.clone(),
+            transport_transit_gateway_attachment_id: transport_attachment_id,
+            transit_gateway_id,
+            state: "available".to_string(),
+            creation_time,
+            protocol,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_connects.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for c in view.tgw_connects.values() {
+            let attrs = serde_json::json!({
+                "id": c.transit_gateway_attachment_id,
+                "transit_gateway_id": c.transit_gateway_id,
+                "transport_attachment_id": c.transport_transit_gateway_attachment_id,
+                "protocol": c.protocol,
+                "state": c.state,
+                "creation_time": c.creation_time,
+                "tags": c.tags,
+                "tags_all": c.tags,
+            });
+            results.push(ExtractedResource {
+                name: c.transit_gateway_attachment_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_policy_table
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayPolicyTableConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayPolicyTableConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayPolicyTableConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_policy_table"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayPolicyTableConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayPolicyTableTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_policy_table", e)
+            })?;
+
+        let transit_gateway_id = model.transit_gateway_id;
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tgw-ptb"));
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+
+        let view = TransitGatewayPolicyTableView {
+            transit_gateway_policy_table_id: id.clone(),
+            transit_gateway_id,
+            state: "available".to_string(),
+            creation_time,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_policy_tables.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for t in view.tgw_policy_tables.values() {
+            let attrs = serde_json::json!({
+                "id": t.transit_gateway_policy_table_id,
+                "transit_gateway_id": t.transit_gateway_id,
+                "state": t.state,
+                "creation_time": t.creation_time,
+                "tags": t.tags,
+                "tags_all": t.tags,
+            });
+            results.push(ExtractedResource {
+                name: t.transit_gateway_policy_table_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ===========================================================================
+// Network Insights converters
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// aws_ec2_network_insights_path
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2NetworkInsightsPathConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2NetworkInsightsPathConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2NetworkInsightsPathConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_network_insights_path"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2NetworkInsightsPathConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkInsightsPathTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_network_insights_path", e))?;
+
+        let protocol = model.protocol;
+        let source = model.source;
+        let destination = model.destination;
+        let source_ip = model.source_ip;
+        let destination_ip = model.destination_ip;
+        let destination_port = optional_i64(attrs, "destination_port").map(|n| n as i32);
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("nip"));
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ec2:{}:{}:network-insights-path/{}",
+                region, ctx.default_account_id, id
+            )
+        });
+        let created_date = model
+            .created_date
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+
+        let view = NetworkInsightsPathView {
+            network_insights_path_id: id.clone(),
+            network_insights_path_arn: arn,
+            created_date,
+            source: Some(source),
+            destination,
+            source_arn: model.source_arn,
+            destination_arn: model.destination_arn,
+            source_ip,
+            destination_ip,
+            protocol,
+            destination_port,
+            tags,
+            filter_at_source: Default::default(),
+            filter_at_destination: Default::default(),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.network_insights_paths.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for p in view.network_insights_paths.values() {
+            let attrs = serde_json::json!({
+                "id": p.network_insights_path_id,
+                "arn": p.network_insights_path_arn,
+                "protocol": p.protocol,
+                "source": p.source.clone().unwrap_or_default(),
+                "destination": p.destination.clone().unwrap_or_default(),
+                "source_arn": p.source_arn.clone().unwrap_or_default(),
+                "destination_arn": p.destination_arn.clone().unwrap_or_default(),
+                "source_ip": p.source_ip.clone().unwrap_or_default(),
+                "destination_ip": p.destination_ip.clone().unwrap_or_default(),
+                "destination_port": p.destination_port.unwrap_or(0),
+                "created_date": p.created_date,
+                "tags": p.tags,
+                "tags_all": p.tags,
+            });
+            results.push(ExtractedResource {
+                name: p.network_insights_path_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_network_insights_analysis
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2NetworkInsightsAnalysisConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2NetworkInsightsAnalysisConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2NetworkInsightsAnalysisConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_network_insights_analysis"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_network_insights_path"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2NetworkInsightsAnalysisConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkInsightsAnalysisTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_network_insights_analysis", e))?;
+
+        let network_insights_path_id = model.network_insights_path_id;
+        let additional_accounts = parse_string_array(attrs, "additional_accounts");
+        let filter_in_arns = parse_string_array(attrs, "filter_in_arns");
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("nia"));
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ec2:{}:{}:network-insights-analysis/{}",
+                region, ctx.default_account_id, id
+            )
+        });
+        let start_date = model
+            .start_date
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+
+        let view = NetworkInsightsAnalysisView {
+            network_insights_analysis_id: id.clone(),
+            network_insights_analysis_arn: arn,
+            network_insights_path_id,
+            additional_accounts,
+            filter_in_arns,
+            start_date,
+            end_date: None,
+            status: "succeeded".to_string(),
+            status_message: None,
+            warning_message: None,
+            network_path_found: optional_bool(attrs, "path_found").unwrap_or(true),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.network_insights_analyses.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.network_insights_analyses.values() {
+            let attrs = serde_json::json!({
+                "id": a.network_insights_analysis_id,
+                "arn": a.network_insights_analysis_arn,
+                "network_insights_path_id": a.network_insights_path_id,
+                "additional_accounts": a.additional_accounts,
+                "filter_in_arns": a.filter_in_arns,
+                "start_date": a.start_date,
+                "status": a.status,
+                "path_found": a.network_path_found,
+                "tags": a.tags,
+                "tags_all": a.tags,
+            });
+            results.push(ExtractedResource {
+                name: a.network_insights_analysis_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ===========================================================================
+// Batch C converters: resources promoted from Default::default() stubs to
+// real state-backed implementations in EC2 handler Batches A and B.
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// aws_ec2_local_gateway_route
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2LocalGatewayRouteConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2LocalGatewayRouteConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2LocalGatewayRouteConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_local_gateway_route"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2LocalGatewayRouteConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::LocalGatewayRouteTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_local_gateway_route", e))?;
+
+        let local_gateway_route_table_id = model.local_gateway_route_table_id;
+        let destination_cidr_block = model.destination_cidr_block;
+        let local_gateway_virtual_interface_group_id =
+            model.local_gateway_virtual_interface_group_id;
+
+        let view = LocalGatewayRouteView {
+            destination_cidr_block,
+            local_gateway_route_table_id,
+            r#type: "static".to_string(),
+            state: "active".to_string(),
+            local_gateway_route_table_arn: model.local_gateway_route_table_arn,
+            owner_id: ctx.default_account_id.clone(),
+            subnet_id: model.subnet_id,
+            network_interface_id: model.network_interface_id,
+            destination_prefix_list_id: model.destination_prefix_list_id,
+            coip_pool_id: model.coip_pool_id,
+            local_gateway_virtual_interface_group_id,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.local_gateway_routes.push(view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for r in view.local_gateway_routes.iter() {
+            let attrs = serde_json::json!({
+                "id": format!(
+                    "{}_{}",
+                    r.local_gateway_route_table_id,
+                    r.destination_cidr_block,
+                ),
+                "local_gateway_route_table_id": r.local_gateway_route_table_id,
+                "destination_cidr_block": r.destination_cidr_block,
+                "local_gateway_virtual_interface_group_id":
+                    r.local_gateway_virtual_interface_group_id.clone().unwrap_or_default(),
+                "network_interface_id": r.network_interface_id.clone().unwrap_or_default(),
+                "state": r.state,
+                "type": r.r#type,
+            });
+            results.push(ExtractedResource {
+                name: format!(
+                    "{}_{}",
+                    r.local_gateway_route_table_id, r.destination_cidr_block,
+                ),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_local_gateway_route_table_vpc_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2LocalGatewayRouteTableVpcAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2LocalGatewayRouteTableVpcAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2LocalGatewayRouteTableVpcAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_local_gateway_route_table_vpc_association"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2LocalGatewayRouteTableVpcAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::LocalGatewayRouteTableVpcAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_local_gateway_route_table_vpc_association", e)
+            })?;
+
+        let local_gateway_route_table_id = model.local_gateway_route_table_id;
+        let vpc_id = model.vpc_id;
+        let tags = extract_tags(attrs);
+
+        let id = model.id.unwrap_or_else(|| random_short_id("lgw-vpc-assoc"));
+        let local_gateway_route_table_arn =
+            model.local_gateway_route_table_arn.unwrap_or_else(|| {
+                format!(
+                    "arn:aws:ec2:{}:{}:local-gateway-route-table/{}",
+                    region, ctx.default_account_id, local_gateway_route_table_id,
+                )
+            });
+        let local_gateway_id = model.local_gateway_id.unwrap_or_default();
+
+        let view = LocalGatewayRouteTableVpcAssociationView {
+            local_gateway_route_table_vpc_association_id: id.clone(),
+            local_gateway_route_table_id,
+            local_gateway_route_table_arn,
+            local_gateway_id,
+            vpc_id,
+            owner_id: ctx.default_account_id.clone(),
+            state: "associated".to_string(),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view
+            .local_gateway_route_table_vpc_associations
+            .insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.local_gateway_route_table_vpc_associations.values() {
+            let attrs = serde_json::json!({
+                "id": a.local_gateway_route_table_vpc_association_id,
+                "local_gateway_route_table_id": a.local_gateway_route_table_id,
+                "local_gateway_route_table_arn": a.local_gateway_route_table_arn,
+                "local_gateway_id": a.local_gateway_id,
+                "vpc_id": a.vpc_id,
+                "owner_id": a.owner_id,
+                "state": a.state,
+                "tags": a.tags,
+                "tags_all": a.tags,
+            });
+            results.push(ExtractedResource {
+                name: a.local_gateway_route_table_vpc_association_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_ipam_pool_cidr_allocation
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcIpamPoolCidrAllocationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpamPoolCidrAllocationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpamPoolCidrAllocationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipam_pool_cidr_allocation"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_ipam_pool"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcIpamPoolCidrAllocationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpamPoolCidrAllocationTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_vpc_ipam_pool_cidr_allocation", e))?;
+
+        let ipam_pool_id = model.ipam_pool_id;
+        let cidr = model.cidr.unwrap_or_default();
+        let description = model.description;
+
+        let allocation_id = model
+            .id
+            .or(model.ipam_pool_allocation_id)
+            .unwrap_or_else(|| random_short_id("ipam-pool-alloc"));
+
+        let view = IpamPoolAllocationView {
+            ipam_pool_allocation_id: allocation_id.clone(),
+            cidr,
+            ipam_pool_id,
+            description,
+            resource_id: model.resource_id,
+            resource_type: model.resource_type.unwrap_or_else(|| "custom".to_string()),
+            resource_region: model.resource_region,
+            resource_owner: model
+                .resource_owner
+                .or_else(|| Some(ctx.default_account_id.clone())),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.ipam_pool_allocations.push(view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.ipam_pool_allocations.iter() {
+            let attrs = serde_json::json!({
+                "id": format!("{}_{}", a.ipam_pool_allocation_id, a.ipam_pool_id),
+                "ipam_pool_allocation_id": a.ipam_pool_allocation_id,
+                "ipam_pool_id": a.ipam_pool_id,
+                "cidr": a.cidr,
+                "description": a.description.clone().unwrap_or_default(),
+                "resource_id": a.resource_id.clone().unwrap_or_default(),
+                "resource_type": a.resource_type,
+                "resource_region": a.resource_region.clone().unwrap_or_default(),
+                "resource_owner": a.resource_owner.clone().unwrap_or_default(),
+            });
+            results.push(ExtractedResource {
+                name: a.ipam_pool_allocation_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_capacity_block_reservation
+// ---------------------------------------------------------------------------
+//
+// Maps to `state.capacity_blocks` (purchased Capacity Block reservations,
+// surfaced via the `DescribeCapacityBlocks` handler wired in Batch A).
+
+pub struct AwsEc2CapacityBlockReservationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2CapacityBlockReservationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2CapacityBlockReservationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_capacity_block_reservation"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2CapacityBlockReservationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::CapacityBlockReservationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_capacity_block_reservation", e))?;
+
+        let capacity_block_offering_id = model.capacity_block_offering_id;
+        let tags = extract_tags(attrs);
+
+        let id = model
+            .id
+            .or(model.capacity_block_id)
+            .unwrap_or_else(|| random_short_id("cb"));
+        let capacity_reservation_id = model
+            .capacity_reservation_id
+            .unwrap_or_else(|| random_short_id("cr"));
+        let capacity_reservation_arn = model.capacity_reservation_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:ec2:{}:{}:capacity-reservation/{}",
+                region, ctx.default_account_id, capacity_reservation_id,
+            )
+        });
+
+        let view = CapacityBlockView {
+            capacity_block_id: id.clone(),
+            capacity_reservation_id,
+            capacity_block_offering_id,
+            instance_type: model.instance_type.unwrap_or_default(),
+            instance_count: optional_i64(attrs, "instance_count").unwrap_or(0) as i32,
+            availability_zone: model.availability_zone.unwrap_or_default(),
+            start_date: model.start_date.unwrap_or_default(),
+            end_date: model.end_date.unwrap_or_default(),
+            tenancy: model.tenancy.unwrap_or_else(|| "default".to_string()),
+            currency_code: model.currency_code.unwrap_or_else(|| "USD".to_string()),
+            upfront_fee: model.upfront_fee.unwrap_or_default(),
+            commitment_duration_in_seconds: 0,
+            capacity_reservation_arn,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.capacity_blocks.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for b in view.capacity_blocks.values() {
+            let attrs = serde_json::json!({
+                "id": b.capacity_block_id,
+                "capacity_block_id": b.capacity_block_id,
+                "capacity_block_offering_id": b.capacity_block_offering_id,
+                "capacity_reservation_id": b.capacity_reservation_id,
+                "capacity_reservation_arn": b.capacity_reservation_arn,
+                "instance_type": b.instance_type,
+                "instance_count": b.instance_count,
+                "availability_zone": b.availability_zone,
+                "start_date": b.start_date,
+                "end_date": b.end_date,
+                "tenancy": b.tenancy,
+                "currency_code": b.currency_code,
+                "upfront_fee": b.upfront_fee,
+                "tags": b.tags,
+                "tags_all": b.tags,
+            });
+            results.push(ExtractedResource {
+                name: b.capacity_block_id.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,
@@ -2699,3073 +5651,4 @@ fn parse_string_array(attrs: &serde_json::Value, key: &str) -> Vec<String> {
                 .collect()
         })
         .unwrap_or_default()
-}
-
-// ===========================================================================
-// IPAM converters
-// ===========================================================================
-
-// ---------------------------------------------------------------------------
-// aws_vpc_ipam
-// ---------------------------------------------------------------------------
-
-pub struct AwsVpcIpamConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVpcIpamConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVpcIpamConverter {
-    fn resource_type(&self) -> &str {
-        "aws_vpc_ipam"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVpcIpamConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let description = optional_str(attrs, "description");
-        let tier = optional_str(attrs, "tier").unwrap_or_else(|| "advanced".to_string());
-        let enable_private_gua = optional_bool(attrs, "enable_private_gua").unwrap_or(false);
-        let _ = attrs.get("cascade");
-        let _ = attrs.get("default_resource_discovery_id");
-        let _ = attrs.get("default_resource_discovery_association_id");
-        let _ = attrs.get("scope_count");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-
-        let operating_regions: Vec<IpamOperatingRegionView> = attrs
-            .get("operating_regions")
-            .and_then(|v| v.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|entry| {
-                        entry.get("region_name").and_then(|v| v.as_str()).map(|s| {
-                            IpamOperatingRegionView {
-                                region_name: s.to_string(),
-                            }
-                        })
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-
-        let tags = extract_tags(attrs);
-
-        let ipam_id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("ipam"));
-        let ipam_arn = optional_str(attrs, "arn")
-            .unwrap_or_else(|| format!("arn:aws:ec2::{}:ipam/{}", ctx.default_account_id, ipam_id));
-        let public_default_scope_id = optional_str(attrs, "public_default_scope_id")
-            .unwrap_or_else(|| {
-                format!(
-                    "ipam-scope-{}",
-                    random_short_id("public").trim_start_matches("public-")
-                )
-            });
-        let private_default_scope_id = optional_str(attrs, "private_default_scope_id")
-            .unwrap_or_else(|| {
-                format!(
-                    "ipam-scope-{}",
-                    random_short_id("priv").trim_start_matches("priv-")
-                )
-            });
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
-
-        let view = IpamView {
-            ipam_id: ipam_id.clone(),
-            ipam_arn,
-            ipam_region: region.clone(),
-            public_default_scope_id,
-            private_default_scope_id,
-            scope_count: 2,
-            description,
-            operating_regions,
-            state: "create-complete".to_string(),
-            owner_id,
-            default_resource_discovery_id: optional_str(attrs, "default_resource_discovery_id"),
-            default_resource_discovery_association_id: optional_str(
-                attrs,
-                "default_resource_discovery_association_id",
-            ),
-            resource_discovery_association_count: 0,
-            tier,
-            enable_private_gua,
-            metered_account: optional_str(attrs, "metered_account")
-                .unwrap_or_else(|| "ipam-owner".to_string()),
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.ipams.insert(ipam_id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for ipam in view.ipams.values() {
-            let operating_regions: Vec<serde_json::Value> = ipam
-                .operating_regions
-                .iter()
-                .map(|r| serde_json::json!({ "region_name": r.region_name }))
-                .collect();
-            let attrs = serde_json::json!({
-                "id": ipam.ipam_id,
-                "arn": ipam.ipam_arn,
-                "ipam_region": ipam.ipam_region,
-                "public_default_scope_id": ipam.public_default_scope_id,
-                "private_default_scope_id": ipam.private_default_scope_id,
-                "scope_count": ipam.scope_count,
-                "description": ipam.description.clone().unwrap_or_default(),
-                "operating_regions": operating_regions,
-                "state": ipam.state,
-                "owner_id": ipam.owner_id,
-                "default_resource_discovery_id": ipam.default_resource_discovery_id.clone().unwrap_or_default(),
-                "default_resource_discovery_association_id": ipam.default_resource_discovery_association_id.clone().unwrap_or_default(),
-                "resource_discovery_association_count": ipam.resource_discovery_association_count,
-                "tier": ipam.tier,
-                "enable_private_gua": ipam.enable_private_gua,
-                "tags": ipam.tags,
-                "tags_all": ipam.tags,
-            });
-            results.push(ExtractedResource {
-                name: ipam.ipam_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_vpc_ipam_scope
-// ---------------------------------------------------------------------------
-
-pub struct AwsVpcIpamScopeConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVpcIpamScopeConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVpcIpamScopeConverter {
-    fn resource_type(&self) -> &str {
-        "aws_vpc_ipam_scope"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_vpc_ipam"]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVpcIpamScopeConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let ipam_id = require_str(attrs, "ipam_id", "aws_vpc_ipam_scope")?.to_string();
-        let description = optional_str(attrs, "description");
-        let _ = attrs.get("ipam_arn");
-        let _ = attrs.get("ipam_scope_type");
-        let _ = attrs.get("is_default");
-        let _ = attrs.get("pool_count");
-        let _ = attrs.get("tags_all");
-        let tags = extract_tags(attrs);
-
-        // Look up the IPAM to derive the ipam_arn / region.
-        let snapshot = self
-            .service
-            .snapshot(&ctx.default_account_id, &region)
-            .await;
-        let ipam_arn = snapshot
-            .ipams
-            .get(&ipam_id)
-            .map(|i| i.ipam_arn.clone())
-            .unwrap_or_else(|| format!("arn:aws:ec2::{}:ipam/{}", ctx.default_account_id, ipam_id));
-
-        let scope_id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("ipam-scope"));
-        let scope_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:ec2::{}:ipam-scope/{}",
-                ctx.default_account_id, scope_id
-            )
-        });
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
-
-        let view = IpamScopeView {
-            ipam_scope_id: scope_id.clone(),
-            ipam_scope_arn: scope_arn,
-            ipam_arn,
-            ipam_region: region.clone(),
-            ipam_scope_type: optional_str(attrs, "ipam_scope_type")
-                .unwrap_or_else(|| "private".to_string()),
-            is_default: optional_bool(attrs, "is_default").unwrap_or(false),
-            description,
-            pool_count: 0,
-            state: "create-complete".to_string(),
-            tags,
-            owner_id,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.ipam_scopes.insert(scope_id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for scope in view.ipam_scopes.values() {
-            let attrs = serde_json::json!({
-                "id": scope.ipam_scope_id,
-                "arn": scope.ipam_scope_arn,
-                "ipam_arn": scope.ipam_arn,
-                "ipam_scope_type": scope.ipam_scope_type,
-                "is_default": scope.is_default,
-                "description": scope.description.clone().unwrap_or_default(),
-                "pool_count": scope.pool_count,
-                "owner_id": scope.owner_id,
-                "tags": scope.tags,
-                "tags_all": scope.tags,
-            });
-            results.push(ExtractedResource {
-                name: scope.ipam_scope_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_vpc_ipam_pool
-// ---------------------------------------------------------------------------
-
-pub struct AwsVpcIpamPoolConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVpcIpamPoolConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVpcIpamPoolConverter {
-    fn resource_type(&self) -> &str {
-        "aws_vpc_ipam_pool"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_vpc_ipam_scope"]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVpcIpamPoolConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let address_family = require_str(attrs, "address_family", "aws_vpc_ipam_pool")?.to_string();
-        let ipam_scope_id = require_str(attrs, "ipam_scope_id", "aws_vpc_ipam_pool")?.to_string();
-        let description = optional_str(attrs, "description");
-        let auto_import = optional_bool(attrs, "auto_import").unwrap_or(false);
-        let publicly_advertisable = optional_bool(attrs, "publicly_advertisable").unwrap_or(false);
-        let aws_service = optional_str(attrs, "aws_service");
-        let public_ip_source = optional_str(attrs, "public_ip_source");
-        let locale = optional_str(attrs, "locale").unwrap_or_else(|| "None".to_string());
-        let allocation_min_netmask_length =
-            optional_i64(attrs, "allocation_min_netmask_length").map(|n| n as i32);
-        let allocation_max_netmask_length =
-            optional_i64(attrs, "allocation_max_netmask_length").map(|n| n as i32);
-        let allocation_default_netmask_length =
-            optional_i64(attrs, "allocation_default_netmask_length").map(|n| n as i32);
-        let allocation_resource_tags: Vec<(String, String)> = attrs
-            .get("allocation_resource_tags")
-            .and_then(|v| v.as_object())
-            .map(|obj| {
-                obj.iter()
-                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
-                    .collect()
-            })
-            .unwrap_or_default();
-        let _ = attrs.get("cascade");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let snapshot = self
-            .service
-            .snapshot(&ctx.default_account_id, &region)
-            .await;
-        let (ipam_scope_arn, ipam_scope_type, ipam_arn) = snapshot
-            .ipam_scopes
-            .get(&ipam_scope_id)
-            .map(|s| {
-                (
-                    s.ipam_scope_arn.clone(),
-                    s.ipam_scope_type.clone(),
-                    s.ipam_arn.clone(),
-                )
-            })
-            .unwrap_or_else(|| {
-                (
-                    format!(
-                        "arn:aws:ec2::{}:ipam-scope/{}",
-                        ctx.default_account_id, ipam_scope_id
-                    ),
-                    "private".to_string(),
-                    String::new(),
-                )
-            });
-
-        let pool_id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("ipam-pool"));
-        let pool_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:ec2::{}:ipam-pool/{}",
-                ctx.default_account_id, pool_id
-            )
-        });
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
-
-        let view = IpamPoolView {
-            ipam_pool_id: pool_id.clone(),
-            source_ipam_pool_id: optional_str(attrs, "source_ipam_pool_id"),
-            ipam_pool_arn: pool_arn,
-            ipam_scope_arn,
-            ipam_scope_type,
-            ipam_arn,
-            ipam_region: region.clone(),
-            locale,
-            pool_depth: 1,
-            state: "create-complete".to_string(),
-            state_message: None,
-            description,
-            auto_import,
-            publicly_advertisable,
-            address_family,
-            allocation_min_netmask_length,
-            allocation_max_netmask_length,
-            allocation_default_netmask_length,
-            allocation_resource_tags,
-            aws_service,
-            public_ip_source,
-            source_resource_id: optional_str(attrs, "source_resource_id"),
-            source_resource_type: optional_str(attrs, "source_resource_type"),
-            source_resource_region: optional_str(attrs, "source_resource_region"),
-            source_resource_owner: optional_str(attrs, "source_resource_owner"),
-            tags,
-            owner_id,
-            allocation_count: 0,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.ipam_pools.insert(pool_id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for pool in view.ipam_pools.values() {
-            let alloc_tags: serde_json::Map<String, serde_json::Value> = pool
-                .allocation_resource_tags
-                .iter()
-                .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
-                .collect();
-            let attrs = serde_json::json!({
-                "id": pool.ipam_pool_id,
-                "arn": pool.ipam_pool_arn,
-                "ipam_scope_id": pool.ipam_scope_arn.split('/').next_back().unwrap_or(""),
-                "ipam_scope_arn": pool.ipam_scope_arn,
-                "ipam_scope_type": pool.ipam_scope_type,
-                "address_family": pool.address_family,
-                "auto_import": pool.auto_import,
-                "publicly_advertisable": pool.publicly_advertisable,
-                "aws_service": pool.aws_service.clone().unwrap_or_default(),
-                "public_ip_source": pool.public_ip_source.clone().unwrap_or_default(),
-                "description": pool.description.clone().unwrap_or_default(),
-                "locale": pool.locale,
-                "pool_depth": pool.pool_depth,
-                "state": pool.state,
-                "source_ipam_pool_id": pool.source_ipam_pool_id.clone().unwrap_or_default(),
-                "allocation_min_netmask_length": pool.allocation_min_netmask_length.unwrap_or(0),
-                "allocation_max_netmask_length": pool.allocation_max_netmask_length.unwrap_or(0),
-                "allocation_default_netmask_length": pool.allocation_default_netmask_length.unwrap_or(0),
-                "allocation_resource_tags": alloc_tags,
-                "owner_id": pool.owner_id,
-                "tags": pool.tags,
-                "tags_all": pool.tags,
-            });
-            results.push(ExtractedResource {
-                name: pool.ipam_pool_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_vpc_ipam_pool_cidr
-// ---------------------------------------------------------------------------
-
-pub struct AwsVpcIpamPoolCidrConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVpcIpamPoolCidrConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVpcIpamPoolCidrConverter {
-    fn resource_type(&self) -> &str {
-        "aws_vpc_ipam_pool_cidr"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_vpc_ipam_pool"]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVpcIpamPoolCidrConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let ipam_pool_id =
-            require_str(attrs, "ipam_pool_id", "aws_vpc_ipam_pool_cidr")?.to_string();
-        let cidr = optional_str(attrs, "cidr").unwrap_or_default();
-        let netmask_length = optional_i64(attrs, "netmask_length").map(|n| n as i32);
-        let _ = attrs.get("cidr_authorization_context");
-        let _ = attrs.get("timeouts");
-
-        let cidr_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "ipam_pool_cidr_id"))
-            .unwrap_or_else(|| random_short_id("ipam-pool-cidr"));
-
-        let view = IpamPoolCidrView {
-            ipam_pool_id: ipam_pool_id.clone(),
-            cidr: cidr.clone(),
-            state: "provisioned".to_string(),
-            failure_reason: None,
-            ipam_pool_cidr_id: cidr_id,
-            netmask_length,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.ipam_pool_cidrs.push(view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for c in view.ipam_pool_cidrs.iter() {
-            let attrs = serde_json::json!({
-                "id": format!("{}_{}", c.ipam_pool_cidr_id, c.ipam_pool_id),
-                "ipam_pool_id": c.ipam_pool_id,
-                "ipam_pool_cidr_id": c.ipam_pool_cidr_id,
-                "cidr": c.cidr,
-                "state": c.state,
-                "netmask_length": c.netmask_length.unwrap_or(0),
-            });
-            results.push(ExtractedResource {
-                name: c.ipam_pool_cidr_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_vpc_ipam_resource_discovery
-// ---------------------------------------------------------------------------
-
-pub struct AwsVpcIpamResourceDiscoveryConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVpcIpamResourceDiscoveryConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVpcIpamResourceDiscoveryConverter {
-    fn resource_type(&self) -> &str {
-        "aws_vpc_ipam_resource_discovery"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVpcIpamResourceDiscoveryConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let description = optional_str(attrs, "description");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let operating_regions: Vec<IpamOperatingRegionView> = attrs
-            .get("operating_regions")
-            .and_then(|v| v.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|entry| {
-                        entry.get("region_name").and_then(|v| v.as_str()).map(|s| {
-                            IpamOperatingRegionView {
-                                region_name: s.to_string(),
-                            }
-                        })
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("ipam-res-disco"));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:ec2::{}:ipam-resource-discovery/{}",
-                ctx.default_account_id, id
-            )
-        });
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
-
-        let view = IpamResourceDiscoveryView {
-            ipam_resource_discovery_id: id.clone(),
-            ipam_resource_discovery_arn: arn,
-            ipam_resource_discovery_region: region.clone(),
-            description,
-            operating_regions,
-            is_default: optional_bool(attrs, "is_default").unwrap_or(false),
-            state: "create-complete".to_string(),
-            owner_id,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.ipam_resource_discoveries.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for r in view.ipam_resource_discoveries.values() {
-            let operating_regions: Vec<serde_json::Value> = r
-                .operating_regions
-                .iter()
-                .map(|o| serde_json::json!({ "region_name": o.region_name }))
-                .collect();
-            let attrs = serde_json::json!({
-                "id": r.ipam_resource_discovery_id,
-                "arn": r.ipam_resource_discovery_arn,
-                "ipam_resource_discovery_region": r.ipam_resource_discovery_region,
-                "description": r.description.clone().unwrap_or_default(),
-                "operating_regions": operating_regions,
-                "is_default": r.is_default,
-                "owner_id": r.owner_id,
-                "tags": r.tags,
-                "tags_all": r.tags,
-            });
-            results.push(ExtractedResource {
-                name: r.ipam_resource_discovery_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ===========================================================================
-// Verified Access converters
-// ===========================================================================
-
-// ---------------------------------------------------------------------------
-// aws_verifiedaccess_instance
-// ---------------------------------------------------------------------------
-
-pub struct AwsVerifiedaccessInstanceConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVerifiedaccessInstanceConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVerifiedaccessInstanceConverter {
-    fn resource_type(&self) -> &str {
-        "aws_verifiedaccess_instance"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVerifiedaccessInstanceConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let description = optional_str(attrs, "description");
-        let fips_enabled = optional_bool(attrs, "fips_enabled").unwrap_or(false);
-        let cidr_endpoints_custom_subdomain =
-            optional_str(attrs, "cidr_endpoints_custom_subdomain");
-        let name = optional_str(attrs, "name");
-        let trust_provider_ids = parse_string_array(attrs, "verified_access_trust_provider_ids");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("vai"));
-        let now = chrono::Utc::now().to_rfc3339();
-        let creation_time = optional_str(attrs, "creation_time").unwrap_or_else(|| now.clone());
-        let last_updated_time = optional_str(attrs, "last_updated_time").unwrap_or(now);
-
-        let view = VerifiedAccessInstanceView {
-            verified_access_instance_id: id.clone(),
-            description,
-            creation_time,
-            last_updated_time,
-            fips_enabled,
-            cidr_endpoints_custom_subdomain,
-            name,
-            trust_provider_ids,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.verified_access_instances.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for inst in view.verified_access_instances.values() {
-            let attrs = serde_json::json!({
-                "id": inst.verified_access_instance_id,
-                "description": inst.description.clone().unwrap_or_default(),
-                "creation_time": inst.creation_time,
-                "last_updated_time": inst.last_updated_time,
-                "fips_enabled": inst.fips_enabled,
-                "cidr_endpoints_custom_subdomain": inst.cidr_endpoints_custom_subdomain.clone().unwrap_or_default(),
-                "name": inst.name.clone().unwrap_or_default(),
-                "verified_access_trust_provider_ids": inst.trust_provider_ids,
-                "tags": inst.tags,
-                "tags_all": inst.tags,
-            });
-            results.push(ExtractedResource {
-                name: inst.verified_access_instance_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_verifiedaccess_trust_provider
-// ---------------------------------------------------------------------------
-
-pub struct AwsVerifiedaccessTrustProviderConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVerifiedaccessTrustProviderConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVerifiedaccessTrustProviderConverter {
-    fn resource_type(&self) -> &str {
-        "aws_verifiedaccess_trust_provider"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVerifiedaccessTrustProviderConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let trust_provider_type = require_str(
-            attrs,
-            "trust_provider_type",
-            "aws_verifiedaccess_trust_provider",
-        )?
-        .to_string();
-        let policy_reference_name = require_str(
-            attrs,
-            "policy_reference_name",
-            "aws_verifiedaccess_trust_provider",
-        )?
-        .to_string();
-        let description = optional_str(attrs, "description");
-        let user_trust_provider_type = optional_str(attrs, "user_trust_provider_type");
-        let device_trust_provider_type = optional_str(attrs, "device_trust_provider_type");
-        let _ = attrs.get("oidc_options");
-        let _ = attrs.get("device_options");
-        let _ = attrs.get("native_application_oidc_options");
-        let _ = attrs.get("sse_specification");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("vatp"));
-        let now = chrono::Utc::now().to_rfc3339();
-        let creation_time = optional_str(attrs, "creation_time").unwrap_or_else(|| now.clone());
-        let last_updated_time = optional_str(attrs, "last_updated_time").unwrap_or(now);
-
-        let view = VerifiedAccessTrustProviderView {
-            verified_access_trust_provider_id: id.clone(),
-            description,
-            trust_provider_type,
-            user_trust_provider_type,
-            device_trust_provider_type,
-            oidc_options: None,
-            device_options: None,
-            native_application_oidc_options: None,
-            policy_reference_name,
-            creation_time,
-            last_updated_time,
-            sse_specification: VerifiedAccessSseSpecificationView::default(),
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.verified_access_trust_providers.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for tp in view.verified_access_trust_providers.values() {
-            let attrs = serde_json::json!({
-                "id": tp.verified_access_trust_provider_id,
-                "trust_provider_type": tp.trust_provider_type,
-                "user_trust_provider_type": tp.user_trust_provider_type.clone().unwrap_or_default(),
-                "device_trust_provider_type": tp.device_trust_provider_type.clone().unwrap_or_default(),
-                "policy_reference_name": tp.policy_reference_name,
-                "description": tp.description.clone().unwrap_or_default(),
-                "creation_time": tp.creation_time,
-                "last_updated_time": tp.last_updated_time,
-                "tags": tp.tags,
-                "tags_all": tp.tags,
-            });
-            results.push(ExtractedResource {
-                name: tp.verified_access_trust_provider_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_verifiedaccess_group
-// ---------------------------------------------------------------------------
-
-pub struct AwsVerifiedaccessGroupConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVerifiedaccessGroupConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVerifiedaccessGroupConverter {
-    fn resource_type(&self) -> &str {
-        "aws_verifiedaccess_group"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_verifiedaccess_instance"]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVerifiedaccessGroupConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let verified_access_instance_id = require_str(
-            attrs,
-            "verifiedaccess_instance_id",
-            "aws_verifiedaccess_group",
-        )
-        .or_else(|_| {
-            require_str(
-                attrs,
-                "verified_access_instance_id",
-                "aws_verifiedaccess_group",
-            )
-        })?
-        .to_string();
-        let description = optional_str(attrs, "description");
-        let policy_document = optional_str(attrs, "policy_document");
-        let policy_enabled = policy_document.is_some();
-        let _ = attrs.get("sse_specification");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("vagr"));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:ec2:{}:{}:verified-access-group/{}",
-                region, ctx.default_account_id, id
-            )
-        });
-        let now = chrono::Utc::now().to_rfc3339();
-        let creation_time = optional_str(attrs, "creation_time").unwrap_or_else(|| now.clone());
-        let last_updated_time = optional_str(attrs, "last_updated_time").unwrap_or(now);
-        let owner = optional_str(attrs, "owner").unwrap_or_else(|| ctx.default_account_id.clone());
-
-        let view = VerifiedAccessGroupView {
-            verified_access_group_id: id.clone(),
-            verified_access_group_arn: arn,
-            verified_access_instance_id,
-            owner,
-            description,
-            creation_time,
-            last_updated_time,
-            deletion_time: None,
-            sse_specification: VerifiedAccessSseSpecificationView::default(),
-            policy_document,
-            policy_enabled,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.verified_access_groups.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for g in view.verified_access_groups.values() {
-            let attrs = serde_json::json!({
-                "id": g.verified_access_group_id,
-                "verifiedaccess_group_arn": g.verified_access_group_arn,
-                "verifiedaccess_instance_id": g.verified_access_instance_id,
-                "owner": g.owner,
-                "description": g.description.clone().unwrap_or_default(),
-                "creation_time": g.creation_time,
-                "last_updated_time": g.last_updated_time,
-                "policy_document": g.policy_document.clone().unwrap_or_default(),
-                "tags": g.tags,
-                "tags_all": g.tags,
-            });
-            results.push(ExtractedResource {
-                name: g.verified_access_group_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_verifiedaccess_endpoint
-// ---------------------------------------------------------------------------
-
-pub struct AwsVerifiedaccessEndpointConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVerifiedaccessEndpointConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVerifiedaccessEndpointConverter {
-    fn resource_type(&self) -> &str {
-        "aws_verifiedaccess_endpoint"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_verifiedaccess_group"]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVerifiedaccessEndpointConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let endpoint_type =
-            require_str(attrs, "endpoint_type", "aws_verifiedaccess_endpoint")?.to_string();
-        let attachment_type =
-            require_str(attrs, "attachment_type", "aws_verifiedaccess_endpoint")?.to_string();
-        let group_id = require_str(
-            attrs,
-            "verifiedaccess_group_id",
-            "aws_verifiedaccess_endpoint",
-        )
-        .or_else(|_| {
-            require_str(
-                attrs,
-                "verified_access_group_id",
-                "aws_verifiedaccess_endpoint",
-            )
-        })?
-        .to_string();
-        let application_domain = optional_str(attrs, "application_domain");
-        let domain_certificate_arn = optional_str(attrs, "domain_certificate_arn");
-        let endpoint_domain_prefix = optional_str(attrs, "endpoint_domain_prefix");
-        let endpoint_domain = optional_str(attrs, "endpoint_domain").or(endpoint_domain_prefix);
-        let device_validation_domain = optional_str(attrs, "device_validation_domain");
-        let security_group_ids = parse_string_array(attrs, "security_group_ids");
-        let description = optional_str(attrs, "description");
-        let policy_document = optional_str(attrs, "policy_document");
-        let policy_enabled = policy_document.is_some();
-        let _ = attrs.get("load_balancer_options");
-        let _ = attrs.get("network_interface_options");
-        let _ = attrs.get("cidr_options");
-        let _ = attrs.get("rds_options");
-        let _ = attrs.get("sse_specification");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        // Look up group to derive instance id.
-        let snapshot = self
-            .service
-            .snapshot(&ctx.default_account_id, &region)
-            .await;
-        let verified_access_instance_id = snapshot
-            .verified_access_groups
-            .get(&group_id)
-            .map(|g| g.verified_access_instance_id.clone())
-            .unwrap_or_default();
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("vae"));
-        let now = chrono::Utc::now().to_rfc3339();
-        let creation_time = optional_str(attrs, "creation_time").unwrap_or_else(|| now.clone());
-        let last_updated_time = optional_str(attrs, "last_updated_time").unwrap_or(now);
-
-        let view = VerifiedAccessEndpointView {
-            verified_access_endpoint_id: id.clone(),
-            verified_access_instance_id,
-            verified_access_group_id: group_id,
-            application_domain,
-            endpoint_type,
-            attachment_type,
-            domain_certificate_arn,
-            endpoint_domain,
-            device_validation_domain,
-            security_group_ids,
-            load_balancer_options: None,
-            network_interface_options: None,
-            cidr_options: None,
-            rds_options: None,
-            status_code: "active".to_string(),
-            status_message: None,
-            description,
-            creation_time,
-            last_updated_time,
-            deletion_time: None,
-            sse_specification: VerifiedAccessSseSpecificationView::default(),
-            policy_document,
-            policy_enabled,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.verified_access_endpoints.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for ep in view.verified_access_endpoints.values() {
-            let attrs = serde_json::json!({
-                "id": ep.verified_access_endpoint_id,
-                "verifiedaccess_instance_id": ep.verified_access_instance_id,
-                "verifiedaccess_group_id": ep.verified_access_group_id,
-                "application_domain": ep.application_domain.clone().unwrap_or_default(),
-                "endpoint_type": ep.endpoint_type,
-                "attachment_type": ep.attachment_type,
-                "domain_certificate_arn": ep.domain_certificate_arn.clone().unwrap_or_default(),
-                "endpoint_domain": ep.endpoint_domain.clone().unwrap_or_default(),
-                "device_validation_domain": ep.device_validation_domain.clone().unwrap_or_default(),
-                "security_group_ids": ep.security_group_ids,
-                "status_code": ep.status_code,
-                "description": ep.description.clone().unwrap_or_default(),
-                "creation_time": ep.creation_time,
-                "last_updated_time": ep.last_updated_time,
-                "policy_document": ep.policy_document.clone().unwrap_or_default(),
-                "tags": ep.tags,
-                "tags_all": ep.tags,
-            });
-            results.push(ExtractedResource {
-                name: ep.verified_access_endpoint_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ===========================================================================
-// Traffic Mirror converters
-// ===========================================================================
-
-// ---------------------------------------------------------------------------
-// aws_ec2_traffic_mirror_target
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2TrafficMirrorTargetConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2TrafficMirrorTargetConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2TrafficMirrorTargetConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_traffic_mirror_target"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2TrafficMirrorTargetConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let network_interface_id = optional_str(attrs, "network_interface_id");
-        let network_load_balancer_arn = optional_str(attrs, "network_load_balancer_arn");
-        let gateway_load_balancer_endpoint_id =
-            optional_str(attrs, "gateway_load_balancer_endpoint_id");
-        let description = optional_str(attrs, "description");
-        let _ = attrs.get("tags_all");
-        let tags = extract_tags(attrs);
-
-        let target_type = if network_interface_id.is_some() {
-            "network-interface".to_string()
-        } else if network_load_balancer_arn.is_some() {
-            "network-load-balancer".to_string()
-        } else {
-            "gateway-load-balancer-endpoint".to_string()
-        };
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("tmt"));
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
-
-        let view = TrafficMirrorTargetView {
-            traffic_mirror_target_id: id.clone(),
-            network_interface_id,
-            network_load_balancer_arn,
-            gateway_load_balancer_endpoint_id,
-            r#type: target_type,
-            description,
-            owner_id,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.traffic_mirror_targets.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for t in view.traffic_mirror_targets.values() {
-            let attrs = serde_json::json!({
-                "id": t.traffic_mirror_target_id,
-                "network_interface_id": t.network_interface_id.clone().unwrap_or_default(),
-                "network_load_balancer_arn": t.network_load_balancer_arn.clone().unwrap_or_default(),
-                "gateway_load_balancer_endpoint_id": t.gateway_load_balancer_endpoint_id.clone().unwrap_or_default(),
-                "type": t.r#type,
-                "description": t.description.clone().unwrap_or_default(),
-                "owner_id": t.owner_id,
-                "tags": t.tags,
-                "tags_all": t.tags,
-            });
-            results.push(ExtractedResource {
-                name: t.traffic_mirror_target_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_ec2_traffic_mirror_filter
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2TrafficMirrorFilterConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2TrafficMirrorFilterConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2TrafficMirrorFilterConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_traffic_mirror_filter"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2TrafficMirrorFilterConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let description = optional_str(attrs, "description");
-        let network_services = parse_string_array(attrs, "network_services");
-        let _ = attrs.get("tags_all");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("tmf"));
-
-        let view = TrafficMirrorFilterView {
-            traffic_mirror_filter_id: id.clone(),
-            description,
-            ingress_filter_rules: vec![],
-            egress_filter_rules: vec![],
-            network_services,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.traffic_mirror_filters.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for f in view.traffic_mirror_filters.values() {
-            let attrs = serde_json::json!({
-                "id": f.traffic_mirror_filter_id,
-                "description": f.description.clone().unwrap_or_default(),
-                "network_services": f.network_services,
-                "tags": f.tags,
-                "tags_all": f.tags,
-            });
-            results.push(ExtractedResource {
-                name: f.traffic_mirror_filter_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_ec2_traffic_mirror_filter_rule
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2TrafficMirrorFilterRuleConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2TrafficMirrorFilterRuleConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2TrafficMirrorFilterRuleConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_traffic_mirror_filter_rule"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_ec2_traffic_mirror_filter"]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-fn parse_tm_port_range(attrs: &serde_json::Value, key: &str) -> Option<TrafficMirrorPortRangeView> {
-    attrs
-        .get(key)
-        .and_then(|v| v.as_array())
-        .and_then(|arr| arr.first())
-        .map(|block| TrafficMirrorPortRangeView {
-            from_port: block
-                .get("from_port")
-                .and_then(|v| v.as_i64())
-                .map(|n| n as i32),
-            to_port: block
-                .get("to_port")
-                .and_then(|v| v.as_i64())
-                .map(|n| n as i32),
-        })
-}
-
-impl AwsEc2TrafficMirrorFilterRuleConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let traffic_mirror_filter_id = require_str(
-            attrs,
-            "traffic_mirror_filter_id",
-            "aws_ec2_traffic_mirror_filter_rule",
-        )?
-        .to_string();
-        let traffic_direction = require_str(
-            attrs,
-            "traffic_direction",
-            "aws_ec2_traffic_mirror_filter_rule",
-        )?
-        .to_string();
-        let rule_action =
-            require_str(attrs, "rule_action", "aws_ec2_traffic_mirror_filter_rule")?.to_string();
-        let rule_number = optional_i64(attrs, "rule_number")
-            .ok_or_else(|| ConversionError::MissingAttribute {
-                resource_type: "aws_ec2_traffic_mirror_filter_rule".to_string(),
-                attribute: "rule_number".to_string(),
-            })?
-            .try_into()
-            .unwrap_or(0_i32);
-        let destination_cidr_block = require_str(
-            attrs,
-            "destination_cidr_block",
-            "aws_ec2_traffic_mirror_filter_rule",
-        )?
-        .to_string();
-        let source_cidr_block = require_str(
-            attrs,
-            "source_cidr_block",
-            "aws_ec2_traffic_mirror_filter_rule",
-        )?
-        .to_string();
-        let protocol = optional_i64(attrs, "protocol").map(|n| n as i32);
-        let description = optional_str(attrs, "description");
-        let destination_port_range = parse_tm_port_range(attrs, "destination_port_range");
-        let source_port_range = parse_tm_port_range(attrs, "source_port_range");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("tmfr"));
-
-        let rule = TrafficMirrorFilterRuleView {
-            traffic_mirror_filter_rule_id: id.clone(),
-            traffic_mirror_filter_id: traffic_mirror_filter_id.clone(),
-            traffic_direction: traffic_direction.clone(),
-            rule_number,
-            rule_action,
-            protocol,
-            destination_port_range,
-            source_port_range,
-            destination_cidr_block,
-            source_cidr_block,
-            description,
-            tags,
-        };
-
-        // Read-modify-write the parent filter so we add this rule to its rule list.
-        let snapshot = self
-            .service
-            .snapshot(&ctx.default_account_id, &region)
-            .await;
-        if let Some(filter) = snapshot
-            .traffic_mirror_filters
-            .get(&traffic_mirror_filter_id)
-        {
-            let mut filter = filter.clone();
-            if traffic_direction == "ingress" {
-                filter.ingress_filter_rules.push(rule);
-            } else {
-                filter.egress_filter_rules.push(rule);
-            }
-            let mut state_view = minimal_ec2_state_view();
-            state_view
-                .traffic_mirror_filters
-                .insert(traffic_mirror_filter_id, filter);
-            self.service
-                .merge(&ctx.default_account_id, &region, state_view)
-                .await?;
-        }
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for filter in view.traffic_mirror_filters.values() {
-            for rule in filter
-                .ingress_filter_rules
-                .iter()
-                .chain(filter.egress_filter_rules.iter())
-            {
-                let dest_pr = rule.destination_port_range.as_ref().map(|pr| {
-                    serde_json::json!([{"from_port": pr.from_port.unwrap_or(0), "to_port": pr.to_port.unwrap_or(0)}])
-                });
-                let src_pr = rule.source_port_range.as_ref().map(|pr| {
-                    serde_json::json!([{"from_port": pr.from_port.unwrap_or(0), "to_port": pr.to_port.unwrap_or(0)}])
-                });
-                let attrs = serde_json::json!({
-                    "id": rule.traffic_mirror_filter_rule_id,
-                    "traffic_mirror_filter_id": rule.traffic_mirror_filter_id,
-                    "traffic_direction": rule.traffic_direction,
-                    "rule_number": rule.rule_number,
-                    "rule_action": rule.rule_action,
-                    "protocol": rule.protocol.unwrap_or(0),
-                    "destination_cidr_block": rule.destination_cidr_block,
-                    "source_cidr_block": rule.source_cidr_block,
-                    "description": rule.description.clone().unwrap_or_default(),
-                    "destination_port_range": dest_pr,
-                    "source_port_range": src_pr,
-                });
-                results.push(ExtractedResource {
-                    name: rule.traffic_mirror_filter_rule_id.clone(),
-                    account_id: ctx.default_account_id.clone(),
-                    region: ctx.default_region.clone(),
-                    attributes: attrs,
-                });
-            }
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_ec2_traffic_mirror_session
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2TrafficMirrorSessionConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2TrafficMirrorSessionConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2TrafficMirrorSessionConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_traffic_mirror_session"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec![
-            "aws_ec2_traffic_mirror_target",
-            "aws_ec2_traffic_mirror_filter",
-        ]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2TrafficMirrorSessionConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let network_interface_id = require_str(
-            attrs,
-            "network_interface_id",
-            "aws_ec2_traffic_mirror_session",
-        )?
-        .to_string();
-        let traffic_mirror_target_id = require_str(
-            attrs,
-            "traffic_mirror_target_id",
-            "aws_ec2_traffic_mirror_session",
-        )?
-        .to_string();
-        let traffic_mirror_filter_id = require_str(
-            attrs,
-            "traffic_mirror_filter_id",
-            "aws_ec2_traffic_mirror_session",
-        )?
-        .to_string();
-        let session_number = optional_i64(attrs, "session_number").ok_or_else(|| {
-            ConversionError::MissingAttribute {
-                resource_type: "aws_ec2_traffic_mirror_session".to_string(),
-                attribute: "session_number".to_string(),
-            }
-        })? as i32;
-        let packet_length = optional_i64(attrs, "packet_length").map(|n| n as i32);
-        let virtual_network_id = optional_i64(attrs, "virtual_network_id").map(|n| n as i32);
-        let description = optional_str(attrs, "description");
-        let _ = attrs.get("tags_all");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("tms"));
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
-
-        let view = TrafficMirrorSessionView {
-            traffic_mirror_session_id: id.clone(),
-            traffic_mirror_target_id,
-            traffic_mirror_filter_id,
-            network_interface_id,
-            owner_id,
-            packet_length,
-            session_number,
-            virtual_network_id,
-            description,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.traffic_mirror_sessions.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for s in view.traffic_mirror_sessions.values() {
-            let attrs = serde_json::json!({
-                "id": s.traffic_mirror_session_id,
-                "network_interface_id": s.network_interface_id,
-                "traffic_mirror_target_id": s.traffic_mirror_target_id,
-                "traffic_mirror_filter_id": s.traffic_mirror_filter_id,
-                "session_number": s.session_number,
-                "packet_length": s.packet_length.unwrap_or(0),
-                "virtual_network_id": s.virtual_network_id.unwrap_or(0),
-                "description": s.description.clone().unwrap_or_default(),
-                "owner_id": s.owner_id,
-                "tags": s.tags,
-                "tags_all": s.tags,
-            });
-            results.push(ExtractedResource {
-                name: s.traffic_mirror_session_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ===========================================================================
-// Transit Gateway extension converters
-// ===========================================================================
-
-// ---------------------------------------------------------------------------
-// aws_ec2_transit_gateway_multicast_domain
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2TransitGatewayMulticastDomainConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2TransitGatewayMulticastDomainConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2TransitGatewayMulticastDomainConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_transit_gateway_multicast_domain"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2TransitGatewayMulticastDomainConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let transit_gateway_id = require_str(
-            attrs,
-            "transit_gateway_id",
-            "aws_ec2_transit_gateway_multicast_domain",
-        )?
-        .to_string();
-        let igmpv2_support =
-            optional_str(attrs, "igmpv2_support").unwrap_or_else(|| "disable".to_string());
-        let static_sources_support =
-            optional_str(attrs, "static_sources_support").unwrap_or_else(|| "disable".to_string());
-        let auto_accept_shared_associations =
-            optional_str(attrs, "auto_accept_shared_associations")
-                .unwrap_or_else(|| "disable".to_string());
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("tgw-mcast-domain"));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:ec2:{}:{}:transit-gateway-multicast-domain/{}",
-                region, ctx.default_account_id, id
-            )
-        });
-        let owner_id =
-            optional_str(attrs, "owner_id").unwrap_or_else(|| ctx.default_account_id.clone());
-        let creation_time =
-            optional_str(attrs, "creation_time").unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
-
-        let view = TransitGatewayMulticastDomainView {
-            transit_gateway_multicast_domain_id: id.clone(),
-            transit_gateway_id,
-            transit_gateway_multicast_domain_arn: arn,
-            owner_id,
-            igmpv2_support,
-            static_sources_support,
-            auto_accept_shared_associations,
-            state: "available".to_string(),
-            creation_time,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.tgw_multicast_domains.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for d in view.tgw_multicast_domains.values() {
-            let attrs = serde_json::json!({
-                "id": d.transit_gateway_multicast_domain_id,
-                "arn": d.transit_gateway_multicast_domain_arn,
-                "transit_gateway_id": d.transit_gateway_id,
-                "owner_id": d.owner_id,
-                "igmpv2_support": d.igmpv2_support,
-                "static_sources_support": d.static_sources_support,
-                "auto_accept_shared_associations": d.auto_accept_shared_associations,
-                "state": d.state,
-                "creation_time": d.creation_time,
-                "tags": d.tags,
-                "tags_all": d.tags,
-            });
-            results.push(ExtractedResource {
-                name: d.transit_gateway_multicast_domain_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_ec2_transit_gateway_connect
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2TransitGatewayConnectConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2TransitGatewayConnectConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2TransitGatewayConnectConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_transit_gateway_connect"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2TransitGatewayConnectConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let transport_attachment_id = require_str(
-            attrs,
-            "transport_attachment_id",
-            "aws_ec2_transit_gateway_connect",
-        )?
-        .to_string();
-        let protocol = optional_str(attrs, "protocol").unwrap_or_else(|| "gre".to_string());
-        let _ = attrs.get("transit_gateway_default_route_table_association");
-        let _ = attrs.get("transit_gateway_default_route_table_propagation");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        // Look up the transport attachment to find the TGW id.
-        let snapshot = self
-            .service
-            .snapshot(&ctx.default_account_id, &region)
-            .await;
-        let transit_gateway_id = snapshot
-            .tgw_vpc_attachments
-            .get(&transport_attachment_id)
-            .map(|a| a.transit_gateway_id.clone())
-            .unwrap_or_else(|| optional_str(attrs, "transit_gateway_id").unwrap_or_default());
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("tgw-attach"));
-        let creation_time =
-            optional_str(attrs, "creation_time").unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
-
-        let view = TransitGatewayConnectView {
-            transit_gateway_attachment_id: id.clone(),
-            transport_transit_gateway_attachment_id: transport_attachment_id,
-            transit_gateway_id,
-            state: "available".to_string(),
-            creation_time,
-            protocol,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.tgw_connects.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for c in view.tgw_connects.values() {
-            let attrs = serde_json::json!({
-                "id": c.transit_gateway_attachment_id,
-                "transit_gateway_id": c.transit_gateway_id,
-                "transport_attachment_id": c.transport_transit_gateway_attachment_id,
-                "protocol": c.protocol,
-                "state": c.state,
-                "creation_time": c.creation_time,
-                "tags": c.tags,
-                "tags_all": c.tags,
-            });
-            results.push(ExtractedResource {
-                name: c.transit_gateway_attachment_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_ec2_transit_gateway_policy_table
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2TransitGatewayPolicyTableConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2TransitGatewayPolicyTableConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2TransitGatewayPolicyTableConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_transit_gateway_policy_table"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2TransitGatewayPolicyTableConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let transit_gateway_id = require_str(
-            attrs,
-            "transit_gateway_id",
-            "aws_ec2_transit_gateway_policy_table",
-        )?
-        .to_string();
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("tgw-ptb"));
-        let creation_time =
-            optional_str(attrs, "creation_time").unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
-
-        let view = TransitGatewayPolicyTableView {
-            transit_gateway_policy_table_id: id.clone(),
-            transit_gateway_id,
-            state: "available".to_string(),
-            creation_time,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.tgw_policy_tables.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for t in view.tgw_policy_tables.values() {
-            let attrs = serde_json::json!({
-                "id": t.transit_gateway_policy_table_id,
-                "transit_gateway_id": t.transit_gateway_id,
-                "state": t.state,
-                "creation_time": t.creation_time,
-                "tags": t.tags,
-                "tags_all": t.tags,
-            });
-            results.push(ExtractedResource {
-                name: t.transit_gateway_policy_table_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ===========================================================================
-// Network Insights converters
-// ===========================================================================
-
-// ---------------------------------------------------------------------------
-// aws_ec2_network_insights_path
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2NetworkInsightsPathConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2NetworkInsightsPathConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2NetworkInsightsPathConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_network_insights_path"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2NetworkInsightsPathConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let protocol = require_str(attrs, "protocol", "aws_ec2_network_insights_path")?.to_string();
-        let source = require_str(attrs, "source", "aws_ec2_network_insights_path")?.to_string();
-        let destination = optional_str(attrs, "destination");
-        let source_ip = optional_str(attrs, "source_ip");
-        let destination_ip = optional_str(attrs, "destination_ip");
-        let destination_port = optional_i64(attrs, "destination_port").map(|n| n as i32);
-        let _ = attrs.get("filter_at_source");
-        let _ = attrs.get("filter_at_destination");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("nip"));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:ec2:{}:{}:network-insights-path/{}",
-                region, ctx.default_account_id, id
-            )
-        });
-        let created_date =
-            optional_str(attrs, "created_date").unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
-
-        let view = NetworkInsightsPathView {
-            network_insights_path_id: id.clone(),
-            network_insights_path_arn: arn,
-            created_date,
-            source: Some(source),
-            destination,
-            source_arn: optional_str(attrs, "source_arn"),
-            destination_arn: optional_str(attrs, "destination_arn"),
-            source_ip,
-            destination_ip,
-            protocol,
-            destination_port,
-            tags,
-            filter_at_source: Default::default(),
-            filter_at_destination: Default::default(),
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.network_insights_paths.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for p in view.network_insights_paths.values() {
-            let attrs = serde_json::json!({
-                "id": p.network_insights_path_id,
-                "arn": p.network_insights_path_arn,
-                "protocol": p.protocol,
-                "source": p.source.clone().unwrap_or_default(),
-                "destination": p.destination.clone().unwrap_or_default(),
-                "source_arn": p.source_arn.clone().unwrap_or_default(),
-                "destination_arn": p.destination_arn.clone().unwrap_or_default(),
-                "source_ip": p.source_ip.clone().unwrap_or_default(),
-                "destination_ip": p.destination_ip.clone().unwrap_or_default(),
-                "destination_port": p.destination_port.unwrap_or(0),
-                "created_date": p.created_date,
-                "tags": p.tags,
-                "tags_all": p.tags,
-            });
-            results.push(ExtractedResource {
-                name: p.network_insights_path_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_ec2_network_insights_analysis
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2NetworkInsightsAnalysisConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2NetworkInsightsAnalysisConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2NetworkInsightsAnalysisConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_network_insights_analysis"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_ec2_network_insights_path"]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2NetworkInsightsAnalysisConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let network_insights_path_id = require_str(
-            attrs,
-            "network_insights_path_id",
-            "aws_ec2_network_insights_analysis",
-        )?
-        .to_string();
-        let additional_accounts = parse_string_array(attrs, "additional_accounts");
-        let filter_in_arns = parse_string_array(attrs, "filter_in_arns");
-        let _ = attrs.get("wait_for_completion");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("nia"));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:ec2:{}:{}:network-insights-analysis/{}",
-                region, ctx.default_account_id, id
-            )
-        });
-        let start_date =
-            optional_str(attrs, "start_date").unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
-
-        let view = NetworkInsightsAnalysisView {
-            network_insights_analysis_id: id.clone(),
-            network_insights_analysis_arn: arn,
-            network_insights_path_id,
-            additional_accounts,
-            filter_in_arns,
-            start_date,
-            end_date: None,
-            status: "succeeded".to_string(),
-            status_message: None,
-            warning_message: None,
-            network_path_found: optional_bool(attrs, "path_found").unwrap_or(true),
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.network_insights_analyses.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for a in view.network_insights_analyses.values() {
-            let attrs = serde_json::json!({
-                "id": a.network_insights_analysis_id,
-                "arn": a.network_insights_analysis_arn,
-                "network_insights_path_id": a.network_insights_path_id,
-                "additional_accounts": a.additional_accounts,
-                "filter_in_arns": a.filter_in_arns,
-                "start_date": a.start_date,
-                "status": a.status,
-                "path_found": a.network_path_found,
-                "tags": a.tags,
-                "tags_all": a.tags,
-            });
-            results.push(ExtractedResource {
-                name: a.network_insights_analysis_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ===========================================================================
-// Batch C converters: resources promoted from Default::default() stubs to
-// real state-backed implementations in EC2 handler Batches A and B.
-// ===========================================================================
-
-// ---------------------------------------------------------------------------
-// aws_ec2_local_gateway_route
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2LocalGatewayRouteConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2LocalGatewayRouteConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2LocalGatewayRouteConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_local_gateway_route"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2LocalGatewayRouteConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let local_gateway_route_table_id = require_str(
-            attrs,
-            "local_gateway_route_table_id",
-            "aws_ec2_local_gateway_route",
-        )?
-        .to_string();
-        let destination_cidr_block = require_str(
-            attrs,
-            "destination_cidr_block",
-            "aws_ec2_local_gateway_route",
-        )?
-        .to_string();
-        let local_gateway_virtual_interface_group_id =
-            optional_str(attrs, "local_gateway_virtual_interface_group_id");
-        let _ = attrs.get("network_interface_id");
-        let _ = attrs.get("timeouts");
-
-        let view = LocalGatewayRouteView {
-            destination_cidr_block: destination_cidr_block.clone(),
-            local_gateway_route_table_id: local_gateway_route_table_id.clone(),
-            r#type: "static".to_string(),
-            state: "active".to_string(),
-            local_gateway_route_table_arn: optional_str(attrs, "local_gateway_route_table_arn"),
-            owner_id: ctx.default_account_id.clone(),
-            subnet_id: optional_str(attrs, "subnet_id"),
-            network_interface_id: optional_str(attrs, "network_interface_id"),
-            destination_prefix_list_id: optional_str(attrs, "destination_prefix_list_id"),
-            coip_pool_id: optional_str(attrs, "coip_pool_id"),
-            local_gateway_virtual_interface_group_id,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.local_gateway_routes.push(view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for r in view.local_gateway_routes.iter() {
-            let attrs = serde_json::json!({
-                "id": format!(
-                    "{}_{}",
-                    r.local_gateway_route_table_id,
-                    r.destination_cidr_block,
-                ),
-                "local_gateway_route_table_id": r.local_gateway_route_table_id,
-                "destination_cidr_block": r.destination_cidr_block,
-                "local_gateway_virtual_interface_group_id":
-                    r.local_gateway_virtual_interface_group_id.clone().unwrap_or_default(),
-                "network_interface_id": r.network_interface_id.clone().unwrap_or_default(),
-                "state": r.state,
-                "type": r.r#type,
-            });
-            results.push(ExtractedResource {
-                name: format!(
-                    "{}_{}",
-                    r.local_gateway_route_table_id, r.destination_cidr_block,
-                ),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_ec2_local_gateway_route_table_vpc_association
-// ---------------------------------------------------------------------------
-
-pub struct AwsEc2LocalGatewayRouteTableVpcAssociationConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2LocalGatewayRouteTableVpcAssociationConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2LocalGatewayRouteTableVpcAssociationConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_local_gateway_route_table_vpc_association"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2LocalGatewayRouteTableVpcAssociationConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let local_gateway_route_table_id = require_str(
-            attrs,
-            "local_gateway_route_table_id",
-            "aws_ec2_local_gateway_route_table_vpc_association",
-        )?
-        .to_string();
-        let vpc_id = require_str(
-            attrs,
-            "vpc_id",
-            "aws_ec2_local_gateway_route_table_vpc_association",
-        )?
-        .to_string();
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id").unwrap_or_else(|| random_short_id("lgw-vpc-assoc"));
-        let local_gateway_route_table_arn = optional_str(attrs, "local_gateway_route_table_arn")
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:ec2:{}:{}:local-gateway-route-table/{}",
-                    region, ctx.default_account_id, local_gateway_route_table_id,
-                )
-            });
-        let local_gateway_id = optional_str(attrs, "local_gateway_id").unwrap_or_default();
-
-        let view = LocalGatewayRouteTableVpcAssociationView {
-            local_gateway_route_table_vpc_association_id: id.clone(),
-            local_gateway_route_table_id,
-            local_gateway_route_table_arn,
-            local_gateway_id,
-            vpc_id,
-            owner_id: ctx.default_account_id.clone(),
-            state: "associated".to_string(),
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view
-            .local_gateway_route_table_vpc_associations
-            .insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for a in view.local_gateway_route_table_vpc_associations.values() {
-            let attrs = serde_json::json!({
-                "id": a.local_gateway_route_table_vpc_association_id,
-                "local_gateway_route_table_id": a.local_gateway_route_table_id,
-                "local_gateway_route_table_arn": a.local_gateway_route_table_arn,
-                "local_gateway_id": a.local_gateway_id,
-                "vpc_id": a.vpc_id,
-                "owner_id": a.owner_id,
-                "state": a.state,
-                "tags": a.tags,
-                "tags_all": a.tags,
-            });
-            results.push(ExtractedResource {
-                name: a.local_gateway_route_table_vpc_association_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_vpc_ipam_pool_cidr_allocation
-// ---------------------------------------------------------------------------
-
-pub struct AwsVpcIpamPoolCidrAllocationConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsVpcIpamPoolCidrAllocationConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsVpcIpamPoolCidrAllocationConverter {
-    fn resource_type(&self) -> &str {
-        "aws_vpc_ipam_pool_cidr_allocation"
-    }
-
-    fn depends_on_types(&self) -> Vec<&str> {
-        vec!["aws_vpc_ipam_pool"]
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsVpcIpamPoolCidrAllocationConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let ipam_pool_id =
-            require_str(attrs, "ipam_pool_id", "aws_vpc_ipam_pool_cidr_allocation")?.to_string();
-        let cidr = optional_str(attrs, "cidr").unwrap_or_default();
-        let description = optional_str(attrs, "description");
-        let _ = attrs.get("netmask_length");
-        let _ = attrs.get("disallowed_cidrs");
-        let _ = attrs.get("timeouts");
-
-        let allocation_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "ipam_pool_allocation_id"))
-            .unwrap_or_else(|| random_short_id("ipam-pool-alloc"));
-
-        let view = IpamPoolAllocationView {
-            ipam_pool_allocation_id: allocation_id.clone(),
-            cidr,
-            ipam_pool_id,
-            description,
-            resource_id: optional_str(attrs, "resource_id"),
-            resource_type: optional_str(attrs, "resource_type")
-                .unwrap_or_else(|| "custom".to_string()),
-            resource_region: optional_str(attrs, "resource_region"),
-            resource_owner: optional_str(attrs, "resource_owner")
-                .or_else(|| Some(ctx.default_account_id.clone())),
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.ipam_pool_allocations.push(view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for a in view.ipam_pool_allocations.iter() {
-            let attrs = serde_json::json!({
-                "id": format!("{}_{}", a.ipam_pool_allocation_id, a.ipam_pool_id),
-                "ipam_pool_allocation_id": a.ipam_pool_allocation_id,
-                "ipam_pool_id": a.ipam_pool_id,
-                "cidr": a.cidr,
-                "description": a.description.clone().unwrap_or_default(),
-                "resource_id": a.resource_id.clone().unwrap_or_default(),
-                "resource_type": a.resource_type,
-                "resource_region": a.resource_region.clone().unwrap_or_default(),
-                "resource_owner": a.resource_owner.clone().unwrap_or_default(),
-            });
-            results.push(ExtractedResource {
-                name: a.ipam_pool_allocation_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
-}
-
-// ---------------------------------------------------------------------------
-// aws_ec2_capacity_block_reservation
-// ---------------------------------------------------------------------------
-//
-// Maps to `state.capacity_blocks` (purchased Capacity Block reservations,
-// surfaced via the `DescribeCapacityBlocks` handler wired in Batch A).
-
-pub struct AwsEc2CapacityBlockReservationConverter {
-    service: Arc<Ec2Service>,
-}
-
-impl AwsEc2CapacityBlockReservationConverter {
-    pub fn new(service: Arc<Ec2Service>) -> Self {
-        Self { service }
-    }
-}
-
-impl TerraformResourceConverter for AwsEc2CapacityBlockReservationConverter {
-    fn resource_type(&self) -> &str {
-        "aws_ec2_capacity_block_reservation"
-    }
-
-    fn inject<'a>(
-        &'a self,
-        instance: &'a ResourceInstance,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
-        Box::pin(async move { self.do_inject(instance, ctx).await })
-    }
-
-    fn extract<'a>(
-        &'a self,
-        ctx: &'a ConversionContext,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
-    {
-        Box::pin(async move { self.do_extract(ctx).await })
-    }
-}
-
-impl AwsEc2CapacityBlockReservationConverter {
-    async fn do_inject(
-        &self,
-        instance: &ResourceInstance,
-        ctx: &ConversionContext,
-    ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let capacity_block_offering_id = require_str(
-            attrs,
-            "capacity_block_offering_id",
-            "aws_ec2_capacity_block_reservation",
-        )?
-        .to_string();
-        let _ = attrs.get("instance_platform");
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("timeouts");
-        let tags = extract_tags(attrs);
-
-        let id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "capacity_block_id"))
-            .unwrap_or_else(|| random_short_id("cb"));
-        let capacity_reservation_id =
-            optional_str(attrs, "capacity_reservation_id").unwrap_or_else(|| random_short_id("cr"));
-        let capacity_reservation_arn = optional_str(attrs, "capacity_reservation_arn")
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:ec2:{}:{}:capacity-reservation/{}",
-                    region, ctx.default_account_id, capacity_reservation_id,
-                )
-            });
-
-        let view = CapacityBlockView {
-            capacity_block_id: id.clone(),
-            capacity_reservation_id,
-            capacity_block_offering_id,
-            instance_type: optional_str(attrs, "instance_type").unwrap_or_default(),
-            instance_count: optional_i64(attrs, "instance_count").unwrap_or(0) as i32,
-            availability_zone: optional_str(attrs, "availability_zone").unwrap_or_default(),
-            start_date: optional_str(attrs, "start_date").unwrap_or_default(),
-            end_date: optional_str(attrs, "end_date").unwrap_or_default(),
-            tenancy: optional_str(attrs, "tenancy").unwrap_or_else(|| "default".to_string()),
-            currency_code: optional_str(attrs, "currency_code")
-                .unwrap_or_else(|| "USD".to_string()),
-            upfront_fee: optional_str(attrs, "upfront_fee").unwrap_or_default(),
-            commitment_duration_in_seconds: 0,
-            capacity_reservation_arn,
-            tags,
-        };
-
-        let mut state_view = minimal_ec2_state_view();
-        state_view.capacity_blocks.insert(id, view);
-        self.service
-            .merge(&ctx.default_account_id, &region, state_view)
-            .await?;
-
-        Ok(ConversionResult {
-            region,
-            warnings: vec![],
-        })
-    }
-
-    async fn do_extract(
-        &self,
-        ctx: &ConversionContext,
-    ) -> Result<Vec<ExtractedResource>, ConversionError> {
-        let view = self
-            .service
-            .snapshot(&ctx.default_account_id, &ctx.default_region)
-            .await;
-        let mut results = vec![];
-        for b in view.capacity_blocks.values() {
-            let attrs = serde_json::json!({
-                "id": b.capacity_block_id,
-                "capacity_block_id": b.capacity_block_id,
-                "capacity_block_offering_id": b.capacity_block_offering_id,
-                "capacity_reservation_id": b.capacity_reservation_id,
-                "capacity_reservation_arn": b.capacity_reservation_arn,
-                "instance_type": b.instance_type,
-                "instance_count": b.instance_count,
-                "availability_zone": b.availability_zone,
-                "start_date": b.start_date,
-                "end_date": b.end_date,
-                "tenancy": b.tenancy,
-                "currency_code": b.currency_code,
-                "upfront_fee": b.upfront_fee,
-                "tags": b.tags,
-                "tags_all": b.tags,
-            });
-            results.push(ExtractedResource {
-                name: b.capacity_block_id.clone(),
-                account_id: ctx.default_account_id.clone(),
-                region: ctx.default_region.clone(),
-                attributes: attrs,
-            });
-        }
-        Ok(results)
-    }
 }

@@ -1,0 +1,133 @@
+# Auto-ingested by `tf-converter-codegen ingest s3control`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (access_point / bucket). ARN templates and the constants
+# (`network_origin = "Internet"`, default booleans) are wired up in
+# the converter.
+
+[service]
+name = "s3control"
+crate_name = "winterbaume_s3control"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_access_point
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_access_point"
+model = "AccessPointTfModel"
+view = "AccessPointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "alias"
+view = "alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_date"
+view = "creation_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "network_origin"
+view = "network_origin"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "block_public_acls"
+view = "block_public_acls"
+type = "bool"
+
+[[resource.field]]
+hcl = "ignore_public_acls"
+view = "ignore_public_acls"
+type = "bool"
+
+[[resource.field]]
+hcl = "block_public_policy"
+view = "block_public_policy"
+type = "bool"
+
+[[resource.field]]
+hcl = "restrict_public_buckets"
+view = "restrict_public_buckets"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_bucket
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_bucket"
+model = "BucketTfModel"
+view = "OutpostsBucketView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "outpost_id"
+view = "outpost_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_date"
+view = "creation_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

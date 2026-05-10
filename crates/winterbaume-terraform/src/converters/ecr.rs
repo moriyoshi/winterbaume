@@ -1,4 +1,10 @@
 //! Terraform converter for ECR resources.
+//!
+//! `RepositoryTfModel` is generated from `specs/ecr.toml`. The ARN and
+//! repository-URL templates, the `image_tag_mutability = "MUTABLE"`
+//! default, the `created_at` timestamp, and the nested
+//! `image_scanning_configuration` / `encryption_configuration` blocks are
+//! wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -18,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::ecr as ecr_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Converts `aws_ecr_repository` Terraform resources to/from ECR state.
 pub struct AwsEcrRepositoryConverter {
@@ -59,29 +66,29 @@ impl AwsEcrRepositoryConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_ecr_repository")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: ecr_gen::RepositoryTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_ecr_repository", e))?;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:ecr:{}:{}:repository/{}",
-                    region, ctx.default_account_id, name
-                )
-            });
-
-        let repository_url = optional_str(attrs, "repository_url").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:ecr:{}:{}:repository/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+        let repository_url = model.repository_url.unwrap_or_else(|| {
             format!(
                 "{}.dkr.ecr.{}.amazonaws.com/{}",
                 ctx.default_account_id, region, name
             )
         });
+        let image_tag_mutability = model
+            .image_tag_mutability
+            .unwrap_or_else(|| "MUTABLE".to_string());
 
-        let image_tag_mutability =
-            optional_str(attrs, "image_tag_mutability").unwrap_or_else(|| "MUTABLE".to_string());
-
+        // Nested blocks stay as raw reads — spec can't express list-of-object.
+        let attrs = &instance.attributes;
         let scan_on_push = attrs
             .get("image_scanning_configuration")
             .and_then(|v| v.as_array())
@@ -113,13 +120,13 @@ impl AwsEcrRepositoryConverter {
             .unwrap_or_default();
 
         let repo_view = RepositoryView {
-            repository_name: name.to_string(),
+            repository_name: name.clone(),
             repository_arn: arn.clone(),
             repository_uri: repository_url,
             registry_id: ctx.default_account_id.clone(),
             created_at: Some(Utc::now().to_rfc3339()),
             images: vec![],
-            tags: extract_tags(attrs),
+            tags: model.tags,
             lifecycle_policy: None,
             repository_policy: None,
             image_scanning_configuration: ImageScanningConfigView { scan_on_push },
@@ -130,7 +137,7 @@ impl AwsEcrRepositoryConverter {
         let state_view = EcrStateView {
             repositories: {
                 let mut m = HashMap::new();
-                m.insert(name.to_string(), repo_view);
+                m.insert(name, repo_view);
                 m
             },
             registry_policy: None,

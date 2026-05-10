@@ -1,4 +1,12 @@
 //! Terraform converters for CodeBuild resources.
+//!
+//! `ProjectTfModel` is generated from `specs/codebuild.toml`. The ARN
+//! template, the `source` / `artifacts` / `environment` nested-block
+//! parsing, the `tags` projection into `Vec<TagView>`, the
+//! `created` / `last_modified` constants (set to `Utc::now()`), and
+//! the raw-Value `build_batch_config` / `cache` /
+//! `file_system_locations` / `logs_config` / `secondary_artifacts` /
+//! `secondary_sources` / `vpc_config` reads are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,7 +23,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::codebuild as codebuild_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_codebuild_project
@@ -59,18 +68,21 @@ impl AwsCodebuildProjectConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: codebuild_gen::ProjectTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_codebuild_project", e))?;
 
-        let name = require_str(attrs, "name", "aws_codebuild_project")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:codebuild:{}:{}:project/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let service_role = optional_str(attrs, "service_role").unwrap_or_default();
+        let description = model.description.unwrap_or_default();
+        let service_role = model.service_role.unwrap_or_default();
 
         let source_type = attrs
             .get("source")
@@ -130,13 +142,6 @@ impl AwsCodebuildProjectConverter {
             .unwrap_or("BUILD_GENERAL1_SMALL")
             .to_string();
 
-        let _tags_all = attrs.get("tags_all");
-        let _build_timeout = attrs.get("build_timeout");
-        let _queued_timeout = attrs.get("queued_timeout");
-        let _concurrent_build_limit = attrs.get("concurrent_build_limit");
-        let _badge_enabled = attrs.get("badge_enabled");
-        let _source_version = optional_str(attrs, "source_version");
-
         let build_batch_config = attrs
             .get("build_batch_config")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
@@ -182,7 +187,7 @@ impl AwsCodebuildProjectConverter {
 
         let now = Utc::now().to_rfc3339();
         let project_view = ProjectView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             description,
             source_type,
@@ -206,7 +211,7 @@ impl AwsCodebuildProjectConverter {
         };
 
         let mut state_view = CodeBuildStateView::default();
-        state_view.projects.insert(name.to_string(), project_view);
+        state_view.projects.insert(name, project_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

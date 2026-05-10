@@ -1,4 +1,11 @@
 //! Terraform converters for X-Ray resources.
+//!
+//! `GroupTfModel` and `SamplingRuleTfModel` are generated from
+//! `specs/xray.toml`. The ARN templates, the
+//! `insights_configuration` nested-block raw read on the group, the f64
+//! `fixed_rate` / `created_at` / `modified_at` raw reads on the
+//! sampling rule, and the `*` defaults for resource_arn / service_name
+//! / service_type / host / http_method / url_path are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::xray as xray_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_xray_group
@@ -59,18 +67,21 @@ impl AwsXrayGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: xray_gen::GroupTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_xray_group", e))?;
 
-        let group_name = require_str(attrs, "group_name", "aws_xray_group")?;
-        let filter_expression = optional_str(attrs, "filter_expression").unwrap_or_default();
-        let group_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let group_name = model.group_name.clone();
+        let filter_expression = model.filter_expression.unwrap_or_default();
+        let group_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:xray:{}:{}:group/{}/{}",
                 region, ctx.default_account_id, group_name, group_name
             )
         });
 
+        // insights_configuration is a nested-block array — read raw.
         let insights_enabled = attrs
             .get("insights_configuration")
             .and_then(|v| v.as_array())
@@ -85,7 +96,7 @@ impl AwsXrayGroupConverter {
             .and_then(|v| v.as_bool());
 
         let group_view = GroupView {
-            group_name: group_name.to_string(),
+            group_name: group_name.clone(),
             group_arn,
             filter_expression,
             insights_enabled,
@@ -98,7 +109,7 @@ impl AwsXrayGroupConverter {
             sampling_rules: HashMap::new(),
             ..Default::default()
         };
-        state_view.groups.insert(group_name.to_string(), group_view);
+        state_view.groups.insert(group_name, group_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -185,35 +196,31 @@ impl AwsXraySamplingRuleConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: xray_gen::SamplingRuleTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_xray_sampling_rule", e))?;
 
-        let rule_name = require_str(attrs, "rule_name", "aws_xray_sampling_rule")?;
-        let rule_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let rule_name = model.rule_name.clone();
+        let rule_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:xray:{}:{}:sampling-rule/{}",
                 region, ctx.default_account_id, rule_name
             )
         });
-        let resource_arn = optional_str(attrs, "resource_arn").unwrap_or_else(|| "*".to_string());
-        let priority = attrs
-            .get("priority")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(1000) as i32;
+        let resource_arn = model.resource_arn.unwrap_or_else(|| "*".to_string());
+        let service_name = model.service_name.unwrap_or_else(|| "*".to_string());
+        let service_type = model.service_type.unwrap_or_else(|| "*".to_string());
+        let host = model.host.unwrap_or_else(|| "*".to_string());
+        let http_method = model.http_method.unwrap_or_else(|| "*".to_string());
+        let url_path = model.url_path.unwrap_or_else(|| "*".to_string());
+
+        // f64 not in spec vocabulary — read raw.
         let fixed_rate = attrs
             .get("fixed_rate")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.05);
-        let reservoir_size = attrs
-            .get("reservoir_size")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(1) as i32;
-        let service_name = optional_str(attrs, "service_name").unwrap_or_else(|| "*".to_string());
-        let service_type = optional_str(attrs, "service_type").unwrap_or_else(|| "*".to_string());
-        let host = optional_str(attrs, "host").unwrap_or_else(|| "*".to_string());
-        let http_method = optional_str(attrs, "http_method").unwrap_or_else(|| "*".to_string());
-        let url_path = optional_str(attrs, "url_path").unwrap_or_else(|| "*".to_string());
-        let version = attrs.get("version").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
         let created_at = attrs
             .get("created_at")
             .and_then(|v| v.as_f64())
@@ -224,18 +231,18 @@ impl AwsXraySamplingRuleConverter {
             .unwrap_or(0.0);
 
         let rule_view = SamplingRuleView {
-            rule_name: rule_name.to_string(),
+            rule_name: rule_name.clone(),
             rule_arn,
             resource_arn,
-            priority,
+            priority: model.priority as i32,
             fixed_rate,
-            reservoir_size,
+            reservoir_size: model.reservoir_size as i32,
             service_name,
             service_type,
             host,
             http_method,
             url_path,
-            version,
+            version: model.version as i32,
             created_at,
             modified_at,
         };
@@ -246,9 +253,7 @@ impl AwsXraySamplingRuleConverter {
             sampling_rules: HashMap::new(),
             ..Default::default()
         };
-        state_view
-            .sampling_rules
-            .insert(rule_name.to_string(), rule_view);
+        state_view.sampling_rules.insert(rule_name, rule_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

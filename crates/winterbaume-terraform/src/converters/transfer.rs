@@ -1,4 +1,14 @@
-//! Terraform converter for AWS Transfer Family resources.
+//! Terraform converters for AWS Transfer Family resources.
+//!
+//! `ServerTfModel` and `UserTfModel` are generated from
+//! `specs/transfer.toml`. The ARN templates, the synthesised server ID
+//! (uuid simple), the default `endpoint_type = "PUBLIC"` /
+//! `identity_provider_type = "SERVICE_MANAGED"` / `domain = "S3"` /
+//! `home_directory_type = "PATH"` / `state = "ONLINE"` constants,
+//! the `protocols = ["SFTP"]` default, the Vec<TagView>-shaped tags
+//! merge, and the home_directory_mappings / posix_profile / endpoint_details /
+//! protocol_details / workflow_details / s3_storage_options raw blobs are
+//! wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::transfer as transfer_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Extract tags as `Vec<TagView>` from Terraform attributes.
 fn extract_tag_views(attrs: &serde_json::Value) -> Vec<TagView> {
@@ -84,22 +95,26 @@ impl AwsTransferServerConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let server_id = optional_str(attrs, "id")
+        let model: transfer_gen::ServerTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_transfer_server", e))?;
+
+        let server_id = model
+            .id
             .unwrap_or_else(|| format!("s-{}", uuid::Uuid::new_v4().simple()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:transfer:{}:{}:server/{}",
                 region, ctx.default_account_id, server_id
             )
         });
-        let endpoint_type =
-            optional_str(attrs, "endpoint_type").unwrap_or_else(|| "PUBLIC".to_string());
-        let identity_provider_type = optional_str(attrs, "identity_provider_type")
+        let endpoint_type = model.endpoint_type.unwrap_or_else(|| "PUBLIC".to_string());
+        let identity_provider_type = model
+            .identity_provider_type
             .unwrap_or_else(|| "SERVICE_MANAGED".to_string());
-        let domain = optional_str(attrs, "domain").unwrap_or_else(|| "S3".to_string());
-        let logging_role = optional_str(attrs, "logging_role");
-        let certificate = optional_str(attrs, "certificate");
-        let security_policy_name = optional_str(attrs, "security_policy_name");
+        let domain = model.domain.unwrap_or_else(|| "S3".to_string());
+        let logging_role = model.logging_role;
+        let certificate = model.certificate;
+        let security_policy_name = model.security_policy_name;
 
         // Additional fields for coverage
         let _ = attrs.get("tags_all");
@@ -260,29 +275,34 @@ impl AwsTransferUserConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let server_id = require_str(attrs, "server_id", "aws_transfer_user")?;
-        let user_name = require_str(attrs, "user_name", "aws_transfer_user")?;
-        let role = require_str(attrs, "role", "aws_transfer_user")?;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: transfer_gen::UserTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_transfer_user", e))?;
+
+        let server_id = model.server_id;
+        let user_name = model.user_name;
+        let role = model.role;
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:transfer:{}:{}:user/{}/{}",
                 region, ctx.default_account_id, server_id, user_name
             )
         });
-        let home_directory = optional_str(attrs, "home_directory");
-        let home_directory_type =
-            optional_str(attrs, "home_directory_type").unwrap_or_else(|| "PATH".to_string());
-        let _policy = optional_str(attrs, "policy");
+        let home_directory = model.home_directory;
+        let home_directory_type = model
+            .home_directory_type
+            .unwrap_or_else(|| "PATH".to_string());
+        let _policy = attrs.get("policy");
         let home_directory_mappings = attrs.get("home_directory_mappings").cloned();
         let posix_profile = attrs.get("posix_profile").cloned();
 
         let user_view = UserView {
-            server_id: server_id.to_string(),
-            user_name: user_name.to_string(),
+            server_id: server_id.clone(),
+            user_name: user_name.clone(),
             arn,
-            role: role.to_string(),
+            role,
             home_directory,
             home_directory_type,
             tags: extract_tag_views(attrs),
@@ -309,20 +329,20 @@ impl AwsTransferUserConverter {
         };
 
         // Find the existing server and clone it with the new user added
-        if let Some(existing_server) = current.servers.get(server_id) {
+        if let Some(existing_server) = current.servers.get(&server_id) {
             let mut server = existing_server.clone();
-            server.users.insert(user_name.to_string(), user_view);
-            state_view.servers.insert(server_id.to_string(), server);
+            server.users.insert(user_name.clone(), user_view);
+            state_view.servers.insert(server_id.clone(), server);
         } else {
             // Server not found; create a minimal stub with just the user
             let mut users = HashMap::new();
-            users.insert(user_name.to_string(), user_view);
+            users.insert(user_name.clone(), user_view);
             let server = ServerView {
                 arn: format!(
                     "arn:aws:transfer:{}:{}:server/{}",
                     region, ctx.default_account_id, server_id
                 ),
-                server_id: server_id.to_string(),
+                server_id: server_id.clone(),
                 state: "ONLINE".to_string(),
                 endpoint_type: "PUBLIC".to_string(),
                 identity_provider_type: "SERVICE_MANAGED".to_string(),
@@ -339,7 +359,7 @@ impl AwsTransferUserConverter {
                 workflow_details: None,
                 s3_storage_options: None,
             };
-            state_view.servers.insert(server_id.to_string(), server);
+            state_view.servers.insert(server_id.clone(), server);
         }
 
         self.service

@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::appsync as appsync_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_appsync_graphql_api
@@ -58,15 +59,19 @@ impl AwsAppsyncGraphqlApiConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appsync_gen::GraphqlApiTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appsync_graphql_api", e))?;
 
-        let name = require_str(attrs, "name", "aws_appsync_graphql_api")?;
-        let api_id = optional_str(attrs, "id")
+        let name = model.name.clone();
+        let api_id = model
+            .id
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string().replace('-', "")[..16].to_string());
-        let authentication_type =
-            optional_str(attrs, "authentication_type").unwrap_or_else(|| "API_KEY".to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let authentication_type = model
+            .authentication_type
+            .unwrap_or_else(|| "API_KEY".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:appsync:{}:{}:apis/{}",
                 region, ctx.default_account_id, api_id
@@ -82,38 +87,22 @@ impl AwsAppsyncGraphqlApiConverter {
             ),
         );
 
-        let _tags_all = attrs.get("tags_all");
-        let _log_config = attrs.get("log_config");
-        let _openid_connect_config = attrs.get("openid_connect_config");
+        // Raw-attribute passthrough blobs (not part of the strongly-typed model).
+        let attrs = &instance.attributes;
         let user_pool_config = attrs.get("user_pool_config").cloned();
         let lambda_authorizer_config = attrs.get("lambda_authorizer_config").cloned();
         let additional_authentication_provider =
             attrs.get("additional_authentication_provider").cloned();
         let enhanced_metrics_config = attrs.get("enhanced_metrics_config").cloned();
-        let _schema = optional_str(attrs, "schema");
-
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
-
-        let xray_enabled = attrs
-            .get("xray_enabled")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false);
 
         let api_view = GraphqlApiView {
             api_id: api_id.clone(),
-            name: name.to_string(),
+            name,
             authentication_type,
             arn,
             uris,
-            tags,
-            xray_enabled,
+            tags: model.tags,
+            xray_enabled: model.xray_enabled,
             additional_authentication_provider,
             lambda_authorizer_config,
             user_pool_config,

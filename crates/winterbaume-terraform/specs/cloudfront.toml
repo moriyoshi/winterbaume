@@ -1,0 +1,47 @@
+# Auto-ingested by `tf-converter-codegen ingest cloudfront`.
+# Hand-tuned: kept only the strongly-typed scalar inputs. The nested
+# blocks (`origin`, `default_cache_behavior`, `custom_error_response`,
+# `logging_config`, `ordered_cache_behavior`, `origin_group`) and the
+# discarded fields (`comment`, `default_root_object`, `http_version`,
+# `price_class`, `restrictions`, `viewer_certificate`, `web_acl_id`,
+# `continuous_deployment_policy_id`, `staging`, `tags_all`) are read
+# straight from instance.attributes in the converter.
+
+[service]
+name = "cloudfront"
+crate_name = "winterbaume_cloudfront"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_cloudfront_distribution"
+model = "DistributionTfModel"
+view = "DistributionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

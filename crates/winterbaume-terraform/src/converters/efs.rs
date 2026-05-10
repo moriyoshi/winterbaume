@@ -1,4 +1,10 @@
 //! Terraform converter for EFS resources.
+//!
+//! `FileSystemTfModel` is generated from `specs/efs.toml`. The
+//! synthesised file-system ID, the ARN template, the `creation_token`
+//! UUID fallback, the Vec<TagView> tag merge, the `lifecycle_policy`
+//! and `protection` nested-block parses, and the `Name`-tag-derived
+//! `name` field are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -18,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_str};
+use crate::generated::efs as efs_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Converts `aws_efs_file_system` Terraform resources to/from EFS state.
 pub struct AwsEfsFileSystemConverter {
@@ -59,31 +66,32 @@ impl AwsEfsFileSystemConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: efs_gen::FileSystemTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_efs_file_system", e))?;
 
-        let fs_id = optional_str(attrs, "id")
+        let attrs = &instance.attributes;
+
+        let fs_id = model
+            .id
             .unwrap_or_else(|| format!("fs-{}", &uuid::Uuid::new_v4().to_string()[..8]));
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:elasticfilesystem:{}:{}:file-system/{}",
                 region, ctx.default_account_id, fs_id
             )
         });
 
-        let _tags_all = attrs.get("tags_all");
-        let _availability_zone_name = optional_str(attrs, "availability_zone_name");
-        let _kms_key_id = optional_str(attrs, "kms_key_id");
-        let _provisioned_throughput_in_mibps = attrs.get("provisioned_throughput_in_mibps");
-        let _ = attrs.get("lifecycle_policy");
-        let performance_mode =
-            optional_str(attrs, "performance_mode").unwrap_or_else(|| "generalPurpose".to_string());
-        let throughput_mode =
-            optional_str(attrs, "throughput_mode").unwrap_or_else(|| "bursting".to_string());
-        let encrypted = optional_bool(attrs, "encrypted").unwrap_or(false);
+        let performance_mode = model
+            .performance_mode
+            .unwrap_or_else(|| "generalPurpose".to_string());
+        let throughput_mode = model
+            .throughput_mode
+            .unwrap_or_else(|| "bursting".to_string());
+        let encrypted = model.encrypted;
 
-        // Tags
+        // Tags — view stores Vec<TagView>, merge tags_all (lower precedence) and tags.
         let tags: Vec<TagView> = {
             let mut map: HashMap<String, String> = HashMap::new();
             if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
@@ -109,7 +117,8 @@ impl AwsEfsFileSystemConverter {
             .iter()
             .find(|t| t.key == "Name")
             .map(|t| t.value.clone());
-        let creation_token = optional_str(attrs, "creation_token")
+        let creation_token = model
+            .creation_token
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
 
         // Parse lifecycle_policy blocks

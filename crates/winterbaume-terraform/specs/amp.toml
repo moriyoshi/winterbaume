@@ -1,0 +1,43 @@
+[service]
+name = "amp"
+crate_name = "winterbaume_amp"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_prometheus_workspace"
+model = "WorkspaceTfModel"
+view = "WorkspaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "alias"
+view = "alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "prometheus_endpoint"
+view = "prometheus_endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

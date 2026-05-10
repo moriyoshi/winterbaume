@@ -1,0 +1,39 @@
+# Auto-ingested by `tf-converter-codegen ingest emrcontainers`.
+# Hand-tuned: fixed model/view names (was `ContainerInfoTfModel`/
+# `ContainerInfoView`; the projected view is `VirtualClusterView`). The
+# `container_provider` nested block is read raw by the converter because
+# the spec can't express the multi-level object/list structure.
+
+[service]
+name = "emrcontainers"
+crate_name = "winterbaume_emrcontainers"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_emrcontainers_virtual_cluster"
+model = "VirtualClusterTfModel"
+view = "VirtualClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

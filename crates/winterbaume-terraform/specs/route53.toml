@@ -1,0 +1,89 @@
+# Auto-ingested by `tf-converter-codegen ingest route53`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (zone / record). Dropped Vec<T>/nested-block fields and routing-policy
+# Option<Value>/Option<u64> fields (vpc, alias, weighted_routing_policy,
+# failover_routing_policy, geolocation_routing_policy,
+# latency_routing_policy, multivalue_answer_routing_policy,
+# cidr_routing_policy, records, ttl, tags, tags_all, force_destroy,
+# allow_overwrite, delegation_set_id). Those are read straight from
+# instance.attributes in the converter. The zone_id /hostedzone/
+# normalisation, the FQDN computation, and the placeholder zone
+# fall-back are wired up by hand.
+
+[service]
+name = "route53"
+crate_name = "winterbaume_route53"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_route53_zone
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_zone"
+model = "HostedZoneTfModel"
+view = "HostedZoneView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "zone_id"
+view = "zone_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_record
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_record"
+model = "ResourceRecordSetTfModel"
+view = "ResourceRecordSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "zone_id"
+view = "zone_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "record_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "set_identifier"
+view = "set_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "health_check_id"
+view = "health_check_id"
+type = "string?"

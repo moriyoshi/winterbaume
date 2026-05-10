@@ -1,0 +1,84 @@
+# Auto-ingested by `tf-converter-codegen ingest bedrock`.
+# Hand-tuned: kept only the `aws_bedrock_guardrail` resource here. The
+# `aws_bedrock_model_invocation_logging_configuration` resource has no
+# strongly-typed scalar inputs (its only field is the
+# `logging_config` nested block) and the converter writes directly to
+# the `LoggingConfiguration` Rust struct, so it stays hand-written.
+# Dropped nested-block fields on guardrail (`content_policy_config`,
+# `contextual_grounding_policy_config`,
+# `sensitive_information_policy_config`, `topic_policy_config`,
+# `word_policy_config`, `tags_all`, `kms_key_arn`) — those are read
+# straight from instance.attributes in the converter or discarded.
+
+[service]
+name = "bedrock"
+crate_name = "winterbaume_bedrock"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_bedrock_guardrail
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrock_guardrail"
+model = "GuardrailTfModel"
+view = "BedrockStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "guardrail_id"
+view = "guardrail_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "guardrail_arn"
+view = "guardrail_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "blocked_input_messaging"
+view = "blocked_input_messaging"
+type = "string?"
+
+[[resource.field]]
+hcl = "blocked_outputs_messaging"
+view = "blocked_outputs_messaging"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

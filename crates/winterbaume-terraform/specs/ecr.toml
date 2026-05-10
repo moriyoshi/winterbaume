@@ -1,0 +1,50 @@
+# Auto-ingested by `tf-converter-codegen ingest ecr`.
+# Hand-tuned: fixed model/view names (was `EncryptionConfigTfModel`/
+# `EncryptionConfigView`; the projected view is `RepositoryView`). Nested
+# `image_scanning_configuration` and `encryption_configuration` blocks
+# are read raw by the converter because the spec can't express nested
+# arrays of objects.
+
+[service]
+name = "ecr"
+crate_name = "winterbaume_ecr"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_ecr_repository"
+model = "RepositoryTfModel"
+view = "RepositoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "image_tag_mutability"
+view = "image_tag_mutability"
+type = "string?"
+
+[[resource.field]]
+hcl = "repository_url"
+view = "repository_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

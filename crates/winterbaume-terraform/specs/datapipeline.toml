@@ -1,0 +1,33 @@
+[service]
+name = "datapipeline"
+crate_name = "winterbaume_datapipeline"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_datapipeline_pipeline"
+model = "PipelineTfModel"
+view = "PipelineView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "unique_id"
+view = "unique_id"
+type = "string?"

@@ -1,4 +1,9 @@
 //! Terraform converter for Inspector2 resources.
+//!
+//! `EnablerTfModel` is generated from `specs/inspector2.toml` as a marker;
+//! the resource's only inputs are `account_ids` (Vec<String>) and
+//! `resource_types` (Vec<String>), which the spec format does not express.
+//! Both are read directly from `instance.attributes`.
 
 use std::collections::{HashMap, HashSet};
 use std::future::Future;
@@ -16,11 +21,6 @@ use crate::converter::{
 use crate::error::ConversionError;
 use crate::util::extract_region;
 
-// ---------------------------------------------------------------------------
-// aws_inspector2_enabler
-// ---------------------------------------------------------------------------
-
-/// Converts `aws_inspector2_enabler` Terraform resources to/from Inspector2 state.
 pub struct AwsInspector2EnablerConverter {
     service: Arc<Inspector2Service>,
 }

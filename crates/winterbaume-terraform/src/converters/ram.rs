@@ -1,4 +1,10 @@
 //! Terraform converter for RAM resources.
+//!
+//! `ResourceShareTfModel` is generated from `specs/ram.toml`. The ARN
+//! template, the `status = "ACTIVE"` constant, the zero-valued
+//! `creation_time`/`last_updated_time` placeholders, and the conversion
+//! between the model's `HashMap<String, String>` tag bag and the view's
+//! `Vec<TagView>` are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,9 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_account_id, extract_region, extract_tags, optional_bool, optional_str, require_str,
-};
+use crate::generated::ram as ram_gen;
+use crate::util::{classify_deserialize_error, extract_account_id, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_ram_resource_share
@@ -59,31 +64,30 @@ impl AwsRamResourceShareConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let account_id = extract_account_id(attrs, &ctx.default_account_id);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let account_id = extract_account_id(&instance.attributes, &ctx.default_account_id);
+        let model: ram_gen::ResourceShareTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ram_resource_share", e))?;
 
-        let name = require_str(attrs, "name", "aws_ram_resource_share")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ram:{}:{}:resource-share/{}",
-                region, account_id, name
+                region, account_id, model.name
             )
         });
-        let allow_external_principals =
-            optional_bool(attrs, "allow_external_principals").unwrap_or(false);
 
-        let tags_map = extract_tags(attrs);
-        let tags: Vec<TagView> = tags_map
+        let tags: Vec<TagView> = model
+            .tags
             .into_iter()
             .map(|(k, v)| TagView { key: k, value: v })
             .collect();
 
         let rs_view = ResourceShareView {
             resource_share_arn: arn.clone(),
-            name: name.to_string(),
+            name: model.name,
             owning_account_id: account_id.clone(),
-            allow_external_principals,
+            allow_external_principals: model.allow_external_principals,
             status: "ACTIVE".to_string(),
             creation_time: 0.0,
             last_updated_time: 0.0,

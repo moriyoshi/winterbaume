@@ -1,0 +1,53 @@
+# Auto-ingested by `tf-converter-codegen ingest securityhub`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type. Dropped
+# `id`, `standards_input`, `timeouts` fields (raw / discarded) — read straight
+# from instance.attributes when needed.
+
+[service]
+name = "securityhub"
+crate_name = "winterbaume_securityhub"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_securityhub_account"
+model = "AccountTfModel"
+view = "HubInfoView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "enable_default_standards"
+view = "enable_default_standards"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "auto_enable_controls"
+view = "auto_enable_controls"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "control_finding_generator"
+view = "control_finding_generator"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_securityhub_standards_subscription"
+model = "StandardsSubscriptionTfModel"
+view = "StandardsSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "standards_arn"
+view = "standards_arn"
+type = "string"
+required = true

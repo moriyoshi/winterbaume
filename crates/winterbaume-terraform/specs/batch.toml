@@ -1,0 +1,151 @@
+# Auto-ingested by `tf-converter-codegen ingest batch`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (compute_environment / job_queue / job_definition / scheduling_policy).
+# Dropped Vec<T>/nested-block fields (compute_resources, eks_configuration,
+# compute_environment_order, container_properties, retry_strategy,
+# eks_properties, fair_share_policy, job_state_time_limit_action,
+# update_policy, timeout, logs, tags_all) and tags (the converter calls
+# extract_tags() to merge tags + tags_all). Those are read straight from
+# instance.attributes in the converter. ARN templates and timestamp
+# constants are wired up by hand.
+
+[service]
+name = "batch"
+crate_name = "winterbaume_batch"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_batch_compute_environment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_batch_compute_environment"
+model = "ComputeEnvironmentTfModel"
+view = "ComputeEnvironmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "ce_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_role"
+view = "service_role"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_batch_job_queue
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_batch_job_queue"
+model = "JobQueueTfModel"
+view = "JobQueueView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "priority"
+view = "priority"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "scheduling_policy_arn"
+view = "scheduling_policy_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_batch_job_definition
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_batch_job_definition"
+model = "JobDefinitionTfModel"
+view = "JobDefinitionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "job_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "revision"
+view = "revision"
+type = "i64"
+default = 1
+
+# ---------------------------------------------------------------------------
+# aws_batch_scheduling_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_batch_scheduling_policy"
+model = "SchedulingPolicyTfModel"
+view = "SchedulingPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"

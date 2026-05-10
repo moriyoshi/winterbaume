@@ -13,7 +13,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::cloudformation as cloudformation_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_cloudformation_stack
@@ -58,12 +59,13 @@ impl AwsCloudformationStackConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: cloudformation_gen::StackTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudformation_stack", e))?;
 
-        let stack_name = require_str(attrs, "name", "aws_cloudformation_stack")?.to_string();
-
-        let stack_id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let stack_name = model.name.clone();
+        let stack_id = model.id.unwrap_or_else(|| {
             format!(
                 "arn:aws:cloudformation:{region}:{}:stack/{stack_name}/{}",
                 ctx.default_account_id,
@@ -71,14 +73,8 @@ impl AwsCloudformationStackConverter {
             )
         });
 
-        let template_body = optional_str(attrs, "template_body");
-        let _tags_all = attrs.get("tags_all");
-        let _capabilities = attrs.get("capabilities");
-        let _on_failure = optional_str(attrs, "on_failure");
-        let stack_status = optional_str(attrs, "timeout_in_minutes")
-            .map(|_| "CREATE_COMPLETE")
-            .unwrap_or("CREATE_COMPLETE")
-            .to_string();
+        let attrs = &instance.attributes;
+        let stack_status = "CREATE_COMPLETE".to_string();
 
         // Parse parameters from a JSON object attribute
         let parameters = attrs
@@ -118,7 +114,7 @@ impl AwsCloudformationStackConverter {
             last_updated_time: None,
             deletion_time: None,
             description: None,
-            template_body,
+            template_body: model.template_body,
             stack_policy_body: None,
             parameters,
             outputs: vec![],
@@ -128,7 +124,7 @@ impl AwsCloudformationStackConverter {
             events: vec![],
             change_sets: vec![],
             exports: vec![],
-            role_arn: optional_str(attrs, "iam_role_arn"),
+            role_arn: model.iam_role_arn,
             timeout_in_minutes: attrs
                 .get("timeout_in_minutes")
                 .and_then(|v| v.as_i64())

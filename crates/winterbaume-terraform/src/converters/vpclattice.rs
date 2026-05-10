@@ -1,4 +1,13 @@
-//! Terraform converter for VPC Lattice resources.
+//! Terraform converters for VPC Lattice resources.
+//!
+//! `VpcLatticeServiceTfModel`, `ServiceNetworkTfModel`,
+//! `TargetGroupTfModel`, and `ListenerTfModel` are generated from
+//! `specs/vpclattice.toml`. The ARN templates, the synthesised IDs,
+//! the `auth_type = "NONE"` / `status = "ACTIVE"` /
+//! `target_group_type = "INSTANCE"` / `protocol = "HTTP"` /
+//! `number_of_associated_*` defaults, the `created_at` /
+//! `last_updated_at` timestamps, and the nested config / default_action
+//! blocks are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::vpclattice as vpclattice_gen;
+use crate::util::{classify_deserialize_error, extract_region, optional_i64};
 
 // ---------------------------------------------------------------------------
 // aws_vpclattice_service
@@ -61,30 +71,33 @@ impl AwsVpcLatticeServiceConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_vpclattice_service")?;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id")
+        let model: vpclattice_gen::VpcLatticeServiceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpclattice_service", e))?;
+
+        let id = model
+            .id
             .unwrap_or_else(|| format!("svc-{}", uuid::Uuid::new_v4().simple()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:vpc-lattice:{}:{}:service/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let auth_type = optional_str(attrs, "auth_type").unwrap_or_else(|| "NONE".to_string());
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "ACTIVE".to_string());
+        let auth_type = model.auth_type.unwrap_or_else(|| "NONE".to_string());
+        let status = model.status.unwrap_or_else(|| "ACTIVE".to_string());
         let now = chrono::Utc::now().to_rfc3339();
 
         let svc_view = ServiceView {
             id: id.clone(),
-            name: name.to_string(),
+            name: model.name,
             arn,
             auth_type,
             status,
             created_at: now.clone(),
             last_updated_at: now,
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let mut state_view = VpcLatticeStateView::default();
@@ -174,30 +187,33 @@ impl AwsVpcLatticeServiceNetworkConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_vpclattice_service_network")?;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id")
+        let model: vpclattice_gen::ServiceNetworkTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpclattice_service_network", e))?;
+
+        let id = model
+            .id
             .unwrap_or_else(|| format!("sn-{}", uuid::Uuid::new_v4().simple()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:vpc-lattice:{}:{}:servicenetwork/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let auth_type = optional_str(attrs, "auth_type").unwrap_or_else(|| "NONE".to_string());
+        let auth_type = model.auth_type.unwrap_or_else(|| "NONE".to_string());
         let now = chrono::Utc::now().to_rfc3339();
 
         let sn_view = ServiceNetworkView {
             id: id.clone(),
-            name: name.to_string(),
+            name: model.name,
             arn,
             auth_type,
             created_at: now.clone(),
             last_updated_at: now,
             number_of_associated_services: 0,
             number_of_associated_v_p_cs: 0,
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let mut state_view = VpcLatticeStateView::default();
@@ -288,20 +304,24 @@ impl AwsVpcLatticeTargetGroupConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_vpclattice_target_group")?;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id")
+        let model: vpclattice_gen::TargetGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpclattice_target_group", e))?;
+
+        let id = model
+            .id
             .unwrap_or_else(|| format!("tg-{}", uuid::Uuid::new_v4().simple()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:vpc-lattice:{}:{}:targetgroup/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let target_group_type =
-            optional_str(attrs, "type").unwrap_or_else(|| "INSTANCE".to_string());
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "ACTIVE".to_string());
+        let target_group_type = model
+            .target_group_type
+            .unwrap_or_else(|| "INSTANCE".to_string());
+        let status = model.status.unwrap_or_else(|| "ACTIVE".to_string());
         let now = chrono::Utc::now().to_rfc3339();
 
         // Parse config block
@@ -340,7 +360,7 @@ impl AwsVpcLatticeTargetGroupConverter {
         let tg_view = TargetGroupView {
             id: id.clone(),
             arn,
-            name: name.to_string(),
+            name: model.name,
             target_group_type,
             config_port,
             config_protocol,
@@ -351,7 +371,7 @@ impl AwsVpcLatticeTargetGroupConverter {
             status,
             created_at: now.clone(),
             last_updated_at: now,
-            tags: extract_tags(attrs),
+            tags: model.tags,
             targets: vec![],
         };
 
@@ -451,20 +471,23 @@ impl AwsVpcLatticeListenerConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_vpclattice_listener")?;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id")
+        let model: vpclattice_gen::ListenerTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpclattice_listener", e))?;
+
+        let id = model
+            .id
             .unwrap_or_else(|| format!("listener-{}", uuid::Uuid::new_v4().simple()));
-        let service_id = optional_str(attrs, "service_identifier").unwrap_or_default();
-        let service_arn = optional_str(attrs, "service_arn").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let service_id = model.service_identifier.unwrap_or_default();
+        let service_arn = model.service_arn.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:vpc-lattice:{}:{}:service/{}/listener/{}",
                 region, ctx.default_account_id, service_id, id
             )
         });
-        let protocol = optional_str(attrs, "protocol").unwrap_or_else(|| "HTTP".to_string());
+        let protocol = model.protocol.unwrap_or_else(|| "HTTP".to_string());
         let port = optional_i64(attrs, "port").map(|p| p as i32);
         let now = chrono::Utc::now().to_rfc3339();
 
@@ -514,7 +537,7 @@ impl AwsVpcLatticeListenerConverter {
         let listener_view = ListenerView {
             id: id.clone(),
             arn,
-            name: name.to_string(),
+            name: model.name,
             service_id,
             service_arn,
             port,
@@ -523,7 +546,7 @@ impl AwsVpcLatticeListenerConverter {
             default_action_forward_target_groups: forward_target_groups,
             created_at: now.clone(),
             last_updated_at: now,
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let mut state_view = VpcLatticeStateView::default();

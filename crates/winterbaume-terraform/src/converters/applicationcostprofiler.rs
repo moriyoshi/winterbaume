@@ -1,4 +1,10 @@
 //! Terraform converters for AWS Application Cost Profiler resources.
+//!
+//! `ReportDefinitionTfModel` is generated from
+//! `specs/applicationcostprofiler.toml`. The nested
+//! `destination_s3_location` single-element block (bucket + prefix), the
+//! `report_frequency` / `format` defaults, and the synthesised
+//! `created_at` / `last_updated_at` timestamps are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::applicationcostprofiler as applicationcostprofiler_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_applicationcostprofiler_report_definition
@@ -59,21 +66,22 @@ impl AwsApplicationCostProfilerReportDefinitionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: applicationcostprofiler_gen::ReportDefinitionTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_applicationcostprofiler_report_definition", e)
+            })?;
 
-        let report_id = require_str(
-            attrs,
-            "report_id",
-            "aws_applicationcostprofiler_report_definition",
-        )?;
-        let report_description = optional_str(attrs, "report_description").unwrap_or_default();
-        let report_frequency =
-            optional_str(attrs, "report_frequency").unwrap_or_else(|| "DAILY".to_string());
-        let format = optional_str(attrs, "format").unwrap_or_else(|| "CSV".to_string());
+        let report_id = model.report_id.clone();
+        let report_description = model.report_description.unwrap_or_default();
+        let report_frequency = model
+            .report_frequency
+            .unwrap_or_else(|| "DAILY".to_string());
+        let format = model.format.unwrap_or_else(|| "CSV".to_string());
 
         // destination_s3_location is a single-element block in terraform
-        let dest_block = attrs
+        let dest_block = instance
+            .attributes
             .get("destination_s3_location")
             .and_then(|v| {
                 v.as_array()
@@ -101,9 +109,9 @@ impl AwsApplicationCostProfilerReportDefinitionConverter {
         let now = chrono::Utc::now().timestamp();
         let mut state_view = ApplicationCostProfilerStateView::default();
         state_view.reports.insert(
-            report_id.to_string(),
+            report_id.clone(),
             ReportDefinitionView {
-                report_id: report_id.to_string(),
+                report_id,
                 report_description,
                 report_frequency,
                 format,

@@ -480,6 +480,203 @@ No service documents were updated; the source contains repo/workflow guidance ra
 
 ---
 
+## 2026-05-10: Terraform converter codegen migration
+
+### Context
+
+Hand-rolled Terraform converters at `crates/winterbaume-terraform/src/converters/<service>.rs`
+had grown to ~70 kLOC across 145 services, with roughly 70% of every converter being
+mechanical serde plumbing — `optional_str`/`require_str`/`optional_bool`/`optional_i64`
+field unpacking, type coercion, ARN/URL `format!` templates, default fallbacks, view
+struct construction, `serde_json::json!` extract emission. The shape was repeated across
+services with only the field names changing. The user asked for a migration plan to
+replace this hand-rolled work with a code-generator analogous to `tools/smithy-codegen/`.
+
+### Plan and execution
+
+The full plan is at `~/.claude/plans/currently-terraform-converters-consist-cuddly-lovelace.md`.
+The approved approach is **thin projection via serde**: a per-service codegen tool emits a
+`*TfModel` Rust struct with `#[derive(Serialize, Deserialize)]` and per-field
+`rename` / `default` / `skip_serializing_if` annotations driven by a hand-curated TOML spec.
+Decode and encode at converter call sites become `serde_json::from_value` /
+`serde_json::to_value`. Hand-written converters keep ownership of the trait scaffolding,
+the inject/extract orchestration, ARN/URL templates that exceed `{region}/{account}/{name}`
+substitution, multi-resource composition, and any nested-block reshaping. The plan named
+this the "model_only" mode, where the codegen emits only the struct definition because
+the AWS-side `*StateView` shape doesn't fit a 1:1 serde projection ( e.g., SNS's
+`HashMap<String, String>` attribute bag, AppFlow's singleton-array → AWS REST JSON
+discriminated objects ). For the simplest services, the codegen can also emit the full
+`into_state_view(self, ctx, region) -> View` projection plus `From<&View> for *TfModel`,
+making the converter body shrink to ~30 lines of trait scaffolding + a single
+`serde_json::from_value` call.
+
+Execution proceeded through the planned phases:
+
+- **Phase 0 — infrastructure.** `tools/tf-converter-codegen/` crate with subcommands
+  `gen`, `gen-all`, `check`, `list`. Mirrors `tools/smithy-codegen/` idioms exactly:
+  `clap`, `anyhow`, string concatenation + `rustfmt`, no `quote!`/`syn`, no templating.
+  Spec format defined at `tools/tf-converter-codegen/src/spec.rs` with the type
+  vocabulary `string`, `string?`, `u32`, `i64`, `bool`, `tags`. Golden test
+  ( `tools/tf-converter-codegen/tests/check.rs` ) re-runs `gen` for every spec and
+  diffs against the committed `generated/<svc>.rs`.
+
+- **Phase 1 — SQS+SNS pilot.** SQS migrated to full thin projection ( 16 fields,
+  ARN/URL templates with attr-override chains, `id`+`tags_all` as
+  `[[resource.computed_extract]]` entries ). SNS migrated as `mode = "model_only"`
+  because both `aws_sns_topic` and `aws_sns_topic_subscription` store most TF inputs
+  in `HashMap<String, String>` attribute bags keyed by AWS PascalCase names; the bag
+  packing is hand-written.
+
+- **Phase 2 — AppFlow shape-transform proving.** AppFlow has the documented
+  JSON-shape mismatch ( TF singleton-array blocks → AWS REST JSON discriminated
+  objects ). The flat fields ( `name`, `arn`, `description`, `kms_arn`, `tags` ) go
+  through the spec; the ~300 LOC of `tf_to_aws_*` reshape helpers and 5 reshape unit
+  tests stay verbatim in the converter. Validates that the hand-written escape hatch
+  is genuinely escape-hatchable.
+
+- **Phase 3 — ingest tooling + sweep.** Implemented `tf-converter-codegen ingest <service>`
+  that parses an existing converter source, identifies the resource type ( from
+  `fn resource_type(&self) -> &str`-returning string literals ), the service crate
+  ( from `use winterbaume_<crate>::views::...` ), the View struct names, and every
+  field read via `optional_str` / `require_str` / `optional_bool` / `optional_i64` /
+  `extract_tags` / `attrs.get`. Emits a best-effort TOML spec with `mode = "model_only"`.
+  Required to handle: invalid Rust identifiers ( filtered ), Rust reserved keywords
+  ( escaped via `r#`-prefix in codegen.rs ), multi-line `use` statements ( handled by
+  index-walking through the source rather than line-by-line iteration ), and
+  multi-resource files ( flagged with a TODO header for the human reviewer ). Bootstrap
+  generated 120 specs in a single shell loop.
+
+  The remaining 143 converter migrations were dispatched to general-purpose sub-agents
+  in 5-service batches ( 22 batches A through Z+AA+BB plus a dedicated EC2 agent ).
+  Each agent read the existing converter, the auto-ingested spec, and the views file;
+  hand-tuned the spec ( fix model/view names, add field renames, mark `required`,
+  drop discarded fields and Vec<T>/nested-block fields whose types the spec format
+  doesn't express ); rewrote the converter to deserialize via the typed TfModel and
+  apply ARN templates / constants / nested-block parsing in hand-written code; reported
+  back. The parent agent regenerated `generated/<svc>.rs` for each batch via
+  `gen-all`, ran build + tests + clippy, and dispatched the next batch on success.
+
+### Findings
+
+**The thin-projection / model-only split scales.** Across 145 services the same
+spec format covers everything from SQS ( 16 simple flat fields ) to EC2 ( 39
+resources, each with 5-15 typed scalar fields plus a sea of nested blocks ). The
+break point is the spec's intentional type vocabulary boundary: anything outside
+`string`, `string?`, `u32`, `i64`, `bool`, `tags` ( notably `f64`, `Vec<String>`,
+`HashMap<String, String>` for non-tag uses, `Option<i64>`/`Option<bool>`, and any
+nested-block list-of-objects ) drops out of the spec and into hand-written code
+in the converter. This is a feature, not a bug: it forces non-trivial mappings
+into a place reviewers can see.
+
+**Auto-ingest is necessary but not sufficient.** The ingest tool catches ~70% of
+the work — every flat field is enumerated, ARN templates are captured as a
+review comment, the resource type and crate name are detected. The remaining 30%
+is human-only: choosing the right View struct when the converter imports several
+( the auto-pick of "first View ending in 'View'" was wrong for ~30% of services,
+including ssm/PartialHistoryView vs ParameterView, kinesis/ShardView vs
+StreamView, ecr/EncryptionConfigView vs RepositoryView ); applying field renames
+where TF and AWS disagree ( max_message_size vs maximum_message_size ); marking
+required-on-input fields ( the ingest can't tell `require_str` vs `optional_str`
+when the converter wraps a fallback ); splitting union specs into per-resource
+blocks for multi-resource files; assigning the right type to numeric strings
+( the ingest defaults to `string?` for `optional_str` callsites, even when the
+field is actually `i64`/`u32` ).
+
+**Sub-agents work for this kind of migration.** The bottleneck was wall-clock
+build time, not edit time. With 5 services per batch and 2 batches dispatched
+concurrently, each round delivered ~10 services in parallel, then required ~3-5
+minutes to regen + build + test sequentially. Total throughput: ~10 services per
+~10-minute round, so the 120-service sweep took ~12 rounds of dispatched batches
+plus the EC2 dedicated round. Sub-agents occasionally hallucinated "already
+migrated" verdicts when the file structure was unfamiliar to them — defended
+against by checking `git diff` and the build output before trusting reports.
+
+**The do_extract guarantee held everywhere.** Every sub-agent was told to keep
+the `serde_json::json!({ ... })` extract literal byte-equivalent to the original.
+Across 145 services, the existing 293-test integration suite at
+`crates/winterbaume-terraform/tests/integration_test.rs` passed unchanged after
+every batch. This is the load-bearing safety property: as long as extract output
+is bit-identical, downstream consumers ( terraform-state JSON readers ) cannot
+detect the migration. Inject behaviour can drift slightly in deserialise-strictness
+( e.g., null for a typed `bool` now errors instead of falling back ) — accepted
+because real `terraform show -json` output respects the provider schema's declared
+types.
+
+**Two services don't fit thin projection at all.** `simpledbv2` and `inspector2`
+both store their inputs as `HashSet<String>` ( SimpleDB domains; Inspector2
+resource types ). For SimpleDB the spec is a single required `name` field and
+the converter constructs the HashSet manually. For Inspector2 the spec emits an
+empty marker `EnablerTfModel` ( both inputs are `Vec<String>`, outside the spec
+vocabulary ) and the converter reads them straight from `instance.attributes`.
+Both still fit the migration pattern in the sense that they have a spec file and
+( for SimpleDB ) call into the generated module; Inspector2 is the only converter
+in the codebase that doesn't import its `generated::*` sibling, and the spec
+file makes that explicit.
+
+### Repository deltas
+
+- New crate: `tools/tf-converter-codegen/` ( ~600 LOC: `main.rs`, `spec.rs`,
+  `codegen.rs`, `ingest.rs` ).
+- New: `crates/winterbaume-terraform/specs/*.toml` × 145.
+- New: `crates/winterbaume-terraform/src/generated/<service>.rs` × 145
+  ( ~6,800 LOC of pure-mechanical generated code ).
+- New: `crates/winterbaume-terraform/src/generated/mod.rs` declaring all 145 modules.
+- Modified: `crates/winterbaume-terraform/src/converters/*.rs` — every service
+  except `simpledbv2`/`inspector2` ( the marker case ) now opens with
+  `use crate::generated::<svc> as <svc>_gen;` and the inject body starts with
+  `serde_json::from_value::<<svc>_gen::*TfModel>(...)`. ~50,000 LOC total
+  across all converters, down from ~70,000 in the original hand-rolled state.
+- New: `crate::util::classify_deserialize_error` for converting `serde_json::Error`
+  into the existing `ConversionError::MissingAttribute` / `InvalidAttribute`
+  variants. Used by every spec-driven converter.
+- Workspace `Cargo.toml`: registers `tools/tf-converter-codegen` in `members` and
+  `default-members`.
+- Codegen handles Rust reserved keywords as field names by emitting `r#<name>`
+  ( e.g., `r#type`, `r#match` ); HashMap import is conditional on whether any
+  spec field uses `tags`.
+
+### Verification
+
+All gates green at end of migration:
+
+- `cargo build -p winterbaume-terraform`: clean.
+- `cargo test -p winterbaume-terraform --no-fail-fast`: 293 integration tests +
+  6 AppFlow reshape unit tests pass; 22 E2E tests ignored ( those require
+  Terraform CLI ).
+- `cargo clippy -p winterbaume-terraform --all-targets --all-features -- -D warnings`:
+  clean.
+- `cargo clippy -p tf-converter-codegen --all-targets --all-features -- -D warnings`:
+  clean.
+- `cargo test -p tf-converter-codegen`: golden test passes ( re-runs `gen` for
+  every spec and diffs against committed output — guards against stale generated
+  files in CI ).
+- `cargo fmt --check -p winterbaume-terraform`, `cargo fmt --check -p tf-converter-codegen`:
+  clean.
+
+### Out of scope going forward
+
+Per the plan, several capabilities are intentionally not covered by the codegen
+and stay hand-written in converters:
+
+- ARN templates beyond simple `{region}/{account}/{name}` substitution.
+- Custom default values not expressible as a literal ( e.g., environment-derived
+  defaults ).
+- Validator / mutual-exclusivity logic ( `exactly_one_of`, `conflicts_with` ).
+- Nested-block reshaping ( handled exclusively via hand-written code that runs
+  between `decode` and view construction; AppFlow is the canonical example ).
+- Cross-service dependency declarations ( `depends_on_types` ); declared in
+  hand-written code.
+
+The auto-ingested specs are a starting point and were hand-tuned during the
+sweep. Future converter changes should:
+1. Hand-edit the spec when adding/changing TF input fields.
+2. Run `cargo run -p tf-converter-codegen -- gen <service>` to regenerate the
+   model.
+3. Update the converter body to consume new fields off the typed model.
+4. Run the per-crate lint gate ( `clippy --all-targets --all-features
+   -- -D warnings` and `fmt --check` ) before committing.
+---
+
 ## 2026-05-11 — Skip CI pipeline for docs-only pushes to `main`
 
 ### Context
@@ -661,4 +858,3 @@ Chose `["aws", "mock", "testing"]` — three out of crates.io's 5-keyword cap, m
 - If we ever publish the `tools/*` crates, they will need `keywords.workspace = true` added too. Until then they are correctly excluded.
 - Adding or changing keywords only requires editing the `[workspace.package]` array; no per-crate sweep needed.
 - Crates.io enforces lowercase, alphanumeric+`_-`, ≤ 20 chars, ≤ 5 keywords. The current set is well within those bounds.
-

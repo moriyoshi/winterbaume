@@ -1,4 +1,10 @@
 //! Terraform converters for RDS resources (DB instances, clusters, subnet groups, etc.).
+//!
+//! The TfModel structs are generated from `specs/rds.toml`. ARN
+//! templates, the `endpoint` synthesis (with random UUIDs), the
+//! "Managed by Terraform" description default, the discarded
+//! Terraform-only flags, the `Vec<String>` array fields, and the
+//! `parameter`/`option` nested-block JSON capture are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -17,7 +23,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_i64, optional_str, require_str};
+use crate::generated::rds as rds_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_db_subnet_group
@@ -63,24 +70,25 @@ impl AwsDbSubnetGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbSubnetGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_subnet_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_db_subnet_group")?;
-        let description = optional_str(attrs, "description").unwrap_or_default();
         let _tags_all = attrs.get("tags_all");
-        let _name_prefix = optional_str(attrs, "name_prefix");
+        let _name_prefix = attrs.get("name_prefix");
         let subnet_ids = extract_string_array(attrs, "subnet_ids");
         let tags = extract_rds_tags(attrs);
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:subgrp:{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
+        let description = model.description.unwrap_or_default();
 
         let view = DbSubnetGroupView {
-            name: name.to_string(),
+            name: model.name.clone(),
             description,
-            vpc_id: optional_str(attrs, "vpc_id"),
+            vpc_id: model.vpc_id,
             subnet_ids,
             status: "Complete".to_string(),
             arn,
@@ -88,7 +96,7 @@ impl AwsDbSubnetGroupConverter {
         };
 
         let mut state_view = minimal_rds_state_view();
-        state_view.db_subnet_groups.insert(name.to_string(), view);
+        state_view.db_subnet_groups.insert(model.name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -173,25 +181,26 @@ impl AwsDbParameterGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbParameterGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_parameter_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_db_parameter_group")?;
-        let family = require_str(attrs, "family", "aws_db_parameter_group")?;
-        let description = optional_str(attrs, "description")
-            .unwrap_or_else(|| "Managed by Terraform".to_string());
         let _tags_all = attrs.get("tags_all");
-        let _name_prefix = optional_str(attrs, "name_prefix");
+        let _name_prefix = attrs.get("name_prefix");
         let tags = extract_rds_tags(attrs);
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:pg:{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
+        let description = model
+            .description
+            .unwrap_or_else(|| "Managed by Terraform".to_string());
         let parameter = extract_json_array(attrs, "parameter");
 
         let view = DbParameterGroupView {
-            name: name.to_string(),
-            family: family.to_string(),
+            name: model.name.clone(),
+            family: model.family,
             description,
             arn,
             tags,
@@ -199,9 +208,7 @@ impl AwsDbParameterGroupConverter {
         };
 
         let mut state_view = minimal_rds_state_view();
-        state_view
-            .db_parameter_groups
-            .insert(name.to_string(), view);
+        state_view.db_parameter_groups.insert(model.name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -286,25 +293,25 @@ impl AwsRdsClusterParameterGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::RdsClusterParameterGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rds_cluster_parameter_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_rds_cluster_parameter_group")?;
-        let family = require_str(attrs, "family", "aws_rds_cluster_parameter_group")?;
-        let description = optional_str(attrs, "description")
-            .unwrap_or_else(|| "Managed by Terraform".to_string());
-        let _name_prefix = optional_str(attrs, "name_prefix");
+        let _name_prefix = attrs.get("name_prefix");
         let tags = extract_rds_tags(attrs);
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:cluster-pg:{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
-
+        let description = model
+            .description
+            .unwrap_or_else(|| "Managed by Terraform".to_string());
         let parameter = extract_json_array(attrs, "parameter");
 
         let view = DbClusterParameterGroupView {
-            name: name.to_string(),
-            family: family.to_string(),
+            name: model.name.clone(),
+            family: model.family,
             description,
             arn,
             tags,
@@ -314,7 +321,7 @@ impl AwsRdsClusterParameterGroupConverter {
         let mut state_view = minimal_rds_state_view();
         state_view
             .db_cluster_parameter_groups
-            .insert(name.to_string(), view);
+            .insert(model.name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -399,14 +406,10 @@ impl AwsDbOptionGroupConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbOptionGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_option_group", e))?;
 
-        let name = require_str(attrs, "name", "aws_db_option_group")?;
-        let _name_prefix = optional_str(attrs, "name_prefix");
-        let engine_name = require_str(attrs, "engine_name", "aws_db_option_group")?;
-        let major_engine_version =
-            require_str(attrs, "major_engine_version", "aws_db_option_group")?;
-        let description = optional_str(attrs, "option_group_description")
-            .unwrap_or_else(|| "Managed by Terraform".to_string());
+        let _name_prefix = attrs.get("name_prefix");
         let mut tags = extract_rds_tags(attrs);
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
@@ -422,28 +425,31 @@ impl AwsDbOptionGroupConverter {
                 }
             }
         }
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:og:{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
+        let description = model
+            .option_group_description
+            .unwrap_or_else(|| "Managed by Terraform".to_string());
         let option = extract_json_array(attrs, "option");
 
         let view = OptionGroupView {
-            name: name.to_string(),
-            engine_name: engine_name.to_string(),
-            major_engine_version: major_engine_version.to_string(),
+            name: model.name.clone(),
+            engine_name: model.engine_name,
+            major_engine_version: model.major_engine_version,
             description,
             allows_vpc_and_non_vpc_instance_memberships: true,
-            vpc_id: optional_str(attrs, "vpc_id"),
+            vpc_id: model.vpc_id,
             arn,
             tags,
             option,
         };
 
         let mut state_view = minimal_rds_state_view();
-        state_view.option_groups.insert(name.to_string(), view);
+        state_view.option_groups.insert(model.name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -535,8 +541,10 @@ impl AwsDbInstanceConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbInstanceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_instance", e))?;
 
-        // Additional fields for coverage
+        // Additional fields for coverage (Terraform-only or untyped pass-throughs)
         let _ = attrs.get("tags_all");
         let _ = attrs.get("allow_major_version_upgrade");
         let _ = attrs.get("apply_immediately");
@@ -565,70 +573,75 @@ impl AwsDbInstanceConverter {
         let restore_to_point_in_time = attrs.get("restore_to_point_in_time").cloned();
         let s3_import = attrs.get("s3_import").cloned();
 
-        let identifier = require_str(attrs, "identifier", "aws_db_instance")?;
-        let engine = require_str(attrs, "engine", "aws_db_instance")?;
-        let instance_class = require_str(attrs, "instance_class", "aws_db_instance")?;
         let tags = extract_rds_tags(attrs);
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:db:{}",
-                region, ctx.default_account_id, identifier
+                region, ctx.default_account_id, model.identifier
             )
         });
 
-        let engine_version = optional_str(attrs, "engine_version").unwrap_or_default();
-        let allocated_storage = optional_i64(attrs, "allocated_storage").unwrap_or(20) as i32;
+        let engine_version = model.engine_version.unwrap_or_default();
+        let allocated_storage = model.allocated_storage as i32;
 
         let vpc_sg_ids = extract_string_array(attrs, "vpc_security_group_ids");
-        let param_group_name = optional_str(attrs, "parameter_group_name");
+        let param_group_name = attrs
+            .get("parameter_group_name")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
         let param_groups = param_group_name.into_iter().collect::<Vec<_>>();
 
-        let endpoint_address = optional_str(attrs, "address").or_else(|| {
+        let endpoint_address = model.address.or_else(|| {
             Some(format!(
                 "{}.{}.{}.rds.amazonaws.com",
-                identifier,
+                model.identifier,
                 &uuid::Uuid::new_v4().to_string()[..8],
                 region
             ))
         });
 
+        // Option<i32> view fields read raw (Option<i64> in spec rules → drop).
+        let port = attrs.get("port").and_then(|v| v.as_i64()).map(|p| p as i32);
+        let iops = attrs.get("iops").and_then(|v| v.as_i64()).map(|v| v as i32);
+        let monitoring_interval = attrs
+            .get("monitoring_interval")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32);
+
         let view = DbInstanceView {
-            identifier: identifier.to_string(),
-            db_instance_class: instance_class.to_string(),
-            engine: engine.to_string(),
+            identifier: model.identifier.clone(),
+            db_instance_class: model.instance_class,
+            engine: model.engine,
             engine_version,
             status: "available".to_string(),
-            master_username: optional_str(attrs, "username"),
-            db_name: optional_str(attrs, "db_name"),
+            master_username: model.username,
+            db_name: model.db_name,
             endpoint_address,
-            port: optional_i64(attrs, "port").map(|p| p as i32),
-            multi_az: optional_bool(attrs, "multi_az").unwrap_or(false),
-            storage_type: optional_str(attrs, "storage_type"),
+            port,
+            multi_az: model.multi_az,
+            storage_type: model.storage_type,
             allocated_storage,
-            db_subnet_group_name: optional_str(attrs, "db_subnet_group_name"),
+            db_subnet_group_name: model.db_subnet_group_name,
             vpc_security_group_ids: vpc_sg_ids,
             db_parameter_group_names: param_groups,
-            availability_zone: optional_str(attrs, "availability_zone"),
-            publicly_accessible: optional_bool(attrs, "publicly_accessible").unwrap_or(false),
-            auto_minor_version_upgrade: optional_bool(attrs, "auto_minor_version_upgrade")
-                .unwrap_or(true),
-            backup_retention_period: optional_i64(attrs, "backup_retention_period").unwrap_or(1)
-                as i32,
-            db_cluster_identifier: optional_str(attrs, "cluster_identifier"),
+            availability_zone: model.availability_zone,
+            publicly_accessible: model.publicly_accessible,
+            auto_minor_version_upgrade: model.auto_minor_version_upgrade,
+            backup_retention_period: model.backup_retention_period as i32,
+            db_cluster_identifier: model.cluster_identifier,
             arn: arn.clone(),
             tags,
             instance_create_time: None,
-            license_model: optional_str(attrs, "license_model"),
-            iops: optional_i64(attrs, "iops").map(|v| v as i32),
-            deletion_protection: optional_bool(attrs, "deletion_protection").unwrap_or(false),
-            copy_tags_to_snapshot: optional_bool(attrs, "copy_tags_to_snapshot").unwrap_or(false),
-            monitoring_interval: optional_i64(attrs, "monitoring_interval").map(|v| v as i32),
-            performance_insights_enabled: optional_bool(attrs, "performance_insights_enabled")
-                .unwrap_or(false),
-            storage_encrypted: optional_bool(attrs, "storage_encrypted").unwrap_or(false),
-            kms_key_id: optional_str(attrs, "kms_key_id"),
-            ca_certificate_identifier: optional_str(attrs, "ca_cert_identifier"),
+            license_model: model.license_model,
+            iops,
+            deletion_protection: model.deletion_protection,
+            copy_tags_to_snapshot: model.copy_tags_to_snapshot,
+            monitoring_interval,
+            performance_insights_enabled: model.performance_insights_enabled,
+            storage_encrypted: model.storage_encrypted,
+            kms_key_id: model.kms_key_id,
+            ca_certificate_identifier: model.ca_cert_identifier,
             secondary_availability_zone: None,
             blue_green_update,
             restore_to_point_in_time,
@@ -636,7 +649,7 @@ impl AwsDbInstanceConverter {
         };
 
         let mut state_view = minimal_rds_state_view();
-        state_view.db_instances.insert(identifier.to_string(), view);
+        state_view.db_instances.insert(model.identifier, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -766,15 +779,16 @@ impl AwsRdsClusterConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::RdsClusterTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rds_cluster", e))?;
 
-        // Additional fields for coverage
+        // Additional fields for coverage (Terraform-only or untyped pass-throughs)
         let _ = attrs.get("tags_all");
         let _ = attrs.get("allow_major_version_upgrade");
         let _ = attrs.get("apply_immediately");
         let _ = attrs.get("backtrack_window");
         let _ = attrs.get("ca_certificate_identifier");
         let _ = attrs.get("cluster_members");
-        let _ = attrs.get("copy_tags_to_snapshot");
         let _ = attrs.get("db_cluster_instance_class");
         let _ = attrs.get("db_system_id");
         let _ = attrs.get("enable_global_write_forwarding");
@@ -803,64 +817,68 @@ impl AwsRdsClusterConverter {
         let serverlessv2_scaling_configuration =
             attrs.get("serverlessv2_scaling_configuration").cloned();
 
-        let identifier = require_str(attrs, "cluster_identifier", "aws_rds_cluster")?;
-        let engine = require_str(attrs, "engine", "aws_rds_cluster")?;
         let tags = extract_rds_tags(attrs);
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:cluster:{}",
-                region, ctx.default_account_id, identifier
+                region, ctx.default_account_id, model.cluster_identifier
             )
         });
 
         let vpc_sg_ids = extract_string_array(attrs, "vpc_security_group_ids");
         let azs = extract_string_array(attrs, "availability_zones");
 
-        let endpoint = optional_str(attrs, "endpoint").or_else(|| {
+        let endpoint = model.endpoint.or_else(|| {
             Some(format!(
                 "{}.cluster-{}.{}.rds.amazonaws.com",
-                identifier,
+                model.cluster_identifier,
                 &uuid::Uuid::new_v4().to_string()[..12],
                 region
             ))
         });
-        let reader_endpoint = optional_str(attrs, "reader_endpoint").or_else(|| {
+        let reader_endpoint = model.reader_endpoint.or_else(|| {
             Some(format!(
                 "{}.cluster-ro-{}.{}.rds.amazonaws.com",
-                identifier,
+                model.cluster_identifier,
                 &uuid::Uuid::new_v4().to_string()[..12],
                 region
             ))
         });
 
+        // Option<i32> view fields read raw (Option<i64> in spec rules → drop).
+        let port = attrs.get("port").and_then(|v| v.as_i64()).map(|p| p as i32);
+        let allocated_storage = attrs
+            .get("allocated_storage")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32);
+
         let view = DbClusterView {
-            identifier: identifier.to_string(),
-            engine: engine.to_string(),
-            engine_version: optional_str(attrs, "engine_version"),
+            identifier: model.cluster_identifier.clone(),
+            engine: model.engine,
+            engine_version: model.engine_version,
             status: "available".to_string(),
             endpoint,
             reader_endpoint,
-            port: optional_i64(attrs, "port").map(|p| p as i32),
-            master_username: optional_str(attrs, "master_username"),
-            database_name: optional_str(attrs, "database_name"),
-            db_subnet_group_name: optional_str(attrs, "db_subnet_group_name"),
+            port,
+            master_username: model.master_username,
+            database_name: model.database_name,
+            db_subnet_group_name: model.db_subnet_group_name,
             vpc_security_group_ids: vpc_sg_ids,
             availability_zones: azs,
             arn: arn.clone(),
             tags,
             cluster_create_time: None,
-            multi_az: optional_bool(attrs, "multi_az").unwrap_or(false),
-            storage_type: optional_str(attrs, "storage_type"),
-            allocated_storage: optional_i64(attrs, "allocated_storage").map(|v| v as i32),
-            backup_retention_period: optional_i64(attrs, "backup_retention_period").unwrap_or(1)
-                as i32,
-            deletion_protection: optional_bool(attrs, "deletion_protection").unwrap_or(false),
-            storage_encrypted: optional_bool(attrs, "storage_encrypted").unwrap_or(false),
-            kms_key_id: optional_str(attrs, "kms_key_id"),
-            db_cluster_parameter_group: optional_str(attrs, "db_cluster_parameter_group_name"),
-            engine_mode: optional_str(attrs, "engine_mode"),
-            copy_tags_to_snapshot: optional_bool(attrs, "copy_tags_to_snapshot").unwrap_or(false),
+            multi_az: model.multi_az,
+            storage_type: model.storage_type,
+            allocated_storage,
+            backup_retention_period: model.backup_retention_period as i32,
+            deletion_protection: model.deletion_protection,
+            storage_encrypted: model.storage_encrypted,
+            kms_key_id: model.kms_key_id,
+            db_cluster_parameter_group: model.db_cluster_parameter_group_name,
+            engine_mode: model.engine_mode,
+            copy_tags_to_snapshot: model.copy_tags_to_snapshot,
             members: vec![],
             restore_to_point_in_time,
             s3_import,
@@ -869,7 +887,9 @@ impl AwsRdsClusterConverter {
         };
 
         let mut state_view = minimal_rds_state_view();
-        state_view.db_clusters.insert(identifier.to_string(), view);
+        state_view
+            .db_clusters
+            .insert(model.cluster_identifier, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -1007,31 +1027,29 @@ impl AwsDbEventSubscriptionConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbEventSubscriptionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_event_subscription", e))?;
 
-        let name = require_str(attrs, "name", "aws_db_event_subscription")?;
-        let sns_topic_arn = require_str(attrs, "sns_topic", "aws_db_event_subscription")?;
         let _tags_all = attrs.get("tags_all");
-        let _name_prefix = optional_str(attrs, "name_prefix");
+        let _name_prefix = attrs.get("name_prefix");
         let _timeouts = attrs.get("timeouts");
-        let source_type = optional_str(attrs, "source_type");
         let source_ids = extract_string_array(attrs, "source_ids");
         let event_categories = extract_string_array(attrs, "event_categories");
-        let enabled = optional_bool(attrs, "enabled").unwrap_or(true);
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rds:{}:{}:es:{}",
-                region, ctx.default_account_id, name
+                region, ctx.default_account_id, model.name
             )
         });
 
         let view = EventSubscriptionView {
-            subscription_name: name.to_string(),
-            sns_topic_arn: sns_topic_arn.to_string(),
-            source_type,
+            subscription_name: model.name.clone(),
+            sns_topic_arn: model.sns_topic,
+            source_type: model.source_type,
             source_ids,
             event_categories,
-            enabled,
+            enabled: model.enabled,
             status: "active".to_string(),
             arn,
             customer_aws_id: ctx.default_account_id.clone(),
@@ -1039,9 +1057,7 @@ impl AwsDbEventSubscriptionConverter {
         };
 
         let mut state_view = minimal_rds_state_view();
-        state_view
-            .event_subscriptions
-            .insert(name.to_string(), view);
+        state_view.event_subscriptions.insert(model.name, view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

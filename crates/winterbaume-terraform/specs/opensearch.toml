@@ -1,0 +1,56 @@
+# Auto-ingested by `tf-converter-codegen ingest opensearch`.
+# Hand-tuned: dropped nested-block fields (advanced_options,
+# auto_tune_options, cognito_options, domain_endpoint_options,
+# encrypt_at_rest, log_publishing_options, node_to_node_encryption,
+# off_peak_window_options, tags_all) — those are read straight from
+# instance.attributes in the converter (cluster_config and ebs_options
+# nested blocks are also handled there).
+
+[service]
+name = "opensearch"
+crate_name = "winterbaume_opensearch"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_opensearch_domain"
+model = "DomainTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain_id"
+view = "domain_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_policies"
+view = "access_policies"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

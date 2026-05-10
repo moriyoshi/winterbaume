@@ -1,6 +1,11 @@
 //! Terraform converters for CodeArtifact resources.
+//!
+//! `DomainTfModel` and `RepositoryTfModel` are generated from
+//! `specs/codeartifact.toml`. The ARN templates, the `tags_all` merge
+//! (only fills keys absent from `tags`), the constant `status` /
+//! `created_time` values, and the raw-Value `external_connections` /
+//! `upstream` reads on the repository are wired up here.
 
-use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::codeartifact as codeartifact_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_codeartifact_domain
@@ -58,27 +64,26 @@ impl AwsCodeArtifactDomainConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: codeartifact_gen::DomainTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_codeartifact_domain", e))?;
 
-        let domain = require_str(attrs, "domain", "aws_codeartifact_domain")?;
-        let _s3_bucket_arn = optional_str(attrs, "s3_bucket_arn");
-        let encryption_key = optional_str(attrs, "encryption_key")
-            .or_else(|| optional_str(attrs, "encryption_key"))
-            .map(|s| s.to_string());
+        let domain = model.domain.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:codeartifact:{region}:{}:domain/{domain}",
+                ctx.default_account_id
+            )
+        });
 
-        let arn = optional_str(attrs, "arn")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:codeartifact:{region}:{}:domain/{domain}",
-                    ctx.default_account_id
-                )
-            });
-
-        let mut tags = extract_tags(attrs);
+        let mut tags = model.tags;
         // Merge tags_all into tags
-        if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
+        if let Some(obj) = instance
+            .attributes
+            .get("tags_all")
+            .and_then(|v| v.as_object())
+        {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
                     tags.entry(k.clone()).or_insert_with(|| s.to_string());
@@ -87,17 +92,17 @@ impl AwsCodeArtifactDomainConverter {
         }
 
         let domain_view = DomainView {
-            name: domain.to_string(),
+            name: domain.clone(),
             owner: ctx.default_account_id.clone(),
             arn: arn.clone(),
-            encryption_key,
+            encryption_key: model.encryption_key,
             status: "Active".to_string(),
             created_time: 0.0,
             tags,
         };
 
         let mut state_view = CodeArtifactStateView::default();
-        state_view.domains.insert(domain.to_string(), domain_view);
+        state_view.domains.insert(domain, domain_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -180,34 +185,33 @@ impl AwsCodeArtifactRepositoryConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: codeartifact_gen::RepositoryTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_codeartifact_repository", e))?;
+
+        let domain = model.domain.clone();
+        let repository = model.repository.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:codeartifact:{region}:{}:repository/{domain}/{repository}",
+                ctx.default_account_id
+            )
+        });
+
+        // Raw-Value blobs not part of the strongly-typed model.
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let domain = require_str(attrs, "domain", "aws_codeartifact_repository")?;
-        let repository = require_str(attrs, "repository", "aws_codeartifact_repository")?;
-        let description = optional_str(attrs, "description").map(|s| s.to_string());
-
-        let arn = optional_str(attrs, "arn")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:codeartifact:{region}:{}:repository/{domain}/{repository}",
-                    ctx.default_account_id
-                )
-            });
-
-        let tags = extract_tags(attrs);
         let external_connections = attrs.get("external_connections").cloned();
         let upstream = attrs.get("upstream").cloned();
 
         let repo_view = RepositoryView {
-            name: repository.to_string(),
-            domain_name: domain.to_string(),
+            name: repository.clone(),
+            domain_name: domain.clone(),
             domain_owner: ctx.default_account_id.clone(),
             arn: arn.clone(),
-            description,
+            description: model.description,
             created_time: 0.0,
-            tags,
+            tags: model.tags,
             external_connections,
             upstream,
         };
@@ -255,20 +259,4 @@ impl AwsCodeArtifactRepositoryConverter {
         }
         Ok(results)
     }
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-fn extract_tags(attrs: &serde_json::Value) -> HashMap<String, String> {
-    let mut tags = HashMap::new();
-    if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-        for (k, v) in obj {
-            if let Some(s) = v.as_str() {
-                tags.insert(k.clone(), s.to_string());
-            }
-        }
-    }
-    tags
 }

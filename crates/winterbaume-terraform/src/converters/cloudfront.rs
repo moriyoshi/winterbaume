@@ -1,6 +1,14 @@
 //! Terraform converters for CloudFront resources.
+//!
+//! `DistributionTfModel` is generated from `specs/cloudfront.toml`. The
+//! synthesised distribution id (UUID-derived `E...` string), the ARN
+//! template, the cloudfront.net domain template, the `origin` /
+//! `default_cache_behavior` nested-block parsing, the
+//! `custom_error_response` / `logging_config` / `ordered_cache_behavior`
+//! / `origin_group` raw-JSON capture, the `caller_reference` /
+//! `created_at` / `etag` / `status` constants, and the `us-east-1`
+//! canonical region are wired up here.
 
-use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -17,7 +25,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str};
+use crate::generated::cloudfront as cloudfront_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_cloudfront_distribution
@@ -62,11 +71,15 @@ impl AwsCloudfrontDistributionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        // CloudFront is global; use us-east-1 as the canonical region
-        let region = extract_region(attrs, "us-east-1");
+        // CloudFront is global; use us-east-1 as the canonical region.
+        let region = extract_region(&instance.attributes, "us-east-1");
+        let model: cloudfront_gen::DistributionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudfront_distribution", e))?;
 
-        let dist_id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+
+        let dist_id = model.id.unwrap_or_else(|| {
             format!(
                 "E{}",
                 &uuid::Uuid::new_v4().to_string()[..13]
@@ -75,21 +88,17 @@ impl AwsCloudfrontDistributionConverter {
             )
         });
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:cloudfront::{}:distribution/{}",
                 ctx.default_account_id, dist_id
             )
         });
-        let domain_name = optional_str(attrs, "domain_name")
+        let domain_name = model
+            .domain_name
             .unwrap_or_else(|| format!("{}.cloudfront.net", dist_id.to_lowercase()));
 
-        let enabled = attrs
-            .get("enabled")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(true);
-
-        // Parse origins array
+        // Parse origins array (nested block).
         let origins: Vec<OriginView> = attrs
             .get("origin")
             .and_then(|v| v.as_array())
@@ -111,7 +120,7 @@ impl AwsCloudfrontDistributionConverter {
             })
             .unwrap_or_default();
 
-        // default_cache_behavior
+        // default_cache_behavior nested block.
         let dcb = attrs
             .get("default_cache_behavior")
             .and_then(|v| v.as_array())
@@ -178,18 +187,6 @@ impl AwsCloudfrontDistributionConverter {
             compress,
         };
 
-        // Additional fields for coverage
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("comment");
-        let _ = attrs.get("default_root_object");
-        let _ = attrs.get("http_version");
-        let _ = attrs.get("price_class");
-        let _ = attrs.get("restrictions");
-        let _ = attrs.get("viewer_certificate");
-        let _ = attrs.get("web_acl_id");
-        let _ = attrs.get("continuous_deployment_policy_id");
-        let _ = attrs.get("staging");
-
         let custom_error_response: Vec<serde_json::Value> = attrs
             .get("custom_error_response")
             .and_then(|v| v.as_array())
@@ -209,16 +206,6 @@ impl AwsCloudfrontDistributionConverter {
             .cloned()
             .unwrap_or_default();
 
-        // Tags
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
-
         let dist_view = DistributionView {
             id: dist_id.clone(),
             arn,
@@ -229,8 +216,8 @@ impl AwsCloudfrontDistributionConverter {
             caller_reference: uuid::Uuid::new_v4().to_string(),
             created_at: Some(Utc::now().to_rfc3339()),
             etag: uuid::Uuid::new_v4().to_string(),
-            enabled,
-            tags,
+            enabled: model.enabled,
+            tags: model.tags,
             raw_config: None,
             custom_error_response,
             logging_config,

@@ -1,4 +1,15 @@
 //! Terraform converters for Transcribe resources.
+//!
+//! `VocabularyTfModel` and `LanguageModelTfModel` are generated from
+//! `specs/transcribe.toml`. The vocabulary `vocabulary_state`
+//! constants, the `last_modified_time` (f64) extraction, the
+//! `phrases` array (`Vec<String>`), and the language model
+//! `input_data_config` nested block are wired up here.
+//!
+//! Note: Transcribe language models are not directly represented in the
+//! TranscribeStateView (no dedicated LanguageModel view type exists yet).
+//! For now we store language model metadata as a vocabulary entry with a
+//! special naming convention so extraction can distinguish them.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::transcribe as transcribe_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_transcribe_vocabulary
@@ -57,33 +69,29 @@ impl AwsTranscribeVocabularyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: transcribe_gen::VocabularyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_transcribe_vocabulary", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-
-        let vocabulary_name = require_str(attrs, "vocabulary_name", "aws_transcribe_vocabulary")?;
-        let language_code = require_str(attrs, "language_code", "aws_transcribe_vocabulary")?;
-
         let phrases: Option<Vec<String>> = attrs
             .get("phrases")
             .and_then(|v| serde_json::from_value(v.clone()).ok());
-        let vocabulary_file_uri = optional_str(attrs, "vocabulary_file_uri");
-        let failure_reason = optional_str(attrs, "failure_reason");
-        let download_uri = optional_str(attrs, "download_uri");
-
-        let _tags = extract_tags(attrs);
+        let last_modified_time = attrs
+            .get("last_modified_time")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
 
         let vocab_view = VocabularyView {
-            vocabulary_name: vocabulary_name.to_string(),
-            language_code: language_code.to_string(),
+            vocabulary_name: model.vocabulary_name.clone(),
+            language_code: model.language_code,
             vocabulary_state: "READY".to_string(),
-            last_modified_time: attrs
-                .get("last_modified_time")
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0),
+            last_modified_time,
             phrases,
-            vocabulary_file_uri,
-            failure_reason,
-            download_uri,
+            vocabulary_file_uri: model.vocabulary_file_uri,
+            failure_reason: model.failure_reason,
+            download_uri: model.download_uri,
         };
 
         let mut state_view = TranscribeStateView::default();
@@ -182,13 +190,15 @@ impl AwsTranscribeLanguageModelConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: transcribe_gen::LanguageModelTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_transcribe_language_model", e))?;
 
-        let model_name = require_str(attrs, "model_name", "aws_transcribe_language_model")?;
-        let language_code = require_str(attrs, "language_code", "aws_transcribe_language_model")?;
-        let base_model_name =
-            optional_str(attrs, "base_model_name").unwrap_or_else(|| "NarrowBand".to_string());
+        let attrs = &instance.attributes;
+        let base_model_name = model
+            .base_model_name
+            .unwrap_or_else(|| "NarrowBand".to_string());
 
         // Extract input_data_config nested block (TF schema).
         let input_data_config = attrs
@@ -208,22 +218,22 @@ impl AwsTranscribeLanguageModelConverter {
             .and_then(|v| v.as_str())
             .map(|s| s.to_string());
 
-        let _tags = extract_tags(attrs);
+        let last_modified_time = attrs
+            .get("last_modified_time")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
 
         // Store as a vocabulary entry with a language-model prefix for identification.
-        let key = format!("language-model:{}", model_name);
+        let key = format!("language-model:{}", model.model_name);
 
         let vocab_view = VocabularyView {
             vocabulary_name: key.clone(),
-            language_code: language_code.to_string(),
+            language_code: model.language_code,
             vocabulary_state: format!("COMPLETED|{}", base_model_name),
-            last_modified_time: attrs
-                .get("last_modified_time")
-                .and_then(|v| v.as_f64())
-                .unwrap_or(0.0),
+            last_modified_time,
             phrases: None,
             vocabulary_file_uri: s3_uri,
-            failure_reason: optional_str(attrs, "failure_reason"),
+            failure_reason: model.failure_reason,
             download_uri: data_access_role_arn,
         };
 

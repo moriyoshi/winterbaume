@@ -14,7 +14,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::apprunner as apprunner_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_apprunner_service
@@ -58,37 +59,34 @@ impl AwsAppRunnerServiceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: apprunner_gen::AppRunnerServiceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_apprunner_service", e))?;
 
-        let service_name = require_str(attrs, "service_name", "aws_apprunner_service")?.to_string();
-        let service_arn = optional_str(attrs, "arn")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:apprunner:{}:{}:service/{}/placeholder",
-                    region, ctx.default_account_id, service_name
-                )
-            });
-        let service_id = optional_str(attrs, "service_id")
-            .map(|s| s.to_string())
+        let service_name = model.service_name.clone();
+        let service_arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:apprunner:{}:{}:service/{}/placeholder",
+                region, ctx.default_account_id, service_name
+            )
+        });
+        let service_id = model
+            .service_id
             .unwrap_or_else(|| "placeholder".to_string());
-        let service_url = optional_str(attrs, "service_url")
-            .map(|s| s.to_string())
+        let service_url = model
+            .service_url
             .unwrap_or_else(|| format!("{service_name}.{region}.awsapprunner.com"));
-        let status = optional_str(attrs, "status")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| "RUNNING".to_string());
-        let _tags_all = attrs.get("tags_all");
-        let _auto_scaling_configuration_arn = optional_str(attrs, "auto_scaling_configuration_arn");
+        let status = model.status.unwrap_or_else(|| "RUNNING".to_string());
+
+        // JSON-blob fields stay as raw attributes (not part of the strongly-typed model).
+        let attrs = &instance.attributes;
         let encryption_configuration = attrs.get("encryption_configuration").cloned();
         let health_check_configuration = attrs.get("health_check_configuration").cloned();
         let instance_configuration = attrs.get("instance_configuration").cloned();
         let network_configuration = attrs.get("network_configuration").cloned();
         let observability_configuration = attrs.get("observability_configuration").cloned();
         let source_configuration = attrs.get("source_configuration").cloned();
-
-        let tags_map = extract_tags(attrs);
 
         let svc_view = AppRunnerServiceView {
             service_id,
@@ -98,7 +96,7 @@ impl AwsAppRunnerServiceConverter {
             status,
             created_at: 0.0,
             updated_at: 0.0,
-            tags: tags_map.into_iter().collect(),
+            tags: model.tags.into_iter().collect(),
             encryption_configuration,
             health_check_configuration,
             instance_configuration,

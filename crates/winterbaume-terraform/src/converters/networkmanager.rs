@@ -1,4 +1,10 @@
 //! Terraform converters for Network Manager resources.
+//!
+//! `GlobalNetworkTfModel`, `SiteTfModel`, and `DeviceTfModel` are
+//! generated from `specs/networkmanager.toml`. The ARN templates,
+//! the `state = "AVAILABLE"` default, the empty-description default,
+//! the synthetic `created_at = "1970-01-01T00:00:00Z"` fallback, and
+//! the location / aws_location raw blobs are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::networkmanager as networkmanager_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_networkmanager_global_network
@@ -64,17 +71,21 @@ impl AwsNetworkmanagerGlobalNetworkConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: networkmanager_gen::GlobalNetworkTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_networkmanager_global_network", e))?;
+
+        let id = model.id.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:networkmanager::{}:global-network/{}",
                 ctx.default_account_id, id
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let state = optional_str(attrs, "state").unwrap_or_else(|| "AVAILABLE".to_string());
-        let created_at =
-            optional_str(attrs, "created_at").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let description = model.description.unwrap_or_default();
+        let state = model.state.unwrap_or_else(|| "AVAILABLE".to_string());
+        let created_at = model
+            .created_at
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
 
         let gn_view = GlobalNetworkView {
             global_network_id: id.clone(),
@@ -82,7 +93,7 @@ impl AwsNetworkmanagerGlobalNetworkConverter {
             description,
             created_at,
             state,
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let mut state_view = NetworkManagerStateView {
@@ -177,30 +188,34 @@ impl AwsNetworkmanagerSiteConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let global_network_id = require_str(attrs, "global_network_id", "aws_networkmanager_site")?;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: networkmanager_gen::SiteTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_networkmanager_site", e))?;
+
+        let global_network_id = model.global_network_id;
+        let id = model.id.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:networkmanager::{}:site/{}/{}",
                 ctx.default_account_id, global_network_id, id
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let state = optional_str(attrs, "state").unwrap_or_else(|| "AVAILABLE".to_string());
-        let created_at =
-            optional_str(attrs, "created_at").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let description = model.description.unwrap_or_default();
+        let state = model.state.unwrap_or_else(|| "AVAILABLE".to_string());
+        let created_at = model
+            .created_at
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
 
         let location = attrs.get("location").cloned();
         let site_view = SiteView {
             site_id: id.clone(),
             site_arn: arn,
-            global_network_id: global_network_id.to_string(),
+            global_network_id,
             description,
             created_at,
             state,
-            tags: extract_tags(attrs),
+            tags: model.tags,
             location,
         };
 
@@ -298,42 +313,45 @@ impl AwsNetworkmanagerDeviceConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let global_network_id =
-            require_str(attrs, "global_network_id", "aws_networkmanager_device")?;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let id = optional_str(attrs, "id").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: networkmanager_gen::DeviceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_networkmanager_device", e))?;
+
+        let global_network_id = model.global_network_id;
+        let id = model.id.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:networkmanager::{}:device/{}/{}",
                 ctx.default_account_id, global_network_id, id
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let site_id = optional_str(attrs, "site_id");
-        let model = optional_str(attrs, "model");
-        let serial_number = optional_str(attrs, "serial_number");
-        let device_type = optional_str(attrs, "type");
-        let vendor = optional_str(attrs, "vendor");
-        let state = optional_str(attrs, "state").unwrap_or_else(|| "AVAILABLE".to_string());
-        let created_at =
-            optional_str(attrs, "created_at").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let description = model.description.unwrap_or_default();
+        let site_id = model.site_id;
+        let device_model = model.model;
+        let serial_number = model.serial_number;
+        let device_type = model.device_type;
+        let vendor = model.vendor;
+        let state = model.state.unwrap_or_else(|| "AVAILABLE".to_string());
+        let created_at = model
+            .created_at
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
 
         let location = attrs.get("location").cloned();
         let aws_location = attrs.get("aws_location").cloned();
         let device_view = DeviceView {
             device_id: id.clone(),
             device_arn: arn,
-            global_network_id: global_network_id.to_string(),
+            global_network_id,
             description,
             site_id,
-            model,
+            model: device_model,
             serial_number,
             device_type,
             vendor,
             created_at,
             state,
-            tags: extract_tags(attrs),
+            tags: model.tags,
             location,
             aws_location,
         };

@@ -1,0 +1,83 @@
+# Auto-ingested by `tf-converter-codegen ingest timestreamwrite`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `magnetic_store_write_properties`/`retention_properties` (nested-block
+#     arrays — read raw in the converter)
+
+[service]
+name = "timestreamwrite"
+crate_name = "winterbaume_timestreamwrite"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_timestreamwrite_database
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_timestreamwrite_database"
+model = "DatabaseTfModel"
+view = "DatabaseView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "table_count"
+view = "table_count"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_timestreamwrite_table
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_timestreamwrite_table"
+model = "TableTfModel"
+view = "TableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "table_name"
+view = "table_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

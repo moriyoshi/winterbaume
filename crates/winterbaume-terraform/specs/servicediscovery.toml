@@ -1,0 +1,107 @@
+# Auto-ingested by `tf-converter-codegen ingest servicediscovery`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (private_dns_namespace / service). Dropped Option<i64> field
+# (`soa_ttl`) and the nested-block fields (`dns_config`,
+# `health_check_config`, `health_check_custom_config`) — those are read
+# straight from instance.attributes in the converter.
+
+[service]
+name = "servicediscovery"
+crate_name = "winterbaume_servicediscovery"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_service_discovery_private_dns_namespace
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_service_discovery_private_dns_namespace"
+model = "PrivateDnsNamespaceTfModel"
+view = "NamespaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc"
+view = "vpc"
+type = "string?"
+
+[[resource.field]]
+hcl = "hosted_zone_id"
+view = "hosted_zone_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_service_discovery_service
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_service_discovery_service"
+model = "ServiceTfModel"
+view = "ServiceEntryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "namespace_id"
+view = "namespace_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "service_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

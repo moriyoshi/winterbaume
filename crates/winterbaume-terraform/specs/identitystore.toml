@@ -1,0 +1,123 @@
+# Auto-ingested by `tf-converter-codegen ingest identitystore`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (group / user). Dropped nested-block fields (`name`, `emails`,
+# `addresses`, `phone_numbers`) — those are read straight from
+# instance.attributes in the converter.
+
+[service]
+name = "identitystore"
+crate_name = "winterbaume_identitystore"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_identitystore_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_identitystore_group"
+model = "GroupTfModel"
+view = "GroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identity_store_id"
+view = "identity_store_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "group_id"
+view = "group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "display_name"
+view = "display_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_identitystore_user
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_identitystore_user"
+model = "UserTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identity_store_id"
+view = "identity_store_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_id"
+view = "user_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_name"
+view = "user_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "display_name"
+view = "display_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "nick_name"
+view = "nick_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "profile_url"
+view = "profile_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "user_type"
+view = "user_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "title"
+view = "title"
+type = "string?"
+
+[[resource.field]]
+hcl = "preferred_language"
+view = "preferred_language"
+type = "string?"
+
+[[resource.field]]
+hcl = "locale"
+view = "locale"
+type = "string?"
+
+[[resource.field]]
+hcl = "timezone"
+view = "timezone"
+type = "string?"
+
+[[resource.field]]
+hcl = "website"
+view = "website"
+type = "string?"
+
+[[resource.field]]
+hcl = "birthdate"
+view = "birthdate"
+type = "string?"

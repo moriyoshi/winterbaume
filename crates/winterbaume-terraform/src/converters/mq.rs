@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str, require_str};
+use crate::generated::mq as mq_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_mq_broker
@@ -61,24 +62,26 @@ impl AwsMqBrokerConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: mq_gen::BrokerTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_mq_broker", e))?;
+
         let attrs = &instance.attributes;
-        let broker_name = require_str(attrs, "broker_name", "aws_mq_broker")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let broker_name = model.broker_name.clone();
 
-        let broker_id = optional_str(attrs, "id").unwrap_or_else(|| format!("b-{}-1", broker_name));
-        let engine_type =
-            optional_str(attrs, "engine_type").unwrap_or_else(|| "ActiveMQ".to_string());
-        let engine_version =
-            optional_str(attrs, "engine_version").unwrap_or_else(|| "5.17.6".to_string());
-        let host_instance_type =
-            optional_str(attrs, "host_instance_type").unwrap_or_else(|| "mq.m5.large".to_string());
-        let deployment_mode =
-            optional_str(attrs, "deployment_mode").unwrap_or_else(|| "SINGLE_INSTANCE".to_string());
-        let publicly_accessible = optional_bool(attrs, "publicly_accessible").unwrap_or(false);
-        let auto_minor_version_upgrade =
-            optional_bool(attrs, "auto_minor_version_upgrade").unwrap_or(true);
+        let broker_id = model.id.unwrap_or_else(|| format!("b-{}-1", broker_name));
+        let engine_type = model.engine_type.unwrap_or_else(|| "ActiveMQ".to_string());
+        let engine_version = model.engine_version.unwrap_or_else(|| "5.17.6".to_string());
+        let host_instance_type = model
+            .host_instance_type
+            .unwrap_or_else(|| "mq.m5.large".to_string());
+        let deployment_mode = model
+            .deployment_mode
+            .unwrap_or_else(|| "SINGLE_INSTANCE".to_string());
+        let publicly_accessible = model.publicly_accessible;
+        let auto_minor_version_upgrade = model.auto_minor_version_upgrade;
 
-        let broker_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let broker_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:mq:{}:{}:broker:{}:{}",
                 region, ctx.default_account_id, broker_name, broker_id
@@ -95,7 +98,7 @@ impl AwsMqBrokerConverter {
         let _logs = attrs.get("logs");
         let _data_replication_mode = attrs.get("data_replication_mode");
 
-        let tags = extract_tags(attrs);
+        let tags = model.tags.clone();
 
         // Parse users from the Terraform "user" block
         let users: HashMap<String, MqUserView> = attrs
@@ -134,7 +137,7 @@ impl AwsMqBrokerConverter {
 
         let broker_view = BrokerView {
             broker_id: broker_id.clone(),
-            broker_name: broker_name.to_string(),
+            broker_name,
             broker_arn,
             broker_state: "RUNNING".to_string(),
             engine_type,
@@ -266,33 +269,32 @@ impl AwsMqConfigurationConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_mq_configuration")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: mq_gen::MqConfigurationTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_mq_configuration", e))?;
 
-        let config_id = optional_str(attrs, "id").unwrap_or_else(|| format!("c-{}", name));
-        let engine_type =
-            optional_str(attrs, "engine_type").unwrap_or_else(|| "ActiveMQ".to_string());
-        let engine_version =
-            optional_str(attrs, "engine_version").unwrap_or_else(|| "5.17.6".to_string());
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let authentication_strategy =
-            optional_str(attrs, "authentication_strategy").unwrap_or_else(|| "simple".to_string());
-        let data = optional_str(attrs, "data").unwrap_or_default();
+        let name = model.name.clone();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let config_id = model.id.unwrap_or_else(|| format!("c-{}", name));
+        let engine_type = model.engine_type.unwrap_or_else(|| "ActiveMQ".to_string());
+        let engine_version = model.engine_version.unwrap_or_else(|| "5.17.6".to_string());
+        let description = model.description.unwrap_or_default();
+        let authentication_strategy = model
+            .authentication_strategy
+            .unwrap_or_else(|| "simple".to_string());
+        let data = model.data.unwrap_or_default();
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:mq:{}:{}:configuration:{}",
                 region, ctx.default_account_id, config_id
             )
         });
 
-        let tags = extract_tags(attrs);
+        let tags = model.tags.clone();
 
-        let latest_revision = attrs
-            .get("latest_revision")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(1) as i32;
+        let latest_revision = model.latest_revision as i32;
 
         let revision_view = MqConfigurationRevisionView {
             revision: latest_revision,
@@ -304,7 +306,7 @@ impl AwsMqConfigurationConverter {
         let config_view = MqConfigurationView {
             id: config_id.clone(),
             arn,
-            name: name.to_string(),
+            name,
             description,
             engine_type,
             engine_version,

@@ -1,4 +1,12 @@
 //! Terraform converters for DataSync resources.
+//!
+//! `DataSyncTaskTfModel` and `DataSyncLocationS3TfModel` are generated
+//! from `specs/datasync.toml`. The synthesised task/location ARNs
+//! (`task-<uuid>` / `loc-<uuid>`), the URI fallback derived from the
+//! S3 bucket ARN, the constant `status` defaults, the
+//! `creation_time` (set to `Utc::now()`), and the raw-Value
+//! `excludes` / `includes` / `schedule` / `task_report_config` /
+//! `s3_config` reads are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::datasync as datasync_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_datasync_task
@@ -59,27 +68,22 @@ impl AwsDatasyncTaskConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: datasync_gen::DataSyncTaskTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_datasync_task", e))?;
 
-        let task_arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:datasync:{}:{}:task/task-{}",
-                    region,
-                    ctx.default_account_id,
-                    uuid::Uuid::new_v4().simple()
-                )
-            });
-        let name = optional_str(attrs, "name");
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "AVAILABLE".to_string());
-        let source_location_arn = require_str(attrs, "source_location_arn", "aws_datasync_task")?;
-        let destination_location_arn =
-            require_str(attrs, "destination_location_arn", "aws_datasync_task")?;
-        let cloud_watch_log_group_arn = optional_str(attrs, "cloudwatch_log_group_arn");
-        let _tags_all = attrs.get("tags_all");
-        let _options = attrs.get("options");
+        let attrs = &instance.attributes;
+
+        let task_arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:datasync:{}:{}:task/task-{}",
+                region,
+                ctx.default_account_id,
+                uuid::Uuid::new_v4().simple()
+            )
+        });
+        let status = model.status.unwrap_or_else(|| "AVAILABLE".to_string());
         let excludes = attrs.get("excludes").cloned();
         let includes = attrs.get("includes").cloned();
         let schedule = attrs.get("schedule").cloned();
@@ -88,11 +92,11 @@ impl AwsDatasyncTaskConverter {
 
         let task_view = DataSyncTaskView {
             task_arn: task_arn.clone(),
-            name,
+            name: model.name,
             status,
-            source_location_arn: source_location_arn.to_string(),
-            destination_location_arn: destination_location_arn.to_string(),
-            cloud_watch_log_group_arn,
+            source_location_arn: model.source_location_arn,
+            destination_location_arn: model.destination_location_arn,
+            cloud_watch_log_group_arn: model.cloudwatch_log_group_arn,
             creation_time,
             excludes,
             includes,
@@ -196,25 +200,25 @@ impl AwsDatasyncLocationS3Converter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: datasync_gen::DataSyncLocationS3TfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_datasync_location_s3", e))?;
 
-        let _tags_all = attrs.get("tags_all");
-        let _agent_arns = attrs.get("agent_arns");
+        let attrs = &instance.attributes;
+
         let s3_config = attrs.get("s3_config").cloned();
-        let location_arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "arn:aws:datasync:{}:{}:location/loc-{}",
-                    region,
-                    ctx.default_account_id,
-                    uuid::Uuid::new_v4().simple()
-                )
-            });
-        let s3_bucket_arn = optional_str(attrs, "s3_bucket_arn").unwrap_or_default();
-        let subdirectory = optional_str(attrs, "subdirectory").unwrap_or_else(|| "/".to_string());
-        let location_uri = optional_str(attrs, "uri").unwrap_or_else(|| {
+        let location_arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:datasync:{}:{}:location/loc-{}",
+                region,
+                ctx.default_account_id,
+                uuid::Uuid::new_v4().simple()
+            )
+        });
+        let s3_bucket_arn = model.s3_bucket_arn.unwrap_or_default();
+        let subdirectory = model.subdirectory.unwrap_or_else(|| "/".to_string());
+        let location_uri = model.uri.unwrap_or_else(|| {
             // Derive a URI from the bucket ARN if possible.
             let bucket = s3_bucket_arn
                 .strip_prefix("arn:aws:s3:::")

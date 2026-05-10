@@ -1,0 +1,33 @@
+[service]
+name = "rekognition"
+crate_name = "winterbaume_rekognition"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_rekognition_collection"
+model = "CollectionTfModel"
+view = "CollectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "collection_id"
+view = "collection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "face_model_version"
+view = "face_model_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

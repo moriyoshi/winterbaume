@@ -1,0 +1,119 @@
+# Auto-ingested by `tf-converter-codegen ingest amplify`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (app / branch). Dropped nested-block / unused fields
+# (`access_token`, `oauth_token`, `auto_branch_creation_patterns`,
+# `auto_branch_creation_config`, `cache_config`, `custom_rule`,
+# `custom_rules`, `custom_headers`, `enable_auto_sub_domain`,
+# `enable_notification`, `enable_performance_mode`,
+# `enable_pull_request_preview`, `tags_all`, `tags`,
+# `backend_environment_arn`, `basic_auth_credentials`,
+# `pull_request_environment_name`, `source_branch`) — those are read
+# straight from instance.attributes in the converter or simply
+# discarded.
+
+[service]
+name = "amplify"
+crate_name = "winterbaume_amplify"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_amplify_app
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_amplify_app"
+model = "AmplifyAppTfModel"
+view = "AmplifyAppView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "app_id"
+view = "app_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_domain"
+view = "default_domain"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "repository"
+view = "repository"
+type = "string?"
+
+[[resource.field]]
+hcl = "platform"
+view = "platform"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_service_role_arn"
+view = "iam_service_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "build_spec"
+view = "build_spec"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_amplify_branch
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_amplify_branch"
+model = "AmplifyBranchTfModel"
+view = "AmplifyBranchView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "app_id"
+view = "app_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "branch_name"
+view = "branch_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "stage"
+view = "stage"
+type = "string?"
+
+[[resource.field]]
+hcl = "framework"
+view = "framework"
+type = "string?"

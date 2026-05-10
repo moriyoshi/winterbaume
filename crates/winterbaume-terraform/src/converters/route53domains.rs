@@ -1,4 +1,9 @@
 //! Terraform converter for Route53 Domains resources.
+//!
+//! `RegisteredDomainTfModel` is generated from `specs/route53domains.toml`.
+//! Nested-block fields (admin_contact, registrant_contact, tech_contact,
+//! billing_contact, name_server) and discarded scalars are read straight
+//! from `instance.attributes` here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_bool, optional_str, require_str};
+use crate::generated::route53domains as route53domains_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_route53domains_registered_domain
@@ -104,17 +110,15 @@ impl AwsRoute53DomainsRegisteredDomainConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let domain_name =
-            require_str(attrs, "domain_name", "aws_route53domains_registered_domain")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let auto_renew = optional_bool(attrs, "auto_renew").unwrap_or(true);
-        let transfer_lock = optional_bool(attrs, "transfer_lock").unwrap_or(true);
-        let admin_privacy = optional_bool(attrs, "admin_privacy").unwrap_or(true);
-        let registrant_privacy = optional_bool(attrs, "registrant_privacy").unwrap_or(true);
-        let tech_privacy = optional_bool(attrs, "tech_privacy").unwrap_or(true);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: route53domains_gen::RegisteredDomainTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_route53domains_registered_domain", e)
+            })?;
 
-        let _tags_all = attrs.get("tags_all");
+        let attrs = &instance.attributes;
+
+        // Nested-block contact details + name_server stay raw.
         let billing_contact = attrs.get("billing_contact").and_then(|v| {
             v.as_array().and_then(|arr| arr.first()).map(|obj| {
                 let get = |field: &str| -> Option<String> {
@@ -138,7 +142,6 @@ impl AwsRoute53DomainsRegisteredDomainConverter {
                 }
             })
         });
-        let billing_privacy = optional_bool(attrs, "billing_privacy").unwrap_or(true);
 
         // Parse name_server blocks
         let name_server: Vec<NameserverRecord> = attrs
@@ -162,14 +165,6 @@ impl AwsRoute53DomainsRegisteredDomainConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let _abuse_contact_email = optional_str(attrs, "abuse_contact_email");
-        let _domain_price = optional_str(attrs, "domain_price");
-        let _availability_status = optional_str(attrs, "availability_status");
-        let _registrar_name = optional_str(attrs, "registrar_name");
-        let _registrar_url = optional_str(attrs, "registrar_url");
-        let _reseller = optional_str(attrs, "reseller");
-        let _whois_server = optional_str(attrs, "whois_server");
-        let _abuse_contact_phone = optional_str(attrs, "abuse_contact_phone");
 
         let admin_contact = extract_contact_detail(attrs, "admin_contact");
         let registrant_contact = extract_contact_detail(attrs, "registrant_contact");
@@ -177,23 +172,23 @@ impl AwsRoute53DomainsRegisteredDomainConverter {
 
         let now = chrono::Utc::now();
         let domain_view = DomainRegistrationView {
-            domain_name: domain_name.to_string(),
-            auto_renew,
+            domain_name: model.domain_name.clone(),
+            auto_renew: model.auto_renew,
             admin_contact,
             registrant_contact,
             tech_contact,
-            admin_privacy,
-            registrant_privacy,
-            tech_privacy,
+            admin_privacy: model.admin_privacy,
+            registrant_privacy: model.registrant_privacy,
+            tech_privacy: model.tech_privacy,
             creation_date: now,
             expiration_date: now,
             updated_date: now,
-            transfer_lock,
+            transfer_lock: model.transfer_lock,
             status_list: vec![],
             nameservers: vec![],
             name_server,
             billing_contact,
-            billing_privacy,
+            billing_privacy: model.billing_privacy,
         };
 
         let mut state_view = Route53DomainsStateView {
@@ -201,7 +196,7 @@ impl AwsRoute53DomainsRegisteredDomainConverter {
         };
         state_view
             .domains
-            .insert(domain_name.to_string(), domain_view);
+            .insert(model.domain_name.clone(), domain_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

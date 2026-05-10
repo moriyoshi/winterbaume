@@ -1,0 +1,82 @@
+# Auto-ingested by `tf-converter-codegen ingest cloudwatch`.
+# Hand-tuned: renamed model from DimensionTfModel to MetricAlarmTfModel,
+# typed `evaluation_periods` and `period` as u32, added `actions_enabled`.
+# Dropped `threshold` (f64 not in spec vocabulary), `alarm_actions`,
+# `ok_actions`, `insufficient_data_actions` (Vec<String>), and
+# `dimensions` (map block) — those are read straight from
+# instance.attributes in the converter.
+
+[service]
+name = "cloudwatch"
+crate_name = "winterbaume_cloudwatch"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_cloudwatch_metric_alarm"
+model = "MetricAlarmTfModel"
+view = "MetricAlarmView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "alarm_name"
+view = "alarm_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "metric_name"
+view = "metric_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "namespace"
+view = "namespace"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "comparison_operator"
+view = "comparison_operator"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "alarm_description"
+view = "alarm_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "evaluation_periods"
+view = "evaluation_periods"
+type = "u32"
+default = 1
+
+[[resource.field]]
+hcl = "period"
+view = "period"
+type = "u32"
+default = 60
+
+[[resource.field]]
+hcl = "statistic"
+view = "statistic"
+type = "string?"
+
+[[resource.field]]
+hcl = "unit"
+view = "unit"
+type = "string?"
+
+[[resource.field]]
+hcl = "actions_enabled"
+view = "actions_enabled"
+type = "bool"
+default = true

@@ -1,0 +1,38 @@
+# Auto-ingested by `tf-converter-codegen ingest applicationcostprofiler`.
+# Hand-tuned: added required `report_id`. The `destination_s3_location`
+# block is a single-element nested terraform block and is parsed by the
+# converter directly from the raw attributes.
+
+[service]
+name = "applicationcostprofiler"
+crate_name = "winterbaume_applicationcostprofiler"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_applicationcostprofiler_report_definition"
+model = "ReportDefinitionTfModel"
+view = "ReportDefinitionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "report_id"
+view = "report_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "format"
+view = "format"
+type = "string?"
+
+[[resource.field]]
+hcl = "report_description"
+view = "report_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "report_frequency"
+view = "report_frequency"
+type = "string?"

@@ -1,4 +1,10 @@
 //! Terraform converters for OpenSearch Serverless resources.
+//!
+//! `CollectionTfModel` and `SecurityPolicyTfModel` are generated from
+//! `specs/opensearchserverless.toml`. The synthesised collection ID,
+//! ARN template, the constants (`status = "ACTIVE"`, `policy_version
+//! = "v1"`, `type = "SEARCH"`), and the JSON-blob `policy` parsing
+//! are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::opensearchserverless as opensearchserverless_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_opensearchserverless_collection
@@ -59,36 +66,35 @@ impl AwsOpensearchserverlessCollectionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: opensearchserverless_gen::CollectionTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_opensearchserverless_collection", e)
+            })?;
 
-        let _tags_all = attrs.get("tags_all");
-        let _standby_replicas = optional_str(attrs, "standby_replicas");
-        let name = require_str(attrs, "name", "aws_opensearchserverless_collection")?.to_string();
-        let id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let id = model.id.clone().unwrap_or_else(|| {
             // Generate a short ID similar to AOSS format
             uuid::Uuid::new_v4().to_string().replace('-', "")[..12].to_string()
         });
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.clone().unwrap_or_else(|| {
             format!(
                 "arn:aws:aoss:{}:{}:collection/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let type_ = optional_str(attrs, "type").unwrap_or_else(|| "SEARCH".to_string());
-        let description = optional_str(attrs, "description");
+        let type_ = model.r#type.clone().unwrap_or_else(|| "SEARCH".to_string());
 
         let view = OpenSearchServerlessStateView {
             collections: std::collections::HashMap::from([(
                 id.clone(),
                 CollectionView {
                     id,
-                    name,
+                    name: model.name,
                     arn,
                     type_,
                     status: "ACTIVE".to_string(),
-                    description,
-                    kms_key_arn: optional_str(attrs, "kms_key_arn"),
+                    description: model.description,
+                    kms_key_arn: model.kms_key_arn,
                     created_date: 0,
                     last_modified_date: 0,
                 },
@@ -184,20 +190,21 @@ impl AwsOpensearchserverlessSecurityPolicyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: opensearchserverless_gen::SecurityPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_opensearchserverless_security_policy", e)
+            })?;
 
-        let name =
-            require_str(attrs, "name", "aws_opensearchserverless_security_policy")?.to_string();
-        let type_ =
-            require_str(attrs, "type", "aws_opensearchserverless_security_policy")?.to_string();
-        let policy_str =
-            require_str(attrs, "policy", "aws_opensearchserverless_security_policy")?.to_string();
+        let policy_str = model.policy.clone();
         let policy: serde_json::Value =
             serde_json::from_str(&policy_str).unwrap_or(serde_json::Value::String(policy_str));
-        let description = optional_str(attrs, "description");
-        let policy_version =
-            optional_str(attrs, "policy_version").unwrap_or_else(|| "v1".to_string());
+        let policy_version = model
+            .policy_version
+            .clone()
+            .unwrap_or_else(|| "v1".to_string());
+        let name = model.name.clone();
+        let type_ = model.r#type.clone();
 
         let key = format!("{type_}/{name}");
         let view = OpenSearchServerlessStateView {
@@ -208,7 +215,7 @@ impl AwsOpensearchserverlessSecurityPolicyConverter {
                     type_,
                     policy,
                     policy_version,
-                    description,
+                    description: model.description,
                     created_date: 0,
                     last_modified_date: 0,
                 },

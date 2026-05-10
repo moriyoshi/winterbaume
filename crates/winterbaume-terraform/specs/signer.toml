@@ -1,0 +1,54 @@
+# Auto-ingested by `tf-converter-codegen ingest signer`.
+# Hand-tuned: dropped `tags`/`tags_all` (extract_tags merges both) and
+# the nested-block fields `signature_validity_period` and
+# `signing_material` (read straight from instance.attributes).
+
+[service]
+name = "signer"
+crate_name = "winterbaume_signer"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_signer_signing_profile"
+model = "SigningProfileTfModel"
+view = "SigningProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "platform_id"
+view = "platform_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_arn"
+view = "version_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "revision_id"
+view = "revision_id"
+type = "string?"

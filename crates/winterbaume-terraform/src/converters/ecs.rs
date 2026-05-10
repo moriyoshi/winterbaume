@@ -17,7 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::ecs as ecs_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_ecs_cluster
@@ -65,10 +66,13 @@ impl AwsEcsClusterConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let name = require_str(attrs, "name", "aws_ecs_cluster")?;
+        let model: ecs_gen::ClusterTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ecs_cluster", e))?;
+
+        let name = model.name.clone();
         let _tags_all = attrs.get("tags_all");
         let _configuration = attrs.get("configuration");
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ecs:{}:{}:cluster/{}",
                 region, ctx.default_account_id, name
@@ -101,7 +105,7 @@ impl AwsEcsClusterConverter {
             .unwrap_or_default();
 
         let cluster_view = EcsClusterView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             status: "ACTIVE".to_string(),
             registered_container_instances_count: 0,
@@ -112,7 +116,7 @@ impl AwsEcsClusterConverter {
         };
 
         let mut state_view = minimal_ecs_state_view();
-        state_view.clusters.insert(name.to_string(), cluster_view);
+        state_view.clusters.insert(name, cluster_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -203,18 +207,20 @@ impl AwsEcsTaskDefinitionConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let family = require_str(attrs, "family", "aws_ecs_task_definition")?;
-        let revision = attrs.get("revision").and_then(|v| v.as_i64()).unwrap_or(1) as i32;
+        let model: ecs_gen::TaskDefinitionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ecs_task_definition", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let family = model.family.clone();
+        let revision = model.revision as i32;
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:ecs:{}:{}:task-definition/{}:{}",
                 region, ctx.default_account_id, family, revision
             )
         });
 
-        let network_mode =
-            optional_str(attrs, "network_mode").unwrap_or_else(|| "bridge".to_string());
+        let network_mode = model.network_mode.unwrap_or_else(|| "bridge".to_string());
 
         // Parse container_definitions JSON string
         let container_definitions: Vec<ContainerDefinitionView> = attrs
@@ -282,23 +288,23 @@ impl AwsEcsTaskDefinitionConverter {
             .unwrap_or_default();
 
         let _tags_all = attrs.get("tags_all");
-        let _ipc_mode = optional_str(attrs, "ipc_mode");
-        let _pid_mode = optional_str(attrs, "pid_mode");
+        let _ipc_mode = attrs.get("ipc_mode");
+        let _pid_mode = attrs.get("pid_mode");
         let _skip_destroy = attrs.get("skip_destroy");
         let _track_latest = attrs.get("track_latest");
 
         let td_view = TaskDefinitionView {
-            family: family.to_string(),
+            family,
             revision,
             arn: arn.clone(),
             container_definitions,
             status: "ACTIVE".to_string(),
             network_mode,
-            task_role_arn: optional_str(attrs, "task_role_arn"),
-            execution_role_arn: optional_str(attrs, "execution_role_arn"),
+            task_role_arn: model.task_role_arn,
+            execution_role_arn: model.execution_role_arn,
             requires_compatibilities,
-            cpu: optional_str(attrs, "cpu"),
-            memory: optional_str(attrs, "memory"),
+            cpu: model.cpu,
+            memory: model.memory,
         };
 
         let mut state_view = minimal_ecs_state_view();
@@ -416,9 +422,12 @@ impl AwsEcsServiceConverter {
         let _ = attrs.get("ordered_placement_strategy");
         let _ = attrs.get("placement_constraints");
 
-        let name = require_str(attrs, "name", "aws_ecs_service")?;
-        let cluster_raw = optional_str(attrs, "cluster").unwrap_or_default();
-        let task_definition = require_str(attrs, "task_definition", "aws_ecs_service")?;
+        let model: ecs_gen::ServiceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ecs_service", e))?;
+
+        let name = model.name.clone();
+        let cluster_raw = model.cluster.unwrap_or_default();
+        let task_definition = model.task_definition.clone();
 
         // cluster can be a full ARN or a name
         let cluster_arn = if cluster_raw.starts_with("arn:") {
@@ -436,7 +445,7 @@ impl AwsEcsServiceConverter {
             )
         };
 
-        let service_arn = optional_str(attrs, "id").unwrap_or_else(|| {
+        let service_arn = model.id.unwrap_or_else(|| {
             format!(
                 "arn:aws:ecs:{}:{}:service/{}/{}",
                 region,
@@ -446,13 +455,11 @@ impl AwsEcsServiceConverter {
             )
         });
 
-        let desired_count = attrs
-            .get("desired_count")
-            .and_then(|v| v.as_i64())
-            .unwrap_or(1) as i32;
-        let launch_type = optional_str(attrs, "launch_type").unwrap_or_else(|| "EC2".to_string());
-        let scheduling_strategy =
-            optional_str(attrs, "scheduling_strategy").unwrap_or_else(|| "REPLICA".to_string());
+        let desired_count = model.desired_count as i32;
+        let launch_type = model.launch_type.unwrap_or_else(|| "EC2".to_string());
+        let scheduling_strategy = model
+            .scheduling_strategy
+            .unwrap_or_else(|| "REPLICA".to_string());
 
         let tags: Vec<EcsTagView> = attrs
             .get("tags")
@@ -480,10 +487,10 @@ impl AwsEcsServiceConverter {
             .to_string();
 
         let svc_view = EcsServiceDefView {
-            name: name.to_string(),
+            name,
             arn: service_arn.clone(),
             cluster_arn,
-            task_definition: task_definition.to_string(),
+            task_definition,
             desired_count,
             running_count: attrs
                 .get("running_count")

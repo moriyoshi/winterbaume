@@ -1,4 +1,12 @@
 //! Terraform converter for Synthetics resources.
+//!
+//! `CanaryTfModel` is generated from `specs/synthetics.toml`. The ARN
+//! template, the `runtime_version` and `schedule_expression` defaults,
+//! the retention-period numeric fallbacks, the
+//! `schedule_duration_in_seconds` lookup (with nested `schedule[0]`
+//! fallback), the `source_location_arn` template, and the raw
+//! list-of-object blocks `artifact_config` / `run_config` / `vpc_config`
+//! are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::synthetics as synthetics_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_synthetics_canary
@@ -59,28 +68,30 @@ impl AwsSyntheticsCanaryConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: synthetics_gen::CanaryTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_synthetics_canary", e))?;
 
-        let name = require_str(attrs, "name", "aws_synthetics_canary")?;
-        let _tags_all = attrs.get("tags_all");
-        let _start_canary = optional_str(attrs, "start_canary");
-        let _delete_lambda = optional_str(attrs, "delete_lambda");
-        let artifact_config = attrs.get("artifact_config").cloned();
-        let run_config = attrs.get("run_config").cloned();
-        let vpc_config = attrs.get("vpc_config").cloned();
-        let id = optional_str(attrs, "id").unwrap_or_else(|| name.to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let id = model.id.unwrap_or_else(|| name.clone());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:synthetics:{}:{}:canary:{}",
                 region, ctx.default_account_id, name
             )
         });
-        let artifact_s3_location = optional_str(attrs, "artifact_s3_location").unwrap_or_default();
-        let runtime_version = optional_str(attrs, "runtime_version")
+        let artifact_s3_location = model.artifact_s3_location.unwrap_or_default();
+        let runtime_version = model
+            .runtime_version
             .unwrap_or_else(|| "syn-nodejs-puppeteer-6.2".to_string());
-        let handler = require_str(attrs, "handler", "aws_synthetics_canary")?;
-        let schedule_expression = optional_str(attrs, "schedule_expression")
+        let handler = model.handler.clone();
+
+        // Nested-block / Option<numeric> fields stay raw to preserve
+        // the original semantics.
+        let attrs = &instance.attributes;
+        let schedule_expression = model
+            .schedule_expression
             .or_else(|| {
                 attrs
                     .get("schedule")
@@ -91,7 +102,9 @@ impl AwsSyntheticsCanaryConverter {
                     .map(|s| s.to_string())
             })
             .unwrap_or_else(|| "rate(5 minutes)".to_string());
-        let schedule_duration_in_seconds = optional_i64(attrs, "schedule_duration_in_seconds")
+        let schedule_duration_in_seconds = attrs
+            .get("schedule_duration_in_seconds")
+            .and_then(|v| v.as_i64())
             .or_else(|| {
                 attrs
                     .get("schedule")
@@ -108,34 +121,33 @@ impl AwsSyntheticsCanaryConverter {
             .get("failure_retention_period")
             .and_then(|v| v.as_i64())
             .unwrap_or(31) as i32;
-        let status_state = optional_str(attrs, "status").unwrap_or_else(|| "READY".to_string());
-        let status_state_reason = optional_str(attrs, "status_state_reason");
-        let status_state_reason_code = optional_str(attrs, "status_state_reason_code");
-        let created_at = optional_str(attrs, "created_at").unwrap_or_default();
-        let last_modified = optional_str(attrs, "last_modified").unwrap_or_default();
-        let execution_role_arn = optional_str(attrs, "execution_role_arn").unwrap_or_default();
-        let s3_encryption_mode = optional_str(attrs, "s3_encryption_mode");
-        let tags = extract_tags(attrs);
+        let status_state = model.status_state.unwrap_or_else(|| "READY".to_string());
+        let created_at = model.created_at.unwrap_or_default();
+        let last_modified = model.last_modified.unwrap_or_default();
+        let execution_role_arn = model.execution_role_arn.unwrap_or_default();
+        let artifact_config = attrs.get("artifact_config").cloned();
+        let run_config = attrs.get("run_config").cloned();
+        let vpc_config = attrs.get("vpc_config").cloned();
 
         let canary_view = CanaryView {
-            name: name.to_string(),
+            name: name.clone(),
             id: id.clone(),
             arn,
             artifact_s3_location,
             runtime_version,
-            handler: handler.to_string(),
+            handler,
             schedule_expression,
             schedule_duration_in_seconds,
             success_retention_period_in_days,
             failure_retention_period_in_days,
             status_state,
-            status_state_reason,
-            status_state_reason_code,
+            status_state_reason: model.status_state_reason,
+            status_state_reason_code: model.status_state_reason_code,
             created_at,
             last_modified,
             execution_role_arn,
-            s3_encryption_mode,
-            tags,
+            s3_encryption_mode: model.s3_encryption_mode,
+            tags: model.tags,
             artifact_config,
             run_config,
             vpc_config,
@@ -145,7 +157,7 @@ impl AwsSyntheticsCanaryConverter {
             canaries: HashMap::new(),
             groups: HashMap::new(),
         };
-        state_view.canaries.insert(name.to_string(), canary_view);
+        state_view.canaries.insert(name, canary_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

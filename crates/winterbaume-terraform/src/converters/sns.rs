@@ -1,4 +1,11 @@
 //! Terraform converters for SNS resources.
+//!
+//! `TopicTfModel` and `SubscriptionTfModel` are generated from
+//! `specs/sns.toml` (see `crate::generated::sns`). The generated structs
+//! cover the flat field projection; the AWS-side `TopicView.attributes`
+//! / `SubscriptionView.attributes` bags are PascalCase HashMaps that
+//! don't fit the thin-projection pattern, so the bag construction lives
+//! here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::sns as sns_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_sns_topic
@@ -59,142 +67,31 @@ impl AwsSnsTopicConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_sns_topic")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: sns_gen::TopicTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_sns_topic", e))?;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
+        let arn = model
+            .arn
+            .clone()
+            .or_else(|| model.id.clone())
             .unwrap_or_else(|| {
-                format!("arn:aws:sns:{}:{}:{}", region, ctx.default_account_id, name)
+                format!(
+                    "arn:aws:sns:{}:{}:{}",
+                    region, ctx.default_account_id, model.name
+                )
             });
-
-        let _tags_all = attrs.get("tags_all");
-        let _tracing_config = optional_str(attrs, "tracing_config");
-        let _archive_policy = optional_str(attrs, "archive_policy");
-        let _signature_version = optional_str(attrs, "signature_version");
-        let _name_prefix = optional_str(attrs, "name_prefix");
-        let _http_success_feedback_sample_rate =
-            optional_str(attrs, "http_success_feedback_sample_rate");
-        let _sqs_success_feedback_sample_rate =
-            optional_str(attrs, "sqs_success_feedback_sample_rate");
-        let _lambda_success_feedback_sample_rate =
-            optional_str(attrs, "lambda_success_feedback_sample_rate");
-        let _firehose_success_feedback_sample_rate =
-            optional_str(attrs, "firehose_success_feedback_sample_rate");
-        let _application_success_feedback_sample_rate =
-            optional_str(attrs, "application_success_feedback_sample_rate");
-        let _fifo_throughput_scope = optional_str(attrs, "fifo_throughput_scope");
-
-        let mut attributes: HashMap<String, String> = HashMap::new();
-        if let Some(display_name) = optional_str(attrs, "display_name") {
-            if !display_name.is_empty() {
-                attributes.insert("DisplayName".to_string(), display_name);
-            }
-        }
-        if let Some(policy) = optional_str(attrs, "policy") {
-            if !policy.is_empty() {
-                attributes.insert("Policy".to_string(), policy);
-            }
-        }
-        if let Some(delivery_policy) = optional_str(attrs, "delivery_policy") {
-            if !delivery_policy.is_empty() {
-                attributes.insert("DeliveryPolicy".to_string(), delivery_policy);
-            }
-        }
-        if let Some(kms_master_key_id) = optional_str(attrs, "kms_master_key_id") {
-            if !kms_master_key_id.is_empty() {
-                attributes.insert("KmsMasterKeyId".to_string(), kms_master_key_id);
-            }
-        }
-        // FIFO topic attributes
-        if let Some(fifo_topic) = attrs.get("fifo_topic").and_then(|v| v.as_bool()) {
-            attributes.insert("FifoTopic".to_string(), fifo_topic.to_string());
-        }
-        if let Some(content_based_dedup) = attrs
-            .get("content_based_deduplication")
-            .and_then(|v| v.as_bool())
-        {
-            attributes.insert(
-                "ContentBasedDeduplication".to_string(),
-                content_based_dedup.to_string(),
-            );
-        }
-        // Feedback role ARNs
-        let feedback_attrs = [
-            ("sqs_success_feedback_role_arn", "SQSSuccessFeedbackRoleArn"),
-            ("sqs_failure_feedback_role_arn", "SQSFailureFeedbackRoleArn"),
-            (
-                "sqs_success_feedback_sample_rate",
-                "SQSSuccessFeedbackSampleRate",
-            ),
-            (
-                "lambda_success_feedback_role_arn",
-                "LambdaSuccessFeedbackRoleArn",
-            ),
-            (
-                "lambda_failure_feedback_role_arn",
-                "LambdaFailureFeedbackRoleArn",
-            ),
-            (
-                "lambda_success_feedback_sample_rate",
-                "LambdaSuccessFeedbackSampleRate",
-            ),
-            (
-                "http_success_feedback_role_arn",
-                "HTTPSuccessFeedbackRoleArn",
-            ),
-            (
-                "http_failure_feedback_role_arn",
-                "HTTPFailureFeedbackRoleArn",
-            ),
-            (
-                "http_success_feedback_sample_rate",
-                "HTTPSuccessFeedbackSampleRate",
-            ),
-            (
-                "firehose_success_feedback_role_arn",
-                "FirehoseSuccessFeedbackRoleArn",
-            ),
-            (
-                "firehose_failure_feedback_role_arn",
-                "FirehoseFailureFeedbackRoleArn",
-            ),
-            (
-                "firehose_success_feedback_sample_rate",
-                "FirehoseSuccessFeedbackSampleRate",
-            ),
-            (
-                "application_success_feedback_role_arn",
-                "ApplicationSuccessFeedbackRoleArn",
-            ),
-            (
-                "application_failure_feedback_role_arn",
-                "ApplicationFailureFeedbackRoleArn",
-            ),
-            (
-                "application_success_feedback_sample_rate",
-                "ApplicationSuccessFeedbackSampleRate",
-            ),
-        ];
-        for (tf_key, sns_key) in &feedback_attrs {
-            if let Some(val) = optional_str(attrs, tf_key).filter(|v| !v.is_empty()) {
-                attributes.insert(sns_key.to_string(), val);
-            }
-        }
 
         let topic_view = TopicView {
             arn: arn.clone(),
-            name: name.to_string(),
-            attributes,
-            tags: extract_tags(attrs),
+            name: model.name.clone(),
+            attributes: build_topic_attributes(&model),
+            tags: model.tags.clone(),
             permissions: HashMap::new(),
             data_protection_policy: None,
         };
 
-        let mut state_view = SnsStateView {
-            ..Default::default()
-        };
+        let mut state_view = SnsStateView::default();
         state_view.topics.insert(arn, topic_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
@@ -216,39 +113,7 @@ impl AwsSnsTopicConverter {
             .await;
         let mut results = vec![];
         for topic in view.topics.values() {
-            let get_attr =
-                |key: &str| -> String { topic.attributes.get(key).cloned().unwrap_or_default() };
-            let fifo_topic = get_attr("FifoTopic") == "true";
-            let content_based_dedup = get_attr("ContentBasedDeduplication") == "true";
-            let owner = topic.arn.split(':').nth(4).unwrap_or("").to_string();
-            let attrs = serde_json::json!({
-                "id": topic.arn,
-                "arn": topic.arn,
-                "name": topic.name,
-                "owner": owner,
-                "display_name": get_attr("DisplayName"),
-                "policy": get_attr("Policy"),
-                "delivery_policy": get_attr("DeliveryPolicy"),
-                "kms_master_key_id": get_attr("KmsMasterKeyId"),
-                "fifo_topic": fifo_topic,
-                "content_based_deduplication": content_based_dedup,
-                "sqs_success_feedback_role_arn": get_attr("SQSSuccessFeedbackRoleArn"),
-                "sqs_failure_feedback_role_arn": get_attr("SQSFailureFeedbackRoleArn"),
-                "sqs_success_feedback_sample_rate": get_attr("SQSSuccessFeedbackSampleRate"),
-                "lambda_success_feedback_role_arn": get_attr("LambdaSuccessFeedbackRoleArn"),
-                "lambda_failure_feedback_role_arn": get_attr("LambdaFailureFeedbackRoleArn"),
-                "lambda_success_feedback_sample_rate": get_attr("LambdaSuccessFeedbackSampleRate"),
-                "http_success_feedback_role_arn": get_attr("HTTPSuccessFeedbackRoleArn"),
-                "http_failure_feedback_role_arn": get_attr("HTTPFailureFeedbackRoleArn"),
-                "http_success_feedback_sample_rate": get_attr("HTTPSuccessFeedbackSampleRate"),
-                "firehose_success_feedback_role_arn": get_attr("FirehoseSuccessFeedbackRoleArn"),
-                "firehose_failure_feedback_role_arn": get_attr("FirehoseFailureFeedbackRoleArn"),
-                "firehose_success_feedback_sample_rate": get_attr("FirehoseSuccessFeedbackSampleRate"),
-                "application_success_feedback_role_arn": get_attr("ApplicationSuccessFeedbackRoleArn"),
-                "application_failure_feedback_role_arn": get_attr("ApplicationFailureFeedbackRoleArn"),
-                "application_success_feedback_sample_rate": get_attr("ApplicationSuccessFeedbackSampleRate"),
-                "tags": topic.tags,
-            });
+            let attrs = topic_extract_attributes(topic);
             results.push(ExtractedResource {
                 name: topic.name.clone(),
                 account_id: ctx.default_account_id.clone(),
@@ -258,6 +123,142 @@ impl AwsSnsTopicConverter {
         }
         Ok(results)
     }
+}
+
+/// Pack the model's flat fields into the AWS-side PascalCase attributes bag.
+/// Empty strings are dropped to match the original hand-rolled converter.
+fn build_topic_attributes(model: &sns_gen::TopicTfModel) -> HashMap<String, String> {
+    let mut a = HashMap::new();
+    insert_non_empty(&mut a, "DisplayName", model.display_name.as_deref());
+    insert_non_empty(&mut a, "Policy", model.policy.as_deref());
+    insert_non_empty(&mut a, "DeliveryPolicy", model.delivery_policy.as_deref());
+    insert_non_empty(&mut a, "KmsMasterKeyId", model.kms_master_key_id.as_deref());
+    a.insert("FifoTopic".to_string(), model.fifo_topic.to_string());
+    a.insert(
+        "ContentBasedDeduplication".to_string(),
+        model.content_based_deduplication.to_string(),
+    );
+    for (key, val) in TOPIC_FEEDBACK_ATTRS {
+        let opt = topic_feedback_field(model, key);
+        insert_non_empty(&mut a, val, opt);
+    }
+    a
+}
+
+const TOPIC_FEEDBACK_ATTRS: &[(&str, &str)] = &[
+    ("sqs_success_feedback_role_arn", "SQSSuccessFeedbackRoleArn"),
+    ("sqs_failure_feedback_role_arn", "SQSFailureFeedbackRoleArn"),
+    (
+        "sqs_success_feedback_sample_rate",
+        "SQSSuccessFeedbackSampleRate",
+    ),
+    (
+        "lambda_success_feedback_role_arn",
+        "LambdaSuccessFeedbackRoleArn",
+    ),
+    (
+        "lambda_failure_feedback_role_arn",
+        "LambdaFailureFeedbackRoleArn",
+    ),
+    (
+        "lambda_success_feedback_sample_rate",
+        "LambdaSuccessFeedbackSampleRate",
+    ),
+    (
+        "http_success_feedback_role_arn",
+        "HTTPSuccessFeedbackRoleArn",
+    ),
+    (
+        "http_failure_feedback_role_arn",
+        "HTTPFailureFeedbackRoleArn",
+    ),
+    (
+        "http_success_feedback_sample_rate",
+        "HTTPSuccessFeedbackSampleRate",
+    ),
+    (
+        "firehose_success_feedback_role_arn",
+        "FirehoseSuccessFeedbackRoleArn",
+    ),
+    (
+        "firehose_failure_feedback_role_arn",
+        "FirehoseFailureFeedbackRoleArn",
+    ),
+    (
+        "firehose_success_feedback_sample_rate",
+        "FirehoseSuccessFeedbackSampleRate",
+    ),
+    (
+        "application_success_feedback_role_arn",
+        "ApplicationSuccessFeedbackRoleArn",
+    ),
+    (
+        "application_failure_feedback_role_arn",
+        "ApplicationFailureFeedbackRoleArn",
+    ),
+    (
+        "application_success_feedback_sample_rate",
+        "ApplicationSuccessFeedbackSampleRate",
+    ),
+];
+
+fn topic_feedback_field<'a>(model: &'a sns_gen::TopicTfModel, key: &str) -> Option<&'a str> {
+    let opt = match key {
+        "sqs_success_feedback_role_arn" => &model.sqs_success_feedback_role_arn,
+        "sqs_failure_feedback_role_arn" => &model.sqs_failure_feedback_role_arn,
+        "sqs_success_feedback_sample_rate" => &model.sqs_success_feedback_sample_rate,
+        "lambda_success_feedback_role_arn" => &model.lambda_success_feedback_role_arn,
+        "lambda_failure_feedback_role_arn" => &model.lambda_failure_feedback_role_arn,
+        "lambda_success_feedback_sample_rate" => &model.lambda_success_feedback_sample_rate,
+        "http_success_feedback_role_arn" => &model.http_success_feedback_role_arn,
+        "http_failure_feedback_role_arn" => &model.http_failure_feedback_role_arn,
+        "http_success_feedback_sample_rate" => &model.http_success_feedback_sample_rate,
+        "firehose_success_feedback_role_arn" => &model.firehose_success_feedback_role_arn,
+        "firehose_failure_feedback_role_arn" => &model.firehose_failure_feedback_role_arn,
+        "firehose_success_feedback_sample_rate" => &model.firehose_success_feedback_sample_rate,
+        "application_success_feedback_role_arn" => &model.application_success_feedback_role_arn,
+        "application_failure_feedback_role_arn" => &model.application_failure_feedback_role_arn,
+        "application_success_feedback_sample_rate" => {
+            &model.application_success_feedback_sample_rate
+        }
+        _ => &None,
+    };
+    opt.as_deref()
+}
+
+fn topic_extract_attributes(topic: &TopicView) -> serde_json::Value {
+    let get = |k: &str| topic.attributes.get(k).cloned().unwrap_or_default();
+    let fifo_topic = get("FifoTopic") == "true";
+    let content_based_dedup = get("ContentBasedDeduplication") == "true";
+    let owner = topic.arn.split(':').nth(4).unwrap_or("").to_string();
+    serde_json::json!({
+        "id": topic.arn,
+        "arn": topic.arn,
+        "name": topic.name,
+        "owner": owner,
+        "display_name": get("DisplayName"),
+        "policy": get("Policy"),
+        "delivery_policy": get("DeliveryPolicy"),
+        "kms_master_key_id": get("KmsMasterKeyId"),
+        "fifo_topic": fifo_topic,
+        "content_based_deduplication": content_based_dedup,
+        "sqs_success_feedback_role_arn": get("SQSSuccessFeedbackRoleArn"),
+        "sqs_failure_feedback_role_arn": get("SQSFailureFeedbackRoleArn"),
+        "sqs_success_feedback_sample_rate": get("SQSSuccessFeedbackSampleRate"),
+        "lambda_success_feedback_role_arn": get("LambdaSuccessFeedbackRoleArn"),
+        "lambda_failure_feedback_role_arn": get("LambdaFailureFeedbackRoleArn"),
+        "lambda_success_feedback_sample_rate": get("LambdaSuccessFeedbackSampleRate"),
+        "http_success_feedback_role_arn": get("HTTPSuccessFeedbackRoleArn"),
+        "http_failure_feedback_role_arn": get("HTTPFailureFeedbackRoleArn"),
+        "http_success_feedback_sample_rate": get("HTTPSuccessFeedbackSampleRate"),
+        "firehose_success_feedback_role_arn": get("FirehoseSuccessFeedbackRoleArn"),
+        "firehose_failure_feedback_role_arn": get("FirehoseFailureFeedbackRoleArn"),
+        "firehose_success_feedback_sample_rate": get("FirehoseSuccessFeedbackSampleRate"),
+        "application_success_feedback_role_arn": get("ApplicationSuccessFeedbackRoleArn"),
+        "application_failure_feedback_role_arn": get("ApplicationFailureFeedbackRoleArn"),
+        "application_success_feedback_sample_rate": get("ApplicationSuccessFeedbackSampleRate"),
+        "tags": topic.tags,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -307,53 +308,46 @@ impl AwsSnsTopicSubscriptionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let topic_arn = require_str(attrs, "topic_arn", "aws_sns_topic_subscription")?;
-        let protocol = require_str(attrs, "protocol", "aws_sns_topic_subscription")?;
-        let endpoint = require_str(attrs, "endpoint", "aws_sns_topic_subscription")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: sns_gen::SubscriptionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sns_topic_subscription", e))?;
 
-        let arn = optional_str(attrs, "arn")
-            .or_else(|| optional_str(attrs, "id"))
+        let arn = model
+            .arn
+            .clone()
+            .or_else(|| model.id.clone())
             .unwrap_or_else(|| {
                 format!(
                     "arn:aws:sns:{}:{}:{}:{}",
                     region,
                     ctx.default_account_id,
-                    topic_arn.rsplit(':').next().unwrap_or("topic"),
+                    model.topic_arn.rsplit(':').next().unwrap_or("topic"),
                     uuid::Uuid::new_v4()
                 )
             });
 
-        let _tags_all = attrs.get("tags_all");
-        let _confirmation_timeout_in_minutes = attrs.get("confirmation_timeout_in_minutes");
-        let _delivery_policy = optional_str(attrs, "delivery_policy");
-        let _endpoint_auto_confirms = attrs.get("endpoint_auto_confirms");
-        let _filter_policy_scope = optional_str(attrs, "filter_policy_scope");
-
         let mut sub_attributes: HashMap<String, String> = HashMap::new();
-        if let Some(raw_msg) = optional_str(attrs, "raw_message_delivery") {
+        if let Some(raw_msg) = model.raw_message_delivery.clone() {
             sub_attributes.insert("RawMessageDelivery".to_string(), raw_msg);
         }
-        if let Some(filter_policy) = optional_str(attrs, "filter_policy") {
-            if !filter_policy.is_empty() {
-                sub_attributes.insert("FilterPolicy".to_string(), filter_policy);
-            }
-        }
+        insert_non_empty(
+            &mut sub_attributes,
+            "FilterPolicy",
+            model.filter_policy.as_deref(),
+        );
 
         let sub_view = SubscriptionView {
             arn: arn.clone(),
-            topic_arn: topic_arn.to_string(),
-            protocol: protocol.to_string(),
-            endpoint: endpoint.to_string(),
+            topic_arn: model.topic_arn.clone(),
+            protocol: model.protocol.clone(),
+            endpoint: model.endpoint.clone(),
             confirmed: true,
             owner: ctx.default_account_id.clone(),
             attributes: sub_attributes,
         };
 
-        let mut state_view = SnsStateView {
-            ..Default::default()
-        };
+        let mut state_view = SnsStateView::default();
         state_view.subscriptions.insert(arn, sub_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
@@ -397,5 +391,17 @@ impl AwsSnsTopicSubscriptionConverter {
             });
         }
         Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// shared helpers
+// ---------------------------------------------------------------------------
+
+fn insert_non_empty(map: &mut HashMap<String, String>, key: &str, value: Option<&str>) {
+    if let Some(v) = value
+        && !v.is_empty()
+    {
+        map.insert(key.to_string(), v.to_string());
     }
 }

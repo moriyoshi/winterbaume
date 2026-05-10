@@ -1,0 +1,96 @@
+# Auto-ingested by `tf-converter-codegen ingest transcribe`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `phrases` (Vec<String> on the vocabulary view — not in spec vocab,
+#     read raw)
+#   - `input_data_config` (nested-block array on the language model —
+#     read raw)
+#   - `last_modified_time` (f64 — not in spec vocab, read raw)
+
+[service]
+name = "transcribe"
+crate_name = "winterbaume_transcribe"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_transcribe_vocabulary
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transcribe_vocabulary"
+model = "VocabularyTfModel"
+view = "VocabularyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vocabulary_name"
+view = "vocabulary_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "language_code"
+view = "language_code"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vocabulary_file_uri"
+view = "vocabulary_file_uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "failure_reason"
+view = "failure_reason"
+type = "string?"
+
+[[resource.field]]
+hcl = "download_uri"
+view = "download_uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_transcribe_language_model
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transcribe_language_model"
+model = "LanguageModelTfModel"
+view = "LanguageModelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "model_name"
+view = "model_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "language_code"
+view = "language_code"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "base_model_name"
+view = "base_model_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "failure_reason"
+view = "failure_reason"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

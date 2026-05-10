@@ -74,3 +74,26 @@ pub fn extract_region(attrs: &serde_json::Value, default: &str) -> String {
 pub fn extract_account_id(attrs: &serde_json::Value, default: &str) -> String {
     optional_str(attrs, "account_id").unwrap_or_else(|| default.to_string())
 }
+
+/// Map a `serde_json` deserialize error onto the existing `ConversionError`
+/// variants. Returns `MissingAttribute` when the underlying error names a
+/// missing field, otherwise `InvalidAttribute`. Used by spec-driven
+/// converters that deserialize Terraform attributes into a generated
+/// TfModel struct.
+pub fn classify_deserialize_error(resource_type: &str, err: serde_json::Error) -> ConversionError {
+    let message = err.to_string();
+    let prefix = "missing field `";
+    if let Some(rest) = message.strip_prefix(prefix)
+        && let Some(end) = rest.find('`')
+    {
+        return ConversionError::MissingAttribute {
+            resource_type: resource_type.to_string(),
+            attribute: rest[..end].to_string(),
+        };
+    }
+    ConversionError::InvalidAttribute {
+        resource_type: resource_type.to_string(),
+        attribute: "(payload)".to_string(),
+        detail: message,
+    }
+}

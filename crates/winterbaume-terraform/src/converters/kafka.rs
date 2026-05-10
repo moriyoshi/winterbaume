@@ -1,4 +1,13 @@
 //! Terraform converters for MSK (Kafka) resources.
+//!
+//! `ClusterTfModel` is generated from `specs/kafka.toml`. The cluster
+//! ARN template (with synthesised UUID suffix), the
+//! `broker_node_group_info` nested-block parsing (instance_type,
+//! client_subnets, security_groups), the i32 `number_of_broker_nodes`
+//! raw read, the opaque `client_authentication` /
+//! `configuration_info` / `encryption_info` / `logging_info` /
+//! `open_monitoring` JSON capture, and the `state` / `cluster_type` /
+//! `creation_time` / `kafka_version` defaults are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,7 +24,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::kafka as kafka_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_msk_cluster
@@ -59,45 +69,43 @@ impl AwsMskClusterConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: kafka_gen::ClusterTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_msk_cluster", e))?;
 
-        let cluster_name = require_str(attrs, "cluster_name", "aws_msk_cluster")?;
-        let cluster_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+
+        let cluster_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:kafka:{}:{}:cluster/{}/{}",
                 region,
                 ctx.default_account_id,
-                cluster_name,
+                model.cluster_name,
                 uuid::Uuid::new_v4()
             )
         });
 
-        let _cluster_name_prefix = optional_str(attrs, "cluster_name_prefix");
-        let _vpc_connectivity_authentication = attrs.get("vpc_connectivity_authentication");
-        let _open_monitoring_jmx = attrs.get("open_monitoring");
-        let _broker_count = attrs.get("broker_count");
+        let kafka_version = model.kafka_version.unwrap_or_else(|| "3.5.1".to_string());
 
-        let kafka_version =
-            optional_str(attrs, "kafka_version").unwrap_or_else(|| "3.5.1".to_string());
+        // i32 not in spec vocabulary -- read raw.
         let number_of_broker_nodes = attrs
             .get("number_of_broker_nodes")
             .and_then(|v| v.as_i64())
             .unwrap_or(3) as i32;
 
-        let instance_type = attrs
+        // broker_node_group_info is a nested-block array.
+        let bng = attrs
             .get("broker_node_group_info")
             .and_then(|v| v.as_array())
-            .and_then(|arr| arr.first())
+            .and_then(|arr| arr.first());
+
+        let instance_type = bng
             .and_then(|b| b.get("instance_type"))
             .and_then(|v| v.as_str())
             .unwrap_or("kafka.m5.large")
             .to_string();
 
-        let client_subnets: Vec<String> = attrs
-            .get("broker_node_group_info")
-            .and_then(|v| v.as_array())
-            .and_then(|arr| arr.first())
+        let client_subnets: Vec<String> = bng
             .and_then(|b| b.get("client_subnets"))
             .and_then(|v| v.as_array())
             .map(|arr| {
@@ -107,10 +115,7 @@ impl AwsMskClusterConverter {
             })
             .unwrap_or_default();
 
-        let security_groups: Vec<String> = attrs
-            .get("broker_node_group_info")
-            .and_then(|v| v.as_array())
-            .and_then(|arr| arr.first())
+        let security_groups: Vec<String> = bng
             .and_then(|b| b.get("security_groups"))
             .and_then(|v| v.as_array())
             .map(|arr| {
@@ -120,54 +125,15 @@ impl AwsMskClusterConverter {
             })
             .unwrap_or_default();
 
-        // Additional fields for coverage
-        let _ = attrs.get("tags_all");
-
-        // Capture nested blocks as opaque JSON
+        // Capture nested blocks as opaque JSON.
         let client_authentication = attrs.get("client_authentication").cloned();
         let configuration_info = attrs.get("configuration_info").cloned();
         let encryption_info = attrs.get("encryption_info").cloned();
         let logging_info = attrs.get("logging_info").cloned();
         let open_monitoring = attrs.get("open_monitoring").cloned();
-        let _ = attrs.get("storage_mode");
-        let _ = attrs
-            .get("broker_node_group_info")
-            .and_then(|v| v.as_array())
-            .and_then(|arr| arr.first())
-            .and_then(|b| b.get("connectivity_info"));
-        let _ = attrs
-            .get("broker_node_group_info")
-            .and_then(|v| v.as_array())
-            .and_then(|arr| arr.first())
-            .and_then(|b| b.get("storage_info"));
-        let _ = attrs
-            .get("broker_node_group_info")
-            .and_then(|v| v.as_array())
-            .and_then(|arr| arr.first())
-            .and_then(|b| b.get("az_distribution"));
-        let _ = attrs
-            .get("broker_node_group_info")
-            .and_then(|v| v.as_array())
-            .and_then(|arr| arr.first())
-            .and_then(|b| b.get("ebs_volume_size"));
-        let _ = attrs.get("node_exporter");
-        let _ = attrs.get("bootstrap_brokers_public_sasl_iam");
-        let _ = attrs.get("bootstrap_brokers_public_sasl_scram");
-        let _ = attrs.get("bootstrap_brokers_public_tls");
-        let _ = attrs.get("bootstrap_brokers_sasl_iam");
-        let _ = attrs.get("bootstrap_brokers_sasl_scram");
-
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
 
         let cluster_view = ClusterView {
-            cluster_name: cluster_name.to_string(),
+            cluster_name: model.cluster_name.clone(),
             cluster_arn: cluster_arn.clone(),
             state: "ACTIVE".to_string(),
             cluster_type: "PROVISIONED".to_string(),
@@ -180,7 +146,7 @@ impl AwsMskClusterConverter {
                 security_groups,
             }),
             serverless: None,
-            tags,
+            tags: model.tags,
             client_authentication,
             configuration_info,
             encryption_info,

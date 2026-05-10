@@ -1,0 +1,184 @@
+# Auto-ingested by `tf-converter-codegen ingest vpclattice`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (service / service_network / target_group / listener). Dropped the
+# nested-block fields (config for target groups, default_action for
+# listeners) so the converter reads them straight from
+# instance.attributes. ARN templates and timestamp constants are
+# wired up by hand.
+
+[service]
+name = "vpclattice"
+crate_name = "winterbaume_vpclattice"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_service
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_service"
+model = "VpcLatticeServiceTfModel"
+view = "ServiceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "auth_type"
+view = "auth_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_service_network
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_service_network"
+model = "ServiceNetworkTfModel"
+view = "ServiceNetworkView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "auth_type"
+view = "auth_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_target_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_target_group"
+model = "TargetGroupTfModel"
+view = "TargetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "target_group_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_listener
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_listener"
+model = "ListenerTfModel"
+view = "ListenerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_identifier"
+view = "service_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_arn"
+view = "service_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "protocol"
+view = "protocol"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

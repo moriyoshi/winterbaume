@@ -16,9 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::memorydb as memorydb_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_memorydb_cluster
@@ -63,38 +62,38 @@ impl AwsMemoryDbClusterConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: memorydb_gen::ClusterTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_memorydb_cluster", e))?;
+
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_memorydb_cluster")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let name = model.name.clone();
 
-        let node_type =
-            optional_str(attrs, "node_type").unwrap_or_else(|| "db.r6g.large".to_string());
-        let num_shards = optional_i64(attrs, "num_shards").unwrap_or(1) as i32;
-        let num_replicas_per_shard =
-            optional_i64(attrs, "num_replicas_per_shard").unwrap_or(1) as i32;
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let engine = optional_str(attrs, "engine").unwrap_or_else(|| "redis".to_string());
-        let engine_version =
-            optional_str(attrs, "engine_version").unwrap_or_else(|| "7.0".to_string());
-        let subnet_group_name =
-            optional_str(attrs, "subnet_group_name").unwrap_or_else(|| "default".to_string());
-        let acl_name = optional_str(attrs, "acl_name").unwrap_or_else(|| "open-access".to_string());
-        let parameter_group_name =
-            optional_str(attrs, "parameter_group_name").unwrap_or_else(|| "default".to_string());
-        let tls_enabled = optional_bool(attrs, "tls_enabled").unwrap_or(true);
-        let auto_minor_version_upgrade =
-            optional_bool(attrs, "auto_minor_version_upgrade").unwrap_or(true);
-        let maintenance_window = optional_str(attrs, "maintenance_window")
+        let node_type = model
+            .node_type
+            .unwrap_or_else(|| "db.r6g.large".to_string());
+        let num_shards = model.num_shards as i32;
+        let num_replicas_per_shard = model.num_replicas_per_shard as i32;
+        let description = model.description.unwrap_or_default();
+        let engine = model.engine.unwrap_or_else(|| "redis".to_string());
+        let engine_version = model.engine_version.unwrap_or_else(|| "7.0".to_string());
+        let subnet_group_name = model
+            .subnet_group_name
+            .unwrap_or_else(|| "default".to_string());
+        let acl_name = model.acl_name.unwrap_or_else(|| "open-access".to_string());
+        let parameter_group_name = model
+            .parameter_group_name
+            .unwrap_or_else(|| "default".to_string());
+        let tls_enabled = model.tls_enabled;
+        let auto_minor_version_upgrade = model.auto_minor_version_upgrade;
+        let maintenance_window = model
+            .maintenance_window
             .unwrap_or_else(|| "wed:03:00-wed:04:00".to_string());
-        let snapshot_retention_limit =
-            optional_i64(attrs, "snapshot_retention_limit").unwrap_or(0) as i32;
-        let snapshot_window =
-            optional_str(attrs, "snapshot_window").unwrap_or_else(|| "05:00-06:00".to_string());
-        let _final_snapshot_name = optional_str(attrs, "final_snapshot_name");
-        let _snapshot_name = optional_str(attrs, "snapshot_name");
-
-        // Read tags_all and merge with any other tag sources
-        let _tags_all = extract_tags(attrs);
+        let snapshot_retention_limit = model.snapshot_retention_limit as i32;
+        let snapshot_window = model
+            .snapshot_window
+            .unwrap_or_else(|| "05:00-06:00".to_string());
 
         let security_group_ids: Vec<String> = attrs
             .get("security_group_ids")
@@ -106,7 +105,7 @@ impl AwsMemoryDbClusterConverter {
             })
             .unwrap_or_default();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:memorydb:{}:{}:cluster/{}",
                 region, ctx.default_account_id, name
@@ -114,7 +113,7 @@ impl AwsMemoryDbClusterConverter {
         });
 
         let cluster_view = ClusterView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             status: "available".to_string(),
             node_type,
@@ -138,7 +137,7 @@ impl AwsMemoryDbClusterConverter {
         let state_view = MemoryDbStateView {
             clusters: {
                 let mut m = HashMap::new();
-                m.insert(name.to_string(), cluster_view);
+                m.insert(name, cluster_view);
                 m
             },
             snapshots: HashMap::new(),
@@ -243,10 +242,14 @@ impl AwsMemoryDbSubnetGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: memorydb_gen::SubnetGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_memorydb_subnet_group", e))?;
+
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_memorydb_subnet_group")?;
-        let description = optional_str(attrs, "description").unwrap_or_else(|| name.to_string());
-        let region = extract_region(attrs, &ctx.default_region);
+        let name = model.name.clone();
+        let description = model.description.unwrap_or_else(|| name.clone());
 
         let subnet_ids: Vec<String> = attrs
             .get("subnet_ids")
@@ -258,17 +261,17 @@ impl AwsMemoryDbSubnetGroupConverter {
             })
             .unwrap_or_default();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:memorydb:{}:{}:subnetgroup/{}",
                 region, ctx.default_account_id, name
             )
         });
 
-        let vpc_id = optional_str(attrs, "vpc_id").unwrap_or_default();
+        let vpc_id = model.vpc_id.unwrap_or_default();
 
         let subnet_group_view = SubnetGroupView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             description,
             vpc_id,
@@ -280,7 +283,7 @@ impl AwsMemoryDbSubnetGroupConverter {
             snapshots: HashMap::new(),
             subnet_groups: {
                 let mut m = HashMap::new();
-                m.insert(name.to_string(), subnet_group_view);
+                m.insert(name, subnet_group_view);
                 m
             },
             acls: HashMap::new(),
@@ -368,13 +371,18 @@ impl AwsMemoryDbAclConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let acl_name = require_str(attrs, "name", "aws_memorydb_acl")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: memorydb_gen::AclTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_memorydb_acl", e))?;
 
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "active".to_string());
-        let minimum_engine_version =
-            optional_str(attrs, "minimum_engine_version").unwrap_or_else(|| "6.2.6".to_string());
+        let attrs = &instance.attributes;
+        let acl_name = model.name.clone();
+
+        let status = model.status.unwrap_or_else(|| "active".to_string());
+        let minimum_engine_version = model
+            .minimum_engine_version
+            .unwrap_or_else(|| "6.2.6".to_string());
 
         let user_names: Vec<String> = attrs
             .get("user_names")
@@ -386,7 +394,7 @@ impl AwsMemoryDbAclConverter {
             })
             .unwrap_or_default();
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:memorydb:{}:{}:acl/{}",
                 region, ctx.default_account_id, acl_name
@@ -407,7 +415,7 @@ impl AwsMemoryDbAclConverter {
             .unwrap_or_default();
 
         let acl_view = AclView {
-            acl_name: acl_name.to_string(),
+            acl_name: acl_name.clone(),
             status,
             user_names,
             minimum_engine_version,
@@ -421,7 +429,7 @@ impl AwsMemoryDbAclConverter {
             subnet_groups: HashMap::new(),
             acls: {
                 let mut m = HashMap::new();
-                m.insert(acl_name.to_string(), acl_view);
+                m.insert(acl_name, acl_view);
                 m
             },
             tags: HashMap::new(),

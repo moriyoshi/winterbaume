@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::route53resolver as route53resolver_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_route53_resolver_endpoint
@@ -62,13 +63,18 @@ impl AwsRoute53ResolverEndpointConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = optional_str(attrs, "name").unwrap_or_default();
-        let direction = require_str(attrs, "direction", "aws_route53_resolver_endpoint")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: route53resolver_gen::ResolverEndpointTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_route53_resolver_endpoint", e))?;
 
-        let id = optional_str(attrs, "id")
+        let name = model.name.unwrap_or_default();
+        let direction = model.direction.clone();
+
+        let id = model
+            .id
             .unwrap_or_else(|| format!("rslvr-{}", uuid::Uuid::new_v4().simple()));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:route53resolver:{}:{}:resolver-endpoint/{}",
                 region, ctx.default_account_id, id
@@ -86,9 +92,10 @@ impl AwsRoute53ResolverEndpointConverter {
             })
             .unwrap_or_default();
 
-        let host_vpc_id = optional_str(attrs, "host_vpc_id").unwrap_or_default();
-        let resolver_endpoint_type =
-            optional_str(attrs, "resolver_endpoint_type").unwrap_or_else(|| "IPV4".to_string());
+        let host_vpc_id = model.host_vpc_id.unwrap_or_default();
+        let resolver_endpoint_type = model
+            .resolver_endpoint_type
+            .unwrap_or_else(|| "IPV4".to_string());
         let now = chrono::Utc::now().to_rfc3339();
 
         // Parse protocols
@@ -141,7 +148,7 @@ impl AwsRoute53ResolverEndpointConverter {
             arn,
             name,
             security_group_ids,
-            direction: direction.to_string(),
+            direction,
             ip_address_count,
             host_vpc_id,
             status: "OPERATIONAL".to_string(),
@@ -258,20 +265,25 @@ impl AwsRoute53ResolverRuleConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let domain_name = require_str(attrs, "domain_name", "aws_route53_resolver_rule")?;
-        let rule_type = require_str(attrs, "rule_type", "aws_route53_resolver_rule")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: route53resolver_gen::ResolverRuleTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_route53_resolver_rule", e))?;
 
-        let id = optional_str(attrs, "id")
+        let domain_name = model.domain_name.clone();
+        let rule_type = model.rule_type.clone();
+
+        let id = model
+            .id
             .unwrap_or_else(|| format!("rslvr-rr-{}", uuid::Uuid::new_v4().simple()));
-        let name = optional_str(attrs, "name").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:route53resolver:{}:{}:resolver-rule/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let resolver_endpoint_id = optional_str(attrs, "resolver_endpoint_id");
+        let resolver_endpoint_id = model.resolver_endpoint_id;
         let now = chrono::Utc::now().to_rfc3339();
 
         // Parse target_ip blocks
@@ -300,8 +312,8 @@ impl AwsRoute53ResolverRuleConverter {
             id: id.clone(),
             arn,
             name,
-            domain_name: domain_name.to_string(),
-            rule_type: rule_type.to_string(),
+            domain_name,
+            rule_type,
             resolver_endpoint_id,
             target_ips,
             status: "COMPLETE".to_string(),

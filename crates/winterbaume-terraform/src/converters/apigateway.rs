@@ -17,9 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::apigateway as apigateway_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags, optional_bool};
 
 fn minimal_state_view() -> ApiGatewayStateView {
     ApiGatewayStateView::default()
@@ -69,15 +68,14 @@ impl AwsApiGatewayRestApiConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: apigateway_gen::RestApiTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_api_gateway_rest_api", e))?;
 
-        let id = require_str(attrs, "id", "aws_api_gateway_rest_api")?;
-        let name = require_str(attrs, "name", "aws_api_gateway_rest_api")?;
-        let description = optional_str(attrs, "description");
-        let api_key_source = optional_str(attrs, "api_key_source");
+        // disable_execute_api_endpoint must remain Option<bool> (None when absent),
+        // but the generated model deserialises it as a plain bool. Read raw to
+        // preserve None-vs-false distinction.
         let disable_execute_api_endpoint = optional_bool(attrs, "disable_execute_api_endpoint");
-        let policy = optional_str(attrs, "policy");
-        let minimum_compression_size =
-            optional_i64(attrs, "minimum_compression_size").map(|v| v as i32);
+
         let binary_media_types: Vec<String> = attrs
             .get("binary_media_types")
             .and_then(|v| v.as_array())
@@ -111,28 +109,33 @@ impl AwsApiGatewayRestApiConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let root_resource_id = optional_str(attrs, "root_resource_id").unwrap_or_default();
-        let tags = extract_tags(attrs);
+
+        let id = model.id.clone();
+        let minimum_compression_size = attrs
+            .get("minimum_compression_size")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32);
+        let root_resource_id = model.root_resource_id.unwrap_or_default();
 
         let rest_api_view = RestApiView {
-            id: id.to_string(),
-            name: name.to_string(),
-            description,
-            version: optional_str(attrs, "version"),
+            id: id.clone(),
+            name: model.name,
+            description: model.description,
+            version: model.version,
             created_date: 0.0,
             endpoint_types,
             vpc_endpoint_ids,
-            tags,
+            tags: extract_tags(attrs),
             disable_execute_api_endpoint,
-            policy,
-            api_key_source,
+            policy: model.policy,
+            api_key_source: model.api_key_source,
             binary_media_types,
             minimum_compression_size,
             root_resource_id,
         };
 
         let mut state_view = minimal_state_view();
-        state_view.rest_apis.insert(id.to_string(), rest_api_view);
+        state_view.rest_apis.insert(id, rest_api_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -231,18 +234,21 @@ impl AwsApiGatewayResourceConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: apigateway_gen::ApiGatewayResourceTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_api_gateway_resource", e))?;
 
-        let id = require_str(attrs, "id", "aws_api_gateway_resource")?;
-        let rest_api_id = require_str(attrs, "rest_api_id", "aws_api_gateway_resource")?;
-        let parent_id = optional_str(attrs, "parent_id");
-        let path_part = optional_str(attrs, "path_part");
-        let path = optional_str(attrs, "path")
+        let id = model.id.clone();
+        let rest_api_id = model.rest_api_id.clone();
+        let path_part = model.path_part.clone();
+        let path = model
+            .path
             .unwrap_or_else(|| path_part.clone().unwrap_or_else(|| "/".to_string()));
 
         let resource_view = ResourceView {
-            api_id: rest_api_id.to_string(),
-            id: id.to_string(),
-            parent_id,
+            api_id: rest_api_id.clone(),
+            id: id.clone(),
+            parent_id: model.parent_id,
             path_part,
             path,
             methods: HashMap::new(),
@@ -333,16 +339,15 @@ impl AwsApiGatewayMethodConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: apigateway_gen::ApiGatewayMethodTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_api_gateway_method", e))?;
 
-        let rest_api_id = require_str(attrs, "rest_api_id", "aws_api_gateway_method")?;
-        let resource_id = require_str(attrs, "resource_id", "aws_api_gateway_method")?;
-        let http_method = require_str(attrs, "http_method", "aws_api_gateway_method")?;
-        let authorization =
-            optional_str(attrs, "authorization").unwrap_or_else(|| "NONE".to_string());
-        let authorizer_id = optional_str(attrs, "authorizer_id");
+        let rest_api_id = model.rest_api_id.clone();
+        let resource_id = model.resource_id.clone();
+        let http_method = model.http_method.clone();
+        let authorization = model.authorization.unwrap_or_else(|| "NONE".to_string());
+        // api_key_required must remain Option<bool> (None when absent).
         let api_key_required = optional_bool(attrs, "api_key_required");
-        let operation_name = optional_str(attrs, "operation_name");
-        let request_validator_id = optional_str(attrs, "request_validator_id");
 
         let request_models: HashMap<String, String> = attrs
             .get("request_models")
@@ -365,26 +370,26 @@ impl AwsApiGatewayMethodConverter {
             .unwrap_or_default();
 
         let method_view = MethodView {
-            http_method: http_method.to_string(),
+            http_method: http_method.clone(),
             authorization_type: authorization,
-            authorizer_id,
+            authorizer_id: model.authorizer_id,
             api_key_required,
-            operation_name,
+            operation_name: model.operation_name,
             request_models,
             request_parameters,
-            request_validator_id,
+            request_validator_id: model.request_validator_id,
             method_responses: HashMap::new(),
             integration: None,
         };
 
         // Build a ResourceView with just this method so the merge adds it
         let resource_view = ResourceView {
-            api_id: rest_api_id.to_string(),
-            id: resource_id.to_string(),
+            api_id: rest_api_id.clone(),
+            id: resource_id.clone(),
             parent_id: None,
             path_part: None,
             path: String::new(),
-            methods: HashMap::from([(http_method.to_string(), method_view)]),
+            methods: HashMap::from([(http_method, method_view)]),
         };
 
         let key = format!("{}/{}", rest_api_id, resource_id);
@@ -480,18 +485,16 @@ impl AwsApiGatewayStageConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: apigateway_gen::ApiGatewayStageTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_api_gateway_stage", e))?;
 
-        let rest_api_id = require_str(attrs, "rest_api_id", "aws_api_gateway_stage")?;
-        let stage_name = require_str(attrs, "stage_name", "aws_api_gateway_stage")?;
-        let deployment_id = require_str(attrs, "deployment_id", "aws_api_gateway_stage")?;
-        let description = optional_str(attrs, "description");
+        // Bool fields stay Option<bool> in the view.
         let tracing_enabled = optional_bool(attrs, "xray_tracing_enabled");
         let cache_cluster_enabled = optional_bool(attrs, "cache_cluster_enabled");
-        let cache_cluster_size = optional_str(attrs, "cache_cluster_size");
-        let documentation_version = optional_str(attrs, "documentation_version");
+
         let access_log_settings = attrs.get("access_log_settings").cloned();
         let canary_settings_stage = attrs.get("canary_settings").cloned();
-        let tags = extract_tags(attrs);
 
         let variables: HashMap<String, String> = attrs
             .get("variables")
@@ -503,19 +506,22 @@ impl AwsApiGatewayStageConverter {
             })
             .unwrap_or_default();
 
+        let rest_api_id = model.rest_api_id.clone();
+        let stage_name = model.stage_name.clone();
+
         let stage_view = StageView {
-            rest_api_id: rest_api_id.to_string(),
-            stage_name: stage_name.to_string(),
-            deployment_id: deployment_id.to_string(),
-            description,
+            rest_api_id: rest_api_id.clone(),
+            stage_name: stage_name.clone(),
+            deployment_id: model.deployment_id,
+            description: model.description,
             created_date: 0.0,
             last_updated_date: 0.0,
-            tags,
+            tags: extract_tags(attrs),
             tracing_enabled,
             variables,
             cache_cluster_enabled,
-            cache_cluster_size,
-            documentation_version,
+            cache_cluster_size: model.cache_cluster_size,
+            documentation_version: model.documentation_version,
             access_log_settings,
             canary_settings: canary_settings_stage,
         };
@@ -615,20 +621,25 @@ impl AwsApiGatewayDeploymentConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: apigateway_gen::ApiGatewayDeploymentTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_api_gateway_deployment", e))?;
 
-        let id = require_str(attrs, "id", "aws_api_gateway_deployment")?;
-        let rest_api_id = require_str(attrs, "rest_api_id", "aws_api_gateway_deployment")?;
-        let description = optional_str(attrs, "description");
+        // Triggers/variables are TF-only lifecycle fields; preserve the original
+        // discard pattern via _ bindings.
         let _triggers = attrs.get("triggers");
-        let _stage_name = optional_str(attrs, "stage_name");
-        let _stage_description = optional_str(attrs, "stage_description");
+        let _stage_name = model.stage_name;
+        let _stage_description = model.stage_description;
         let _variables = attrs.get("variables");
         let canary_settings = attrs.get("canary_settings").cloned();
 
+        let id = model.id.clone();
+        let rest_api_id = model.rest_api_id.clone();
+
         let deployment_view = DeploymentView {
-            rest_api_id: rest_api_id.to_string(),
-            id: id.to_string(),
-            description,
+            rest_api_id: rest_api_id.clone(),
+            id: id.clone(),
+            description: model.description,
             created_date: 0.0,
             canary_settings,
         };
@@ -720,13 +731,12 @@ impl AwsApiGatewayApiKeyConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: apigateway_gen::ApiKeyTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_api_gateway_api_key", e))?;
 
-        let id = require_str(attrs, "id", "aws_api_gateway_api_key")?;
-        let name = require_str(attrs, "name", "aws_api_gateway_api_key")?;
-        let value = optional_str(attrs, "value").unwrap_or_default();
-        let description = optional_str(attrs, "description");
+        // Original semantics: enabled defaults to true when absent (the
+        // generated model defaults to false, so override here from raw attrs).
         let enabled = optional_bool(attrs, "enabled").unwrap_or(true);
-        let tags = extract_tags(attrs);
 
         let stage_keys: Vec<String> = attrs
             .get("stage_key")
@@ -742,19 +752,20 @@ impl AwsApiGatewayApiKeyConverter {
             })
             .unwrap_or_default();
 
+        let id = model.id.clone();
         let api_key_view = ApiKeyView {
-            id: id.to_string(),
-            name: name.to_string(),
-            value,
-            description,
+            id: id.clone(),
+            name: model.name,
+            value: model.value.unwrap_or_default(),
+            description: model.description,
             enabled,
             stage_keys,
-            tags,
+            tags: extract_tags(attrs),
             created_date: 0.0,
         };
 
         let mut state_view = minimal_state_view();
-        state_view.api_keys.insert(id.to_string(), api_key_view);
+        state_view.api_keys.insert(id, api_key_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

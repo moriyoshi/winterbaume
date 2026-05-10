@@ -1,0 +1,43 @@
+[service]
+name = "codecommit"
+crate_name = "winterbaume_codecommit"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_codecommit_repository"
+model = "RepositoryTfModel"
+view = "RepositoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "repository_name"
+view = "repository_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "repository_id"
+view = "repository_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "clone_url_http"
+view = "clone_url_http"
+type = "string?"
+
+[[resource.field]]
+hcl = "clone_url_ssh"
+view = "clone_url_ssh"
+type = "string?"

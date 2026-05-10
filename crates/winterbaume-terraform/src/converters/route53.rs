@@ -16,7 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::route53 as route53_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_route53_zone
@@ -63,18 +64,20 @@ impl AwsRoute53ZoneConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: route53_gen::HostedZoneTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_route53_zone", e))?;
 
         // Zone name may or may not have trailing dot
-        let name = require_str(attrs, "name", "aws_route53_zone")?;
-        let name = if name.ends_with('.') {
-            name.to_string()
+        let name = if model.name.ends_with('.') {
+            model.name.clone()
         } else {
-            format!("{}.", name)
+            format!("{}.", model.name)
         };
 
         let _tags_all = attrs.get("tags_all");
-        let _force_destroy = optional_str(attrs, "force_destroy");
-        let _delegation_set_id = optional_str(attrs, "delegation_set_id");
+        let _force_destroy = attrs.get("force_destroy");
+        let _delegation_set_id = attrs.get("delegation_set_id");
 
         // Parse vpc blocks
         let vpcs: Vec<VpcView> = attrs
@@ -96,8 +99,9 @@ impl AwsRoute53ZoneConverter {
             .unwrap_or_default();
 
         // zone_id is the canonical field; fall back to id
-        let raw_id = optional_str(attrs, "zone_id")
-            .or_else(|| optional_str(attrs, "id"))
+        let raw_id = model
+            .zone_id
+            .or(model.id)
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string()[..8].to_string());
 
         // Ensure the id has the /hostedzone/ prefix used as the map key
@@ -107,7 +111,7 @@ impl AwsRoute53ZoneConverter {
             format!("/hostedzone/{}", raw_id)
         };
 
-        let comment = optional_str(attrs, "comment");
+        let comment = model.comment;
 
         // Tags
         let mut tags: HashMap<String, String> = HashMap::new();
@@ -239,16 +243,19 @@ impl AwsRoute53RecordConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: route53_gen::ResourceRecordSetTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_route53_record", e))?;
 
-        let raw_zone_id = require_str(attrs, "zone_id", "aws_route53_record")?;
+        let raw_zone_id = model.zone_id.clone();
         let zone_id = if raw_zone_id.starts_with("/hostedzone/") {
-            raw_zone_id.to_string()
+            raw_zone_id
         } else {
             format!("/hostedzone/{}", raw_zone_id)
         };
 
-        let rec_name = require_str(attrs, "name", "aws_route53_record")?;
-        let rec_type = require_str(attrs, "type", "aws_route53_record")?;
+        let rec_name = model.name.clone();
+        let rec_type = model.record_type.clone();
         let _allow_overwrite = attrs.get("allow_overwrite");
         let alias = attrs
             .get("alias")
@@ -271,8 +278,8 @@ impl AwsRoute53RecordConverter {
         let cidr_routing_policy = attrs
             .get("cidr_routing_policy")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
-        let set_identifier = optional_str(attrs, "set_identifier");
-        let health_check_id = optional_str(attrs, "health_check_id");
+        let set_identifier = model.set_identifier;
+        let health_check_id = model.health_check_id;
 
         let ttl = attrs.get("ttl").and_then(|v| v.as_u64());
 
@@ -288,8 +295,8 @@ impl AwsRoute53RecordConverter {
             .unwrap_or_default();
 
         let record_view = ResourceRecordSetView {
-            name: rec_name.to_string(),
-            record_type: rec_type.to_string(),
+            name: rec_name.clone(),
+            record_type: rec_type.clone(),
             ttl,
             resource_records,
             alias,
@@ -299,8 +306,8 @@ impl AwsRoute53RecordConverter {
             latency_routing_policy,
             multivalue_answer_routing_policy,
             cidr_routing_policy,
-            set_identifier: set_identifier.map(|s| s.to_string()),
-            health_check_id: health_check_id.map(|s| s.to_string()),
+            set_identifier,
+            health_check_id,
         };
 
         let mut state_view = self

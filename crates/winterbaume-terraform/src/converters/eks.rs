@@ -15,7 +15,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::eks as eks_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_eks_cluster
@@ -62,16 +63,19 @@ impl AwsEksClusterConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let name = require_str(attrs, "name", "aws_eks_cluster")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: eks_gen::ClusterTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_eks_cluster", e))?;
+
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:eks:{}:{}:cluster/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
-        let version = optional_str(attrs, "version").unwrap_or_else(|| "1.29".to_string());
-        let endpoint = optional_str(attrs, "endpoint").unwrap_or_else(|| {
+        let role_arn = model.role_arn.unwrap_or_default();
+        let version = model.version.unwrap_or_else(|| "1.29".to_string());
+        let endpoint = model.endpoint.unwrap_or_else(|| {
             format!(
                 "https://{}.gr7.{}.eks.amazonaws.com",
                 &uuid::Uuid::new_v4().to_string().replace('-', "")[..32],
@@ -100,11 +104,10 @@ impl AwsEksClusterConverter {
             }
         }
 
-        let created_at =
-            optional_str(attrs, "created_at").unwrap_or_else(|| Utc::now().to_rfc3339());
+        let created_at = model.created_at.unwrap_or_else(|| Utc::now().to_rfc3339());
 
         let cluster_view = ClusterView {
-            name: name.to_string(),
+            name: name.clone(),
             arn,
             endpoint,
             role_arn,
@@ -127,7 +130,7 @@ impl AwsEksClusterConverter {
             eks_anywhere_subscriptions: HashMap::new(),
             resource_tags: HashMap::new(),
         };
-        state_view.clusters.insert(name.to_string(), cluster_view);
+        state_view.clusters.insert(name, cluster_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -227,9 +230,12 @@ impl AwsEksNodeGroupConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let cluster_name = require_str(attrs, "cluster_name", "aws_eks_node_group")?;
-        let node_group_name = require_str(attrs, "node_group_name", "aws_eks_node_group")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let model: eks_gen::NodeGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_eks_node_group", e))?;
+
+        let cluster_name = model.cluster_name.clone();
+        let node_group_name = model.node_group_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:eks:{}:{}:nodegroup/{}/{}/{}",
                 region,
@@ -250,7 +256,7 @@ impl AwsEksNodeGroupConverter {
         let _ = attrs.get("update_config");
         let _ = attrs.get("force_update_version");
 
-        let node_role_arn = optional_str(attrs, "node_role_arn").unwrap_or_default();
+        let node_role_arn = model.node_role_arn.unwrap_or_default();
 
         let desired_size = attrs
             .get("scaling_config")
@@ -293,9 +299,9 @@ impl AwsEksNodeGroupConverter {
         }
 
         let ng_view = NodegroupView {
-            name: node_group_name.to_string(),
+            name: node_group_name.clone(),
             arn,
-            cluster_name: cluster_name.to_string(),
+            cluster_name: cluster_name.clone(),
             status: "ACTIVE".to_string(),
             node_role: node_role_arn,
             scaling_config: ScalingConfigView {
@@ -313,14 +319,12 @@ impl AwsEksNodeGroupConverter {
             .service
             .snapshot(&ctx.default_account_id, &region)
             .await;
-        if let Some(cluster) = state_view.clusters.get_mut(cluster_name) {
-            cluster
-                .nodegroups
-                .insert(node_group_name.to_string(), ng_view);
+        if let Some(cluster) = state_view.clusters.get_mut(&cluster_name) {
+            cluster.nodegroups.insert(node_group_name.clone(), ng_view);
         } else {
             // Cluster not yet injected; create a minimal placeholder
             let mut cluster_view = ClusterView {
-                name: cluster_name.to_string(),
+                name: cluster_name.clone(),
                 arn: format!(
                     "arn:aws:eks:{}:{}:cluster/{}",
                     region, ctx.default_account_id, cluster_name
@@ -342,10 +346,10 @@ impl AwsEksNodeGroupConverter {
             };
             cluster_view
                 .nodegroups
-                .insert(node_group_name.to_string(), ng_view);
+                .insert(node_group_name.clone(), ng_view);
             state_view
                 .clusters
-                .insert(cluster_name.to_string(), cluster_view);
+                .insert(cluster_name.clone(), cluster_view);
         }
         self.service
             .restore(&ctx.default_account_id, &region, state_view)

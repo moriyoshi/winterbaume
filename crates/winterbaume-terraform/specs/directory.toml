@@ -1,0 +1,77 @@
+# Auto-ingested by `tf-converter-codegen ingest directory`.
+# Hand-tuned: dropped the nested `vpc_settings` / `connect_settings` blocks
+# (read raw as JSON in the converter), the `dns_ip_addresses` array
+# (Vec<String>, not in the spec vocabulary), and the
+# DateTime<Utc>-typed `launch_time` / `stage_last_updated_date_time`
+# fields (read raw and parsed in the converter). The resource model
+# only carries scalar inputs.
+
+[service]
+name = "directory"
+crate_name = "winterbaume_directory"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_directory_service_directory"
+model = "DirectoryTfModel"
+view = "DirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "short_name"
+view = "short_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "size"
+view = "size"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "directory_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "alias"
+view = "alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_url"
+view = "access_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "stage"
+view = "stage"
+type = "string?"
+
+[[resource.field]]
+hcl = "enable_sso"
+view = "enable_sso"
+type = "bool"
+default = false

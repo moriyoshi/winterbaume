@@ -1,0 +1,51 @@
+# Auto-ingested by `tf-converter-codegen ingest lexmodelsv2`.
+# Hand-tuned: dropped discarded fields (`type`, `test_bot_alias_tags`,
+# `members`, `timeouts`); added `idle_session_ttl_in_seconds` as i64 with
+# default 300; the `data_privacy` block is parsed straight from
+# instance.attributes since the spec's type vocabulary doesn't cover
+# array-of-objects.
+
+[service]
+name = "lexmodelsv2"
+crate_name = "winterbaume_lexmodelsv2"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_lexv2models_bot"
+model = "BotTfModel"
+view = "BotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "idle_session_ttl_in_seconds"
+view = "idle_session_ttl_in_seconds"
+type = "i64"
+default = 300
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

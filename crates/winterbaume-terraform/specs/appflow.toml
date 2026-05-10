@@ -1,0 +1,52 @@
+# Per-service Terraform converter mapping spec.
+#
+# `aws_appflow_flow` requires nested-block reshaping (the documented
+# JSON-shape mismatch in LTM): TF singleton-array blocks like
+# `trigger_config`, `source_flow_config`, etc. must be reshaped into AWS
+# REST JSON discriminated objects with camelCase keys. The reshape lives
+# in `converters/appflow.rs` (~300 LOC of explicit, reviewer-visible
+# transforms). Codegen here only handles the flat fields; the nested
+# `Value` blocks are read straight off `instance.attributes` and run
+# through the hand-written helpers — exactly the escape-hatch story
+# from the migration plan.
+#
+# Regenerate with: cargo run -p tf-converter-codegen -- gen appflow
+
+[service]
+name = "appflow"
+crate_name = "winterbaume_appflow"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_appflow_flow"
+model = "FlowTfModel"
+view = "FlowView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_arn"
+view = "kms_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

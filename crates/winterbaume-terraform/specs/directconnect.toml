@@ -1,0 +1,59 @@
+[service]
+name = "directconnect"
+crate_name = "winterbaume_directconnect"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_dx_connection"
+model = "ConnectionTfModel"
+view = "ConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "bandwidth"
+view = "bandwidth"
+type = "string?"
+
+[[resource.field]]
+hcl = "location"
+view = "location"
+type = "string?"
+
+[[resource.field]]
+hcl = "vlan"
+view = "vlan"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "partner_name"
+view = "partner_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "connection_state"
+view = "connection_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

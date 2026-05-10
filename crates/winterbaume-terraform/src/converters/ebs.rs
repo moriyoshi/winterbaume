@@ -1,4 +1,10 @@
 //! Terraform converters for EBS resources.
+//!
+//! `VolumeTfModel` and `SnapshotTfModel` are generated from
+//! `specs/ebs.toml`. The synthesised volume/snapshot IDs (UUID), the
+//! `availability_zone` `{region}a` template, the Option<i64> `iops` /
+//! `throughput` raw reads, the snapshot `block_size` (i32) raw read, and
+//! the `state` / `status` constants are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_i64, optional_str};
+use crate::generated::ebs as ebs_gen;
+use crate::util::{classify_deserialize_error, extract_region, optional_str};
 
 // ---------------------------------------------------------------------------
 // aws_ebs_volume
@@ -59,35 +66,36 @@ impl AwsEbsVolumeConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: ebs_gen::VolumeTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_ebs_volume", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
 
         let volume_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "volume_id"))
+            .or(model.volume_id)
             .unwrap_or_else(|| format!("vol-{}", &uuid::Uuid::new_v4().simple().to_string()[..17]));
-        let availability_zone =
-            optional_str(attrs, "availability_zone").unwrap_or_else(|| format!("{}a", region));
-        let size = optional_i64(attrs, "size").unwrap_or(8);
-        let volume_type = optional_str(attrs, "type").unwrap_or_else(|| "gp2".to_string());
-        let iops = optional_i64(attrs, "iops");
-        let throughput = optional_i64(attrs, "throughput");
-        let encrypted = optional_bool(attrs, "encrypted").unwrap_or(false);
-        let kms_key_id = optional_str(attrs, "kms_key_id");
-        let snapshot_id = optional_str(attrs, "snapshot_id");
-        let tags = extract_tags(attrs);
+        let availability_zone = model
+            .availability_zone
+            .unwrap_or_else(|| format!("{}a", region));
+        let volume_type = model.volume_type.unwrap_or_else(|| "gp2".to_string());
+
+        // Option<i64> not in spec vocabulary — read raw.
+        let iops = attrs.get("iops").and_then(|v| v.as_i64());
+        let throughput = attrs.get("throughput").and_then(|v| v.as_i64());
 
         let volume_view = VolumeView {
             volume_id: volume_id.clone(),
             availability_zone,
-            size,
+            size: model.size,
             volume_type,
             iops,
             throughput,
-            encrypted,
-            kms_key_id,
-            snapshot_id,
+            encrypted: model.encrypted,
+            kms_key_id: model.kms_key_id,
+            snapshot_id: model.snapshot_id,
             state: "available".to_string(),
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = EbsStateView::default();
@@ -181,31 +189,27 @@ impl AwsEbsSnapshotConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: ebs_gen::SnapshotTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ebs_snapshot", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
 
         let snapshot_id = optional_str(attrs, "id")
-            .or_else(|| optional_str(attrs, "snapshot_id"))
+            .or(model.snapshot_id)
             .unwrap_or_else(|| format!("snap-{}", uuid::Uuid::new_v4().simple()));
-        let volume_size = optional_i64(attrs, "volume_size").unwrap_or(8);
+        let description = model.description.unwrap_or_default();
+        let status = model.status.unwrap_or_else(|| "completed".to_string());
+        // i32 not in spec vocabulary — read raw.
         let block_size = attrs
             .get("block_size")
             .and_then(|v| v.as_i64())
             .unwrap_or(524288) as i32;
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "completed".to_string());
-        let _tags_all = attrs.get("tags_all");
-        let _outpost_arn = optional_str(attrs, "outpost_arn");
-        let _storage_tier = optional_str(attrs, "storage_tier");
-        let _permanent_restore = attrs.get("permanent_restore");
-        let _temporary_restore_days = attrs.get("temporary_restore_days");
-        let _volume_id = optional_str(attrs, "volume_id");
-        let _timeouts = attrs.get("timeouts");
-        let _kms_key_id = optional_str(attrs, "kms_key_id");
 
         let snapshot_view = SnapshotView {
             snapshot_id: snapshot_id.clone(),
-            volume_size,
+            volume_size: model.volume_size,
             block_size,
             description,
             status,

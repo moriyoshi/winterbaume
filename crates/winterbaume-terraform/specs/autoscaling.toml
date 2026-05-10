@@ -1,0 +1,221 @@
+# Auto-ingested by `tf-converter-codegen ingest autoscaling`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (aws_autoscaling_group / aws_launch_configuration / aws_autoscaling_policy /
+# aws_autoscaling_schedule). Dropped Vec<T>/nested-block/Option<i32>/Option<bool>
+# fields and the Vec<TagView> tags shape; those are read straight from
+# instance.attributes in the converter. ARN templates and timestamp constants
+# are wired up by hand.
+
+[service]
+name = "autoscaling"
+crate_name = "winterbaume_autoscaling"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_autoscaling_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_autoscaling_group"
+model = "AutoScalingGroupTfModel"
+view = "AutoScalingGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "min_size"
+view = "min_size"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "max_size"
+view = "max_size"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "launch_configuration"
+view = "launch_configuration"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_zone_identifier"
+view = "vpc_zone_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "health_check_type"
+view = "health_check_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "health_check_grace_period"
+view = "health_check_grace_period"
+type = "i64"
+default = 300
+
+[[resource.field]]
+hcl = "default_cooldown"
+view = "default_cooldown"
+type = "i64"
+default = 300
+
+# ---------------------------------------------------------------------------
+# aws_launch_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_launch_configuration"
+model = "LaunchConfigurationTfModel"
+view = "LaunchConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "image_id"
+view = "image_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_type"
+view = "instance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_name"
+view = "key_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_instance_profile"
+view = "iam_instance_profile"
+type = "string?"
+
+[[resource.field]]
+hcl = "user_data"
+view = "user_data"
+type = "string?"
+
+[[resource.field]]
+hcl = "ebs_optimized"
+view = "ebs_optimized"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "spot_price"
+view = "spot_price"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_autoscaling_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_autoscaling_policy"
+model = "ScalingPolicyTfModel"
+view = "ScalingPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "autoscaling_group_name"
+view = "autoscaling_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy_type"
+view = "policy_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "adjustment_type"
+view = "adjustment_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_autoscaling_schedule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_autoscaling_schedule"
+model = "ScheduledActionTfModel"
+view = "ScheduledActionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "scheduled_action_name"
+view = "scheduled_action_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "autoscaling_group_name"
+view = "autoscaling_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "start_time"
+view = "start_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "end_time"
+view = "end_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "recurrence"
+view = "recurrence"
+type = "string?"
+
+[[resource.field]]
+hcl = "time_zone"
+view = "time_zone"
+type = "string?"

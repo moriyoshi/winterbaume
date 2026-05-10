@@ -13,7 +13,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::workspaces as workspaces_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_workspaces_workspace
@@ -60,14 +61,18 @@ impl AwsWorkspacesWorkspaceConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: workspaces_gen::WorkspaceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_workspaces_workspace", e))?;
 
         let _tags = extract_tags(attrs);
-        let workspace_id = optional_str(attrs, "id")
+        let workspace_id = model
+            .id
             .unwrap_or_else(|| format!("ws-{}", uuid::Uuid::new_v4().simple()));
-        let directory_id = require_str(attrs, "directory_id", "aws_workspaces_workspace")?;
-        let user_name = require_str(attrs, "user_name", "aws_workspaces_workspace")?;
-        let bundle_id = require_str(attrs, "bundle_id", "aws_workspaces_workspace")?;
-        let state = optional_str(attrs, "state").unwrap_or_else(|| "AVAILABLE".to_string());
+        let directory_id = model.directory_id.clone();
+        let user_name = model.user_name.clone();
+        let bundle_id = model.bundle_id.clone();
+        let state = model.state.unwrap_or_else(|| "AVAILABLE".to_string());
 
         // Parse workspace_properties block
         let wp = attrs
@@ -98,17 +103,16 @@ impl AwsWorkspacesWorkspaceConverter {
                 workspace_id.clone(),
                 WorkspaceView {
                     workspace_id,
-                    directory_id: directory_id.to_string(),
-                    user_name: user_name.to_string(),
-                    bundle_id: bundle_id.to_string(),
+                    directory_id,
+                    user_name,
+                    bundle_id,
                     state,
-                    ip_address: optional_str(attrs, "ip_address")
-                        .unwrap_or_else(|| "10.0.0.1".to_string()),
-                    computer_name: optional_str(attrs, "computer_name").unwrap_or_default(),
-                    subnet_id: optional_str(attrs, "subnet_id").unwrap_or_default(),
+                    ip_address: model.ip_address.unwrap_or_else(|| "10.0.0.1".to_string()),
+                    computer_name: model.computer_name.unwrap_or_default(),
+                    subnet_id: model.subnet_id.unwrap_or_default(),
                     root_volume_size_gib,
                     user_volume_size_gib,
-                    volume_encryption_key: optional_str(attrs, "volume_encryption_key"),
+                    volume_encryption_key: model.volume_encryption_key,
                     user_volume_encryption_enabled: false,
                     root_volume_encryption_enabled: false,
                     running_mode,
@@ -221,6 +225,9 @@ impl AwsWorkspacesDirectoryConverter {
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: workspaces_gen::WorkspaceDirectoryTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_workspaces_directory", e))?;
 
         // Additional fields for coverage
         let _ = attrs.get("tags_all");
@@ -244,22 +251,24 @@ impl AwsWorkspacesDirectoryConverter {
             .get("active_directory_config")
             .and_then(|v| if v.is_null() { None } else { Some(v.clone()) });
 
-        let directory_id =
-            require_str(attrs, "directory_id", "aws_workspaces_directory")?.to_string();
+        let directory_id = model.directory_id.clone();
 
         let view = WorkSpacesStateView {
             directories: std::collections::HashMap::from([(
                 directory_id.clone(),
                 WorkspaceDirectoryView {
                     directory_id: directory_id.clone(),
-                    directory_name: optional_str(attrs, "directory_name")
+                    directory_name: model
+                        .directory_name
                         .unwrap_or_else(|| format!("corp.{}.com", region)),
-                    directory_type: optional_str(attrs, "directory_type")
+                    directory_type: model
+                        .directory_type
                         .unwrap_or_else(|| "SIMPLE_AD".to_string()),
-                    alias: optional_str(attrs, "alias").unwrap_or_else(|| directory_id.clone()),
+                    alias: model.alias.unwrap_or_else(|| directory_id.clone()),
                     state: "REGISTERED".to_string(),
-                    registration_code: optional_str(attrs, "registration_code").unwrap_or_default(),
-                    workspace_security_group_id: optional_str(attrs, "workspace_security_group_id")
+                    registration_code: model.registration_code.unwrap_or_default(),
+                    workspace_security_group_id: model
+                        .workspace_security_group_id
                         .unwrap_or_default(),
                     iam_role_id: format!(
                         "arn:aws:iam::{}:role/workspaces_DefaultRole",

@@ -1,0 +1,216 @@
+# Auto-ingested by `tf-converter-codegen ingest dms`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (endpoint / replication_instance / replication_task). Dropped
+# discarded fields (`tags_all`, `ssl_mode`, `secrets_manager_*`,
+# `certificate_arn`, `apply_immediately`, `auto_minor_version_upgrade`,
+# `vpc_security_group_ids`), nested-blob fields (`s3_settings`,
+# `kafka_settings`, `kinesis_settings`, `mongodb_settings`,
+# `elasticsearch_settings`, `redis_settings`), and f64 timestamp fields
+# (`replication_instance_create_time`, `replication_task_creation_date`,
+# `replication_task_start_date`) — those are read straight from
+# instance.attributes in the converter.
+
+[service]
+name = "dms"
+crate_name = "winterbaume_databasemigration"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_dms_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dms_endpoint"
+model = "EndpointTfModel"
+view = "EndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "endpoint_id"
+view = "endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "endpoint_type"
+view = "endpoint_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "engine_name"
+view = "engine_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "endpoint_arn"
+view = "endpoint_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "username"
+view = "username"
+type = "string?"
+
+[[resource.field]]
+hcl = "server_name"
+view = "server_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "extra_connection_attributes"
+view = "extra_connection_attributes"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dms_replication_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dms_replication_instance"
+model = "ReplicationInstanceTfModel"
+view = "ReplicationInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "replication_instance_id"
+view = "replication_instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "replication_instance_class"
+view = "replication_instance_class"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "replication_instance_arn"
+view = "replication_instance_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "allocated_storage"
+view = "allocated_storage"
+type = "i64"
+default = 50
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "publicly_accessible"
+view = "publicly_accessible"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "multi_az"
+view = "multi_az"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dms_replication_task
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dms_replication_task"
+model = "ReplicationTaskTfModel"
+view = "ReplicationTaskView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "replication_task_id"
+view = "replication_task_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_endpoint_arn"
+view = "source_endpoint_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_endpoint_arn"
+view = "target_endpoint_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "replication_instance_arn"
+view = "replication_instance_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "migration_type"
+view = "migration_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "table_mappings"
+view = "table_mappings"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "replication_task_arn"
+view = "replication_task_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "replication_task_settings"
+view = "replication_task_settings"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

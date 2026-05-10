@@ -1,4 +1,10 @@
-//! Terraform converter for Pinpoint resources.
+//! Terraform converters for Pinpoint resources.
+//!
+//! `PinpointAppTfModel` and `EmailChannelTfModel` are generated from
+//! `specs/pinpoint.toml`. The ARN templates, the synthesised
+//! `application_id` (when absent), the merged `tags_all` overlay, and
+//! the nested `campaign_hook` / `limits` / `quiet_time` blocks are
+//! wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,9 +20,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::pinpoint as pinpoint_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_pinpoint_app
@@ -62,20 +67,25 @@ impl AwsPinpointAppConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = optional_str(attrs, "name").unwrap_or_default();
         let region = extract_region(attrs, &ctx.default_region);
-        let id = optional_str(attrs, "application_id")
-            .or_else(|| optional_str(attrs, "id"))
+        let model: pinpoint_gen::PinpointAppTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_pinpoint_app", e))?;
+
+        let name = model.name.unwrap_or_default();
+        let id = model
+            .application_id
+            .or(model.id)
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string().replace('-', ""));
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:mobiletargeting:{}:{}:apps/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let creation_date =
-            optional_str(attrs, "creation_date").unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
-        let mut tags = extract_tags(attrs);
+        let creation_date = model
+            .creation_date
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+        let mut tags = model.tags;
         if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
             for (k, v) in obj {
                 if let Some(s) = v.as_str() {
@@ -266,24 +276,24 @@ impl AwsPinpointEmailChannelConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let application_id = require_str(attrs, "application_id", "aws_pinpoint_email_channel")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: pinpoint_gen::EmailChannelTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_pinpoint_email_channel", e))?;
 
-        let enabled = optional_bool(attrs, "enabled").unwrap_or(true);
-        let from_address = optional_str(attrs, "from_address").unwrap_or_default();
-        let identity = optional_str(attrs, "identity").unwrap_or_default();
-        let role_arn = optional_str(attrs, "role_arn");
-        let configuration_set = optional_str(attrs, "configuration_set");
-        let messages_per_second = optional_i64(attrs, "messages_per_second").map(|v| v as i32);
+        let application_id = model.application_id;
+        let messages_per_second = attrs
+            .get("messages_per_second")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32);
 
         // Ensure the parent app exists in the state.
         let existing = self
             .service
             .snapshot(&ctx.default_account_id, &region)
             .await;
-        if !existing.apps.contains_key(application_id) {
+        if !existing.apps.contains_key(&application_id) {
             let app_view = PinpointAppView {
-                id: application_id.to_string(),
+                id: application_id.clone(),
                 arn: format!(
                     "arn:aws:mobiletargeting:{}:{}:apps/{}",
                     region, ctx.default_account_id, application_id
@@ -296,26 +306,24 @@ impl AwsPinpointEmailChannelConverter {
                 quiet_time: None,
             };
             let mut app_state = PinpointStateView::default();
-            app_state.apps.insert(application_id.to_string(), app_view);
+            app_state.apps.insert(application_id.clone(), app_view);
             self.service
                 .merge(&ctx.default_account_id, &region, app_state)
                 .await?;
         }
 
         let ec_view = EmailChannelView {
-            application_id: application_id.to_string(),
-            enabled,
-            from_address,
-            identity,
-            role_arn,
-            configuration_set,
+            application_id: application_id.clone(),
+            enabled: model.enabled,
+            from_address: model.from_address.unwrap_or_default(),
+            identity: model.identity.unwrap_or_default(),
+            role_arn: model.role_arn,
+            configuration_set: model.configuration_set,
             messages_per_second,
         };
 
         let mut state_view = PinpointStateView::default();
-        state_view
-            .email_channels
-            .insert(application_id.to_string(), ec_view);
+        state_view.email_channels.insert(application_id, ec_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

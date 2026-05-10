@@ -1,0 +1,99 @@
+# Auto-ingested by `tf-converter-codegen ingest route53resolver`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (resolver_endpoint / resolver_rule). Dropped Vec<T>/nested-block
+# fields (security_group_ids, protocols, ip_address, target_ip, tags,
+# tags_all). Those are read straight from instance.attributes in the
+# converter. ARN templates and synthesised resolver IDs are wired up
+# by hand.
+
+[service]
+name = "route53resolver"
+crate_name = "winterbaume_route53resolver"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_endpoint"
+model = "ResolverEndpointTfModel"
+view = "ResolverEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "direction"
+view = "direction"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "host_vpc_id"
+view = "host_vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resolver_endpoint_type"
+view = "resolver_endpoint_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_rule"
+model = "ResolverRuleTfModel"
+view = "ResolverRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rule_type"
+view = "rule_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "resolver_endpoint_id"
+view = "resolver_endpoint_id"
+type = "string?"

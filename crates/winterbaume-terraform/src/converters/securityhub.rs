@@ -1,4 +1,9 @@
 //! Terraform converter for SecurityHub resources.
+//!
+//! `AccountTfModel` and `StandardsSubscriptionTfModel` are generated from
+//! `specs/securityhub.toml`. The default-standards subscription ARN
+//! template, the `id`-as-fallback override, and the `subscribed_at`
+//! timestamp constant are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_bool, optional_str};
+use crate::generated::securityhub as securityhub_gen;
+use crate::util::{classify_deserialize_error, extract_region, optional_str};
 
 // ---------------------------------------------------------------------------
 // aws_securityhub_account
@@ -61,25 +67,26 @@ impl AwsSecurityhubAccountConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
-        let enable_default_standards =
-            optional_bool(attrs, "enable_default_standards").unwrap_or(true);
-        let auto_enable_controls = optional_bool(attrs, "auto_enable_controls").unwrap_or(true);
-        let control_finding_generator = optional_str(attrs, "control_finding_generator")
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: securityhub_gen::AccountTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_securityhub_account", e))?;
+
+        let control_finding_generator = model
+            .control_finding_generator
             .unwrap_or_else(|| "SECURITY_CONTROL".to_string());
 
         let hub_view = HubInfoView {
             enabled: true,
             subscribed_at: Some(chrono::Utc::now().to_rfc3339()),
-            tags: extract_tags(attrs),
+            tags: model.tags,
         };
 
         let state_view = SecurityHubStateView {
             hub: hub_view,
-            auto_enable_controls,
+            auto_enable_controls: model.auto_enable_controls,
             control_finding_generator,
-            enabled_standards: if enable_default_standards {
+            enabled_standards: if model.enable_default_standards {
                 vec![StandardsSubscriptionView {
                     standards_subscription_arn: format!(
                         "arn:aws:securityhub:{}:{}:subscription/aws-foundational-security-best-practices/v/1.0.0",
@@ -179,17 +186,14 @@ impl AwsSecurityhubStandardsSubscriptionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let standards_arn = require_str(
-            attrs,
-            "standards_arn",
-            "aws_securityhub_standards_subscription",
-        )?;
-        let _standards_input = attrs.get("standards_input");
-        let _timeouts = attrs.get("timeouts");
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: securityhub_gen::StandardsSubscriptionTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_securityhub_standards_subscription", e)
+            })?;
 
-        let subscription_arn = optional_str(attrs, "id").unwrap_or_else(|| {
+        let standards_arn = model.standards_arn;
+        let subscription_arn = optional_str(&instance.attributes, "id").unwrap_or_else(|| {
             format!(
                 "arn:aws:securityhub:{}:{}:subscription/{}",
                 region,
@@ -197,13 +201,13 @@ impl AwsSecurityhubStandardsSubscriptionConverter {
                 standards_arn
                     .rsplit_once(":::")
                     .map(|(_, s)| s)
-                    .unwrap_or(standards_arn)
+                    .unwrap_or(&standards_arn)
             )
         });
 
         let sub_view = StandardsSubscriptionView {
             standards_subscription_arn: subscription_arn,
-            standards_arn: standards_arn.to_string(),
+            standards_arn,
             standards_status: "READY".to_string(),
             standards_input: HashMap::new(),
         };
@@ -248,12 +252,4 @@ impl AwsSecurityhubStandardsSubscriptionConverter {
         }
         Ok(results)
     }
-}
-
-fn require_str<'a>(
-    attrs: &'a serde_json::Value,
-    key: &str,
-    resource_type: &str,
-) -> Result<&'a str, ConversionError> {
-    crate::util::require_str(attrs, key, resource_type)
 }

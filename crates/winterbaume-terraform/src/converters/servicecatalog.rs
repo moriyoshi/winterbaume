@@ -1,4 +1,10 @@
-//! Terraform converter for Service Catalog resources.
+//! Terraform converters for Service Catalog resources.
+//!
+//! `PortfolioTfModel` and `ProductTfModel` are generated from
+//! `specs/servicecatalog.toml`. The synthesised `port-`/`prod-`
+//! identifiers, the ARN templates, the `created_time` fallback to
+//! `Utc::now()`, and the conversion from a `tags` HashMap into the
+//! view's `Vec<PortfolioTagView>` are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -15,7 +21,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::servicecatalog as servicecatalog_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_servicecatalog_portfolio
@@ -60,30 +67,33 @@ impl AwsServicecatalogPortfolioConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_servicecatalog_portfolio")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: servicecatalog_gen::PortfolioTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_servicecatalog_portfolio", e))?;
+
+        let id = model.id.unwrap_or_else(|| {
             format!(
                 "port-{}",
                 &uuid::Uuid::new_v4().to_string().replace('-', "")[..12]
             )
         });
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:catalog:{}:{}:portfolio/{}",
                 region, ctx.default_account_id, id
             )
         });
-        let description = optional_str(attrs, "description").unwrap_or_default();
-        let provider_name = optional_str(attrs, "provider_name").unwrap_or_default();
-        let created_time = optional_str(attrs, "created_time")
+        let description = model.description.unwrap_or_default();
+        let provider_name = model.provider_name.unwrap_or_default();
+        let created_time = model
+            .created_time
             .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or_else(chrono::Utc::now);
 
-        let tags_map = extract_tags(attrs);
-        let tags: Vec<PortfolioTagView> = tags_map
+        let tags: Vec<PortfolioTagView> = model
+            .tags
             .into_iter()
             .map(|(k, v)| PortfolioTagView { key: k, value: v })
             .collect();
@@ -91,7 +101,7 @@ impl AwsServicecatalogPortfolioConverter {
         let portfolio_view = PortfolioDetailView {
             id: id.clone(),
             arn,
-            display_name: name.to_string(),
+            display_name: model.name,
             description,
             created_time,
             provider_name,
@@ -188,35 +198,33 @@ impl AwsServicecatalogProductConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_servicecatalog_product")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: servicecatalog_gen::ProductTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_servicecatalog_product", e))?;
 
-        let product_id = optional_str(attrs, "id").unwrap_or_else(|| {
+        let product_id = model.id.unwrap_or_else(|| {
             format!(
                 "prod-{}",
                 &uuid::Uuid::new_v4().to_string().replace('-', "")[..12]
             )
         });
-        let product_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let product_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:catalog:{}:{}:product/{}",
                 region, ctx.default_account_id, product_id
             )
         });
-        let owner = optional_str(attrs, "owner").unwrap_or_default();
-        let description = optional_str(attrs, "description");
-        let product_type =
-            optional_str(attrs, "type").unwrap_or_else(|| "CLOUD_FORMATION_TEMPLATE".to_string());
-        let distributor = optional_str(attrs, "distributor");
-        let support_description = optional_str(attrs, "support_description");
-        let support_email = optional_str(attrs, "support_email");
-        let support_url = optional_str(attrs, "support_url");
-        let created_time =
-            optional_str(attrs, "created_time").unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+        let owner = model.owner.unwrap_or_default();
+        let product_type = model
+            .product_type
+            .unwrap_or_else(|| "CLOUD_FORMATION_TEMPLATE".to_string());
+        let created_time = model
+            .created_time
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
-        let tags_map = extract_tags(attrs);
-        let tags: Vec<PortfolioTagView> = tags_map
+        let tags: Vec<PortfolioTagView> = model
+            .tags
             .into_iter()
             .map(|(k, v)| PortfolioTagView { key: k, value: v })
             .collect();
@@ -224,14 +232,14 @@ impl AwsServicecatalogProductConverter {
         let product_view = ProductView {
             product_id: product_id.clone(),
             product_arn,
-            name: name.to_string(),
+            name: model.name,
             owner,
-            description,
+            description: model.description,
             product_type,
-            distributor,
-            support_description,
-            support_email,
-            support_url,
+            distributor: model.distributor,
+            support_description: model.support_description,
+            support_email: model.support_email,
+            support_url: model.support_url,
             created_time,
             tags,
         };

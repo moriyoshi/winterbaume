@@ -1,4 +1,11 @@
 //! Terraform converters for CodeDeploy resources.
+//!
+//! `ApplicationTfModel` and `DeploymentGroupTfModel` are generated from
+//! `specs/codedeploy.toml`. The synthesised UUIDs, the `compute_platform`
+//! lookup, the `create_time` constants, the deployment-group ARN
+//! template, and the nested-block fields (`alarm_configuration`,
+//! `blue_green_deployment_config`, and the `Vec<Value>` blocks) are
+//! wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -15,7 +22,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::codedeploy as codedeploy_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_codedeploy_app
@@ -59,26 +67,28 @@ impl AwsCodedeployAppConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: codedeploy_gen::ApplicationTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_codedeploy_app", e))?;
 
-        let name = require_str(attrs, "name", "aws_codedeploy_app")?;
-        let application_id = optional_str(attrs, "application_id")
+        let name = model.name.clone();
+        let application_id = model
+            .application_id
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        let _tags_all = attrs.get("tags_all");
-        let _tags = attrs.get("tags");
-        let compute_platform =
-            optional_str(attrs, "compute_platform").unwrap_or_else(|| "Server".to_string());
+        let compute_platform = model
+            .compute_platform
+            .unwrap_or_else(|| "Server".to_string());
 
         let app_view = ApplicationView {
             application_id,
-            application_name: name.to_string(),
+            application_name: name.clone(),
             compute_platform,
             create_time: Utc::now().to_rfc3339(),
         };
 
         let mut state_view = minimal_codedeploy_state_view();
-        state_view.applications.insert(name.to_string(), app_view);
+        state_view.applications.insert(name, app_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -163,24 +173,19 @@ impl AwsCodedeployDeploymentGroupConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: codedeploy_gen::DeploymentGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_codedeploy_deployment_group", e))?;
 
-        let app_name = require_str(attrs, "app_name", "aws_codedeploy_deployment_group")?;
-        let group_name = require_str(
-            attrs,
-            "deployment_group_name",
-            "aws_codedeploy_deployment_group",
-        )?;
-        let service_role_arn = optional_str(attrs, "service_role_arn").unwrap_or_default();
-        let deployment_config_name = optional_str(attrs, "deployment_config_name")
+        let app_name = model.app_name.clone();
+        let group_name = model.deployment_group_name.clone();
+        let service_role_arn = model.service_role_arn.unwrap_or_default();
+        let deployment_config_name = model
+            .deployment_config_name
             .unwrap_or_else(|| "CodeDeployDefault.AllAtOnce".to_string());
 
-        // Additional fields for coverage
-        let _ = attrs.get("tags_all");
-        let _ = attrs.get("auto_rollback_configuration");
-        let _ = attrs.get("deployment_style");
-
+        let attrs = &instance.attributes;
         let alarm_configuration = attrs.get("alarm_configuration").cloned();
         let blue_green_deployment_config = attrs.get("blue_green_deployment_config").cloned();
         let ec2_tag_filter: Vec<serde_json::Value> = attrs
@@ -223,15 +228,15 @@ impl AwsCodedeployDeploymentGroupConverter {
                 .await;
             snapshot
                 .applications
-                .get(app_name)
+                .get(&app_name)
                 .map(|a| a.compute_platform.clone())
                 .unwrap_or_else(|| "Server".to_string())
         };
 
         let dg_view = DeploymentGroupView {
             deployment_group_id: uuid::Uuid::new_v4().to_string(),
-            deployment_group_name: group_name.to_string(),
-            application_name: app_name.to_string(),
+            deployment_group_name: group_name.clone(),
+            application_name: app_name.clone(),
             service_role_arn,
             deployment_config_name,
             compute_platform,

@@ -1,0 +1,52 @@
+# Auto-ingested by `tf-converter-codegen ingest appsync`.
+# Hand-tuned: dropped raw-Value blob nested fields
+# (additional_authentication_provider, lambda_authorizer_config,
+# user_pool_config, enhanced_metrics_config) so the converter reads them
+# straight from instance.attributes; dropped discarded fields (tags_all,
+# log_config, openid_connect_config, schema). Kept only the
+# strongly-typed scalar inputs.
+
+[service]
+name = "appsync"
+crate_name = "winterbaume_appsync"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_appsync_graphql_api"
+model = "GraphqlApiTfModel"
+view = "GraphqlApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "authentication_type"
+view = "authentication_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "xray_enabled"
+view = "xray_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

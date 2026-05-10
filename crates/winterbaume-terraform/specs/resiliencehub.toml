@@ -1,0 +1,45 @@
+# Auto-ingested by `tf-converter-codegen ingest resiliencehub`.
+# Hand-tuned: model defaults to ResiliencyPolicyTfModel/ResiliencyPolicyView
+# (auto-ingest picked the wrong nested view). Dropped the `policy` map
+# (HashMap<disruption_type, {rpo,rto}> nested block read straight from
+# instance.attributes), `tags`/`tags_all` (extract_tags merges both), and
+# the discarded `timeouts` field.
+
+[service]
+name = "resiliencehub"
+crate_name = "winterbaume_resiliencehub"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_resiliencehub_resiliency_policy"
+model = "ResiliencyPolicyTfModel"
+view = "ResiliencyPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "policy_name"
+view = "policy_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_arn"
+view = "policy_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy_description"
+view = "policy_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "data_location_constraint"
+view = "data_location_constraint"
+type = "string?"
+
+[[resource.field]]
+hcl = "tier"
+view = "tier"
+type = "string?"

@@ -1,0 +1,77 @@
+# Auto-ingested by `tf-converter-codegen ingest dynamodb`.
+# Hand-tuned: kept only the strongly-typed scalar inputs. Tags are
+# merged via the standard tags_all+tags helper in the converter (the
+# generated model's `tags` reads only the `tags` key, so we read both
+# raw). Nested-block fields (`attribute`, `global_secondary_index`,
+# `local_secondary_index`, `replica`, `import_table`,
+# `on_demand_throughput`, `point_in_time_recovery`, `ttl`,
+# `server_side_encryption`, `tags_all`) are read straight from
+# instance.attributes in the converter.
+
+[service]
+name = "dynamodb"
+crate_name = "winterbaume_dynamodb"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_dynamodb_table"
+model = "TableTfModel"
+view = "TableStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "hash_key"
+view = "hash_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "range_key"
+view = "range_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "billing_mode"
+view = "billing_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "read_capacity"
+view = "read_capacity"
+type = "i64"
+default = 5
+
+[[resource.field]]
+hcl = "write_capacity"
+view = "write_capacity"
+type = "i64"
+default = 5
+
+[[resource.field]]
+hcl = "stream_enabled"
+view = "stream_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "stream_view_type"
+view = "stream_view_type"
+type = "string?"

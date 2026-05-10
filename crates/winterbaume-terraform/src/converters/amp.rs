@@ -1,4 +1,8 @@
 //! Terraform converter for AMP (Amazon Managed Service for Prometheus) resources.
+//!
+//! `WorkspaceTfModel` is generated from `specs/amp.toml`. The constant
+//! view fields (`status_code = "ACTIVE"`) and the two URL templates
+//! (`arn`, `prometheus_endpoint`) are wired up here.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -13,11 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
-
-// ---------------------------------------------------------------------------
-// aws_prometheus_workspace
-// ---------------------------------------------------------------------------
+use crate::generated::amp as amp_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 pub struct AwsPrometheusWorkspaceConverter {
     service: Arc<AmpService>,
@@ -57,41 +58,38 @@ impl AwsPrometheusWorkspaceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: amp_gen::WorkspaceTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_prometheus_workspace", e))?;
 
-        let workspace_id = require_str(attrs, "id", "aws_prometheus_workspace")?;
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let workspace_id = model.id.clone();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:aps:{}:{}:workspace/{}",
                 region, ctx.default_account_id, workspace_id
             )
         });
-        let alias = optional_str(attrs, "alias");
-        let prometheus_endpoint = optional_str(attrs, "prometheus_endpoint").unwrap_or_else(|| {
+        let prometheus_endpoint = model.prometheus_endpoint.unwrap_or_else(|| {
             format!(
                 "https://aps-workspaces.{}.amazonaws.com/workspaces/{}/",
                 region, workspace_id
             )
         });
-        let tags = extract_tags(attrs);
 
         let ws_view = WorkspaceView {
-            workspace_id: workspace_id.to_string(),
+            workspace_id: workspace_id.clone(),
             arn,
-            alias,
+            alias: model.alias,
             status_code: "ACTIVE".to_string(),
             prometheus_endpoint,
-            created_at: optional_str(attrs, "created_at"),
-            tags,
+            created_at: model.created_at,
+            tags: model.tags,
         };
 
         let mut state_view = AmpStateView {
             ..Default::default()
         };
-        state_view
-            .workspaces
-            .insert(ws_view.workspace_id.clone(), ws_view);
+        state_view.workspaces.insert(workspace_id, ws_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

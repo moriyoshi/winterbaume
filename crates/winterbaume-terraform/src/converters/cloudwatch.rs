@@ -1,4 +1,9 @@
 //! Terraform converters for CloudWatch resources.
+//!
+//! `MetricAlarmTfModel` is generated from `specs/cloudwatch.toml`. The
+//! ARN template, `state_value` / `state_reason` constants, the `f64`
+//! `threshold` field, the action lists, and the `dimensions` map block
+//! are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,7 +19,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::cloudwatch as cloudwatch_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_cloudwatch_metric_alarm
@@ -59,37 +65,25 @@ impl AwsCloudwatchMetricAlarmConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: cloudwatch_gen::MetricAlarmTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_metric_alarm", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
 
-        let alarm_name = require_str(attrs, "alarm_name", "aws_cloudwatch_metric_alarm")?;
-        let metric_name = require_str(attrs, "metric_name", "aws_cloudwatch_metric_alarm")?;
-        let namespace = require_str(attrs, "namespace", "aws_cloudwatch_metric_alarm")?;
-        let comparison_operator =
-            require_str(attrs, "comparison_operator", "aws_cloudwatch_metric_alarm")?;
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:cloudwatch:{}:{}:alarm:{}",
+                region, ctx.default_account_id, model.alarm_name
+            )
+        });
 
+        // f64 threshold not in spec vocabulary — read raw.
         let threshold = attrs
             .get("threshold")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0);
-        let evaluation_periods = attrs
-            .get("evaluation_periods")
-            .and_then(|v| v.as_u64())
-            .unwrap_or(1) as u32;
-        let period = attrs.get("period").and_then(|v| v.as_u64()).unwrap_or(60) as u32;
-        let statistic = optional_str(attrs, "statistic").unwrap_or_else(|| "Average".to_string());
-
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!(
-                "arn:aws:cloudwatch:{}:{}:alarm:{}",
-                region, ctx.default_account_id, alarm_name
-            )
-        });
-
-        let actions_enabled = attrs
-            .get("actions_enabled")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(true);
 
         let alarm_actions: Vec<String> = attrs
             .get("alarm_actions")
@@ -138,24 +132,24 @@ impl AwsCloudwatchMetricAlarmConverter {
             .unwrap_or_default();
 
         let alarm_view = MetricAlarmView {
-            alarm_name: alarm_name.to_string(),
+            alarm_name: model.alarm_name.clone(),
             alarm_arn: arn,
-            metric_name: metric_name.to_string(),
-            namespace: namespace.to_string(),
+            metric_name: model.metric_name,
+            namespace: model.namespace,
             threshold,
-            comparison_operator: comparison_operator.to_string(),
-            evaluation_periods,
-            period,
-            statistic,
+            comparison_operator: model.comparison_operator,
+            evaluation_periods: model.evaluation_periods,
+            period: model.period,
+            statistic: model.statistic.unwrap_or_else(|| "Average".to_string()),
             state_value: "OK".to_string(),
             state_reason: String::new(),
-            actions_enabled,
-            alarm_description: optional_str(attrs, "alarm_description"),
+            actions_enabled: model.actions_enabled,
+            alarm_description: model.alarm_description,
             alarm_actions,
             ok_actions,
             insufficient_data_actions,
             dimensions,
-            unit: optional_str(attrs, "unit"),
+            unit: model.unit,
         };
 
         let mut state_view = CloudwatchStateView {
@@ -169,7 +163,7 @@ impl AwsCloudwatchMetricAlarmConverter {
             alarm_mute_rules: HashMap::new(),
             ..Default::default()
         };
-        state_view.alarms.insert(alarm_name.to_string(), alarm_view);
+        state_view.alarms.insert(model.alarm_name, alarm_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

@@ -17,7 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_i64, optional_str, require_str};
+use crate::generated::sagemaker as sagemaker_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags, optional_str};
 
 // ---------------------------------------------------------------------------
 // Helper: convert HashMap<String, String> tags to Vec<TagPairView>
@@ -84,23 +85,29 @@ impl AwsSagemakerDomainConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let domain_name = require_str(attrs, "domain_name", "aws_sagemaker_domain")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::DomainTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_domain", e))?;
 
-        let domain_id = optional_str(attrs, "id").unwrap_or_else(|| domain_name.to_string());
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let domain_name = model.domain_name.clone();
+
+        let domain_id = model.id.unwrap_or_else(|| domain_name.clone());
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:sagemaker:{}:{}:domain/{}",
                 region, ctx.default_account_id, domain_id
             )
         });
-        let status = optional_str(attrs, "status").unwrap_or_else(|| "InService".to_string());
-        let creation_time =
-            optional_str(attrs, "creation_time").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
-        let last_modified_time =
-            optional_str(attrs, "last_modified_time").unwrap_or_else(|| creation_time.clone());
+        let status = model.status.unwrap_or_else(|| "InService".to_string());
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let last_modified_time = model
+            .last_modified_time
+            .unwrap_or_else(|| creation_time.clone());
 
-        let vpc_id = optional_str(attrs, "vpc_id");
+        let vpc_id = model.vpc_id;
         let subnet_ids: Vec<String> = attrs
             .get("subnet_ids")
             .and_then(|v| v.as_array())
@@ -110,10 +117,10 @@ impl AwsSagemakerDomainConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let app_network_access_type = optional_str(attrs, "app_network_access_type");
-        let auth_mode = optional_str(attrs, "auth_mode");
-        let kms_key_id = optional_str(attrs, "kms_key_id");
-        let home_efs_file_system_id = optional_str(attrs, "home_efs_file_system_id");
+        let app_network_access_type = model.app_network_access_type;
+        let auth_mode = model.auth_mode;
+        let kms_key_id = model.kms_key_id;
+        let home_efs_file_system_id = model.home_efs_file_system_id;
         let security_group_ids: Vec<String> = attrs
             .get("security_group_ids")
             .and_then(|v| v.as_array())
@@ -123,7 +130,7 @@ impl AwsSagemakerDomainConverter {
                     .collect()
             })
             .unwrap_or_default();
-        let url = optional_str(attrs, "url");
+        let url = model.url;
         let _default_user_settings = attrs.get("default_user_settings");
         let default_space_settings = attrs.get("default_space_settings").cloned();
         let domain_settings = attrs.get("domain_settings").cloned();
@@ -140,7 +147,7 @@ impl AwsSagemakerDomainConverter {
 
         let domain_view = DomainView {
             domain_id: domain_id.clone(),
-            domain_name: domain_name.to_string(),
+            domain_name,
             domain_arn: arn,
             status,
             creation_time,
@@ -258,25 +265,32 @@ impl AwsSagemakerEndpointConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_sagemaker_endpoint")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::EndpointTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_endpoint", e))?;
 
-        let endpoint_config_name = optional_str(attrs, "endpoint_config_name").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+
+        let endpoint_config_name = model.endpoint_config_name.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:sagemaker:{}:{}:endpoint/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let status =
-            optional_str(attrs, "endpoint_status").unwrap_or_else(|| "InService".to_string());
-        let creation_time =
-            optional_str(attrs, "creation_time").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
-        let last_modified_time =
-            optional_str(attrs, "last_modified_time").unwrap_or_else(|| creation_time.clone());
+        let status = model
+            .endpoint_status
+            .unwrap_or_else(|| "InService".to_string());
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let last_modified_time = model
+            .last_modified_time
+            .unwrap_or_else(|| creation_time.clone());
 
         let endpoint_view = EndpointView {
-            endpoint_name: name.to_string(),
+            endpoint_name: name.clone(),
             endpoint_arn: arn,
             endpoint_config_name,
             endpoint_status: status,
@@ -286,7 +300,7 @@ impl AwsSagemakerEndpointConverter {
         };
 
         let mut state_view = SagemakerStateView::default();
-        state_view.endpoints.insert(name.to_string(), endpoint_view);
+        state_view.endpoints.insert(name, endpoint_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -372,25 +386,31 @@ impl AwsSagemakerEndpointConfigurationConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_sagemaker_endpoint_configuration")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::EndpointConfigurationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_sagemaker_endpoint_configuration", e)
+            })?;
+
+        let name = model.name.clone();
 
         let _tags_all = attrs.get("tags_all");
-        let _kms_key_arn = optional_str(attrs, "kms_key_arn");
+        let _kms_key_arn = attrs.get("kms_key_arn");
         let production_variants = attrs.get("production_variants").cloned();
         let async_inference_config = attrs.get("async_inference_config").cloned();
         let data_capture_config = attrs.get("data_capture_config").cloned();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:sagemaker:{}:{}:endpoint-config/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let creation_time =
-            optional_str(attrs, "creation_time").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
 
         let ec_view = EndpointConfigView {
-            endpoint_config_name: name.to_string(),
+            endpoint_config_name: name.clone(),
             endpoint_config_arn: arn,
             creation_time,
             tags: tags_map_to_view(&extract_tags(attrs)),
@@ -400,9 +420,7 @@ impl AwsSagemakerEndpointConfigurationConverter {
         };
 
         let mut state_view = SagemakerStateView::default();
-        state_view
-            .endpoint_configs
-            .insert(name.to_string(), ec_view);
+        state_view.endpoint_configs.insert(name, ec_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -490,18 +508,23 @@ impl AwsSagemakerModelConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_sagemaker_model")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::ModelTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_model", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:sagemaker:{}:{}:model/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let execution_role_arn = optional_str(attrs, "execution_role_arn").unwrap_or_default();
-        let creation_time =
-            optional_str(attrs, "creation_time").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let execution_role_arn = model.execution_role_arn.unwrap_or_default();
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
         let _tags_all = attrs.get("tags_all");
         let container = attrs.get("container").cloned();
         let primary_container = attrs.get("primary_container").cloned();
@@ -509,7 +532,7 @@ impl AwsSagemakerModelConverter {
         let vpc_config = attrs.get("vpc_config").cloned();
 
         let model_view = ModelView {
-            model_name: name.to_string(),
+            model_name: name.clone(),
             model_arn: arn,
             execution_role_arn,
             creation_time,
@@ -521,7 +544,7 @@ impl AwsSagemakerModelConverter {
         };
 
         let mut state_view = SagemakerStateView::default();
-        state_view.models.insert(name.to_string(), model_view);
+        state_view.models.insert(name, model_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -610,43 +633,49 @@ impl AwsSagemakerNotebookInstanceConverter {
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
         let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_sagemaker_notebook_instance")?;
         let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::NotebookInstanceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_notebook_instance", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:sagemaker:{}:{}:notebook-instance/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let instance_type =
-            optional_str(attrs, "instance_type").unwrap_or_else(|| "ml.t2.medium".to_string());
-        let role_arn = optional_str(attrs, "role_arn").unwrap_or_default();
-        let status = optional_str(attrs, "notebook_instance_status")
+        let instance_type = model
+            .instance_type
+            .unwrap_or_else(|| "ml.t2.medium".to_string());
+        let role_arn = model.role_arn.unwrap_or_default();
+        let status = model
+            .notebook_instance_status
             .or_else(|| optional_str(attrs, "status"))
             .unwrap_or_else(|| "InService".to_string());
-        let creation_time =
-            optional_str(attrs, "creation_time").unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
-        let last_modified_time =
-            optional_str(attrs, "last_modified_time").unwrap_or_else(|| creation_time.clone());
-        let direct_internet_access =
-            optional_str(attrs, "direct_internet_access").unwrap_or_else(|| "Enabled".to_string());
-        let volume_size_in_gb = optional_i64(attrs, "volume_size").unwrap_or(5);
-        let root_access =
-            optional_str(attrs, "root_access").unwrap_or_else(|| "Enabled".to_string());
-        let url = optional_str(attrs, "url").unwrap_or_default();
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let last_modified_time = model
+            .last_modified_time
+            .unwrap_or_else(|| creation_time.clone());
+        let direct_internet_access = model
+            .direct_internet_access
+            .unwrap_or_else(|| "Enabled".to_string());
+        let volume_size_in_gb = model.volume_size;
+        let root_access = model.root_access.unwrap_or_else(|| "Enabled".to_string());
+        let url = model.url.unwrap_or_default();
         let _tags_all = attrs.get("tags_all");
-        let _kms_key_id = optional_str(attrs, "kms_key_id");
-        let _direct_internet_access_raw = optional_str(attrs, "direct_internet_access");
-        let _volume_size_raw = attrs.get("volume_size");
-        let _lifecycle_config_name = optional_str(attrs, "lifecycle_config_name");
-        let _subnet_id = optional_str(attrs, "subnet_id");
+        let _kms_key_id = attrs.get("kms_key_id");
+        let _lifecycle_config_name = attrs.get("lifecycle_config_name");
+        let _subnet_id = attrs.get("subnet_id");
         let instance_metadata_service_configuration = attrs
             .get("instance_metadata_service_configuration")
             .cloned();
 
         let nb_view = NotebookInstanceView {
-            notebook_instance_name: name.to_string(),
+            notebook_instance_name: name.clone(),
             notebook_instance_arn: arn,
             notebook_instance_status: status,
             instance_type,
@@ -661,9 +690,7 @@ impl AwsSagemakerNotebookInstanceConverter {
         };
 
         let mut state_view = SagemakerStateView::default();
-        state_view
-            .notebook_instances
-            .insert(name.to_string(), nb_view);
+        state_view.notebook_instances.insert(name, nb_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

@@ -1,0 +1,113 @@
+# Auto-ingested by `tf-converter-codegen ingest kms`.
+# Hand-tuned: split into one [[resource]] per Terraform resource type.
+# Dropped:
+#   - `deletion_window_in_days` / `policy` (consumed and discarded by the
+#     original converter — read raw)
+#   - `tags_all` HashMap-merge (the spec vocabulary only has a single
+#     `tags` field; merge tags_all in the converter)
+#   - The alias `target_key_id` is required only for the alias resource;
+#     keep it on that block alone.
+
+[service]
+name = "kms"
+crate_name = "winterbaume_kms"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_kms_key
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_kms_key"
+model = "KeyTfModel"
+view = "KeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_spec"
+view = "key_spec"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_master_key_spec"
+view = "customer_master_key_spec"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_usage"
+view = "key_usage"
+type = "string?"
+
+[[resource.field]]
+hcl = "is_enabled"
+view = "is_enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "enable_key_rotation"
+view = "enable_key_rotation"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "multi_region"
+view = "multi_region"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_kms_alias
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_kms_alias"
+model = "AliasTfModel"
+view = "AliasView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_key_id"
+view = "target_key_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"

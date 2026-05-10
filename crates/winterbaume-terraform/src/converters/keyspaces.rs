@@ -17,7 +17,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::keyspaces as keyspaces_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_keyspaces_keyspace
@@ -61,12 +62,15 @@ impl AwsKeyspacesKeyspaceConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: keyspaces_gen::KeyspaceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_keyspaces_keyspace", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let name = model.name.clone();
 
-        let name = require_str(attrs, "name", "aws_keyspaces_keyspace")?.to_string();
-
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:cassandra:{region}:{account}:/keyspace/{name}/",
                 account = ctx.default_account_id
@@ -192,13 +196,16 @@ impl AwsKeyspacesTableConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: keyspaces_gen::TableTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_keyspaces_table", e))?;
+
         let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let keyspace_name = model.keyspace_name.clone();
+        let table_name = model.table_name.clone();
 
-        let keyspace_name = require_str(attrs, "keyspace_name", "aws_keyspaces_table")?.to_string();
-        let table_name = require_str(attrs, "table_name", "aws_keyspaces_table")?.to_string();
-
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:cassandra:{region}:{account}:/keyspace/{keyspace_name}/table/{table_name}",
                 account = ctx.default_account_id

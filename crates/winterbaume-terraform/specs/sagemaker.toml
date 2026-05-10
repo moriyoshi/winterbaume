@@ -1,0 +1,264 @@
+# Auto-ingested by `tf-converter-codegen ingest sagemaker`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (domain / endpoint / endpoint_configuration / model /
+# notebook_instance). Dropped Vec<T>/nested-block fields
+# (subnet_ids, security_group_ids, default_user_settings,
+# default_space_settings, domain_settings, retention_policy,
+# production_variants, async_inference_config, data_capture_config,
+# container, primary_container, inference_execution_config,
+# vpc_config, instance_metadata_service_configuration, tags_all).
+# Those are read straight from instance.attributes in the converter.
+# ARN templates and creation_time defaults are wired up by hand.
+# notebook_instance also has a `status` fallback chain
+# (notebook_instance_status -> status) handled by hand.
+
+[service]
+name = "sagemaker"
+crate_name = "winterbaume_sagemaker"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_domain
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_domain"
+model = "DomainTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "app_network_access_type"
+view = "app_network_access_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "auth_mode"
+view = "auth_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "home_efs_file_system_id"
+view = "home_efs_file_system_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "url"
+view = "url"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_endpoint"
+model = "EndpointTfModel"
+view = "EndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "endpoint_config_name"
+view = "endpoint_config_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint_status"
+view = "endpoint_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_endpoint_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_endpoint_configuration"
+model = "EndpointConfigurationTfModel"
+view = "EndpointConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_model
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_model"
+model = "ModelTfModel"
+view = "ModelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "execution_role_arn"
+view = "execution_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_notebook_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_notebook_instance"
+model = "NotebookInstanceTfModel"
+view = "NotebookInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_type"
+view = "instance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "direct_internet_access"
+view = "direct_internet_access"
+type = "string?"
+
+[[resource.field]]
+hcl = "volume_size"
+view = "volume_size"
+type = "i64"
+default = 5
+
+[[resource.field]]
+hcl = "root_access"
+view = "root_access"
+type = "string?"
+
+[[resource.field]]
+hcl = "url"
+view = "url"
+type = "string?"
+
+[[resource.field]]
+hcl = "notebook_instance_status"
+view = "notebook_instance_status"
+type = "string?"

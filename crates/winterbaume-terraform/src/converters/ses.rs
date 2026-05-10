@@ -1,4 +1,15 @@
 //! Terraform converters for SES resources.
+//!
+//! `EmailIdentityTfModel`, `ConfigurationSetTfModel`, and
+//! `DedicatedIpPoolTfModel` are generated from `specs/ses.toml`. The
+//! identity_type derivation (DOMAIN vs EMAIL_ADDRESS), the verification
+//! and feedback-forwarding constants, the dkim_signing_attributes
+//! parsing, the configuration-set raw-blob nested options
+//! (delivery_options / reputation_options / sending_options /
+//! suppression_options / tracking_options / vdm_options), and the
+//! `scaling_mode = "STANDARD"` default are wired up here. The SES
+//! tags merge (tags + tags_all) is handled by extract_tags() so that
+//! email_identity preserves the original tags_all behaviour.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -16,7 +27,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, optional_str, require_str};
+use crate::generated::ses as ses_gen;
+use crate::util::{classify_deserialize_error, extract_region, extract_tags};
 
 // ---------------------------------------------------------------------------
 // aws_sesv2_email_identity
@@ -63,7 +75,10 @@ impl AwsSesv2EmailIdentityConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let email_identity = require_str(attrs, "email_identity", "aws_sesv2_email_identity")?;
+        let model: ses_gen::EmailIdentityTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_sesv2_email_identity", e))?;
+
+        let email_identity = model.email_identity;
 
         // Determine identity type: domain vs email address
         let identity_type = if email_identity.contains('@') {
@@ -73,23 +88,9 @@ impl AwsSesv2EmailIdentityConverter {
         }
         .to_string();
 
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags_all").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
+        let tags = extract_tags(attrs);
 
-        let configuration_set_name = optional_str(attrs, "configuration_set_name");
+        let configuration_set_name = model.configuration_set_name;
 
         let dkim_signing_enabled = attrs
             .get("dkim_signing_attributes")
@@ -108,7 +109,7 @@ impl AwsSesv2EmailIdentityConverter {
             .map(|s| s.to_string());
 
         let identity_view = EmailIdentityView {
-            name: email_identity.to_string(),
+            name: email_identity.clone(),
             identity_type,
             verified: true,
             created_timestamp: None,
@@ -124,9 +125,7 @@ impl AwsSesv2EmailIdentityConverter {
         };
 
         let mut state_view = minimal_ses_state_view();
-        state_view
-            .identities
-            .insert(email_identity.to_string(), identity_view);
+        state_view.identities.insert(email_identity, identity_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -216,20 +215,10 @@ impl AwsSesv2ConfigurationSetConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let name = require_str(
-            attrs,
-            "configuration_set_name",
-            "aws_sesv2_configuration_set",
-        )?;
+        let model: ses_gen::ConfigurationSetTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_sesv2_configuration_set", e))?;
 
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
+        let name = model.configuration_set_name;
 
         // delivery_options block
         let delivery_options = attrs
@@ -274,8 +263,8 @@ impl AwsSesv2ConfigurationSetConverter {
             .cloned();
 
         let cs_view = ConfigurationSetView {
-            name: name.to_string(),
-            tags,
+            name: name.clone(),
+            tags: model.tags,
             event_destinations: HashMap::new(),
             archiving_options: None,
             delivery_options,
@@ -287,9 +276,7 @@ impl AwsSesv2ConfigurationSetConverter {
         };
 
         let mut state_view = minimal_ses_state_view();
-        state_view
-            .configuration_sets
-            .insert(name.to_string(), cs_view);
+        state_view.configuration_sets.insert(name, cs_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -377,29 +364,20 @@ impl AwsSesv2DedicatedIpPoolConverter {
         let attrs = &instance.attributes;
         let region = extract_region(attrs, &ctx.default_region);
 
-        let pool_name = require_str(attrs, "pool_name", "aws_sesv2_dedicated_ip_pool")?;
-        let scaling_mode =
-            optional_str(attrs, "scaling_mode").unwrap_or_else(|| "STANDARD".to_string());
+        let model: ses_gen::DedicatedIpPoolTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_sesv2_dedicated_ip_pool", e))?;
 
-        let mut tags: HashMap<String, String> = HashMap::new();
-        if let Some(obj) = attrs.get("tags").and_then(|v| v.as_object()) {
-            for (k, v) in obj {
-                if let Some(s) = v.as_str() {
-                    tags.insert(k.clone(), s.to_string());
-                }
-            }
-        }
+        let pool_name = model.pool_name;
+        let scaling_mode = model.scaling_mode.unwrap_or_else(|| "STANDARD".to_string());
 
         let pool_view = DedicatedIpPoolView {
-            pool_name: pool_name.to_string(),
+            pool_name: pool_name.clone(),
             scaling_mode,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = minimal_ses_state_view();
-        state_view
-            .dedicated_ip_pools
-            .insert(pool_name.to_string(), pool_view);
+        state_view.dedicated_ip_pools.insert(pool_name, pool_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

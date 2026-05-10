@@ -1,0 +1,60 @@
+# Auto-ingested by `tf-converter-codegen ingest sesv1`.
+# Hand-tuned: split into one [[resource]] block per resource type,
+# yielding two TfModels (EmailIdentityTfModel, DomainIdentityTfModel).
+# The shared IdentityView projection is built in the converter.
+
+[service]
+name = "sesv1"
+crate_name = "winterbaume_ses"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_ses_email_identity
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ses_email_identity"
+model = "EmailIdentityTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "email"
+view = "email"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_domain_identity
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ses_domain_identity"
+model = "DomainIdentityTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "verification_token"
+view = "verification_token"
+type = "string?"

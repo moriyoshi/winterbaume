@@ -1,0 +1,184 @@
+# Auto-ingested by `tf-converter-codegen ingest appconfig`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (application / environment / configuration_profile / deployment_strategy).
+# Dropped nested-block fields (`monitor`), `growth_factor` (f32), and
+# `tags_all` — those are read straight from instance.attributes in the
+# converter.
+
+[service]
+name = "appconfig"
+crate_name = "winterbaume_appconfig"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_appconfig_application
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appconfig_application"
+model = "ApplicationTfModel"
+view = "ApplicationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_appconfig_environment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appconfig_environment"
+model = "EnvironmentTfModel"
+view = "EnvironmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "environment_id"
+view = "environment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appconfig_configuration_profile
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appconfig_configuration_profile"
+model = "ConfigurationProfileTfModel"
+view = "ConfigurationProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "configuration_profile_id"
+view = "configuration_profile_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "location_uri"
+view = "location_uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "type"
+type = "string?"
+
+[[resource.field]]
+hcl = "retrieval_role_arn"
+view = "retrieval_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appconfig_deployment_strategy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appconfig_deployment_strategy"
+model = "DeploymentStrategyTfModel"
+view = "DeploymentStrategyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_duration_in_minutes"
+view = "deployment_duration_in_minutes"
+type = "i64"
+
+[[resource.field]]
+hcl = "final_bake_time_in_minutes"
+view = "final_bake_time_in_minutes"
+type = "i64"
+
+[[resource.field]]
+hcl = "growth_type"
+view = "growth_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "replicate_to"
+view = "replicate_to"
+type = "string?"

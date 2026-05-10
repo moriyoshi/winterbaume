@@ -1,0 +1,55 @@
+# Auto-ingested by `tf-converter-codegen ingest ssm`.
+# Hand-tuned: model/view fixed to ParameterTfModel/ParameterView (the
+# auto-ingest mistakenly named the model after the version-history view).
+# Dropped `allowed_pattern`, `insecure_value`, `overwrite`, `tags_all`
+# fields that the original converter explicitly discards.
+
+[service]
+name = "ssm"
+crate_name = "winterbaume_ssm"
+state_view_module = "views"
+
+[[resource]]
+type = "aws_ssm_parameter"
+model = "ParameterTfModel"
+view = "ParameterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "type"
+type = "string?"
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "data_type"
+view = "data_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

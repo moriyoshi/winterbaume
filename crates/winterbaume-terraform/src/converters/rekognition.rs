@@ -1,4 +1,8 @@
 //! Terraform converter for Rekognition resources.
+//!
+//! `CollectionTfModel` is generated from `specs/rekognition.toml`. The
+//! constant counters (`face_count = 0`, `user_count = 0`,
+//! `creation_timestamp = 0.0`) and the ARN template are wired up here.
 
 use std::collections::HashMap;
 use std::future::Future;
@@ -14,13 +18,9 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{extract_region, extract_tags, optional_str, require_str};
+use crate::generated::rekognition as rekognition_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
-// ---------------------------------------------------------------------------
-// aws_rekognition_collection
-// ---------------------------------------------------------------------------
-
-/// Converts `aws_rekognition_collection` Terraform resources to/from Rekognition state.
 pub struct AwsRekognitionCollectionConverter {
     service: Arc<RekognitionService>,
 }
@@ -59,27 +59,30 @@ impl AwsRekognitionCollectionConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let collection_id = require_str(attrs, "collection_id", "aws_rekognition_collection")?;
-        let region = extract_region(attrs, &ctx.default_region);
-        let collection_arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: rekognition_gen::CollectionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_rekognition_collection", e))?;
+
+        let collection_id = model.collection_id.clone();
+        let collection_arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:rekognition:{}:{}:collection/{}",
                 region, ctx.default_account_id, collection_id
             )
         });
-        let face_model_version =
-            optional_str(attrs, "face_model_version").unwrap_or_else(|| "6.0".to_string());
-        let tags = extract_tags(attrs);
+        let face_model_version = model
+            .face_model_version
+            .unwrap_or_else(|| "6.0".to_string());
 
         let collection_view = CollectionView {
-            collection_id: collection_id.to_string(),
-            collection_arn: collection_arn.clone(),
+            collection_id: collection_id.clone(),
+            collection_arn,
             face_count: 0,
             face_model_version,
             creation_timestamp: 0.0,
             user_count: 0,
-            tags,
+            tags: model.tags,
         };
 
         let mut state_view = RekognitionStateView {
@@ -88,7 +91,7 @@ impl AwsRekognitionCollectionConverter {
         };
         state_view
             .collections
-            .insert(collection_id.to_string(), collection_view);
+            .insert(collection_id, collection_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;

@@ -1,0 +1,78 @@
+# Auto-ingested by `tf-converter-codegen ingest scheduler`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (schedule_group / schedule). Dropped the `tags_all` overlay,
+# the `tags` (Vec<TagView> on the view side, not a HashMap), and the
+# nested-block fields (`flexible_time_window`, `target`) on the
+# schedule resource — those are read straight from instance.attributes
+# in the converter.
+
+[service]
+name = "scheduler"
+crate_name = "winterbaume_scheduler"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_scheduler_schedule_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_scheduler_schedule_group"
+model = "ScheduleGroupTfModel"
+view = "ScheduleGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_scheduler_schedule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_scheduler_schedule"
+model = "ScheduleTfModel"
+view = "ScheduleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "group_name"
+view = "group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule_expression"
+view = "schedule_expression"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"

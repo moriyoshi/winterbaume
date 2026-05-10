@@ -16,9 +16,8 @@ use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::iot as iot_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 // ---------------------------------------------------------------------------
 // aws_iot_thing
@@ -63,18 +62,20 @@ impl AwsIotThingConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_iot_thing")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: iot_gen::ThingTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_iot_thing", e))?;
 
-        let thing_type_name = optional_str(attrs, "thing_type_name");
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iot:{}:{}:thing/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let version = optional_i64(attrs, "version").unwrap_or(1);
+        let version = model.version;
 
         let mut thing_attributes = HashMap::new();
         if let Some(obj) = attrs.get("attributes").and_then(|v| v.as_object()) {
@@ -85,12 +86,12 @@ impl AwsIotThingConverter {
             }
         }
 
-        let thing_id = optional_str(attrs, "default_client_id").unwrap_or_else(|| name.to_string());
+        let thing_id = model.default_client_id.unwrap_or_else(|| name.clone());
 
         let thing_view = ThingView {
-            thing_name: name.to_string(),
+            thing_name: name.clone(),
             thing_id,
-            thing_type_name,
+            thing_type_name: model.thing_type_name,
             attributes: thing_attributes,
             version,
             thing_arn: arn,
@@ -116,7 +117,7 @@ impl AwsIotThingConverter {
             indexing_config_thing: None,
             indexing_config_thing_group: None,
         };
-        state_view.things.insert(name.to_string(), thing_view);
+        state_view.things.insert(name, thing_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -200,18 +201,21 @@ impl AwsIotThingTypeConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_iot_thing_type")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: iot_gen::ThingTypeTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_iot_thing_type", e))?;
 
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iot:{}:{}:thingtype/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let thing_type_id = optional_str(attrs, "id").unwrap_or_else(|| name.to_string());
-        let deprecated = optional_bool(attrs, "deprecated").unwrap_or(false);
+        let thing_type_id = model.id.unwrap_or_else(|| name.clone());
+        let deprecated = model.deprecated;
 
         let mut searchable_attributes = None;
         let mut description = None;
@@ -235,7 +239,7 @@ impl AwsIotThingTypeConverter {
         }
 
         let tt_view = ThingTypeView {
-            thing_type_name: name.to_string(),
+            thing_type_name: name.clone(),
             thing_type_id,
             thing_type_arn: arn,
             thing_type_description: description,
@@ -262,7 +266,7 @@ impl AwsIotThingTypeConverter {
             indexing_config_thing: None,
             indexing_config_thing_group: None,
         };
-        state_view.thing_types.insert(name.to_string(), tt_view);
+        state_view.thing_types.insert(name, tt_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -347,24 +351,22 @@ impl AwsIotPolicyConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_iot_policy")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: iot_gen::IotPolicyTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_iot_policy", e))?;
 
-        let policy_document = optional_str(attrs, "policy").unwrap_or_default();
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let name = model.name.clone();
+        let policy_document = model.policy.unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iot:{}:{}:policy/{}",
                 region, ctx.default_account_id, name
             )
         });
-        let default_version_id =
-            optional_str(attrs, "default_version_id").unwrap_or_else(|| "1".to_string());
-
-        let _tags = extract_tags(attrs);
+        let default_version_id = model.default_version_id.unwrap_or_else(|| "1".to_string());
 
         let policy_view = IotPolicyView {
-            policy_name: name.to_string(),
+            policy_name: name.clone(),
             policy_arn: arn,
             policy_document,
             creation_date: 0.0,
@@ -393,7 +395,7 @@ impl AwsIotPolicyConverter {
             indexing_config_thing: None,
             indexing_config_thing_group: None,
         };
-        state_view.policies.insert(name.to_string(), policy_view);
+        state_view.policies.insert(name, policy_view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -475,19 +477,20 @@ impl AwsIotCertificateConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: iot_gen::CertificateTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_iot_certificate", e))?;
 
-        let certificate_id = optional_str(attrs, "id").unwrap_or_default();
-        let certificate_pem = optional_str(attrs, "certificate_pem").unwrap_or_default();
-        let _ca_pem = optional_str(attrs, "ca_pem");
-        let active = optional_bool(attrs, "active").unwrap_or(true);
+        let certificate_id = model.id.unwrap_or_default();
+        let certificate_pem = model.certificate_pem.unwrap_or_default();
+        let active = model.active;
         let status = if active {
             "ACTIVE".to_string()
         } else {
             "INACTIVE".to_string()
         };
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
+        let arn = model.arn.unwrap_or_else(|| {
             format!(
                 "arn:aws:iot:{}:{}:cert/{}",
                 region, ctx.default_account_id, certificate_id
@@ -500,7 +503,7 @@ impl AwsIotCertificateConverter {
             certificate_pem,
             status,
             creation_date: 0.0,
-            ca_certificate_id: optional_str(attrs, "ca_certificate_id"),
+            ca_certificate_id: model.ca_certificate_id,
             owned_by: ctx.default_account_id.clone(),
             mode: "DEFAULT".to_string(),
         };

@@ -1,0 +1,174 @@
+# Auto-ingested by `tf-converter-codegen ingest networkmanager`.
+# Hand-tuned: split into one [[resource]] block per resource type
+# (global_network / site / device). Dropped raw-Value blob fields
+# (location, aws_location) so the converter reads them straight from
+# instance.attributes. ARN templates and `state = "AVAILABLE"` /
+# `created_at` / empty description defaults are wired up by hand.
+
+[service]
+name = "networkmanager"
+crate_name = "winterbaume_networkmanager"
+state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_networkmanager_global_network
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_networkmanager_global_network"
+model = "GlobalNetworkTfModel"
+view = "GlobalNetworkView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_networkmanager_site
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_networkmanager_site"
+model = "SiteTfModel"
+view = "SiteView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "global_network_id"
+view = "global_network_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_networkmanager_device
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_networkmanager_device"
+model = "DeviceTfModel"
+view = "DeviceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "global_network_id"
+view = "global_network_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "site_id"
+view = "site_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "model"
+view = "model"
+type = "string?"
+
+[[resource.field]]
+hcl = "serial_number"
+view = "serial_number"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "device_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "vendor"
+view = "vendor"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

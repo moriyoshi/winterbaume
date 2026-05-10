@@ -1,4 +1,9 @@
 //! Terraform converter for `aws_sqs_queue` resources.
+//!
+//! Field projection is generated from `specs/sqs.toml` into
+//! `crate::generated::sqs`. This module owns only the converter struct,
+//! the trait scaffolding, and the inject/extract orchestration that ties
+//! the generated projection to the SQS service backend.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -6,16 +11,15 @@ use std::sync::Arc;
 
 use winterbaume_core::StatefulService;
 use winterbaume_sqs::SqsService;
-use winterbaume_sqs::views::{QueueStateView, SqsStateView};
+use winterbaume_sqs::views::SqsStateView;
 use winterbaume_tfstate::ResourceInstance;
 
 use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
 };
 use crate::error::ConversionError;
-use crate::util::{
-    extract_region, extract_tags, optional_bool, optional_i64, optional_str, require_str,
-};
+use crate::generated::sqs as sqs_gen;
+use crate::util::{classify_deserialize_error, extract_region};
 
 /// Converts `aws_sqs_queue` Terraform resources to/from SQS service state.
 pub struct AwsSqsQueueConverter {
@@ -57,50 +61,14 @@ impl AwsSqsQueueConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let name = require_str(attrs, "name", "aws_sqs_queue")?;
-        let region = extract_region(attrs, &ctx.default_region);
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: sqs_gen::SqsQueueTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sqs_queue", e))?;
 
-        let url = optional_str(attrs, "url")
-            .or_else(|| optional_str(attrs, "id"))
-            .unwrap_or_else(|| {
-                format!(
-                    "https://sqs.{}.amazonaws.com/{}/{}",
-                    region, ctx.default_account_id, name
-                )
-            });
-        let arn = optional_str(attrs, "arn").unwrap_or_else(|| {
-            format!("arn:aws:sqs:{}:{}:{}", region, ctx.default_account_id, name)
-        });
-
-        let fifo = optional_bool(attrs, "fifo_queue").unwrap_or(false);
-
-        let queue_view = QueueStateView {
-            name: name.to_string(),
-            url,
-            arn,
-            region: region.clone(),
-            account_id: ctx.default_account_id.clone(),
-            created_timestamp: None,
-            last_modified_timestamp: None,
-            visibility_timeout: optional_i64(attrs, "visibility_timeout_seconds").unwrap_or(30)
-                as u32,
-            delay_seconds: optional_i64(attrs, "delay_seconds").unwrap_or(0) as u32,
-            maximum_message_size: optional_i64(attrs, "max_message_size").unwrap_or(262144) as u32,
-            message_retention_period: optional_i64(attrs, "message_retention_seconds")
-                .unwrap_or(345600) as u32,
-            receive_wait_time_seconds: optional_i64(attrs, "receive_wait_time_seconds").unwrap_or(0)
-                as u32,
-            fifo_queue: fifo,
-            content_based_deduplication: optional_bool(attrs, "content_based_deduplication")
-                .unwrap_or(false),
-            tags: extract_tags(attrs),
-            redrive_policy: optional_str(attrs, "redrive_policy"),
-            policy: optional_str(attrs, "policy"),
-        };
-
+        let view = model.into_state_view(ctx, &region);
         let mut state_view = SqsStateView::default();
-        state_view.queues.insert(name.to_string(), queue_view);
+        state_view.queues.insert(view.name.clone(), view);
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -121,26 +89,14 @@ impl AwsSqsQueueConverter {
             .await;
         let mut results = vec![];
         for queue in view.queues.values() {
-            let attrs = serde_json::json!({
-                "id": queue.url,
-                "name": queue.name,
-                "arn": queue.arn,
-                "url": queue.url,
-                "visibility_timeout_seconds": queue.visibility_timeout,
-                "delay_seconds": queue.delay_seconds,
-                "max_message_size": queue.maximum_message_size,
-                "message_retention_seconds": queue.message_retention_period,
-                "receive_wait_time_seconds": queue.receive_wait_time_seconds,
-                "fifo_queue": queue.fifo_queue,
-                "content_based_deduplication": queue.content_based_deduplication,
-                "tags": queue.tags,
-                "tags_all": queue.tags,
-            });
+            let model = sqs_gen::SqsQueueTfModel::from(queue);
+            let attributes = serde_json::to_value(&model)
+                .expect("infallible: SqsQueueTfModel serializes to JSON");
             results.push(ExtractedResource {
                 name: queue.name.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
-                attributes: attrs,
+                attributes,
             });
         }
         Ok(results)
