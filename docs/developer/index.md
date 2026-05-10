@@ -15,20 +15,19 @@ This section covers the internals of winterbaume for contributors who want to im
 ```
 winterbaume/
   crates/
-    winterbaume-core/     # shared traits, BackendState, MockAws builder, Vfs/BlobStore
-    winterbaume-{svc}/    # one crate per AWS service
-    winterbaume-server/   # standalone HTTP server (hyper)
-    winterbaume-stubs/    # 501 fallback for unmapped services
-    winterbaume-*-redis/  # optional Redis persistence crates
+    winterbaume-core/         # shared traits, BackendState, MockAws builder, Vfs/BlobStore
+    winterbaume-{svc}/        # one crate per AWS service
+    winterbaume-server/       # standalone HTTP server (hyper)
+    winterbaume-stubs/        # 501 fallback for unmapped services
+    winterbaume-*-redis/      # optional Redis persistence crates
     winterbaume-sqlengine-duckdb/  # optional DuckDB query backend
-    winterbaume-partiql/  # DynamoDB PartiQL parser
-    winterbaume-terraform/ # Terraform provider compatibility
+    winterbaume-partiql/      # DynamoDB PartiQL parser
+    winterbaume-terraform/    # Terraform provider compatibility
+    winterbaume-e2e-tests/    # cross-service integration + Terraform E2E suites
   tools/
-    smithy-codegen/       # generates model.rs + wire.rs per service
+    smithy-codegen/           # generates model.rs + wire.rs per service
   vendor/
-    moto/                 # reference Python moto (git submodule)
-  tests/
-    e2e/terraform/        # Terraform E2E test suites
+    api-models-aws/           # vendored AWS Smithy models (git submodule)
 ```
 
 ## Where to start

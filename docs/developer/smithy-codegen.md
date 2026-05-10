@@ -8,46 +8,54 @@
 
 Never hand-edit them. If generated output is wrong, fix the generator and regenerate.
 
-## Finding the model directory
+## Finding the service slug
 
-Smithy model directories do not always match the crate name. Use `list-services` to find the mapping:
+`gen-serializers` takes a service slug — usually the crate suffix (e.g. `lambda` for `winterbaume-lambda`). Smithy model directories under `vendor/api-models-aws/models/` are not always identical to that slug, but `list-services` shows both columns:
 
 ```sh
 cargo run -p smithy-codegen -- list-services
 ```
 
-Example output (abbreviated):
+Example output (abbreviated, columns are `<slug>  <model-dir>`):
 ```
-elastic-load-balancing-v2  →  winterbaume-elbv2
-route-53                   →  winterbaume-route53
-lambda                     →  winterbaume-lambda
-s3                         →  winterbaume-s3
+lambda                    lambda
+route53                   route-53
+s3                        s3
+elasticloadbalancingv2    elastic-load-balancing-v2
 ```
+
+The default `--models-dir` is `vendor/api-models-aws/models`; override only if you are pointing at a non-vendored checkout.
 
 ## Regenerating a single service
 
 ```sh
-cargo run -p smithy-codegen -- gen-serializers sdk-models/{model-dir} \
-    --output        crates/winterbaume-{svc}/src/wire.rs \
-    --model-output  crates/winterbaume-{svc}/src/model.rs
+cargo run -p smithy-codegen -- gen-serializers <slug> \
+    --output        crates/winterbaume-<crate>/src/wire.rs \
+    --model-output  crates/winterbaume-<crate>/src/model.rs
 ```
 
 Example for Lambda:
 
 ```sh
-cargo run -p smithy-codegen -- gen-serializers sdk-models/lambda \
+cargo run -p smithy-codegen -- gen-serializers lambda \
     --output        crates/winterbaume-lambda/src/wire.rs \
     --model-output  crates/winterbaume-lambda/src/model.rs
 ```
 
 ## Regenerating all services
 
+There is no built-in `--all` switch; loop in shell over `list-services` instead:
+
 ```sh
 # Build the generator first
 cargo build -p smithy-codegen
 
-# Then loop over every mapped service
-cargo run -p smithy-codegen -- gen-serializers --all
+# Then run gen-serializers for every slug
+cargo run -p smithy-codegen -- list-services | awk '{print $1}' | while read slug; do
+    cargo run -p smithy-codegen -- gen-serializers "$slug" \
+        --output       "crates/winterbaume-${slug}/src/wire.rs" \
+        --model-output "crates/winterbaume-${slug}/src/model.rs"
+done
 ```
 
 ## What is generated
@@ -99,9 +107,9 @@ pub fn error_resource_not_found(msg: &str) -> MockResponse { ... }
    ```
 5. Regenerate the affected service(s):
    ```sh
-   cargo run -p smithy-codegen -- gen-serializers sdk-models/{model-dir} \
-       --output crates/winterbaume-{svc}/src/wire.rs \
-       --model-output crates/winterbaume-{svc}/src/model.rs
+   cargo run -p smithy-codegen -- gen-serializers <slug> \
+       --output crates/winterbaume-<crate>/src/wire.rs \
+       --model-output crates/winterbaume-<crate>/src/model.rs
    ```
 6. Run the service's integration tests to confirm:
    ```sh

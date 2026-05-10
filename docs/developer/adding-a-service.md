@@ -32,7 +32,7 @@ winterbaume-sts   = { path = "../winterbaume-sts" }
 
 ## 3. Generate `model.rs` and `wire.rs`
 
-Find the Smithy model directory for the service:
+Find the slug for the service. `gen-serializers` takes a service slug (usually the crate suffix); models live under `vendor/api-models-aws/models/`:
 
 ```sh
 cargo run -p smithy-codegen -- list-services
@@ -41,12 +41,12 @@ cargo run -p smithy-codegen -- list-services
 Then generate:
 
 ```sh
-cargo run -p smithy-codegen -- gen-serializers sdk-models/{model-dir} \
+cargo run -p smithy-codegen -- gen-serializers {slug} \
     --output crates/winterbaume-{svc}/src/wire.rs \
     --model-output crates/winterbaume-{svc}/src/model.rs
 ```
 
-Both files will carry `//! Do not edit manually. Regenerate with: smithy-codegen gen-serializers {model-dir}` headers. Never hand-edit them — patch the generator if the output is wrong. See [Smithy Codegen](./smithy-codegen).
+Both files will carry `//! Do not edit manually. Regenerate with: smithy-codegen gen-serializers {slug}` headers. Never hand-edit them — patch the generator if the output is wrong. See [Smithy Codegen](./smithy-codegen).
 
 ## 4. Implement `src/types.rs`
 

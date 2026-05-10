@@ -8,7 +8,7 @@ Add the `smithy-mocks` feature to `winterbaume-core` in your `Cargo.toml`:
 
 ```toml
 [dev-dependencies]
-winterbaume-core = { path = "...", features = ["smithy-mocks"] }
+winterbaume-core = { version = "0.1", features = ["smithy-mocks"] }
 aws-smithy-mocks = "0.x"
 ```
 

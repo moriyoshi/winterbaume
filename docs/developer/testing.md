@@ -8,7 +8,7 @@ Winterbaume uses three complementary test layers. Each layer catches different c
 |---|---|---|
 | SDK integration tests | `crates/winterbaume-{svc}/tests/integration_test.rs` | API shape compatibility, state transitions, error responses |
 | Moto parity ports | Same file | Behavioral correctness against a proven reference |
-| Terraform E2E | `tests/e2e/terraform/` | Provider-level compatibility, waiters, sub-resource reads |
+| Terraform E2E | `crates/winterbaume-e2e-tests/tests/terraform/` | Provider-level compatibility, waiters, sub-resource reads |
 
 ## SDK integration tests
 
@@ -104,7 +104,7 @@ The `/port-moto-tests` skill automates this workflow for a given service.
 
 ## Terraform E2E tests
 
-`tests/e2e/terraform/` contains per-service HCL configurations and a Rust test harness that:
+`crates/winterbaume-e2e-tests/tests/terraform/` contains per-service HCL configurations and a Rust test harness that:
 
 1. Starts `winterbaume-server` in-process.
 2. Runs `terraform init` + `terraform apply` against it.

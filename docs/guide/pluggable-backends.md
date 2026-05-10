@@ -24,7 +24,7 @@ The default in-memory backends work well for unit and integration tests where st
 
 ```toml
 [dependencies]
-winterbaume-sqs-redis = { path = "..." }
+winterbaume-sqs-redis = "0.1"
 ```
 
 ```rust
@@ -43,7 +43,7 @@ let mock = MockAws::builder()
 
 ```toml
 [dependencies]
-winterbaume-sqlengine-duckdb = { path = "..." }
+winterbaume-sqlengine-duckdb = "0.1"
 ```
 
 ```rust

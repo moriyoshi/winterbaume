@@ -102,10 +102,10 @@ crates/winterbaume-<service>/
 
 | AWS protocol | Used by |
 |---|---|
-| `awsQuery` | STS, IAM, CloudWatch, SNS, SQS (legacy), ELBv2 |
+| `awsQuery` | STS, IAM, SNS, Auto Scaling, CloudFormation, ELB / ELBv2 |
 | `ec2Query` | EC2 |
-| `awsJson1.0` | DynamoDB, DynamoDB Streams, Step Functions, SWF |
-| `awsJson1.1` | Lambda, KMS, Secrets Manager, ECS, many others |
-| `restJson1` | S3 (management), API Gateway, EKS, EFS, and most modern services |
+| `awsJson1.0` | DynamoDB, DynamoDB Streams, SQS, CloudWatch, Step Functions, SWF |
+| `awsJson1.1` | KMS, Secrets Manager, ECS, CloudWatch Logs, many others |
+| `restJson1` | Lambda, S3 (management), API Gateway, EKS, EFS, and most modern services |
 | `restXml` | S3 (object operations), Route 53, CloudFront |
 | `rpc-v2-cbor` | — (supported, limited service coverage) |

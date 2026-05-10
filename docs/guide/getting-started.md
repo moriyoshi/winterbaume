@@ -4,17 +4,24 @@ Winterbäume (stylised as Winterbaume) is a stateful AWS service mock for `aws-s
 
 ## Installation
 
-Add the crates you need to your `Cargo.toml`. At minimum you need `winterbaume-core`, plus one crate per AWS service you want to mock:
+All winterbaume crates are published on [crates.io](https://crates.io/crates/winterbaume). Add the crates you need to your `Cargo.toml`. At minimum you need `winterbaume-core`, plus one crate per AWS service you want to mock:
 
 ```toml
 [dev-dependencies]
-winterbaume-core = { path = "..." }
-winterbaume-sts   = { path = "..." }
-winterbaume-s3    = { path = "..." }
-winterbaume-sqs   = { path = "..." }
+winterbaume-core = "0.1"
+winterbaume-sts  = "0.1"
+winterbaume-s3   = "0.1"
+winterbaume-sqs  = "0.1"
 ```
 
-Replace `path = "..."` with the appropriate `git` or registry source for your setup.
+Or pull in every service at once via the umbrella [`winterbaume`](https://crates.io/crates/winterbaume) crate:
+
+```toml
+[dev-dependencies]
+winterbaume = "0.1"
+```
+
+You can also add them from the command line with `cargo add --dev winterbaume-core winterbaume-s3 …`.
 
 ## Quickstart
 
@@ -57,7 +64,14 @@ Services that are listed as stubs in the [coverage table](/reference/services) r
 
 ## Standalone server
 
-If you are testing non-Rust clients, CLI scripts, or Terraform configurations, run `winterbaume-server` instead:
+If you are testing non-Rust clients, CLI scripts, or Terraform configurations, run `winterbaume-server` instead. Install it from crates.io:
+
+```sh
+cargo install winterbaume-server
+winterbaume-server --host 127.0.0.1 --port 5555
+```
+
+Or, from a checkout of this repository, run it directly through cargo:
 
 ```sh
 cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555

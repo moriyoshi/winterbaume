@@ -197,10 +197,10 @@ Athena and Redshift Data apply the same pluggable-backend pattern to SQL query e
 
 | Protocol | Format | Used by |
 |---|---|---|
-| `awsQuery` | POST, `application/x-www-form-urlencoded`, XML response | STS, IAM, CloudWatch, SNS, ELBv2 |
+| `awsQuery` | POST, `application/x-www-form-urlencoded`, XML response | STS, IAM, SNS, Auto Scaling, CloudFormation, ELB / ELBv2 |
 | `ec2Query` | Same as awsQuery with EC2 envelope quirks | EC2 |
-| `awsJson1.0` | POST, JSON body, `X-Amz-Target` header, JSON response | DynamoDB, Step Functions, SWF |
-| `awsJson1.1` | Same as 1.0 with minor differences | Lambda, KMS, ECS, most modern services |
-| `restJson1` | Method + path routing, JSON body, JSON response | S3 (management), API Gateway, EKS, EFS |
+| `awsJson1.0` | POST, JSON body, `X-Amz-Target` header, JSON response | DynamoDB, SQS, CloudWatch, Step Functions, SWF |
+| `awsJson1.1` | Same as 1.0 with minor differences | KMS, ECS, Secrets Manager, CloudWatch Logs, most modern awsJson services |
+| `restJson1` | Method + path routing, JSON body, JSON response | Lambda, S3 (management), API Gateway, EKS, EFS |
 | `restXml` | Method + path routing, XML body, XML response | S3 (objects), Route 53, CloudFront |
 | `rpc-v2-cbor` | CBOR framing over HTTP/2 | limited coverage |

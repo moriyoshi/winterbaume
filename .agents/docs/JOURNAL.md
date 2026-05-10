@@ -578,3 +578,40 @@ The local state is ready, but four shared-state actions remain and were not take
 ### Operator note
 
 The `release-batch` tag-backfill path only triggers on the 429 / "is already published" recovery branch. If a future chunk fails for *any other* reason after partially uploading ( e.g., a transient network 5xx between cargo's `Uploaded X` and the tag push ), the dropped tags will still need a manual `git tag -s ... && git push` cleanup. A more general guard would be to scan cargo's `Uploaded <crate> v<ver>` lines on every failure, not just the 429 path, and tag any uploaded crate whose tag is missing. Not done now because the only failure mode observed in 44 chunks was the 429.
+
+## 2026-05-11: docs/ refresh after public release of all crates
+
+Now that every winterbaume crate is published on crates.io, walked the user-facing and developer documents under `docs/` to find content that no longer matches reality. Bundled fixes; no source changes outside `docs/`.
+
+### Findings
+
+1. **Installation snippets still used `path = "..."` placeholders.** `docs/guide/getting-started.md` told readers to "replace `path = "..."` with the appropriate `git` or registry source"; `docs/guide/smithy-mocks.md` and `docs/guide/pluggable-backends.md` ( Redis and DuckDB samples ) had the same placeholder. All three predate the 2026-05-10 mass publish.
+
+2. **Server install was Cargo-checkout-only.** `docs/guide/getting-started.md` only showed `cargo run -p winterbaume-server`; `cargo install winterbaume-server` is now a valid first-class option since `winterbaume-server` is on crates.io.
+
+3. **Protocol / used-by tables had three wrong service-to-protocol mappings.** Both `docs/developer/architecture.md` and `docs/reference/architecture.md` listed Lambda under `awsJson1.1` ( actually `restJson1` ), CloudWatch under `awsQuery` ( actually `awsJson1.0` ), and SQS as "awsQuery (legacy)" ( actually `awsJson1.0` ). Cross-checked against the per-service rows in `docs/reference/services.md`.
+
+4. **`smithy-codegen gen-serializers` argument form was obsolete.** Three docs ( `docs/developer/smithy-codegen.md` lines 30 / 38 / 102, `docs/developer/adding-a-service.md` line 44 ) showed `gen-serializers sdk-models/{model-dir}`. The current CLI takes a service slug ( `gen-serializers <SERVICE>` per `tools/smithy-codegen/src/main.rs:84`, e.g. `gen-serializers lambda` ) and resolves models under `--models-dir` ( default `vendor/api-models-aws/models` ). The `sdk-models/` directory does not exist in the repo. Same docs claimed a `gen-serializers --all` switch — there is no such flag; regen-all has to be a shell loop over `list-services`.
+
+5. **`list-services` example output format was wrong.** `docs/developer/smithy-codegen.md` showed `model-dir → winterbaume-crate` arrow-style output, but real output is two whitespace-separated columns: `<crate-suffix>  <model-dir>`. Also implied `winterbaume-elbv2` exists as a separate crate; the actual crate is `winterbaume-elasticloadbalancingv2` ( `elbv2` is only an alias slug in `list-services` ).
+
+6. **Terraform E2E test path was stale.** `docs/developer/testing.md` ( twice ) and `docs/developer/index.md` referenced `tests/e2e/terraform/`. The suite actually lives at `crates/winterbaume-e2e-tests/tests/terraform/`. There is no top-level `tests/` directory in the repo.
+
+7. **`vendor/moto` git submodule no longer exists.** `docs/developer/index.md`'s repo-layout sketch listed `vendor/moto/ # reference Python moto (git submodule)`. `.gitmodules` only declares `vendor/api-models-aws`; the moto reference is consulted via the moto GitHub repo, not as a vendored submodule.
+
+### Fixes
+
+- **`docs/guide/getting-started.md`** -- replaced `path = "..."` block with real `version = "0.1"` deps, added the umbrella `winterbaume = "0.1"` option, mentioned `cargo add --dev`. Added a `cargo install winterbaume-server` block above the existing `cargo run -p` form so both an installed binary and an in-repo cargo run are documented.
+- **`docs/guide/smithy-mocks.md`** -- `winterbaume-core = { version = "0.1", features = ["smithy-mocks"] }`.
+- **`docs/guide/pluggable-backends.md`** -- `winterbaume-sqs-redis = "0.1"`, `winterbaume-sqlengine-duckdb = "0.1"`.
+- **`docs/developer/architecture.md`** ( "Supported wire protocols" table ) and **`docs/reference/architecture.md`** ( "Protocols supported" table ) -- moved Lambda to `restJson1`; moved CloudWatch and SQS to `awsJson1.0`; added Auto Scaling, CloudFormation, ELB to the `awsQuery` row; refreshed `awsJson1.1` examples ( KMS, ECS, Secrets Manager, CloudWatch Logs ).
+- **`docs/developer/smithy-codegen.md`** -- rewrote "Finding the model directory" → "Finding the service slug": correct two-column `list-services` example, real `gen-serializers <slug>` form throughout, replaced fake `--all` with a shell loop over `list-services | awk '{print $1}'`.
+- **`docs/developer/adding-a-service.md`** -- same `gen-serializers <slug>` correction. Left the `path = "../winterbaume-core"` dev-deps in place: those are correct in-workspace deps for adding a new service crate.
+- **`docs/developer/testing.md`** ( two sites ) -- updated path to `crates/winterbaume-e2e-tests/tests/terraform/`.
+- **`docs/developer/index.md`** -- repo-layout sketch now lists `winterbaume-e2e-tests` under `crates/`, drops the stale `tests/e2e/terraform/` block, and replaces `vendor/moto/` with `vendor/api-models-aws/` ( the only declared submodule ).
+
+### Out of scope
+
+- **`docs/services/*.md`** are auto-generated from `crates/winterbaume-{slug}/README.md` by `docs/scripts/generate-service-pages.mjs`. Many still show `cargo run -p winterbaume-server` as the only server-launch form. Updating per-crate READMEs and re-running the generator is the right path; doing it by hand here would be lost on the next regeneration.
+- **`README.md:28` says "329 ( 2.9% ) stubs"** but the authoritative table figure ( both in the README and in `docs/reference/services.md` ) is **326**. The user's task scoped this work to `docs/`, where everything already says 326. The README intro paragraph drifted from the table — likely a stale hand-edit predating the latest `/api-coverage` run; leaving the README to the api-coverage / generate-changelog skills.
+- **`docs/.vitepress/config.mts`** `transformPageData` references undefined symbols ( `siteUrl`, `ogImage`, `resolveSiteDataByRoute`, `localeToOgLocaleMap`, `HeadConfig` ) and falls back to `${pageData.title} | VitePress` for browser title and `og:site_name = 'VitePress'`. That is a config bug, not stale prose, so it is out of scope for a docs refresh — flagging here for whoever next touches the docs site so it doesn't get lost.
