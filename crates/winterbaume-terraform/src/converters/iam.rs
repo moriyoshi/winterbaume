@@ -9,9 +9,10 @@ use winterbaume_core::StatefulService;
 use winterbaume_iam::IamService;
 use winterbaume_iam::views::{
     AccessKeyView, AccountPasswordPolicyView, AttachedPolicyView, GroupView, IamStateView,
-    InstanceProfileView, LoginProfileView, ManagedPolicyView, OidcProviderView, PolicyVersionView,
-    RoleView, SamlProviderView, ServerCertificateView, ServiceSpecificCredentialView,
-    SigningCertificateView, SshPublicKeyView, UserView, VirtualMfaDeviceView,
+    InlinePolicyView, InstanceProfileView, LoginProfileView, ManagedPolicyView, OidcProviderView,
+    PolicyVersionView, RoleView, SamlProviderView, ServerCertificateView,
+    ServiceSpecificCredentialView, SigningCertificateView, SshPublicKeyView, UserView,
+    VirtualMfaDeviceView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -684,9 +685,9 @@ impl AwsIamRolePolicyAttachmentConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let role_name = require_str(attrs, "role", "aws_iam_role_policy_attachment")?;
-        let policy_arn = require_str(attrs, "policy_arn", "aws_iam_role_policy_attachment")?;
+        let model: iam_gen::IamRolePolicyAttachmentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_role_policy_attachment", e))?;
 
         // Snapshot current state, modify, restore
         let mut view = self
@@ -695,23 +696,27 @@ impl AwsIamRolePolicyAttachmentConverter {
             .await;
 
         let mut warnings = vec![];
-        if let Some(role) = view.roles.get_mut(role_name) {
-            let policy_name = policy_arn.rsplit('/').next().unwrap_or(policy_arn);
+        if let Some(role) = view.roles.get_mut(&model.role) {
+            let policy_name = model
+                .policy_arn
+                .rsplit('/')
+                .next()
+                .unwrap_or(model.policy_arn.as_str());
             // Avoid duplicate attachments
             if !role
                 .attached_policies
                 .iter()
-                .any(|p| p.policy_arn == policy_arn)
+                .any(|p| p.policy_arn == model.policy_arn)
             {
                 role.attached_policies.push(AttachedPolicyView {
                     policy_name: policy_name.to_string(),
-                    policy_arn: policy_arn.to_string(),
+                    policy_arn: model.policy_arn.clone(),
                 });
             }
         } else {
             warnings.push(format!(
                 "role '{}' not found in state; attachment skipped",
-                role_name
+                model.role
             ));
         }
 
@@ -806,9 +811,9 @@ impl AwsIamUserPolicyAttachmentConverter {
         instance: &ResourceInstance,
         ctx: &ConversionContext,
     ) -> Result<ConversionResult, ConversionError> {
-        let attrs = &instance.attributes;
-        let user_name = require_str(attrs, "user", "aws_iam_user_policy_attachment")?;
-        let policy_arn = require_str(attrs, "policy_arn", "aws_iam_user_policy_attachment")?;
+        let model: iam_gen::IamUserPolicyAttachmentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_user_policy_attachment", e))?;
 
         let mut view = self
             .service
@@ -816,22 +821,26 @@ impl AwsIamUserPolicyAttachmentConverter {
             .await;
 
         let mut warnings = vec![];
-        if let Some(user) = view.users.get_mut(user_name) {
-            let policy_name = policy_arn.rsplit('/').next().unwrap_or(policy_arn);
+        if let Some(user) = view.users.get_mut(&model.user) {
+            let policy_name = model
+                .policy_arn
+                .rsplit('/')
+                .next()
+                .unwrap_or(model.policy_arn.as_str());
             if !user
                 .attached_policies
                 .iter()
-                .any(|p| p.policy_arn == policy_arn)
+                .any(|p| p.policy_arn == model.policy_arn)
             {
                 user.attached_policies.push(AttachedPolicyView {
                     policy_name: policy_name.to_string(),
-                    policy_arn: policy_arn.to_string(),
+                    policy_arn: model.policy_arn.clone(),
                 });
             }
         } else {
             warnings.push(format!(
                 "user '{}' not found in state; attachment skipped",
-                user_name
+                model.user
             ));
         }
 
@@ -2131,4 +2140,937 @@ impl AwsIamAccountAliasConverter {
         }
         Ok(results)
     }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_role_policy
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_role_policy` Terraform resources.
+///
+/// This converter pushes an `InlinePolicyView` onto an existing role's
+/// `inline_policies` list. IAM's `merge` replaces nested role records, so
+/// the converter snapshots+mutates+restores rather than building a tiny
+/// view to merge. `name` falls back to `name_prefix`; the spec only
+/// supports a single hcl key per field so the fallback stays hand-written.
+pub struct AwsIamRolePolicyConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamRolePolicyConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamRolePolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_role_policy"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_role"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamRolePolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let model: iam_gen::IamRolePolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_role_policy", e))?;
+
+        let policy_name =
+            model
+                .name
+                .or(model.name_prefix)
+                .ok_or_else(|| ConversionError::MissingAttribute {
+                    resource_type: "aws_iam_role_policy".to_string(),
+                    attribute: "name".to_string(),
+                })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(role) = view.roles.get_mut(&model.role) {
+            // Replace any existing inline policy with the same name.
+            role.inline_policies
+                .retain(|p| p.policy_name != policy_name);
+            role.inline_policies.push(InlinePolicyView {
+                policy_name,
+                policy_document: model.policy,
+            });
+        } else {
+            warnings.push(format!(
+                "role '{}' not found in state; inline policy skipped",
+                model.role
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for role in view.roles.values() {
+            for ip in &role.inline_policies {
+                let id = format!("{}:{}", role.name, ip.policy_name);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "role": role.name,
+                    "name": ip.policy_name,
+                    "policy": ip.policy_document,
+                });
+                results.push(ExtractedResource {
+                    name: id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_user_policy
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_user_policy` Terraform resources.
+///
+/// Mirrors `aws_iam_role_policy` but targets a user's `inline_policies`.
+pub struct AwsIamUserPolicyConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamUserPolicyConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamUserPolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_user_policy"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_user"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamUserPolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let model: iam_gen::IamUserPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_user_policy", e))?;
+
+        let policy_name =
+            model
+                .name
+                .or(model.name_prefix)
+                .ok_or_else(|| ConversionError::MissingAttribute {
+                    resource_type: "aws_iam_user_policy".to_string(),
+                    attribute: "name".to_string(),
+                })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(user) = view.users.get_mut(&model.user) {
+            user.inline_policies
+                .retain(|p| p.policy_name != policy_name);
+            user.inline_policies.push(InlinePolicyView {
+                policy_name,
+                policy_document: model.policy,
+            });
+        } else {
+            warnings.push(format!(
+                "user '{}' not found in state; inline policy skipped",
+                model.user
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for user in view.users.values() {
+            for ip in &user.inline_policies {
+                let id = format!("{}:{}", user.name, ip.policy_name);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "user": user.name,
+                    "name": ip.policy_name,
+                    "policy": ip.policy_document,
+                });
+                results.push(ExtractedResource {
+                    name: id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_group_policy
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_group_policy` Terraform resources.
+///
+/// Mirrors `aws_iam_role_policy` but targets a group's `inline_policies`.
+pub struct AwsIamGroupPolicyConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamGroupPolicyConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamGroupPolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_group_policy"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamGroupPolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let model: iam_gen::IamGroupPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_group_policy", e))?;
+
+        let policy_name =
+            model
+                .name
+                .or(model.name_prefix)
+                .ok_or_else(|| ConversionError::MissingAttribute {
+                    resource_type: "aws_iam_group_policy".to_string(),
+                    attribute: "name".to_string(),
+                })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(group) = view.groups.get_mut(&model.group) {
+            group
+                .inline_policies
+                .retain(|p| p.policy_name != policy_name);
+            group.inline_policies.push(InlinePolicyView {
+                policy_name,
+                policy_document: model.policy,
+            });
+        } else {
+            warnings.push(format!(
+                "group '{}' not found in state; inline policy skipped",
+                model.group
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for group in view.groups.values() {
+            for ip in &group.inline_policies {
+                let id = format!("{}:{}", group.name, ip.policy_name);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "group": group.name,
+                    "name": ip.policy_name,
+                    "policy": ip.policy_document,
+                });
+                results.push(ExtractedResource {
+                    name: id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_group_policy_attachment
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_group_policy_attachment` Terraform resources.
+///
+/// Pushes an `AttachedPolicyView` onto an existing group's
+/// `attached_policies`. The converter snapshots+mutates+restores because
+/// IAM's `merge` replaces nested group records.
+pub struct AwsIamGroupPolicyAttachmentConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamGroupPolicyAttachmentConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamGroupPolicyAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_group_policy_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_group", "aws_iam_policy"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamGroupPolicyAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let model: iam_gen::IamGroupPolicyAttachmentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_group_policy_attachment", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(group) = view.groups.get_mut(&model.group) {
+            let policy_name = model
+                .policy_arn
+                .rsplit('/')
+                .next()
+                .unwrap_or(model.policy_arn.as_str());
+            if !group
+                .attached_policies
+                .iter()
+                .any(|p| p.policy_arn == model.policy_arn)
+            {
+                group.attached_policies.push(AttachedPolicyView {
+                    policy_name: policy_name.to_string(),
+                    policy_arn: model.policy_arn.clone(),
+                });
+            }
+        } else {
+            warnings.push(format!(
+                "group '{}' not found in state; attachment skipped",
+                model.group
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for group in view.groups.values() {
+            for ap in &group.attached_policies {
+                let id = format!("{}/{}", group.name, ap.policy_arn);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "group": group.name,
+                    "policy_arn": ap.policy_arn,
+                });
+                results.push(ExtractedResource {
+                    name: id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_group_membership
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_group_membership` Terraform resources.
+///
+/// Replaces (not unions) the named group's `members` with the listed users
+/// — the TF resource's semantics are "this group has exactly these
+/// members". `users` is `Vec<String>` which the spec format does not
+/// express, so it is read directly from `instance.attributes`. The TF id
+/// is the membership `name`, not the group name.
+pub struct AwsIamGroupMembershipConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamGroupMembershipConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamGroupMembershipConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_group_membership"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_group", "aws_iam_user"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamGroupMembershipConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamGroupMembershipTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_group_membership", e))?;
+
+        let users: Vec<String> = attrs
+            .get("users")
+            .and_then(|v| v.as_array())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        // `model.name` is the TF resource id (membership name); winterbaume
+        // does not store it on the view because the group's `members` list
+        // is the authoritative state.
+        let _membership_name = model.name;
+
+        let mut warnings = vec![];
+        if let Some(group) = view.groups.get_mut(&model.group) {
+            // TF semantics: this resource owns the membership list, replacing
+            // any existing members.
+            group.members = users;
+        } else {
+            warnings.push(format!(
+                "group '{}' not found in state; membership skipped",
+                model.group
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for group in view.groups.values() {
+            if group.members.is_empty() {
+                continue;
+            }
+            // Synthesise a membership name from the group name; the
+            // original TF `name` is not retained on the view.
+            let membership_name = format!("{}-membership", group.name);
+            let attrs = serde_json::json!({
+                "id": membership_name,
+                "name": membership_name,
+                "group": group.name,
+                "users": group.members,
+            });
+            results.push(ExtractedResource {
+                name: membership_name,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_user_group_membership
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_user_group_membership` Terraform resources.
+///
+/// Adds the named user to each listed group's `members` set. `groups` is
+/// a `Vec<String>` which the spec format does not express, so the
+/// converter reads it directly from `instance.attributes`.
+pub struct AwsIamUserGroupMembershipConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamUserGroupMembershipConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamUserGroupMembershipConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_user_group_membership"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_group", "aws_iam_user"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamUserGroupMembershipConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamUserGroupMembershipTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_user_group_membership", e))?;
+
+        let groups: Vec<String> = attrs
+            .get("groups")
+            .and_then(|v| v.as_array())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        for group_name in &groups {
+            if let Some(group) = view.groups.get_mut(group_name) {
+                if !group.members.contains(&model.user) {
+                    group.members.push(model.user.clone());
+                }
+            } else {
+                warnings.push(format!(
+                    "group '{}' not found in state; membership skipped",
+                    group_name
+                ));
+            }
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        // Invert the group->members mapping into user->groups membership
+        // records, emitting one TF resource per user that has any group.
+        let mut user_to_groups: std::collections::BTreeMap<String, Vec<String>> =
+            std::collections::BTreeMap::new();
+        for group in view.groups.values() {
+            for user in &group.members {
+                user_to_groups
+                    .entry(user.clone())
+                    .or_default()
+                    .push(group.name.clone());
+            }
+        }
+
+        let mut results = vec![];
+        for (user, groups) in user_to_groups {
+            let attrs = serde_json::json!({
+                "id": user,
+                "user": user,
+                "groups": groups,
+            });
+            results.push(ExtractedResource {
+                name: user.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_service_linked_role
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_service_linked_role` Terraform resources.
+///
+/// Service-linked roles are AWS-managed roles created on-demand for AWS
+/// services. They live in the regular `roles` collection but with a
+/// `/aws-service-role/<service>/` path and a synthesised
+/// `AWSServiceRoleFor<ServiceCamelCase>` name. The TF id is the role ARN.
+pub struct AwsIamServiceLinkedRoleConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamServiceLinkedRoleConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamServiceLinkedRoleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_service_linked_role"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamServiceLinkedRoleConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamServiceLinkedRoleTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_service_linked_role", e))?;
+
+        // Synthesise the role name from the service prefix:
+        // `lambda.amazonaws.com` -> `AWSServiceRoleForLambda` (+ optional
+        // `_<custom_suffix>`).
+        let service_short = model
+            .aws_service_name
+            .split('.')
+            .next()
+            .unwrap_or(model.aws_service_name.as_str());
+        let mut name = format!(
+            "AWSServiceRoleFor{}",
+            camel_case_service_name(service_short)
+        );
+        if let Some(suffix) = &model.custom_suffix
+            && !suffix.is_empty()
+        {
+            name.push('_');
+            name.push_str(suffix);
+        }
+
+        let path = format!("/aws-service-role/{}/", model.aws_service_name);
+        let arn = format!(
+            "arn:aws:iam::{}:role{}{}",
+            ctx.default_account_id, path, name
+        );
+        let role_id = generate_id("AROA");
+
+        let role_view = RoleView {
+            name: name.clone(),
+            role_id,
+            account_id: ctx.default_account_id.clone(),
+            path,
+            arn,
+            assume_role_policy_document: String::new(),
+            description: model.description.unwrap_or_default(),
+            create_date: None,
+            max_session_duration: 3600,
+            tags: extract_tags(attrs),
+            attached_policies: vec![],
+            inline_policies: vec![],
+            permissions_boundary: None,
+        };
+
+        let view = IamStateView {
+            roles: HashMap::from([(name, role_view)]),
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for role in view.roles.values() {
+            // Only extract roles that live under the service-linked path.
+            if !role.path.starts_with("/aws-service-role/") {
+                continue;
+            }
+            let aws_service_name = role
+                .path
+                .strip_prefix("/aws-service-role/")
+                .and_then(|s| s.strip_suffix('/'))
+                .unwrap_or("")
+                .to_string();
+            let attrs = serde_json::json!({
+                "id": role.arn,
+                "arn": role.arn,
+                "name": role.name,
+                "path": role.path,
+                "aws_service_name": aws_service_name,
+                "description": role.description,
+                "unique_id": role.role_id,
+                "tags": role.tags,
+                "tags_all": role.tags,
+            });
+            results.push(ExtractedResource {
+                name: role.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+/// Convert a service short-name like `lambda` or `elastic-beanstalk` into
+/// the CamelCase suffix used in `AWSServiceRoleFor<...>` role names.
+fn camel_case_service_name(s: &str) -> String {
+    s.split(['-', '_'])
+        .filter(|p| !p.is_empty())
+        .map(|p| {
+            let mut c = p.chars();
+            match c.next() {
+                None => String::new(),
+                Some(first) => first.to_uppercase().chain(c).collect(),
+            }
+        })
+        .collect()
 }

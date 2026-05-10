@@ -239,3 +239,80 @@ fn default_iam_account_password_policy_expire_passwords() -> bool {
 pub struct IamAccountAliasTfModel {
     pub account_alias: String,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_iam_role_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamRolePolicyAttachmentTfModel {
+    pub role: String,
+    pub policy_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_user_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamUserPolicyAttachmentTfModel {
+    pub user: String,
+    pub policy_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_role_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamRolePolicyTfModel {
+    pub role: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_prefix: Option<String>,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_user_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamUserPolicyTfModel {
+    pub user: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_prefix: Option<String>,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_group_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamGroupPolicyTfModel {
+    pub group: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_prefix: Option<String>,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_group_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamGroupPolicyAttachmentTfModel {
+    pub group: String,
+    pub policy_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_group_membership` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamGroupMembershipTfModel {
+    pub name: String,
+    pub group: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_user_group_membership` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamUserGroupMembershipTfModel {
+    pub user: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_service_linked_role` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamServiceLinkedRoleTfModel {
+    pub aws_service_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_suffix: Option<String>,
+}

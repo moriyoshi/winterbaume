@@ -2,8 +2,8 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1206**
-Currently handled by winterbaume: **316** (311 verified against schema)
-Missing within classified prefixes: **895**
+Currently handled by winterbaume: **325** (320 verified against schema)
+Missing within classified prefixes: **886**
 
 Sorted by missing-count desc.
 
@@ -17,7 +17,6 @@ Sorted by missing-count desc.
 | redshift | `aws_redshift_` | 2 | 23 | 21 | 9% |  |
 | apigateway | `aws_api_gateway_` | 6 | 26 | 20 | 23% |  |
 | directconnect | `aws_dx_` | 1 | 19 | 18 | 5% |  |
-| iam | `aws_iam_` | 16 | 34 | 18 | 47% |  |
 | glue | `aws_glue_` | 3 | 20 | 17 | 15% |  |
 | quicksight | `aws_quicksight_` | 3 | 20 | 17 | 15% |  |
 | networkmanager | `aws_networkmanager_` | 3 | 19 | 16 | 16% |  |
@@ -42,6 +41,7 @@ Sorted by missing-count desc.
 | vpclattice | `aws_vpclattice_` | 4 | 14 | 10 | 29% |  |
 | appsync | `aws_appsync_` | 1 | 10 | 9 | 10% |  |
 | fsx | `aws_fsx_` | 2 | 11 | 9 | 18% |  |
+| iam | `aws_iam_` | 25 | 34 | 9 | 74% |  |
 | lambda | `aws_lambda_` | 4 | 13 | 9 | 31% |  |
 | apprunner | `aws_apprunner_` | 1 | 9 | 8 | 11% |  |
 | dynamodb | `aws_dynamodb_` | 1 | 9 | 8 | 11% |  |
@@ -436,27 +436,6 @@ Sorted by missing-count desc.
 - `aws_dx_public_virtual_interface`
 - `aws_dx_transit_virtual_interface`
 
-### iam — 18 missing
-
-- `aws_iam_group_membership`
-- `aws_iam_group_policies_exclusive`
-- `aws_iam_group_policy`
-- `aws_iam_group_policy_attachment`
-- `aws_iam_group_policy_attachments_exclusive`
-- `aws_iam_organizations_features`
-- `aws_iam_policy_attachment`
-- `aws_iam_role_policies_exclusive`
-- `aws_iam_role_policy`
-- `aws_iam_role_policy_attachment`
-- `aws_iam_role_policy_attachments_exclusive`
-- `aws_iam_security_token_service_preferences`
-- `aws_iam_service_linked_role`
-- `aws_iam_user_group_membership`
-- `aws_iam_user_policies_exclusive`
-- `aws_iam_user_policy`
-- `aws_iam_user_policy_attachment`
-- `aws_iam_user_policy_attachments_exclusive`
-
 ### glue — 17 missing
 
 - `aws_glue_catalog_table`
@@ -820,6 +799,18 @@ Sorted by missing-count desc.
 - `aws_fsx_openzfs_file_system`
 - `aws_fsx_openzfs_snapshot`
 - `aws_fsx_openzfs_volume`
+
+### iam — 9 missing
+
+- `aws_iam_group_policies_exclusive`
+- `aws_iam_group_policy_attachments_exclusive`
+- `aws_iam_organizations_features`
+- `aws_iam_policy_attachment`
+- `aws_iam_role_policies_exclusive`
+- `aws_iam_role_policy_attachments_exclusive`
+- `aws_iam_security_token_service_preferences`
+- `aws_iam_user_policies_exclusive`
+- `aws_iam_user_policy_attachments_exclusive`
 
 ### lambda — 9 missing
 
