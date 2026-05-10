@@ -273,6 +273,7 @@ members = [
     "tools/sccache-wrapper",
     "tools/smithy-codegen",
     "tools/tf-converter-codegen",
+    "crates/winterbaume-tfstate-resource-models",
 ]
 # winterbaume-sqlengine-duckdb is excluded from the default build because it
 # compiles DuckDB from source (bundled feature), which takes several minutes.
@@ -517,6 +518,7 @@ default-members = [
     "crates/winterbaume-xray",
     "tools/smithy-codegen",
     "tools/tf-converter-codegen",
+    "crates/winterbaume-tfstate-resource-models",
 ]
 resolver = "3"
 
@@ -797,6 +799,7 @@ winterbaume-partiql = { version = "0.1.0", path = "crates/winterbaume-partiql" }
 winterbaume-sqlengine-duckdb = { version = "0.1.0", path = "crates/winterbaume-sqlengine-duckdb", default-features = false }
 winterbaume-sqs-redis = { version = "0.1.0", path = "crates/winterbaume-sqs-redis" }
 winterbaume-tfstate = { version = "0.1.0", path = "crates/winterbaume-tfstate" }
+winterbaume-tfstate-resource-models = { version = "0.1.0", path = "crates/winterbaume-tfstate-resource-models" }
 winterbaume-terraform = { version = "0.1.0", path = "crates/winterbaume-terraform" }
 
 # AWS SDK

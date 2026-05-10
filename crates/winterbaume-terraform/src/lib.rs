@@ -9,7 +9,6 @@
 pub mod converter;
 pub mod converters;
 pub mod error;
-pub mod generated;
 pub mod injector;
 pub mod report;
 pub mod util;
@@ -20,3 +19,6 @@ pub use converter::{
 pub use error::ConversionError;
 pub use injector::{ExtractionReport, TerraformInjector};
 pub use report::InjectionReport;
+/// Re-export the auto-generated TF projection models so converter source
+/// files can keep referring to them via `crate::generated::<svc>`.
+pub use winterbaume_tfstate_resource_models as generated;
