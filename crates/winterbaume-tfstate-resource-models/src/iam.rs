@@ -316,3 +316,46 @@ pub struct IamServiceLinkedRoleTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub custom_suffix: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_iam_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamPolicyAttachmentTfModel {
+    pub name: String,
+    pub policy_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_role_policies_exclusive` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamRolePoliciesExclusiveTfModel {
+    pub role_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_user_policies_exclusive` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamUserPoliciesExclusiveTfModel {
+    pub user_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_group_policies_exclusive` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamGroupPoliciesExclusiveTfModel {
+    pub group_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_role_policy_attachments_exclusive` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamRolePolicyAttachmentsExclusiveTfModel {
+    pub role_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_user_policy_attachments_exclusive` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamUserPolicyAttachmentsExclusiveTfModel {
+    pub user_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iam_group_policy_attachments_exclusive` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamGroupPolicyAttachmentsExclusiveTfModel {
+    pub group_name: String,
+}

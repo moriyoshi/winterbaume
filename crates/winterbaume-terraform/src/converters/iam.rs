@@ -3074,3 +3074,964 @@ fn camel_case_service_name(s: &str) -> String {
         })
         .collect()
 }
+
+/// Read a `Vec<String>` field from raw `instance.attributes`. Returns an
+/// empty vec when the field is absent or not a JSON array. Used by the
+/// exclusive/multi-target converters whose `Vec<String>` inputs the spec
+/// format cannot express.
+fn read_string_list(attrs: &serde_json::Value, key: &str) -> Vec<String> {
+    attrs
+        .get(key)
+        .and_then(|v| v.as_array())
+        .map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Derive a policy short-name from its ARN by taking the segment after the
+/// final `/`. Falls back to the full ARN when no `/` is present.
+fn policy_name_from_arn(arn: &str) -> &str {
+    arn.rsplit('/').next().unwrap_or(arn)
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_policy_attachment
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_policy_attachment` Terraform resources.
+///
+/// This is the multi-target attachment resource that attaches a single
+/// managed policy to any combination of users, groups, and roles. Each
+/// entry lands in the respective entity's `attached_policies` list (the
+/// same field touched by the per-entity attachment resources). The TF
+/// `name` is a purely informational id with no view-side counterpart, so
+/// it is read for diagnostics only.
+///
+/// `users`, `groups`, and `roles` are `Vec<String>` inputs which the spec
+/// format does not express, so the converter reads them directly from
+/// `instance.attributes`.
+///
+/// Extract is intentionally a no-op: TF state would need to know the
+/// resource's `name` separately, and the same attachments are already
+/// reachable through the per-entity converters
+/// (`aws_iam_role_policy_attachment` etc.). Emitting them here too would
+/// double-count.
+pub struct AwsIamPolicyAttachmentConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamPolicyAttachmentConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamPolicyAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_policy_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_iam_policy",
+            "aws_iam_user",
+            "aws_iam_group",
+            "aws_iam_role",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamPolicyAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamPolicyAttachmentTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_policy_attachment", e))?;
+
+        let users = read_string_list(attrs, "users");
+        let groups = read_string_list(attrs, "groups");
+        let roles = read_string_list(attrs, "roles");
+
+        // `model.name` is the TF-side resource id; winterbaume does not
+        // persist it because the entity's `attached_policies` list is the
+        // authoritative state.
+        let _attachment_name = model.name;
+
+        let policy_name = policy_name_from_arn(&model.policy_arn).to_string();
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        for user_name in &users {
+            if let Some(user) = view.users.get_mut(user_name) {
+                if !user
+                    .attached_policies
+                    .iter()
+                    .any(|p| p.policy_arn == model.policy_arn)
+                {
+                    user.attached_policies.push(AttachedPolicyView {
+                        policy_name: policy_name.clone(),
+                        policy_arn: model.policy_arn.clone(),
+                    });
+                }
+            } else {
+                warnings.push(format!(
+                    "user '{}' not found in state; attachment skipped",
+                    user_name
+                ));
+            }
+        }
+        for group_name in &groups {
+            if let Some(group) = view.groups.get_mut(group_name) {
+                if !group
+                    .attached_policies
+                    .iter()
+                    .any(|p| p.policy_arn == model.policy_arn)
+                {
+                    group.attached_policies.push(AttachedPolicyView {
+                        policy_name: policy_name.clone(),
+                        policy_arn: model.policy_arn.clone(),
+                    });
+                }
+            } else {
+                warnings.push(format!(
+                    "group '{}' not found in state; attachment skipped",
+                    group_name
+                ));
+            }
+        }
+        for role_name in &roles {
+            if let Some(role) = view.roles.get_mut(role_name) {
+                if !role
+                    .attached_policies
+                    .iter()
+                    .any(|p| p.policy_arn == model.policy_arn)
+                {
+                    role.attached_policies.push(AttachedPolicyView {
+                        policy_name: policy_name.clone(),
+                        policy_arn: model.policy_arn.clone(),
+                    });
+                }
+            } else {
+                warnings.push(format!(
+                    "role '{}' not found in state; attachment skipped",
+                    role_name
+                ));
+            }
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Extraction is intentionally a no-op. The TF `name` field is a
+        // purely informational id with no view-side counterpart, and the
+        // same attachments are already emitted by the per-entity
+        // converters (`aws_iam_role_policy_attachment` etc.); emitting
+        // them here too would double-count.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_role_policies_exclusive
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_role_policies_exclusive` Terraform resources.
+///
+/// Replaces the named role's `inline_policies` so that exactly the listed
+/// `policy_names` are present. The policy documents are not part of this
+/// resource; existing documents are preserved and missing names get an
+/// empty placeholder document. `policy_names` is a `Vec<String>` which
+/// the spec format does not express, so the converter reads it directly
+/// from `instance.attributes`.
+pub struct AwsIamRolePoliciesExclusiveConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamRolePoliciesExclusiveConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamRolePoliciesExclusiveConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_role_policies_exclusive"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_role", "aws_iam_role_policy"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamRolePoliciesExclusiveConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamRolePoliciesExclusiveTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_role_policies_exclusive", e))?;
+
+        let policy_names = read_string_list(attrs, "policy_names");
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(role) = view.roles.get_mut(&model.role_name) {
+            // Keep only the inline policies whose name is in the list.
+            role.inline_policies
+                .retain(|p| policy_names.contains(&p.policy_name));
+            // Append empty placeholders for any names not yet present.
+            for name in &policy_names {
+                if !role.inline_policies.iter().any(|p| &p.policy_name == name) {
+                    role.inline_policies.push(InlinePolicyView {
+                        policy_name: name.clone(),
+                        policy_document: String::new(),
+                    });
+                }
+            }
+        } else {
+            warnings.push(format!(
+                "role '{}' not found in state; exclusive inline policies skipped",
+                model.role_name
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for role in view.roles.values() {
+            if role.inline_policies.is_empty() {
+                continue;
+            }
+            let policy_names: Vec<String> = role
+                .inline_policies
+                .iter()
+                .map(|p| p.policy_name.clone())
+                .collect();
+            let attrs = serde_json::json!({
+                "id": role.name,
+                "role_name": role.name,
+                "policy_names": policy_names,
+            });
+            results.push(ExtractedResource {
+                name: role.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_user_policies_exclusive
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_user_policies_exclusive` Terraform resources.
+///
+/// Mirrors `aws_iam_role_policies_exclusive` but targets a user's
+/// `inline_policies`.
+pub struct AwsIamUserPoliciesExclusiveConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamUserPoliciesExclusiveConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamUserPoliciesExclusiveConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_user_policies_exclusive"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_user", "aws_iam_user_policy"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamUserPoliciesExclusiveConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamUserPoliciesExclusiveTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_iam_user_policies_exclusive", e))?;
+
+        let policy_names = read_string_list(attrs, "policy_names");
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(user) = view.users.get_mut(&model.user_name) {
+            user.inline_policies
+                .retain(|p| policy_names.contains(&p.policy_name));
+            for name in &policy_names {
+                if !user.inline_policies.iter().any(|p| &p.policy_name == name) {
+                    user.inline_policies.push(InlinePolicyView {
+                        policy_name: name.clone(),
+                        policy_document: String::new(),
+                    });
+                }
+            }
+        } else {
+            warnings.push(format!(
+                "user '{}' not found in state; exclusive inline policies skipped",
+                model.user_name
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for user in view.users.values() {
+            if user.inline_policies.is_empty() {
+                continue;
+            }
+            let policy_names: Vec<String> = user
+                .inline_policies
+                .iter()
+                .map(|p| p.policy_name.clone())
+                .collect();
+            let attrs = serde_json::json!({
+                "id": user.name,
+                "user_name": user.name,
+                "policy_names": policy_names,
+            });
+            results.push(ExtractedResource {
+                name: user.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_group_policies_exclusive
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_group_policies_exclusive` Terraform resources.
+///
+/// Mirrors `aws_iam_role_policies_exclusive` but targets a group's
+/// `inline_policies`.
+pub struct AwsIamGroupPoliciesExclusiveConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamGroupPoliciesExclusiveConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamGroupPoliciesExclusiveConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_group_policies_exclusive"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_group", "aws_iam_group_policy"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamGroupPoliciesExclusiveConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamGroupPoliciesExclusiveTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_iam_group_policies_exclusive", e))?;
+
+        let policy_names = read_string_list(attrs, "policy_names");
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(group) = view.groups.get_mut(&model.group_name) {
+            group
+                .inline_policies
+                .retain(|p| policy_names.contains(&p.policy_name));
+            for name in &policy_names {
+                if !group.inline_policies.iter().any(|p| &p.policy_name == name) {
+                    group.inline_policies.push(InlinePolicyView {
+                        policy_name: name.clone(),
+                        policy_document: String::new(),
+                    });
+                }
+            }
+        } else {
+            warnings.push(format!(
+                "group '{}' not found in state; exclusive inline policies skipped",
+                model.group_name
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for group in view.groups.values() {
+            if group.inline_policies.is_empty() {
+                continue;
+            }
+            let policy_names: Vec<String> = group
+                .inline_policies
+                .iter()
+                .map(|p| p.policy_name.clone())
+                .collect();
+            let attrs = serde_json::json!({
+                "id": group.name,
+                "group_name": group.name,
+                "policy_names": policy_names,
+            });
+            results.push(ExtractedResource {
+                name: group.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_role_policy_attachments_exclusive
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_role_policy_attachments_exclusive` Terraform resources.
+///
+/// Replaces the named role's `attached_policies` so that exactly the
+/// listed `policy_arns` are present. `policy_arns` is a `Vec<String>`
+/// which the spec format does not express, so the converter reads it
+/// directly from `instance.attributes`.
+pub struct AwsIamRolePolicyAttachmentsExclusiveConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamRolePolicyAttachmentsExclusiveConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamRolePolicyAttachmentsExclusiveConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_role_policy_attachments_exclusive"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_role", "aws_iam_role_policy_attachment"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamRolePolicyAttachmentsExclusiveConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamRolePolicyAttachmentsExclusiveTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_iam_role_policy_attachments_exclusive", e)
+            })?;
+
+        let policy_arns = read_string_list(attrs, "policy_arns");
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(role) = view.roles.get_mut(&model.role_name) {
+            role.attached_policies
+                .retain(|p| policy_arns.contains(&p.policy_arn));
+            for arn in &policy_arns {
+                if !role.attached_policies.iter().any(|p| &p.policy_arn == arn) {
+                    role.attached_policies.push(AttachedPolicyView {
+                        policy_name: policy_name_from_arn(arn).to_string(),
+                        policy_arn: arn.clone(),
+                    });
+                }
+            }
+        } else {
+            warnings.push(format!(
+                "role '{}' not found in state; exclusive attachments skipped",
+                model.role_name
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for role in view.roles.values() {
+            if role.attached_policies.is_empty() {
+                continue;
+            }
+            let policy_arns: Vec<String> = role
+                .attached_policies
+                .iter()
+                .map(|p| p.policy_arn.clone())
+                .collect();
+            let attrs = serde_json::json!({
+                "id": role.name,
+                "role_name": role.name,
+                "policy_arns": policy_arns,
+            });
+            results.push(ExtractedResource {
+                name: role.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_user_policy_attachments_exclusive
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_user_policy_attachments_exclusive` Terraform resources.
+///
+/// Mirrors `aws_iam_role_policy_attachments_exclusive` but targets a
+/// user's `attached_policies`.
+pub struct AwsIamUserPolicyAttachmentsExclusiveConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamUserPolicyAttachmentsExclusiveConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamUserPolicyAttachmentsExclusiveConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_user_policy_attachments_exclusive"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_user", "aws_iam_user_policy_attachment"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamUserPolicyAttachmentsExclusiveConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamUserPolicyAttachmentsExclusiveTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_iam_user_policy_attachments_exclusive", e)
+            })?;
+
+        let policy_arns = read_string_list(attrs, "policy_arns");
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(user) = view.users.get_mut(&model.user_name) {
+            user.attached_policies
+                .retain(|p| policy_arns.contains(&p.policy_arn));
+            for arn in &policy_arns {
+                if !user.attached_policies.iter().any(|p| &p.policy_arn == arn) {
+                    user.attached_policies.push(AttachedPolicyView {
+                        policy_name: policy_name_from_arn(arn).to_string(),
+                        policy_arn: arn.clone(),
+                    });
+                }
+            }
+        } else {
+            warnings.push(format!(
+                "user '{}' not found in state; exclusive attachments skipped",
+                model.user_name
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for user in view.users.values() {
+            if user.attached_policies.is_empty() {
+                continue;
+            }
+            let policy_arns: Vec<String> = user
+                .attached_policies
+                .iter()
+                .map(|p| p.policy_arn.clone())
+                .collect();
+            let attrs = serde_json::json!({
+                "id": user.name,
+                "user_name": user.name,
+                "policy_arns": policy_arns,
+            });
+            results.push(ExtractedResource {
+                name: user.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_iam_group_policy_attachments_exclusive
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_iam_group_policy_attachments_exclusive` Terraform resources.
+///
+/// Mirrors `aws_iam_role_policy_attachments_exclusive` but targets a
+/// group's `attached_policies`.
+pub struct AwsIamGroupPolicyAttachmentsExclusiveConverter {
+    service: Arc<IamService>,
+}
+
+impl AwsIamGroupPolicyAttachmentsExclusiveConverter {
+    /// Create a new converter backed by the given IAM service.
+    pub fn new(service: Arc<IamService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsIamGroupPolicyAttachmentsExclusiveConverter {
+    fn resource_type(&self) -> &str {
+        "aws_iam_group_policy_attachments_exclusive"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_iam_group", "aws_iam_group_policy_attachment"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsIamGroupPolicyAttachmentsExclusiveConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let model: iam_gen::IamGroupPolicyAttachmentsExclusiveTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_iam_group_policy_attachments_exclusive", e)
+            })?;
+
+        let policy_arns = read_string_list(attrs, "policy_arns");
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+
+        let mut warnings = vec![];
+        if let Some(group) = view.groups.get_mut(&model.group_name) {
+            group
+                .attached_policies
+                .retain(|p| policy_arns.contains(&p.policy_arn));
+            for arn in &policy_arns {
+                if !group.attached_policies.iter().any(|p| &p.policy_arn == arn) {
+                    group.attached_policies.push(AttachedPolicyView {
+                        policy_name: policy_name_from_arn(arn).to_string(),
+                        policy_arn: arn.clone(),
+                    });
+                }
+            }
+        } else {
+            warnings.push(format!(
+                "group '{}' not found in state; exclusive attachments skipped",
+                model.group_name
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &ctx.default_region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: ctx.default_region.clone(),
+            warnings,
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for group in view.groups.values() {
+            if group.attached_policies.is_empty() {
+                continue;
+            }
+            let policy_arns: Vec<String> = group
+                .attached_policies
+                .iter()
+                .map(|p| p.policy_arn.clone())
+                .collect();
+            let attrs = serde_json::json!({
+                "id": group.name,
+                "group_name": group.name,
+                "policy_arns": policy_arns,
+            });
+            results.push(ExtractedResource {
+                name: group.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
