@@ -53,3 +53,272 @@ pub struct QuickSightUserTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub principal_id: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_account_settings` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightAccountSettingsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_namespace: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notification_email: Option<String>,
+    #[serde(default)]
+    pub termination_protection_enabled: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_account_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightAccountSubscriptionTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    pub account_name: String,
+    pub authentication_method: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edition: Option<String>,
+    pub notification_email: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_subscription_status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_analysis` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightAnalysisTfModel {
+    pub analysis_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub theme_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_dashboard` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightDashboardTfModel {
+    pub dashboard_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub version_number: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_published_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_data_set` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightDataSetTfModel {
+    pub data_set_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub import_mode: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_folder` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightFolderTfModel {
+    pub folder_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub folder_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_folder_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_folder_membership` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightFolderMembershipTfModel {
+    pub folder_id: String,
+    pub member_id: String,
+    pub member_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_group_membership` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightGroupMembershipTfModel {
+    pub group_name: String,
+    pub member_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub namespace: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_iam_policy_assignment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightIamPolicyAssignmentTfModel {
+    pub assignment_name: String,
+    pub assignment_status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub namespace: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub assignment_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_ingestion` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightIngestionTfModel {
+    pub data_set_id: String,
+    pub ingestion_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ingestion_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ingestion_status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_namespace` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightNamespaceTfModel {
+    pub namespace: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_store: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub capacity_region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_refresh_schedule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightRefreshScheduleTfModel {
+    pub data_set_id: String,
+    pub schedule_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_role_membership` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightRoleMembershipTfModel {
+    pub role: String,
+    pub member_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub namespace: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_template` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightTemplateTfModel {
+    pub template_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub version_number: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_template_alias` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightTemplateAliasTfModel {
+    pub template_id: String,
+    pub alias_name: String,
+    #[serde(default)]
+    pub template_version_number: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_theme` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightThemeTfModel {
+    pub theme_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base_theme_id: Option<String>,
+    #[serde(default)]
+    pub version_number: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_quicksight_vpc_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuickSightVpcConnectionTfModel {
+    pub vpc_connection_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub availability_status: Option<String>,
+}

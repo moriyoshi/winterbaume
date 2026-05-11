@@ -153,3 +153,184 @@ impl AwsConnectInstanceConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// Warning-only converters
+//
+// The following Terraform resource types do not have a corresponding state
+// slot in `winterbaume_connect`. Inject validates the TF attributes against
+// the generated model (so malformed input still fails fast), emits a
+// warning, and otherwise no-ops. Extract returns an empty list.
+// ---------------------------------------------------------------------------
+
+macro_rules! connect_warning_only_converter {
+    (
+        struct_name = $struct_name:ident,
+        resource_type = $resource_type:expr,
+        model_type = $model_type:ident,
+        warn_msg = $warn_msg:expr $(,)?
+    ) => {
+        pub struct $struct_name {
+            #[allow(dead_code)]
+            service: Arc<ConnectService>,
+        }
+
+        impl $struct_name {
+            pub fn new(service: Arc<ConnectService>) -> Self {
+                Self { service }
+            }
+        }
+
+        impl TerraformResourceConverter for $struct_name {
+            fn resource_type(&self) -> &str {
+                $resource_type
+            }
+
+            fn inject<'a>(
+                &'a self,
+                instance: &'a ResourceInstance,
+                ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>,
+            > {
+                Box::pin(async move { self.do_inject(instance, ctx).await })
+            }
+
+            fn extract<'a>(
+                &'a self,
+                _ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<
+                    dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>>
+                        + Send
+                        + 'a,
+                >,
+            > {
+                Box::pin(async move { Ok(vec![]) })
+            }
+        }
+
+        impl $struct_name {
+            async fn do_inject(
+                &self,
+                instance: &ResourceInstance,
+                ctx: &ConversionContext,
+            ) -> Result<ConversionResult, ConversionError> {
+                let attrs = &instance.attributes;
+                let region = extract_region(attrs, &ctx.default_region);
+                let _model: connect_gen::$model_type = serde_json::from_value(attrs.clone())
+                    .map_err(|e| classify_deserialize_error($resource_type, e))?;
+                eprintln!("warning: {}: {}", $resource_type, $warn_msg);
+                Ok(ConversionResult {
+                    region,
+                    warnings: vec![format!("{}: {}", $resource_type, $warn_msg)],
+                })
+            }
+        }
+    };
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectBotAssociationConverter,
+    resource_type = "aws_connect_bot_association",
+    model_type = ConnectBotAssociationTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectContactFlowConverter,
+    resource_type = "aws_connect_contact_flow",
+    model_type = ConnectContactFlowTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectContactFlowModuleConverter,
+    resource_type = "aws_connect_contact_flow_module",
+    model_type = ConnectContactFlowModuleTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectHoursOfOperationConverter,
+    resource_type = "aws_connect_hours_of_operation",
+    model_type = ConnectHoursOfOperationTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectInstanceStorageConfigConverter,
+    resource_type = "aws_connect_instance_storage_config",
+    model_type = ConnectInstanceStorageConfigTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectLambdaFunctionAssociationConverter,
+    resource_type = "aws_connect_lambda_function_association",
+    model_type = ConnectLambdaFunctionAssociationTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectPhoneNumberConverter,
+    resource_type = "aws_connect_phone_number",
+    model_type = ConnectPhoneNumberTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectQueueConverter,
+    resource_type = "aws_connect_queue",
+    model_type = ConnectQueueTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectQuickConnectConverter,
+    resource_type = "aws_connect_quick_connect",
+    model_type = ConnectQuickConnectTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectRoutingProfileConverter,
+    resource_type = "aws_connect_routing_profile",
+    model_type = ConnectRoutingProfileTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectSecurityProfileConverter,
+    resource_type = "aws_connect_security_profile",
+    model_type = ConnectSecurityProfileTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectUserConverter,
+    resource_type = "aws_connect_user",
+    model_type = ConnectUserTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectUserHierarchyGroupConverter,
+    resource_type = "aws_connect_user_hierarchy_group",
+    model_type = ConnectUserHierarchyGroupTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectUserHierarchyStructureConverter,
+    resource_type = "aws_connect_user_hierarchy_structure",
+    model_type = ConnectUserHierarchyStructureTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}
+
+connect_warning_only_converter! {
+    struct_name = AwsConnectVocabularyConverter,
+    resource_type = "aws_connect_vocabulary",
+    model_type = ConnectVocabularyTfModel,
+    warn_msg = "no state slot in winterbaume_connect; inject is a no-op",
+}

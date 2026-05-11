@@ -24,3 +24,225 @@ pub struct DistributionTfModel {
 fn default_distribution_enabled() -> bool {
     true
 }
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_cache_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CachePolicyTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default = "default_cache_policy_default_ttl")]
+    pub default_ttl: i64,
+    #[serde(default = "default_cache_policy_max_ttl")]
+    pub max_ttl: i64,
+    #[serde(default = "default_cache_policy_min_ttl")]
+    pub min_ttl: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+fn default_cache_policy_default_ttl() -> i64 {
+    86400i64
+}
+
+fn default_cache_policy_max_ttl() -> i64 {
+    31536000i64
+}
+
+fn default_cache_policy_min_ttl() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_continuous_deployment_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContinuousDeploymentPolicyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default = "default_continuous_deployment_policy_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+fn default_continuous_deployment_policy_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_field_level_encryption_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FieldLevelEncryptionConfigTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_field_level_encryption_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FieldLevelEncryptionProfileTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_function` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionTfModel {
+    pub name: String,
+    pub runtime: String,
+    pub code: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default = "default_function_publish")]
+    pub publish: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+fn default_function_publish() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_key_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyGroupTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_key_value_store` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyValueStoreTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_monitoring_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MonitoringSubscriptionTfModel {
+    pub distribution_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_origin_access_control` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OriginAccessControlTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub origin_access_control_origin_type: String,
+    pub signing_behavior: String,
+    pub signing_protocol: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_origin_access_identity` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OriginAccessIdentityTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub caller_reference: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub s3_canonical_user_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_origin_request_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OriginRequestPolicyTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_public_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicKeyTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub encoded_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub caller_reference: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_realtime_log_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RealtimeLogConfigTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_realtime_log_config_sampling_rate")]
+    pub sampling_rate: i64,
+}
+
+fn default_realtime_log_config_sampling_rate() -> i64 {
+    100i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_response_headers_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseHeadersPolicyTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudfront_vpc_origin` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcOriginTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}

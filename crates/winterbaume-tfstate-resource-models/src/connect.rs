@@ -36,3 +36,268 @@ fn default_connect_instance_inbound_calls_enabled() -> bool {
 fn default_connect_instance_outbound_calls_enabled() -> bool {
     true
 }
+
+/// Auto-generated TF-shaped projection of the `aws_connect_bot_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectBotAssociationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lex_bot: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_contact_flow` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectContactFlowTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contact_flow_id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_hash: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_contact_flow_module` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectContactFlowModuleTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contact_flow_module_id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_hash: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_hours_of_operation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectHoursOfOperationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hours_of_operation_id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub time_zone: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_instance_storage_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectInstanceStorageConfigTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_id: Option<String>,
+    pub instance_id: String,
+    pub resource_type: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_lambda_function_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectLambdaFunctionAssociationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub instance_id: String,
+    pub function_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_phone_number` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectPhoneNumberTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub target_arn: String,
+    pub country_code: String,
+    pub r#type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub phone_number: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_queue` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectQueueTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub queue_id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub hours_of_operation_id: String,
+    #[serde(default = "default_connect_queue_max_contacts")]
+    pub max_contacts: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_connect_queue_max_contacts() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_quick_connect` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectQuickConnectTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub quick_connect_id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_routing_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectRoutingProfileTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub routing_profile_id: Option<String>,
+    pub name: String,
+    pub description: String,
+    pub default_outbound_queue_id: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_security_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectSecurityProfileTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub security_profile_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub organization_resource_id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_user` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectUserTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user_id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub directory_user_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hierarchy_group_id: Option<String>,
+    pub routing_profile_id: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_user_hierarchy_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectUserHierarchyGroupTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hierarchy_group_id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub level_id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_user_hierarchy_structure` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectUserHierarchyStructureTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub instance_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_connect_vocabulary` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectVocabularyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vocabulary_id: Option<String>,
+    pub name: String,
+    pub language_code: String,
+    pub content: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_reason: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_modified_time: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}

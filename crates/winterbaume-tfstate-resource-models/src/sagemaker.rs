@@ -213,3 +213,207 @@ pub struct UserProfileTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_modified_time: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_app_image_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppImageConfigTfModel {
+    pub app_image_config_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_code_repository` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodeRepositoryTfModel {
+    pub code_repository_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_device` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceTfModel {
+    pub device_fleet_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_version: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_device_fleet` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceFleetTfModel {
+    pub device_fleet_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_flow_definition` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FlowDefinitionTfModel {
+    pub flow_definition_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_hub` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HubTfModel {
+    pub hub_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hub_description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_human_task_ui` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HumanTaskUiTfModel {
+    pub human_task_ui_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_image` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageTfModel {
+    pub image_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_image_version` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageVersionTfModel {
+    pub image_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base_image: Option<String>,
+    #[serde(default)]
+    pub version: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_mlflow_tracking_server` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MlflowTrackingServerTfModel {
+    pub tracking_server_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_store_uri: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_model_package_group_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModelPackageGroupPolicyTfModel {
+    pub model_package_group_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_policy: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_monitoring_schedule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MonitoringScheduleTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_project` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectTfModel {
+    pub project_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub project_description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_servicecatalog_portfolio_status` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServicecatalogPortfolioStatusTfModel {
+    pub status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_studio_lifecycle_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StudioLifecycleConfigTfModel {
+    pub studio_lifecycle_config_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub studio_lifecycle_config_app_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub studio_lifecycle_config_content: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_workforce` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkforceTfModel {
+    pub workforce_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdomain: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_workteam` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkteamTfModel {
+    pub workteam_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workforce_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdomain: Option<String>,
+}
