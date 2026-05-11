@@ -63,8 +63,6 @@ cargo test -p winterbaume-sqs test_send_and_receive
 cargo test -p winterbaume-sqs -- --test-threads=1 2>&1 | head -100
 ```
 
-Do not run the entire workspace test suite at once without a `--maxfail` guard — it takes a long time and produces too much output to read. Run per-service or per-feature.
-
 ## Moto parity ports
 
 The strongest behavioural specs are the Python tests in [moto's test suite](https://github.com/getmoto/moto/tree/master/tests). Port these to Rust to verify that winterbaume produces the same behaviour as moto.
