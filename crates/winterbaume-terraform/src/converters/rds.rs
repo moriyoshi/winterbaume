@@ -3117,3 +3117,140 @@ fn extract_string_array(attrs: &serde_json::Value, key: &str) -> Vec<String> {
         })
         .unwrap_or_default()
 }
+
+// ---------------------------------------------------------------------------
+// Warning-only converters
+// ---------------------------------------------------------------------------
+//
+// The following RDS resources have no addressable slot on `RdsStateView`:
+// they either configure account-level metadata (certificates, reserved
+// instances, custom engine versions), attach IAM roles to DbInstance /
+// DbCluster (the `associated_roles` Vec is on the state types but not
+// exposed on the views), enable feature streams without a corresponding
+// view field, or describe cross-account/cross-region replication that
+// the service crate doesn't model. The converters validate the input
+// (so HCL typos still fail) and emit a single warning describing the
+// state-layer gap. Extract is a no-op to avoid pseudo-resources next to
+// every parent record.
+
+macro_rules! rds_warning_only_converter {
+    (
+        struct_name = $struct_name:ident,
+        resource_type = $resource_type:expr,
+        model_type = $model_type:ident,
+        warn_msg = $warn_msg:expr $(,)?
+    ) => {
+        pub struct $struct_name {
+            #[allow(dead_code)]
+            service: Arc<RdsService>,
+        }
+
+        impl $struct_name {
+            pub fn new(service: Arc<RdsService>) -> Self {
+                Self { service }
+            }
+        }
+
+        impl TerraformResourceConverter for $struct_name {
+            fn resource_type(&self) -> &str {
+                $resource_type
+            }
+
+            fn inject<'a>(
+                &'a self,
+                instance: &'a ResourceInstance,
+                ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>,
+            > {
+                Box::pin(async move { self.do_inject(instance, ctx).await })
+            }
+
+            fn extract<'a>(
+                &'a self,
+                _ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<
+                    dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>>
+                        + Send
+                        + 'a,
+                >,
+            > {
+                Box::pin(async move { Ok(vec![]) })
+            }
+        }
+
+        impl $struct_name {
+            async fn do_inject(
+                &self,
+                instance: &ResourceInstance,
+                ctx: &ConversionContext,
+            ) -> Result<ConversionResult, ConversionError> {
+                let attrs = &instance.attributes;
+                let region = extract_region(attrs, &ctx.default_region);
+                let _model: rds_gen::$model_type = serde_json::from_value(attrs.clone())
+                    .map_err(|e| classify_deserialize_error($resource_type, e))?;
+                Ok(ConversionResult {
+                    region,
+                    warnings: vec![format!("{}: {}", $resource_type, $warn_msg)],
+                })
+            }
+        }
+    };
+}
+
+rds_warning_only_converter! {
+    struct_name = AwsDbInstanceAutomatedBackupsReplicationConverter,
+    resource_type = "aws_db_instance_automated_backups_replication",
+    model_type = DbInstanceAutomatedBackupsReplicationTfModel,
+    warn_msg = "cross-region automated-backup replication is not modelled in winterbaume_rds; inject is a no-op",
+}
+
+rds_warning_only_converter! {
+    struct_name = AwsDbInstanceRoleAssociationConverter,
+    resource_type = "aws_db_instance_role_association",
+    model_type = DbInstanceRoleAssociationTfModel,
+    warn_msg = "DbInstanceView does not expose associated_roles; IAM role attachment is a no-op",
+}
+
+rds_warning_only_converter! {
+    struct_name = AwsRdsCertificateConverter,
+    resource_type = "aws_rds_certificate",
+    model_type = RdsCertificateTfModel,
+    warn_msg = "account-level default CA certificate is not modelled in winterbaume_rds; inject is a no-op",
+}
+
+rds_warning_only_converter! {
+    struct_name = AwsRdsClusterActivityStreamConverter,
+    resource_type = "aws_rds_cluster_activity_stream",
+    model_type = RdsClusterActivityStreamTfModel,
+    warn_msg = "DbClusterView does not expose activity-stream state; inject is a no-op",
+}
+
+rds_warning_only_converter! {
+    struct_name = AwsRdsClusterRoleAssociationConverter,
+    resource_type = "aws_rds_cluster_role_association",
+    model_type = RdsClusterRoleAssociationTfModel,
+    warn_msg = "DbClusterView does not expose associated_roles; IAM role attachment is a no-op",
+}
+
+rds_warning_only_converter! {
+    struct_name = AwsRdsCustomDbEngineVersionConverter,
+    resource_type = "aws_rds_custom_db_engine_version",
+    model_type = RdsCustomDbEngineVersionTfModel,
+    warn_msg = "custom DB engine versions are not modelled in winterbaume_rds; inject is a no-op",
+}
+
+rds_warning_only_converter! {
+    struct_name = AwsRdsIntegrationConverter,
+    resource_type = "aws_rds_integration",
+    model_type = RdsIntegrationTfModel,
+    warn_msg = "zero-ETL integrations are not modelled in winterbaume_rds; inject is a no-op",
+}
+
+rds_warning_only_converter! {
+    struct_name = AwsRdsReservedInstanceConverter,
+    resource_type = "aws_rds_reserved_instance",
+    model_type = RdsReservedInstanceTfModel,
+    warn_msg = "reserved instance purchases are not modelled in winterbaume_rds; inject is a no-op",
+}

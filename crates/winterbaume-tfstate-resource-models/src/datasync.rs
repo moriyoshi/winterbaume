@@ -35,3 +35,222 @@ pub struct DataSyncLocationS3TfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub uri: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_agent` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncAgentTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub activation_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ip_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_link_endpoint: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_azure_blob` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationAzureBlobTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub container_url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_tier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authentication_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub blob_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_efs` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationEfsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub efs_file_system_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_point_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file_system_access_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub in_transit_encryption: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_fsx_lustre_file_system` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationFsxLustreFileSystemTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fsx_filesystem_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_fsx_ontap_file_system` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationFsxOntapFileSystemTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_virtual_machine_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_fsx_openzfs_file_system` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationFsxOpenZfsFileSystemTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fsx_filesystem_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_fsx_windows_file_system` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationFsxWindowsFileSystemTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fsx_filesystem_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub domain: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_hdfs` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationHdfsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authentication_type: Option<String>,
+    #[serde(default = "default_data_sync_location_hdfs_block_size")]
+    pub block_size: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kerberos_principal: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_provider_uri: Option<String>,
+    #[serde(default = "default_data_sync_location_hdfs_replication_factor")]
+    pub replication_factor: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub simple_user: Option<String>,
+}
+
+fn default_data_sync_location_hdfs_block_size() -> i64 {
+    0i64
+}
+
+fn default_data_sync_location_hdfs_replication_factor() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_nfs` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationNfsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub server_hostname: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_object_storage` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationObjectStorageTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub server_hostname: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bucket_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub server_certificate: Option<String>,
+    #[serde(default = "default_data_sync_location_object_storage_server_port")]
+    pub server_port: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub server_protocol: Option<String>,
+}
+
+fn default_data_sync_location_object_storage_server_port() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_datasync_location_smb` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSyncLocationSmbTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub server_hostname: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subdirectory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub domain: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user: Option<String>,
+}

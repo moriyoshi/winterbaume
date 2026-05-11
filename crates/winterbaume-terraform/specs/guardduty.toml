@@ -112,3 +112,322 @@ hcl = "detector_id"
 view = "detector_id"
 type = "string"
 required = true
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_detector_feature
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_detector_feature"
+model = "DetectorFeatureTfModel"
+view = "DetectorFeatureView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_invite_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_invite_accepter"
+model = "InviteAccepterTfModel"
+view = "DetectorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "master_account_id"
+view = "master_account_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_ipset
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_ipset"
+model = "IpsetTfModel"
+view = "IpSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "format"
+view = "format"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "location"
+view = "location"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "activate"
+view = "activate"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_malware_protection_plan
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_malware_protection_plan"
+model = "MalwareProtectionPlanTfModel"
+view = "MalwareProtectionPlanView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "role"
+view = "role"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_member_detector_feature
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_member_detector_feature"
+model = "MemberDetectorFeatureTfModel"
+view = "MemberDetectorFeatureView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_organization_admin_account
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_organization_admin_account"
+model = "OrganizationAdminAccountTfModel"
+view = "AdminAccountView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "admin_account_id"
+view = "admin_account_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_organization_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_organization_configuration"
+model = "OrganizationConfigurationTfModel"
+view = "OrgConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "auto_enable_organization_members"
+view = "auto_enable_organization_members"
+type = "string?"
+
+[[resource.field]]
+hcl = "auto_enable"
+view = "auto_enable"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_organization_configuration_feature
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_organization_configuration_feature"
+model = "OrganizationConfigurationFeatureTfModel"
+view = "DetectorFeatureView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "auto_enable"
+view = "auto_enable"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_publishing_destination
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_publishing_destination"
+model = "PublishingDestinationTfModel"
+view = "PublishingDestinationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_arn"
+view = "destination_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kms_key_arn"
+view = "kms_key_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_type"
+view = "destination_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_guardduty_threatintelset
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_guardduty_threatintelset"
+model = "ThreatintelsetTfModel"
+view = "ThreatIntelSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "detector_id"
+view = "detector_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "format"
+view = "format"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "location"
+view = "location"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "activate"
+view = "activate"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

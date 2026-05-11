@@ -51,3 +51,239 @@ pub struct ProductTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_budget_resource_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BudgetResourceAssociationTfModel {
+    pub budget_name: String,
+    pub resource_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_constraint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConstraintTfModel {
+    pub parameters: String,
+    pub portfolio_id: String,
+    pub product_id: String,
+    #[serde(rename = "type")]
+    pub constraint_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accept_language: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_organizations_access` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationsAccessTfModel {
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_portfolio_share` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortfolioShareTfModel {
+    pub portfolio_id: String,
+    pub principal_id: String,
+    #[serde(rename = "type")]
+    pub share_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accept_language: Option<String>,
+    #[serde(default = "default_portfolio_share_share_principals")]
+    pub share_principals: bool,
+    #[serde(default = "default_portfolio_share_share_tag_options")]
+    pub share_tag_options: bool,
+    #[serde(default = "default_portfolio_share_wait_for_acceptance")]
+    pub wait_for_acceptance: bool,
+    #[serde(default = "default_portfolio_share_accepted")]
+    pub accepted: bool,
+}
+
+fn default_portfolio_share_share_principals() -> bool {
+    false
+}
+
+fn default_portfolio_share_share_tag_options() -> bool {
+    false
+}
+
+fn default_portfolio_share_wait_for_acceptance() -> bool {
+    false
+}
+
+fn default_portfolio_share_accepted() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_principal_portfolio_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrincipalPortfolioAssociationTfModel {
+    pub portfolio_id: String,
+    pub principal_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accept_language: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub principal_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_product_portfolio_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductPortfolioAssociationTfModel {
+    pub portfolio_id: String,
+    pub product_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accept_language: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_portfolio_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_provisioned_product` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisionedProductTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accept_language: Option<String>,
+    #[serde(default = "default_provisioned_product_ignore_errors")]
+    pub ignore_errors: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub product_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub product_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provisioning_artifact_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provisioning_artifact_name: Option<String>,
+    #[serde(default = "default_provisioned_product_retain_physical_resources")]
+    pub retain_physical_resources: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_provisioning_record_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_record_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_successful_provisioning_record_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub launch_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status_message: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub provisioned_product_type: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_provisioned_product_ignore_errors() -> bool {
+    false
+}
+
+fn default_provisioned_product_retain_physical_resources() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_provisioning_artifact` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisioningArtifactTfModel {
+    pub product_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accept_language: Option<String>,
+    #[serde(default = "default_provisioning_artifact_active")]
+    pub active: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_provisioning_artifact_disable_template_validation")]
+    pub disable_template_validation: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub guidance: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub template_physical_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub template_url: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub artifact_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provisioning_artifact_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+fn default_provisioning_artifact_active() -> bool {
+    true
+}
+
+fn default_provisioning_artifact_disable_template_validation() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_service_action` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceActionTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub accept_language: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_tag_option` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagOptionTfModel {
+    pub key: String,
+    pub value: String,
+    #[serde(default = "default_tag_option_active")]
+    pub active: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+}
+
+fn default_tag_option_active() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_servicecatalog_tag_option_resource_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagOptionResourceAssociationTfModel {
+    pub resource_id: String,
+    pub tag_option_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_created_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_name: Option<String>,
+}

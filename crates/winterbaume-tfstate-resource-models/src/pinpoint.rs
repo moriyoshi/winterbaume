@@ -42,3 +42,199 @@ pub struct EmailChannelTfModel {
 fn default_email_channel_enabled() -> bool {
     true
 }
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_adm_channel` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdmChannelTfModel {
+    pub application_id: String,
+    pub client_id: String,
+    pub client_secret: String,
+    #[serde(default = "default_adm_channel_enabled")]
+    pub enabled: bool,
+}
+
+fn default_adm_channel_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_apns_channel` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApnsChannelTfModel {
+    pub application_id: String,
+    #[serde(default = "default_apns_channel_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_authentication_method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key_id: Option<String>,
+}
+
+fn default_apns_channel_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_apns_sandbox_channel` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApnsSandboxChannelTfModel {
+    pub application_id: String,
+    #[serde(default = "default_apns_sandbox_channel_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_authentication_method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key_id: Option<String>,
+}
+
+fn default_apns_sandbox_channel_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_apns_voip_channel` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApnsVoipChannelTfModel {
+    pub application_id: String,
+    #[serde(default = "default_apns_voip_channel_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_authentication_method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key_id: Option<String>,
+}
+
+fn default_apns_voip_channel_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_apns_voip_sandbox_channel` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApnsVoipSandboxChannelTfModel {
+    pub application_id: String,
+    #[serde(default = "default_apns_voip_sandbox_channel_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_authentication_method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bundle_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub team_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key_id: Option<String>,
+}
+
+fn default_apns_voip_sandbox_channel_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_baidu_channel` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaiduChannelTfModel {
+    pub application_id: String,
+    pub api_key: String,
+    pub secret_key: String,
+    #[serde(default = "default_baidu_channel_enabled")]
+    pub enabled: bool,
+}
+
+fn default_baidu_channel_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_email_template` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmailTemplateTfModel {
+    pub template_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_event_stream` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventStreamTfModel {
+    pub application_id: String,
+    pub destination_stream_arn: String,
+    pub role_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_gcm_channel` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcmChannelTfModel {
+    pub application_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_json: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_authentication_method: Option<String>,
+    #[serde(default = "default_gcm_channel_enabled")]
+    pub enabled: bool,
+}
+
+fn default_gcm_channel_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_pinpoint_sms_channel` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SmsChannelTfModel {
+    pub application_id: String,
+    #[serde(default = "default_sms_channel_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sender_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub short_code: Option<String>,
+    #[serde(default = "default_sms_channel_promotional_messages_per_second")]
+    pub promotional_messages_per_second: i64,
+    #[serde(default = "default_sms_channel_transactional_messages_per_second")]
+    pub transactional_messages_per_second: i64,
+}
+
+fn default_sms_channel_enabled() -> bool {
+    true
+}
+
+fn default_sms_channel_promotional_messages_per_second() -> i64 {
+    0i64
+}
+
+fn default_sms_channel_transactional_messages_per_second() -> i64 {
+    0i64
+}

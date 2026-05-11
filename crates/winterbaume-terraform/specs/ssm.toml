@@ -3,6 +3,13 @@
 # auto-ingest mistakenly named the model after the version-history view).
 # Dropped `allowed_pattern`, `insecure_value`, `overwrite`, `tags_all`
 # fields that the original converter explicitly discards.
+#
+# The additional [[resource]] blocks below cover the remaining 11
+# missing aws_ssm_* resource types. All are scalar-only model_only
+# entries; nested blocks (e.g., maintenance_window_task task_invocation
+# parameters, association targets), Vec<String> fields (operating_system
+# approval rules), and i32 fields (Activation.registration_limit) are
+# read directly from instance.attributes in the converter when needed.
 
 [service]
 name = "ssm"
@@ -53,3 +60,453 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_ssm_activation
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_activation"
+model = "ActivationTfModel"
+view = "ActivationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_role"
+view = "iam_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_instance_name"
+view = "default_instance_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "expiration_date"
+view = "expiration_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "activation_code"
+view = "activation_code"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ssm_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_association"
+model = "AssociationTfModel"
+view = "AssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "association_name"
+view = "association_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "association_id"
+view = "association_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "document_version"
+view = "document_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule_expression"
+view = "schedule_expression"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ssm_default_patch_baseline
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_default_patch_baseline"
+model = "DefaultPatchBaselineTfModel"
+view = "PatchBaselineView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "baseline_id"
+view = "baseline_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "operating_system"
+view = "operating_system"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_ssm_document
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_document"
+model = "DocumentTfModel"
+view = "DocumentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "content"
+view = "content"
+type = "string?"
+
+[[resource.field]]
+hcl = "document_type"
+view = "document_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "document_format"
+view = "document_format"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_version"
+view = "default_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "latest_version"
+view = "latest_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner"
+view = "owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_name"
+view = "version_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ssm_maintenance_window
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_maintenance_window"
+model = "MaintenanceWindowTfModel"
+view = "MaintenanceWindowView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "schedule"
+view = "schedule"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "duration"
+view = "duration"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "cutoff"
+view = "cutoff"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule_timezone"
+view = "schedule_timezone"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule_offset"
+view = "schedule_offset"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "start_date"
+view = "start_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "end_date"
+view = "end_date"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ssm_maintenance_window_target
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_maintenance_window_target"
+model = "MaintenanceWindowTargetTfModel"
+view = "MaintenanceWindowTargetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "window_id"
+view = "window_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_type"
+view = "resource_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_information"
+view = "owner_information"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ssm_maintenance_window_task
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_maintenance_window_task"
+model = "MaintenanceWindowTaskTfModel"
+view = "MaintenanceWindowTaskView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "window_id"
+view = "window_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "task_arn"
+view = "task_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "task_type"
+view = "task_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_role_arn"
+view = "service_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "priority"
+view = "priority"
+type = "u32"
+default = 0
+
+[[resource.field]]
+hcl = "max_concurrency"
+view = "max_concurrency"
+type = "string?"
+
+[[resource.field]]
+hcl = "max_errors"
+view = "max_errors"
+type = "string?"
+
+[[resource.field]]
+hcl = "cutoff_behavior"
+view = "cutoff_behavior"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ssm_patch_baseline
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_patch_baseline"
+model = "PatchBaselineTfModel"
+view = "PatchBaselineView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "operating_system"
+view = "operating_system"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "approved_patches_compliance_level"
+view = "approved_patches_compliance_level"
+type = "string?"
+
+[[resource.field]]
+hcl = "approved_patches_enable_non_security"
+view = "approved_patches_enable_non_security"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "rejected_patches_action"
+view = "rejected_patches_action"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ssm_patch_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_patch_group"
+model = "PatchGroupTfModel"
+view = "PatchBaselineView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "baseline_id"
+view = "baseline_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "patch_group"
+view = "patch_group"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_ssm_resource_data_sync
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_resource_data_sync"
+model = "ResourceDataSyncTfModel"
+view = "ResourceDataSyncView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_ssm_service_setting
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ssm_service_setting"
+model = "ServiceSettingTfModel"
+view = "ServiceSettingView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "setting_id"
+view = "setting_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "setting_value"
+view = "setting_value"
+type = "string"
+required = true

@@ -37,3 +37,133 @@ pub struct DeliveryChannelTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub s3_key_prefix: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_config_aggregate_authorization` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregateAuthorizationTfModel {
+    pub account_id: String,
+    pub region: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_configuration_aggregator` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationAggregatorTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_configuration_recorder_status` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationRecorderStatusTfModel {
+    pub name: String,
+    #[serde(default)]
+    pub is_enabled: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_conformance_pack` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConformancePackTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delivery_s3_bucket: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delivery_s3_key_prefix: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_organization_conformance_pack` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationConformancePackTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delivery_s3_bucket: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delivery_s3_key_prefix: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_organization_custom_policy_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationCustomPolicyRuleTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_runtime: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_text: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input_parameters: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub maximum_execution_frequency: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_organization_custom_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationCustomRuleTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lambda_function_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input_parameters: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub maximum_execution_frequency: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_organization_managed_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationManagedRuleTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rule_identifier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input_parameters: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub maximum_execution_frequency: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_remediation_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemediationConfigurationTfModel {
+    pub config_rule_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_type: Option<String>,
+    #[serde(default)]
+    pub automatic: bool,
+    #[serde(default)]
+    pub maximum_automatic_attempts: i64,
+    #[serde(default)]
+    pub retry_attempt_seconds: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_config_retention_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetentionConfigurationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub retention_period_in_days: i64,
+}

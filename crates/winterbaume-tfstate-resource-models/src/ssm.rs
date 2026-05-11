@@ -27,3 +27,183 @@ pub struct ParameterTfModel {
 fn default_parameter_version() -> i64 {
     1i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_activation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub iam_role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_instance_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expiration_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub activation_code: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssociationTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schedule_expression: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_default_patch_baseline` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultPatchBaselineTfModel {
+    pub baseline_id: String,
+    pub operating_system: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_document` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DocumentTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub document_format: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub latest_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version_name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_maintenance_window` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceWindowTfModel {
+    pub name: String,
+    pub schedule: String,
+    #[serde(default = "default_maintenance_window_duration")]
+    pub duration: i64,
+    #[serde(default = "default_maintenance_window_cutoff")]
+    pub cutoff: i64,
+    #[serde(default = "default_maintenance_window_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schedule_timezone: Option<String>,
+    #[serde(default = "default_maintenance_window_schedule_offset")]
+    pub schedule_offset: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub start_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub end_date: Option<String>,
+}
+
+fn default_maintenance_window_duration() -> i64 {
+    1i64
+}
+
+fn default_maintenance_window_cutoff() -> i64 {
+    0i64
+}
+
+fn default_maintenance_window_enabled() -> bool {
+    true
+}
+
+fn default_maintenance_window_schedule_offset() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_maintenance_window_target` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceWindowTargetTfModel {
+    pub window_id: String,
+    pub resource_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_information: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_maintenance_window_task` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceWindowTaskTfModel {
+    pub window_id: String,
+    pub task_arn: String,
+    pub task_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_role_arn: Option<String>,
+    #[serde(default = "default_maintenance_window_task_priority")]
+    pub priority: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_concurrency: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_errors: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cutoff_behavior: Option<String>,
+}
+
+fn default_maintenance_window_task_priority() -> u32 {
+    0u32
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_patch_baseline` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PatchBaselineTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub operating_system: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approved_patches_compliance_level: Option<String>,
+    #[serde(default = "default_patch_baseline_approved_patches_enable_non_security")]
+    pub approved_patches_enable_non_security: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rejected_patches_action: Option<String>,
+}
+
+fn default_patch_baseline_approved_patches_enable_non_security() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_patch_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PatchGroupTfModel {
+    pub baseline_id: String,
+    pub patch_group: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_resource_data_sync` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceDataSyncTfModel {
+    pub name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssm_service_setting` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceSettingTfModel {
+    pub setting_id: String,
+    pub setting_value: String,
+}

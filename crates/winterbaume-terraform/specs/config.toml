@@ -97,3 +97,358 @@ type = "string?"
 hcl = "s3_key_prefix"
 view = "s3_key_prefix"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_aggregate_authorization
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_aggregate_authorization"
+model = "AggregateAuthorizationTfModel"
+view = "AggregationAuthorizationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "region"
+view = "region"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_configuration_aggregator
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_configuration_aggregator"
+model = "ConfigurationAggregatorTfModel"
+view = "ConfigurationAggregatorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_configuration_recorder_status
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_configuration_recorder_status"
+model = "ConfigurationRecorderStatusTfModel"
+view = "ConfigurationRecorderView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "is_enabled"
+view = "is_enabled"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_config_conformance_pack
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_conformance_pack"
+model = "ConformancePackTfModel"
+view = "ConfigStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "delivery_s3_bucket"
+view = "delivery_s3_bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "delivery_s3_key_prefix"
+view = "delivery_s3_key_prefix"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_organization_conformance_pack
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_organization_conformance_pack"
+model = "OrganizationConformancePackTfModel"
+view = "OrganizationConformancePackView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "delivery_s3_bucket"
+view = "delivery_s3_bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "delivery_s3_key_prefix"
+view = "delivery_s3_key_prefix"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_organization_custom_policy_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_organization_custom_policy_rule"
+model = "OrganizationCustomPolicyRuleTfModel"
+view = "OrganizationConfigRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy_runtime"
+view = "policy_runtime"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy_text"
+view = "policy_text"
+type = "string?"
+
+[[resource.field]]
+hcl = "input_parameters"
+view = "input_parameters"
+type = "string?"
+
+[[resource.field]]
+hcl = "maximum_execution_frequency"
+view = "maximum_execution_frequency"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_organization_custom_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_organization_custom_rule"
+model = "OrganizationCustomRuleTfModel"
+view = "OrganizationConfigRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "lambda_function_arn"
+view = "lambda_function_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "input_parameters"
+view = "input_parameters"
+type = "string?"
+
+[[resource.field]]
+hcl = "maximum_execution_frequency"
+view = "maximum_execution_frequency"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_organization_managed_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_organization_managed_rule"
+model = "OrganizationManagedRuleTfModel"
+view = "OrganizationConfigRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "rule_identifier"
+view = "rule_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "input_parameters"
+view = "input_parameters"
+type = "string?"
+
+[[resource.field]]
+hcl = "maximum_execution_frequency"
+view = "maximum_execution_frequency"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_config_remediation_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_remediation_configuration"
+model = "RemediationConfigurationTfModel"
+view = "RemediationConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "config_rule_name"
+view = "config_rule_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_type"
+view = "target_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_id"
+view = "target_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_version"
+view = "target_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_type"
+view = "resource_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "automatic"
+view = "automatic"
+type = "bool"
+
+[[resource.field]]
+hcl = "maximum_automatic_attempts"
+view = "maximum_automatic_attempts"
+type = "i64"
+
+[[resource.field]]
+hcl = "retry_attempt_seconds"
+view = "retry_attempt_seconds"
+type = "i64"
+
+# ---------------------------------------------------------------------------
+# aws_config_retention_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_config_retention_configuration"
+model = "RetentionConfigurationTfModel"
+view = "RetentionConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "retention_period_in_days"
+view = "retention_period_in_days"
+type = "i64"

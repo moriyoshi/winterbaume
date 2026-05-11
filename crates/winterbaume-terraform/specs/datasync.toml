@@ -95,3 +95,519 @@ type = "string?"
 hcl = "uri"
 view = "uri"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_agent — no winterbaume_datasync state slot.
+# Warning-only inject: validate TF shape and no-op.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_agent"
+model = "DataSyncAgentTfModel"
+view = "DataSyncStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "activation_key"
+view = "activation_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "ip_address"
+view = "ip_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_link_endpoint"
+view = "private_link_endpoint"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_azure_blob
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_azure_blob"
+model = "DataSyncLocationAzureBlobTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "container_url"
+view = "container_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_tier"
+view = "access_tier"
+type = "string?"
+
+[[resource.field]]
+hcl = "authentication_type"
+view = "authentication_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "blob_type"
+view = "blob_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_efs
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_efs"
+model = "DataSyncLocationEfsTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "efs_file_system_arn"
+view = "efs_file_system_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_point_arn"
+view = "access_point_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "file_system_access_role_arn"
+view = "file_system_access_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "in_transit_encryption"
+view = "in_transit_encryption"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_fsx_lustre_file_system
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_fsx_lustre_file_system"
+model = "DataSyncLocationFsxLustreFileSystemTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "fsx_filesystem_arn"
+view = "fsx_filesystem_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_fsx_ontap_file_system
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_fsx_ontap_file_system"
+model = "DataSyncLocationFsxOntapFileSystemTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_virtual_machine_arn"
+view = "storage_virtual_machine_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_fsx_openzfs_file_system
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_fsx_openzfs_file_system"
+model = "DataSyncLocationFsxOpenZfsFileSystemTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "fsx_filesystem_arn"
+view = "fsx_filesystem_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_fsx_windows_file_system
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_fsx_windows_file_system"
+model = "DataSyncLocationFsxWindowsFileSystemTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "fsx_filesystem_arn"
+view = "fsx_filesystem_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string?"
+
+[[resource.field]]
+hcl = "user"
+view = "user"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_hdfs
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_hdfs"
+model = "DataSyncLocationHdfsTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "authentication_type"
+view = "authentication_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "block_size"
+view = "block_size"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "kerberos_principal"
+view = "kerberos_principal"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_provider_uri"
+view = "kms_key_provider_uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "replication_factor"
+view = "replication_factor"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "simple_user"
+view = "simple_user"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_nfs
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_nfs"
+model = "DataSyncLocationNfsTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "server_hostname"
+view = "server_hostname"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_object_storage
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_object_storage"
+model = "DataSyncLocationObjectStorageTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "server_hostname"
+view = "server_hostname"
+type = "string?"
+
+[[resource.field]]
+hcl = "bucket_name"
+view = "bucket_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_key"
+view = "access_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "server_certificate"
+view = "server_certificate"
+type = "string?"
+
+[[resource.field]]
+hcl = "server_port"
+view = "server_port"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "server_protocol"
+view = "server_protocol"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_datasync_location_smb
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_datasync_location_smb"
+model = "DataSyncLocationSmbTfModel"
+view = "DataSyncLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "server_hostname"
+view = "server_hostname"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdirectory"
+view = "subdirectory"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string?"
+
+[[resource.field]]
+hcl = "user"
+view = "user"
+type = "string?"
