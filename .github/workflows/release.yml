@@ -86,14 +86,6 @@ jobs:
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           fi
-      # The messense/cargo-xwin container ships a pinned rustc that lags behind
-      # the AWS SDK crates' MSRV; refresh stable before invoking cargo.
-      - name: Update Rust toolchain in cross-compile container
-        if: ${{ matrix.container }}
-        shell: bash
-        run: |
-          rustup update stable
-          rustup default stable
       - name: Install dist
         run: ${{ matrix.install_dist.run }}
       - name: Fetch local artifacts
@@ -105,24 +97,6 @@ jobs:
       - name: Install dependencies
         run: |
           ${{ matrix.packages_install }}
-      # libduckdb-sys ( pulled in by the `backend-sqlengine-duckdb-bundled`
-      # feature ) needs a musl C++ cross-compiler. Ubuntu's `musl-tools`
-      # package only ships `musl-gcc`, so install the full musl-cross
-      # toolchain ( provides `x86_64-linux-musl-g++` ) from musl.cc.
-      - name: Install x86_64-linux-musl C/C++ cross-compiler
-        if: ${{ contains(matrix.targets, 'x86_64-unknown-linux-musl') }}
-        shell: bash
-        env:
-          MUSL_CROSS_URL: "https://musl.cc/x86_64-linux-musl-cross.tgz"
-          MUSL_CROSS_SHA256: "c5d410d9f82a4f24c549fe5d24f988f85b2679b452413a9f7e5f7b956f2fe7ea"
-        run: |
-          set -euo pipefail
-          tarball="$(mktemp --suffix=.tgz)"
-          curl --proto '=https' --tlsv1.2 -LsSf "$MUSL_CROSS_URL" -o "$tarball"
-          echo "$MUSL_CROSS_SHA256  $tarball" | sha256sum -c -
-          sudo tar -xzf "$tarball" -C /opt
-          rm -f "$tarball"
-          echo "/opt/x86_64-linux-musl-cross/bin" >> "$GITHUB_PATH"
       - name: Build artifacts
         run: |
           dist build ${{ needs.plan.outputs.tag-flag }} --print=linkage --allow-dirty --output-format=json ${{ matrix.dist_args }} > dist-manifest.json

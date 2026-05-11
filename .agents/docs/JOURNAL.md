@@ -596,3 +596,35 @@ The SHA256 was computed locally on the same tarball ( `shasum -a 256` ) and pinn
 
 `release.yml` triggers on `pull_request:` as well as tag pushes, so the fix can be exercised by opening a PR rather than re-cutting the tag. Pending: open a PR ( pushing the workflow change to a branch ) and confirm both `build-local-artifacts (x86_64-unknown-linux-musl)` and `build-local-artifacts (aarch64-pc-windows-msvc)` go green.
 
+## 2026-05-11 — Release workflow: drop musl and aarch64-windows targets after fix attempts surfaced fresh failures
+
+### Context
+
+The tag re-push from the previous entry ( commit `c9e07e73`, run [25647595589](https://github.com/moriyoshi/winterbaume/actions/runs/25647595589) ) exercised the two surgical fixes on the real CI matrix. Both targets failed again, with different root causes than the first attempt.
+
+### Findings
+
+**Finding: `musl.cc` is unreliable from GitHub-hosted runners ( exit code 28, curl operation timeout ).**
+The `Install x86_64-linux-musl C/C++ cross-compiler` step ran `curl --proto '=https' --tlsv1.2 -LsSf https://musl.cc/x86_64-linux-musl-cross.tgz` and aborted after ~2 min 12 s with curl exit code 28 ( operation timeout ). This matches the GitHub community discussion the user cited ( https://github.com/orgs/community/discussions/27906#discussioncomment-3332440 ) where musl.cc routinely times out from Azure-hosted runners. The SHA256 pin neutralises content-tampering risk but does not help when bytes simply never arrive. Pre-staging the tarball in a release artefact or GitHub-side mirror was considered, but at that point the operational cost ( separate mirror job, signed manifest, rotation policy ) exceeds the value of distributing a musl artefact today.
+
+**Finding: `rustup update stable` lifted the cargo-xwin container to rustc 1.95.0, which then exposed a `ring v0.17.14` / cargo-xwin / clang argument-flavour mismatch.**
+With rustc 1.95.0 in the container, AWS SDK metadata resolution succeeded ( original MSRV failure cleared ). The build then advanced to `ring`'s C-source compile through cargo-xwin's clang wrapper and aborted with `clang: error: no such file or directory: '/imsvc'`, repeated for every `.c` file. cargo-xwin's pinned argument templates emit `/imsvc <include>` ( MSVC-style ) when prefixing SDK include paths, but the clang shipped in the container ( pulled in by the rustup update ) now expects `-imsvc <include>` ( clang-style ) and treats the slash-prefixed token as a positional filename. Fixing this needs either a newer cargo-xwin upstream or a downgraded clang — both are upstream-coupled, neither is in repo scope today.
+
+**Finding: dropping a target via `dist-workspace.toml` is sufficient; `dist plan` rebuilds the matrix at job-start.**
+No need to regenerate `release.yml`. Removing the target from the `targets = [...]` array in `[dist]` propagates through `dist host --steps=create` ( the `plan` job's command ) and produces a matrix without the dropped entries on the next push. Workflow steps gated by `contains(matrix.targets, '<dropped>')` become permanent no-ops and are safe to remove for clarity.
+
+### Change
+
+1. `dist-workspace.toml`: dropped `x86_64-unknown-linux-musl` and `aarch64-pc-windows-msvc` from the `targets` array. Remaining targets: `aarch64-apple-darwin`, `aarch64-unknown-linux-gnu`, `x86_64-apple-darwin`, `x86_64-unknown-linux-gnu`, `x86_64-pc-windows-msvc`.
+2. `.github/workflows/release.yml`: removed the now-orphan `Install x86_64-linux-musl C/C++ cross-compiler` step and the `Update Rust toolchain in cross-compile container` step. The latter was only useful for the cargo-xwin container; with aarch64-windows dropped, no matrix entry sets `matrix.container`, so the gate `if: ${{ matrix.container }}` would never fire. The original `Install Rust non-interactively if not already installed` step is kept defensively in case a future container-based target reappears.
+
+### Drawbacks accepted
+
+- No fully static Linux binary in the release. The `x86_64-unknown-linux-gnu` build links against the runner's glibc ( ubuntu-22.04, glibc 2.35 ); users on older distros will need to build from source or wait until a working musl path returns. The `backend-sqlengine-duckdb-bundled` feature still applies — the gnu binary statically links DuckDB, so the only dynamic dependency of consequence is libc itself.
+- No Windows-on-ARM binary in the release. Anecdotally, ARM Windows users on the Surface / Snapdragon lineup can fall back to x86-64 emulation, which the `x86_64-pc-windows-msvc` artefact covers.
+- These drops are reactive ( "ship the targets that work today" ) rather than a designed support matrix. Revisiting belongs in a separate cycle, ideally once `cargo-dist` upstream gains better musl/cargo-xwin support or once we adopt cross-rs's docker-based toolchain layer.
+
+### Verification
+
+Pending: the next tag push will exercise the slimmed-down matrix. Five targets now in `build-local-artifacts` ( the two dropped + five remaining = seven planned originally, five expected after this commit ).
+
