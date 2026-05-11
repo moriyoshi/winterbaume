@@ -1,4 +1,4 @@
-name: skill-slug-drift
+name: Detect service slug drifts between the issue templates and bug reporting skill
 
 on:
   pull_request:
