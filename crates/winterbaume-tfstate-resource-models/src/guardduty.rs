@@ -44,3 +44,107 @@ pub struct MemberTfModel {
     pub account_id: String,
     pub detector_id: String,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_detector_feature` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetectorFeatureTfModel {
+    pub detector_id: String,
+    pub name: String,
+    pub status: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_invite_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InviteAccepterTfModel {
+    pub detector_id: String,
+    pub master_account_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_ipset` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IpsetTfModel {
+    pub detector_id: String,
+    pub name: String,
+    pub format: String,
+    pub location: String,
+    #[serde(default = "default_ipset_activate")]
+    pub activate: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_ipset_activate() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_malware_protection_plan` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MalwareProtectionPlanTfModel {
+    pub role: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_member_detector_feature` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemberDetectorFeatureTfModel {
+    pub account_id: String,
+    pub detector_id: String,
+    pub name: String,
+    pub status: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_organization_admin_account` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationAdminAccountTfModel {
+    pub admin_account_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_organization_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationConfigurationTfModel {
+    pub detector_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auto_enable_organization_members: Option<String>,
+    #[serde(default = "default_organization_configuration_auto_enable")]
+    pub auto_enable: bool,
+}
+
+fn default_organization_configuration_auto_enable() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_organization_configuration_feature` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationConfigurationFeatureTfModel {
+    pub detector_id: String,
+    pub name: String,
+    pub auto_enable: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_publishing_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublishingDestinationTfModel {
+    pub detector_id: String,
+    pub destination_arn: String,
+    pub kms_key_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub destination_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_guardduty_threatintelset` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThreatintelsetTfModel {
+    pub detector_id: String,
+    pub name: String,
+    pub format: String,
+    pub location: String,
+    #[serde(default = "default_threatintelset_activate")]
+    pub activate: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_threatintelset_activate() -> bool {
+    true
+}

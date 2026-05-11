@@ -13,7 +13,9 @@ use std::sync::Arc;
 
 use winterbaume_core::StatefulService;
 use winterbaume_pinpoint::PinpointService;
-use winterbaume_pinpoint::views::{EmailChannelView, PinpointAppView, PinpointStateView};
+use winterbaume_pinpoint::views::{
+    EmailChannelView, EventStreamView, PinpointAppView, PinpointStateView,
+};
 use winterbaume_tfstate::ResourceInstance;
 
 use crate::converter::{
@@ -356,6 +358,316 @@ impl AwsPinpointEmailChannelConverter {
             });
             results.push(ExtractedResource {
                 name: ec.application_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers shared by warning-only converters
+// ---------------------------------------------------------------------------
+
+/// Inject a resource type that has no slot in `PinpointStateView`. The
+/// model is parsed (so attribute validation still runs), then a warning
+/// is logged and an empty result is returned. Extract is a no-op.
+macro_rules! pinpoint_warning_only_converter {
+    (
+        $struct_name:ident,
+        $tf_type:literal,
+        $model:ident,
+        $warn_msg:literal $(,)?
+    ) => {
+        pub struct $struct_name {
+            service: Arc<PinpointService>,
+        }
+
+        impl $struct_name {
+            pub fn new(service: Arc<PinpointService>) -> Self {
+                Self { service }
+            }
+        }
+
+        impl TerraformResourceConverter for $struct_name {
+            fn resource_type(&self) -> &str {
+                $tf_type
+            }
+
+            fn inject<'a>(
+                &'a self,
+                instance: &'a ResourceInstance,
+                ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>,
+            > {
+                Box::pin(async move { self.do_inject(instance, ctx).await })
+            }
+
+            fn extract<'a>(
+                &'a self,
+                _ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<
+                    dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>>
+                        + Send
+                        + 'a,
+                >,
+            > {
+                Box::pin(async move { Ok(vec![]) })
+            }
+        }
+
+        impl $struct_name {
+            async fn do_inject(
+                &self,
+                instance: &ResourceInstance,
+                ctx: &ConversionContext,
+            ) -> Result<ConversionResult, ConversionError> {
+                let region = extract_region(&instance.attributes, &ctx.default_region);
+                let _model: pinpoint_gen::$model =
+                    serde_json::from_value(instance.attributes.clone())
+                        .map_err(|e| classify_deserialize_error($tf_type, e))?;
+                eprintln!(
+                    "warning: {}: PinpointStateView has no slot; inject is a no-op",
+                    $tf_type
+                );
+                // Touch the service so the merge log records visiting the scope.
+                self.service
+                    .merge(
+                        &ctx.default_account_id,
+                        &region,
+                        PinpointStateView::default(),
+                    )
+                    .await?;
+                Ok(ConversionResult {
+                    region,
+                    warnings: vec![$warn_msg.to_string()],
+                })
+            }
+        }
+    };
+}
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_adm_channel
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointAdmChannelConverter,
+    "aws_pinpoint_adm_channel",
+    AdmChannelTfModel,
+    "aws_pinpoint_adm_channel state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_apns_channel
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointApnsChannelConverter,
+    "aws_pinpoint_apns_channel",
+    ApnsChannelTfModel,
+    "aws_pinpoint_apns_channel state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_apns_sandbox_channel
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointApnsSandboxChannelConverter,
+    "aws_pinpoint_apns_sandbox_channel",
+    ApnsSandboxChannelTfModel,
+    "aws_pinpoint_apns_sandbox_channel state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_apns_voip_channel
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointApnsVoipChannelConverter,
+    "aws_pinpoint_apns_voip_channel",
+    ApnsVoipChannelTfModel,
+    "aws_pinpoint_apns_voip_channel state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_apns_voip_sandbox_channel
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointApnsVoipSandboxChannelConverter,
+    "aws_pinpoint_apns_voip_sandbox_channel",
+    ApnsVoipSandboxChannelTfModel,
+    "aws_pinpoint_apns_voip_sandbox_channel state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_baidu_channel
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointBaiduChannelConverter,
+    "aws_pinpoint_baidu_channel",
+    BaiduChannelTfModel,
+    "aws_pinpoint_baidu_channel state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_email_template
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointEmailTemplateConverter,
+    "aws_pinpoint_email_template",
+    EmailTemplateTfModel,
+    "aws_pinpoint_email_template state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_gcm_channel
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointGcmChannelConverter,
+    "aws_pinpoint_gcm_channel",
+    GcmChannelTfModel,
+    "aws_pinpoint_gcm_channel state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_sms_channel
+// ---------------------------------------------------------------------------
+
+pinpoint_warning_only_converter!(
+    AwsPinpointSmsChannelConverter,
+    "aws_pinpoint_sms_channel",
+    SmsChannelTfModel,
+    "aws_pinpoint_sms_channel state not persisted (no view slot)",
+);
+
+// ---------------------------------------------------------------------------
+// aws_pinpoint_event_stream
+// ---------------------------------------------------------------------------
+//
+// Event streams ARE persisted: each `PinpointApp` has an `event_stream:
+// Option<EventStream>` slot. Inject merges into the parent app (creating
+// a stub app if absent so the channel can attach to it). Extract walks
+// the `apps` view and surfaces the inner event stream when present.
+
+/// Converts `aws_pinpoint_event_stream` Terraform resources to/from Pinpoint state.
+pub struct AwsPinpointEventStreamConverter {
+    service: Arc<PinpointService>,
+}
+
+impl AwsPinpointEventStreamConverter {
+    pub fn new(service: Arc<PinpointService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsPinpointEventStreamConverter {
+    fn resource_type(&self) -> &str {
+        "aws_pinpoint_event_stream"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsPinpointEventStreamConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: pinpoint_gen::EventStreamTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_pinpoint_event_stream", e))?;
+
+        let application_id = model.application_id;
+
+        // Look up the existing app so we can preserve it across the merge.
+        let existing = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut app_view = existing
+            .apps
+            .get(&application_id)
+            .cloned()
+            .unwrap_or_else(|| PinpointAppView {
+                id: application_id.clone(),
+                arn: format!(
+                    "arn:aws:mobiletargeting:{}:{}:apps/{}",
+                    region, ctx.default_account_id, application_id
+                ),
+                name: String::new(),
+                creation_date: chrono::Utc::now().to_rfc3339(),
+                tags: HashMap::new(),
+                settings: None,
+                event_stream: None,
+                quiet_time: None,
+            });
+
+        app_view.event_stream = Some(EventStreamView {
+            application_id: application_id.clone(),
+            destination_stream_arn: model.destination_stream_arn,
+            role_arn: model.role_arn,
+            last_modified_date: chrono::Utc::now().to_rfc3339(),
+        });
+
+        let mut state_view = PinpointStateView::default();
+        state_view.apps.insert(application_id, app_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for app in view.apps.values() {
+            let Some(es) = app.event_stream.as_ref() else {
+                continue;
+            };
+            let attrs = serde_json::json!({
+                "id": es.application_id,
+                "application_id": es.application_id,
+                "destination_stream_arn": es.destination_stream_arn,
+                "role_arn": es.role_arn,
+            });
+            results.push(ExtractedResource {
+                name: es.application_id.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,

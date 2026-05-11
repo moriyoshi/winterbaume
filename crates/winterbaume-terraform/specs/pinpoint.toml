@@ -94,3 +94,455 @@ type = "string?"
 hcl = "configuration_set"
 view = "configuration_set"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_adm_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_adm_channel"
+model = "AdmChannelTfModel"
+view = "AdmChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "client_id"
+view = "client_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "client_secret"
+view = "client_secret"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_apns_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_apns_channel"
+model = "ApnsChannelTfModel"
+view = "ApnsChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "default_authentication_method"
+view = "default_authentication_method"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate"
+view = "certificate"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_key"
+view = "private_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "bundle_id"
+view = "bundle_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "team_id"
+view = "team_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "token_key"
+view = "token_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "token_key_id"
+view = "token_key_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_apns_sandbox_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_apns_sandbox_channel"
+model = "ApnsSandboxChannelTfModel"
+view = "ApnsSandboxChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "default_authentication_method"
+view = "default_authentication_method"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate"
+view = "certificate"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_key"
+view = "private_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "bundle_id"
+view = "bundle_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "team_id"
+view = "team_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "token_key"
+view = "token_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "token_key_id"
+view = "token_key_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_apns_voip_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_apns_voip_channel"
+model = "ApnsVoipChannelTfModel"
+view = "ApnsVoipChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "default_authentication_method"
+view = "default_authentication_method"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate"
+view = "certificate"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_key"
+view = "private_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "bundle_id"
+view = "bundle_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "team_id"
+view = "team_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "token_key"
+view = "token_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "token_key_id"
+view = "token_key_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_apns_voip_sandbox_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_apns_voip_sandbox_channel"
+model = "ApnsVoipSandboxChannelTfModel"
+view = "ApnsVoipSandboxChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "default_authentication_method"
+view = "default_authentication_method"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate"
+view = "certificate"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_key"
+view = "private_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "bundle_id"
+view = "bundle_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "team_id"
+view = "team_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "token_key"
+view = "token_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "token_key_id"
+view = "token_key_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_baidu_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_baidu_channel"
+model = "BaiduChannelTfModel"
+view = "BaiduChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "api_key"
+view = "api_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "secret_key"
+view = "secret_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_email_template
+# ---------------------------------------------------------------------------
+# `email_template` is a nested block, read straight from instance.attributes.
+
+[[resource]]
+type = "aws_pinpoint_email_template"
+model = "EmailTemplateTfModel"
+view = "EmailTemplateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "template_name"
+view = "template_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_event_stream
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_event_stream"
+model = "EventStreamTfModel"
+view = "EventStreamView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_stream_arn"
+view = "destination_stream_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_gcm_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_gcm_channel"
+model = "GcmChannelTfModel"
+view = "GcmChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "api_key"
+view = "api_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_json"
+view = "service_json"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_authentication_method"
+view = "default_authentication_method"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_pinpoint_sms_channel
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_pinpoint_sms_channel"
+model = "SmsChannelTfModel"
+view = "SmsChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "sender_id"
+view = "sender_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "short_code"
+view = "short_code"
+type = "string?"
+
+[[resource.field]]
+hcl = "promotional_messages_per_second"
+view = "promotional_messages_per_second"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "transactional_messages_per_second"
+view = "transactional_messages_per_second"
+type = "i64"
+default = 0

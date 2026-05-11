@@ -2,20 +2,13 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **723** (718 verified against schema)
-Missing within classified prefixes: **475**
+Currently handled by winterbaume: **794** (789 verified against schema)
+Missing within classified prefixes: **404**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
-| datasync | `aws_datasync_` | 2 | 13 | 11 | 15% |  |
-| servicecatalog | `aws_servicecatalog_` | 2 | 13 | 11 | 15% |  |
-| ssm | `aws_ssm_` | 1 | 12 | 11 | 8% |  |
-| config | `aws_config_` | 3 | 13 | 10 | 23% |  |
-| guardduty | `aws_guardduty_` | 3 | 13 | 10 | 23% |  |
-| pinpoint | `aws_pinpoint_` | 2 | 12 | 10 | 17% |  |
-| rds | override (2 patterns) | 19 | 29 | 10 | 66% |  |
 | route53resolver | `aws_route53_resolver_` | 2 | 12 | 10 | 17% |  |
 | ssoadmin | `aws_ssoadmin_` | 2 | 12 | 10 | 17% |  |
 | vpclattice | `aws_vpclattice_` | 4 | 14 | 10 | 29% |  |
@@ -87,6 +80,7 @@ Sorted by missing-count desc.
 | elasticbeanstalk | `aws_elastic_beanstalk_` | 2 | 4 | 2 | 50% |  |
 | iam | `aws_iam_` | 32 | 34 | 2 | 94% |  |
 | ivs | `aws_ivs_` | 1 | 3 | 2 | 33% |  |
+| rds | override (2 patterns) | 27 | 29 | 2 | 93% |  |
 | rekognition | `aws_rekognition_` | 1 | 3 | 2 | 33% |  |
 | route53domains | `aws_route53domains_` | 1 | 3 | 2 | 33% |  |
 | secretsmanager | `aws_secretsmanager_` | 2 | 4 | 2 | 50% |  |
@@ -121,7 +115,9 @@ Sorted by missing-count desc.
 | backup | `aws_backup_` | 13 | 13 | 0 | 100% |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
 | cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
+| config | `aws_config_` | 13 | 13 | 0 | 100% |  |
 | connect | `aws_connect_` | 16 | 16 | 0 | 100% |  |
+| datasync | `aws_datasync_` | 13 | 13 | 0 | 100% |  |
 | dax | `aws_dax_` | 3 | 3 | 0 | 100% |  |
 | directconnect | `aws_dx_` | 19 | 19 | 0 | 100% |  |
 | ec2 | override (37 patterns) | 139 | 139 | 0 | 100% |  |
@@ -129,6 +125,7 @@ Sorted by missing-count desc.
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
 | firehose | `aws_kinesis_firehose_` | 1 | 1 | 0 | 100% |  |
 | fis | `aws_fis_` | 1 | 1 | 0 | 100% |  |
+| guardduty | `aws_guardduty_` | 13 | 13 | 0 | 100% |  |
 | iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
@@ -139,6 +136,7 @@ Sorted by missing-count desc.
 | networkmanager | `aws_networkmanager_` | 19 | 19 | 0 | 100% |  |
 | osis | `aws_osis_` | 1 | 1 | 0 | 100% |  |
 | outposts | `aws_outposts_` | 2 | 0 | 0 | — |  |
+| pinpoint | `aws_pinpoint_` | 12 | 12 | 0 | 100% |  |
 | pipes | `aws_pipes_` | 1 | 1 | 0 | 100% |  |
 | quicksight | `aws_quicksight_` | 20 | 20 | 0 | 100% |  |
 | resiliencehub | `aws_resiliencehub_` | 1 | 1 | 0 | 100% |  |
@@ -148,108 +146,16 @@ Sorted by missing-count desc.
 | sagemaker | `aws_sagemaker_` | 30 | 30 | 0 | 100% |  |
 | scheduler | `aws_scheduler_` | 2 | 2 | 0 | 100% |  |
 | securityhub | `aws_securityhub_` | 15 | 15 | 0 | 100% |  |
+| servicecatalog | `aws_servicecatalog_` | 13 | 13 | 0 | 100% |  |
 | sesv1 | `aws_ses_` | 14 | 14 | 0 | 100% |  |
 | simpledbv2 | `aws_simpledb_` | 1 | 1 | 0 | 100% |  |
+| ssm | `aws_ssm_` | 12 | 12 | 0 | 100% |  |
 | swf | `aws_swf_` | 1 | 1 | 0 | 100% |  |
 | timestreaminfluxdb | `aws_timestreaminfluxdb_` | 1 | 1 | 0 | 100% |  |
 | timestreamquery | `aws_timestreamquery_` | 1 | 1 | 0 | 100% |  |
 | timestreamwrite | `aws_timestreamwrite_` | 2 | 2 | 0 | 100% |  |
 
 ## Per-service missing resources
-
-### datasync — 11 missing
-
-- `aws_datasync_agent`
-- `aws_datasync_location_azure_blob`
-- `aws_datasync_location_efs`
-- `aws_datasync_location_fsx_lustre_file_system`
-- `aws_datasync_location_fsx_ontap_file_system`
-- `aws_datasync_location_fsx_openzfs_file_system`
-- `aws_datasync_location_fsx_windows_file_system`
-- `aws_datasync_location_hdfs`
-- `aws_datasync_location_nfs`
-- `aws_datasync_location_object_storage`
-- `aws_datasync_location_smb`
-
-### servicecatalog — 11 missing
-
-- `aws_servicecatalog_budget_resource_association`
-- `aws_servicecatalog_constraint`
-- `aws_servicecatalog_organizations_access`
-- `aws_servicecatalog_portfolio_share`
-- `aws_servicecatalog_principal_portfolio_association`
-- `aws_servicecatalog_product_portfolio_association`
-- `aws_servicecatalog_provisioned_product`
-- `aws_servicecatalog_provisioning_artifact`
-- `aws_servicecatalog_service_action`
-- `aws_servicecatalog_tag_option`
-- `aws_servicecatalog_tag_option_resource_association`
-
-### ssm — 11 missing
-
-- `aws_ssm_activation`
-- `aws_ssm_association`
-- `aws_ssm_default_patch_baseline`
-- `aws_ssm_document`
-- `aws_ssm_maintenance_window`
-- `aws_ssm_maintenance_window_target`
-- `aws_ssm_maintenance_window_task`
-- `aws_ssm_patch_baseline`
-- `aws_ssm_patch_group`
-- `aws_ssm_resource_data_sync`
-- `aws_ssm_service_setting`
-
-### config — 10 missing
-
-- `aws_config_aggregate_authorization`
-- `aws_config_configuration_aggregator`
-- `aws_config_configuration_recorder_status`
-- `aws_config_conformance_pack`
-- `aws_config_organization_conformance_pack`
-- `aws_config_organization_custom_policy_rule`
-- `aws_config_organization_custom_rule`
-- `aws_config_organization_managed_rule`
-- `aws_config_remediation_configuration`
-- `aws_config_retention_configuration`
-
-### guardduty — 10 missing
-
-- `aws_guardduty_detector_feature`
-- `aws_guardduty_invite_accepter`
-- `aws_guardduty_ipset`
-- `aws_guardduty_malware_protection_plan`
-- `aws_guardduty_member_detector_feature`
-- `aws_guardduty_organization_admin_account`
-- `aws_guardduty_organization_configuration`
-- `aws_guardduty_organization_configuration_feature`
-- `aws_guardduty_publishing_destination`
-- `aws_guardduty_threatintelset`
-
-### pinpoint — 10 missing
-
-- `aws_pinpoint_adm_channel`
-- `aws_pinpoint_apns_channel`
-- `aws_pinpoint_apns_sandbox_channel`
-- `aws_pinpoint_apns_voip_channel`
-- `aws_pinpoint_apns_voip_sandbox_channel`
-- `aws_pinpoint_baidu_channel`
-- `aws_pinpoint_email_template`
-- `aws_pinpoint_event_stream`
-- `aws_pinpoint_gcm_channel`
-- `aws_pinpoint_sms_channel`
-
-### rds — 10 missing
-
-- `aws_db_instance_automated_backups_replication`
-- `aws_db_instance_role_association`
-- `aws_db_proxy_target`
-- `aws_rds_certificate`
-- `aws_rds_cluster_activity_stream`
-- `aws_rds_cluster_role_association`
-- `aws_rds_custom_db_engine_version`
-- `aws_rds_instance_state`
-- `aws_rds_integration`
-- `aws_rds_reserved_instance`
 
 ### route53resolver — 10 missing
 
@@ -825,6 +731,11 @@ Sorted by missing-count desc.
 
 - `aws_ivs_playback_key_pair`
 - `aws_ivs_recording_configuration`
+
+### rds — 2 missing
+
+- `aws_db_proxy_target`
+- `aws_rds_instance_state`
 
 ### rekognition — 2 missing
 

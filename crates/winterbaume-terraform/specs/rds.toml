@@ -1345,3 +1345,296 @@ default = false
 # ---------------------------------------------------------------------------
 # Snapshot+mutate+restore on DbInstance.status, no generated TfModel needed.
 # Spec block omitted; converter is hand-written.
+
+# ---------------------------------------------------------------------------
+# aws_db_instance_automated_backups_replication
+# ---------------------------------------------------------------------------
+# Cross-region replication of automated backups; no state slot exposed on
+# any RDS view. Converter is warning-only.
+
+[[resource]]
+type = "aws_db_instance_automated_backups_replication"
+model = "DbInstanceAutomatedBackupsReplicationTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "source_db_instance_arn"
+view = "source_db_instance_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "pre_signed_url"
+view = "pre_signed_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "retention_period"
+view = "retention_period"
+type = "i64"
+default = 7
+
+# ---------------------------------------------------------------------------
+# aws_db_instance_role_association
+# ---------------------------------------------------------------------------
+# Associates an IAM role to a db_instance for a feature (e.g. S3_INTEGRATION).
+# DbInstance.associated_roles is not exposed on DbInstanceView, so the
+# converter is warning-only.
+
+[[resource]]
+type = "aws_db_instance_role_association"
+model = "DbInstanceRoleAssociationTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "db_instance_identifier"
+view = "db_instance_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "feature_name"
+view = "feature_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_rds_certificate
+# ---------------------------------------------------------------------------
+# Account-level default CA certificate override. No state slot on
+# RdsStateView. Converter is warning-only.
+
+[[resource]]
+type = "aws_rds_certificate"
+model = "RdsCertificateTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "certificate_identifier"
+view = "certificate_identifier"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_rds_cluster_activity_stream
+# ---------------------------------------------------------------------------
+# Enables database activity stream on an Aurora cluster. DbCluster lacks
+# an activity-stream view slot, so the converter is warning-only.
+
+[[resource]]
+type = "aws_rds_cluster_activity_stream"
+model = "RdsClusterActivityStreamTfModel"
+view = "DbClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mode"
+view = "mode"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kinesis_stream_name"
+view = "kinesis_stream_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_native_audit_fields_included"
+view = "engine_native_audit_fields_included"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_rds_cluster_role_association
+# ---------------------------------------------------------------------------
+# Associates an IAM role with an Aurora cluster. DbCluster.associated_roles
+# is not exposed on DbClusterView, so the converter is warning-only.
+
+[[resource]]
+type = "aws_rds_cluster_role_association"
+model = "RdsClusterRoleAssociationTfModel"
+view = "DbClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "db_cluster_identifier"
+view = "db_cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "feature_name"
+view = "feature_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_rds_custom_db_engine_version
+# ---------------------------------------------------------------------------
+# Registers a custom DB engine version (Oracle/SQL Server BYOM). No state
+# slot on RdsStateView. Converter is warning-only.
+
+[[resource]]
+type = "aws_rds_custom_db_engine_version"
+model = "RdsCustomDbEngineVersionTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "database_installation_files_s3_bucket_name"
+view = "database_installation_files_s3_bucket_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "database_installation_files_s3_prefix"
+view = "database_installation_files_s3_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "manifest"
+view = "manifest"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_image_id"
+view = "source_image_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_rds_integration
+# ---------------------------------------------------------------------------
+# Aurora->Redshift zero-ETL integration. No state slot on RdsStateView.
+# Converter is warning-only.
+
+[[resource]]
+type = "aws_rds_integration"
+model = "RdsIntegrationTfModel"
+view = "DbClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "integration_name"
+view = "integration_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_arn"
+view = "source_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_arn"
+view = "target_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_rds_reserved_instance
+# ---------------------------------------------------------------------------
+# Reserved DB instance purchase. No state slot on RdsStateView. Converter
+# is warning-only.
+
+[[resource]]
+type = "aws_rds_reserved_instance"
+model = "RdsReservedInstanceTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "offering_id"
+view = "offering_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "reservation_id"
+view = "reservation_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_count"
+view = "instance_count"
+type = "i64"
+default = 1

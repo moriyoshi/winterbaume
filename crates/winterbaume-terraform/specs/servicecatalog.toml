@@ -126,3 +126,575 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_budget_resource_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_budget_resource_association"
+model = "BudgetResourceAssociationTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "budget_name"
+view = "budget_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_constraint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_constraint"
+model = "ConstraintTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "parameters"
+view = "parameters"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "portfolio_id"
+view = "portfolio_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "product_id"
+view = "product_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "constraint_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "accept_language"
+view = "accept_language"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner"
+view = "owner"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_organizations_access
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_organizations_access"
+model = "OrganizationsAccessTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_portfolio_share
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_portfolio_share"
+model = "PortfolioShareTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "portfolio_id"
+view = "portfolio_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_id"
+view = "principal_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "share_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "accept_language"
+view = "accept_language"
+type = "string?"
+
+[[resource.field]]
+hcl = "share_principals"
+view = "share_principals"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "share_tag_options"
+view = "share_tag_options"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "wait_for_acceptance"
+view = "wait_for_acceptance"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "accepted"
+view = "accepted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_principal_portfolio_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_principal_portfolio_association"
+model = "PrincipalPortfolioAssociationTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "portfolio_id"
+view = "portfolio_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_arn"
+view = "principal_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "accept_language"
+view = "accept_language"
+type = "string?"
+
+[[resource.field]]
+hcl = "principal_type"
+view = "principal_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_product_portfolio_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_product_portfolio_association"
+model = "ProductPortfolioAssociationTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "portfolio_id"
+view = "portfolio_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "product_id"
+view = "product_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "accept_language"
+view = "accept_language"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_portfolio_id"
+view = "source_portfolio_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_provisioned_product
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_provisioned_product"
+model = "ProvisionedProductTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "accept_language"
+view = "accept_language"
+type = "string?"
+
+[[resource.field]]
+hcl = "ignore_errors"
+view = "ignore_errors"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "path_id"
+view = "path_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "path_name"
+view = "path_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "product_id"
+view = "product_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "product_name"
+view = "product_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "provisioning_artifact_id"
+view = "provisioning_artifact_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "provisioning_artifact_name"
+view = "provisioning_artifact_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "retain_physical_resources"
+view = "retain_physical_resources"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_time"
+view = "created_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_provisioning_record_id"
+view = "last_provisioning_record_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_record_id"
+view = "last_record_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_successful_provisioning_record_id"
+view = "last_successful_provisioning_record_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "launch_role_arn"
+view = "launch_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "status_message"
+view = "status_message"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "provisioned_product_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_provisioning_artifact
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_provisioning_artifact"
+model = "ProvisioningArtifactTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "product_id"
+view = "product_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "accept_language"
+view = "accept_language"
+type = "string?"
+
+[[resource.field]]
+hcl = "active"
+view = "active"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "disable_template_validation"
+view = "disable_template_validation"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "guidance"
+view = "guidance"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "template_physical_id"
+view = "template_physical_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "template_url"
+view = "template_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "artifact_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_time"
+view = "created_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "provisioning_artifact_id"
+view = "provisioning_artifact_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_service_action
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_service_action"
+model = "ServiceActionTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "accept_language"
+view = "accept_language"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_tag_option
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_tag_option"
+model = "TagOptionTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "key"
+view = "key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "active"
+view = "active"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_servicecatalog_tag_option_resource_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_servicecatalog_tag_option_resource_association"
+model = "TagOptionResourceAssociationTfModel"
+view = "PortfolioDetailView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tag_option_id"
+view = "tag_option_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_created_time"
+view = "resource_created_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_description"
+view = "resource_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_name"
+view = "resource_name"
+type = "string?"

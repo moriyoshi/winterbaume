@@ -622,3 +622,102 @@ pub struct RdsShardGroupTfModel {
 fn default_rds_shard_group_publicly_accessible() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_db_instance_automated_backups_replication` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbInstanceAutomatedBackupsReplicationTfModel {
+    pub source_db_instance_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pre_signed_url: Option<String>,
+    #[serde(default = "default_db_instance_automated_backups_replication_retention_period")]
+    pub retention_period: i64,
+}
+
+fn default_db_instance_automated_backups_replication_retention_period() -> i64 {
+    7i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_db_instance_role_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbInstanceRoleAssociationTfModel {
+    pub db_instance_identifier: String,
+    pub feature_name: String,
+    pub role_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsCertificateTfModel {
+    pub certificate_identifier: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_cluster_activity_stream` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsClusterActivityStreamTfModel {
+    pub resource_arn: String,
+    pub mode: String,
+    pub kms_key_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kinesis_stream_name: Option<String>,
+    #[serde(default = "default_rds_cluster_activity_stream_engine_native_audit_fields_included")]
+    pub engine_native_audit_fields_included: bool,
+}
+
+fn default_rds_cluster_activity_stream_engine_native_audit_fields_included() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_cluster_role_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsClusterRoleAssociationTfModel {
+    pub db_cluster_identifier: String,
+    pub feature_name: String,
+    pub role_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_custom_db_engine_version` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsCustomDbEngineVersionTfModel {
+    pub engine: String,
+    pub engine_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub database_installation_files_s3_bucket_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub database_installation_files_s3_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_image_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_integration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsIntegrationTfModel {
+    pub integration_name: String,
+    pub source_arn: String,
+    pub target_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_reserved_instance` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsReservedInstanceTfModel {
+    pub offering_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reservation_id: Option<String>,
+    #[serde(default = "default_rds_reserved_instance_instance_count")]
+    pub instance_count: i64,
+}
+
+fn default_rds_reserved_instance_instance_count() -> i64 {
+    1i64
+}
