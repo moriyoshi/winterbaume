@@ -14,8 +14,11 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_rds::RdsService;
 use winterbaume_rds::views::{
-    DbClusterParameterGroupView, DbClusterView, DbInstanceView, DbParameterGroupView,
-    DbSubnetGroupView, EventSubscriptionView, OptionGroupView, RdsStateView, TagView,
+    DbClusterEndpointView, DbClusterParameterGroupView, DbClusterSnapshotView, DbClusterView,
+    DbInstanceView, DbParameterGroupView, DbProxyEndpointView, DbProxyTargetGroupView,
+    DbProxyTargetView, DbProxyView, DbShardGroupView, DbSnapshotView, DbSubnetGroupView,
+    EventSubscriptionView, ExportTaskView, GlobalClusterView, OptionGroupView, RdsStateView,
+    TagView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -1096,6 +1099,1945 @@ impl AwsDbEventSubscriptionConverter {
             });
         }
         Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_db_proxy
+// ---------------------------------------------------------------------------
+
+pub struct AwsDbProxyConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsDbProxyConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDbProxyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_db_proxy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsDbProxyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbProxyTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_proxy", e))?;
+
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("auth");
+        let _ = attrs.get("default_auth_scheme");
+        let _ = attrs.get("endpoint_network_type");
+        let _ = attrs.get("target_connection_network_type");
+
+        let tags = extract_rds_tags(attrs);
+        let vpc_security_group_ids = extract_string_array(attrs, "vpc_security_group_ids");
+        let vpc_subnet_ids = extract_string_array(attrs, "vpc_subnet_ids");
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:db-proxy:prx-{}",
+                region,
+                ctx.default_account_id,
+                &uuid::Uuid::new_v4().to_string().replace('-', "")[..17]
+            )
+        });
+        let endpoint = model.endpoint.unwrap_or_else(|| {
+            format!(
+                "{}.proxy-{}.{}.rds.amazonaws.com",
+                model.name,
+                &uuid::Uuid::new_v4().to_string()[..12],
+                region
+            )
+        });
+
+        let view = DbProxyView {
+            db_proxy_name: model.name.clone(),
+            db_proxy_arn: arn,
+            status: "available".to_string(),
+            engine_family: model.engine_family,
+            vpc_id: model.vpc_id,
+            vpc_security_group_ids,
+            vpc_subnet_ids,
+            endpoint,
+            require_tls: model.require_tls,
+            idle_client_timeout: model.idle_client_timeout as i32,
+            debug_logging: model.debug_logging,
+            role_arn: model.role_arn,
+            created_date: None,
+            updated_date: None,
+            tags,
+            targets: Vec::new(),
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view.db_proxies.insert(model.name, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for p in view.db_proxies.values() {
+            let attrs = serde_json::json!({
+                "id": p.db_proxy_name,
+                "name": p.db_proxy_name,
+                "arn": p.db_proxy_arn,
+                "engine_family": p.engine_family,
+                "vpc_id": p.vpc_id,
+                "vpc_security_group_ids": p.vpc_security_group_ids,
+                "vpc_subnet_ids": p.vpc_subnet_ids,
+                "endpoint": p.endpoint,
+                "require_tls": p.require_tls,
+                "idle_client_timeout": p.idle_client_timeout,
+                "debug_logging": p.debug_logging,
+                "role_arn": p.role_arn,
+                "tags": tags_to_map(&p.tags),
+                "tags_all": tags_to_map(&p.tags),
+            });
+            results.push(ExtractedResource {
+                name: p.db_proxy_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_db_proxy_default_target_group
+// ---------------------------------------------------------------------------
+
+pub struct AwsDbProxyDefaultTargetGroupConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsDbProxyDefaultTargetGroupConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDbProxyDefaultTargetGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_db_proxy_default_target_group"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_db_proxy"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsDbProxyDefaultTargetGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbProxyDefaultTargetGroupTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_db_proxy_default_target_group", e))?;
+
+        let connection_pool_config = attrs.get("connection_pool_config").map(|v| v.to_string());
+
+        let target_group_name = model.name.unwrap_or_else(|| "default".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:target-group:prx-tg-{}",
+                region,
+                ctx.default_account_id,
+                &uuid::Uuid::new_v4().to_string().replace('-', "")[..17]
+            )
+        });
+        let key = format!("{}/{}", model.db_proxy_name, target_group_name);
+
+        let view = DbProxyTargetGroupView {
+            target_group_name: target_group_name.clone(),
+            db_proxy_name: model.db_proxy_name.clone(),
+            target_group_arn: arn,
+            is_default: true,
+            status: "available".to_string(),
+            connection_pool_config,
+            created_date: None,
+            updated_date: None,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view.db_proxy_target_groups.insert(key, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for tg in view.db_proxy_target_groups.values() {
+            if !tg.is_default {
+                continue;
+            }
+            let cpc = tg
+                .connection_pool_config
+                .as_ref()
+                .and_then(|s| serde_json::from_str::<serde_json::Value>(s).ok())
+                .unwrap_or(serde_json::Value::Array(vec![]));
+            let attrs = serde_json::json!({
+                "id": tg.db_proxy_name,
+                "db_proxy_name": tg.db_proxy_name,
+                "name": tg.target_group_name,
+                "arn": tg.target_group_arn,
+                "connection_pool_config": cpc,
+            });
+            results.push(ExtractedResource {
+                name: tg.db_proxy_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_db_proxy_endpoint
+// ---------------------------------------------------------------------------
+
+pub struct AwsDbProxyEndpointConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsDbProxyEndpointConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDbProxyEndpointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_db_proxy_endpoint"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_db_proxy"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsDbProxyEndpointConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbProxyEndpointTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_proxy_endpoint", e))?;
+
+        let _ = attrs.get("tags_all");
+        let vpc_security_group_ids = extract_string_array(attrs, "vpc_security_group_ids");
+        let vpc_subnet_ids = extract_string_array(attrs, "vpc_subnet_ids");
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:db-proxy-endpoint:prx-endpoint-{}",
+                region,
+                ctx.default_account_id,
+                &uuid::Uuid::new_v4().to_string().replace('-', "")[..17]
+            )
+        });
+        let endpoint = model.endpoint.unwrap_or_else(|| {
+            format!(
+                "{}.endpoint.proxy-{}.{}.rds.amazonaws.com",
+                model.db_proxy_endpoint_name,
+                &uuid::Uuid::new_v4().to_string()[..12],
+                region
+            )
+        });
+        let target_role = model
+            .target_role
+            .unwrap_or_else(|| "READ_WRITE".to_string());
+
+        let view = DbProxyEndpointView {
+            db_proxy_endpoint_name: model.db_proxy_endpoint_name.clone(),
+            db_proxy_endpoint_arn: arn,
+            db_proxy_name: model.db_proxy_name.clone(),
+            status: "available".to_string(),
+            vpc_id: model.vpc_id,
+            vpc_security_group_ids,
+            vpc_subnet_ids,
+            endpoint,
+            is_default: model.is_default,
+            target_role,
+            created_date: None,
+        };
+
+        let key = format!("{}/{}", model.db_proxy_name, model.db_proxy_endpoint_name);
+        let mut state_view = minimal_rds_state_view();
+        state_view.db_proxy_endpoints.insert(key, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ep in view.db_proxy_endpoints.values() {
+            let attrs = serde_json::json!({
+                "id": format!("{}/{}", ep.db_proxy_name, ep.db_proxy_endpoint_name),
+                "db_proxy_name": ep.db_proxy_name,
+                "db_proxy_endpoint_name": ep.db_proxy_endpoint_name,
+                "arn": ep.db_proxy_endpoint_arn,
+                "endpoint": ep.endpoint,
+                "vpc_id": ep.vpc_id,
+                "vpc_security_group_ids": ep.vpc_security_group_ids,
+                "vpc_subnet_ids": ep.vpc_subnet_ids,
+                "is_default": ep.is_default,
+                "target_role": ep.target_role,
+            });
+            results.push(ExtractedResource {
+                name: ep.db_proxy_endpoint_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_db_proxy_target
+// ---------------------------------------------------------------------------
+//
+// Sub-resource of aws_db_proxy. We snapshot+mutate+restore the parent
+// `DbProxyView.targets` list, deliberately bypassing the generated model.
+pub struct AwsDbProxyTargetConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsDbProxyTargetConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDbProxyTargetConverter {
+    fn resource_type(&self) -> &str {
+        "aws_db_proxy_target"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_db_proxy", "aws_db_instance", "aws_rds_cluster"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsDbProxyTargetConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let db_proxy_name = attrs
+            .get("db_proxy_name")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| ConversionError::MissingAttribute {
+                resource_type: "aws_db_proxy_target".into(),
+                attribute: "db_proxy_name".into(),
+            })?
+            .to_string();
+        let _target_group_name = attrs
+            .get("target_group_name")
+            .and_then(|v| v.as_str())
+            .unwrap_or("default")
+            .to_string();
+        let db_instance_identifier = attrs
+            .get("db_instance_identifier")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        let db_cluster_identifier = attrs
+            .get("db_cluster_identifier")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+
+        let target_arn = attrs
+            .get("target_arn")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| {
+                if let Some(id) = &db_cluster_identifier {
+                    format!(
+                        "arn:aws:rds:{}:{}:cluster:{}",
+                        region, ctx.default_account_id, id
+                    )
+                } else if let Some(id) = &db_instance_identifier {
+                    format!(
+                        "arn:aws:rds:{}:{}:db:{}",
+                        region, ctx.default_account_id, id
+                    )
+                } else {
+                    String::new()
+                }
+            });
+        let endpoint = attrs
+            .get("endpoint")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        let port = attrs.get("port").and_then(|v| v.as_i64()).map(|p| p as i32);
+        let rds_resource_id = attrs
+            .get("rds_resource_id")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        let tracked_cluster_id = attrs
+            .get("tracked_cluster_id")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .or_else(|| db_cluster_identifier.clone());
+        let type_ = attrs
+            .get("type")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .or_else(|| {
+                if db_cluster_identifier.is_some() {
+                    Some("TRACKED_CLUSTER".to_string())
+                } else {
+                    Some("RDS_INSTANCE".to_string())
+                }
+            });
+
+        let new_target = DbProxyTargetView {
+            target_arn,
+            endpoint,
+            tracked_cluster_id,
+            rds_resource_id,
+            port,
+            type_,
+            role: None,
+            target_health_status: Some("AVAILABLE".to_string()),
+        };
+
+        // Snapshot+mutate+restore to add target to parent proxy.
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(proxy) = view.db_proxies.get_mut(&db_proxy_name) {
+            if !proxy
+                .targets
+                .iter()
+                .any(|t| t.target_arn == new_target.target_arn)
+            {
+                proxy.targets.push(new_target);
+            }
+        } else {
+            warnings.push(format!(
+                "db_proxy '{db_proxy_name}' not found; target attachment skipped"
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for proxy in view.db_proxies.values() {
+            for tgt in &proxy.targets {
+                let attrs = serde_json::json!({
+                    "id": format!("{}/default/{}", proxy.db_proxy_name, tgt.target_arn),
+                    "db_proxy_name": proxy.db_proxy_name,
+                    "target_group_name": "default",
+                    "target_arn": tgt.target_arn,
+                    "endpoint": tgt.endpoint,
+                    "port": tgt.port,
+                    "rds_resource_id": tgt.rds_resource_id,
+                    "tracked_cluster_id": tgt.tracked_cluster_id,
+                    "type": tgt.type_,
+                });
+                results.push(ExtractedResource {
+                    name: format!("{}/{}", proxy.db_proxy_name, tgt.target_arn),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_db_snapshot
+// ---------------------------------------------------------------------------
+
+pub struct AwsDbSnapshotConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsDbSnapshotConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDbSnapshotConverter {
+    fn resource_type(&self) -> &str {
+        "aws_db_snapshot"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_db_instance"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsDbSnapshotConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbSnapshotTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_snapshot", e))?;
+
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("shared_accounts");
+        let tags = extract_rds_tags(attrs);
+
+        let arn = model.db_snapshot_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:snapshot:{}",
+                region, ctx.default_account_id, model.db_snapshot_identifier
+            )
+        });
+        let status = model.status.unwrap_or_else(|| "available".to_string());
+        let snapshot_type = model.snapshot_type.unwrap_or_else(|| "manual".to_string());
+        let engine = model.engine.unwrap_or_else(|| "mysql".to_string());
+
+        let port = if model.port == 0 {
+            None
+        } else {
+            Some(model.port as i32)
+        };
+        let iops = if model.iops == 0 {
+            None
+        } else {
+            Some(model.iops as i32)
+        };
+
+        let view = DbSnapshotView {
+            identifier: model.db_snapshot_identifier.clone(),
+            db_instance_identifier: model.db_instance_identifier,
+            engine,
+            engine_version: model.engine_version,
+            allocated_storage: model.allocated_storage as i32,
+            status,
+            port,
+            availability_zone: model.availability_zone,
+            vpc_id: model.vpc_id,
+            instance_create_time: None,
+            master_username: None,
+            snapshot_type,
+            iops,
+            option_group_name: model.option_group_name,
+            percent_progress: 100,
+            source_region: model.source_region,
+            source_db_snapshot_identifier: model.source_db_snapshot_identifier,
+            storage_type: model.storage_type,
+            tde_credential_arn: None,
+            encrypted: model.encrypted,
+            kms_key_id: model.kms_key_id,
+            db_snapshot_arn: arn,
+            timezone: None,
+            db_instance_automated_backups_arn: None,
+            snapshot_create_time: None,
+            tags,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view
+            .db_snapshots
+            .insert(model.db_snapshot_identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for s in view.db_snapshots.values() {
+            // Manual snapshots map to aws_db_snapshot; automated / copy live in their own converters.
+            if s.snapshot_type == "automated" {
+                continue;
+            }
+            let attrs = serde_json::json!({
+                "id": s.identifier,
+                "db_snapshot_identifier": s.identifier,
+                "db_instance_identifier": s.db_instance_identifier,
+                "db_snapshot_arn": s.db_snapshot_arn,
+                "engine": s.engine,
+                "engine_version": s.engine_version,
+                "allocated_storage": s.allocated_storage,
+                "availability_zone": s.availability_zone,
+                "encrypted": s.encrypted,
+                "iops": s.iops,
+                "kms_key_id": s.kms_key_id,
+                "option_group_name": s.option_group_name,
+                "port": s.port,
+                "snapshot_type": s.snapshot_type,
+                "source_db_snapshot_identifier": s.source_db_snapshot_identifier,
+                "source_region": s.source_region,
+                "status": s.status,
+                "storage_type": s.storage_type,
+                "vpc_id": s.vpc_id,
+                "tags": tags_to_map(&s.tags),
+                "tags_all": tags_to_map(&s.tags),
+            });
+            results.push(ExtractedResource {
+                name: s.identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_db_snapshot_copy
+// ---------------------------------------------------------------------------
+
+pub struct AwsDbSnapshotCopyConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsDbSnapshotCopyConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDbSnapshotCopyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_db_snapshot_copy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsDbSnapshotCopyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbSnapshotCopyTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_snapshot_copy", e))?;
+
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("shared_accounts");
+        let _ = attrs.get("presigned_url");
+        let tags = extract_rds_tags(attrs);
+
+        let target_region = model
+            .destination_region
+            .clone()
+            .unwrap_or_else(|| region.clone());
+
+        let arn = model.db_snapshot_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:snapshot:{}",
+                target_region, ctx.default_account_id, model.target_db_snapshot_identifier
+            )
+        });
+        let snapshot_type = model.snapshot_type.unwrap_or_else(|| "manual".to_string());
+        let engine = model.engine.unwrap_or_else(|| "mysql".to_string());
+
+        let port = if model.port == 0 {
+            None
+        } else {
+            Some(model.port as i32)
+        };
+        let iops = if model.iops == 0 {
+            None
+        } else {
+            Some(model.iops as i32)
+        };
+
+        let view = DbSnapshotView {
+            identifier: model.target_db_snapshot_identifier.clone(),
+            db_instance_identifier: String::new(),
+            engine,
+            engine_version: model.engine_version,
+            allocated_storage: model.allocated_storage as i32,
+            status: "available".to_string(),
+            port,
+            availability_zone: None,
+            vpc_id: model.vpc_id,
+            instance_create_time: None,
+            master_username: None,
+            snapshot_type,
+            iops,
+            option_group_name: model.option_group_name,
+            percent_progress: 100,
+            source_region: model.source_region,
+            source_db_snapshot_identifier: Some(model.source_db_snapshot_identifier),
+            storage_type: model.storage_type,
+            tde_credential_arn: None,
+            encrypted: model.encrypted,
+            kms_key_id: model.kms_key_id,
+            db_snapshot_arn: arn,
+            timezone: None,
+            db_instance_automated_backups_arn: None,
+            snapshot_create_time: None,
+            tags,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view
+            .db_snapshots
+            .insert(model.target_db_snapshot_identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &target_region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: target_region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Snapshot copies are stored alongside primary snapshots; we cannot
+        // reliably distinguish them on extract, so emit nothing here to avoid
+        // doubling output. aws_db_snapshot picks them up via the regular path.
+        let _ = ctx;
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_db_cluster_snapshot
+// ---------------------------------------------------------------------------
+
+pub struct AwsDbClusterSnapshotConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsDbClusterSnapshotConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDbClusterSnapshotConverter {
+    fn resource_type(&self) -> &str {
+        "aws_db_cluster_snapshot"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_rds_cluster"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsDbClusterSnapshotConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::DbClusterSnapshotTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_db_cluster_snapshot", e))?;
+
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("shared_accounts");
+        let tags = extract_rds_tags(attrs);
+        let availability_zones = extract_string_array(attrs, "availability_zones");
+
+        let arn = model.db_cluster_snapshot_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:cluster-snapshot:{}",
+                region, ctx.default_account_id, model.db_cluster_snapshot_identifier
+            )
+        });
+        let status = model.status.unwrap_or_else(|| "available".to_string());
+        let snapshot_type = model.snapshot_type.unwrap_or_else(|| "manual".to_string());
+        let engine = model.engine.unwrap_or_else(|| "aurora-mysql".to_string());
+
+        let port = if model.port == 0 {
+            None
+        } else {
+            Some(model.port as i32)
+        };
+
+        let view = DbClusterSnapshotView {
+            identifier: model.db_cluster_snapshot_identifier.clone(),
+            db_cluster_identifier: model.db_cluster_identifier,
+            engine,
+            engine_version: model.engine_version,
+            allocated_storage: model.allocated_storage as i32,
+            status,
+            port,
+            vpc_id: model.vpc_id,
+            cluster_create_time: None,
+            master_username: None,
+            snapshot_type,
+            percent_progress: 100,
+            storage_encrypted: model.storage_encrypted,
+            kms_key_id: model.kms_key_id,
+            db_cluster_snapshot_arn: arn,
+            source_db_cluster_snapshot_arn: model.source_db_cluster_snapshot_arn,
+            availability_zones,
+            snapshot_create_time: None,
+            tags,
+            storage_type: model.storage_type,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view
+            .db_cluster_snapshots
+            .insert(model.db_cluster_snapshot_identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for s in view.db_cluster_snapshots.values() {
+            let attrs = serde_json::json!({
+                "id": s.identifier,
+                "db_cluster_snapshot_identifier": s.identifier,
+                "db_cluster_identifier": s.db_cluster_identifier,
+                "db_cluster_snapshot_arn": s.db_cluster_snapshot_arn,
+                "engine": s.engine,
+                "engine_version": s.engine_version,
+                "allocated_storage": s.allocated_storage,
+                "availability_zones": s.availability_zones,
+                "kms_key_id": s.kms_key_id,
+                "port": s.port,
+                "snapshot_type": s.snapshot_type,
+                "source_db_cluster_snapshot_arn": s.source_db_cluster_snapshot_arn,
+                "status": s.status,
+                "storage_encrypted": s.storage_encrypted,
+                "storage_type": s.storage_type,
+                "vpc_id": s.vpc_id,
+                "tags": tags_to_map(&s.tags),
+                "tags_all": tags_to_map(&s.tags),
+            });
+            results.push(ExtractedResource {
+                name: s.identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_rds_cluster_snapshot_copy
+// ---------------------------------------------------------------------------
+
+pub struct AwsRdsClusterSnapshotCopyConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsRdsClusterSnapshotCopyConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRdsClusterSnapshotCopyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_rds_cluster_snapshot_copy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRdsClusterSnapshotCopyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::RdsClusterSnapshotCopyTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_rds_cluster_snapshot_copy", e))?;
+
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("shared_accounts");
+        let _ = attrs.get("presigned_url");
+        let tags = extract_rds_tags(attrs);
+
+        let target_region = model
+            .destination_region
+            .clone()
+            .unwrap_or_else(|| region.clone());
+
+        let arn = model.db_cluster_snapshot_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:cluster-snapshot:{}",
+                target_region, ctx.default_account_id, model.target_db_cluster_snapshot_identifier
+            )
+        });
+        let snapshot_type = model.snapshot_type.unwrap_or_else(|| "manual".to_string());
+        let engine = model.engine.unwrap_or_else(|| "aurora-mysql".to_string());
+
+        let view = DbClusterSnapshotView {
+            identifier: model.target_db_cluster_snapshot_identifier.clone(),
+            db_cluster_identifier: String::new(),
+            engine,
+            engine_version: model.engine_version,
+            allocated_storage: model.allocated_storage as i32,
+            status: "available".to_string(),
+            port: None,
+            vpc_id: model.vpc_id,
+            cluster_create_time: None,
+            master_username: None,
+            snapshot_type,
+            percent_progress: 100,
+            storage_encrypted: model.storage_encrypted,
+            kms_key_id: model.kms_key_id,
+            db_cluster_snapshot_arn: arn,
+            source_db_cluster_snapshot_arn: Some(format!(
+                "arn:aws:rds:{}:{}:cluster-snapshot:{}",
+                region, ctx.default_account_id, model.source_db_cluster_snapshot_identifier
+            )),
+            availability_zones: Vec::new(),
+            snapshot_create_time: None,
+            tags,
+            storage_type: model.storage_type,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view
+            .db_cluster_snapshots
+            .insert(model.target_db_cluster_snapshot_identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &target_region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region: target_region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Copies are written into db_cluster_snapshots and emitted by the
+        // aws_db_cluster_snapshot converter.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_rds_cluster_endpoint
+// ---------------------------------------------------------------------------
+
+pub struct AwsRdsClusterEndpointConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsRdsClusterEndpointConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRdsClusterEndpointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_rds_cluster_endpoint"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_rds_cluster"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRdsClusterEndpointConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::RdsClusterEndpointTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rds_cluster_endpoint", e))?;
+
+        let _ = attrs.get("tags_all");
+        let static_members = extract_string_array(attrs, "static_members");
+        let excluded_members = extract_string_array(attrs, "excluded_members");
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:cluster-endpoint:{}",
+                region, ctx.default_account_id, model.cluster_endpoint_identifier
+            )
+        });
+        let endpoint = model.endpoint.unwrap_or_else(|| {
+            format!(
+                "{}.cluster-custom-{}.{}.rds.amazonaws.com",
+                model.cluster_endpoint_identifier,
+                &uuid::Uuid::new_v4().to_string()[..12],
+                region
+            )
+        });
+
+        let view = DbClusterEndpointView {
+            db_cluster_endpoint_identifier: model.cluster_endpoint_identifier.clone(),
+            db_cluster_identifier: model.cluster_identifier,
+            db_cluster_endpoint_arn: arn,
+            endpoint,
+            status: "available".to_string(),
+            endpoint_type: "CUSTOM".to_string(),
+            custom_endpoint_type: Some(model.custom_endpoint_type),
+            static_members,
+            excluded_members,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view
+            .db_cluster_endpoints
+            .insert(model.cluster_endpoint_identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for e in view.db_cluster_endpoints.values() {
+            let attrs = serde_json::json!({
+                "id": e.db_cluster_endpoint_identifier,
+                "cluster_endpoint_identifier": e.db_cluster_endpoint_identifier,
+                "cluster_identifier": e.db_cluster_identifier,
+                "arn": e.db_cluster_endpoint_arn,
+                "endpoint": e.endpoint,
+                "custom_endpoint_type": e.custom_endpoint_type,
+                "static_members": e.static_members,
+                "excluded_members": e.excluded_members,
+            });
+            results.push(ExtractedResource {
+                name: e.db_cluster_endpoint_identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_rds_cluster_instance
+// ---------------------------------------------------------------------------
+
+pub struct AwsRdsClusterInstanceConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsRdsClusterInstanceConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRdsClusterInstanceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_rds_cluster_instance"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_rds_cluster", "aws_db_subnet_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRdsClusterInstanceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::RdsClusterInstanceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rds_cluster_instance", e))?;
+
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("apply_immediately");
+        let _ = attrs.get("monitoring_role_arn");
+        let _ = attrs.get("performance_insights_kms_key_id");
+        let _ = attrs.get("preferred_maintenance_window");
+        let _ = attrs.get("preferred_backup_window");
+        let _ = attrs.get("identifier_prefix");
+        let tags = extract_rds_tags(attrs);
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:db:{}",
+                region, ctx.default_account_id, model.identifier
+            )
+        });
+        let engine_version = model.engine_version.unwrap_or_default();
+        let endpoint_address = Some(format!(
+            "{}.{}.{}.rds.amazonaws.com",
+            model.identifier,
+            &uuid::Uuid::new_v4().to_string()[..8],
+            region
+        ));
+
+        let port = attrs.get("port").and_then(|v| v.as_i64()).map(|p| p as i32);
+        let monitoring_interval = attrs
+            .get("monitoring_interval")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32);
+        let _ = attrs.get("promotion_tier");
+
+        let param_groups = model
+            .db_parameter_group_name
+            .clone()
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        let view = DbInstanceView {
+            identifier: model.identifier.clone(),
+            db_instance_class: model.instance_class,
+            engine: model.engine,
+            engine_version,
+            status: "available".to_string(),
+            master_username: None,
+            db_name: None,
+            endpoint_address,
+            port,
+            multi_az: false,
+            storage_type: None,
+            allocated_storage: 0,
+            db_subnet_group_name: model.db_subnet_group_name,
+            vpc_security_group_ids: Vec::new(),
+            db_parameter_group_names: param_groups,
+            availability_zone: model.availability_zone,
+            publicly_accessible: model.publicly_accessible,
+            auto_minor_version_upgrade: model.auto_minor_version_upgrade,
+            backup_retention_period: 0,
+            db_cluster_identifier: Some(model.cluster_identifier),
+            arn,
+            tags,
+            instance_create_time: None,
+            license_model: None,
+            iops: None,
+            deletion_protection: false,
+            copy_tags_to_snapshot: model.copy_tags_to_snapshot,
+            monitoring_interval,
+            performance_insights_enabled: model.performance_insights_enabled,
+            storage_encrypted: false,
+            kms_key_id: model.kms_key_id,
+            ca_certificate_identifier: model.ca_cert_identifier,
+            secondary_availability_zone: None,
+            blue_green_update: None,
+            restore_to_point_in_time: None,
+            s3_import: None,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view.db_instances.insert(model.identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for dbi in view.db_instances.values() {
+            if dbi.db_cluster_identifier.is_none() {
+                continue;
+            }
+            let attrs = serde_json::json!({
+                "id": dbi.identifier,
+                "identifier": dbi.identifier,
+                "cluster_identifier": dbi.db_cluster_identifier,
+                "engine": dbi.engine,
+                "engine_version": dbi.engine_version,
+                "instance_class": dbi.db_instance_class,
+                "arn": dbi.arn,
+                "availability_zone": dbi.availability_zone,
+                "db_parameter_group_name": dbi.db_parameter_group_names.first(),
+                "db_subnet_group_name": dbi.db_subnet_group_name,
+                "endpoint": dbi.endpoint_address,
+                "port": dbi.port,
+                "publicly_accessible": dbi.publicly_accessible,
+                "auto_minor_version_upgrade": dbi.auto_minor_version_upgrade,
+                "performance_insights_enabled": dbi.performance_insights_enabled,
+                "copy_tags_to_snapshot": dbi.copy_tags_to_snapshot,
+                "monitoring_interval": dbi.monitoring_interval,
+                "ca_cert_identifier": dbi.ca_certificate_identifier,
+                "kms_key_id": dbi.kms_key_id,
+                "storage_encrypted": dbi.storage_encrypted,
+                "writer": false,
+                "dbi_resource_id": dbi.identifier,
+                "tags": tags_to_map(&dbi.tags),
+                "tags_all": tags_to_map(&dbi.tags),
+            });
+            results.push(ExtractedResource {
+                name: dbi.identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_rds_export_task
+// ---------------------------------------------------------------------------
+
+pub struct AwsRdsExportTaskConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsRdsExportTaskConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRdsExportTaskConverter {
+    fn resource_type(&self) -> &str {
+        "aws_rds_export_task"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRdsExportTaskConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::RdsExportTaskTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rds_export_task", e))?;
+
+        let export_only = extract_string_array(attrs, "export_only");
+        let status = model.status.unwrap_or_else(|| "complete".to_string());
+
+        let view = ExportTaskView {
+            export_task_identifier: model.export_task_identifier.clone(),
+            source_arn: model.source_arn,
+            export_only,
+            source_type: model.source_type,
+            snapshot_time: model.snapshot_time,
+            task_start_time: model.task_start_time,
+            task_end_time: model.task_end_time,
+            s3_bucket: model.s3_bucket_name,
+            s3_prefix: model.s3_prefix,
+            iam_role_arn: model.iam_role_arn,
+            kms_key_id: model.kms_key_id,
+            status,
+            percent_progress: model.percent_progress as i32,
+            total_extracted_data_in_gb: None,
+            failure_cause: model.failure_cause,
+            warning_message: model.warning_message,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view
+            .export_tasks
+            .insert(model.export_task_identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for t in view.export_tasks.values() {
+            let attrs = serde_json::json!({
+                "id": t.export_task_identifier,
+                "export_task_identifier": t.export_task_identifier,
+                "source_arn": t.source_arn,
+                "source_type": t.source_type,
+                "export_only": t.export_only,
+                "s3_bucket_name": t.s3_bucket,
+                "s3_prefix": t.s3_prefix,
+                "iam_role_arn": t.iam_role_arn,
+                "kms_key_id": t.kms_key_id,
+                "snapshot_time": t.snapshot_time,
+                "task_start_time": t.task_start_time,
+                "task_end_time": t.task_end_time,
+                "status": t.status,
+                "percent_progress": t.percent_progress,
+                "failure_cause": t.failure_cause,
+                "warning_message": t.warning_message,
+            });
+            results.push(ExtractedResource {
+                name: t.export_task_identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_rds_global_cluster
+// ---------------------------------------------------------------------------
+
+pub struct AwsRdsGlobalClusterConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsRdsGlobalClusterConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRdsGlobalClusterConverter {
+    fn resource_type(&self) -> &str {
+        "aws_rds_global_cluster"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRdsGlobalClusterConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::RdsGlobalClusterTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rds_global_cluster", e))?;
+
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("force_destroy");
+        let _ = attrs.get("engine_lifecycle_support");
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds::{}:global-cluster:{}",
+                ctx.default_account_id, model.global_cluster_identifier
+            )
+        });
+        let resource_id = model
+            .global_cluster_resource_id
+            .unwrap_or_else(|| format!("cluster-{}", uuid::Uuid::new_v4().simple()));
+
+        let view = GlobalClusterView {
+            global_cluster_identifier: model.global_cluster_identifier.clone(),
+            global_cluster_resource_id: resource_id,
+            global_cluster_arn: arn,
+            status: "available".to_string(),
+            engine: model.engine,
+            engine_version: model.engine_version,
+            database_name: model.database_name,
+            storage_encrypted: model.storage_encrypted,
+            deletion_protection: model.deletion_protection,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view
+            .global_clusters
+            .insert(model.global_cluster_identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for gc in view.global_clusters.values() {
+            let attrs = serde_json::json!({
+                "id": gc.global_cluster_identifier,
+                "global_cluster_identifier": gc.global_cluster_identifier,
+                "global_cluster_resource_id": gc.global_cluster_resource_id,
+                "arn": gc.global_cluster_arn,
+                "engine": gc.engine,
+                "engine_version": gc.engine_version,
+                "database_name": gc.database_name,
+                "storage_encrypted": gc.storage_encrypted,
+                "deletion_protection": gc.deletion_protection,
+            });
+            results.push(ExtractedResource {
+                name: gc.global_cluster_identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_rds_shard_group
+// ---------------------------------------------------------------------------
+
+pub struct AwsRdsShardGroupConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsRdsShardGroupConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRdsShardGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_rds_shard_group"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_rds_cluster"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRdsShardGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: rds_gen::RdsShardGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_rds_shard_group", e))?;
+
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("compute_redundancy");
+        let tag_list = extract_rds_tags(attrs);
+
+        // f64 fields are unsupported in spec; read raw from attrs.
+        let max_acu = attrs.get("max_acu").and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let min_acu = attrs.get("min_acu").and_then(|v| v.as_f64());
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:shard-group:{}",
+                region, ctx.default_account_id, model.db_shard_group_identifier
+            )
+        });
+        let endpoint = model.endpoint.unwrap_or_else(|| {
+            format!(
+                "{}.shardgrp-{}.{}.rds.amazonaws.com",
+                model.db_shard_group_identifier,
+                &uuid::Uuid::new_v4().to_string()[..12],
+                region
+            )
+        });
+
+        let view = DbShardGroupView {
+            db_shard_group_identifier: model.db_shard_group_identifier.clone(),
+            db_shard_group_resource_id: model.db_shard_group_resource_id,
+            db_cluster_identifier: model.db_cluster_identifier,
+            max_acu,
+            min_acu,
+            publicly_accessible: model.publicly_accessible,
+            status: "available".to_string(),
+            endpoint: Some(endpoint),
+            db_shard_group_arn: Some(arn),
+            tag_list,
+        };
+
+        let mut state_view = minimal_rds_state_view();
+        state_view
+            .db_shard_groups
+            .insert(model.db_shard_group_identifier, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for g in view.db_shard_groups.values() {
+            let attrs = serde_json::json!({
+                "id": g.db_shard_group_identifier,
+                "db_shard_group_identifier": g.db_shard_group_identifier,
+                "db_cluster_identifier": g.db_cluster_identifier,
+                "db_shard_group_resource_id": g.db_shard_group_resource_id,
+                "arn": g.db_shard_group_arn,
+                "endpoint": g.endpoint,
+                "max_acu": g.max_acu,
+                "min_acu": g.min_acu,
+                "publicly_accessible": g.publicly_accessible,
+                "tags": tags_to_map(&g.tag_list),
+                "tags_all": tags_to_map(&g.tag_list),
+            });
+            results.push(ExtractedResource {
+                name: g.db_shard_group_identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_rds_instance_state
+// ---------------------------------------------------------------------------
+//
+// Sub-resource: snapshots+mutates+restores the parent DbInstance.status.
+// No generated model.
+pub struct AwsRdsInstanceStateConverter {
+    service: Arc<RdsService>,
+}
+
+impl AwsRdsInstanceStateConverter {
+    pub fn new(service: Arc<RdsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRdsInstanceStateConverter {
+    fn resource_type(&self) -> &str {
+        "aws_rds_instance_state"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_db_instance"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRdsInstanceStateConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let identifier = attrs
+            .get("identifier")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| ConversionError::MissingAttribute {
+                resource_type: "aws_rds_instance_state".into(),
+                attribute: "identifier".into(),
+            })?
+            .to_string();
+        let state = attrs
+            .get("state")
+            .and_then(|v| v.as_str())
+            .unwrap_or("available")
+            .to_string();
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(dbi) = view.db_instances.get_mut(&identifier) {
+            dbi.status = state;
+        } else {
+            warnings.push(format!(
+                "db_instance '{identifier}' not found; instance_state ignored"
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Sub-resource that overlays DbInstance.status; do not emit on
+        // extract to avoid pseudo-resources next to every aws_db_instance.
+        Ok(vec![])
     }
 }
 

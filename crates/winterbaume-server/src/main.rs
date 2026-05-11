@@ -325,6 +325,7 @@ struct InjectableServices {
     redshift: Arc<winterbaume_redshift::RedshiftService>,
     route53: Arc<winterbaume_route53::Route53Service>,
     s3: Arc<winterbaume_s3::S3Service>,
+    sagemaker: Arc<winterbaume_sagemaker::SageMakerService>,
     scheduler: Arc<winterbaume_scheduler::SchedulerService>,
     secretsmanager: Arc<winterbaume_secretsmanager::SecretsManagerService>,
     ses: Arc<winterbaume_sesv2::SesV2Service>,
@@ -651,6 +652,7 @@ async fn register_all_services(
         Arc::new(winterbaume_opensearchserverless::OpenSearchServerlessService::new());
     let redshift_svc = Arc::new(winterbaume_redshift::RedshiftService::new());
     let route53 = Arc::new(winterbaume_route53::Route53Service::new());
+    let sagemaker_svc = Arc::new(winterbaume_sagemaker::SageMakerService::new());
     let scheduler = Arc::new(winterbaume_scheduler::SchedulerService::new());
     let secretsmanager = Arc::new(winterbaume_secretsmanager::SecretsManagerService::new());
     let ses = Arc::new(winterbaume_sesv2::SesV2Service::new());
@@ -791,6 +793,7 @@ async fn register_all_services(
         redshift: Arc::clone(&redshift_svc),
         route53: Arc::clone(&route53),
         s3: Arc::clone(&s3),
+        sagemaker: Arc::clone(&sagemaker_svc),
         scheduler: Arc::clone(&scheduler),
         secretsmanager: Arc::clone(&secretsmanager),
         ses: Arc::clone(&ses),
@@ -955,7 +958,7 @@ async fn register_all_services(
         Arc::new(winterbaume_memorydb::MemoryDbService::new()),
         ebs,
         Arc::clone(&networkfirewall) as Arc<dyn MockService>,
-        Arc::new(winterbaume_sagemaker::SageMakerService::new()),
+        Arc::clone(&sagemaker_svc) as Arc<dyn MockService>,
         appsync,
         Arc::clone(&iot) as Arc<dyn MockService>,
         kafka,
@@ -1205,11 +1208,11 @@ async fn load_tfstate(
         mediapackage, mediapackagev2, mediastore, mq, networkfirewall, networkmanager, opensearch,
         opensearchserverless, organizations, osis, outposts, pipes, quicksight, ram, rds, redshift,
         rekognition, resiliencehub, resourcegroups, rolesanywhere, route53, route53domains,
-        route53resolver, s3, s3control, s3tables, scheduler, secretsmanager, securityhub,
-        servicecatalogappregistry, servicediscovery, servicequotas, ses, sesv1, shield, signer,
-        simpledbv2, sns, sqs, ssm, ssoadmin, stepfunctions, swf, synthetics, timestreaminfluxdb,
-        timestreamquery, timestreamwrite, transcribe, transfer, vpclattice, wafv2, workspaces,
-        xray,
+        route53resolver, s3, s3control, s3tables, sagemaker, scheduler, secretsmanager,
+        securityhub, servicecatalogappregistry, servicediscovery, servicequotas, ses, sesv1,
+        shield, signer, simpledbv2, sns, sqs, ssm, ssoadmin, stepfunctions, swf, synthetics,
+        timestreaminfluxdb, timestreamquery, timestreamwrite, transcribe, transfer, vpclattice,
+        wafv2, workspaces, xray,
     };
     injector.register(accessanalyzer::AwsAccessAnalyzerAnalyzerConverter::new(
         Arc::clone(&injectable.accessanalyzer),
@@ -1259,6 +1262,62 @@ async fn load_tfstate(
         Arc::clone(&injectable.apigateway),
     ));
     injector.register(apigateway::AwsApiGatewayApiKeyConverter::new(Arc::clone(
+        &injectable.apigateway,
+    )));
+    injector.register(apigateway::AwsApiGatewayAccountConverter::new(Arc::clone(
+        &injectable.apigateway,
+    )));
+    injector.register(apigateway::AwsApiGatewayAuthorizerConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayBasePathMappingConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayClientCertificateConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayDocumentationPartConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayDocumentationVersionConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayDomainNameConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(
+        apigateway::AwsApiGatewayDomainNameAccessAssociationConverter::new(Arc::clone(
+            &injectable.apigateway,
+        )),
+    );
+    injector.register(apigateway::AwsApiGatewayGatewayResponseConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayIntegrationConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayIntegrationResponseConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayMethodResponseConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayModelConverter::new(Arc::clone(
+        &injectable.apigateway,
+    )));
+    injector.register(apigateway::AwsApiGatewayRequestValidatorConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayRestApiPolicyConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayUsagePlanConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayUsagePlanKeyConverter::new(
+        Arc::clone(&injectable.apigateway),
+    ));
+    injector.register(apigateway::AwsApiGatewayVpcLinkConverter::new(Arc::clone(
         &injectable.apigateway,
     )));
     injector.register(apigatewayv2::AwsApigatewayv2ApiConverter::new(Arc::clone(
@@ -1595,6 +1654,42 @@ async fn load_tfstate(
     injector.register(glue::AwsGlueCrawlerConverter::new(Arc::clone(
         &injectable.glue,
     )));
+    injector.register(glue::AwsGlueCatalogTableConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueConnectionConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueDataCatalogEncryptionSettingsConverter::new(
+        Arc::clone(&injectable.glue),
+    ));
+    injector.register(glue::AwsGlueDevEndpointConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueMlTransformConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGluePartitionConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueRegistryConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueResourcePolicyConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueSchemaConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueSecurityConfigurationConverter::new(
+        Arc::clone(&injectable.glue),
+    ));
+    injector.register(glue::AwsGlueTriggerConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueWorkflowConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
     injector.register(guardduty::AwsGuarddutyDetectorConverter::new(Arc::clone(
         &injectable.guardduty,
     )));
@@ -1617,6 +1712,84 @@ async fn load_tfstate(
     injector.register(iam::AwsIamUserPolicyAttachmentConverter::new(Arc::clone(
         &injectable.iam,
     )));
+    // Wave 1: top-level IAM resources
+    injector.register(iam::AwsIamOpenidConnectProviderConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamSamlProviderConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamVirtualMfaDeviceConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamServerCertificateConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamSigningCertificateConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamServiceSpecificCredentialConverter::new(
+        Arc::clone(&injectable.iam),
+    ));
+    injector.register(iam::AwsIamUserSshKeyConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamAccessKeyConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamUserLoginProfileConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamAccountPasswordPolicyConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamAccountAliasConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    // Wave 2: sub-resource modifiers
+    injector.register(iam::AwsIamRolePolicyConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamUserPolicyConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamGroupPolicyConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamGroupPolicyAttachmentConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamGroupMembershipConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamUserGroupMembershipConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamServiceLinkedRoleConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    // Wave 3: multi-target + exclusives
+    injector.register(iam::AwsIamPolicyAttachmentConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamRolePoliciesExclusiveConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamUserPoliciesExclusiveConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamGroupPoliciesExclusiveConverter::new(Arc::clone(
+        &injectable.iam,
+    )));
+    injector.register(iam::AwsIamRolePolicyAttachmentsExclusiveConverter::new(
+        Arc::clone(&injectable.iam),
+    ));
+    injector.register(iam::AwsIamUserPolicyAttachmentsExclusiveConverter::new(
+        Arc::clone(&injectable.iam),
+    ));
+    injector.register(iam::AwsIamGroupPolicyAttachmentsExclusiveConverter::new(
+        Arc::clone(&injectable.iam),
+    ));
     injector.register(identitystore::AwsIdentitystoreGroupConverter::new(
         Arc::clone(&injectable.identitystore),
     ));
@@ -1830,11 +2003,112 @@ async fn load_tfstate(
             rds::AwsDbEventSubscriptionConverter::new(Arc::clone(&injectable.rds)),
             mk_sp(),
         );
+        injector.register_with_scopes(
+            rds::AwsDbProxyConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsDbProxyDefaultTargetGroupConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsDbProxyEndpointConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsDbProxyTargetConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsDbSnapshotConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsDbSnapshotCopyConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsDbClusterSnapshotConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsRdsClusterSnapshotCopyConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsRdsClusterEndpointConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsRdsClusterInstanceConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsRdsExportTaskConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsRdsGlobalClusterConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsRdsShardGroupConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
+        injector.register_with_scopes(
+            rds::AwsRdsInstanceStateConverter::new(Arc::clone(&injectable.rds)),
+            mk_sp(),
+        );
     }
     injector.register(redshift::AwsRedshiftClusterConverter::new(Arc::clone(
         &injectable.redshift,
     )));
     injector.register(redshift::AwsRedshiftSubnetGroupConverter::new(Arc::clone(
+        &injectable.redshift,
+    )));
+    injector.register(redshift::AwsRedshiftAuthenticationProfileConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftClusterIamRolesConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftClusterSnapshotConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftEventSubscriptionConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftHsmClientCertificateConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftHsmConfigurationConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftLoggingConverter::new(Arc::clone(
+        &injectable.redshift,
+    )));
+    injector.register(redshift::AwsRedshiftParameterGroupConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftPartnerConverter::new(Arc::clone(
+        &injectable.redshift,
+    )));
+    injector.register(redshift::AwsRedshiftResourcePolicyConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftScheduledActionConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftSnapshotCopyConverter::new(Arc::clone(
+        &injectable.redshift,
+    )));
+    injector.register(redshift::AwsRedshiftSnapshotCopyGrantConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftSnapshotScheduleConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftUsageLimitConverter::new(Arc::clone(
         &injectable.redshift,
     )));
     injector.register(rekognition::AwsRekognitionCollectionConverter::new(
@@ -1886,9 +2160,9 @@ async fn load_tfstate(
             &injectable.route53,
         )),
     );
-    injector.register(route53::AwsRoute53ZoneAssociationConverter::new(Arc::clone(
-        &injectable.route53,
-    )));
+    injector.register(route53::AwsRoute53ZoneAssociationConverter::new(
+        Arc::clone(&injectable.route53),
+    ));
     injector.register(
         route53domains::AwsRoute53DomainsRegisteredDomainConverter::new(Arc::clone(
             &injectable.route53domains,
@@ -1907,6 +2181,72 @@ async fn load_tfstate(
             move || svc.scopes_with_state(),
         );
     }
+    // S3 bucket sub-resources (single Option<String> fields)
+    injector.register(s3::AwsS3BucketAccelerateConfigurationConverter::new(
+        Arc::clone(&injectable.s3),
+    ));
+    injector.register(s3::AwsS3BucketAclConverter::new(Arc::clone(&injectable.s3)));
+    injector.register(s3::AwsS3BucketCorsConfigurationConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3BucketLifecycleConfigurationConverter::new(
+        Arc::clone(&injectable.s3),
+    ));
+    injector.register(s3::AwsS3BucketLoggingConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3BucketNotificationConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3BucketObjectLockConfigurationConverter::new(
+        Arc::clone(&injectable.s3),
+    ));
+    injector.register(s3::AwsS3BucketOwnershipControlsConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3BucketPolicyConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3BucketReplicationConfigurationConverter::new(
+        Arc::clone(&injectable.s3),
+    ));
+    injector.register(s3::AwsS3BucketRequestPaymentConfigurationConverter::new(
+        Arc::clone(&injectable.s3),
+    ));
+    injector.register(
+        s3::AwsS3BucketServerSideEncryptionConfigurationConverter::new(Arc::clone(&injectable.s3)),
+    );
+    injector.register(s3::AwsS3BucketVersioningConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3BucketWebsiteConfigurationConverter::new(
+        Arc::clone(&injectable.s3),
+    ));
+    injector.register(s3::AwsS3BucketPublicAccessBlockConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    // S3 multi-entry configuration HashMaps
+    injector.register(s3::AwsS3BucketAnalyticsConfigurationConverter::new(
+        Arc::clone(&injectable.s3),
+    ));
+    injector.register(
+        s3::AwsS3BucketIntelligentTieringConfigurationConverter::new(Arc::clone(&injectable.s3)),
+    );
+    injector.register(s3::AwsS3BucketMetricConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    // S3 object resources
+    injector.register(s3::AwsS3ObjectConverter::new(Arc::clone(&injectable.s3)));
+    injector.register(s3::AwsS3BucketObjectConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3ObjectCopyConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    // S3 directory bucket
+    injector.register(s3::AwsS3DirectoryBucketConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
     injector.register(s3control::AwsS3controlAccessPointConverter::new(
         Arc::clone(&injectable.s3control),
     ));
@@ -1919,6 +2259,49 @@ async fn load_tfstate(
     injector.register(s3tables::AwsS3tablesNamespaceConverter::new(Arc::clone(
         &injectable.s3tables,
     )));
+    injector.register(sagemaker::AwsSagemakerDomainConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerEndpointConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerEndpointConfigurationConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerModelConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerNotebookInstanceConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerAppConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(
+        sagemaker::AwsSagemakerDataQualityJobDefinitionConverter::new(Arc::clone(
+            &injectable.sagemaker,
+        )),
+    );
+    injector.register(sagemaker::AwsSagemakerFeatureGroupConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerModelPackageGroupConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(
+        sagemaker::AwsSagemakerNotebookInstanceLifecycleConfigurationConverter::new(Arc::clone(
+            &injectable.sagemaker,
+        )),
+    );
+    injector.register(sagemaker::AwsSagemakerPipelineConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerSpaceConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerUserProfileConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
     injector.register(scheduler::AwsSchedulerScheduleGroupConverter::new(
         Arc::clone(&injectable.scheduler),
     ));

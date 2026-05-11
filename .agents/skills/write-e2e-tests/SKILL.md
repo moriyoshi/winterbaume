@@ -207,6 +207,20 @@ grep -E '"[A-Z][a-zA-Z]+"' crates/winterbaume-{service}/src/handlers.rs | head -
 
 Only test operations that are actually dispatched (not unmatched actions).
 
+### 0b.1. Identify the service's registered TF converters
+
+The terraform converters are spec-driven. The authoritative list of TF resource types the service handles lives in `crates/winterbaume-terraform/specs/<service>.toml`:
+
+```bash
+grep -E "^type = " crates/winterbaume-terraform/specs/<service>.toml | sort -u
+```
+
+Each `[[resource]]` block's `type = "aws_..."` is a candidate for E2E coverage. The corresponding hand-written converter at `crates/winterbaume-terraform/src/converters/<service>.rs` orchestrates inject/extract — open it to confirm the resource is genuinely wired, not just spec'd. Each converter must also be registered in `crates/winterbaume-server/src/main.rs` for the in-process server to route Terraform requests through it.
+
+If a TF resource is not in the spec, the converter doesn't exist and the E2E test will fail with the in-process server returning empty state. Add the converter first via the `terraform-converter` skill, then write the E2E test.
+
+The per-service resource-type coverage report ( `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`, regenerated via `python3 .agents/skills/api-coverage/scripts/generate_terraform_resource_coverage.py` ) shows exactly which resources are handled vs missing.
+
 ### 0c. Identify the terraform provider endpoint name
 
 The terraform AWS provider endpoint names **do not always match** winterbaume crate names. Use the wrong name and requests silently go to the real AWS (or nowhere).
@@ -253,7 +267,7 @@ The endpoint name to use in `write_provider_tf` is the second column (the lower-
 
 ### 0d. Identify terraform resource types
 
-Search for the service's terraform resource types. Key patterns:
+The canonical list is the spec file ( see Step 0b.1 ). Sub-resource categories:
 
 | Category | Example | What it tests |
 |---|---|---|
@@ -262,6 +276,8 @@ Search for the service's terraform resource types. Key patterns:
 | Attachment | `aws_iam_role_policy_attachment` | Relationship between two existing resources |
 | Inline | `aws_iam_role_policy` | Child resource embedded in parent |
 | Policy | `aws_sqs_queue_policy` | SetAttributes with Policy field |
+| Exclusive | `aws_iam_role_policies_exclusive` | Replaces the full set of inline/attached policies on the entity |
+| Multi-target | `aws_iam_policy_attachment` | Single TF resource attaching one policy to multiple entities; extract intentionally returns empty |
 
 ### 0d.1. Verify each `aws_*` resource type actually exists in `hashicorp/aws`
 
@@ -563,6 +579,7 @@ Anything else — even one failure, even in a service you did not touch — mean
 2. Terraform resource types covered
 3. Handler fixes applied (with `FIX(terraform-e2e)` markers)
 4. Resource types skipped and why
+5. Any TF resource types found in `crates/winterbaume-terraform/specs/<service>.toml` that didn't make it into the test module (with a brief reason — non-trivial deps, no handler-side support, etc.) — these become candidate follow-up work
 
 ### 5c. Pre-report self-check (do not skip)
 

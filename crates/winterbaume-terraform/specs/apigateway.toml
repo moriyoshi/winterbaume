@@ -272,3 +272,680 @@ type = "string?"
 hcl = "description"
 view = "description"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_account
+# ---------------------------------------------------------------------------
+# Singleton resource that targets ApiGatewayStateView::account.
+# Vec<String>/nested-block fields (features, throttle_settings) are read raw.
+
+[[resource]]
+type = "aws_api_gateway_account"
+model = "ApiGatewayAccountTfModel"
+view = "AccountView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cloudwatch_role_arn"
+view = "cloudwatch_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_key_version"
+view = "api_key_version"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_authorizer
+# ---------------------------------------------------------------------------
+# Vec<String>/Option<i32> fields (provider_arns, authorizer_result_ttl_in_seconds)
+# are read raw in the converter.
+
+[[resource]]
+type = "aws_api_gateway_authorizer"
+model = "ApiGatewayAuthorizerTfModel"
+view = "AuthorizerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "authorizer_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorizer_uri"
+view = "authorizer_uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorizer_credentials"
+view = "authorizer_credentials"
+type = "string?"
+
+[[resource.field]]
+hcl = "identity_source"
+view = "identity_source"
+type = "string?"
+
+[[resource.field]]
+hcl = "identity_validation_expression"
+view = "identity_validation_expression"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_base_path_mapping
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_base_path_mapping"
+model = "ApiGatewayBasePathMappingTfModel"
+view = "BasePathMappingView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "base_path"
+view = "base_path"
+type = "string?"
+
+[[resource.field]]
+hcl = "stage_name"
+view = "stage"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_client_certificate
+# ---------------------------------------------------------------------------
+# Tags are merged via extract_tags() in the converter.
+
+[[resource]]
+type = "aws_api_gateway_client_certificate"
+model = "ApiGatewayClientCertificateTfModel"
+view = "ClientCertificateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "pem_encoded_certificate"
+view = "pem_encoded_certificate"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_documentation_part
+# ---------------------------------------------------------------------------
+# The `location` HCL block is a nested object — read raw and split into
+# scalar location_* view fields in the converter.
+
+[[resource]]
+type = "aws_api_gateway_documentation_part"
+model = "ApiGatewayDocumentationPartTfModel"
+view = "DocumentationPartView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "properties"
+view = "properties"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_documentation_version
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_documentation_version"
+model = "ApiGatewayDocumentationVersionTfModel"
+view = "DocumentationVersionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_domain_name
+# ---------------------------------------------------------------------------
+# Tags merged via extract_tags(). Vec<String>/Option<i32> fields and
+# nested endpoint_configuration blocks are not modelled on DomainNameView.
+
+[[resource]]
+type = "aws_api_gateway_domain_name"
+model = "ApiGatewayDomainNameTfModel"
+view = "DomainNameView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "certificate_name"
+view = "certificate_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "cloudfront_domain_name"
+view = "distribution_domain_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_domain_name_access_association
+# ---------------------------------------------------------------------------
+# Tags merged via extract_tags(); the singular `tags` field is dropped.
+
+[[resource]]
+type = "aws_api_gateway_domain_name_access_association"
+model = "ApiGatewayDomainNameAccessAssociationTfModel"
+view = "DomainNameAccessAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "access_association_source"
+view = "access_association_source"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "access_association_source_type"
+view = "access_association_source_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "domain_name_arn"
+view = "domain_name_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_gateway_response
+# ---------------------------------------------------------------------------
+# HashMap<String, String> fields (response_parameters, response_templates)
+# are read raw in the converter.
+
+[[resource]]
+type = "aws_api_gateway_gateway_response"
+model = "ApiGatewayGatewayResponseTfModel"
+view = "GatewayResponseView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "response_type"
+view = "response_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status_code"
+view = "status_code"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_integration
+# ---------------------------------------------------------------------------
+# Sub-resource: pushes an IntegrationView onto an existing method via
+# snapshot+mutate+restore. HashMap<String, String>/Vec<String>/Option<i32>
+# nested fields are read raw.
+
+[[resource]]
+type = "aws_api_gateway_integration"
+model = "ApiGatewayIntegrationTfModel"
+view = "IntegrationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "http_method"
+view = "http_method"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "integration_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "integration_http_method"
+view = "integration_http_method"
+type = "string?"
+
+[[resource.field]]
+hcl = "uri"
+view = "uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "credentials"
+view = "credentials"
+type = "string?"
+
+[[resource.field]]
+hcl = "passthrough_behavior"
+view = "passthrough_behavior"
+type = "string?"
+
+[[resource.field]]
+hcl = "content_handling"
+view = "content_handling"
+type = "string?"
+
+[[resource.field]]
+hcl = "cache_namespace"
+view = "cache_namespace"
+type = "string?"
+
+[[resource.field]]
+hcl = "connection_type"
+view = "connection_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_integration_response
+# ---------------------------------------------------------------------------
+# Sub-resource of method.integration.integration_responses. Templates
+# are HashMap<String, String> — read raw.
+
+[[resource]]
+type = "aws_api_gateway_integration_response"
+model = "ApiGatewayIntegrationResponseTfModel"
+view = "IntegrationResponseView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "http_method"
+view = "http_method"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status_code"
+view = "status_code"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "selection_pattern"
+view = "selection_pattern"
+type = "string?"
+
+[[resource.field]]
+hcl = "content_handling"
+view = "content_handling"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_method_response
+# ---------------------------------------------------------------------------
+# Sub-resource of method.method_responses. response_models is
+# HashMap<String, String>, response_parameters is HashMap<String, bool> —
+# both read raw.
+
+[[resource]]
+type = "aws_api_gateway_method_response"
+model = "ApiGatewayMethodResponseTfModel"
+view = "MethodResponseView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "http_method"
+view = "http_method"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status_code"
+view = "status_code"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_model
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_model"
+model = "ApiGatewayModelTfModel"
+view = "ModelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "schema"
+view = "schema"
+type = "string?"
+
+[[resource.field]]
+hcl = "content_type"
+view = "content_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_request_validator
+# ---------------------------------------------------------------------------
+# bool fields (validate_request_body, validate_request_parameters) are
+# read raw to preserve TF-default semantics.
+
+[[resource]]
+type = "aws_api_gateway_request_validator"
+model = "ApiGatewayRequestValidatorTfModel"
+view = "RequestValidatorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_rest_api_policy
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: sets the `policy` field on an existing RestApiView
+# via snapshot+mutate+restore.
+
+[[resource]]
+type = "aws_api_gateway_rest_api_policy"
+model = "ApiGatewayRestApiPolicyTfModel"
+view = "RestApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rest_api_id"
+view = "rest_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_usage_plan
+# ---------------------------------------------------------------------------
+# Tags via extract_tags(). Vec<UsagePlanApiStage>/throttle/quota nested
+# blocks are read raw in the converter.
+
+[[resource]]
+type = "aws_api_gateway_usage_plan"
+model = "ApiGatewayUsagePlanTfModel"
+view = "UsagePlanView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "product_code"
+view = "product_code"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_usage_plan_key
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_api_gateway_usage_plan_key"
+model = "ApiGatewayUsagePlanKeyTfModel"
+view = "UsagePlanKeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "usage_plan_id"
+view = "usage_plan_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key_type"
+view = "key_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_api_gateway_vpc_link
+# ---------------------------------------------------------------------------
+# Tags via extract_tags(). target_arns Vec<String> is read raw.
+
+[[resource]]
+type = "aws_api_gateway_vpc_link"
+model = "ApiGatewayVpcLinkTfModel"
+view = "VpcLinkView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"

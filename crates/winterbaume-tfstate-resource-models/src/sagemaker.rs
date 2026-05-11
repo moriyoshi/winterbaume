@@ -99,3 +99,117 @@ pub struct NotebookInstanceTfModel {
 fn default_notebook_instance_volume_size() -> i64 {
     5i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_app` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppTfModel {
+    pub domain_id: String,
+    pub app_name: String,
+    pub app_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user_profile_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub space_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_data_quality_job_definition` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataQualityJobDefinitionTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_feature_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeatureGroupTfModel {
+    pub feature_group_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub feature_group_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_modified_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_model_package_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModelPackageGroupTfModel {
+    pub model_package_group_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_package_group_description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_notebook_instance_lifecycle_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotebookInstanceLifecycleConfigurationTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_pipeline` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PipelineTfModel {
+    pub pipeline_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pipeline_display_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pipeline_description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pipeline_definition: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_modified_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_space` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpaceTfModel {
+    pub domain_id: String,
+    pub space_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_modified_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sagemaker_user_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserProfileTfModel {
+    pub domain_id: String,
+    pub user_profile_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_modified_time: Option<String>,
+}

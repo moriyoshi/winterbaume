@@ -1,11 +1,15 @@
 # Auto-ingested by `tf-converter-codegen ingest glue`.
-# Hand-tuned: split into one [[resource]] block per resource type
-# (catalog_database / job / crawler). Dropped Vec<T>/nested-block fields
-# (parameters, default_arguments, command, connections,
-# non_overridable_arguments, target_database, s3_target, dynamodb_target,
-# delta_target, jdbc_target, lake_formation_configuration,
-# lineage_configuration, recrawl_policy, schema_change_policy,
-# tags_all, max_capacity (Option<f64>), number_of_workers (Option<i32>)).
+# Hand-tuned: split into one [[resource]] block per resource type.
+# Dropped Vec<T>/nested-block fields (parameters, default_arguments,
+# command, connections, non_overridable_arguments, target_database,
+# s3_target, dynamodb_target, delta_target, jdbc_target,
+# lake_formation_configuration, lineage_configuration, recrawl_policy,
+# schema_change_policy, tags_all, max_capacity (Option<f64>),
+# number_of_workers (Option<i32>), partition_keys, storage_descriptor,
+# physical_connection_requirements, match_criteria, security_group_ids,
+# arguments, public_keys, encryption_configuration, encryption_at_rest,
+# connection_password_encryption, schema_definition, actions, predicate,
+# input_record_tables, partition_index, values, connection_properties).
 # Those are read straight from instance.attributes in the converter.
 # ARN templates and timestamp constants are wired up by hand.
 
@@ -139,3 +143,394 @@ type = "string?"
 hcl = "table_prefix"
 view = "table_prefix"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_catalog_table
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_catalog_table"
+model = "CatalogTableTfModel"
+view = "TableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner"
+view = "owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "table_type"
+view = "table_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "retention"
+view = "retention"
+type = "i64"
+default = 0
+
+# ---------------------------------------------------------------------------
+# aws_glue_connection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_connection"
+model = "ConnectionTfModel"
+view = "ConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_type"
+view = "connection_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_data_catalog_encryption_settings
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_data_catalog_encryption_settings"
+model = "DataCatalogEncryptionSettingsTfModel"
+view = "DataCatalogEncryptionSettingsView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_dev_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_dev_endpoint"
+model = "DevEndpointTfModel"
+view = "DevEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "endpoint_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "number_of_nodes"
+view = "number_of_nodes"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "worker_type"
+view = "worker_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "glue_version"
+view = "glue_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "public_key"
+view = "public_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "extra_python_libs_s3_path"
+view = "extra_python_libs_s3_path"
+type = "string?"
+
+[[resource.field]]
+hcl = "extra_jars_s3_path"
+view = "extra_jars_s3_path"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_ml_transform
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_ml_transform"
+model = "MlTransformTfModel"
+view = "MLTransformView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "glue_version"
+view = "glue_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "worker_type"
+view = "worker_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_partition
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_partition"
+model = "PartitionTfModel"
+view = "PartitionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "table_name"
+view = "table_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_registry
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_registry"
+model = "RegistryTfModel"
+view = "RegistryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "registry_name"
+view = "registry_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_resource_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_resource_policy"
+model = "ResourcePolicyTfModel"
+view = "ResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy_in_json"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_glue_schema
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_schema"
+model = "SchemaTfModel"
+view = "SchemaView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "schema_name"
+view = "schema_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "registry_arn"
+view = "registry_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "data_format"
+view = "data_format"
+type = "string?"
+
+[[resource.field]]
+hcl = "compatibility"
+view = "compatibility"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_security_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_security_configuration"
+model = "SecurityConfigurationTfModel"
+view = "SecurityConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_glue_trigger
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_trigger"
+model = "TriggerTfModel"
+view = "TriggerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "trigger_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "schedule"
+view = "schedule"
+type = "string?"
+
+[[resource.field]]
+hcl = "workflow_name"
+view = "workflow_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_workflow
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_workflow"
+model = "WorkflowTfModel"
+view = "WorkflowView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "max_concurrent_runs"
+view = "max_concurrent_runs"
+type = "i64"
+default = 0

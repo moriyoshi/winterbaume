@@ -147,3 +147,500 @@ type = "string?"
 hcl = "vpc_id"
 view = "vpc_id"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_authentication_profile
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_authentication_profile"
+model = "RedshiftAuthenticationProfileTfModel"
+view = "RedshiftAuthenticationProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "authentication_profile_name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "authentication_profile_content"
+view = "content"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_cluster_iam_roles
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: attaches an `iam_roles` list to an existing
+# cluster. `iam_role_arns` and `default_iam_role_arn` are read straight
+# from `instance.attributes`. The converter snapshots+restores.
+
+[[resource]]
+type = "aws_redshift_cluster_iam_roles"
+model = "RedshiftClusterIamRolesTfModel"
+view = "RedshiftClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "default_iam_role_arn"
+view = "default_iam_role_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_cluster_snapshot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_cluster_snapshot"
+model = "RedshiftClusterSnapshotTfModel"
+view = "RedshiftSnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "snapshot_identifier"
+view = "snapshot_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_event_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_event_subscription"
+model = "RedshiftEventSubscriptionTfModel"
+view = "RedshiftEventSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "subscription_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "sns_topic_arn"
+view = "sns_topic_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_type"
+view = "source_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "severity"
+view = "severity"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_aws_id"
+view = "customer_aws_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_hsm_client_certificate
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_hsm_client_certificate"
+model = "RedshiftHsmClientCertificateTfModel"
+view = "RedshiftHsmClientCertificateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "hsm_client_certificate_identifier"
+view = "identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "hsm_client_certificate_public_key"
+view = "public_key"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_hsm_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_hsm_configuration"
+model = "RedshiftHsmConfigurationTfModel"
+view = "RedshiftHsmConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "hsm_configuration_identifier"
+view = "identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "hsm_ip_address"
+view = "hsm_ip_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "hsm_partition_name"
+view = "hsm_partition_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_logging
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: enables logging on an existing cluster.
+
+[[resource]]
+type = "aws_redshift_logging"
+model = "RedshiftLoggingTfModel"
+view = "RedshiftClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bucket_name"
+view = "bucket_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_key_prefix"
+view = "s3_key_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "log_destination_type"
+view = "log_destination_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_parameter_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_parameter_group"
+model = "RedshiftParameterGroupTfModel"
+view = "RedshiftParameterGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "family"
+view = "family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_partner
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_partner"
+model = "RedshiftPartnerTfModel"
+view = "RedshiftPartnerIntegrationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "partner_name"
+view = "partner_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "status_message"
+view = "status_message"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_resource_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_resource_policy"
+model = "RedshiftResourcePolicyTfModel"
+view = "RedshiftResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_redshift_scheduled_action
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_scheduled_action"
+model = "RedshiftScheduledActionTfModel"
+view = "RedshiftScheduledActionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "schedule"
+view = "schedule"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_role"
+view = "iam_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "start_time"
+view = "start_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "end_time"
+view = "end_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "enable"
+view = "enable"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_redshift_snapshot_copy
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: enables cross-region snapshot copy on a cluster.
+
+[[resource]]
+type = "aws_redshift_snapshot_copy"
+model = "RedshiftSnapshotCopyTfModel"
+view = "RedshiftClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_region"
+view = "destination_region"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "retention_period"
+view = "retention_period"
+type = "i64"
+default = 7
+
+[[resource.field]]
+hcl = "snapshot_copy_grant_name"
+view = "snapshot_copy_grant_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_snapshot_copy_grant
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_snapshot_copy_grant"
+model = "RedshiftSnapshotCopyGrantTfModel"
+view = "RedshiftSnapshotCopyGrantView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "snapshot_copy_grant_name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_snapshot_schedule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_snapshot_schedule"
+model = "RedshiftSnapshotScheduleTfModel"
+view = "RedshiftSnapshotScheduleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identifier"
+view = "schedule_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "schedule_description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_usage_limit
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_redshift_usage_limit"
+model = "RedshiftUsageLimitTfModel"
+view = "RedshiftUsageLimitView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "feature_type"
+view = "feature_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "limit_type"
+view = "limit_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "amount"
+view = "amount"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "period"
+view = "period"
+type = "string?"
+
+[[resource.field]]
+hcl = "breach_action"
+view = "breach_action"
+type = "string?"

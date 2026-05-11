@@ -2,21 +2,17 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **365** (360 verified against schema)
-Missing within classified prefixes: **833**
+Currently handled by winterbaume: **430** (425 verified against schema)
+Missing within classified prefixes: **768**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
 | ec2 | override (37 patterns) | 39 | 139 | 100 | 28% |  |
-| sagemaker | `aws_sagemaker_` | 5 | 30 | 25 | 17% |  |
-| rds | override (2 patterns) | 7 | 29 | 22 | 24% |  |
-| redshift | `aws_redshift_` | 2 | 23 | 21 | 9% |  |
-| apigateway | `aws_api_gateway_` | 6 | 26 | 20 | 23% |  |
 | directconnect | `aws_dx_` | 1 | 19 | 18 | 5% |  |
-| glue | `aws_glue_` | 3 | 20 | 17 | 15% |  |
 | quicksight | `aws_quicksight_` | 3 | 20 | 17 | 15% |  |
+| sagemaker | `aws_sagemaker_` | 13 | 30 | 17 | 43% |  |
 | networkmanager | `aws_networkmanager_` | 3 | 19 | 16 | 16% |  |
 | cloudfront | `aws_cloudfront_` | 1 | 16 | 15 | 6% |  |
 | connect | `aws_connect_` | 1 | 16 | 15 | 6% |  |
@@ -34,6 +30,7 @@ Sorted by missing-count desc.
 | config | `aws_config_` | 3 | 13 | 10 | 23% |  |
 | guardduty | `aws_guardduty_` | 3 | 13 | 10 | 23% |  |
 | pinpoint | `aws_pinpoint_` | 2 | 12 | 10 | 17% |  |
+| rds | override (2 patterns) | 19 | 29 | 10 | 66% |  |
 | route53resolver | `aws_route53_resolver_` | 2 | 12 | 10 | 17% |  |
 | ssoadmin | `aws_ssoadmin_` | 2 | 12 | 10 | 17% |  |
 | vpclattice | `aws_vpclattice_` | 4 | 14 | 10 | 29% |  |
@@ -61,11 +58,13 @@ Sorted by missing-count desc.
 | emr | `aws_emr_` | 2 | 8 | 6 | 25% |  |
 | events | `aws_cloudwatch_event_` | 3 | 9 | 6 | 33% |  |
 | lakeformation | `aws_lakeformation_` | 2 | 8 | 6 | 25% |  |
+| redshift | `aws_redshift_` | 17 | 23 | 6 | 74% |  |
 | bedrock | `aws_bedrock_` | 1 | 6 | 5 | 17% |  |
 | codebuild | `aws_codebuild_` | 1 | 6 | 5 | 17% |  |
 | dms | `aws_dms_` | 3 | 8 | 5 | 38% |  |
 | ecs | `aws_ecs_` | 3 | 8 | 5 | 38% |  |
 | efs | `aws_efs_` | 1 | 6 | 5 | 17% |  |
+| glue | `aws_glue_` | 15 | 20 | 5 | 75% |  |
 | kinesis | `aws_kinesis_` | 1 | 6 | 5 | 17% |  |
 | lexmodelsv2 | `aws_lexv2models_` | 1 | 6 | 5 | 17% |  |
 | neptune | `aws_neptune_` | 4 | 9 | 5 | 44% |  |
@@ -94,6 +93,7 @@ Sorted by missing-count desc.
 | servicediscovery | `aws_service_discovery_` | 2 | 5 | 3 | 40% |  |
 | sqs | `aws_sqs_` | 1 | 4 | 3 | 25% |  |
 | account | `aws_account_` | 1 | 3 | 2 | 33% |  |
+| apigateway | `aws_api_gateway_` | 24 | 26 | 2 | 92% |  |
 | cloudtrail | `aws_cloudtrail` | 1 | 3 | 2 | 33% |  |
 | codeartifact | `aws_codeartifact_` | 2 | 4 | 2 | 50% |  |
 | codepipeline | `aws_codepipeline` | 1 | 3 | 2 | 33% |  |
@@ -260,106 +260,6 @@ Sorted by missing-count desc.
 - `aws_vpn_gateway_attachment`
 - `aws_vpn_gateway_route_propagation`
 
-### sagemaker — 25 missing
-
-- `aws_sagemaker_app`
-- `aws_sagemaker_app_image_config`
-- `aws_sagemaker_code_repository`
-- `aws_sagemaker_data_quality_job_definition`
-- `aws_sagemaker_device`
-- `aws_sagemaker_device_fleet`
-- `aws_sagemaker_feature_group`
-- `aws_sagemaker_flow_definition`
-- `aws_sagemaker_hub`
-- `aws_sagemaker_human_task_ui`
-- `aws_sagemaker_image`
-- `aws_sagemaker_image_version`
-- `aws_sagemaker_mlflow_tracking_server`
-- `aws_sagemaker_model_package_group`
-- `aws_sagemaker_model_package_group_policy`
-- `aws_sagemaker_monitoring_schedule`
-- `aws_sagemaker_notebook_instance_lifecycle_configuration`
-- `aws_sagemaker_pipeline`
-- `aws_sagemaker_project`
-- `aws_sagemaker_servicecatalog_portfolio_status`
-- `aws_sagemaker_space`
-- `aws_sagemaker_studio_lifecycle_config`
-- `aws_sagemaker_user_profile`
-- `aws_sagemaker_workforce`
-- `aws_sagemaker_workteam`
-
-### rds — 22 missing
-
-- `aws_db_cluster_snapshot`
-- `aws_db_instance_automated_backups_replication`
-- `aws_db_instance_role_association`
-- `aws_db_proxy`
-- `aws_db_proxy_default_target_group`
-- `aws_db_proxy_endpoint`
-- `aws_db_proxy_target`
-- `aws_db_snapshot`
-- `aws_db_snapshot_copy`
-- `aws_rds_certificate`
-- `aws_rds_cluster_activity_stream`
-- `aws_rds_cluster_endpoint`
-- `aws_rds_cluster_instance`
-- `aws_rds_cluster_role_association`
-- `aws_rds_cluster_snapshot_copy`
-- `aws_rds_custom_db_engine_version`
-- `aws_rds_export_task`
-- `aws_rds_global_cluster`
-- `aws_rds_instance_state`
-- `aws_rds_integration`
-- `aws_rds_reserved_instance`
-- `aws_rds_shard_group`
-
-### redshift — 21 missing
-
-- `aws_redshift_authentication_profile`
-- `aws_redshift_cluster_iam_roles`
-- `aws_redshift_cluster_snapshot`
-- `aws_redshift_data_share_authorization`
-- `aws_redshift_data_share_consumer_association`
-- `aws_redshift_endpoint_access`
-- `aws_redshift_endpoint_authorization`
-- `aws_redshift_event_subscription`
-- `aws_redshift_hsm_client_certificate`
-- `aws_redshift_hsm_configuration`
-- `aws_redshift_integration`
-- `aws_redshift_logging`
-- `aws_redshift_parameter_group`
-- `aws_redshift_partner`
-- `aws_redshift_resource_policy`
-- `aws_redshift_scheduled_action`
-- `aws_redshift_snapshot_copy`
-- `aws_redshift_snapshot_copy_grant`
-- `aws_redshift_snapshot_schedule`
-- `aws_redshift_snapshot_schedule_association`
-- `aws_redshift_usage_limit`
-
-### apigateway — 20 missing
-
-- `aws_api_gateway_account`
-- `aws_api_gateway_authorizer`
-- `aws_api_gateway_base_path_mapping`
-- `aws_api_gateway_client_certificate`
-- `aws_api_gateway_documentation_part`
-- `aws_api_gateway_documentation_version`
-- `aws_api_gateway_domain_name`
-- `aws_api_gateway_domain_name_access_association`
-- `aws_api_gateway_gateway_response`
-- `aws_api_gateway_integration`
-- `aws_api_gateway_integration_response`
-- `aws_api_gateway_method_response`
-- `aws_api_gateway_method_settings`
-- `aws_api_gateway_model`
-- `aws_api_gateway_request_validator`
-- `aws_api_gateway_rest_api_policy`
-- `aws_api_gateway_rest_api_put`
-- `aws_api_gateway_usage_plan`
-- `aws_api_gateway_usage_plan_key`
-- `aws_api_gateway_vpc_link`
-
 ### directconnect — 18 missing
 
 - `aws_dx_bgp_peer`
@@ -381,26 +281,6 @@ Sorted by missing-count desc.
 - `aws_dx_public_virtual_interface`
 - `aws_dx_transit_virtual_interface`
 
-### glue — 17 missing
-
-- `aws_glue_catalog_table`
-- `aws_glue_catalog_table_optimizer`
-- `aws_glue_classifier`
-- `aws_glue_connection`
-- `aws_glue_data_catalog_encryption_settings`
-- `aws_glue_data_quality_ruleset`
-- `aws_glue_dev_endpoint`
-- `aws_glue_ml_transform`
-- `aws_glue_partition`
-- `aws_glue_partition_index`
-- `aws_glue_registry`
-- `aws_glue_resource_policy`
-- `aws_glue_schema`
-- `aws_glue_security_configuration`
-- `aws_glue_trigger`
-- `aws_glue_user_defined_function`
-- `aws_glue_workflow`
-
 ### quicksight — 17 missing
 
 - `aws_quicksight_account_settings`
@@ -420,6 +300,26 @@ Sorted by missing-count desc.
 - `aws_quicksight_template_alias`
 - `aws_quicksight_theme`
 - `aws_quicksight_vpc_connection`
+
+### sagemaker — 17 missing
+
+- `aws_sagemaker_app_image_config`
+- `aws_sagemaker_code_repository`
+- `aws_sagemaker_device`
+- `aws_sagemaker_device_fleet`
+- `aws_sagemaker_flow_definition`
+- `aws_sagemaker_hub`
+- `aws_sagemaker_human_task_ui`
+- `aws_sagemaker_image`
+- `aws_sagemaker_image_version`
+- `aws_sagemaker_mlflow_tracking_server`
+- `aws_sagemaker_model_package_group_policy`
+- `aws_sagemaker_monitoring_schedule`
+- `aws_sagemaker_project`
+- `aws_sagemaker_servicecatalog_portfolio_status`
+- `aws_sagemaker_studio_lifecycle_config`
+- `aws_sagemaker_workforce`
+- `aws_sagemaker_workteam`
 
 ### networkmanager — 16 missing
 
@@ -681,6 +581,19 @@ Sorted by missing-count desc.
 - `aws_pinpoint_event_stream`
 - `aws_pinpoint_gcm_channel`
 - `aws_pinpoint_sms_channel`
+
+### rds — 10 missing
+
+- `aws_db_instance_automated_backups_replication`
+- `aws_db_instance_role_association`
+- `aws_db_proxy_target`
+- `aws_rds_certificate`
+- `aws_rds_cluster_activity_stream`
+- `aws_rds_cluster_role_association`
+- `aws_rds_custom_db_engine_version`
+- `aws_rds_instance_state`
+- `aws_rds_integration`
+- `aws_rds_reserved_instance`
 
 ### route53resolver — 10 missing
 
@@ -964,6 +877,15 @@ Sorted by missing-count desc.
 - `aws_lakeformation_resource_lf_tag`
 - `aws_lakeformation_resource_lf_tags`
 
+### redshift — 6 missing
+
+- `aws_redshift_data_share_authorization`
+- `aws_redshift_data_share_consumer_association`
+- `aws_redshift_endpoint_access`
+- `aws_redshift_endpoint_authorization`
+- `aws_redshift_integration`
+- `aws_redshift_snapshot_schedule_association`
+
 ### bedrock — 5 missing
 
 - `aws_bedrock_custom_model`
@@ -1003,6 +925,14 @@ Sorted by missing-count desc.
 - `aws_efs_file_system_policy`
 - `aws_efs_mount_target`
 - `aws_efs_replication_configuration`
+
+### glue — 5 missing
+
+- `aws_glue_catalog_table_optimizer`
+- `aws_glue_classifier`
+- `aws_glue_data_quality_ruleset`
+- `aws_glue_partition_index`
+- `aws_glue_user_defined_function`
 
 ### kinesis — 5 missing
 
@@ -1190,6 +1120,11 @@ Sorted by missing-count desc.
 
 - `aws_account_primary_contact`
 - `aws_account_region`
+
+### apigateway — 2 missing
+
+- `aws_api_gateway_method_settings`
+- `aws_api_gateway_rest_api_put`
 
 ### cloudtrail — 2 missing
 

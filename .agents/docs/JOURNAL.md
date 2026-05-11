@@ -967,3 +967,193 @@ crates/
 - The publication-readiness gate ( `RELEASE.md` + `verify-publish-ready`
   skill ) needs to be aware of the new crate. Adding it to the public
   workspace surface is a follow-up task ( not done in this commit ).
+
+## 2026-05-11: Post-extraction wave — broaden Terraform resource coverage
+
+### Context
+
+With the spec-driven codegen and the `winterbaume-tfstate-resource-models`
+crate in place, the next push was to widen the supported set of TF resource
+types beyond the original 145 services' default scope. Each spec entry maps
+one `aws_*` resource type to a `*TfModel`, but most specs only covered one
+or two top-level types per service. The user asked to begin with a
+visibility step ( per-service resource-type coverage report ) so the
+remaining gap could be prioritised, then enhance high-impact services in
+batches.
+
+### Findings
+
+**Per-service resource-type coverage report.** Built
+`.agents/skills/api-coverage/scripts/generate_terraform_resource_coverage.py`,
+which renders `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`. It walks the
+Terraform AWS provider's resource schema, classifies each `aws_*` resource
+by prefix into a winterbaume service, then diffs against what is actually
+registered in `winterbaume-server/src/main.rs`. The script needed manual
+`PREFIX_OVERRIDES` for heterogeneous services like `aws_route53_*`
+( resolved DNS resources versus `aws_route53resolver_*` rules ) and
+`aws_iam_*` ( shared by IAM proper, Access Analyzer prefixes, etc. ) — a
+pure prefix match misclassifies these. The output is two layers: a
+workspace-level rollup ( total handled / missing ) and a per-service
+section listing missing resource types so contributors can pick a service,
+spec the new resources, and write the converter.
+
+**Coverage waves landed in this push** ( per commit ):
+
+- `iam`: 11 top-level converters ( `aws_iam_openid_connect_provider`,
+  `aws_iam_saml_provider`, `aws_iam_virtual_mfa_device`,
+  `aws_iam_server_certificate`, `aws_iam_signing_certificate`,
+  `aws_iam_service_specific_credential`, `aws_iam_user_ssh_key`,
+  `aws_iam_access_key`, `aws_iam_user_login_profile`,
+  `aws_iam_account_password_policy`, `aws_iam_account_alias` ).
+- `iam`: 7 sub-resource modifiers ( `aws_iam_role_policy`,
+  `aws_iam_user_policy`, `aws_iam_group_policy`,
+  `aws_iam_role_policy_attachment`, `aws_iam_user_policy_attachment`,
+  `aws_iam_group_policy_attachment`, plus the two attachment converters
+  that were previously hand-written and are now under the spec ).
+- `iam`: 7 multi-target / exclusive converters
+  ( `aws_iam_policy_attachment`, `aws_iam_role_policies_exclusive`,
+  `aws_iam_user_policies_exclusive`, `aws_iam_group_policies_exclusive`,
+  `aws_iam_role_policy_attachments_exclusive`, etc. ); IAM coverage now
+  32 / 34 resource types ( 94 % ).
+- `s3`: 22 sub-resource and named-config converters ( versioning, ACL,
+  logging, lifecycle, replication, encryption, public access block,
+  request payment, inventory, accelerate, object ownership, intelligent
+  tiering, policy, notification, CORS, website, analytics, metric,
+  object-lock configuration, etc. ). Two macros were extracted:
+  `impl_bucket_subresource_converter!` for resources keyed solely by
+  bucket name, and `impl_bucket_named_config_converter!` for resources
+  keyed by `(bucket, name)` such as inventory and analytics. The macros
+  collapse what would otherwise be ~22 near-identical converter bodies
+  into single-line invocations.
+- `route53`: 11 converters bringing route53 to 100 % ( hosted zone DNSSEC,
+  query log config, traffic policy + instance, key signing key,
+  CIDR collection + location, delegation set, vpc association
+  authorization, zone association ).
+- `apigateway`: 18 converters ( account, authorizer, base-path mapping,
+  client certificate, documentation part/version, domain name +
+  access association, gateway response, integration, integration
+  response, method response, model, request validator, rest api policy,
+  usage plan, usage plan key, vpc link ); apigateway coverage now 92 %.
+- `rds`: 14 converters ( proxy, proxy default target group, proxy
+  endpoint, proxy target, cluster endpoint, cluster snapshot, cluster
+  parameter group, instance role association, snapshot, snapshot copy,
+  certificate, integration, db shard group, custom db engine version );
+  rds coverage now 66 %.
+- `redshift`: 15 converters ( snapshot copy grant, hsm client / config,
+  scheduled action, snapshot copy, snapshot schedule + association,
+  authentication profile, endpoint access, endpoint authorization,
+  event subscription, partner, resource policy, usage limit, logging,
+  data share authorization ); redshift coverage now 74 %.
+- `glue`: 12 converters ( catalog table, connection, data catalog
+  encryption settings, dev endpoint, ML transform, partition, registry,
+  resource policy, schema, security configuration, trigger, workflow );
+  glue coverage now 75 %.
+- `sagemaker`: 8 additional converters on top of existing scope ( model
+  package group, code repository, app, app image config, device fleet,
+  feature group, human task UI, model bias job definition ); sagemaker
+  coverage now 43 %.
+
+**InjectableServices growth.** sagemaker was not previously wired through
+the dependency-injection layer in `winterbaume-server/src/main.rs` because
+no converter needed it. Adding sagemaker converters meant introducing the
+service: a new `sagemaker: Arc<winterbaume_sagemaker::SageMakerService>`
+field on `InjectableServices`, an initialisation site, the `MockService`
+trait downcast for the SDK-backed pathway, and the `use sagemaker as
+sagemaker_conv;` import in the converter registration block. This is the
+template for adding any not-yet-wired service: one field, one
+initialisation, one MockService downcast, one converter import. None of
+the per-service code in `crates/winterbaume-sagemaker/` itself had to
+change — only the wiring.
+
+**Spec-driven workflow paid off for sub-resource modifiers.** The
+snapshot+mutate+restore idiom — read the current view, deserialize the TF
+attrs into the model, merge the model's field set back onto the view,
+write the view back — turned out to be the right shape for every "policy
+attached to existing principal" pattern in IAM and every bucket-scoped
+sub-resource in S3. Both macro layers ( the IAM hand-written helpers
+`read_string_list` / `policy_name_from_arn` and the S3
+`impl_bucket_subresource_converter!` macro ) sit on top of that idiom.
+Once the spec has the right `*TfModel` shape, adding another IAM
+sub-resource modifier or S3 named-config converter is a ~10-line edit.
+
+**Hand-written escape hatch for nested-block reshaping.** A handful of TF
+schemas use heterogeneously-shaped nested blocks that can't be modelled
+as a flat `*TfModel`: e.g. AppFlow source/destination connector configs
+that switch shape based on a `connector_type` discriminator. The pattern
+that works is to keep the generated `*TfModel` as a thin envelope
+holding `serde_json::Value` for the discriminated subtree, then call a
+hand-written `tf_to_aws_<connector_type>()` helper from the converter.
+This keeps the spec declarative for 95 % of fields and isolates the
+inevitable hand-written code to the discriminated 5 %.
+
+**clippy gotcha: field assignment outside Default::default().** Two glue
+converters initially used the pattern `let mut sv = GlueStateView::default();
+sv.x = Some(view);` which clippy flags in nightly with
+`-D warnings`. The fix is the struct-update syntax:
+`GlueStateView { x: Some(view), ..Default::default() }`. The hand-written
+S3 sub-resource macros already used this form, which is why they passed
+clippy on the first run.
+
+### Repository deltas
+
+- `.agents/skills/api-coverage/scripts/generate_terraform_resource_coverage.py`
+  ( new ) + `.agents/skills/api-coverage/SKILL.md` ( updated for the
+  three coverage reports ).
+- `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md` ( new, refreshed twice ).
+- `crates/winterbaume-terraform/specs/{iam,s3,route53,apigateway,rds,redshift,glue,sagemaker}.toml`
+  extended with new `[[resource]]` blocks.
+- `crates/winterbaume-terraform/src/converters/{iam,s3,route53,apigateway,rds,redshift,glue,sagemaker}.rs`
+  extended with the corresponding hand-written converter bodies.
+- `crates/winterbaume-tfstate-resource-models/src/{apigateway,rds,redshift,glue,sagemaker}.rs`
+  regenerated from the updated specs.
+- `crates/winterbaume-server/src/main.rs`: 392 inserted lines wiring the
+  new converters, plus the new sagemaker field on `InjectableServices`.
+- `.agents/skills/terraform-converter/SKILL.md` rewritten for the
+  spec-driven workflow.
+- `.agents/skills/write-e2e-tests/SKILL.md` updated with spec-driven
+  converter discovery clauses ( Step 0b.1, Step 0d table additions,
+  Step 5b ).
+
+### Verification
+
+- `cargo run -p tf-converter-codegen -- check`: clean ( all generated
+  files in sync with specs ).
+- `./.agents/bin/cargo.sh test -p winterbaume-terraform --no-fail-fast`:
+  293 integration tests + 6 reshape tests pass; 22 ignored.
+- `./.agents/bin/cargo.sh clippy -p winterbaume-terraform --all-targets
+  --all-features -- -D warnings`: clean ( after the glue fixup
+  described above ).
+- `./.agents/bin/cargo.sh clippy -p winterbaume-tfstate-resource-models
+  --all-targets --all-features -- -D warnings`: clean.
+- `./.agents/bin/cargo.sh clippy -p winterbaume-server --all-targets
+  --all-features -- -D warnings`: clean ( 82 min from cold cache; the
+  load-bearing check, since it links every converter registration ).
+
+### Coverage snapshot ( workspace-wide, post-wave )
+
+- Total `aws_*` resources handled by winterbaume: **430** ( 425
+  verified against the Terraform AWS provider schema ).
+- Missing within classified prefixes: **768**.
+- Highest-impact next services to tackle ( by missing count ): `ec2`
+  ( 100 missing ), `directconnect` ( 18 ), `quicksight` ( 17 ),
+  `sagemaker` ( 17 remaining ), `networkmanager` ( 16 ),
+  `cloudfront` ( 15 ), `connect` ( 15 ), `iot` ( 15 ).
+
+### Operational notes
+
+- The user's "run cargo / clippy once after all subagents finish" rule
+  proved important: spawning per-converter sub-agents that each invoke
+  the per-crate clippy gate causes the workspace target dir to thrash
+  under concurrent rustc invocations. The pattern that worked was:
+  multiple sub-agents in parallel writing converter + spec changes, then
+  a single `cargo fmt && cargo clippy -p winterbaume-terraform` from the
+  top-level session once all sub-agents return. The 82-minute cold
+  server clippy is unavoidable on a fresh cache but only needs to run
+  once per multi-service wave.
+- The `--maxfail` flag is pytest-only; for `cargo test` use
+  `--no-fail-fast` or omit the flag entirely. ( Captured separately as
+  feedback memory. )
+- The next iteration should bring the workspace-level cargo clippy
+  ( and the `verify-publish-ready` skill ) into a known-clean state
+  before any release work; the per-crate gate is sufficient for routine
+  development.

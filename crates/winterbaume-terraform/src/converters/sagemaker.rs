@@ -8,8 +8,10 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_sagemaker::SageMakerService;
 use winterbaume_sagemaker::views::{
-    DomainView, EndpointConfigView, EndpointView, ModelView, NotebookInstanceView,
-    SagemakerStateView, TagPairView,
+    AppView, DomainView, EndpointConfigView, EndpointView, FeatureGroupView, JobDefinitionView,
+    LifecycleScriptView, ModelPackageGroupView, ModelView, NotebookInstanceLifecycleConfigView,
+    NotebookInstanceView, PipelineView, SagemakerStateView, SpaceView, TagPairView,
+    UserProfileView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -730,6 +732,998 @@ impl AwsSagemakerNotebookInstanceConverter {
             });
             results.push(ExtractedResource {
                 name: nb.notebook_instance_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_sagemaker_app
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_sagemaker_app` Terraform resources to/from SageMaker state.
+pub struct AwsSagemakerAppConverter {
+    service: Arc<SageMakerService>,
+}
+
+impl AwsSagemakerAppConverter {
+    pub fn new(service: Arc<SageMakerService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSagemakerAppConverter {
+    fn resource_type(&self) -> &str {
+        "aws_sagemaker_app"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSagemakerAppConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::AppTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_sagemaker_app", e))?;
+
+        let domain_id = model.domain_id.clone();
+        let app_name = model.app_name.clone();
+        let app_type = model.app_type.clone();
+        let user_profile_name = model.user_profile_name.clone();
+        let space_name = model.space_name.clone();
+
+        let target_segment = user_profile_name
+            .clone()
+            .or_else(|| space_name.clone())
+            .unwrap_or_default();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:sagemaker:{}:{}:app/{}/{}/{}/{}",
+                region, ctx.default_account_id, domain_id, target_segment, app_type, app_name
+            )
+        });
+        let status = model.status.unwrap_or_else(|| "InService".to_string());
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+
+        let app_view = AppView {
+            domain_id: domain_id.clone(),
+            user_profile_name,
+            space_name,
+            app_type,
+            app_name: app_name.clone(),
+            app_arn: arn,
+            status,
+            creation_time,
+            tags: tags_map_to_view(&extract_tags(attrs)),
+        };
+
+        let key = format!(
+            "{}/{}/{}",
+            domain_id,
+            app_view
+                .user_profile_name
+                .clone()
+                .or_else(|| app_view.space_name.clone())
+                .unwrap_or_default(),
+            app_name,
+        );
+
+        let mut state_view = SagemakerStateView::default();
+        state_view.apps.insert(key, app_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.apps.values() {
+            let attrs = serde_json::json!({
+                "id": a.app_arn,
+                "domain_id": a.domain_id,
+                "user_profile_name": a.user_profile_name,
+                "space_name": a.space_name,
+                "app_type": a.app_type,
+                "app_name": a.app_name,
+                "arn": a.app_arn,
+                "status": a.status,
+                "creation_time": a.creation_time,
+                "tags": tags_view_to_json(&a.tags),
+                "tags_all": tags_view_to_json(&a.tags),
+            });
+            results.push(ExtractedResource {
+                name: a.app_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_sagemaker_data_quality_job_definition
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_sagemaker_data_quality_job_definition` Terraform resources to/from SageMaker state.
+pub struct AwsSagemakerDataQualityJobDefinitionConverter {
+    service: Arc<SageMakerService>,
+}
+
+impl AwsSagemakerDataQualityJobDefinitionConverter {
+    pub fn new(service: Arc<SageMakerService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSagemakerDataQualityJobDefinitionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_sagemaker_data_quality_job_definition"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSagemakerDataQualityJobDefinitionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::DataQualityJobDefinitionTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_sagemaker_data_quality_job_definition", e)
+            })?;
+
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:sagemaker:{}:{}:data-quality-job-definition/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+        let role_arn = model.role_arn.unwrap_or_default();
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+
+        let job_view = JobDefinitionView {
+            job_definition_name: name.clone(),
+            job_definition_arn: arn,
+            role_arn,
+            creation_time,
+            tags: tags_map_to_view(&extract_tags(attrs)),
+        };
+
+        let mut state_view = SagemakerStateView::default();
+        state_view
+            .data_quality_job_definitions
+            .insert(name, job_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for j in view.data_quality_job_definitions.values() {
+            let attrs = serde_json::json!({
+                "id": j.job_definition_arn,
+                "name": j.job_definition_name,
+                "arn": j.job_definition_arn,
+                "role_arn": j.role_arn,
+                "creation_time": j.creation_time,
+                "tags": tags_view_to_json(&j.tags),
+                "tags_all": tags_view_to_json(&j.tags),
+            });
+            results.push(ExtractedResource {
+                name: j.job_definition_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_sagemaker_feature_group
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_sagemaker_feature_group` Terraform resources to/from SageMaker state.
+pub struct AwsSagemakerFeatureGroupConverter {
+    service: Arc<SageMakerService>,
+}
+
+impl AwsSagemakerFeatureGroupConverter {
+    pub fn new(service: Arc<SageMakerService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSagemakerFeatureGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_sagemaker_feature_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSagemakerFeatureGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::FeatureGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_feature_group", e))?;
+
+        let name = model.feature_group_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:sagemaker:{}:{}:feature-group/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+        let status = model
+            .feature_group_status
+            .unwrap_or_else(|| "Created".to_string());
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let last_modified_time = model
+            .last_modified_time
+            .unwrap_or_else(|| creation_time.clone());
+
+        let fg_view = FeatureGroupView {
+            feature_group_name: name.clone(),
+            feature_group_arn: arn,
+            feature_group_status: status,
+            creation_time,
+            last_modified_time,
+            tags: tags_map_to_view(&extract_tags(attrs)),
+        };
+
+        let mut state_view = SagemakerStateView::default();
+        state_view.feature_groups.insert(name, fg_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for fg in view.feature_groups.values() {
+            let attrs = serde_json::json!({
+                "id": fg.feature_group_name,
+                "feature_group_name": fg.feature_group_name,
+                "arn": fg.feature_group_arn,
+                "feature_group_status": fg.feature_group_status,
+                "creation_time": fg.creation_time,
+                "last_modified_time": fg.last_modified_time,
+                "tags": tags_view_to_json(&fg.tags),
+                "tags_all": tags_view_to_json(&fg.tags),
+            });
+            results.push(ExtractedResource {
+                name: fg.feature_group_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_sagemaker_model_package_group
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_sagemaker_model_package_group` Terraform resources to/from SageMaker state.
+pub struct AwsSagemakerModelPackageGroupConverter {
+    service: Arc<SageMakerService>,
+}
+
+impl AwsSagemakerModelPackageGroupConverter {
+    pub fn new(service: Arc<SageMakerService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSagemakerModelPackageGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_sagemaker_model_package_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSagemakerModelPackageGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::ModelPackageGroupTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_model_package_group", e))?;
+
+        let name = model.model_package_group_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:sagemaker:{}:{}:model-package-group/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+
+        let mpg_view = ModelPackageGroupView {
+            model_package_group_name: name.clone(),
+            model_package_group_arn: arn,
+            model_package_group_status: "Completed".to_string(),
+            model_package_group_description: model.model_package_group_description,
+            creation_time,
+            next_version: 1,
+            tags: tags_map_to_view(&extract_tags(attrs)),
+        };
+
+        let mut state_view = SagemakerStateView::default();
+        state_view.model_package_groups.insert(name, mpg_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for mpg in view.model_package_groups.values() {
+            let attrs = serde_json::json!({
+                "id": mpg.model_package_group_name,
+                "model_package_group_name": mpg.model_package_group_name,
+                "model_package_group_description": mpg.model_package_group_description,
+                "arn": mpg.model_package_group_arn,
+                "creation_time": mpg.creation_time,
+                "tags": tags_view_to_json(&mpg.tags),
+                "tags_all": tags_view_to_json(&mpg.tags),
+            });
+            results.push(ExtractedResource {
+                name: mpg.model_package_group_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_sagemaker_notebook_instance_lifecycle_configuration
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_sagemaker_notebook_instance_lifecycle_configuration` Terraform resources to/from SageMaker state.
+pub struct AwsSagemakerNotebookInstanceLifecycleConfigurationConverter {
+    service: Arc<SageMakerService>,
+}
+
+impl AwsSagemakerNotebookInstanceLifecycleConfigurationConverter {
+    pub fn new(service: Arc<SageMakerService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSagemakerNotebookInstanceLifecycleConfigurationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_sagemaker_notebook_instance_lifecycle_configuration"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSagemakerNotebookInstanceLifecycleConfigurationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::NotebookInstanceLifecycleConfigurationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error(
+                    "aws_sagemaker_notebook_instance_lifecycle_configuration",
+                    e,
+                )
+            })?;
+
+        let name = model.name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:sagemaker:{}:{}:notebook-instance-lifecycle-config/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+
+        let parse_scripts = |key: &str| -> Vec<LifecycleScriptView> {
+            attrs
+                .get(key)
+                .and_then(|v| v.as_array())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|item| {
+                            item.get("content").and_then(|c| c.as_str()).map(|s| {
+                                LifecycleScriptView {
+                                    content: s.to_string(),
+                                }
+                            })
+                        })
+                        .collect()
+                })
+                .unwrap_or_default()
+        };
+        let on_create = parse_scripts("on_create");
+        let on_start = parse_scripts("on_start");
+
+        let creation_time = optional_str(attrs, "creation_time")
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string());
+        let last_modified_time =
+            optional_str(attrs, "last_modified_time").unwrap_or_else(|| creation_time.clone());
+
+        let lc_view = NotebookInstanceLifecycleConfigView {
+            name: name.clone(),
+            arn,
+            on_create,
+            on_start,
+            creation_time,
+            last_modified_time,
+        };
+
+        let mut state_view = SagemakerStateView::default();
+        state_view
+            .notebook_instance_lifecycle_configs
+            .insert(name, lc_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for lc in view.notebook_instance_lifecycle_configs.values() {
+            let on_create: Vec<serde_json::Value> = lc
+                .on_create
+                .iter()
+                .map(|s| serde_json::json!({"content": s.content}))
+                .collect();
+            let on_start: Vec<serde_json::Value> = lc
+                .on_start
+                .iter()
+                .map(|s| serde_json::json!({"content": s.content}))
+                .collect();
+            let attrs = serde_json::json!({
+                "id": lc.name,
+                "name": lc.name,
+                "arn": lc.arn,
+                "on_create": on_create,
+                "on_start": on_start,
+            });
+            results.push(ExtractedResource {
+                name: lc.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_sagemaker_pipeline
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_sagemaker_pipeline` Terraform resources to/from SageMaker state.
+pub struct AwsSagemakerPipelineConverter {
+    service: Arc<SageMakerService>,
+}
+
+impl AwsSagemakerPipelineConverter {
+    pub fn new(service: Arc<SageMakerService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSagemakerPipelineConverter {
+    fn resource_type(&self) -> &str {
+        "aws_sagemaker_pipeline"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSagemakerPipelineConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::PipelineTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_pipeline", e))?;
+
+        let name = model.pipeline_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:sagemaker:{}:{}:pipeline/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+        let role_arn = model.role_arn.unwrap_or_default();
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let last_modified_time = model
+            .last_modified_time
+            .unwrap_or_else(|| creation_time.clone());
+
+        let pipeline_view = PipelineView {
+            pipeline_name: name.clone(),
+            pipeline_arn: arn,
+            pipeline_display_name: model.pipeline_display_name,
+            pipeline_description: model.pipeline_description,
+            pipeline_definition: model.pipeline_definition,
+            role_arn,
+            creation_time,
+            last_modified_time,
+            executions: vec![],
+            tags: tags_map_to_view(&extract_tags(attrs)),
+        };
+
+        let mut state_view = SagemakerStateView::default();
+        state_view.pipelines.insert(name, pipeline_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for p in view.pipelines.values() {
+            let attrs = serde_json::json!({
+                "id": p.pipeline_name,
+                "pipeline_name": p.pipeline_name,
+                "pipeline_display_name": p.pipeline_display_name,
+                "pipeline_description": p.pipeline_description,
+                "pipeline_definition": p.pipeline_definition,
+                "role_arn": p.role_arn,
+                "arn": p.pipeline_arn,
+                "creation_time": p.creation_time,
+                "last_modified_time": p.last_modified_time,
+                "tags": tags_view_to_json(&p.tags),
+                "tags_all": tags_view_to_json(&p.tags),
+            });
+            results.push(ExtractedResource {
+                name: p.pipeline_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_sagemaker_space
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_sagemaker_space` Terraform resources to/from SageMaker state.
+pub struct AwsSagemakerSpaceConverter {
+    service: Arc<SageMakerService>,
+}
+
+impl AwsSagemakerSpaceConverter {
+    pub fn new(service: Arc<SageMakerService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSagemakerSpaceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_sagemaker_space"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSagemakerSpaceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::SpaceTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_space", e))?;
+
+        let domain_id = model.domain_id.clone();
+        let space_name = model.space_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:sagemaker:{}:{}:space/{}/{}",
+                region, ctx.default_account_id, domain_id, space_name
+            )
+        });
+        let status = model.status.unwrap_or_else(|| "InService".to_string());
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let last_modified_time = model
+            .last_modified_time
+            .unwrap_or_else(|| creation_time.clone());
+
+        let space_view = SpaceView {
+            domain_id: domain_id.clone(),
+            space_name: space_name.clone(),
+            space_arn: arn,
+            status,
+            creation_time,
+            last_modified_time,
+            tags: tags_map_to_view(&extract_tags(attrs)),
+        };
+
+        let key = format!("{}/{}", domain_id, space_name);
+        let mut state_view = SagemakerStateView::default();
+        state_view.spaces.insert(key, space_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for s in view.spaces.values() {
+            let attrs = serde_json::json!({
+                "id": s.space_arn,
+                "domain_id": s.domain_id,
+                "space_name": s.space_name,
+                "arn": s.space_arn,
+                "status": s.status,
+                "creation_time": s.creation_time,
+                "last_modified_time": s.last_modified_time,
+                "tags": tags_view_to_json(&s.tags),
+                "tags_all": tags_view_to_json(&s.tags),
+            });
+            results.push(ExtractedResource {
+                name: s.space_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_sagemaker_user_profile
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_sagemaker_user_profile` Terraform resources to/from SageMaker state.
+pub struct AwsSagemakerUserProfileConverter {
+    service: Arc<SageMakerService>,
+}
+
+impl AwsSagemakerUserProfileConverter {
+    pub fn new(service: Arc<SageMakerService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSagemakerUserProfileConverter {
+    fn resource_type(&self) -> &str {
+        "aws_sagemaker_user_profile"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSagemakerUserProfileConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: sagemaker_gen::UserProfileTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_sagemaker_user_profile", e))?;
+
+        let domain_id = model.domain_id.clone();
+        let user_profile_name = model.user_profile_name.clone();
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:sagemaker:{}:{}:user-profile/{}/{}",
+                region, ctx.default_account_id, domain_id, user_profile_name
+            )
+        });
+        let status = model.status.unwrap_or_else(|| "InService".to_string());
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| "1970-01-01T00:00:00Z".into());
+        let last_modified_time = model
+            .last_modified_time
+            .unwrap_or_else(|| creation_time.clone());
+
+        let up_view = UserProfileView {
+            domain_id: domain_id.clone(),
+            user_profile_name: user_profile_name.clone(),
+            user_profile_arn: arn,
+            status,
+            creation_time,
+            last_modified_time,
+            tags: tags_map_to_view(&extract_tags(attrs)),
+        };
+
+        let key = format!("{}/{}", domain_id, user_profile_name);
+        let mut state_view = SagemakerStateView::default();
+        state_view.user_profiles.insert(key, up_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for up in view.user_profiles.values() {
+            let attrs = serde_json::json!({
+                "id": up.user_profile_arn,
+                "domain_id": up.domain_id,
+                "user_profile_name": up.user_profile_name,
+                "arn": up.user_profile_arn,
+                "status": up.status,
+                "creation_time": up.creation_time,
+                "last_modified_time": up.last_modified_time,
+                "tags": tags_view_to_json(&up.tags),
+                "tags_all": tags_view_to_json(&up.tags),
+            });
+            results.push(ExtractedResource {
+                name: up.user_profile_name.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,
