@@ -2,14 +2,13 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **430** (425 verified against schema)
-Missing within classified prefixes: **768**
+Currently handled by winterbaume: **530** (525 verified against schema)
+Missing within classified prefixes: **668**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
-| ec2 | override (37 patterns) | 39 | 139 | 100 | 28% |  |
 | directconnect | `aws_dx_` | 1 | 19 | 18 | 5% |  |
 | quicksight | `aws_quicksight_` | 3 | 20 | 17 | 15% |  |
 | sagemaker | `aws_sagemaker_` | 13 | 30 | 17 | 43% |  |
@@ -133,6 +132,7 @@ Sorted by missing-count desc.
 | applicationcostprofiler | `aws_applicationcostprofiler_` | 1 | 0 | 0 | — |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
 | dax | `aws_dax_` | 3 | 3 | 0 | 100% |  |
+| ec2 | override (37 patterns) | 139 | 139 | 0 | 100% |  |
 | ec2instanceconnect | `aws_ec2_instance_connect_` | 1 | 1 | 0 | 100% |  |
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
 | firehose | `aws_kinesis_firehose_` | 1 | 1 | 0 | 100% |  |
@@ -156,109 +156,6 @@ Sorted by missing-count desc.
 | timestreamwrite | `aws_timestreamwrite_` | 2 | 2 | 0 | 100% |  |
 
 ## Per-service missing resources
-
-### ec2 — 100 missing
-
-- `aws_ami`
-- `aws_ami_copy`
-- `aws_ami_from_instance`
-- `aws_ami_launch_permission`
-- `aws_default_network_acl`
-- `aws_default_route_table`
-- `aws_default_security_group`
-- `aws_default_subnet`
-- `aws_default_vpc`
-- `aws_default_vpc_dhcp_options`
-- `aws_ec2_availability_zone_group`
-- `aws_ec2_carrier_gateway`
-- `aws_ec2_client_vpn_authorization_rule`
-- `aws_ec2_client_vpn_endpoint`
-- `aws_ec2_client_vpn_network_association`
-- `aws_ec2_client_vpn_route`
-- `aws_ec2_default_credit_specification`
-- `aws_ec2_fleet`
-- `aws_ec2_host`
-- `aws_ec2_image_block_public_access`
-- `aws_ec2_instance_metadata_defaults`
-- `aws_ec2_instance_state`
-- `aws_ec2_managed_prefix_list`
-- `aws_ec2_managed_prefix_list_entry`
-- `aws_ec2_serial_console_access`
-- `aws_ec2_subnet_cidr_reservation`
-- `aws_ec2_tag`
-- `aws_ec2_transit_gateway`
-- `aws_ec2_transit_gateway_connect_peer`
-- `aws_ec2_transit_gateway_default_route_table_association`
-- `aws_ec2_transit_gateway_default_route_table_propagation`
-- `aws_ec2_transit_gateway_multicast_domain_association`
-- `aws_ec2_transit_gateway_multicast_group_member`
-- `aws_ec2_transit_gateway_multicast_group_source`
-- `aws_ec2_transit_gateway_peering_attachment`
-- `aws_ec2_transit_gateway_peering_attachment_accepter`
-- `aws_ec2_transit_gateway_policy_table_association`
-- `aws_ec2_transit_gateway_prefix_list_reference`
-- `aws_ec2_transit_gateway_route`
-- `aws_ec2_transit_gateway_route_table`
-- `aws_ec2_transit_gateway_route_table_association`
-- `aws_ec2_transit_gateway_route_table_propagation`
-- `aws_ec2_transit_gateway_vpc_attachment`
-- `aws_ec2_transit_gateway_vpc_attachment_accepter`
-- `aws_eip_association`
-- `aws_eip_domain_name`
-- `aws_flow_log`
-- `aws_instance`
-- `aws_internet_gateway_attachment`
-- `aws_launch_template`
-- `aws_main_route_table_association`
-- `aws_network_acl_association`
-- `aws_network_interface`
-- `aws_network_interface_attachment`
-- `aws_network_interface_sg_attachment`
-- `aws_route_table_association`
-- `aws_security_group_rule`
-- `aws_spot_datafeed_subscription`
-- `aws_spot_fleet_request`
-- `aws_spot_instance_request`
-- `aws_verifiedaccess_instance_logging_configuration`
-- `aws_verifiedaccess_instance_trust_provider_attachment`
-- `aws_volume_attachment`
-- `aws_vpc_block_public_access_exclusion`
-- `aws_vpc_block_public_access_options`
-- `aws_vpc_dhcp_options`
-- `aws_vpc_dhcp_options_association`
-- `aws_vpc_endpoint`
-- `aws_vpc_endpoint_connection_accepter`
-- `aws_vpc_endpoint_connection_notification`
-- `aws_vpc_endpoint_policy`
-- `aws_vpc_endpoint_private_dns`
-- `aws_vpc_endpoint_route_table_association`
-- `aws_vpc_endpoint_security_group_association`
-- `aws_vpc_endpoint_service`
-- `aws_vpc_endpoint_service_allowed_principal`
-- `aws_vpc_endpoint_service_private_dns_verification`
-- `aws_vpc_endpoint_subnet_association`
-- `aws_vpc_ipam_organization_admin_account`
-- `aws_vpc_ipam_preview_next_cidr`
-- `aws_vpc_ipam_resource_discovery_association`
-- `aws_vpc_ipv4_cidr_block_association`
-- `aws_vpc_ipv6_cidr_block_association`
-- `aws_vpc_network_performance_metric_subscription`
-- `aws_vpc_peering_connection`
-- `aws_vpc_peering_connection_accepter`
-- `aws_vpc_peering_connection_options`
-- `aws_vpc_route_server`
-- `aws_vpc_route_server_endpoint`
-- `aws_vpc_route_server_peer`
-- `aws_vpc_route_server_propagation`
-- `aws_vpc_route_server_vpc_association`
-- `aws_vpc_security_group_egress_rule`
-- `aws_vpc_security_group_ingress_rule`
-- `aws_vpc_security_group_vpc_association`
-- `aws_vpn_connection`
-- `aws_vpn_connection_route`
-- `aws_vpn_gateway`
-- `aws_vpn_gateway_attachment`
-- `aws_vpn_gateway_route_propagation`
 
 ### directconnect — 18 missing
 

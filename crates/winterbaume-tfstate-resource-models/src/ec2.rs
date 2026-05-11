@@ -637,3 +637,1393 @@ pub struct CapacityBlockReservationTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub upfront_fee: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_instance` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ami: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subnet_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub availability_zone: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_ip: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub public_ip: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub iam_instance_profile: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tenancy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub host_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub placement_group: Option<String>,
+    #[serde(default)]
+    pub placement_partition_number: i64,
+    #[serde(default)]
+    pub monitoring: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user_data: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user_data_base64: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outpost_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_lifecycle: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_launch_template` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LaunchTemplateTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key_name: Option<String>,
+    #[serde(default)]
+    pub default_version: i64,
+    #[serde(default)]
+    pub latest_version: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user_data: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_volume_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VolumeAttachmentTfModel {
+    pub volume_id: String,
+    pub instance_id: String,
+    pub device_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub force_detach: bool,
+    #[serde(default)]
+    pub skip_destroy: bool,
+    #[serde(default)]
+    pub stop_instance_before_detaching: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_network_interface` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkInterfaceTfModel {
+    pub subnet_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_ip: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub interface_type: Option<String>,
+    #[serde(default)]
+    pub source_dest_check: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_dns_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outpost_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mac_address: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_network_interface_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkInterfaceAttachmentTfModel {
+    pub network_interface_id: String,
+    pub instance_id: String,
+    #[serde(default)]
+    pub device_index: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attachment_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_network_interface_sg_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkInterfaceSgAttachmentTfModel {
+    pub network_interface_id: String,
+    pub security_group_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_eip_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EipAssociationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub allocation_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub network_interface_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_ip_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub public_ip: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub allow_reassociation: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_internet_gateway_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InternetGatewayAttachmentTfModel {
+    pub internet_gateway_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_flow_log` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FlowLogTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subnet_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eni_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_attachment_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub traffic_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_destination_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_destination: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_group_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub iam_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deliver_cross_account_role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_format: Option<String>,
+    #[serde(default)]
+    pub max_aggregation_interval: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_dhcp_options` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcDhcpOptionsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub domain_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub netbios_node_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ipv6_address_preferred_lease_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_dhcp_options_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcDhcpOptionsAssociationTfModel {
+    pub dhcp_options_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_security_group_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecurityGroupRuleTfModel {
+    pub security_group_id: String,
+    #[serde(rename = "type")]
+    pub rule_type: String,
+    pub protocol: String,
+    #[serde(default)]
+    pub from_port: i64,
+    #[serde(default)]
+    pub to_port: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_security_group_id: Option<String>,
+    #[serde(rename = "self", default)]
+    pub self_: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_security_group_ingress_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcSecurityGroupIngressRuleTfModel {
+    pub security_group_id: String,
+    pub ip_protocol: String,
+    #[serde(default)]
+    pub from_port: i64,
+    #[serde(default)]
+    pub to_port: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cidr_ipv4: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cidr_ipv6: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referenced_security_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prefix_list_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_security_group_egress_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcSecurityGroupEgressRuleTfModel {
+    pub security_group_id: String,
+    pub ip_protocol: String,
+    #[serde(default)]
+    pub from_port: i64,
+    #[serde(default)]
+    pub to_port: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cidr_ipv4: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cidr_ipv6: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub referenced_security_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prefix_list_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_security_group_vpc_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcSecurityGroupVpcAssociationTfModel {
+    pub security_group_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_eip_domain_name` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EipDomainNameTfModel {
+    pub allocation_id: String,
+    pub domain_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ptr_record: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_main_route_table_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MainRouteTableAssociationTfModel {
+    pub vpc_id: String,
+    pub route_table_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub original_route_table_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route_table_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RouteTableAssociationTfModel {
+    pub route_table_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subnet_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gateway_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_network_acl_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkAclAssociationTfModel {
+    pub network_acl_id: String,
+    pub subnet_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpn_gateway_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpnGatewayAttachmentTfModel {
+    pub vpn_gateway_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ami` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmiTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub architecture: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub virtualization_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root_device_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image_location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kernel_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ramdisk_id: Option<String>,
+    #[serde(default)]
+    pub ena_support: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sriov_net_support: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tpm_support: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub boot_mode: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imds_support: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deprecation_time: Option<String>,
+    #[serde(rename = "public", default)]
+    pub public_: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ami_copy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmiCopyTfModel {
+    pub name: String,
+    pub source_ami_id: String,
+    pub source_ami_region: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub encrypted: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deprecation_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ami_from_instance` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmiFromInstanceTfModel {
+    pub name: String,
+    pub source_instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub snapshot_without_reboot: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deprecation_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ami_launch_permission` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmiLaunchPermissionTfModel {
+    pub image_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub group: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub organization_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub organizational_unit_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointTfModel {
+    pub vpc_id: String,
+    pub service_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_endpoint_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy: Option<String>,
+    #[serde(default)]
+    pub private_dns_enabled: bool,
+    #[serde(default)]
+    pub auto_accept: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_service` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointServiceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_type: Option<String>,
+    #[serde(default)]
+    pub acceptance_required: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payer_responsibility: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_dns_name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_service_allowed_principal` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointServiceAllowedPrincipalTfModel {
+    pub vpc_endpoint_service_id: String,
+    pub principal_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_service_private_dns_verification` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointServicePrivateDnsVerificationTfModel {
+    pub service_id: String,
+    #[serde(default)]
+    pub wait_for_verification: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_subnet_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointSubnetAssociationTfModel {
+    pub vpc_endpoint_id: String,
+    pub subnet_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_route_table_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointRouteTableAssociationTfModel {
+    pub vpc_endpoint_id: String,
+    pub route_table_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_security_group_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointSecurityGroupAssociationTfModel {
+    pub vpc_endpoint_id: String,
+    pub security_group_id: String,
+    #[serde(default)]
+    pub replace_default_association: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_connection_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointConnectionAccepterTfModel {
+    pub vpc_endpoint_service_id: String,
+    pub vpc_endpoint_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_endpoint_state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_connection_notification` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointConnectionNotificationTfModel {
+    pub connection_notification_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_endpoint_service_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_endpoint_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notification_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointPolicyTfModel {
+    pub vpc_endpoint_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_endpoint_private_dns` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointPrivateDnsTfModel {
+    pub vpc_endpoint_id: String,
+    #[serde(default)]
+    pub private_dns_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpn_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpnConnectionTfModel {
+    #[serde(rename = "type")]
+    pub connection_type: String,
+    pub customer_gateway_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpn_gateway_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub static_routes_only: bool,
+    #[serde(default)]
+    pub enable_acceleration: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outside_ip_address_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub local_ipv4_network_cidr: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub local_ipv6_network_cidr: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub remote_ipv4_network_cidr: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub remote_ipv6_network_cidr: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tunnel_inside_ip_version: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpn_connection_route` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpnConnectionRouteTfModel {
+    pub vpn_connection_id: String,
+    pub destination_cidr_block: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpn_gateway` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpnGatewayTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub availability_zone: Option<String>,
+    #[serde(default)]
+    pub amazon_side_asn: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpn_gateway_route_propagation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpnGatewayRoutePropagationTfModel {
+    pub vpn_gateway_id: String,
+    pub route_table_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub amazon_side_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dns_support: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpn_ecmp_support: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub multicast_support: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auto_accept_shared_attachments: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_route_table_association: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_route_table_propagation: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_cidr_blocks: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_default_route_table_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub propagation_default_route_table_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_route_table` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayRouteTableTfModel {
+    pub transit_gateway_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub default_association_route_table: bool,
+    #[serde(default)]
+    pub default_propagation_route_table: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_route` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayRouteTfModel {
+    pub transit_gateway_route_table_id: String,
+    pub destination_cidr_block: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_attachment_id: Option<String>,
+    #[serde(default)]
+    pub blackhole: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_route_table_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayRouteTableAssociationTfModel {
+    pub transit_gateway_route_table_id: String,
+    pub transit_gateway_attachment_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_type: Option<String>,
+    #[serde(default)]
+    pub replace_existing_association: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_route_table_propagation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayRouteTablePropagationTfModel {
+    pub transit_gateway_route_table_id: String,
+    pub transit_gateway_attachment_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_default_route_table_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayDefaultRouteTableAssociationTfModel {
+    pub transit_gateway_id: String,
+    pub transit_gateway_route_table_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_default_route_table_propagation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayDefaultRouteTablePropagationTfModel {
+    pub transit_gateway_id: String,
+    pub transit_gateway_route_table_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_vpc_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayVpcAttachmentTfModel {
+    pub transit_gateway_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub appliance_mode_support: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dns_support: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ipv6_support: Option<String>,
+    #[serde(default)]
+    pub transit_gateway_default_route_table_association: bool,
+    #[serde(default)]
+    pub transit_gateway_default_route_table_propagation: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_owner_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_vpc_attachment_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayVpcAttachmentAccepterTfModel {
+    pub transit_gateway_attachment_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub transit_gateway_default_route_table_association: bool,
+    #[serde(default)]
+    pub transit_gateway_default_route_table_propagation: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_peering_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayPeeringAttachmentTfModel {
+    pub transit_gateway_id: String,
+    pub peer_transit_gateway_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub peer_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub peer_region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_peering_attachment_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayPeeringAttachmentAccepterTfModel {
+    pub transit_gateway_attachment_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_connect_peer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayConnectPeerTfModel {
+    pub transit_gateway_attachment_id: String,
+    pub peer_address: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_asn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_policy_table_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayPolicyTableAssociationTfModel {
+    pub transit_gateway_policy_table_id: String,
+    pub transit_gateway_attachment_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_prefix_list_reference` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayPrefixListReferenceTfModel {
+    pub transit_gateway_route_table_id: String,
+    pub prefix_list_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_attachment_id: Option<String>,
+    #[serde(default)]
+    pub blackhole: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prefix_list_owner_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_multicast_domain_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayMulticastDomainAssociationTfModel {
+    pub transit_gateway_multicast_domain_id: String,
+    pub transit_gateway_attachment_id: String,
+    pub subnet_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_multicast_group_member` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayMulticastGroupMemberTfModel {
+    pub transit_gateway_multicast_domain_id: String,
+    pub group_ip_address: String,
+    pub network_interface_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_transit_gateway_multicast_group_source` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayMulticastGroupSourceTfModel {
+    pub transit_gateway_multicast_domain_id: String,
+    pub group_ip_address: String,
+    pub network_interface_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_client_vpn_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientVpnEndpointTfModel {
+    pub client_cidr_block: String,
+    pub server_certificate_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dns_name: Option<String>,
+    #[serde(default)]
+    pub split_tunnel: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transport_protocol: Option<String>,
+    #[serde(default)]
+    pub vpn_port: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub self_service_portal: Option<String>,
+    #[serde(default)]
+    pub session_timeout_hours: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_client_vpn_authorization_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientVpnAuthorizationRuleTfModel {
+    pub client_vpn_endpoint_id: String,
+    pub target_network_cidr: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_group_id: Option<String>,
+    #[serde(default)]
+    pub authorize_all_groups: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_client_vpn_network_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientVpnNetworkAssociationTfModel {
+    pub client_vpn_endpoint_id: String,
+    pub subnet_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_client_vpn_route` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientVpnRouteTfModel {
+    pub client_vpn_endpoint_id: String,
+    pub destination_cidr_block: String,
+    pub target_vpc_subnet_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub origin: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_host` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2HostTfModel {
+    pub availability_zone: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub host_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auto_placement: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub host_recovery: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outpost_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_fleet` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2FleetTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub excess_capacity_termination_policy: Option<String>,
+    #[serde(default)]
+    pub replace_unhealthy_instances: bool,
+    #[serde(default)]
+    pub terminate_instances: bool,
+    #[serde(default)]
+    pub terminate_instances_with_expiration: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_spot_fleet_request` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpotFleetRequestTfModel {
+    pub iam_fleet_role: String,
+    pub target_capacity: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spot_price: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub allocation_strategy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fleet_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_interruption_behaviour: Option<String>,
+    #[serde(default)]
+    pub terminate_instances_with_expiration: bool,
+    #[serde(default)]
+    pub wait_for_fulfillment: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_spot_instance_request` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpotInstanceRequestTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spot_price: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ami: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spot_type: Option<String>,
+    #[serde(default)]
+    pub wait_for_fulfillment: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spot_instance_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_interruption_behavior: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_spot_datafeed_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpotDatafeedSubscriptionTfModel {
+    pub bucket: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prefix: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_carrier_gateway` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CarrierGatewayTfModel {
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_managed_prefix_list` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedPrefixListTfModel {
+    pub name: String,
+    pub address_family: String,
+    pub max_entries: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_managed_prefix_list_entry` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedPrefixListEntryTfModel {
+    pub prefix_list_id: String,
+    pub cidr: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_tag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2TagTfModel {
+    pub resource_id: String,
+    pub key: String,
+    pub value: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_peering_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcPeeringConnectionTfModel {
+    pub vpc_id: String,
+    pub peer_vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub peer_owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub peer_region: Option<String>,
+    #[serde(default)]
+    pub auto_accept: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_peering_connection_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcPeeringConnectionAccepterTfModel {
+    pub vpc_peering_connection_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub auto_accept: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_peering_connection_options` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcPeeringConnectionOptionsTfModel {
+    pub vpc_peering_connection_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_default_network_acl` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultNetworkAclTfModel {
+    pub default_network_acl_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_default_route_table` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultRouteTableTfModel {
+    pub default_route_table_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_default_security_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultSecurityGroupTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_default_subnet` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultSubnetTfModel {
+    pub availability_zone: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cidr_block: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_default_vpc` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultVpcTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cidr_block: Option<String>,
+    #[serde(default)]
+    pub enable_dns_hostnames: bool,
+    #[serde(default)]
+    pub enable_dns_support: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_default_vpc_dhcp_options` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultVpcDhcpOptionsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_availability_zone_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2AvailabilityZoneGroupTfModel {
+    pub group_name: String,
+    pub opt_in_status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_default_credit_specification` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2DefaultCreditSpecificationTfModel {
+    pub instance_family: String,
+    pub cpu_credits: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_serial_console_access` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2SerialConsoleAccessTfModel {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_image_block_public_access` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2ImageBlockPublicAccessTfModel {
+    pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_instance_metadata_defaults` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2InstanceMetadataDefaultsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub http_tokens: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub http_endpoint: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instance_metadata_tags: Option<String>,
+    #[serde(default)]
+    pub http_put_response_hop_limit: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_instance_state` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2InstanceStateTfModel {
+    pub instance_id: String,
+    pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub force: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_ipam_organization_admin_account` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcIpamOrganizationAdminAccountTfModel {
+    pub delegated_admin_account_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_ipam_preview_next_cidr` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcIpamPreviewNextCidrTfModel {
+    pub ipam_pool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub netmask_length: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_ipam_resource_discovery_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcIpamResourceDiscoveryAssociationTfModel {
+    pub ipam_id: String,
+    pub ipam_resource_discovery_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ec2_subnet_cidr_reservation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Ec2SubnetCidrReservationTfModel {
+    pub subnet_id: String,
+    pub cidr_block: String,
+    pub reservation_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_block_public_access_exclusion` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcBlockPublicAccessExclusionTfModel {
+    pub internet_gateway_exclusion_mode: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subnet_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_block_public_access_options` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcBlockPublicAccessOptionsTfModel {
+    pub internet_gateway_block_mode: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_ipv4_cidr_block_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcIpv4CidrBlockAssociationTfModel {
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cidr_block: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ipv4_ipam_pool_id: Option<String>,
+    #[serde(default)]
+    pub ipv4_netmask_length: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_ipv6_cidr_block_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcIpv6CidrBlockAssociationTfModel {
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ipv6_cidr_block: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ipv6_ipam_pool_id: Option<String>,
+    #[serde(default)]
+    pub ipv6_netmask_length: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_network_performance_metric_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcNetworkPerformanceMetricSubscriptionTfModel {
+    pub source: String,
+    pub destination: String,
+    pub metric: String,
+    pub statistic: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub period: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_route_server` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcRouteServerTfModel {
+    pub amazon_side_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub persist_routes: Option<String>,
+    #[serde(default)]
+    pub persist_routes_duration: i64,
+    #[serde(default)]
+    pub sns_notifications_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sns_topic_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_route_server_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcRouteServerEndpointTfModel {
+    pub route_server_id: String,
+    pub subnet_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_route_server_peer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcRouteServerPeerTfModel {
+    pub route_server_endpoint_id: String,
+    pub peer_address: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_route_server_propagation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcRouteServerPropagationTfModel {
+    pub route_server_id: String,
+    pub route_table_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpc_route_server_vpc_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcRouteServerVpcAssociationTfModel {
+    pub route_server_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_verifiedaccess_instance_logging_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifiedAccessInstanceLoggingConfigurationTfModel {
+    pub verifiedaccess_instance_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_verifiedaccess_instance_trust_provider_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifiedAccessInstanceTrustProviderAttachmentTfModel {
+    pub verifiedaccess_instance_id: String,
+    pub verifiedaccess_trust_provider_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
