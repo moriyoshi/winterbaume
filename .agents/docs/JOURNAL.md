@@ -551,3 +551,48 @@ The first draft included `github.ref != 'refs/heads/main'` as a safety net for `
 - A flaky pass gets frozen — same source means future runs skip rather than retry. Acceptable for now per user direction; `e2e` is the obvious candidate to revisit.
 - Branch protection on `main` is not configured to require these as named checks, so `skipped` conclusions do not block anything. If that changes, downstream consumers of CI status will need to treat `skipped` as `success` ( or the markers will need to write a synthetic success status instead ).
 
+## 2026-05-11 — Release workflow: fix musl and aarch64-windows build failures
+
+### Context
+
+The `winterbaume-server-v0.1.0` tag push ( run [25645291318](https://github.com/moriyoshi/winterbaume/actions/runs/25645291318) ) green-lit `ci` and `plan`, then `build-local-artifacts` failed on two targets in the dist matrix while the other five succeeded:
+
+- `x86_64-unknown-linux-musl` — `libduckdb-sys v1.10501.0` build script aborted with `cc-rs: failed to find tool "x86_64-linux-musl-g++"`.
+- `aarch64-pc-windows-msvc` — `cargo` aborted at metadata resolution with `rustc 1.89.0 is not supported by the following packages: aws-config@1.8.14 requires rustc 1.91 …` ( and ~20 sibling `aws-*` crates ).
+
+Both targets are gated behind the `backend-sqlengine-duckdb-bundled` feature set by `crates/winterbaume-server/Cargo.toml` ( `[package.metadata.dist]` ), which forces a static DuckDB build for the public binary.
+
+### Findings
+
+**Finding: cargo-dist's musl matrix only installs `musl-tools`, which lacks `g++`.**
+The generated matrix entry for `x86_64-unknown-linux-musl` is `runner: ubuntu-22.04`, no container, `packages_install: "sudo apt-get update\nsudo apt-get install musl-tools"`. Ubuntu's `musl-tools` package ships `musl-gcc` / `musl-ar` only — there is no `musl-g++` apt package on 22.04. As long as no crate in the workspace needed a C++ cross-compile, this was fine; the `backend-sqlengine-duckdb-bundled` feature is the first dependency that does, and cc-rs's standard search path ( `x86_64-linux-musl-g++` → `x86_64-linux-musl-c++` → fallback ) finds nothing.
+
+**Finding: the `messense/cargo-xwin` container is rebuilt on its own cadence and lags rustc stable.**
+The aarch64-windows matrix entry runs inside `container.image: messense/cargo-xwin` ( no tag, resolves to whatever `:latest` happened to be at pull time ). The image is built from `rust-cross/cargo-xwin` and ships a fixed rustc — currently 1.89.0. The AWS SDK crate family ( `aws-config`, `aws-sigv4`, `aws-smithy-*`, `aws-sdk-{sso,ssooidc,sts}`, `aws-types`, … ) bumped MSRV to 1.91 / 1.91.1 in their latest publishes, so `cargo` rejects the lockfile during target metadata resolution before any compilation starts. The native `x86_64-pc-windows-msvc` target succeeds because it runs on `windows-2022` with rustup-managed stable, not the container.
+
+**Finding: `dist plan` re-reads `dist-workspace.toml` per run; matrix overrides do not require regenerating `release.yml`.**
+Investigated whether to switch the musl runner to `messense/rust-musl-cross:x86_64-musl` ( which preinstalls `x86_64-linux-musl-g++` ) via `[dist.github-custom-runners.x86_64-unknown-linux-musl]` in `dist-workspace.toml`. Decided against it: that image is RHEL-derived ( `dnf`-based ), so the matrix's apt-flavoured `packages_install` would also need overriding, and the image's pinned rustc would still need a `rustup update` step. Direct workflow edits with `if: ${{ contains(matrix.targets, …) }}` guards keep the change surface small and target-scoped.
+
+**Finding: `release.yml` is already hand-edited away from `dist generate` output.**
+The `Install dist` step uses an explicit SHA256 check against `CARGO_DIST_INSTALLER_SHA256`, which `dist generate` does not emit. Adding more bespoke steps does not increase drift in a meaningful way; the workflow has already opted into manual maintenance.
+
+### Change
+
+`.github/workflows/release.yml`, inside the `build-local-artifacts` job:
+
+1. New step `Update Rust toolchain in cross-compile container` immediately after the existing `Install Rust non-interactively if not already installed`. Runs only when `matrix.container` is truthy ( so today, only on the aarch64-windows entry ). Body is `rustup update stable && rustup default stable`, lifting the in-container rustc past 1.91 so AWS SDK metadata resolution succeeds.
+
+2. New step `Install x86_64-linux-musl C/C++ cross-compiler` after `Install dependencies`. Guarded by `if: ${{ contains(matrix.targets, 'x86_64-unknown-linux-musl') }}`. Downloads `https://musl.cc/x86_64-linux-musl-cross.tgz` ( pinned `MUSL_CROSS_SHA256 = c5d410d9f82a4f24c549fe5d24f988f85b2679b452413a9f7e5f7b956f2fe7ea`, 115 MB ), verifies via `sha256sum -c`, extracts to `/opt`, and prepends `/opt/x86_64-linux-musl-cross/bin` to `$GITHUB_PATH`. cc-rs then finds `x86_64-linux-musl-g++` via its standard target-prefix search without further env-var plumbing.
+
+The SHA256 was computed locally on the same tarball ( `shasum -a 256` ) and pinned in the step's `env:` block; the comment in the workflow points future maintainers at musl.cc as the source of truth.
+
+### Drawbacks accepted
+
+- `musl.cc` is a third-party host ( Rich Felker, musl libc author ). The SHA pin neutralises tampering risk on the byte stream, but availability still depends on the host. If musl.cc goes offline, the musl target build fails until either the URL is mirrored or the SHA is bumped to a new release.
+- `rustup update stable` inside the container makes the toolchain version implicit on the runner-day, not deterministic. A future rustc-stable regression would surface here without a Cargo.lock or `rust-toolchain.toml` change in the repo. Acceptable for now because the only alternative is pinning a specific rustc and chasing AWS SDK MSRV bumps every release.
+- The two fixes do not address the Node 20 deprecation warnings emitted by `mozilla-actions/sccache-action`; that is upstream's problem and orthogonal to the release-build break.
+
+### Verification
+
+`release.yml` triggers on `pull_request:` as well as tag pushes, so the fix can be exercised by opening a PR rather than re-cutting the tag. Pending: open a PR ( pushing the workflow change to a branch ) and confirm both `build-local-artifacts (x86_64-unknown-linux-musl)` and `build-local-artifacts (aarch64-pc-windows-msvc)` go green.
+
