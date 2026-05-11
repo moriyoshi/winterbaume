@@ -116,6 +116,22 @@ PREFIX_OVERRIDES: dict[str, list[str]] = {
     "timestreaminfluxdb": ["aws_timestreaminfluxdb_"],
     "timestreamquery": ["aws_timestreamquery_"],
     "route53resolver": ["aws_route53_resolver_"],
+    # `route53` shares `aws_route53_*` with `route53resolver`. Keep the
+    # natural prefix but list explicit exclusions so resolver resources
+    # don't get double-counted.
+    "route53": [
+        "aws_route53_cidr_",
+        "aws_route53_delegation_set",
+        "aws_route53_health_check",
+        "aws_route53_hosted_zone_dnssec",
+        "aws_route53_key_signing_key",
+        "aws_route53_profiles_",
+        "aws_route53_query_log",
+        "aws_route53_record",
+        "aws_route53_traffic_policy",
+        "aws_route53_vpc_association_authorization",
+        "aws_route53_zone",
+    ],
 }
 
 

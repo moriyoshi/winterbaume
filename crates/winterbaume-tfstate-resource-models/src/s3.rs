@@ -44,3 +44,230 @@ pub struct BucketStateTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ownership_controls: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_accelerate_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketAccelerateConfigurationTfModel {
+    pub bucket: String,
+    pub status: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_acl` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketAclTfModel {
+    pub bucket: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acl: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_cors_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketCorsConfigurationTfModel {
+    pub bucket: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_lifecycle_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketLifecycleConfigurationTfModel {
+    pub bucket: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_logging` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketLoggingTfModel {
+    pub bucket: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_bucket: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_prefix: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_notification` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketNotificationTfModel {
+    pub bucket: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_object_lock_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketObjectLockConfigurationTfModel {
+    pub bucket: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub object_lock_enabled: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_ownership_controls` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketOwnershipControlsTfModel {
+    pub bucket: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketPolicyTfModel {
+    pub bucket: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_replication_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketReplicationConfigurationTfModel {
+    pub bucket: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_request_payment_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketRequestPaymentConfigurationTfModel {
+    pub bucket: String,
+    pub payer: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_server_side_encryption_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketServerSideEncryptionConfigurationTfModel {
+    pub bucket: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_versioning` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketVersioningTfModel {
+    pub bucket: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_website_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketWebsiteConfigurationTfModel {
+    pub bucket: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_public_access_block` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketPublicAccessBlockTfModel {
+    pub bucket: String,
+    #[serde(default = "default_bucket_public_access_block_block_public_acls")]
+    pub block_public_acls: bool,
+    #[serde(default = "default_bucket_public_access_block_ignore_public_acls")]
+    pub ignore_public_acls: bool,
+    #[serde(default = "default_bucket_public_access_block_block_public_policy")]
+    pub block_public_policy: bool,
+    #[serde(default = "default_bucket_public_access_block_restrict_public_buckets")]
+    pub restrict_public_buckets: bool,
+}
+
+fn default_bucket_public_access_block_block_public_acls() -> bool {
+    false
+}
+
+fn default_bucket_public_access_block_ignore_public_acls() -> bool {
+    false
+}
+
+fn default_bucket_public_access_block_block_public_policy() -> bool {
+    false
+}
+
+fn default_bucket_public_access_block_restrict_public_buckets() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_analytics_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketAnalyticsConfigurationTfModel {
+    pub bucket: String,
+    pub name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_intelligent_tiering_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketIntelligentTieringConfigurationTfModel {
+    pub bucket: String,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_metric` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketMetricTfModel {
+    pub bucket: String,
+    pub name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_object` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3ObjectTfModel {
+    pub bucket: String,
+    pub key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_class: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acl: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_object` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3BucketObjectTfModel {
+    pub bucket: String,
+    pub key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_class: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acl: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_object_copy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3ObjectCopyTfModel {
+    pub bucket: String,
+    pub key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_class: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acl: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_directory_bucket` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3DirectoryBucketTfModel {
+    pub bucket: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_redundancy: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub bucket_type: Option<String>,
+}

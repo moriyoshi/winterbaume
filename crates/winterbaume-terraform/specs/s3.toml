@@ -7,11 +7,21 @@
 # `force_destroy` is a Terraform-only lifecycle flag and is
 # discarded but read raw in the converter. ARN/URL templates and
 # the regional domain name are wired up by hand in extract.
+#
+# The bucket sub-resource converters (acl, policy, lifecycle, etc.)
+# use snapshot+mutate+restore against an existing BucketStateView in
+# the live state. Nested blocks (rule, filter, ...) live outside the
+# spec vocabulary; the converters read them raw from
+# `instance.attributes` and serialise them with `serde_json::to_string`.
 
 [service]
 name = "s3"
 crate_name = "winterbaume_s3"
 state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket
+# ---------------------------------------------------------------------------
 
 [[resource]]
 type = "aws_s3_bucket"
@@ -109,4 +119,682 @@ type = "string?"
 [[resource.field]]
 hcl = "ownership_controls"
 view = "ownership_controls"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_accelerate_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: snapshots+mutates+restores the bucket's
+# `accelerate_status` field. The status value is assigned directly
+# (not JSON-wrapped).
+
+[[resource]]
+type = "aws_s3_bucket_accelerate_configuration"
+model = "BucketAccelerateConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_acl
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: snapshots+mutates+restores the bucket's `acl`
+# field. Either `acl` (canned ACL string) or `access_control_policy`
+# (nested object) is supplied. The converter handles both by reading
+# raw `instance.attributes` and JSON-encoding the body.
+
+[[resource]]
+type = "aws_s3_bucket_acl"
+model = "BucketAclTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "acl"
+view = "acl"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_cors_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises the `cors_rule` array (nested
+# block) read raw from instance.attributes onto the bucket's
+# `cors_configuration` field.
+
+[[resource]]
+type = "aws_s3_bucket_cors_configuration"
+model = "BucketCorsConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_lifecycle_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises the `rule` nested block array onto
+# the bucket's `lifecycle_configuration` field.
+
+[[resource]]
+type = "aws_s3_bucket_lifecycle_configuration"
+model = "BucketLifecycleConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_logging
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises the (target_bucket, target_prefix)
+# pair as a JSON object onto the bucket's `logging_configuration`.
+
+[[resource]]
+type = "aws_s3_bucket_logging"
+model = "BucketLoggingTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_bucket"
+view = "target_bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_prefix"
+view = "target_prefix"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_notification
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises optional `topic`, `queue` and
+# `lambda_function` nested blocks onto `notification_configuration`.
+
+[[resource]]
+type = "aws_s3_bucket_notification"
+model = "BucketNotificationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_object_lock_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises the (object_lock_enabled, rule) pair
+# onto `object_lock_configuration`.
+
+[[resource]]
+type = "aws_s3_bucket_object_lock_configuration"
+model = "BucketObjectLockConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "object_lock_enabled"
+view = "object_lock_enabled"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_ownership_controls
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises the `rule` nested block onto the
+# bucket's `ownership_controls` field.
+
+[[resource]]
+type = "aws_s3_bucket_ownership_controls"
+model = "BucketOwnershipControlsTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_policy
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: assigns `policy` (already a JSON string) onto
+# the bucket's `policy` field directly without re-serialising.
+
+[[resource]]
+type = "aws_s3_bucket_policy"
+model = "BucketPolicyTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_replication_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises (role, rule list) onto the bucket's
+# `replication_configuration` field.
+
+[[resource]]
+type = "aws_s3_bucket_replication_configuration"
+model = "BucketReplicationConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role"
+view = "role"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_request_payment_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: assigns `payer` directly to the bucket's
+# `request_payment_payer` (already a `String`, not Option).
+
+[[resource]]
+type = "aws_s3_bucket_request_payment_configuration"
+model = "BucketRequestPaymentConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "payer"
+view = "payer"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_server_side_encryption_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises the `rule` nested block onto the
+# bucket's `encryption_configuration` field.
+
+[[resource]]
+type = "aws_s3_bucket_server_side_encryption_configuration"
+model = "BucketServerSideEncryptionConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_versioning
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: assigns `versioning_configuration.status`
+# directly to the bucket's `versioning_status`.
+
+[[resource]]
+type = "aws_s3_bucket_versioning"
+model = "BucketVersioningTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_website_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: serialises (index_document, error_document,
+# routing_rule, redirect_all_requests_to) onto `website_configuration`.
+
+[[resource]]
+type = "aws_s3_bucket_website_configuration"
+model = "BucketWebsiteConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_public_access_block
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: builds a typed `PublicAccessBlockConfigView`
+# from four boolean inputs.
+
+[[resource]]
+type = "aws_s3_bucket_public_access_block"
+model = "BucketPublicAccessBlockTfModel"
+view = "PublicAccessBlockConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "block_public_acls"
+view = "block_public_acls"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "ignore_public_acls"
+view = "ignore_public_acls"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "block_public_policy"
+view = "block_public_policy"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "restrict_public_buckets"
+view = "restrict_public_buckets"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_analytics_configuration
+# ---------------------------------------------------------------------------
+# Multi-entry sub-resource: snapshots+inserts into the bucket's
+# `analytics_configurations: HashMap<String,String>` keyed by `name`.
+
+[[resource]]
+type = "aws_s3_bucket_analytics_configuration"
+model = "BucketAnalyticsConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_intelligent_tiering_configuration
+# ---------------------------------------------------------------------------
+# Multi-entry sub-resource: inserts into
+# `intelligent_tiering_configurations` keyed by `name`.
+
+[[resource]]
+type = "aws_s3_bucket_intelligent_tiering_configuration"
+model = "BucketIntelligentTieringConfigurationTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_metric
+# ---------------------------------------------------------------------------
+# Multi-entry sub-resource: inserts into `metrics_configurations` keyed
+# by `name`.
+
+[[resource]]
+type = "aws_s3_bucket_metric"
+model = "BucketMetricTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3_object
+# ---------------------------------------------------------------------------
+# Inserts an ObjectView into the bucket's `objects` HashMap. The
+# content body is not stored in BlobStore — only metadata is captured.
+# ETag/version_id are synthesised when absent.
+
+[[resource]]
+type = "aws_s3_object"
+model = "S3ObjectTfModel"
+view = "ObjectView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key"
+view = "key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "content"
+view = "content"
+type = "string?"
+
+[[resource.field]]
+hcl = "source"
+view = "source"
+type = "string?"
+
+[[resource.field]]
+hcl = "content_type"
+view = "content_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_class"
+view = "storage_class"
+type = "string?"
+
+[[resource.field]]
+hcl = "acl"
+view = "acl"
+type = "string?"
+
+[[resource.field]]
+hcl = "cache_control"
+view = "cache_control"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_id"
+view = "version_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_object
+# ---------------------------------------------------------------------------
+# Legacy alias for aws_s3_object; identical inputs, same target.
+
+[[resource]]
+type = "aws_s3_bucket_object"
+model = "S3BucketObjectTfModel"
+view = "ObjectView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key"
+view = "key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "content"
+view = "content"
+type = "string?"
+
+[[resource.field]]
+hcl = "source"
+view = "source"
+type = "string?"
+
+[[resource.field]]
+hcl = "content_type"
+view = "content_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_class"
+view = "storage_class"
+type = "string?"
+
+[[resource.field]]
+hcl = "acl"
+view = "acl"
+type = "string?"
+
+[[resource.field]]
+hcl = "cache_control"
+view = "cache_control"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_id"
+view = "version_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_object_copy
+# ---------------------------------------------------------------------------
+# Mirrors `aws_s3_object`. The `source` field is an `s3://bucket/key`
+# style reference; we only stash the destination (bucket, key).
+
+[[resource]]
+type = "aws_s3_object_copy"
+model = "S3ObjectCopyTfModel"
+view = "ObjectView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key"
+view = "key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source"
+view = "source"
+type = "string?"
+
+[[resource.field]]
+hcl = "content_type"
+view = "content_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_class"
+view = "storage_class"
+type = "string?"
+
+[[resource.field]]
+hcl = "acl"
+view = "acl"
+type = "string?"
+
+[[resource.field]]
+hcl = "cache_control"
+view = "cache_control"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_id"
+view = "version_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_directory_bucket
+# ---------------------------------------------------------------------------
+# S3 Express One Zone directory bucket. Uses the same `buckets` map
+# as `aws_s3_bucket`; the directory-bucket-specific inputs
+# (data_redundancy, type, location) are accepted but not stored.
+
+[[resource]]
+type = "aws_s3_directory_bucket"
+model = "S3DirectoryBucketTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "data_redundancy"
+view = "data_redundancy"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "bucket_type"
 type = "string?"

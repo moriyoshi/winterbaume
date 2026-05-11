@@ -28,3 +28,124 @@ pub struct ResourceRecordSetTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub health_check_id: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_route53_cidr_collection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CidrCollectionTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_cidr_location` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CidrLocationTfModel {
+    pub cidr_collection_id: String,
+    pub name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_delegation_set` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegationSetTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_health_check` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HealthCheckTfModel {
+    #[serde(rename = "type")]
+    pub type_: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fqdn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ip_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub search_string: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cloudwatch_alarm_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cloudwatch_alarm_region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub insufficient_data_health_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub routing_control_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_hosted_zone_dnssec` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedZoneDnssecTfModel {
+    pub hosted_zone_id: String,
+    #[serde(default = "default_hosted_zone_dnssec_signing_status")]
+    pub signing_status: String,
+}
+
+fn default_hosted_zone_dnssec_signing_status() -> String {
+    "SIGNING".to_string()
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_key_signing_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeySigningKeyTfModel {
+    pub hosted_zone_id: String,
+    pub key_management_service_arn: String,
+    pub name: String,
+    #[serde(default = "default_key_signing_key_status")]
+    pub status: String,
+}
+
+fn default_key_signing_key_status() -> String {
+    "ACTIVE".to_string()
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_query_log` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryLogTfModel {
+    pub cloudwatch_log_group_arn: String,
+    pub zone_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_traffic_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrafficPolicyTfModel {
+    pub name: String,
+    pub document: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub type_: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_traffic_policy_instance` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrafficPolicyInstanceTfModel {
+    pub hosted_zone_id: String,
+    pub name: String,
+    pub traffic_policy_id: String,
+    pub traffic_policy_version: i64,
+    pub ttl: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_vpc_association_authorization` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcAssociationAuthorizationTfModel {
+    pub zone_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_region: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_zone_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ZoneAssociationTfModel {
+    pub zone_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_region: Option<String>,
+}
