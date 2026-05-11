@@ -1,4 +1,12 @@
 //! Terraform converter for Route53 Resolver resources.
+//!
+//! Full state-backed converters: endpoint, rule, rule_association,
+//! query_log_config, query_log_config_association, dnssec_config.
+//!
+//! Warning-only converters (validate-and-no-op; `winterbaume_route53resolver`
+//! does not yet model these resource families): config, firewall_config,
+//! firewall_domain_list, firewall_rule, firewall_rule_group,
+//! firewall_rule_group_association.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -7,8 +15,9 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_route53resolver::Route53ResolverService;
 use winterbaume_route53resolver::views::{
-    IpAddressEntryView, ResolverEndpointView, ResolverRuleView, Route53ResolverStateView,
-    TargetAddressView,
+    IpAddressEntryView, ResolverDnssecConfigView, ResolverEndpointView,
+    ResolverQueryLogConfigAssociationView, ResolverQueryLogConfigView, ResolverRuleAssociationView,
+    ResolverRuleView, Route53ResolverStateView, TargetAddressView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -162,8 +171,10 @@ impl AwsRoute53ResolverEndpointConverter {
             tags: extract_tags(attrs),
         };
 
-        let mut state_view = Route53ResolverStateView::default();
-        state_view.endpoints.insert(id, ep_view);
+        let state_view = Route53ResolverStateView {
+            endpoints: std::iter::once((id, ep_view)).collect(),
+            ..Default::default()
+        };
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -326,8 +337,10 @@ impl AwsRoute53ResolverRuleConverter {
             tags: extract_tags(attrs),
         };
 
-        let mut state_view = Route53ResolverStateView::default();
-        state_view.resolver_rules.insert(id, rule_view);
+        let state_view = Route53ResolverStateView {
+            resolver_rules: std::iter::once((id, rule_view)).collect(),
+            ..Default::default()
+        };
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -381,5 +394,838 @@ impl AwsRoute53ResolverRuleConverter {
             });
         }
         Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_rule_association
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_rule_association` Terraform resources.
+pub struct AwsRoute53ResolverRuleAssociationConverter {
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverRuleAssociationConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverRuleAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_rule_association"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRoute53ResolverRuleAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: route53resolver_gen::ResolverRuleAssociationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_route53_resolver_rule_association", e)
+            })?;
+
+        let id = model
+            .id
+            .unwrap_or_else(|| format!("rslvr-rrassoc-{}", uuid::Uuid::new_v4().simple()));
+        let name = model.name.unwrap_or_default();
+
+        let assoc_view = ResolverRuleAssociationView {
+            id: id.clone(),
+            resolver_rule_id: model.resolver_rule_id,
+            name,
+            vpc_id: model.vpc_id,
+            status: "COMPLETE".to_string(),
+            status_message: "".to_string(),
+        };
+
+        let state_view = Route53ResolverStateView {
+            rule_associations: std::iter::once((id, assoc_view)).collect(),
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for assoc in view.rule_associations.values() {
+            let attrs = serde_json::json!({
+                "id": assoc.id,
+                "resolver_rule_id": assoc.resolver_rule_id,
+                "name": assoc.name,
+                "vpc_id": assoc.vpc_id,
+                "status": assoc.status,
+                "status_message": assoc.status_message,
+            });
+            results.push(ExtractedResource {
+                name: assoc.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_query_log_config
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_query_log_config` Terraform resources.
+pub struct AwsRoute53ResolverQueryLogConfigConverter {
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverQueryLogConfigConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverQueryLogConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_query_log_config"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRoute53ResolverQueryLogConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: route53resolver_gen::ResolverQueryLogConfigTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_route53_resolver_query_log_config", e)
+            })?;
+
+        let id = model
+            .id
+            .unwrap_or_else(|| format!("rqlc-{}", uuid::Uuid::new_v4().simple()));
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:route53resolver:{}:{}:resolver-query-log-config/{}",
+                region, ctx.default_account_id, id
+            )
+        });
+        let now = chrono::Utc::now().to_rfc3339();
+
+        let config_view = ResolverQueryLogConfigView {
+            id: id.clone(),
+            arn,
+            name: model.name,
+            destination_arn: model.destination_arn,
+            owner_id: ctx.default_account_id.clone(),
+            status: "CREATED".to_string(),
+            share_status: "NOT_SHARED".to_string(),
+            association_count: 0,
+            creator_request_id: "".to_string(),
+            creation_time: now,
+            tags: extract_tags(attrs),
+        };
+
+        let state_view = Route53ResolverStateView {
+            query_log_configs: std::iter::once((id, config_view)).collect(),
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for c in view.query_log_configs.values() {
+            let attrs = serde_json::json!({
+                "id": c.id,
+                "arn": c.arn,
+                "name": c.name,
+                "destination_arn": c.destination_arn,
+                "owner_id": c.owner_id,
+                "status": c.status,
+                "share_status": c.share_status,
+                "association_count": c.association_count,
+                "tags": c.tags,
+            });
+            results.push(ExtractedResource {
+                name: c.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_query_log_config_association
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_query_log_config_association` Terraform resources.
+pub struct AwsRoute53ResolverQueryLogConfigAssociationConverter {
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverQueryLogConfigAssociationConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverQueryLogConfigAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_query_log_config_association"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRoute53ResolverQueryLogConfigAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: route53resolver_gen::ResolverQueryLogConfigAssociationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_route53_resolver_query_log_config_association", e)
+            })?;
+
+        let id = model
+            .id
+            .unwrap_or_else(|| format!("rqlca-{}", uuid::Uuid::new_v4().simple()));
+        let now = chrono::Utc::now().to_rfc3339();
+
+        let assoc_view = ResolverQueryLogConfigAssociationView {
+            id: id.clone(),
+            resolver_query_log_config_id: model.resolver_query_log_config_id,
+            resource_id: model.resource_id,
+            status: "ACTIVE".to_string(),
+            error: "NONE".to_string(),
+            error_message: "".to_string(),
+            creation_time: now,
+        };
+
+        let state_view = Route53ResolverStateView {
+            query_log_config_associations: std::iter::once((id, assoc_view)).collect(),
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.query_log_config_associations.values() {
+            let attrs = serde_json::json!({
+                "id": a.id,
+                "resolver_query_log_config_id": a.resolver_query_log_config_id,
+                "resource_id": a.resource_id,
+                "status": a.status,
+                "error": a.error,
+                "error_message": a.error_message,
+            });
+            results.push(ExtractedResource {
+                name: a.id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_dnssec_config
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_dnssec_config` Terraform resources.
+pub struct AwsRoute53ResolverDnssecConfigConverter {
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverDnssecConfigConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverDnssecConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_dnssec_config"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRoute53ResolverDnssecConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: route53resolver_gen::ResolverDnssecConfigTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_route53_resolver_dnssec_config", e))?;
+
+        let id = model
+            .id
+            .unwrap_or_else(|| format!("rdsc-{}", uuid::Uuid::new_v4().simple()));
+        let owner_id = model
+            .owner_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+        let validation_status = model
+            .validation_status
+            .unwrap_or_else(|| "ENABLED".to_string());
+
+        let cfg_view = ResolverDnssecConfigView {
+            id: id.clone(),
+            owner_id,
+            resource_id: model.resource_id,
+            validation_status,
+        };
+
+        let state_view = Route53ResolverStateView {
+            dnssec_configs: std::iter::once((id, cfg_view)).collect(),
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for c in view.dnssec_configs.values() {
+            let attrs = serde_json::json!({
+                "id": c.id,
+                "owner_id": c.owner_id,
+                "resource_id": c.resource_id,
+                "validation_status": c.validation_status,
+            });
+            results.push(ExtractedResource {
+                name: c.id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_config (warning-only)
+//
+// `winterbaume_route53resolver` does not yet model per-VPC resolver
+// configuration (autodefined-reverse flag). Inject validates the TF
+// attributes via the generated TfModel and emits a warning. Extract
+// returns an empty list.
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_config` Terraform resources (validation-only; no state slot).
+pub struct AwsRoute53ResolverConfigConverter {
+    #[allow(dead_code)]
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverConfigConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_config"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsRoute53ResolverConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: route53resolver_gen::ResolverConfigTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_route53_resolver_config", e))?;
+        let warn_msg =
+            "no state slot in winterbaume_route53resolver for VPC resolver configs; inject is a no-op"
+                .to_string();
+        eprintln!("warning: aws_route53_resolver_config: {}", warn_msg);
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_route53_resolver_config: {}", warn_msg)],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_firewall_config (warning-only)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_firewall_config` Terraform resources (validation-only; no state slot).
+pub struct AwsRoute53ResolverFirewallConfigConverter {
+    #[allow(dead_code)]
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverFirewallConfigConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverFirewallConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_firewall_config"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsRoute53ResolverFirewallConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: route53resolver_gen::ResolverFirewallConfigTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_route53_resolver_firewall_config", e)
+            })?;
+        let warn_msg =
+            "no state slot in winterbaume_route53resolver for DNS firewall configs; inject is a no-op"
+                .to_string();
+        eprintln!(
+            "warning: aws_route53_resolver_firewall_config: {}",
+            warn_msg
+        );
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!(
+                "aws_route53_resolver_firewall_config: {}",
+                warn_msg
+            )],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_firewall_domain_list (warning-only)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_firewall_domain_list` Terraform resources (validation-only; no state slot).
+pub struct AwsRoute53ResolverFirewallDomainListConverter {
+    #[allow(dead_code)]
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverFirewallDomainListConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverFirewallDomainListConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_firewall_domain_list"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsRoute53ResolverFirewallDomainListConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: route53resolver_gen::ResolverFirewallDomainListTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_route53_resolver_firewall_domain_list", e)
+            })?;
+        let warn_msg =
+            "no state slot in winterbaume_route53resolver for DNS firewall domain lists; inject is a no-op"
+                .to_string();
+        eprintln!(
+            "warning: aws_route53_resolver_firewall_domain_list: {}",
+            warn_msg
+        );
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!(
+                "aws_route53_resolver_firewall_domain_list: {}",
+                warn_msg
+            )],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_firewall_rule (warning-only)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_firewall_rule` Terraform resources (validation-only; no state slot).
+pub struct AwsRoute53ResolverFirewallRuleConverter {
+    #[allow(dead_code)]
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverFirewallRuleConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverFirewallRuleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_firewall_rule"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsRoute53ResolverFirewallRuleConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: route53resolver_gen::ResolverFirewallRuleTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_route53_resolver_firewall_rule", e))?;
+        let warn_msg =
+            "no state slot in winterbaume_route53resolver for DNS firewall rules; inject is a no-op"
+                .to_string();
+        eprintln!("warning: aws_route53_resolver_firewall_rule: {}", warn_msg);
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_route53_resolver_firewall_rule: {}", warn_msg)],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_firewall_rule_group (warning-only)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_firewall_rule_group` Terraform resources (validation-only; no state slot).
+pub struct AwsRoute53ResolverFirewallRuleGroupConverter {
+    #[allow(dead_code)]
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverFirewallRuleGroupConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverFirewallRuleGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_firewall_rule_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsRoute53ResolverFirewallRuleGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: route53resolver_gen::ResolverFirewallRuleGroupTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_route53_resolver_firewall_rule_group", e)
+            })?;
+        let warn_msg =
+            "no state slot in winterbaume_route53resolver for DNS firewall rule groups; inject is a no-op"
+                .to_string();
+        eprintln!(
+            "warning: aws_route53_resolver_firewall_rule_group: {}",
+            warn_msg
+        );
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!(
+                "aws_route53_resolver_firewall_rule_group: {}",
+                warn_msg
+            )],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route53_resolver_firewall_rule_group_association (warning-only)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_route53_resolver_firewall_rule_group_association` Terraform resources (validation-only; no state slot).
+pub struct AwsRoute53ResolverFirewallRuleGroupAssociationConverter {
+    #[allow(dead_code)]
+    service: Arc<Route53ResolverService>,
+}
+
+impl AwsRoute53ResolverFirewallRuleGroupAssociationConverter {
+    pub fn new(service: Arc<Route53ResolverService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRoute53ResolverFirewallRuleGroupAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route53_resolver_firewall_rule_group_association"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsRoute53ResolverFirewallRuleGroupAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: route53resolver_gen::ResolverFirewallRuleGroupAssociationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error(
+                    "aws_route53_resolver_firewall_rule_group_association",
+                    e,
+                )
+            })?;
+        let warn_msg =
+            "no state slot in winterbaume_route53resolver for DNS firewall rule group associations; inject is a no-op"
+                .to_string();
+        eprintln!(
+            "warning: aws_route53_resolver_firewall_rule_group_association: {}",
+            warn_msg
+        );
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!(
+                "aws_route53_resolver_firewall_rule_group_association: {}",
+                warn_msg
+            )],
+        })
     }
 }

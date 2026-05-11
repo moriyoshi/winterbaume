@@ -69,3 +69,139 @@ pub struct ListenerTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_access_log_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessLogSubscriptionTfModel {
+    pub resource_identifier: String,
+    pub destination_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_network_log_type: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_auth_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthPolicyTfModel {
+    pub resource_identifier: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_listener_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListenerRuleTfModel {
+    pub name: String,
+    pub service_identifier: String,
+    pub listener_identifier: String,
+    #[serde(default)]
+    pub priority: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rule_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_resource_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceConfigurationTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub resource_configuration_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_gateway_identifier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub protocol: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_resource_gateway` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceGatewayTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ip_address_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcePolicyTfModel {
+    pub resource_arn: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_service_network_resource_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceNetworkResourceAssociationTfModel {
+    pub service_network_identifier: String,
+    pub resource_configuration_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_service_network_service_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceNetworkServiceAssociationTfModel {
+    pub service_network_identifier: String,
+    pub service_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_domain_name: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_service_network_vpc_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceNetworkVpcAssociationTfModel {
+    pub service_network_identifier: String,
+    pub vpc_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_vpclattice_target_group_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetGroupAttachmentTfModel {
+    pub target_group_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

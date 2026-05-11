@@ -10,6 +10,10 @@ name = "apprunner"
 crate_name = "winterbaume_apprunner"
 state_view_module = "views"
 
+# ---------------------------------------------------------------------------
+# aws_apprunner_service
+# ---------------------------------------------------------------------------
+
 [[resource]]
 type = "aws_apprunner_service"
 model = "AppRunnerServiceTfModel"
@@ -37,6 +41,308 @@ type = "string?"
 [[resource.field]]
 hcl = "service_url"
 view = "service_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_apprunner_connection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apprunner_connection"
+model = "AppRunnerConnectionTfModel"
+view = "ConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "connection_name"
+view = "connection_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "provider_type"
+view = "provider_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_apprunner_auto_scaling_configuration_version
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apprunner_auto_scaling_configuration_version"
+model = "AppRunnerAutoScalingConfigurationVersionTfModel"
+view = "AutoScalingConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "auto_scaling_configuration_name"
+view = "auto_scaling_configuration_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "auto_scaling_configuration_revision"
+view = "auto_scaling_configuration_revision"
+type = "i64"
+
+[[resource.field]]
+hcl = "min_size"
+view = "min_size"
+type = "i64"
+
+[[resource.field]]
+hcl = "max_size"
+view = "max_size"
+type = "i64"
+
+[[resource.field]]
+hcl = "max_concurrency"
+view = "max_concurrency"
+type = "i64"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "latest"
+view = "latest"
+type = "bool"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_apprunner_default_auto_scaling_configuration_version
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apprunner_default_auto_scaling_configuration_version"
+model = "AppRunnerDefaultAutoScalingConfigurationVersionTfModel"
+view = "AutoScalingConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "auto_scaling_configuration_arn"
+view = "auto_scaling_configuration_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_apprunner_custom_domain_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apprunner_custom_domain_association"
+model = "AppRunnerCustomDomainAssociationTfModel"
+view = "AppRunnerServiceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_arn"
+view = "service_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enable_www_subdomain"
+view = "enable_www_subdomain"
+type = "bool"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apprunner_deployment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apprunner_deployment"
+model = "AppRunnerDeploymentTfModel"
+view = "AppRunnerServiceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "service_arn"
+view = "service_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "operation_id"
+view = "operation_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apprunner_observability_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apprunner_observability_configuration"
+model = "AppRunnerObservabilityConfigurationTfModel"
+view = "AppRunnerServiceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "observability_configuration_name"
+view = "observability_configuration_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "observability_configuration_revision"
+view = "observability_configuration_revision"
+type = "i64"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "latest"
+view = "latest"
+type = "bool"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_apprunner_vpc_connector
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apprunner_vpc_connector"
+model = "AppRunnerVpcConnectorTfModel"
+view = "AppRunnerServiceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_connector_name"
+view = "vpc_connector_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_connector_revision"
+view = "vpc_connector_revision"
+type = "i64"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_apprunner_vpc_ingress_connection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apprunner_vpc_ingress_connection"
+model = "AppRunnerVpcIngressConnectionTfModel"
+view = "AppRunnerServiceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_arn"
+view = "service_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
 type = "string?"
 
 [[resource.field]]

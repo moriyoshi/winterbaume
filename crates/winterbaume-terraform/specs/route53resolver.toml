@@ -1,10 +1,9 @@
 # Auto-ingested by `tf-converter-codegen ingest route53resolver`.
-# Hand-tuned: split into one [[resource]] block per resource type
-# (resolver_endpoint / resolver_rule). Dropped Vec<T>/nested-block
-# fields (security_group_ids, protocols, ip_address, target_ip, tags,
-# tags_all). Those are read straight from instance.attributes in the
-# converter. ARN templates and synthesised resolver IDs are wired up
-# by hand.
+# Hand-tuned: split into one [[resource]] block per resource type.
+# Dropped Vec<T>/nested-block fields (security_group_ids, protocols,
+# ip_address, target_ip, tags, tags_all, domains). Those are read
+# straight from instance.attributes in the converter. ARN templates
+# and synthesised resolver IDs are wired up by hand.
 
 [service]
 name = "route53resolver"
@@ -96,4 +95,396 @@ type = "string?"
 [[resource.field]]
 hcl = "resolver_endpoint_id"
 view = "resolver_endpoint_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_config"
+model = "ResolverConfigTfModel"
+view = "ResolverConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "autodefined_reverse_flag"
+view = "autodefined_reverse_flag"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_dnssec_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_dnssec_config"
+model = "ResolverDnssecConfigTfModel"
+view = "ResolverDnssecConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "validation_status"
+view = "validation_status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_firewall_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_firewall_config"
+model = "ResolverFirewallConfigTfModel"
+view = "ResolverFirewallConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "firewall_fail_open"
+view = "firewall_fail_open"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_firewall_domain_list
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_firewall_domain_list"
+model = "ResolverFirewallDomainListTfModel"
+view = "ResolverFirewallDomainListView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_firewall_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_firewall_rule"
+model = "ResolverFirewallRuleTfModel"
+view = "ResolverFirewallRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "action"
+view = "action"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "firewall_domain_list_id"
+view = "firewall_domain_list_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "firewall_rule_group_id"
+view = "firewall_rule_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "priority"
+view = "priority"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "block_response"
+view = "block_response"
+type = "string?"
+
+[[resource.field]]
+hcl = "block_override_dns_type"
+view = "block_override_dns_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "block_override_domain"
+view = "block_override_domain"
+type = "string?"
+
+[[resource.field]]
+hcl = "block_override_ttl"
+view = "block_override_ttl"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "firewall_domain_redirection_action"
+view = "firewall_domain_redirection_action"
+type = "string?"
+
+[[resource.field]]
+hcl = "qtype"
+view = "qtype"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_firewall_rule_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_firewall_rule_group"
+model = "ResolverFirewallRuleGroupTfModel"
+view = "ResolverFirewallRuleGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "share_status"
+view = "share_status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_firewall_rule_group_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_firewall_rule_group_association"
+model = "ResolverFirewallRuleGroupAssociationTfModel"
+view = "ResolverFirewallRuleGroupAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "firewall_rule_group_id"
+view = "firewall_rule_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "priority"
+view = "priority"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "mutation_protection"
+view = "mutation_protection"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_query_log_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_query_log_config"
+model = "ResolverQueryLogConfigTfModel"
+view = "ResolverQueryLogConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_arn"
+view = "destination_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_query_log_config_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_query_log_config_association"
+model = "ResolverQueryLogConfigAssociationTfModel"
+view = "ResolverQueryLogConfigAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resolver_query_log_config_id"
+view = "resolver_query_log_config_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_resolver_rule_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route53_resolver_rule_association"
+model = "ResolverRuleAssociationTfModel"
+view = "ResolverRuleAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resolver_rule_id"
+view = "resolver_rule_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
 type = "string?"

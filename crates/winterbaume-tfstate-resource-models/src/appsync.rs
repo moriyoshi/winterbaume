@@ -25,3 +25,156 @@ pub struct GraphqlApiTfModel {
 fn default_graphql_api_xray_enabled() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_api_cache` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiCacheTfModel {
+    pub api_id: String,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub cache_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_caching_behavior: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub health_metrics_config: Option<String>,
+    #[serde(default = "default_api_cache_at_rest_encryption_enabled")]
+    pub at_rest_encryption_enabled: bool,
+    #[serde(default = "default_api_cache_transit_encryption_enabled")]
+    pub transit_encryption_enabled: bool,
+    #[serde(default = "default_api_cache_ttl")]
+    pub ttl: i64,
+}
+
+fn default_api_cache_at_rest_encryption_enabled() -> bool {
+    false
+}
+
+fn default_api_cache_transit_encryption_enabled() -> bool {
+    false
+}
+
+fn default_api_cache_ttl() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_api_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiKeyTfModel {
+    pub api_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expires: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_type` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppsyncTypeTfModel {
+    pub api_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub format: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub definition: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_datasource` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppsyncDatasourceTfModel {
+    pub api_id: String,
+    pub name: String,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub datasource_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_domain_name` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppsyncDomainNameTfModel {
+    pub domain_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub appsync_domain_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hosted_zone_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_domain_name_api_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppsyncDomainNameApiAssociationTfModel {
+    pub api_id: String,
+    pub domain_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_function` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppsyncFunctionTfModel {
+    pub api_id: String,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_source: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_mapping_template: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub response_mapping_template: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_resolver` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppsyncResolverTfModel {
+    pub api_id: String,
+    #[serde(rename = "type")]
+    pub resolver_type: String,
+    pub field: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_source: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_template: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub response_template: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appsync_source_api_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppsyncSourceApiAssociationTfModel {
+    pub merged_api_id: String,
+    pub source_api_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_arn: Option<String>,
+}
