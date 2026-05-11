@@ -477,3 +477,43 @@ No new synthesis document was created. The existing `repo-maintenance-and-agent-
 | `repo-maintenance-and-agent-workflows-synthesis.md` | `winterbaume-skill-maintenance.md` added to the existing synthesis set. |
 
 No service documents were updated; the source contains repo/workflow guidance rather than AWS service-specific parity facts. `winterbaume-skill-maintenance.md` remains a standalone source drill-down.
+
+---
+
+## 2026-05-11 — Skip CI pipeline for docs-only pushes to `main`
+
+### Context
+
+`.github/workflows/ci.yml` was unconditionally triggered on every `push` to `main`, kicking the full Rustfmt → Clippy → Tests → Examples → E2E ( Terraform ) chain even when the commit only touched documentation. The user asked to gate the pipeline with `dorny/paths-filter` so docs-only pushes do not consume CI minutes.
+
+### Change
+
+Added a new leading `changes` job that runs `dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d` ( v4.0.1, pinned to the tag's commit SHA per repo convention ) and exposes a single `code` output. The filter treats these paths as build-relevant:
+
+- `crates/**`, `src/**`, `tools/**`, `examples/**` ( all Rust sources the workflow exercises )
+- `vendor/**` ( vendored Smithy models that drive codegen )
+- `Cargo.toml`, `Cargo.lock`, `rustfmt.toml`, `dist-workspace.toml`, `.gitmodules`
+- `.github/workflows/ci.yml`, `.github/actions/**` ( so changes to CI re-trigger CI )
+
+`docs/**` ( the VitePress site, handled separately by `deploy-docs.yml` ), `.agents/docs/**`, `skills/**`, `mise.toml`, `*.md`, and the other top-level docs are excluded by omission.
+
+`fmt` now depends on `changes` and carries the guard:
+
+```yaml
+if: |
+  github.event_name != 'push' ||
+  github.ref != 'refs/heads/main' ||
+  needs.changes.outputs.code == 'true'
+```
+
+The condition only skips when **all three** of `push` + `refs/heads/main` + no code-relevant diff hold. `workflow_dispatch` and `workflow_call` ( the latter is how `release.yml` reuses ci.yml on tag pushes — the original `github.event_name` is still `push` but `github.ref` is `refs/tags/...`, which short-circuits the second clause ) always run the full pipeline.
+
+`clippy`, `test`, `examples`, and `e2e` were not modified individually. They cascade-skip via `needs:` because the default `if` for a job is `success()`, which fails when an upstream `needs` job has status `skipped` ( rather than `success` ). Net effect on a docs-only push: only the ≈10 s `changes` job runs.
+
+### Finding: dorny/paths-filter latest stable is v4.0.1
+
+`gh api repos/dorny/paths-filter/releases/latest` reports tag `v4.0.1` ( commit `fbd0ab8f3e69293af611ebaee6363fc25e6d187d` ). The previous major `v3` resolves to a different SHA ( `6852f92...` ) — worth noting if any other workflow later pins paths-filter, the repo convention is full 40-char SHA with a trailing `# vX.Y.Z` comment.
+
+### Finding: cascade-skip via `needs:` is sufficient
+
+There is no need to repeat the path-filter `if:` on every downstream job. GitHub Actions' implicit `if: success()` propagates `skipped` through the `needs:` chain ( `fmt` skipped → `clippy` skipped → `test` / `examples` skipped → `e2e` skipped ). Adding the guard only to the root job keeps the workflow concise.
