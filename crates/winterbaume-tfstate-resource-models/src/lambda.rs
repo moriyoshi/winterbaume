@@ -73,3 +73,113 @@ pub struct LambdaEventSourceMappingTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub starting_position: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_code_signing_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaCodeSigningConfigTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub config_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_function_event_invoke_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaFunctionEventInvokeConfigTfModel {
+    pub function_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub qualifier: Option<String>,
+    #[serde(default = "default_lambda_function_event_invoke_config_maximum_event_age_in_seconds")]
+    pub maximum_event_age_in_seconds: i64,
+    #[serde(default = "default_lambda_function_event_invoke_config_maximum_retry_attempts")]
+    pub maximum_retry_attempts: i64,
+}
+
+fn default_lambda_function_event_invoke_config_maximum_event_age_in_seconds() -> i64 {
+    0i64
+}
+
+fn default_lambda_function_event_invoke_config_maximum_retry_attempts() -> i64 {
+    2i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_function_recursion_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaFunctionRecursionConfigTfModel {
+    pub function_name: String,
+    pub recursive_loop: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_function_url` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaFunctionUrlTfModel {
+    pub function_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub qualifier: Option<String>,
+    pub authorization_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invoke_mode: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub function_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_invocation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaInvocationTfModel {
+    pub function_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub qualifier: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_layer_version` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaLayerVersionTfModel {
+    pub layer_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub license_info: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layer_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_layer_version_permission` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaLayerVersionPermissionTfModel {
+    pub layer_name: String,
+    pub version_number: i64,
+    pub statement_id: String,
+    pub action: String,
+    pub principal: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub organization_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_provisioned_concurrency_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaProvisionedConcurrencyConfigTfModel {
+    pub function_name: String,
+    pub qualifier: String,
+    pub provisioned_concurrent_executions: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lambda_runtime_management_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LambdaRuntimeManagementConfigTfModel {
+    pub function_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub qualifier: Option<String>,
+    pub update_runtime_on: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime_version_arn: Option<String>,
+}

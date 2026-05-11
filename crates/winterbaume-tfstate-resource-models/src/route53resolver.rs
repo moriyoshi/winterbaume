@@ -34,3 +34,136 @@ pub struct ResolverRuleTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub resolver_endpoint_id: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverConfigTfModel {
+    pub resource_id: String,
+    pub autodefined_reverse_flag: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_dnssec_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverDnssecConfigTfModel {
+    pub resource_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub validation_status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_firewall_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverFirewallConfigTfModel {
+    pub resource_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub firewall_fail_open: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_firewall_domain_list` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverFirewallDomainListTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_firewall_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverFirewallRuleTfModel {
+    pub name: String,
+    pub action: String,
+    pub firewall_domain_list_id: String,
+    pub firewall_rule_group_id: String,
+    pub priority: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub block_response: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub block_override_dns_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub block_override_domain: Option<String>,
+    #[serde(default = "default_resolver_firewall_rule_block_override_ttl")]
+    pub block_override_ttl: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub firewall_domain_redirection_action: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub qtype: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+fn default_resolver_firewall_rule_block_override_ttl() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_firewall_rule_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverFirewallRuleGroupTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub share_status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_firewall_rule_group_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverFirewallRuleGroupAssociationTfModel {
+    pub name: String,
+    pub firewall_rule_group_id: String,
+    pub vpc_id: String,
+    pub priority: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mutation_protection: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_query_log_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverQueryLogConfigTfModel {
+    pub name: String,
+    pub destination_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_query_log_config_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverQueryLogConfigAssociationTfModel {
+    pub resolver_query_log_config_id: String,
+    pub resource_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_route53_resolver_rule_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolverRuleAssociationTfModel {
+    pub resolver_rule_id: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

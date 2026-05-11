@@ -8,8 +8,13 @@ use std::sync::Arc;
 use chrono::Utc;
 use winterbaume_core::StatefulService;
 use winterbaume_lambda::LambdaService;
+use winterbaume_lambda::types::{
+    CodeSigningConfigEntry, FunctionRecursionConfig, ProvisionedConcurrencyConfig,
+    RuntimeManagementConfig,
+};
 use winterbaume_lambda::views::{
-    AliasView, EventSourceMappingView, LambdaFunctionView, LambdaStateView, PermissionView,
+    AliasView, EventSourceMappingView, FunctionEventInvokeConfigView, FunctionUrlConfigView,
+    LambdaFunctionView, LambdaStateView, LayerPermissionView, LayerVersionView, PermissionView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -695,6 +700,1129 @@ impl AwsLambdaEventSourceMappingConverter {
             }
             results.push(ExtractedResource {
                 name: esm.uuid.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_code_signing_config
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_code_signing_config` Terraform resources to/from Lambda state.
+pub struct AwsLambdaCodeSigningConfigConverter {
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaCodeSigningConfigConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaCodeSigningConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_code_signing_config"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLambdaCodeSigningConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaCodeSigningConfigTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_lambda_code_signing_config", e))?;
+
+        // TF-only / nested blocks not part of the strongly-typed model.
+        let _ = attrs.get("tags");
+        let _ = attrs.get("tags_all");
+        let _ = attrs.get("allowed_publishers");
+        let _ = attrs.get("policies");
+
+        let config_id = model
+            .config_id
+            .or_else(|| optional_str(attrs, "id"))
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:lambda:{}:{}:code-signing-config:{}",
+                region, ctx.default_account_id, config_id
+            )
+        });
+
+        // Pull signing-profile ARNs from the nested allowed_publishers block.
+        let allowed_publishers: Vec<String> = attrs
+            .get("allowed_publishers")
+            .and_then(|v| v.as_array())
+            .and_then(|arr| arr.first())
+            .and_then(|item| item.get("signing_profile_version_arns"))
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let untrusted_artifact_on_deployment = attrs
+            .get("policies")
+            .and_then(|v| v.as_array())
+            .and_then(|arr| arr.first())
+            .and_then(|item| item.get("untrusted_artifact_on_deployment"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "Warn".to_string());
+
+        let entry = CodeSigningConfigEntry {
+            code_signing_config_id: config_id.clone(),
+            code_signing_config_arn: arn,
+            description: model.description,
+            allowed_publishers,
+            untrusted_artifact_on_deployment,
+            last_modified: Utc::now().to_rfc3339(),
+            functions: vec![],
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        state_view.code_signing_configs.insert(config_id, entry);
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for entry in view.code_signing_configs.values() {
+            let attrs = serde_json::json!({
+                "id": entry.code_signing_config_id,
+                "config_id": entry.code_signing_config_id,
+                "arn": entry.code_signing_config_arn,
+                "description": entry.description,
+                "last_modified": entry.last_modified,
+                "allowed_publishers": [{
+                    "signing_profile_version_arns": entry.allowed_publishers,
+                }],
+                "policies": [{
+                    "untrusted_artifact_on_deployment": entry.untrusted_artifact_on_deployment,
+                }],
+                "tags": {},
+                "tags_all": {},
+            });
+            results.push(ExtractedResource {
+                name: entry.code_signing_config_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_function_event_invoke_config
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_function_event_invoke_config` Terraform resources to/from Lambda state.
+pub struct AwsLambdaFunctionEventInvokeConfigConverter {
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaFunctionEventInvokeConfigConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaFunctionEventInvokeConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_function_event_invoke_config"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lambda_function"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLambdaFunctionEventInvokeConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaFunctionEventInvokeConfigTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_lambda_function_event_invoke_config", e)
+            })?;
+
+        // TF-only / nested blocks not part of the strongly-typed model.
+        let _ = attrs.get("destination_config");
+
+        let function_name = model.function_name.clone();
+        let function_arn = format!(
+            "arn:aws:lambda:{}:{}:function:{}",
+            region, ctx.default_account_id, function_name
+        );
+
+        // Pull destination ARNs from the nested destination_config block.
+        let destination_config = attrs
+            .get("destination_config")
+            .and_then(|v| v.as_array())
+            .and_then(|arr| arr.first());
+        let on_success_destination = destination_config
+            .and_then(|d| d.get("on_success"))
+            .and_then(|v| v.as_array())
+            .and_then(|arr| arr.first())
+            .and_then(|item| item.get("destination"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        let on_failure_destination = destination_config
+            .and_then(|d| d.get("on_failure"))
+            .and_then(|v| v.as_array())
+            .and_then(|arr| arr.first())
+            .and_then(|item| item.get("destination"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+
+        let feic_view = FunctionEventInvokeConfigView {
+            function_name: function_name.clone(),
+            function_arn,
+            maximum_retry_attempts: Some(model.maximum_retry_attempts as i32),
+            maximum_event_age_in_seconds: Some(model.maximum_event_age_in_seconds as i32),
+            on_success_destination,
+            on_failure_destination,
+            last_modified: Utc::now().to_rfc3339(),
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        state_view
+            .function_event_invoke_configs
+            .insert(function_name, feic_view);
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for feic in view.function_event_invoke_configs.values() {
+            let mut destination_config = serde_json::json!([]);
+            if feic.on_success_destination.is_some() || feic.on_failure_destination.is_some() {
+                let mut entry = serde_json::Map::new();
+                if let Some(arn) = &feic.on_success_destination {
+                    entry.insert(
+                        "on_success".to_string(),
+                        serde_json::json!([{ "destination": arn }]),
+                    );
+                }
+                if let Some(arn) = &feic.on_failure_destination {
+                    entry.insert(
+                        "on_failure".to_string(),
+                        serde_json::json!([{ "destination": arn }]),
+                    );
+                }
+                destination_config =
+                    serde_json::Value::Array(vec![serde_json::Value::Object(entry)]);
+            }
+            let attrs = serde_json::json!({
+                "id": feic.function_name,
+                "function_name": feic.function_name,
+                "maximum_event_age_in_seconds": feic.maximum_event_age_in_seconds.unwrap_or(0),
+                "maximum_retry_attempts": feic.maximum_retry_attempts.unwrap_or(2),
+                "destination_config": destination_config,
+            });
+            results.push(ExtractedResource {
+                name: feic.function_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_function_recursion_config
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_function_recursion_config` Terraform resources to/from Lambda state.
+pub struct AwsLambdaFunctionRecursionConfigConverter {
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaFunctionRecursionConfigConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaFunctionRecursionConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_function_recursion_config"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lambda_function"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLambdaFunctionRecursionConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaFunctionRecursionConfigTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_lambda_function_recursion_config", e)
+            })?;
+
+        let function_name = model.function_name.clone();
+        let cfg = FunctionRecursionConfig {
+            recursive_loop: model.recursive_loop,
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        state_view
+            .function_recursion_configs
+            .insert(function_name, cfg);
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for (function_name, cfg) in &view.function_recursion_configs {
+            let attrs = serde_json::json!({
+                "id": function_name,
+                "function_name": function_name,
+                "recursive_loop": cfg.recursive_loop,
+            });
+            results.push(ExtractedResource {
+                name: function_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_function_url
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_function_url` Terraform resources to/from Lambda state.
+pub struct AwsLambdaFunctionUrlConverter {
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaFunctionUrlConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaFunctionUrlConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_function_url"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lambda_function"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLambdaFunctionUrlConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaFunctionUrlTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lambda_function_url", e))?;
+
+        // TF-only / nested blocks not part of the strongly-typed model.
+        let _ = attrs.get("cors");
+        let _ = attrs.get("url_id");
+
+        let function_name = model.function_name.clone();
+        let function_arn = model.function_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:lambda:{}:{}:function:{}",
+                region, ctx.default_account_id, function_name
+            )
+        });
+        let function_url = model
+            .function_url
+            .unwrap_or_else(|| format!("https://placeholder.lambda-url.{}.on.aws/", region));
+
+        let now = Utc::now().to_rfc3339();
+        let fuc_view = FunctionUrlConfigView {
+            function_name: function_name.clone(),
+            function_arn,
+            function_url,
+            auth_type: model.authorization_type,
+            cors: None,
+            invoke_mode: model.invoke_mode,
+            creation_time: now.clone(),
+            last_modified_time: now,
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        state_view
+            .function_url_configs
+            .insert(function_name, fuc_view);
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for fuc in view.function_url_configs.values() {
+            let attrs = serde_json::json!({
+                "id": fuc.function_name,
+                "function_name": fuc.function_name,
+                "function_arn": fuc.function_arn,
+                "function_url": fuc.function_url,
+                "authorization_type": fuc.auth_type,
+                "invoke_mode": fuc.invoke_mode,
+                "url_id": "",
+                "creation_time": fuc.creation_time,
+                "last_modified_time": fuc.last_modified_time,
+                "cors": [],
+            });
+            results.push(ExtractedResource {
+                name: fuc.function_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_invocation
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_invocation` Terraform resources.
+///
+/// Lambda invocations are ephemeral side-effects with no durable state in
+/// winterbaume, so injection only validates the payload and extraction
+/// returns nothing. The TF resource itself is a one-shot trigger that does
+/// not own a steady-state representation.
+pub struct AwsLambdaInvocationConverter {
+    #[allow(dead_code)]
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaInvocationConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaInvocationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_invocation"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lambda_function"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let attrs = &instance.attributes;
+            let region = extract_region(attrs, &ctx.default_region);
+            let _model: lambda_gen::LambdaInvocationTfModel = serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_lambda_invocation", e))?;
+
+            Ok(ConversionResult {
+                region,
+                warnings: vec![
+                    "aws_lambda_invocation is a one-shot trigger; no durable state recorded"
+                        .to_string(),
+                ],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_layer_version
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_layer_version` Terraform resources to/from Lambda state.
+pub struct AwsLambdaLayerVersionConverter {
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaLayerVersionConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaLayerVersionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_layer_version"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLambdaLayerVersionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaLayerVersionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lambda_layer_version", e))?;
+
+        // TF-only fields not part of the strongly-typed model.
+        let _ = attrs.get("filename");
+        let _ = attrs.get("s3_bucket");
+        let _ = attrs.get("s3_key");
+        let _ = attrs.get("s3_object_version");
+        let _ = attrs.get("source_code_hash");
+        let _ = attrs.get("skip_destroy");
+
+        let compatible_runtimes: Vec<String> = attrs
+            .get("compatible_runtimes")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let compatible_architectures: Vec<String> = attrs
+            .get("compatible_architectures")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let layer_name = model.layer_name.clone();
+        let version_num = model
+            .version
+            .as_deref()
+            .and_then(|s| s.parse::<i64>().ok())
+            .unwrap_or(1);
+
+        let layer_arn = model.layer_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:lambda:{}:{}:layer:{}",
+                region, ctx.default_account_id, layer_name
+            )
+        });
+        let layer_version_arn = model
+            .arn
+            .unwrap_or_else(|| format!("{}:{}", layer_arn, version_num));
+
+        let lv_view = LayerVersionView {
+            layer_name: layer_name.clone(),
+            version: version_num,
+            layer_arn,
+            layer_version_arn,
+            description: model.description.unwrap_or_default(),
+            compatible_runtimes,
+            compatible_architectures,
+            license_info: model.license_info,
+            created_date: Utc::now().to_rfc3339(),
+            code_sha256: attrs
+                .get("source_code_hash")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_string(),
+            code_size: attrs
+                .get("source_code_size")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0),
+            permissions: vec![],
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let versions = state_view.layers.entry(layer_name.clone()).or_default();
+        versions.retain(|v| v.version != version_num);
+        versions.push(lv_view);
+        let next = state_view
+            .layer_next_version
+            .entry(layer_name)
+            .or_insert(version_num + 1);
+        if *next <= version_num {
+            *next = version_num + 1;
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for versions in view.layers.values() {
+            for lv in versions {
+                let attrs = serde_json::json!({
+                    "id": lv.layer_version_arn,
+                    "layer_name": lv.layer_name,
+                    "description": lv.description,
+                    "license_info": lv.license_info,
+                    "arn": lv.layer_version_arn,
+                    "layer_arn": lv.layer_arn,
+                    "version": lv.version.to_string(),
+                    "compatible_runtimes": lv.compatible_runtimes,
+                    "compatible_architectures": lv.compatible_architectures,
+                    "created_date": lv.created_date,
+                    "source_code_hash": lv.code_sha256,
+                    "source_code_size": lv.code_size,
+                    "signing_job_arn": "",
+                    "signing_profile_version_arn": "",
+                    "skip_destroy": false,
+                });
+                results.push(ExtractedResource {
+                    name: lv.layer_version_arn.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_layer_version_permission
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_layer_version_permission` Terraform resources to/from Lambda state.
+pub struct AwsLambdaLayerVersionPermissionConverter {
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaLayerVersionPermissionConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaLayerVersionPermissionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_layer_version_permission"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lambda_layer_version"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLambdaLayerVersionPermissionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaLayerVersionPermissionTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_lambda_layer_version_permission", e)
+            })?;
+
+        let perm = LayerPermissionView {
+            statement_id: model.statement_id.clone(),
+            action: model.action,
+            principal: model.principal,
+            organization_id: model.organization_id,
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(versions) = state_view.layers.get_mut(&model.layer_name) {
+            if let Some(lv) = versions
+                .iter_mut()
+                .find(|v| v.version == model.version_number)
+            {
+                lv.permissions
+                    .retain(|p| p.statement_id != perm.statement_id);
+                lv.permissions.push(perm);
+            } else {
+                warnings.push(format!(
+                    "layer version {}:{} not found; permission skipped",
+                    model.layer_name, model.version_number
+                ));
+            }
+        } else {
+            warnings.push(format!(
+                "layer {} not found; permission skipped",
+                model.layer_name
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for versions in view.layers.values() {
+            for lv in versions {
+                for perm in &lv.permissions {
+                    let id = format!("{},{},{}", lv.layer_name, lv.version, perm.statement_id);
+                    let attrs = serde_json::json!({
+                        "id": id,
+                        "layer_name": lv.layer_name,
+                        "version_number": lv.version,
+                        "statement_id": perm.statement_id,
+                        "action": perm.action,
+                        "principal": perm.principal,
+                        "organization_id": perm.organization_id,
+                        "revision_id": "",
+                    });
+                    results.push(ExtractedResource {
+                        name: id,
+                        account_id: ctx.default_account_id.clone(),
+                        region: ctx.default_region.clone(),
+                        attributes: attrs,
+                    });
+                }
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_provisioned_concurrency_config
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_provisioned_concurrency_config` Terraform resources to/from Lambda state.
+pub struct AwsLambdaProvisionedConcurrencyConfigConverter {
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaProvisionedConcurrencyConfigConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaProvisionedConcurrencyConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_provisioned_concurrency_config"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lambda_function", "aws_lambda_alias"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLambdaProvisionedConcurrencyConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaProvisionedConcurrencyConfigTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_lambda_provisioned_concurrency_config", e)
+            })?;
+
+        let function_name = model.function_name.clone();
+        let qualifier = model.qualifier.clone();
+        let function_arn = format!(
+            "arn:aws:lambda:{}:{}:function:{}:{}",
+            region, ctx.default_account_id, function_name, qualifier
+        );
+        let key = format!("{}:{}", function_name, qualifier);
+
+        let cfg = ProvisionedConcurrencyConfig {
+            function_arn,
+            requested: model.provisioned_concurrent_executions as i32,
+            last_modified: Utc::now().to_rfc3339(),
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        state_view.provisioned_concurrency.insert(key, cfg);
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for (key, cfg) in &view.provisioned_concurrency {
+            let mut parts = key.splitn(2, ':');
+            let function_name = parts.next().unwrap_or_default().to_string();
+            let qualifier = parts.next().unwrap_or_default().to_string();
+            let attrs = serde_json::json!({
+                "id": key,
+                "function_name": function_name,
+                "qualifier": qualifier,
+                "provisioned_concurrent_executions": cfg.requested,
+                "status": "READY",
+                "last_modified": cfg.last_modified,
+            });
+            results.push(ExtractedResource {
+                name: key.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lambda_runtime_management_config
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lambda_runtime_management_config` Terraform resources to/from Lambda state.
+pub struct AwsLambdaRuntimeManagementConfigConverter {
+    service: Arc<LambdaService>,
+}
+
+impl AwsLambdaRuntimeManagementConfigConverter {
+    pub fn new(service: Arc<LambdaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLambdaRuntimeManagementConfigConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lambda_runtime_management_config"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lambda_function"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLambdaRuntimeManagementConfigConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: lambda_gen::LambdaRuntimeManagementConfigTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_lambda_runtime_management_config", e)
+            })?;
+
+        let function_name = model.function_name.clone();
+        let cfg = RuntimeManagementConfig {
+            update_runtime_on: model.update_runtime_on,
+            runtime_version_arn: model.runtime_version_arn,
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        state_view
+            .runtime_management_configs
+            .insert(function_name, cfg);
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for (function_name, cfg) in &view.runtime_management_configs {
+            let attrs = serde_json::json!({
+                "id": function_name,
+                "function_name": function_name,
+                "update_runtime_on": cfg.update_runtime_on,
+                "runtime_version_arn": cfg.runtime_version_arn,
+            });
+            results.push(ExtractedResource {
+                name: function_name.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,

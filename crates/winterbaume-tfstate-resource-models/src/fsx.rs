@@ -101,3 +101,363 @@ fn default_windows_file_system_copy_tags_to_backups() -> bool {
 fn default_windows_file_system_automatic_backup_retention_days() -> i64 {
     0i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_backup` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file_system_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub volume_id: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub backup_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_ontap_file_system` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OntapFileSystemTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_ontap_file_system_storage_capacity")]
+    pub storage_capacity: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dns_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lifecycle: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lifecycle_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deployment_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preferred_subnet_id: Option<String>,
+    #[serde(default = "default_ontap_file_system_throughput_capacity")]
+    pub throughput_capacity: i64,
+    #[serde(default = "default_ontap_file_system_automatic_backup_retention_days")]
+    pub automatic_backup_retention_days: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub daily_automatic_backup_start_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub weekly_maintenance_start_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint_ip_address_range: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fsx_admin_password: Option<String>,
+    #[serde(default = "default_ontap_file_system_ha_pairs")]
+    pub ha_pairs: i64,
+    #[serde(default = "default_ontap_file_system_throughput_capacity_per_ha_pair")]
+    pub throughput_capacity_per_ha_pair: i64,
+}
+
+fn default_ontap_file_system_storage_capacity() -> i64 {
+    1024i64
+}
+
+fn default_ontap_file_system_throughput_capacity() -> i64 {
+    0i64
+}
+
+fn default_ontap_file_system_automatic_backup_retention_days() -> i64 {
+    0i64
+}
+
+fn default_ontap_file_system_ha_pairs() -> i64 {
+    1i64
+}
+
+fn default_ontap_file_system_throughput_capacity_per_ha_pair() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_ontap_storage_virtual_machine` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OntapStorageVirtualMachineTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub name: String,
+    pub file_system_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root_volume_security_style: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub svm_admin_password: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subtype: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uuid: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lifecycle_status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_ontap_volume` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OntapVolumeTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub name: String,
+    pub storage_virtual_machine_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file_system_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub volume_type: Option<String>,
+    #[serde(default = "default_ontap_volume_size_in_megabytes")]
+    pub size_in_megabytes: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub size_in_bytes: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub junction_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub security_style: Option<String>,
+    #[serde(default = "default_ontap_volume_storage_efficiency_enabled")]
+    pub storage_efficiency_enabled: bool,
+    #[serde(default = "default_ontap_volume_skip_final_backup")]
+    pub skip_final_backup: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ontap_volume_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_policy: Option<String>,
+    #[serde(default = "default_ontap_volume_copy_tags_to_backups")]
+    pub copy_tags_to_backups: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uuid: Option<String>,
+    #[serde(default = "default_ontap_volume_bypass_snaplock_enterprise_retention")]
+    pub bypass_snaplock_enterprise_retention: bool,
+}
+
+fn default_ontap_volume_size_in_megabytes() -> i64 {
+    0i64
+}
+
+fn default_ontap_volume_storage_efficiency_enabled() -> bool {
+    false
+}
+
+fn default_ontap_volume_skip_final_backup() -> bool {
+    false
+}
+
+fn default_ontap_volume_copy_tags_to_backups() -> bool {
+    false
+}
+
+fn default_ontap_volume_bypass_snaplock_enterprise_retention() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_openzfs_file_system` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenzfsFileSystemTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_openzfs_file_system_storage_capacity")]
+    pub storage_capacity: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dns_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lifecycle: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lifecycle_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deployment_type: Option<String>,
+    #[serde(default = "default_openzfs_file_system_throughput_capacity")]
+    pub throughput_capacity: i64,
+    #[serde(default = "default_openzfs_file_system_copy_tags_to_backups")]
+    pub copy_tags_to_backups: bool,
+    #[serde(default = "default_openzfs_file_system_copy_tags_to_volumes")]
+    pub copy_tags_to_volumes: bool,
+    #[serde(default = "default_openzfs_file_system_automatic_backup_retention_days")]
+    pub automatic_backup_retention_days: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub daily_automatic_backup_start_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub weekly_maintenance_start_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root_volume_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint_ip_address_range: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preferred_subnet_id: Option<String>,
+}
+
+fn default_openzfs_file_system_storage_capacity() -> i64 {
+    64i64
+}
+
+fn default_openzfs_file_system_throughput_capacity() -> i64 {
+    64i64
+}
+
+fn default_openzfs_file_system_copy_tags_to_backups() -> bool {
+    false
+}
+
+fn default_openzfs_file_system_copy_tags_to_volumes() -> bool {
+    false
+}
+
+fn default_openzfs_file_system_automatic_backup_retention_days() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_openzfs_snapshot` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenzfsSnapshotTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub name: String,
+    pub volume_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_openzfs_volume` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenzfsVolumeTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub name: String,
+    pub parent_volume_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub volume_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_compression_type: Option<String>,
+    #[serde(default = "default_openzfs_volume_storage_capacity_quota_gib")]
+    pub storage_capacity_quota_gib: i64,
+    #[serde(default = "default_openzfs_volume_storage_capacity_reservation_gib")]
+    pub storage_capacity_reservation_gib: i64,
+    #[serde(default = "default_openzfs_volume_record_size_kib")]
+    pub record_size_kib: i64,
+    #[serde(default = "default_openzfs_volume_read_only")]
+    pub read_only: bool,
+    #[serde(default = "default_openzfs_volume_copy_tags_to_snapshots")]
+    pub copy_tags_to_snapshots: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delete_volume_options: Option<String>,
+}
+
+fn default_openzfs_volume_storage_capacity_quota_gib() -> i64 {
+    0i64
+}
+
+fn default_openzfs_volume_storage_capacity_reservation_gib() -> i64 {
+    0i64
+}
+
+fn default_openzfs_volume_record_size_kib() -> i64 {
+    128i64
+}
+
+fn default_openzfs_volume_read_only() -> bool {
+    false
+}
+
+fn default_openzfs_volume_copy_tags_to_snapshots() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_data_repository_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataRepositoryAssociationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub file_system_id: String,
+    pub data_repository_path: String,
+    pub file_system_path: String,
+    #[serde(default = "default_data_repository_association_batch_import_meta_data_on_create")]
+    pub batch_import_meta_data_on_create: bool,
+    #[serde(default = "default_data_repository_association_imported_file_chunk_size")]
+    pub imported_file_chunk_size: i64,
+    #[serde(default = "default_data_repository_association_delete_data_in_filesystem")]
+    pub delete_data_in_filesystem: bool,
+}
+
+fn default_data_repository_association_batch_import_meta_data_on_create() -> bool {
+    false
+}
+
+fn default_data_repository_association_imported_file_chunk_size() -> i64 {
+    0i64
+}
+
+fn default_data_repository_association_delete_data_in_filesystem() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_fsx_file_cache` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileCacheTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub file_cache_id: Option<String>,
+    pub file_cache_type: String,
+    pub file_cache_type_version: String,
+    #[serde(default = "default_file_cache_storage_capacity")]
+    pub storage_capacity: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dns_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creation_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lifecycle: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default = "default_file_cache_copy_tags_to_data_repository_associations")]
+    pub copy_tags_to_data_repository_associations: bool,
+}
+
+fn default_file_cache_storage_capacity() -> i64 {
+    0i64
+}
+
+fn default_file_cache_copy_tags_to_data_repository_associations() -> bool {
+    false
+}

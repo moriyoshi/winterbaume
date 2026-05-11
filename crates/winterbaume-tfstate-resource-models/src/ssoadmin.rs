@@ -35,3 +35,121 @@ pub struct AccountAssignmentTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub target_type: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_managed_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedPolicyAttachmentTfModel {
+    pub instance_arn: String,
+    pub permission_set_arn: String,
+    pub managed_policy_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub managed_policy_name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_customer_managed_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerManagedPolicyAttachmentTfModel {
+    pub instance_arn: String,
+    pub permission_set_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_permission_set_inline_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionSetInlinePolicyTfModel {
+    pub instance_arn: String,
+    pub permission_set_arn: String,
+    pub inline_policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_permissions_boundary_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionsBoundaryAttachmentTfModel {
+    pub instance_arn: String,
+    pub permission_set_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_application` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationTfModel {
+    pub instance_arn: String,
+    pub name: String,
+    pub application_provider_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub application_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_token: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_application_access_scope` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationAccessScopeTfModel {
+    pub application_arn: String,
+    pub scope: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_application_assignment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationAssignmentTfModel {
+    pub application_arn: String,
+    pub principal_id: String,
+    pub principal_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_application_assignment_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationAssignmentConfigurationTfModel {
+    pub application_arn: String,
+    pub assignment_required: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_instance_access_control_attributes` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceAccessControlAttributesTfModel {
+    pub instance_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status_reason: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ssoadmin_trusted_token_issuer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrustedTokenIssuerTfModel {
+    pub instance_arn: String,
+    pub name: String,
+    pub trusted_token_issuer_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_token: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}

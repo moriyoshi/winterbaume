@@ -182,3 +182,401 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_access_log_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_access_log_subscription"
+model = "AccessLogSubscriptionTfModel"
+view = "AccessLogSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_identifier"
+view = "resource_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_arn"
+view = "destination_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_network_log_type"
+view = "service_network_log_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_auth_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_auth_policy"
+model = "AuthPolicyTfModel"
+view = "AuthPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_identifier"
+view = "resource_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_listener_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_listener_rule"
+model = "ListenerRuleTfModel"
+view = "RuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_identifier"
+view = "service_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "listener_identifier"
+view = "listener_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "priority"
+view = "priority"
+type = "i64"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "rule_id"
+view = "rule_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_resource_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_resource_configuration"
+model = "ResourceConfigurationTfModel"
+view = "ResourceConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "resource_configuration_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_gateway_identifier"
+view = "resource_gateway_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "protocol"
+view = "protocol"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_resource_gateway
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_resource_gateway"
+model = "ResourceGatewayTfModel"
+view = "ResourceGatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ip_address_type"
+view = "ip_address_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_resource_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_resource_policy"
+model = "ResourcePolicyTfModel"
+view = "ResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_service_network_resource_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_service_network_resource_association"
+model = "ServiceNetworkResourceAssociationTfModel"
+view = "SnResourceAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "service_network_identifier"
+view = "service_network_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_configuration_identifier"
+view = "resource_configuration_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_service_network_service_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_service_network_service_association"
+model = "ServiceNetworkServiceAssociationTfModel"
+view = "SnServiceAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "service_network_identifier"
+view = "service_network_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_identifier"
+view = "service_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_domain_name"
+view = "custom_domain_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_service_network_vpc_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_service_network_vpc_association"
+model = "ServiceNetworkVpcAssociationTfModel"
+view = "SnVpcAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "service_network_identifier"
+view = "service_network_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_identifier"
+view = "vpc_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_vpclattice_target_group_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpclattice_target_group_attachment"
+model = "TargetGroupAttachmentTfModel"
+view = "TargetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "target_group_identifier"
+view = "target_group_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

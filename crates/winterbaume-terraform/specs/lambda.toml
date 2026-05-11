@@ -197,3 +197,315 @@ type = "string?"
 hcl = "starting_position"
 view = "starting_position"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_code_signing_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_code_signing_config"
+model = "LambdaCodeSigningConfigTfModel"
+view = "CodeSigningConfigEntry"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "config_id"
+view = "config_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_function_event_invoke_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_function_event_invoke_config"
+model = "LambdaFunctionEventInvokeConfigTfModel"
+view = "FunctionEventInvokeConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "qualifier"
+view = "qualifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "maximum_event_age_in_seconds"
+view = "maximum_event_age_in_seconds"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "maximum_retry_attempts"
+view = "maximum_retry_attempts"
+type = "i64"
+default = 2
+
+# ---------------------------------------------------------------------------
+# aws_lambda_function_recursion_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_function_recursion_config"
+model = "LambdaFunctionRecursionConfigTfModel"
+view = "FunctionRecursionConfig"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "recursive_loop"
+view = "recursive_loop"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_lambda_function_url
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_function_url"
+model = "LambdaFunctionUrlTfModel"
+view = "FunctionUrlConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "qualifier"
+view = "qualifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorization_type"
+view = "authorization_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "invoke_mode"
+view = "invoke_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "function_url"
+view = "function_url"
+type = "string?"
+
+[[resource.field]]
+hcl = "function_arn"
+view = "function_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_invocation
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_invocation"
+model = "LambdaInvocationTfModel"
+view = "InvocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "input"
+view = "input"
+type = "string?"
+
+[[resource.field]]
+hcl = "qualifier"
+view = "qualifier"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_layer_version
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_layer_version"
+model = "LambdaLayerVersionTfModel"
+view = "LayerVersionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "layer_name"
+view = "layer_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "license_info"
+view = "license_info"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "layer_arn"
+view = "layer_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_layer_version_permission
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_layer_version_permission"
+model = "LambdaLayerVersionPermissionTfModel"
+view = "LayerVersionPermissionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "layer_name"
+view = "layer_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "version_number"
+view = "version_number"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "statement_id"
+view = "statement_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "action"
+view = "action"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal"
+view = "principal"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "organization_id"
+view = "organization_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lambda_provisioned_concurrency_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_provisioned_concurrency_config"
+model = "LambdaProvisionedConcurrencyConfigTfModel"
+view = "ProvisionedConcurrencyConfig"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "qualifier"
+view = "qualifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "provisioned_concurrent_executions"
+view = "provisioned_concurrent_executions"
+type = "i64"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_lambda_runtime_management_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lambda_runtime_management_config"
+model = "LambdaRuntimeManagementConfigTfModel"
+view = "RuntimeManagementConfig"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "function_name"
+view = "function_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "qualifier"
+view = "qualifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "update_runtime_on"
+view = "update_runtime_on"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "runtime_version_arn"
+view = "runtime_version_arn"
+type = "string?"

@@ -5,11 +5,19 @@
 # straight from instance.attributes; dropped discarded fields (tags_all,
 # log_config, openid_connect_config, schema). Kept only the
 # strongly-typed scalar inputs.
+#
+# All [[resource]] blocks declare mode = "model_only", so codegen emits
+# nothing more than the serde-driven TfModel struct (round-tripping
+# nested types/Vec<String> happens by hand in the converter).
 
 [service]
 name = "appsync"
 crate_name = "winterbaume_appsync"
 state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_appsync_graphql_api
+# ---------------------------------------------------------------------------
 
 [[resource]]
 type = "aws_appsync_graphql_api"
@@ -50,3 +58,414 @@ default = false
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appsync_api_cache
+# ---------------------------------------------------------------------------
+# Maps onto ApiCacheView; the ttl scalar is read raw (i64).
+
+[[resource]]
+type = "aws_appsync_api_cache"
+model = "ApiCacheTfModel"
+view = "ApiCacheView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "cache_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_caching_behavior"
+view = "api_caching_behavior"
+type = "string?"
+
+[[resource.field]]
+hcl = "health_metrics_config"
+view = "health_metrics_config"
+type = "string?"
+
+[[resource.field]]
+hcl = "at_rest_encryption_enabled"
+view = "at_rest_encryption_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "transit_encryption_enabled"
+view = "transit_encryption_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "ttl"
+view = "ttl"
+type = "i64"
+default = 0
+
+# ---------------------------------------------------------------------------
+# aws_appsync_api_key
+# ---------------------------------------------------------------------------
+# Maps onto ApiKeyView entries keyed by api_id.
+
+[[resource]]
+type = "aws_appsync_api_key"
+model = "ApiKeyTfModel"
+view = "ApiKeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "expires"
+view = "expires"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_appsync_type
+# ---------------------------------------------------------------------------
+# Maps onto TypeView entries keyed by api_id.
+
+[[resource]]
+type = "aws_appsync_type"
+model = "AppsyncTypeTfModel"
+view = "TypeView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "format"
+view = "format"
+type = "string?"
+
+[[resource.field]]
+hcl = "definition"
+view = "definition"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_appsync_datasource
+# ---------------------------------------------------------------------------
+# State-layer gap: AppsyncStateView has no DatasourceView slot. The
+# converter validates the HCL input and emits a warning.
+
+[[resource]]
+type = "aws_appsync_datasource"
+model = "AppsyncDatasourceTfModel"
+view = "GraphqlApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "datasource_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_role_arn"
+view = "service_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_appsync_domain_name
+# ---------------------------------------------------------------------------
+# State-layer gap.
+
+[[resource]]
+type = "aws_appsync_domain_name"
+model = "AppsyncDomainNameTfModel"
+view = "GraphqlApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "certificate_arn"
+view = "certificate_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "appsync_domain_name"
+view = "appsync_domain_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "hosted_zone_id"
+view = "hosted_zone_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_appsync_domain_name_api_association
+# ---------------------------------------------------------------------------
+# State-layer gap.
+
+[[resource]]
+type = "aws_appsync_domain_name_api_association"
+model = "AppsyncDomainNameApiAssociationTfModel"
+view = "GraphqlApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_appsync_function
+# ---------------------------------------------------------------------------
+# State-layer gap.
+
+[[resource]]
+type = "aws_appsync_function"
+model = "AppsyncFunctionTfModel"
+view = "GraphqlApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "data_source"
+view = "data_source"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "function_id"
+view = "function_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "function_version"
+view = "function_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "request_mapping_template"
+view = "request_mapping_template"
+type = "string?"
+
+[[resource.field]]
+hcl = "response_mapping_template"
+view = "response_mapping_template"
+type = "string?"
+
+[[resource.field]]
+hcl = "kind"
+view = "kind"
+type = "string?"
+
+[[resource.field]]
+hcl = "code"
+view = "code"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_appsync_resolver
+# ---------------------------------------------------------------------------
+# State-layer gap.
+
+[[resource]]
+type = "aws_appsync_resolver"
+model = "AppsyncResolverTfModel"
+view = "GraphqlApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "resolver_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "field"
+view = "field"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "data_source"
+view = "data_source"
+type = "string?"
+
+[[resource.field]]
+hcl = "kind"
+view = "kind"
+type = "string?"
+
+[[resource.field]]
+hcl = "request_template"
+view = "request_template"
+type = "string?"
+
+[[resource.field]]
+hcl = "response_template"
+view = "response_template"
+type = "string?"
+
+[[resource.field]]
+hcl = "code"
+view = "code"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_appsync_source_api_association
+# ---------------------------------------------------------------------------
+# State-layer gap.
+
+[[resource]]
+type = "aws_appsync_source_api_association"
+model = "AppsyncSourceApiAssociationTfModel"
+view = "GraphqlApiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "merged_api_id"
+view = "merged_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_api_id"
+view = "source_api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "association_id"
+view = "association_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "association_arn"
+view = "association_arn"
+type = "string?"

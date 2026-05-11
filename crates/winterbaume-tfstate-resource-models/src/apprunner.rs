@@ -21,3 +21,110 @@ pub struct AppRunnerServiceTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_apprunner_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRunnerConnectionTfModel {
+    pub connection_name: String,
+    pub provider_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apprunner_auto_scaling_configuration_version` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRunnerAutoScalingConfigurationVersionTfModel {
+    pub auto_scaling_configuration_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub auto_scaling_configuration_revision: i64,
+    #[serde(default)]
+    pub min_size: i64,
+    #[serde(default)]
+    pub max_size: i64,
+    #[serde(default)]
+    pub max_concurrency: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub latest: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apprunner_default_auto_scaling_configuration_version` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRunnerDefaultAutoScalingConfigurationVersionTfModel {
+    pub auto_scaling_configuration_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apprunner_custom_domain_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRunnerCustomDomainAssociationTfModel {
+    pub domain_name: String,
+    pub service_arn: String,
+    #[serde(default)]
+    pub enable_www_subdomain: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apprunner_deployment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRunnerDeploymentTfModel {
+    pub service_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub operation_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apprunner_observability_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRunnerObservabilityConfigurationTfModel {
+    pub observability_configuration_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub observability_configuration_revision: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub latest: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apprunner_vpc_connector` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRunnerVpcConnectorTfModel {
+    pub vpc_connector_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub vpc_connector_revision: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apprunner_vpc_ingress_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppRunnerVpcIngressConnectionTfModel {
+    pub name: String,
+    pub service_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub domain_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}

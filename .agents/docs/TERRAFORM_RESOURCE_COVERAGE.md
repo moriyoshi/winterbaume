@@ -2,20 +2,13 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **794** (789 verified against schema)
-Missing within classified prefixes: **404**
+Currently handled by winterbaume: **859** (854 verified against schema)
+Missing within classified prefixes: **339**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
-| route53resolver | `aws_route53_resolver_` | 2 | 12 | 10 | 17% |  |
-| ssoadmin | `aws_ssoadmin_` | 2 | 12 | 10 | 17% |  |
-| vpclattice | `aws_vpclattice_` | 4 | 14 | 10 | 29% |  |
-| appsync | `aws_appsync_` | 1 | 10 | 9 | 10% |  |
-| fsx | `aws_fsx_` | 2 | 11 | 9 | 18% |  |
-| lambda | `aws_lambda_` | 4 | 13 | 9 | 31% |  |
-| apprunner | `aws_apprunner_` | 1 | 9 | 8 | 11% |  |
 | dynamodb | `aws_dynamodb_` | 1 | 9 | 8 | 11% |  |
 | ecr | `aws_ecr_` | 1 | 9 | 8 | 11% |  |
 | opensearch | `aws_opensearch_` | 1 | 9 | 8 | 11% |  |
@@ -112,6 +105,8 @@ Sorted by missing-count desc.
 | resourcegroups | `aws_resourcegroups_` | 1 | 2 | 1 | 50% |  |
 | apigatewayv2 | `aws_apigatewayv2_` | 12 | 12 | 0 | 100% |  |
 | applicationcostprofiler | `aws_applicationcostprofiler_` | 1 | 0 | 0 | — |  |
+| apprunner | `aws_apprunner_` | 9 | 9 | 0 | 100% |  |
+| appsync | `aws_appsync_` | 10 | 10 | 0 | 100% |  |
 | backup | `aws_backup_` | 13 | 13 | 0 | 100% |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
 | cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
@@ -125,10 +120,12 @@ Sorted by missing-count desc.
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
 | firehose | `aws_kinesis_firehose_` | 1 | 1 | 0 | 100% |  |
 | fis | `aws_fis_` | 1 | 1 | 0 | 100% |  |
+| fsx | `aws_fsx_` | 11 | 11 | 0 | 100% |  |
 | guardduty | `aws_guardduty_` | 13 | 13 | 0 | 100% |  |
 | iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
+| lambda | `aws_lambda_` | 13 | 13 | 0 | 100% |  |
 | logs | `aws_cloudwatch_log_` | 15 | 15 | 0 | 100% |  |
 | mediapackage | `aws_media_package_` | 1 | 1 | 0 | 100% |  |
 | mediapackagev2 | `aws_media_packagev2_` | 1 | 1 | 0 | 100% |  |
@@ -142,6 +139,7 @@ Sorted by missing-count desc.
 | resiliencehub | `aws_resiliencehub_` | 1 | 1 | 0 | 100% |  |
 | rolesanywhere | `aws_rolesanywhere_` | 2 | 2 | 0 | 100% |  |
 | route53 | override (11 patterns) | 13 | 13 | 0 | 100% |  |
+| route53resolver | `aws_route53_resolver_` | 12 | 12 | 0 | 100% |  |
 | s3control | `aws_s3control_` | 15 | 14 | 0 | 100% |  |
 | sagemaker | `aws_sagemaker_` | 30 | 30 | 0 | 100% |  |
 | scheduler | `aws_scheduler_` | 2 | 2 | 0 | 100% |  |
@@ -150,98 +148,14 @@ Sorted by missing-count desc.
 | sesv1 | `aws_ses_` | 14 | 14 | 0 | 100% |  |
 | simpledbv2 | `aws_simpledb_` | 1 | 1 | 0 | 100% |  |
 | ssm | `aws_ssm_` | 12 | 12 | 0 | 100% |  |
+| ssoadmin | `aws_ssoadmin_` | 12 | 12 | 0 | 100% |  |
 | swf | `aws_swf_` | 1 | 1 | 0 | 100% |  |
 | timestreaminfluxdb | `aws_timestreaminfluxdb_` | 1 | 1 | 0 | 100% |  |
 | timestreamquery | `aws_timestreamquery_` | 1 | 1 | 0 | 100% |  |
 | timestreamwrite | `aws_timestreamwrite_` | 2 | 2 | 0 | 100% |  |
+| vpclattice | `aws_vpclattice_` | 14 | 14 | 0 | 100% |  |
 
 ## Per-service missing resources
-
-### route53resolver — 10 missing
-
-- `aws_route53_resolver_config`
-- `aws_route53_resolver_dnssec_config`
-- `aws_route53_resolver_firewall_config`
-- `aws_route53_resolver_firewall_domain_list`
-- `aws_route53_resolver_firewall_rule`
-- `aws_route53_resolver_firewall_rule_group`
-- `aws_route53_resolver_firewall_rule_group_association`
-- `aws_route53_resolver_query_log_config`
-- `aws_route53_resolver_query_log_config_association`
-- `aws_route53_resolver_rule_association`
-
-### ssoadmin — 10 missing
-
-- `aws_ssoadmin_application`
-- `aws_ssoadmin_application_access_scope`
-- `aws_ssoadmin_application_assignment`
-- `aws_ssoadmin_application_assignment_configuration`
-- `aws_ssoadmin_customer_managed_policy_attachment`
-- `aws_ssoadmin_instance_access_control_attributes`
-- `aws_ssoadmin_managed_policy_attachment`
-- `aws_ssoadmin_permission_set_inline_policy`
-- `aws_ssoadmin_permissions_boundary_attachment`
-- `aws_ssoadmin_trusted_token_issuer`
-
-### vpclattice — 10 missing
-
-- `aws_vpclattice_access_log_subscription`
-- `aws_vpclattice_auth_policy`
-- `aws_vpclattice_listener_rule`
-- `aws_vpclattice_resource_configuration`
-- `aws_vpclattice_resource_gateway`
-- `aws_vpclattice_resource_policy`
-- `aws_vpclattice_service_network_resource_association`
-- `aws_vpclattice_service_network_service_association`
-- `aws_vpclattice_service_network_vpc_association`
-- `aws_vpclattice_target_group_attachment`
-
-### appsync — 9 missing
-
-- `aws_appsync_api_cache`
-- `aws_appsync_api_key`
-- `aws_appsync_datasource`
-- `aws_appsync_domain_name`
-- `aws_appsync_domain_name_api_association`
-- `aws_appsync_function`
-- `aws_appsync_resolver`
-- `aws_appsync_source_api_association`
-- `aws_appsync_type`
-
-### fsx — 9 missing
-
-- `aws_fsx_backup`
-- `aws_fsx_data_repository_association`
-- `aws_fsx_file_cache`
-- `aws_fsx_ontap_file_system`
-- `aws_fsx_ontap_storage_virtual_machine`
-- `aws_fsx_ontap_volume`
-- `aws_fsx_openzfs_file_system`
-- `aws_fsx_openzfs_snapshot`
-- `aws_fsx_openzfs_volume`
-
-### lambda — 9 missing
-
-- `aws_lambda_code_signing_config`
-- `aws_lambda_function_event_invoke_config`
-- `aws_lambda_function_recursion_config`
-- `aws_lambda_function_url`
-- `aws_lambda_invocation`
-- `aws_lambda_layer_version`
-- `aws_lambda_layer_version_permission`
-- `aws_lambda_provisioned_concurrency_config`
-- `aws_lambda_runtime_management_config`
-
-### apprunner — 8 missing
-
-- `aws_apprunner_auto_scaling_configuration_version`
-- `aws_apprunner_connection`
-- `aws_apprunner_custom_domain_association`
-- `aws_apprunner_default_auto_scaling_configuration_version`
-- `aws_apprunner_deployment`
-- `aws_apprunner_observability_configuration`
-- `aws_apprunner_vpc_connector`
-- `aws_apprunner_vpc_ingress_connection`
 
 ### dynamodb — 8 missing
 
