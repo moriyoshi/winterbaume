@@ -85,3 +85,49 @@ pub struct SubscriptionTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub subscription_role_arn: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_sns_platform_application` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlatformApplicationTfModel {
+    pub name: String,
+    pub platform: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub platform_credential: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub platform_principal: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sns_sms_preferences` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SmsPreferencesTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub monthly_spend_limit: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delivery_status_iam_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delivery_status_success_sampling_rate: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_sender_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_sms_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub usage_report_s3_bucket: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sns_topic_data_protection_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopicDataProtectionPolicyTfModel {
+    pub arn: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sns_topic_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TopicPolicyTfModel {
+    pub arn: String,
+    pub policy: String,
+}

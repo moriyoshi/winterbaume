@@ -163,3 +163,89 @@ impl AwsKinesisanalyticsv2ApplicationConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// aws_kinesis_analytics_application (legacy v1 alias)
+// ---------------------------------------------------------------------------
+
+/// Converts the legacy `aws_kinesis_analytics_application` (v1 SQL Analytics)
+/// resources by projecting them into the kinesisanalyticsv2 application slot.
+/// This keeps state coherence with v2 consumers while accepting v1-shaped
+/// Terraform attributes.
+pub struct AwsKinesisAnalyticsApplicationConverter {
+    service: Arc<KinesisAnalyticsV2Service>,
+}
+
+impl AwsKinesisAnalyticsApplicationConverter {
+    pub fn new(service: Arc<KinesisAnalyticsV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsKinesisAnalyticsApplicationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_kinesis_analytics_application"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let model: kinesisanalyticsv2_gen::AnalyticsApplicationV1TfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_kinesis_analytics_application", e)
+                })?;
+
+            let arn = model.arn.unwrap_or_else(|| {
+                format!(
+                    "arn:aws:kinesisanalytics:{}:{}:application/{}",
+                    region, ctx.default_account_id, model.name
+                )
+            });
+
+            let now = chrono::Utc::now().to_rfc3339();
+            let app_view = ApplicationView {
+                application_name: model.name.clone(),
+                application_arn: arn,
+                application_status: "READY".to_string(),
+                application_version_id: model.version,
+                runtime_environment: "SQL-1_0".to_string(),
+                service_execution_role: None,
+                create_timestamp: now.clone(),
+                last_update_timestamp: now,
+                application_description: model.description,
+                tags: model.tags,
+                snapshots: vec![],
+                application_configuration: None,
+                cloudwatch_logging_options: None,
+            };
+
+            let mut state_view = KinesisAnalyticsV2StateView {
+                applications: HashMap::new(),
+            };
+            state_view.applications.insert(model.name, app_view);
+            self.service
+                .merge(&ctx.default_account_id, &region, state_view)
+                .await?;
+
+            Ok(ConversionResult {
+                region,
+                warnings: vec![],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Extraction is owned by the v2 converter; the legacy alias is
+        // inject-only to avoid duplicate ExtractedResource entries for the
+        // same backing state slot.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}

@@ -534,3 +534,161 @@ hcl = "max_concurrent_runs"
 view = "max_concurrent_runs"
 type = "i64"
 default = 0
+
+# ---------------------------------------------------------------------------
+# aws_glue_catalog_table_optimizer (no state slot in winterbaume_glue)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_catalog_table_optimizer"
+model = "CatalogTableOptimizerTfModel"
+view = "CatalogTableOptimizerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "table_name"
+view = "table_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "optimizer_type"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_glue_classifier (no state slot in winterbaume_glue)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_classifier"
+model = "ClassifierTfModel"
+view = "ClassifierView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_glue_data_quality_ruleset (no state slot in winterbaume_glue)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_data_quality_ruleset"
+model = "DataQualityRulesetTfModel"
+view = "DataQualityRulesetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "ruleset"
+view = "ruleset"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_partition_index (no state slot in winterbaume_glue)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_partition_index"
+model = "PartitionIndexTfModel"
+view = "PartitionIndexView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "table_name"
+view = "table_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_glue_user_defined_function (no state slot in winterbaume_glue)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_glue_user_defined_function"
+model = "UserDefinedFunctionTfModel"
+view = "UserDefinedFunctionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "class_name"
+view = "class_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "owner_name"
+view = "owner_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_type"
+view = "owner_type"
+type = "string?"
+

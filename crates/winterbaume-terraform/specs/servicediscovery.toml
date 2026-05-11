@@ -105,3 +105,113 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_service_discovery_http_namespace
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_service_discovery_http_namespace"
+model = "HttpNamespaceTfModel"
+view = "NamespaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_service_discovery_public_dns_namespace
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_service_discovery_public_dns_namespace"
+model = "PublicDnsNamespaceTfModel"
+view = "NamespaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "hosted_zone_id"
+view = "hosted_zone_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_service_discovery_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_service_discovery_instance"
+model = "ServiceDiscoveryInstanceTfModel"
+view = "InstanceEntryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_id"
+view = "service_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

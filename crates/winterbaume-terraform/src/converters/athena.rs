@@ -12,7 +12,10 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use winterbaume_athena::AthenaService;
-use winterbaume_athena::views::{AthenaStateView, DataCatalogView, WorkGroupView};
+use winterbaume_athena::views::{
+    AthenaStateView, CapacityReservationView, DataCatalogView, NamedQueryView,
+    PreparedStatementView, WorkGroupView,
+};
 use winterbaume_core::StatefulService;
 use winterbaume_tfstate::ResourceInstance;
 
@@ -276,5 +279,369 @@ fn minimal_athena_state_view() -> AthenaStateView {
         named_queries: HashMap::new(),
         prepared_statements: HashMap::new(),
         tags: HashMap::new(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_athena_capacity_reservation
+// ---------------------------------------------------------------------------
+
+pub struct AwsAthenaCapacityReservationConverter {
+    service: Arc<AthenaService>,
+}
+
+impl AwsAthenaCapacityReservationConverter {
+    pub fn new(service: Arc<AthenaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAthenaCapacityReservationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_athena_capacity_reservation"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAthenaCapacityReservationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: athena_gen::CapacityReservationTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_athena_capacity_reservation", e))?;
+
+        let cr_view = CapacityReservationView {
+            name: model.name.clone(),
+            target_dpus: model.target_dpus as i32,
+            allocated_dpus: model.allocated_dpus as i32,
+            status: model.status.unwrap_or_else(|| "ACTIVE".to_string()),
+            creation_time: Some(chrono::Utc::now().to_rfc3339()),
+            tags: model.tags,
+        };
+
+        let mut state_view = minimal_athena_state_view();
+        state_view.capacity_reservations.insert(model.name, cr_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for cr in view.capacity_reservations.values() {
+            let attrs = serde_json::json!({
+                "id": cr.name,
+                "name": cr.name,
+                "target_dpus": cr.target_dpus,
+                "allocated_dpus": cr.allocated_dpus,
+                "status": cr.status,
+                "tags": cr.tags,
+            });
+            results.push(ExtractedResource {
+                name: cr.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_athena_named_query
+// ---------------------------------------------------------------------------
+
+pub struct AwsAthenaNamedQueryConverter {
+    service: Arc<AthenaService>,
+}
+
+impl AwsAthenaNamedQueryConverter {
+    pub fn new(service: Arc<AthenaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAthenaNamedQueryConverter {
+    fn resource_type(&self) -> &str {
+        "aws_athena_named_query"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_athena_workgroup"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAthenaNamedQueryConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: athena_gen::NamedQueryTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_athena_named_query", e))?;
+
+        let id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let description = model.description.unwrap_or_default();
+        let work_group = model.workgroup.unwrap_or_else(|| "primary".to_string());
+
+        let nq_view = NamedQueryView {
+            id: id.clone(),
+            name: model.name,
+            description,
+            database: model.database,
+            query_string: model.query,
+            work_group,
+        };
+
+        let mut state_view = minimal_athena_state_view();
+        state_view.named_queries.insert(id, nq_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for nq in view.named_queries.values() {
+            let attrs = serde_json::json!({
+                "id": nq.id,
+                "name": nq.name,
+                "description": nq.description,
+                "database": nq.database,
+                "query": nq.query_string,
+                "workgroup": nq.work_group,
+            });
+            results.push(ExtractedResource {
+                name: nq.id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_athena_prepared_statement
+// ---------------------------------------------------------------------------
+
+pub struct AwsAthenaPreparedStatementConverter {
+    service: Arc<AthenaService>,
+}
+
+impl AwsAthenaPreparedStatementConverter {
+    pub fn new(service: Arc<AthenaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAthenaPreparedStatementConverter {
+    fn resource_type(&self) -> &str {
+        "aws_athena_prepared_statement"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_athena_workgroup"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAthenaPreparedStatementConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: athena_gen::PreparedStatementTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_athena_prepared_statement", e))?;
+
+        let description = model.description.unwrap_or_default();
+        let key = format!("{}/{}", model.workgroup, model.name);
+
+        let ps_view = PreparedStatementView {
+            statement_name: model.name.clone(),
+            work_group_name: model.workgroup.clone(),
+            query_statement: model.query_statement,
+            description,
+            last_modified_time: Some(chrono::Utc::now().to_rfc3339()),
+        };
+
+        let mut state_view = minimal_athena_state_view();
+        state_view.prepared_statements.insert(key, ps_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for (key, ps) in &view.prepared_statements {
+            let attrs = serde_json::json!({
+                "id": key,
+                "name": ps.statement_name,
+                "workgroup": ps.work_group_name,
+                "query_statement": ps.query_statement,
+                "description": ps.description,
+            });
+            results.push(ExtractedResource {
+                name: format!("{}_{}", ps.work_group_name, ps.statement_name),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_athena_database — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_athena_database` resources (validation-only; databases live
+/// inside Glue Data Catalog and have no backing slot in `winterbaume_athena`).
+pub struct AwsAthenaDatabaseConverter {
+    #[allow(dead_code)]
+    service: Arc<AthenaService>,
+}
+
+impl AwsAthenaDatabaseConverter {
+    pub fn new(service: Arc<AthenaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAthenaDatabaseConverter {
+    fn resource_type(&self) -> &str {
+        "aws_athena_database"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAthenaDatabaseConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: athena_gen::DatabaseTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_athena_database", e))?;
+        let warn_msg = "no state slot in winterbaume_athena for databases (these live in Glue); \
+             inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_athena_database: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_athena_database: {warn_msg}")],
+        })
     }
 }

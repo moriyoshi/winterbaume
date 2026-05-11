@@ -182,3 +182,198 @@ type = "string?"
 hcl = "replicate_to"
 view = "replicate_to"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_appconfig_deployment
+# Stored under AppconfigStateView.deployments keyed by
+# "appId/envId/deploymentNumber".
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appconfig_deployment"
+model = "DeploymentTfModel"
+view = "DeploymentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "environment_id"
+view = "environment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "deployment_strategy_id"
+view = "deployment_strategy_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "configuration_profile_id"
+view = "configuration_profile_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "configuration_version"
+view = "configuration_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_number"
+view = "deployment_number"
+type = "i64"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appconfig_extension
+# Stored under AppconfigStateView.extensions keyed by extension ID.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appconfig_extension"
+model = "ExtensionTfModel"
+view = "ExtensionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "i64"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appconfig_extension_association
+# Stored under AppconfigStateView.extension_associations keyed by association ID.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appconfig_extension_association"
+model = "ExtensionAssociationTfModel"
+view = "ExtensionAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "extension_arn"
+view = "extension_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "extension_version"
+view = "extension_version"
+type = "i64"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appconfig_hosted_configuration_version
+# Stored under AppconfigStateView.hosted_configuration_versions as a Vec.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appconfig_hosted_configuration_version"
+model = "HostedConfigurationVersionTfModel"
+view = "HostedConfigurationVersionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "application_id"
+view = "application_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "configuration_profile_id"
+view = "configuration_profile_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "version_number"
+view = "version_number"
+type = "i64"
+
+[[resource.field]]
+hcl = "content_type"
+view = "content_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"

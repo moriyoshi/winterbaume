@@ -386,3 +386,353 @@ impl AwsServiceDiscoveryServiceConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// aws_service_discovery_http_namespace
+// ---------------------------------------------------------------------------
+
+pub struct AwsServiceDiscoveryHttpNamespaceConverter {
+    service: Arc<ServiceDiscoveryService>,
+}
+
+impl AwsServiceDiscoveryHttpNamespaceConverter {
+    pub fn new(service: Arc<ServiceDiscoveryService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsServiceDiscoveryHttpNamespaceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_service_discovery_http_namespace"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsServiceDiscoveryHttpNamespaceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: servicediscovery_gen::HttpNamespaceTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_service_discovery_http_namespace", e)
+            })?;
+
+        let id = model
+            .id
+            .unwrap_or_else(|| format!("ns-{}", uuid::Uuid::new_v4().simple()));
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:servicediscovery:{}:{}:namespace/{}",
+                region, ctx.default_account_id, id
+            )
+        });
+
+        let ns_view = NamespaceView {
+            id: id.clone(),
+            arn,
+            name: model.name,
+            namespace_type: "HTTP".to_string(),
+            description: model.description,
+            creator_request_id: None,
+            vpc: None,
+            hosted_zone_id: None,
+            soa_ttl: None,
+            service_count: 0,
+            create_date: chrono::Utc::now().to_rfc3339(),
+            tags: model.tags,
+        };
+
+        let mut state_view = ServiceDiscoveryStateView::default();
+        state_view.namespaces.insert(id, ns_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ns in view.namespaces.values() {
+            if ns.namespace_type != "HTTP" {
+                continue;
+            }
+            let attrs = serde_json::json!({
+                "id": ns.id,
+                "name": ns.name,
+                "arn": ns.arn,
+                "description": ns.description,
+                "tags": ns.tags,
+                "tags_all": ns.tags,
+            });
+            results.push(ExtractedResource {
+                name: ns.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_service_discovery_public_dns_namespace
+// ---------------------------------------------------------------------------
+
+pub struct AwsServiceDiscoveryPublicDnsNamespaceConverter {
+    service: Arc<ServiceDiscoveryService>,
+}
+
+impl AwsServiceDiscoveryPublicDnsNamespaceConverter {
+    pub fn new(service: Arc<ServiceDiscoveryService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsServiceDiscoveryPublicDnsNamespaceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_service_discovery_public_dns_namespace"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsServiceDiscoveryPublicDnsNamespaceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: servicediscovery_gen::PublicDnsNamespaceTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_service_discovery_public_dns_namespace", e)
+            })?;
+
+        let id = model
+            .id
+            .unwrap_or_else(|| format!("ns-{}", uuid::Uuid::new_v4().simple()));
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:servicediscovery:{}:{}:namespace/{}",
+                region, ctx.default_account_id, id
+            )
+        });
+
+        let ns_view = NamespaceView {
+            id: id.clone(),
+            arn,
+            name: model.name,
+            namespace_type: "DNS_PUBLIC".to_string(),
+            description: model.description,
+            creator_request_id: None,
+            vpc: None,
+            hosted_zone_id: model.hosted_zone_id,
+            soa_ttl: None,
+            service_count: 0,
+            create_date: chrono::Utc::now().to_rfc3339(),
+            tags: model.tags,
+        };
+
+        let mut state_view = ServiceDiscoveryStateView::default();
+        state_view.namespaces.insert(id, ns_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ns in view.namespaces.values() {
+            if ns.namespace_type != "DNS_PUBLIC" {
+                continue;
+            }
+            let attrs = serde_json::json!({
+                "id": ns.id,
+                "name": ns.name,
+                "arn": ns.arn,
+                "description": ns.description,
+                "hosted_zone_id": ns.hosted_zone_id,
+                "tags": ns.tags,
+                "tags_all": ns.tags,
+            });
+            results.push(ExtractedResource {
+                name: ns.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_service_discovery_instance
+// ---------------------------------------------------------------------------
+
+pub struct AwsServiceDiscoveryInstanceConverter {
+    service: Arc<ServiceDiscoveryService>,
+}
+
+impl AwsServiceDiscoveryInstanceConverter {
+    pub fn new(service: Arc<ServiceDiscoveryService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsServiceDiscoveryInstanceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_service_discovery_instance"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_service_discovery_service"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsServiceDiscoveryInstanceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: servicediscovery_gen::ServiceDiscoveryInstanceTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_service_discovery_instance", e))?;
+
+        let inst_attributes: HashMap<String, String> = attrs
+            .get("attributes")
+            .and_then(|v| v.as_object())
+            .map(|obj| {
+                obj.iter()
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let inst_view = winterbaume_servicediscovery::views::InstanceEntryView {
+            id: model.instance_id.clone(),
+            service_id: model.service_id.clone(),
+            creator_request_id: None,
+            attributes: inst_attributes,
+            health_status: "HEALTHY".to_string(),
+        };
+
+        let mut state_view = ServiceDiscoveryStateView::default();
+        let mut svc_map = HashMap::new();
+        svc_map.insert(model.instance_id, inst_view);
+        state_view.instances.insert(model.service_id, svc_map);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for (service_id, svc_instances) in &view.instances {
+            for inst in svc_instances.values() {
+                let attrs = serde_json::json!({
+                    "id": inst.id,
+                    "instance_id": inst.id,
+                    "service_id": service_id,
+                    "attributes": inst.attributes,
+                });
+                results.push(ExtractedResource {
+                    name: inst.id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}

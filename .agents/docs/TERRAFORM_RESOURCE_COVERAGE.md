@@ -1,9 +1,9 @@
 # Per-service Terraform resource coverage
 
 Schema resources total: **1526**
-Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **994** (989 verified against schema)
-Missing within classified prefixes: **204**
+Resources classified to a service via prefix: **1191**
+Currently handled by winterbaume: **1115** (1110 verified against schema)
+Missing within classified prefixes: **89**
 
 Sorted by missing-count desc.
 
@@ -11,39 +11,11 @@ Sorted by missing-count desc.
 |---------|--------|---------|--------|---------|----------|------|
 | ebs | `aws_ebs_` | 2 | 8 | 6 | 25% |  |
 | elbv2 | override (2 patterns) | 10 | 16 | 6 | 62% |  |
-| bedrock | `aws_bedrock_` | 1 | 6 | 5 | 17% |  |
-| codebuild | `aws_codebuild_` | 1 | 6 | 5 | 17% |  |
-| dms | `aws_dms_` | 3 | 8 | 5 | 38% |  |
-| ecs | `aws_ecs_` | 3 | 8 | 5 | 38% |  |
-| efs | `aws_efs_` | 1 | 6 | 5 | 17% |  |
-| glue | `aws_glue_` | 15 | 20 | 5 | 75% |  |
-| kinesis | `aws_kinesis_` | 1 | 6 | 5 | 17% |  |
-| lexmodelsv2 | `aws_lexv2models_` | 1 | 6 | 5 | 17% |  |
-| neptune | `aws_neptune_` | 4 | 9 | 5 | 44% |  |
-| acmpca | `aws_acmpca_` | 1 | 5 | 4 | 20% |  |
-| amp | `aws_prometheus_` | 1 | 5 | 4 | 20% |  |
-| appconfig | `aws_appconfig_` | 4 | 8 | 4 | 50% |  |
-| appfabric | `aws_appfabric_` | 1 | 5 | 4 | 20% |  |
-| appmesh | `aws_appmesh_` | 3 | 7 | 4 | 43% |  |
-| athena | `aws_athena_` | 2 | 6 | 4 | 33% |  |
-| cloudformation | `aws_cloudformation_` | 1 | 5 | 4 | 20% |  |
-| inspector2 | `aws_inspector2_` | 1 | 5 | 4 | 20% |  |
-| memorydb | `aws_memorydb_` | 3 | 7 | 4 | 43% |  |
-| opensearchserverless | `aws_opensearchserverless_` | 2 | 6 | 4 | 33% |  |
-| organizations | `aws_organizations_` | 3 | 7 | 4 | 43% |  |
-| ram | `aws_ram_` | 1 | 5 | 4 | 20% |  |
-| sns | `aws_sns_` | 2 | 6 | 4 | 33% |  |
-| wafv2 | `aws_wafv2_` | 3 | 7 | 4 | 43% |  |
-| amplify | `aws_amplify_` | 2 | 5 | 3 | 40% |  |
-| cloudwatch | override (3 patterns) | 1 | 4 | 3 | 25% |  |
-| codecommit | `aws_codecommit_` | 1 | 4 | 3 | 25% |  |
-| cognitoidentity | `aws_cognito_identity_` | 1 | 4 | 3 | 25% |  |
+| kinesis | `aws_kinesis_` | 3 | 6 | 3 | 50% |  |
 | medialive | `aws_medialive_` | 2 | 5 | 3 | 40% |  |
 | networkfirewall | `aws_networkfirewall_` | 3 | 6 | 3 | 50% |  |
 | s3 | `aws_s3_` | 23 | 26 | 3 | 88% |  |
 | s3tables | `aws_s3tables_` | 2 | 5 | 3 | 40% |  |
-| servicediscovery | `aws_service_discovery_` | 2 | 5 | 3 | 40% |  |
-| sqs | `aws_sqs_` | 1 | 4 | 3 | 25% |  |
 | account | `aws_account_` | 1 | 3 | 2 | 33% |  |
 | apigateway | `aws_api_gateway_` | 24 | 26 | 2 | 92% |  |
 | cloudtrail | `aws_cloudtrail` | 1 | 3 | 2 | 33% |  |
@@ -70,10 +42,12 @@ Sorted by missing-count desc.
 | appflow | `aws_appflow_` | 1 | 2 | 1 | 50% |  |
 | applicationautoscaling | `aws_appautoscaling_` | 2 | 3 | 1 | 67% |  |
 | autoscaling | override (3 patterns) | 9 | 10 | 1 | 90% |  |
+| bedrock | `aws_bedrock_` | 5 | 6 | 1 | 83% |  |
 | budgets | `aws_budgets_` | 1 | 2 | 1 | 50% |  |
 | chatbot | `aws_chatbot_` | 2 | 2 | 1 | 50% |  |
 | cloudhsmv2 | `aws_cloudhsm_v2_` | 1 | 2 | 1 | 50% |  |
 | codedeploy | `aws_codedeploy_` | 2 | 3 | 1 | 67% |  |
+| cognitoidentity | `aws_cognito_identity_` | 3 | 4 | 1 | 75% |  |
 | comprehend | `aws_comprehend_` | 1 | 2 | 1 | 50% |  |
 | datapipeline | `aws_datapipeline_` | 1 | 2 | 1 | 50% |  |
 | dsql | `aws_dsql_` | 1 | 2 | 1 | 50% |  |
@@ -81,18 +55,28 @@ Sorted by missing-count desc.
 | emrcontainers | `aws_emrcontainers_` | 1 | 2 | 1 | 50% |  |
 | glacier | `aws_glacier_` | 1 | 2 | 1 | 50% |  |
 | identitystore | `aws_identitystore_` | 2 | 3 | 1 | 67% |  |
-| kinesisanalyticsv2 | `aws_kinesisanalyticsv2_` | 1 | 2 | 1 | 50% |  |
 | mediastore | override (2 patterns) | 1 | 2 | 1 | 50% |  |
 | resourcegroups | `aws_resourcegroups_` | 1 | 2 | 1 | 50% |  |
+| acmpca | `aws_acmpca_` | 5 | 5 | 0 | 100% |  |
+| amp | `aws_prometheus_` | 5 | 5 | 0 | 100% |  |
+| amplify | `aws_amplify_` | 5 | 5 | 0 | 100% |  |
 | apigatewayv2 | `aws_apigatewayv2_` | 12 | 12 | 0 | 100% |  |
+| appconfig | `aws_appconfig_` | 8 | 8 | 0 | 100% |  |
+| appfabric | `aws_appfabric_` | 5 | 5 | 0 | 100% |  |
 | applicationcostprofiler | `aws_applicationcostprofiler_` | 1 | 0 | 0 | — |  |
+| appmesh | `aws_appmesh_` | 7 | 7 | 0 | 100% |  |
 | apprunner | `aws_apprunner_` | 9 | 9 | 0 | 100% |  |
 | appsync | `aws_appsync_` | 10 | 10 | 0 | 100% |  |
+| athena | `aws_athena_` | 6 | 6 | 0 | 100% |  |
 | auditmanager | `aws_auditmanager_` | 8 | 8 | 0 | 100% |  |
 | backup | `aws_backup_` | 13 | 13 | 0 | 100% |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
 | bedrockagent | `aws_bedrockagent_` | 8 | 8 | 0 | 100% |  |
+| cloudformation | `aws_cloudformation_` | 5 | 5 | 0 | 100% |  |
 | cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
+| cloudwatch | override (3 patterns) | 4 | 4 | 0 | 100% |  |
+| codebuild | `aws_codebuild_` | 6 | 6 | 0 | 100% |  |
+| codecommit | `aws_codecommit_` | 4 | 4 | 0 | 100% |  |
 | cognitoidp | override (5 patterns) | 9 | 9 | 0 | 100% |  |
 | config | `aws_config_` | 13 | 13 | 0 | 100% |  |
 | connect | `aws_connect_` | 16 | 16 | 0 | 100% |  |
@@ -100,10 +84,13 @@ Sorted by missing-count desc.
 | dax | `aws_dax_` | 3 | 3 | 0 | 100% |  |
 | directconnect | `aws_dx_` | 19 | 19 | 0 | 100% |  |
 | directory | `aws_directory_service_` | 8 | 8 | 0 | 100% |  |
+| dms | `aws_dms_` | 8 | 8 | 0 | 100% |  |
 | dynamodb | `aws_dynamodb_` | 9 | 9 | 0 | 100% |  |
-| ec2 | override (37 patterns) | 139 | 139 | 0 | 100% |  |
+| ec2 | override (37 patterns) | 145 | 139 | 0 | 104% |  |
 | ec2instanceconnect | `aws_ec2_instance_connect_` | 1 | 1 | 0 | 100% |  |
 | ecr | `aws_ecr_` | 9 | 9 | 0 | 100% |  |
+| ecs | `aws_ecs_` | 8 | 8 | 0 | 100% |  |
+| efs | `aws_efs_` | 6 | 6 | 0 | 100% |  |
 | eks | `aws_eks_` | 8 | 8 | 0 | 100% |  |
 | elasticache | `aws_elasticache_` | 10 | 10 | 0 | 100% |  |
 | emr | `aws_emr_` | 8 | 8 | 0 | 100% |  |
@@ -112,26 +99,35 @@ Sorted by missing-count desc.
 | firehose | `aws_kinesis_firehose_` | 1 | 1 | 0 | 100% |  |
 | fis | `aws_fis_` | 1 | 1 | 0 | 100% |  |
 | fsx | `aws_fsx_` | 11 | 11 | 0 | 100% |  |
+| glue | `aws_glue_` | 20 | 20 | 0 | 100% |  |
 | guardduty | `aws_guardduty_` | 13 | 13 | 0 | 100% |  |
+| inspector2 | `aws_inspector2_` | 5 | 5 | 0 | 100% |  |
 | iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
 | kafka | `aws_msk_` | 8 | 8 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
+| kinesisanalyticsv2 | aws_ | 2 | 0 | 0 | — | heterogeneous prefix; manual review needed |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
 | kms | `aws_kms_` | 9 | 9 | 0 | 100% |  |
 | lakeformation | `aws_lakeformation_` | 8 | 8 | 0 | 100% |  |
 | lambda | `aws_lambda_` | 13 | 13 | 0 | 100% |  |
+| lexmodelsv2 | `aws_lexv2models_` | 6 | 6 | 0 | 100% |  |
 | logs | `aws_cloudwatch_log_` | 15 | 15 | 0 | 100% |  |
 | macie2 | `aws_macie2_` | 9 | 9 | 0 | 100% |  |
 | mediapackage | `aws_media_package_` | 1 | 1 | 0 | 100% |  |
 | mediapackagev2 | `aws_media_packagev2_` | 1 | 1 | 0 | 100% |  |
+| memorydb | `aws_memorydb_` | 7 | 7 | 0 | 100% |  |
 | mq | `aws_mq_` | 2 | 2 | 0 | 100% |  |
+| neptune | `aws_neptune_` | 9 | 9 | 0 | 100% |  |
 | networkmanager | `aws_networkmanager_` | 19 | 19 | 0 | 100% |  |
 | opensearch | `aws_opensearch_` | 9 | 9 | 0 | 100% |  |
+| opensearchserverless | `aws_opensearchserverless_` | 6 | 6 | 0 | 100% |  |
+| organizations | `aws_organizations_` | 7 | 7 | 0 | 100% |  |
 | osis | `aws_osis_` | 1 | 1 | 0 | 100% |  |
 | outposts | `aws_outposts_` | 2 | 0 | 0 | — |  |
 | pinpoint | `aws_pinpoint_` | 12 | 12 | 0 | 100% |  |
 | pipes | `aws_pipes_` | 1 | 1 | 0 | 100% |  |
 | quicksight | `aws_quicksight_` | 20 | 20 | 0 | 100% |  |
+| ram | `aws_ram_` | 5 | 5 | 0 | 100% |  |
 | redshift | `aws_redshift_` | 23 | 23 | 0 | 100% |  |
 | resiliencehub | `aws_resiliencehub_` | 1 | 1 | 0 | 100% |  |
 | rolesanywhere | `aws_rolesanywhere_` | 2 | 2 | 0 | 100% |  |
@@ -142,10 +138,13 @@ Sorted by missing-count desc.
 | scheduler | `aws_scheduler_` | 2 | 2 | 0 | 100% |  |
 | securityhub | `aws_securityhub_` | 15 | 15 | 0 | 100% |  |
 | servicecatalog | `aws_servicecatalog_` | 13 | 13 | 0 | 100% |  |
+| servicediscovery | `aws_service_discovery_` | 5 | 5 | 0 | 100% |  |
 | ses | `aws_sesv2_` | 11 | 11 | 0 | 100% |  |
 | sesv1 | `aws_ses_` | 14 | 14 | 0 | 100% |  |
 | shield | `aws_shield_` | 8 | 8 | 0 | 100% |  |
 | simpledbv2 | `aws_simpledb_` | 1 | 1 | 0 | 100% |  |
+| sns | `aws_sns_` | 6 | 6 | 0 | 100% |  |
+| sqs | `aws_sqs_` | 4 | 4 | 0 | 100% |  |
 | ssm | `aws_ssm_` | 12 | 12 | 0 | 100% |  |
 | ssoadmin | `aws_ssoadmin_` | 12 | 12 | 0 | 100% |  |
 | swf | `aws_swf_` | 1 | 1 | 0 | 100% |  |
@@ -154,6 +153,7 @@ Sorted by missing-count desc.
 | timestreamwrite | `aws_timestreamwrite_` | 2 | 2 | 0 | 100% |  |
 | transfer | `aws_transfer_` | 10 | 10 | 0 | 100% |  |
 | vpclattice | `aws_vpclattice_` | 14 | 14 | 0 | 100% |  |
+| wafv2 | `aws_wafv2_` | 7 | 7 | 0 | 100% |  |
 
 ## Per-service missing resources
 
@@ -175,199 +175,11 @@ Sorted by missing-count desc.
 - `aws_alb_target_group`
 - `aws_alb_target_group_attachment`
 
-### bedrock — 5 missing
-
-- `aws_bedrock_custom_model`
-- `aws_bedrock_guardrail_version`
-- `aws_bedrock_inference_profile`
-- `aws_bedrock_model_invocation_logging_configuration`
-- `aws_bedrock_provisioned_model_throughput`
-
-### codebuild — 5 missing
-
-- `aws_codebuild_fleet`
-- `aws_codebuild_report_group`
-- `aws_codebuild_resource_policy`
-- `aws_codebuild_source_credential`
-- `aws_codebuild_webhook`
-
-### dms — 5 missing
-
-- `aws_dms_certificate`
-- `aws_dms_event_subscription`
-- `aws_dms_replication_config`
-- `aws_dms_replication_subnet_group`
-- `aws_dms_s3_endpoint`
-
-### ecs — 5 missing
-
-- `aws_ecs_account_setting_default`
-- `aws_ecs_capacity_provider`
-- `aws_ecs_cluster_capacity_providers`
-- `aws_ecs_tag`
-- `aws_ecs_task_set`
-
-### efs — 5 missing
-
-- `aws_efs_access_point`
-- `aws_efs_backup_policy`
-- `aws_efs_file_system_policy`
-- `aws_efs_mount_target`
-- `aws_efs_replication_configuration`
-
-### glue — 5 missing
-
-- `aws_glue_catalog_table_optimizer`
-- `aws_glue_classifier`
-- `aws_glue_data_quality_ruleset`
-- `aws_glue_partition_index`
-- `aws_glue_user_defined_function`
-
-### kinesis — 5 missing
+### kinesis — 3 missing
 
 - `aws_kinesis_analytics_application`
 - `aws_kinesis_firehose_delivery_stream`
-- `aws_kinesis_resource_policy`
-- `aws_kinesis_stream_consumer`
 - `aws_kinesis_video_stream`
-
-### lexmodelsv2 — 5 missing
-
-- `aws_lexv2models_bot_locale`
-- `aws_lexv2models_bot_version`
-- `aws_lexv2models_intent`
-- `aws_lexv2models_slot`
-- `aws_lexv2models_slot_type`
-
-### neptune — 5 missing
-
-- `aws_neptune_cluster_endpoint`
-- `aws_neptune_cluster_parameter_group`
-- `aws_neptune_cluster_snapshot`
-- `aws_neptune_event_subscription`
-- `aws_neptune_global_cluster`
-
-### acmpca — 4 missing
-
-- `aws_acmpca_certificate`
-- `aws_acmpca_certificate_authority_certificate`
-- `aws_acmpca_permission`
-- `aws_acmpca_policy`
-
-### amp — 4 missing
-
-- `aws_prometheus_alert_manager_definition`
-- `aws_prometheus_rule_group_namespace`
-- `aws_prometheus_scraper`
-- `aws_prometheus_workspace_configuration`
-
-### appconfig — 4 missing
-
-- `aws_appconfig_deployment`
-- `aws_appconfig_extension`
-- `aws_appconfig_extension_association`
-- `aws_appconfig_hosted_configuration_version`
-
-### appfabric — 4 missing
-
-- `aws_appfabric_app_authorization`
-- `aws_appfabric_app_authorization_connection`
-- `aws_appfabric_ingestion`
-- `aws_appfabric_ingestion_destination`
-
-### appmesh — 4 missing
-
-- `aws_appmesh_gateway_route`
-- `aws_appmesh_route`
-- `aws_appmesh_virtual_gateway`
-- `aws_appmesh_virtual_router`
-
-### athena — 4 missing
-
-- `aws_athena_capacity_reservation`
-- `aws_athena_database`
-- `aws_athena_named_query`
-- `aws_athena_prepared_statement`
-
-### cloudformation — 4 missing
-
-- `aws_cloudformation_stack_instances`
-- `aws_cloudformation_stack_set`
-- `aws_cloudformation_stack_set_instance`
-- `aws_cloudformation_type`
-
-### inspector2 — 4 missing
-
-- `aws_inspector2_delegated_admin_account`
-- `aws_inspector2_filter`
-- `aws_inspector2_member_association`
-- `aws_inspector2_organization_configuration`
-
-### memorydb — 4 missing
-
-- `aws_memorydb_multi_region_cluster`
-- `aws_memorydb_parameter_group`
-- `aws_memorydb_snapshot`
-- `aws_memorydb_user`
-
-### opensearchserverless — 4 missing
-
-- `aws_opensearchserverless_access_policy`
-- `aws_opensearchserverless_lifecycle_policy`
-- `aws_opensearchserverless_security_config`
-- `aws_opensearchserverless_vpc_endpoint`
-
-### organizations — 4 missing
-
-- `aws_organizations_delegated_administrator`
-- `aws_organizations_organization`
-- `aws_organizations_policy_attachment`
-- `aws_organizations_resource_policy`
-
-### ram — 4 missing
-
-- `aws_ram_principal_association`
-- `aws_ram_resource_association`
-- `aws_ram_resource_share_accepter`
-- `aws_ram_sharing_with_organization`
-
-### sns — 4 missing
-
-- `aws_sns_platform_application`
-- `aws_sns_sms_preferences`
-- `aws_sns_topic_data_protection_policy`
-- `aws_sns_topic_policy`
-
-### wafv2 — 4 missing
-
-- `aws_wafv2_api_key`
-- `aws_wafv2_regex_pattern_set`
-- `aws_wafv2_web_acl_association`
-- `aws_wafv2_web_acl_logging_configuration`
-
-### amplify — 3 missing
-
-- `aws_amplify_backend_environment`
-- `aws_amplify_domain_association`
-- `aws_amplify_webhook`
-
-### cloudwatch — 3 missing
-
-- `aws_cloudwatch_composite_alarm`
-- `aws_cloudwatch_dashboard`
-- `aws_cloudwatch_metric_stream`
-
-### codecommit — 3 missing
-
-- `aws_codecommit_approval_rule_template`
-- `aws_codecommit_approval_rule_template_association`
-- `aws_codecommit_trigger`
-
-### cognitoidentity — 3 missing
-
-- `aws_cognito_identity_pool_provider_principal_tag`
-- `aws_cognito_identity_pool_roles_attachment`
-- `aws_cognito_identity_provider`
 
 ### medialive — 3 missing
 
@@ -392,18 +204,6 @@ Sorted by missing-count desc.
 - `aws_s3tables_table`
 - `aws_s3tables_table_bucket_policy`
 - `aws_s3tables_table_policy`
-
-### servicediscovery — 3 missing
-
-- `aws_service_discovery_http_namespace`
-- `aws_service_discovery_instance`
-- `aws_service_discovery_public_dns_namespace`
-
-### sqs — 3 missing
-
-- `aws_sqs_queue_policy`
-- `aws_sqs_queue_redrive_allow_policy`
-- `aws_sqs_queue_redrive_policy`
 
 ### account — 2 missing
 
@@ -530,6 +330,10 @@ Sorted by missing-count desc.
 
 - `aws_launch_template`
 
+### bedrock — 1 missing
+
+- `aws_bedrock_model_invocation_logging_configuration`
+
 ### budgets — 1 missing
 
 - `aws_budgets_budget_action`
@@ -545,6 +349,10 @@ Sorted by missing-count desc.
 ### codedeploy — 1 missing
 
 - `aws_codedeploy_deployment_config`
+
+### cognitoidentity — 1 missing
+
+- `aws_cognito_identity_provider`
 
 ### comprehend — 1 missing
 
@@ -573,10 +381,6 @@ Sorted by missing-count desc.
 ### identitystore — 1 missing
 
 - `aws_identitystore_group_membership`
-
-### kinesisanalyticsv2 — 1 missing
-
-- `aws_kinesisanalyticsv2_application_snapshot`
 
 ### mediastore — 1 missing
 

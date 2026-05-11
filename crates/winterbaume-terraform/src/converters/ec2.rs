@@ -15584,6 +15584,647 @@ impl AwsVerifiedaccessInstanceTrustProviderAttachmentConverter {
 }
 
 // ---------------------------------------------------------------------------
+// Wave 7 — EBS account-level singletons and snapshot lifecycle resources.
+// All six `aws_ebs_*` resource types below are served by the EC2 service
+// crate: account-level toggles live as scalar fields on `Ec2State`, and
+// `aws_ebs_snapshot_copy` / `aws_ebs_snapshot_import` materialise into the
+// existing `Ec2State::snapshots` and `Ec2State::snapshot_import_tasks`
+// collections shared with `aws_ebs_snapshot`.
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// aws_ebs_default_kms_key — account-wide default KMS key ARN.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEbsDefaultKmsKeyConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEbsDefaultKmsKeyConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEbsDefaultKmsKeyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ebs_default_kms_key"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEbsDefaultKmsKeyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model = serde_json::from_value::<ec2_gen::EbsDefaultKmsKeyTfModel>(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ebs_default_kms_key", e))?;
+
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let snapshot = Ec2StateView {
+            ebs_default_kms_key_id: Some(model.key_arn),
+            ..snapshot
+        };
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ebs_encryption_by_default — account-wide encryption toggle.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEbsEncryptionByDefaultConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEbsEncryptionByDefaultConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEbsEncryptionByDefaultConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ebs_encryption_by_default"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEbsEncryptionByDefaultConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model = serde_json::from_value::<ec2_gen::EbsEncryptionByDefaultTfModel>(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ebs_encryption_by_default", e))?;
+
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let snapshot = Ec2StateView {
+            ebs_encryption_by_default: model.enabled,
+            ..snapshot
+        };
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ebs_fast_snapshot_restore — append an AZ entry to the per-snapshot
+// `fast_snapshot_restore_states` list.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEbsFastSnapshotRestoreConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEbsFastSnapshotRestoreConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEbsFastSnapshotRestoreConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ebs_fast_snapshot_restore"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ebs_snapshot", "aws_ebs_snapshot_copy"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEbsFastSnapshotRestoreConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model = serde_json::from_value::<ec2_gen::EbsFastSnapshotRestoreTfModel>(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ebs_fast_snapshot_restore", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(snap) = snapshot.snapshots.get_mut(&model.snapshot_id) {
+            let already = snap
+                .fast_snapshot_restore_states
+                .iter()
+                .any(|s| s.availability_zone == model.availability_zone);
+            if !already {
+                snap.fast_snapshot_restore_states.push(
+                    winterbaume_ec2::views::FastSnapshotRestoreStateView {
+                        availability_zone: model.availability_zone.clone(),
+                        state: "enabled".to_string(),
+                    },
+                );
+            }
+        } else {
+            warnings.push(format!(
+                "aws_ebs_fast_snapshot_restore: snapshot '{}' not found",
+                model.snapshot_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for snap in view.snapshots.values() {
+            for state in &snap.fast_snapshot_restore_states {
+                let id = format!("{}:{}", state.availability_zone, snap.snapshot_id);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "availability_zone": state.availability_zone,
+                    "snapshot_id": snap.snapshot_id,
+                    "state": state.state,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ebs_snapshot_block_public_access — account-wide toggle. The EC2 mock
+// has a stub handler but no state field today, so the converter records a
+// warning rather than dropping state silently.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEbsSnapshotBlockPublicAccessConverter {
+    #[allow(dead_code)]
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEbsSnapshotBlockPublicAccessConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEbsSnapshotBlockPublicAccessConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ebs_snapshot_block_public_access"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEbsSnapshotBlockPublicAccessConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model = serde_json::from_value::<ec2_gen::EbsSnapshotBlockPublicAccessTfModel>(
+            attrs.clone(),
+        )
+        .map_err(|e| classify_deserialize_error("aws_ebs_snapshot_block_public_access", e))?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!(
+                "aws_ebs_snapshot_block_public_access: requested state '{}' is not persisted; EC2State has no `snapshot_block_public_access_state` field",
+                model.state
+            )],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ebs_snapshot_copy — clone an existing snapshot. The new snapshot is
+// inserted into `Ec2State::snapshots` so subsequent EBS / EC2 operations and
+// the `aws_ebs_snapshot` extractor can see it.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEbsSnapshotCopyConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEbsSnapshotCopyConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEbsSnapshotCopyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ebs_snapshot_copy"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ebs_snapshot"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEbsSnapshotCopyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model = serde_json::from_value::<ec2_gen::EbsSnapshotCopyTfModel>(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ebs_snapshot_copy", e))?;
+
+        let mut snapshot_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+
+        let new_id = optional_str(attrs, "id").unwrap_or_else(|| {
+            format!("snap-{}", &uuid::Uuid::new_v4().simple().to_string()[..17])
+        });
+
+        // Start from the source snapshot's fields if available, otherwise
+        // synthesise a fresh entry. Either way, layer the TF-supplied
+        // description / encryption / storage tier / tags over the top.
+        let source = snapshot_view
+            .snapshots
+            .get(&model.source_snapshot_id)
+            .cloned();
+        if source.is_none() {
+            warnings.push(format!(
+                "aws_ebs_snapshot_copy: source snapshot '{}' not found; synthesising a stub",
+                model.source_snapshot_id
+            ));
+        }
+
+        let now = chrono::Utc::now()
+            .format("%Y-%m-%dT%H:%M:%S.000Z")
+            .to_string();
+        let base = source.unwrap_or_else(|| winterbaume_ec2::views::SnapshotView {
+            snapshot_id: new_id.clone(),
+            volume_id: String::new(),
+            volume_size: 8,
+            state: "completed".to_string(),
+            description: String::new(),
+            start_time: now.clone(),
+            progress: "100%".to_string(),
+            owner_id: ctx.default_account_id.clone(),
+            encrypted: false,
+            tags: HashMap::new(),
+            lock_state: "none".to_string(),
+            lock_duration: None,
+            lock_created_on: None,
+            lock_expires_on: None,
+            lock_duration_start_time: None,
+            cool_off_period: None,
+            cool_off_period_expires_on: None,
+            storage_tier: "standard".to_string(),
+            last_tiering_operation_status: None,
+            fast_snapshot_restore_states: Vec::new(),
+        });
+        let new_snap = winterbaume_ec2::views::SnapshotView {
+            snapshot_id: new_id.clone(),
+            owner_id: ctx.default_account_id.clone(),
+            start_time: now,
+            description: model.description.unwrap_or(base.description.clone()),
+            encrypted: model.encrypted || base.encrypted,
+            storage_tier: model.storage_tier.unwrap_or(base.storage_tier.clone()),
+            tags: if model.tags.is_empty() {
+                base.tags.clone()
+            } else {
+                model.tags
+            },
+            ..base
+        };
+        snapshot_view.snapshots.insert(new_id, new_snap);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot_view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // `aws_ebs_snapshot_copy` and `aws_ebs_snapshot` share
+        // `Ec2State::snapshots`, so we cannot tell which terraform
+        // resource a given snapshot originally came from. Leave the
+        // extractor empty to avoid double-counting.
+        let _ = ctx;
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ebs_snapshot_import — import a snapshot from an S3 disk image. The
+// converter materialises both a `SnapshotImportTaskView` and the
+// derived `SnapshotView` so describe / list operations see the result.
+// `disk_container` is a nested block; format / url / s3 bucket / s3 key are
+// read raw because the spec vocabulary is scalar-only.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEbsSnapshotImportConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEbsSnapshotImportConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEbsSnapshotImportConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ebs_snapshot_import"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEbsSnapshotImportConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model = serde_json::from_value::<ec2_gen::EbsSnapshotImportTfModel>(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ebs_snapshot_import", e))?;
+
+        // `disk_container` is a nested block (TF state may emit it as either
+        // a list-of-one or a single object).
+        let disk_container = attrs.get("disk_container").and_then(|v| match v {
+            serde_json::Value::Array(arr) => arr.first().cloned(),
+            serde_json::Value::Object(_) => Some(v.clone()),
+            _ => None,
+        });
+        let (format, url, s3_bucket, s3_key, dc_description) = match disk_container.as_ref() {
+            Some(dc) => {
+                let format = dc.get("format").and_then(|v| v.as_str()).map(String::from);
+                let url = dc.get("url").and_then(|v| v.as_str()).map(String::from);
+                let description = dc
+                    .get("description")
+                    .and_then(|v| v.as_str())
+                    .map(String::from);
+                let user_bucket = dc.get("user_bucket").and_then(|v| match v {
+                    serde_json::Value::Array(arr) => arr.first().cloned(),
+                    serde_json::Value::Object(_) => Some(v.clone()),
+                    _ => None,
+                });
+                let (s3_bucket, s3_key) = match user_bucket {
+                    Some(b) => (
+                        b.get("s3_bucket")
+                            .and_then(|v| v.as_str())
+                            .map(String::from),
+                        b.get("s3_key").and_then(|v| v.as_str()).map(String::from),
+                    ),
+                    None => (None, None),
+                };
+                (format, url, s3_bucket, s3_key, description)
+            }
+            None => (None, None, None, None, None),
+        };
+
+        let mut snapshot_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+
+        let task_id = optional_str(attrs, "import_task_id").unwrap_or_else(|| {
+            format!(
+                "import-snap-{}",
+                &uuid::Uuid::new_v4().simple().to_string()[..17]
+            )
+        });
+        let new_snap_id = optional_str(attrs, "id").unwrap_or_else(|| {
+            format!("snap-{}", &uuid::Uuid::new_v4().simple().to_string()[..17])
+        });
+
+        let now = chrono::Utc::now()
+            .format("%Y-%m-%dT%H:%M:%S.000Z")
+            .to_string();
+        let description = model.description.clone().or(dc_description);
+        let new_snap = winterbaume_ec2::views::SnapshotView {
+            snapshot_id: new_snap_id.clone(),
+            volume_id: String::new(),
+            volume_size: 8,
+            state: "completed".to_string(),
+            description: description.clone().unwrap_or_default(),
+            start_time: now.clone(),
+            progress: "100%".to_string(),
+            owner_id: ctx.default_account_id.clone(),
+            encrypted: model.encrypted,
+            tags: model.tags.clone(),
+            lock_state: "none".to_string(),
+            lock_duration: None,
+            lock_created_on: None,
+            lock_expires_on: None,
+            lock_duration_start_time: None,
+            cool_off_period: None,
+            cool_off_period_expires_on: None,
+            storage_tier: model.storage_tier.unwrap_or_else(|| "standard".to_string()),
+            last_tiering_operation_status: None,
+            fast_snapshot_restore_states: Vec::new(),
+        };
+        snapshot_view
+            .snapshots
+            .insert(new_snap_id.clone(), new_snap);
+
+        let task = winterbaume_ec2::views::SnapshotImportTaskView {
+            import_task_id: task_id.clone(),
+            status: "completed".to_string(),
+            description,
+            disk_image_size: Some(8.0 * 1024.0 * 1024.0 * 1024.0),
+            format,
+            url,
+            user_bucket_s3_bucket: s3_bucket,
+            user_bucket_s3_key: s3_key,
+            owner_id: ctx.default_account_id.clone(),
+            encrypted: model.encrypted,
+            kms_key_id: model.kms_key_id,
+            snapshot_id: Some(new_snap_id),
+            tags: model.tags,
+        };
+        snapshot_view.snapshot_import_tasks.insert(task_id, task);
+
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for task in view.snapshot_import_tasks.values() {
+            let snap_id = task.snapshot_id.clone().unwrap_or_default();
+            let attrs = serde_json::json!({
+                "id": snap_id.clone(),
+                "import_task_id": task.import_task_id,
+                "description": task.description,
+                "encrypted": task.encrypted,
+                "kms_key_id": task.kms_key_id,
+                "tags": task.tags,
+                "tags_all": task.tags,
+            });
+            results.push(ExtractedResource {
+                name: snap_id,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 

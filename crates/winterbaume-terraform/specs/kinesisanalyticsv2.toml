@@ -47,3 +47,43 @@ default = 1
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_kinesis_analytics_application (legacy v1 alias; injects into the
+# kinesisanalyticsv2 application slot for state coherence)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_kinesis_analytics_application"
+model = "AnalyticsApplicationV1TfModel"
+view = "ApplicationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

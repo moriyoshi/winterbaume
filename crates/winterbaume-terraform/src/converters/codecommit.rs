@@ -152,3 +152,101 @@ impl AwsCodecommitRepositoryConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// Warning-only converters
+//
+// `aws_codecommit_approval_rule_template`,
+// `aws_codecommit_approval_rule_template_association`, and
+// `aws_codecommit_trigger` do not have corresponding state slots in
+// `winterbaume_codecommit`. Inject validates the TF attributes against
+// the generated model and emits a warning.
+// ---------------------------------------------------------------------------
+
+macro_rules! codecommit_warning_only_converter {
+    (
+        struct_name = $struct_name:ident,
+        resource_type = $resource_type:expr,
+        model_type = $model_type:ident,
+        warn_msg = $warn_msg:expr $(,)?
+    ) => {
+        pub struct $struct_name {
+            #[allow(dead_code)]
+            service: Arc<CodeCommitService>,
+        }
+
+        impl $struct_name {
+            pub fn new(service: Arc<CodeCommitService>) -> Self {
+                Self { service }
+            }
+        }
+
+        impl TerraformResourceConverter for $struct_name {
+            fn resource_type(&self) -> &str {
+                $resource_type
+            }
+
+            fn inject<'a>(
+                &'a self,
+                instance: &'a ResourceInstance,
+                ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>,
+            > {
+                Box::pin(async move { self.do_inject(instance, ctx).await })
+            }
+
+            fn extract<'a>(
+                &'a self,
+                _ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<
+                    dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>>
+                        + Send
+                        + 'a,
+                >,
+            > {
+                Box::pin(async move { Ok(vec![]) })
+            }
+        }
+
+        impl $struct_name {
+            async fn do_inject(
+                &self,
+                instance: &ResourceInstance,
+                ctx: &ConversionContext,
+            ) -> Result<ConversionResult, ConversionError> {
+                let attrs = &instance.attributes;
+                let region = extract_region(attrs, &ctx.default_region);
+                let _model: codecommit_gen::$model_type = serde_json::from_value(attrs.clone())
+                    .map_err(|e| classify_deserialize_error($resource_type, e))?;
+                eprintln!("warning: {}: {}", $resource_type, $warn_msg);
+                Ok(ConversionResult {
+                    region,
+                    warnings: vec![format!("{}: {}", $resource_type, $warn_msg)],
+                })
+            }
+        }
+    };
+}
+
+codecommit_warning_only_converter! {
+    struct_name = AwsCodecommitApprovalRuleTemplateConverter,
+    resource_type = "aws_codecommit_approval_rule_template",
+    model_type = CodecommitApprovalRuleTemplateTfModel,
+    warn_msg = "no state slot in winterbaume_codecommit; inject is a no-op",
+}
+
+codecommit_warning_only_converter! {
+    struct_name = AwsCodecommitApprovalRuleTemplateAssociationConverter,
+    resource_type = "aws_codecommit_approval_rule_template_association",
+    model_type = CodecommitApprovalRuleTemplateAssociationTfModel,
+    warn_msg = "no state slot in winterbaume_codecommit; inject is a no-op",
+}
+
+codecommit_warning_only_converter! {
+    struct_name = AwsCodecommitTriggerConverter,
+    resource_type = "aws_codecommit_trigger",
+    model_type = CodecommitTriggerTfModel,
+    warn_msg = "no state slot in winterbaume_codecommit; inject is a no-op",
+}

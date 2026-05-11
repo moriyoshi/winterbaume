@@ -7,7 +7,8 @@ use std::sync::Arc;
 
 use winterbaume_cognitoidentity::CognitoIdentityService;
 use winterbaume_cognitoidentity::views::{
-    CognitoIdentityProviderView, CognitoIdentityStateView, IdentityPoolView,
+    CognitoIdentityProviderView, CognitoIdentityStateView, IdentityPoolRolesView, IdentityPoolView,
+    PrincipalTagEntryView,
 };
 use winterbaume_core::StatefulService;
 use winterbaume_tfstate::ResourceInstance;
@@ -198,6 +199,243 @@ impl AwsCognitoIdentityPoolConverter {
             });
             results.push(ExtractedResource {
                 name: pool.identity_pool_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_cognito_identity_pool_roles_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsCognitoIdentityPoolRolesAttachmentConverter {
+    service: Arc<CognitoIdentityService>,
+}
+
+impl AwsCognitoIdentityPoolRolesAttachmentConverter {
+    pub fn new(service: Arc<CognitoIdentityService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsCognitoIdentityPoolRolesAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_cognito_identity_pool_roles_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_cognito_identity_pool"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsCognitoIdentityPoolRolesAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: cognitoidentity_gen::CognitoIdentityPoolRolesAttachmentTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_cognito_identity_pool_roles_attachment", e)
+            })?;
+
+        // The `roles` block in HCL is `roles = { authenticated = "...", unauthenticated = "..." }`.
+        let roles: HashMap<String, String> = attrs
+            .get("roles")
+            .and_then(|v| v.as_object())
+            .map(|obj| {
+                obj.iter()
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let role_mappings: HashMap<String, serde_json::Value> = attrs
+            .get("role_mapping")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|e| {
+                        e.get("identity_provider")
+                            .and_then(|p| p.as_str())
+                            .map(|p| (p.to_string(), e.clone()))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let view = IdentityPoolRolesView {
+            roles,
+            role_mappings,
+        };
+
+        let mut state_view = CognitoIdentityStateView::default();
+        state_view.pool_roles.insert(model.identity_pool_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for (pool_id, pr) in &view.pool_roles {
+            let attrs = serde_json::json!({
+                "id": pool_id,
+                "identity_pool_id": pool_id,
+                "roles": pr.roles,
+                "role_mapping": pr.role_mappings.values().cloned().collect::<Vec<_>>(),
+            });
+            results.push(ExtractedResource {
+                name: pool_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_cognito_identity_pool_provider_principal_tag
+// ---------------------------------------------------------------------------
+
+pub struct AwsCognitoIdentityPoolProviderPrincipalTagConverter {
+    service: Arc<CognitoIdentityService>,
+}
+
+impl AwsCognitoIdentityPoolProviderPrincipalTagConverter {
+    pub fn new(service: Arc<CognitoIdentityService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsCognitoIdentityPoolProviderPrincipalTagConverter {
+    fn resource_type(&self) -> &str {
+        "aws_cognito_identity_pool_provider_principal_tag"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_cognito_identity_pool"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsCognitoIdentityPoolProviderPrincipalTagConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: cognitoidentity_gen::CognitoIdentityPoolProviderPrincipalTagTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_cognito_identity_pool_provider_principal_tag", e)
+            })?;
+
+        let principal_tags: HashMap<String, String> = attrs
+            .get("principal_tags")
+            .and_then(|v| v.as_object())
+            .map(|obj| {
+                obj.iter()
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let key = format!(
+            "{}\u{0000}{}",
+            model.identity_pool_id, model.identity_provider_name
+        );
+        let view = PrincipalTagEntryView {
+            identity_pool_id: model.identity_pool_id,
+            identity_provider_name: model.identity_provider_name,
+            use_defaults: model.use_defaults,
+            principal_tags,
+        };
+
+        let mut state_view = CognitoIdentityStateView::default();
+        state_view.principal_tags.insert(key, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for pt in view.principal_tags.values() {
+            let id = format!("{}:{}", pt.identity_pool_id, pt.identity_provider_name);
+            let attrs = serde_json::json!({
+                "id": id,
+                "identity_pool_id": pt.identity_pool_id,
+                "identity_provider_name": pt.identity_provider_name,
+                "use_defaults": pt.use_defaults,
+                "principal_tags": pt.principal_tags,
+            });
+            results.push(ExtractedResource {
+                name: id.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,

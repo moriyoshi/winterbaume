@@ -42,3 +42,46 @@ pub struct OrganizationsPolicyTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub arn: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_organizations_organization` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationsOrganizationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub master_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub master_account_email: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub feature_set: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_organizations_delegated_administrator` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationsDelegatedAdministratorTfModel {
+    pub account_id: String,
+    pub service_principal: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_organizations_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationsPolicyAttachmentTfModel {
+    pub policy_id: String,
+    pub target_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_organizations_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationsResourcePolicyTfModel {
+    pub content: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}

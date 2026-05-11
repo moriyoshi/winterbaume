@@ -16,8 +16,9 @@ use std::sync::Arc;
 
 use winterbaume_acmpca::AcmPcaService;
 use winterbaume_acmpca::views::{
-    AcmPcaStateView, CaConfigurationView, CaSubjectView, CertificateAuthorityView,
-    CrlConfigurationView, RevocationConfigurationView, TagView,
+    AcmPcaStateView, CaConfigurationView, CaPermissionView, CaSubjectView,
+    CertificateAuthorityView, CrlConfigurationView, IssuedCertificateView,
+    RevocationConfigurationView, TagView,
 };
 use winterbaume_core::StatefulService;
 use winterbaume_tfstate::ResourceInstance;
@@ -269,5 +270,386 @@ impl AwsAcmpcaCertificateAuthorityConverter {
             });
         }
         Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers shared by child resources.
+// ---------------------------------------------------------------------------
+
+/// Read the current CA view for `ca_arn` in this scope. Returns None when no
+/// snapshot exists yet (so the child resource is acting on a CA the converter
+/// has not seen). Child converters emit a warning in that case rather than
+/// silently fabricating CA state.
+async fn snapshot_ca(
+    service: &AcmPcaService,
+    account_id: &str,
+    region: &str,
+    ca_arn: &str,
+) -> Option<CertificateAuthorityView> {
+    let view = service.snapshot(account_id, region).await;
+    view.certificate_authorities.get(ca_arn).cloned()
+}
+
+async fn merge_ca(
+    service: &AcmPcaService,
+    account_id: &str,
+    region: &str,
+    ca: CertificateAuthorityView,
+) -> Result<(), ConversionError> {
+    let state_view = AcmPcaStateView {
+        certificate_authorities: {
+            let mut m = HashMap::new();
+            m.insert(ca.arn.clone(), ca);
+            m
+        },
+    };
+    service.merge(account_id, region, state_view).await?;
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// aws_acmpca_certificate
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_acmpca_certificate` Terraform resources. The issued certificate
+/// is stored on its parent CA's `issued_certificates` map keyed by the cert ARN.
+pub struct AwsAcmpcaCertificateConverter {
+    service: Arc<AcmPcaService>,
+}
+
+impl AwsAcmpcaCertificateConverter {
+    pub fn new(service: Arc<AcmPcaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAcmpcaCertificateConverter {
+    fn resource_type(&self) -> &str {
+        "aws_acmpca_certificate"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_acmpca_certificate_authority"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAcmpcaCertificateConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: acmpca_gen::CertificateTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_acmpca_certificate", e))?;
+
+        let ca_arn = model.certificate_authority_arn.clone();
+        let cert_arn = model
+            .arn
+            .unwrap_or_else(|| format!("{}/certificate/{}", ca_arn, uuid::Uuid::new_v4().simple()));
+
+        let existing = snapshot_ca(&self.service, &ctx.default_account_id, &region, &ca_arn).await;
+        let Some(mut ca) = existing else {
+            let warn_msg = format!(
+                "aws_acmpca_certificate: parent certificate authority {ca_arn} not present in \
+                 winterbaume state; inject skipped"
+            );
+            eprintln!("warning: {warn_msg}");
+            return Ok(ConversionResult {
+                region,
+                warnings: vec![warn_msg],
+            });
+        };
+
+        ca.issued_certificates.insert(
+            cert_arn.clone(),
+            IssuedCertificateView {
+                arn: cert_arn,
+                certificate_pem: model.certificate.unwrap_or_default(),
+                is_ca_cert: false,
+            },
+        );
+        if let Some(chain) = model.certificate_chain {
+            ca.certificate_chain_pem = Some(chain);
+        }
+
+        merge_ca(&self.service, &ctx.default_account_id, &region, ca).await?;
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_acmpca_certificate_authority_certificate
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_acmpca_certificate_authority_certificate` Terraform resources.
+/// Installs the issued certificate (and optional chain) onto the parent CA.
+pub struct AwsAcmpcaCertificateAuthorityCertificateConverter {
+    service: Arc<AcmPcaService>,
+}
+
+impl AwsAcmpcaCertificateAuthorityCertificateConverter {
+    pub fn new(service: Arc<AcmPcaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAcmpcaCertificateAuthorityCertificateConverter {
+    fn resource_type(&self) -> &str {
+        "aws_acmpca_certificate_authority_certificate"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_acmpca_certificate_authority"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAcmpcaCertificateAuthorityCertificateConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: acmpca_gen::CertificateAuthorityCertificateTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_acmpca_certificate_authority_certificate", e)
+            })?;
+
+        let ca_arn = model.certificate_authority_arn.clone();
+        let existing = snapshot_ca(&self.service, &ctx.default_account_id, &region, &ca_arn).await;
+        let Some(mut ca) = existing else {
+            let warn_msg = format!(
+                "aws_acmpca_certificate_authority_certificate: parent certificate authority \
+                 {ca_arn} not present in winterbaume state; inject skipped"
+            );
+            eprintln!("warning: {warn_msg}");
+            return Ok(ConversionResult {
+                region,
+                warnings: vec![warn_msg],
+            });
+        };
+
+        if model.certificate.is_some() {
+            ca.certificate_pem = model.certificate;
+        }
+        if model.certificate_chain.is_some() {
+            ca.certificate_chain_pem = model.certificate_chain;
+        }
+
+        merge_ca(&self.service, &ctx.default_account_id, &region, ca).await?;
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_acmpca_permission
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_acmpca_permission` Terraform resources. Grants are stored on
+/// the parent CA's `permissions` map keyed by principal.
+pub struct AwsAcmpcaPermissionConverter {
+    service: Arc<AcmPcaService>,
+}
+
+impl AwsAcmpcaPermissionConverter {
+    pub fn new(service: Arc<AcmPcaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAcmpcaPermissionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_acmpca_permission"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_acmpca_certificate_authority"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAcmpcaPermissionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: acmpca_gen::PermissionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_acmpca_permission", e))?;
+
+        let ca_arn = model.certificate_authority_arn.clone();
+        let existing = snapshot_ca(&self.service, &ctx.default_account_id, &region, &ca_arn).await;
+        let Some(mut ca) = existing else {
+            let warn_msg = format!(
+                "aws_acmpca_permission: parent certificate authority {ca_arn} not present in \
+                 winterbaume state; inject skipped"
+            );
+            eprintln!("warning: {warn_msg}");
+            return Ok(ConversionResult {
+                region,
+                warnings: vec![warn_msg],
+            });
+        };
+
+        // Actions is a Vec<String> Terraform attribute not modelled in the spec.
+        let actions: Vec<String> = instance
+            .attributes
+            .get("actions")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        ca.permissions.insert(
+            model.principal.clone(),
+            CaPermissionView {
+                principal: model.principal,
+                actions,
+                source_account: model.source_account,
+                created_at: chrono::Utc::now().to_rfc3339(),
+            },
+        );
+
+        merge_ca(&self.service, &ctx.default_account_id, &region, ca).await?;
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_acmpca_policy
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_acmpca_policy` Terraform resources. Sets the resource policy on
+/// the parent CA.
+pub struct AwsAcmpcaPolicyConverter {
+    service: Arc<AcmPcaService>,
+}
+
+impl AwsAcmpcaPolicyConverter {
+    pub fn new(service: Arc<AcmPcaService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAcmpcaPolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_acmpca_policy"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_acmpca_certificate_authority"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAcmpcaPolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: acmpca_gen::PolicyTfModel = serde_json::from_value(instance.attributes.clone())
+            .map_err(|e| classify_deserialize_error("aws_acmpca_policy", e))?;
+
+        let ca_arn = model.resource_arn.clone();
+        let existing = snapshot_ca(&self.service, &ctx.default_account_id, &region, &ca_arn).await;
+        let Some(mut ca) = existing else {
+            let warn_msg = format!(
+                "aws_acmpca_policy: resource_arn {ca_arn} does not resolve to a certificate \
+                 authority in winterbaume state; inject skipped"
+            );
+            eprintln!("warning: {warn_msg}");
+            return Ok(ConversionResult {
+                region,
+                warnings: vec![warn_msg],
+            });
+        };
+
+        ca.policy = Some(model.policy);
+        merge_ca(&self.service, &ctx.default_account_id, &region, ca).await?;
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
     }
 }

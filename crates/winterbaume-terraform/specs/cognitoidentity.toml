@@ -45,3 +45,61 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_cognito_identity_pool_roles_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cognito_identity_pool_roles_attachment"
+model = "CognitoIdentityPoolRolesAttachmentTfModel"
+view = "IdentityPoolRolesView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identity_pool_id"
+view = "identity_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cognito_identity_pool_provider_principal_tag
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cognito_identity_pool_provider_principal_tag"
+model = "CognitoIdentityPoolProviderPrincipalTagTfModel"
+view = "PrincipalTagEntryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identity_pool_id"
+view = "identity_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "identity_provider_name"
+view = "identity_provider_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "use_defaults"
+view = "use_defaults"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

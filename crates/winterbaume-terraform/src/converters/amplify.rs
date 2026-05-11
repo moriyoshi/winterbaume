@@ -12,7 +12,9 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use winterbaume_amplify::AmplifyService;
-use winterbaume_amplify::views::{AmplifyAppView, AmplifyBranchView, AmplifyStateView};
+use winterbaume_amplify::views::{
+    AmplifyAppView, AmplifyBranchView, AmplifyDomainAssociationView, AmplifyStateView,
+};
 use winterbaume_core::StatefulService;
 use winterbaume_tfstate::ResourceInstance;
 
@@ -324,4 +326,208 @@ impl AwsAmplifyBranchConverter {
         }
         Ok(results)
     }
+}
+
+// ---------------------------------------------------------------------------
+// aws_amplify_domain_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsAmplifyDomainAssociationConverter {
+    service: Arc<AmplifyService>,
+}
+
+impl AwsAmplifyDomainAssociationConverter {
+    pub fn new(service: Arc<AmplifyService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAmplifyDomainAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_amplify_domain_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_amplify_app"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAmplifyDomainAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: amplify_gen::AmplifyDomainAssociationTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_amplify_domain_association", e))?;
+
+        let app_id = model.app_id;
+        let domain_name = model.domain_name;
+        let key = format!("{}/{}", app_id, domain_name);
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:amplify:{}:{}:apps/{}/domains/{}",
+                region, ctx.default_account_id, app_id, domain_name
+            )
+        });
+
+        let view = AmplifyDomainAssociationView {
+            app_id: app_id.clone(),
+            domain_association_arn: arn,
+            domain_name: domain_name.clone(),
+            enable_auto_sub_domain: model.enable_auto_sub_domain,
+            domain_status: "AVAILABLE".to_string(),
+            status_reason: String::new(),
+            sub_domains: vec![],
+        };
+
+        let mut state_view = AmplifyStateView::default();
+        state_view.domain_associations.insert(key, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for da in view.domain_associations.values() {
+            let attrs = serde_json::json!({
+                "id": format!("{}/{}", da.app_id, da.domain_name),
+                "app_id": da.app_id,
+                "domain_name": da.domain_name,
+                "arn": da.domain_association_arn,
+                "enable_auto_sub_domain": da.enable_auto_sub_domain,
+                "domain_status": da.domain_status,
+                "status_reason": da.status_reason,
+            });
+            results.push(ExtractedResource {
+                name: format!("{}/{}", da.app_id, da.domain_name),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Warning-only converters
+//
+// `aws_amplify_backend_environment` and `aws_amplify_webhook` do not have
+// corresponding state slots in `winterbaume_amplify`. Inject validates
+// the TF attributes against the generated model and emits a warning.
+// ---------------------------------------------------------------------------
+
+macro_rules! amplify_warning_only_converter {
+    (
+        struct_name = $struct_name:ident,
+        resource_type = $resource_type:expr,
+        model_type = $model_type:ident,
+        warn_msg = $warn_msg:expr $(,)?
+    ) => {
+        pub struct $struct_name {
+            #[allow(dead_code)]
+            service: Arc<AmplifyService>,
+        }
+
+        impl $struct_name {
+            pub fn new(service: Arc<AmplifyService>) -> Self {
+                Self { service }
+            }
+        }
+
+        impl TerraformResourceConverter for $struct_name {
+            fn resource_type(&self) -> &str {
+                $resource_type
+            }
+
+            fn inject<'a>(
+                &'a self,
+                instance: &'a ResourceInstance,
+                ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>,
+            > {
+                Box::pin(async move { self.do_inject(instance, ctx).await })
+            }
+
+            fn extract<'a>(
+                &'a self,
+                _ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<
+                    dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>>
+                        + Send
+                        + 'a,
+                >,
+            > {
+                Box::pin(async move { Ok(vec![]) })
+            }
+        }
+
+        impl $struct_name {
+            async fn do_inject(
+                &self,
+                instance: &ResourceInstance,
+                ctx: &ConversionContext,
+            ) -> Result<ConversionResult, ConversionError> {
+                let attrs = &instance.attributes;
+                let region = extract_region(attrs, &ctx.default_region);
+                let _model: amplify_gen::$model_type = serde_json::from_value(attrs.clone())
+                    .map_err(|e| classify_deserialize_error($resource_type, e))?;
+                eprintln!("warning: {}: {}", $resource_type, $warn_msg);
+                Ok(ConversionResult {
+                    region,
+                    warnings: vec![format!("{}: {}", $resource_type, $warn_msg)],
+                })
+            }
+        }
+    };
+}
+
+amplify_warning_only_converter! {
+    struct_name = AwsAmplifyBackendEnvironmentConverter,
+    resource_type = "aws_amplify_backend_environment",
+    model_type = AmplifyBackendEnvironmentTfModel,
+    warn_msg = "no state slot in winterbaume_amplify; inject is a no-op",
+}
+
+amplify_warning_only_converter! {
+    struct_name = AwsAmplifyWebhookConverter,
+    resource_type = "aws_amplify_webhook",
+    model_type = AmplifyWebhookTfModel,
+    warn_msg = "no state slot in winterbaume_amplify; inject is a no-op",
 }

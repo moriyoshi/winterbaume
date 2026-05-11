@@ -1,5 +1,6 @@
 //! Terraform converters for AppConfig resources.
 
+use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -7,7 +8,8 @@ use std::sync::Arc;
 use winterbaume_appconfig::AppConfigService;
 use winterbaume_appconfig::views::{
     AppconfigStateView, ApplicationView, ConfigurationProfileView, DeploymentStrategyView,
-    EnvironmentView, MonitorView,
+    DeploymentView, EnvironmentView, ExtensionAssociationView, ExtensionView,
+    HostedConfigurationVersionView, MonitorView,
 };
 use winterbaume_core::StatefulService;
 use winterbaume_tfstate::ResourceInstance;
@@ -469,6 +471,496 @@ impl AwsAppconfigDeploymentStrategyConverter {
             });
             results.push(ExtractedResource {
                 name: ds.id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_appconfig_deployment
+// ---------------------------------------------------------------------------
+
+pub struct AwsAppconfigDeploymentConverter {
+    service: Arc<AppConfigService>,
+}
+
+impl AwsAppconfigDeploymentConverter {
+    pub fn new(service: Arc<AppConfigService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAppconfigDeploymentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_appconfig_deployment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_appconfig_application",
+            "aws_appconfig_environment",
+            "aws_appconfig_configuration_profile",
+            "aws_appconfig_deployment_strategy",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAppconfigDeploymentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appconfig_gen::DeploymentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appconfig_deployment", e))?;
+
+        let deployment_number = if model.deployment_number > 0 {
+            model.deployment_number as i32
+        } else {
+            1
+        };
+        let description = model.description.unwrap_or_default();
+        let state = model.state.unwrap_or_else(|| "COMPLETE".to_string());
+
+        let key = format!(
+            "{}/{}/{}",
+            model.application_id, model.environment_id, deployment_number
+        );
+
+        let dep_view = DeploymentView {
+            deployment_number,
+            application_id: model.application_id.clone(),
+            environment_id: model.environment_id.clone(),
+            deployment_strategy_id: model.deployment_strategy_id,
+            configuration_profile_id: model.configuration_profile_id,
+            configuration_version: model.configuration_version,
+            state,
+            started_at: chrono::Utc::now().to_rfc3339(),
+            completed_at: chrono::Utc::now().to_rfc3339(),
+            description,
+        };
+
+        let mut state_view = minimal_state_view();
+        state_view.deployments.insert(key.clone(), dep_view);
+        if !model.tags.is_empty() {
+            state_view.tags.insert(key, model.tags);
+        }
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for dep in view.deployments.values() {
+            let attrs = serde_json::json!({
+                "id": format!("{}/{}/{}", dep.application_id, dep.environment_id, dep.deployment_number),
+                "application_id": dep.application_id,
+                "environment_id": dep.environment_id,
+                "deployment_strategy_id": dep.deployment_strategy_id,
+                "configuration_profile_id": dep.configuration_profile_id,
+                "configuration_version": dep.configuration_version,
+                "deployment_number": dep.deployment_number,
+                "state": dep.state,
+                "description": dep.description,
+            });
+            results.push(ExtractedResource {
+                name: format!(
+                    "{}_{}_{}",
+                    dep.application_id, dep.environment_id, dep.deployment_number
+                ),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_appconfig_extension
+// ---------------------------------------------------------------------------
+
+pub struct AwsAppconfigExtensionConverter {
+    service: Arc<AppConfigService>,
+}
+
+impl AwsAppconfigExtensionConverter {
+    pub fn new(service: Arc<AppConfigService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAppconfigExtensionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_appconfig_extension"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAppconfigExtensionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appconfig_gen::ExtensionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appconfig_extension", e))?;
+
+        let description = model.description.unwrap_or_default();
+        let version_number = if model.version > 0 {
+            model.version as i32
+        } else {
+            1
+        };
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:appconfig:{}:{}:extension/{}/{}",
+                region, ctx.default_account_id, model.id, version_number
+            )
+        });
+
+        let ext_view = ExtensionView {
+            id: model.id.clone(),
+            name: model.name,
+            description,
+            version_number,
+            arn,
+            actions: HashMap::new(),
+            parameters: HashMap::new(),
+        };
+
+        let mut state_view = minimal_state_view();
+        state_view.extensions.insert(model.id.clone(), ext_view);
+        if !model.tags.is_empty() {
+            state_view.tags.insert(model.id, model.tags);
+        }
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ext in view.extensions.values() {
+            let attrs = serde_json::json!({
+                "id": ext.id,
+                "name": ext.name,
+                "description": ext.description,
+                "arn": ext.arn,
+                "version": ext.version_number,
+            });
+            results.push(ExtractedResource {
+                name: ext.id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_appconfig_extension_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsAppconfigExtensionAssociationConverter {
+    service: Arc<AppConfigService>,
+}
+
+impl AwsAppconfigExtensionAssociationConverter {
+    pub fn new(service: Arc<AppConfigService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAppconfigExtensionAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_appconfig_extension_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_appconfig_extension"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAppconfigExtensionAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appconfig_gen::ExtensionAssociationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_appconfig_extension_association", e)
+            })?;
+
+        let extension_version_number = if model.extension_version > 0 {
+            model.extension_version as i32
+        } else {
+            1
+        };
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:appconfig:{}:{}:extensionassociation/{}",
+                region, ctx.default_account_id, model.id
+            )
+        });
+
+        // parameters HCL is HashMap<String, String> — read raw.
+        let parameters: HashMap<String, String> = instance
+            .attributes
+            .get("parameters")
+            .and_then(|v| v.as_object())
+            .map(|obj| {
+                obj.iter()
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let assoc_view = ExtensionAssociationView {
+            id: model.id.clone(),
+            arn,
+            extension_arn: model.extension_arn,
+            resource_arn: model.resource_arn,
+            extension_version_number,
+            parameters,
+        };
+
+        let mut state_view = minimal_state_view();
+        state_view
+            .extension_associations
+            .insert(model.id.clone(), assoc_view);
+        if !model.tags.is_empty() {
+            state_view.tags.insert(model.id, model.tags);
+        }
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for assoc in view.extension_associations.values() {
+            let attrs = serde_json::json!({
+                "id": assoc.id,
+                "arn": assoc.arn,
+                "extension_arn": assoc.extension_arn,
+                "resource_arn": assoc.resource_arn,
+                "extension_version": assoc.extension_version_number,
+                "parameters": assoc.parameters,
+            });
+            results.push(ExtractedResource {
+                name: assoc.id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_appconfig_hosted_configuration_version
+// ---------------------------------------------------------------------------
+
+pub struct AwsAppconfigHostedConfigurationVersionConverter {
+    service: Arc<AppConfigService>,
+}
+
+impl AwsAppconfigHostedConfigurationVersionConverter {
+    pub fn new(service: Arc<AppConfigService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAppconfigHostedConfigurationVersionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_appconfig_hosted_configuration_version"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_appconfig_configuration_profile"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAppconfigHostedConfigurationVersionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: appconfig_gen::HostedConfigurationVersionTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_appconfig_hosted_configuration_version", e)
+            })?;
+
+        let version_number = if model.version_number > 0 {
+            model.version_number as i32
+        } else {
+            1
+        };
+        let content_type = model
+            .content_type
+            .unwrap_or_else(|| "application/json".to_string());
+        let description = model.description.unwrap_or_default();
+
+        let hcv_view = HostedConfigurationVersionView {
+            application_id: model.application_id.clone(),
+            configuration_profile_id: model.configuration_profile_id.clone(),
+            version_number,
+            content_type,
+            description,
+        };
+
+        let mut state_view = minimal_state_view();
+        state_view.hosted_configuration_versions.push(hcv_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for hcv in &view.hosted_configuration_versions {
+            let attrs = serde_json::json!({
+                "id": format!("{}/{}/{}", hcv.application_id, hcv.configuration_profile_id, hcv.version_number),
+                "application_id": hcv.application_id,
+                "configuration_profile_id": hcv.configuration_profile_id,
+                "version_number": hcv.version_number,
+                "content_type": hcv.content_type,
+                "description": hcv.description,
+            });
+            results.push(ExtractedResource {
+                name: format!(
+                    "{}_{}_{}",
+                    hcv.application_id, hcv.configuration_profile_id, hcv.version_number
+                ),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,

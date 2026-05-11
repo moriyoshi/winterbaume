@@ -8,8 +8,8 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_ecs::EcsService;
 use winterbaume_ecs::views::{
-    ContainerDefinitionView, EcsClusterView, EcsServiceDefView, EcsStateView, EcsTagView,
-    EnvVarView, TaskDefinitionView,
+    ContainerDefinitionView, EcsAccountSettingView, EcsCapacityProviderView, EcsClusterView,
+    EcsServiceDefView, EcsStateView, EcsTagView, EnvVarView, TaskDefinitionView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -596,5 +596,392 @@ fn minimal_ecs_state_view() -> EcsStateView {
         capacity_providers: HashMap::new(),
         account_settings: HashMap::new(),
         resource_tags: HashMap::new(),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ecs_account_setting_default
+// ---------------------------------------------------------------------------
+
+pub struct AwsEcsAccountSettingDefaultConverter {
+    service: Arc<EcsService>,
+}
+
+impl AwsEcsAccountSettingDefaultConverter {
+    pub fn new(service: Arc<EcsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEcsAccountSettingDefaultConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ecs_account_setting_default"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let model: ecs_gen::AccountSettingDefaultTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_ecs_account_setting_default", e)
+                })?;
+
+            let principal_arn = model
+                .principal_arn
+                .unwrap_or_else(|| format!("arn:aws:iam::{}:root", ctx.default_account_id));
+            let setting = EcsAccountSettingView {
+                name: model.name.clone(),
+                value: model.value,
+                principal_arn,
+            };
+
+            let mut state_view = minimal_ecs_state_view();
+            state_view.account_settings.insert(model.name, setting);
+            self.service
+                .merge(&ctx.default_account_id, &region, state_view)
+                .await?;
+
+            Ok(ConversionResult {
+                region,
+                warnings: vec![],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            let view = self
+                .service
+                .snapshot(&ctx.default_account_id, &ctx.default_region)
+                .await;
+            let mut results = vec![];
+            for s in view.account_settings.values() {
+                let attrs = serde_json::json!({
+                    "id": s.name,
+                    "name": s.name,
+                    "value": s.value,
+                    "principal_arn": s.principal_arn,
+                });
+                results.push(ExtractedResource {
+                    name: s.name.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+            Ok(results)
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ecs_capacity_provider
+// ---------------------------------------------------------------------------
+
+pub struct AwsEcsCapacityProviderConverter {
+    service: Arc<EcsService>,
+}
+
+impl AwsEcsCapacityProviderConverter {
+    pub fn new(service: Arc<EcsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEcsCapacityProviderConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ecs_capacity_provider"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let attrs = &instance.attributes;
+            let region = extract_region(attrs, &ctx.default_region);
+            let model: ecs_gen::CapacityProviderTfModel = serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_ecs_capacity_provider", e))?;
+
+            let arn = model.arn.unwrap_or_else(|| {
+                format!(
+                    "arn:aws:ecs:{}:{}:capacity-provider/{}",
+                    region, ctx.default_account_id, model.name
+                )
+            });
+
+            let auto_scaling_group_arn = attrs
+                .get("auto_scaling_group_provider")
+                .and_then(|v| v.as_array())
+                .and_then(|arr| arr.first())
+                .and_then(|p| p.get("auto_scaling_group_arn"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+
+            let tags: Vec<EcsTagView> = attrs
+                .get("tags")
+                .and_then(|v| v.as_object())
+                .map(|obj| {
+                    obj.iter()
+                        .filter_map(|(k, v)| {
+                            v.as_str().map(|s| EcsTagView {
+                                key: k.clone(),
+                                value: s.to_string(),
+                            })
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            let cp = EcsCapacityProviderView {
+                name: model.name.clone(),
+                arn,
+                status: "ACTIVE".to_string(),
+                auto_scaling_group_arn,
+                tags,
+            };
+
+            let mut state_view = minimal_ecs_state_view();
+            state_view.capacity_providers.insert(model.name, cp);
+            self.service
+                .merge(&ctx.default_account_id, &region, state_view)
+                .await?;
+
+            Ok(ConversionResult {
+                region,
+                warnings: vec![],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            let view = self
+                .service
+                .snapshot(&ctx.default_account_id, &ctx.default_region)
+                .await;
+            let mut results = vec![];
+            for cp in view.capacity_providers.values() {
+                let tags: HashMap<String, String> = cp
+                    .tags
+                    .iter()
+                    .map(|t| (t.key.clone(), t.value.clone()))
+                    .collect();
+                let attrs = serde_json::json!({
+                    "id": cp.name,
+                    "name": cp.name,
+                    "arn": cp.arn,
+                    "auto_scaling_group_provider": [{
+                        "auto_scaling_group_arn": cp.auto_scaling_group_arn,
+                    }],
+                    "tags": tags,
+                    "tags_all": tags,
+                });
+                results.push(ExtractedResource {
+                    name: cp.name.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+            Ok(results)
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ecs_cluster_capacity_providers — mutates existing cluster (no separate
+// state slot in the view layer; warning-only).
+// ---------------------------------------------------------------------------
+
+pub struct AwsEcsClusterCapacityProvidersConverter {
+    #[allow(dead_code)]
+    service: Arc<EcsService>,
+}
+
+impl AwsEcsClusterCapacityProvidersConverter {
+    pub fn new(service: Arc<EcsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEcsClusterCapacityProvidersConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ecs_cluster_capacity_providers"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: ecs_gen::ClusterCapacityProvidersTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_ecs_cluster_capacity_providers", e)
+                })?;
+            let warn_msg = "cluster capacity-provider attachments are not modelled as a \
+                            separate state slot; inject is a no-op"
+                .to_string();
+            eprintln!("warning: aws_ecs_cluster_capacity_providers: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_ecs_cluster_capacity_providers: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ecs_tag
+// ---------------------------------------------------------------------------
+
+pub struct AwsEcsTagConverter {
+    service: Arc<EcsService>,
+}
+
+impl AwsEcsTagConverter {
+    pub fn new(service: Arc<EcsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEcsTagConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ecs_tag"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let model: ecs_gen::TagTfModel = serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_ecs_tag", e))?;
+
+            let tag = EcsTagView {
+                key: model.key,
+                value: model.value,
+            };
+
+            let mut state_view = minimal_ecs_state_view();
+            state_view
+                .resource_tags
+                .insert(model.resource_arn, vec![tag]);
+            self.service
+                .merge(&ctx.default_account_id, &region, state_view)
+                .await?;
+
+            Ok(ConversionResult {
+                region,
+                warnings: vec![],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            let view = self
+                .service
+                .snapshot(&ctx.default_account_id, &ctx.default_region)
+                .await;
+            let mut results = vec![];
+            for (arn, tags) in view.resource_tags.iter() {
+                for tag in tags {
+                    let attrs = serde_json::json!({
+                        "id": format!("{},{}", arn, tag.key),
+                        "resource_arn": arn,
+                        "key": tag.key,
+                        "value": tag.value,
+                    });
+                    results.push(ExtractedResource {
+                        name: format!("{}_{}", arn, tag.key),
+                        account_id: ctx.default_account_id.clone(),
+                        region: ctx.default_region.clone(),
+                        attributes: attrs,
+                    });
+                }
+            }
+            Ok(results)
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ecs_task_set — no view-level state slot (warning-only).
+// ---------------------------------------------------------------------------
+
+pub struct AwsEcsTaskSetConverter {
+    #[allow(dead_code)]
+    service: Arc<EcsService>,
+}
+
+impl AwsEcsTaskSetConverter {
+    pub fn new(service: Arc<EcsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEcsTaskSetConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ecs_task_set"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: ecs_gen::TaskSetTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_ecs_task_set", e))?;
+            let warn_msg =
+                "no view-level state slot in winterbaume_ecs for task sets; inject is a no-op"
+                    .to_string();
+            eprintln!("warning: aws_ecs_task_set: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_ecs_task_set: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
     }
 }

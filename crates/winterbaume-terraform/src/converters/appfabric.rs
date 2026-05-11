@@ -134,3 +134,246 @@ impl AwsAppFabricAppBundleConverter {
         Ok(resources)
     }
 }
+
+// ---------------------------------------------------------------------------
+// aws_appfabric_app_authorization — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_appfabric_app_authorization` Terraform resources
+/// (validation-only; no backing state slot in `winterbaume_appfabric`).
+pub struct AwsAppFabricAppAuthorizationConverter {
+    #[allow(dead_code)]
+    service: Arc<AppFabricService>,
+}
+
+impl AwsAppFabricAppAuthorizationConverter {
+    pub fn new(service: Arc<AppFabricService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAppFabricAppAuthorizationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_appfabric_app_authorization"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAppFabricAppAuthorizationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: appfabric_gen::AppAuthorizationTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appfabric_app_authorization", e))?;
+        let warn_msg = "no state slot in winterbaume_appfabric for app authorizations; \
+             inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_appfabric_app_authorization: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_appfabric_app_authorization: {warn_msg}")],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_appfabric_app_authorization_connection — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_appfabric_app_authorization_connection` Terraform resources
+/// (validation-only; no backing state slot in `winterbaume_appfabric`).
+pub struct AwsAppFabricAppAuthorizationConnectionConverter {
+    #[allow(dead_code)]
+    service: Arc<AppFabricService>,
+}
+
+impl AwsAppFabricAppAuthorizationConnectionConverter {
+    pub fn new(service: Arc<AppFabricService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAppFabricAppAuthorizationConnectionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_appfabric_app_authorization_connection"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAppFabricAppAuthorizationConnectionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: appfabric_gen::AppAuthorizationConnectionTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_appfabric_app_authorization_connection", e)
+            })?;
+        let warn_msg = "no state slot in winterbaume_appfabric for app authorization \
+             connections; inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_appfabric_app_authorization_connection: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!(
+                "aws_appfabric_app_authorization_connection: {warn_msg}"
+            )],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_appfabric_ingestion — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_appfabric_ingestion` Terraform resources (validation-only;
+/// no backing state slot in `winterbaume_appfabric`).
+pub struct AwsAppFabricIngestionConverter {
+    #[allow(dead_code)]
+    service: Arc<AppFabricService>,
+}
+
+impl AwsAppFabricIngestionConverter {
+    pub fn new(service: Arc<AppFabricService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAppFabricIngestionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_appfabric_ingestion"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAppFabricIngestionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: appfabric_gen::IngestionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_appfabric_ingestion", e))?;
+        let warn_msg =
+            "no state slot in winterbaume_appfabric for ingestions; inject is a no-op".to_string();
+        eprintln!("warning: aws_appfabric_ingestion: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_appfabric_ingestion: {warn_msg}")],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_appfabric_ingestion_destination — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_appfabric_ingestion_destination` Terraform resources
+/// (validation-only; no backing state slot in `winterbaume_appfabric`).
+pub struct AwsAppFabricIngestionDestinationConverter {
+    #[allow(dead_code)]
+    service: Arc<AppFabricService>,
+}
+
+impl AwsAppFabricIngestionDestinationConverter {
+    pub fn new(service: Arc<AppFabricService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAppFabricIngestionDestinationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_appfabric_ingestion_destination"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAppFabricIngestionDestinationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let _model: appfabric_gen::IngestionDestinationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_appfabric_ingestion_destination", e)
+            })?;
+        let warn_msg = "no state slot in winterbaume_appfabric for ingestion destinations; \
+             inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_appfabric_ingestion_destination: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_appfabric_ingestion_destination: {warn_msg}")],
+        })
+    }
+}

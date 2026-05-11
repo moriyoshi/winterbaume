@@ -8,7 +8,7 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_memorydb::MemoryDbService;
 use winterbaume_memorydb::views::{
-    AclView, ClusterView, MemoryDbStateView, SubnetGroupView, TagView,
+    AclView, ClusterView, MemoryDbStateView, SnapshotView, SubnetGroupView, TagView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -477,4 +477,226 @@ impl AwsMemoryDbAclConverter {
         }
         Ok(results)
     }
+}
+
+// ---------------------------------------------------------------------------
+// aws_memorydb_snapshot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_memorydb_snapshot` Terraform resources to/from MemoryDB state.
+pub struct AwsMemoryDbSnapshotConverter {
+    service: Arc<MemoryDbService>,
+}
+
+impl AwsMemoryDbSnapshotConverter {
+    pub fn new(service: Arc<MemoryDbService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsMemoryDbSnapshotConverter {
+    fn resource_type(&self) -> &str {
+        "aws_memorydb_snapshot"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsMemoryDbSnapshotConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: memorydb_gen::SnapshotTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_memorydb_snapshot", e))?;
+
+        let name = model.name.clone();
+        let cluster_name = model.cluster_name.clone();
+        let source = model.source.unwrap_or_else(|| "manual".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:memorydb:{}:{}:snapshot/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+
+        let snapshot_view = SnapshotView {
+            name: name.clone(),
+            arn,
+            status: "available".to_string(),
+            source,
+            cluster_name,
+            cluster_description: String::new(),
+            cluster_engine: "redis".to_string(),
+            cluster_engine_version: "7.0".to_string(),
+            cluster_node_type: "db.r6g.large".to_string(),
+            cluster_num_shards: 1,
+            cluster_subnet_group_name: "default".to_string(),
+            cluster_snapshot_retention_limit: 0,
+            cluster_snapshot_window: "05:00-06:00".to_string(),
+            cluster_maintenance_window: "wed:03:00-wed:04:00".to_string(),
+            cluster_parameter_group_name: "default".to_string(),
+            kms_key_id: model.kms_key_arn,
+        };
+
+        let state_view = MemoryDbStateView {
+            snapshots: {
+                let mut m = HashMap::new();
+                m.insert(name, snapshot_view);
+                m
+            },
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for snap in view.snapshots.values() {
+            let attrs = serde_json::json!({
+                "id": snap.name,
+                "name": snap.name,
+                "arn": snap.arn,
+                "cluster_name": snap.cluster_name,
+                "kms_key_arn": snap.kms_key_id,
+                "source": snap.source,
+                "tags_all": {},
+            });
+            results.push(ExtractedResource {
+                name: snap.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Warning-only converters
+//
+// `aws_memorydb_parameter_group`, `aws_memorydb_user`, and
+// `aws_memorydb_multi_region_cluster` do not have a corresponding state
+// slot in `winterbaume_memorydb`. Inject validates the TF attributes
+// against the generated model and otherwise emits a warning.
+// ---------------------------------------------------------------------------
+
+macro_rules! memorydb_warning_only_converter {
+    (
+        struct_name = $struct_name:ident,
+        resource_type = $resource_type:expr,
+        model_type = $model_type:ident,
+        warn_msg = $warn_msg:expr $(,)?
+    ) => {
+        pub struct $struct_name {
+            #[allow(dead_code)]
+            service: Arc<MemoryDbService>,
+        }
+
+        impl $struct_name {
+            pub fn new(service: Arc<MemoryDbService>) -> Self {
+                Self { service }
+            }
+        }
+
+        impl TerraformResourceConverter for $struct_name {
+            fn resource_type(&self) -> &str {
+                $resource_type
+            }
+
+            fn inject<'a>(
+                &'a self,
+                instance: &'a ResourceInstance,
+                ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>,
+            > {
+                Box::pin(async move { self.do_inject(instance, ctx).await })
+            }
+
+            fn extract<'a>(
+                &'a self,
+                _ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<
+                    dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>>
+                        + Send
+                        + 'a,
+                >,
+            > {
+                Box::pin(async move { Ok(vec![]) })
+            }
+        }
+
+        impl $struct_name {
+            async fn do_inject(
+                &self,
+                instance: &ResourceInstance,
+                ctx: &ConversionContext,
+            ) -> Result<ConversionResult, ConversionError> {
+                let attrs = &instance.attributes;
+                let region = extract_region(attrs, &ctx.default_region);
+                let _model: memorydb_gen::$model_type = serde_json::from_value(attrs.clone())
+                    .map_err(|e| classify_deserialize_error($resource_type, e))?;
+                eprintln!("warning: {}: {}", $resource_type, $warn_msg);
+                Ok(ConversionResult {
+                    region,
+                    warnings: vec![format!("{}: {}", $resource_type, $warn_msg)],
+                })
+            }
+        }
+    };
+}
+
+memorydb_warning_only_converter! {
+    struct_name = AwsMemoryDbParameterGroupConverter,
+    resource_type = "aws_memorydb_parameter_group",
+    model_type = ParameterGroupTfModel,
+    warn_msg = "no state slot in winterbaume_memorydb; inject is a no-op",
+}
+
+memorydb_warning_only_converter! {
+    struct_name = AwsMemoryDbUserConverter,
+    resource_type = "aws_memorydb_user",
+    model_type = UserTfModel,
+    warn_msg = "no state slot in winterbaume_memorydb; inject is a no-op",
+}
+
+memorydb_warning_only_converter! {
+    struct_name = AwsMemoryDbMultiRegionClusterConverter,
+    resource_type = "aws_memorydb_multi_region_cluster",
+    model_type = MultiRegionClusterTfModel,
+    warn_msg = "no state slot in winterbaume_memorydb; inject is a no-op",
 }

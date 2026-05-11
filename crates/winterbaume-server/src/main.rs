@@ -389,6 +389,8 @@ struct InjectableServices {
     keyspaces: Arc<winterbaume_keyspaces::KeyspacesService>,
     rolesanywhere: Arc<winterbaume_rolesanywhere::RolesAnywhereService>,
     fsx: Arc<winterbaume_fsx::FsxService>,
+    memorydb: Arc<winterbaume_memorydb::MemoryDbService>,
+    neptune: Arc<winterbaume_neptune::NeptuneService>,
     pinpoint: Arc<winterbaume_pinpoint::PinpointService>,
     pipes: Arc<winterbaume_pipes::PipesService>,
     quicksight: Arc<winterbaume_quicksight::QuickSightService>,
@@ -654,6 +656,8 @@ async fn register_all_services(
     let opensearchserverless =
         Arc::new(winterbaume_opensearchserverless::OpenSearchServerlessService::new());
     let fsx_svc = Arc::new(winterbaume_fsx::FsxService::new());
+    let memorydb_svc = Arc::new(winterbaume_memorydb::MemoryDbService::new());
+    let neptune_svc = Arc::new(winterbaume_neptune::NeptuneService::new());
     let pinpoint_svc = Arc::new(winterbaume_pinpoint::PinpointService::new());
     let redshift_svc = Arc::new(winterbaume_redshift::RedshiftService::new());
     let route53 = Arc::new(winterbaume_route53::Route53Service::new());
@@ -863,6 +867,8 @@ async fn register_all_services(
         keyspaces: Arc::clone(&keyspaces),
         rolesanywhere: Arc::clone(&rolesanywhere),
         fsx: Arc::clone(&fsx_svc),
+        memorydb: Arc::clone(&memorydb_svc),
+        neptune: Arc::clone(&neptune_svc),
         pinpoint: Arc::clone(&pinpoint_svc),
         pipes: Arc::clone(&pipes),
         quicksight: Arc::clone(&quicksight),
@@ -936,7 +942,7 @@ async fn register_all_services(
         codecommit,
         Arc::clone(&rds) as Arc<dyn MockService>,
         Arc::new(winterbaume_rdsdata::RdsDataService::new()),
-        Arc::new(winterbaume_neptune::NeptuneService::new()),
+        Arc::clone(&neptune_svc) as Arc<dyn MockService>,
         Arc::new(winterbaume_polly::PollyService::new()),
         Arc::clone(&cloudformation) as Arc<dyn winterbaume_core::MockService>,
         Arc::clone(&cloudtrail) as Arc<dyn MockService>,
@@ -964,7 +970,7 @@ async fn register_all_services(
         config,
         glue,
         Arc::clone(&fsx_svc) as Arc<dyn MockService>,
-        Arc::new(winterbaume_memorydb::MemoryDbService::new()),
+        Arc::clone(&memorydb_svc) as Arc<dyn MockService>,
         ebs,
         Arc::clone(&networkfirewall) as Arc<dyn MockService>,
         Arc::clone(&sagemaker_svc) as Arc<dyn MockService>,
@@ -1214,14 +1220,15 @@ async fn load_tfstate(
         emrcontainers, emrserverless, events, firehose, fis, fsx, glacier, glue, guardduty, iam,
         identitystore, inspector2, iot, ivs, kafka, keyspaces, kinesis, kinesisanalyticsv2,
         kinesisvideo, kms, lakeformation, lambda, lexmodelsv2, logs, macie2, medialive,
-        mediapackage, mediapackagev2, mediastore, mq, networkfirewall, networkmanager, opensearch,
-        opensearchserverless, organizations, osis, outposts, pinpoint, pipes, quicksight, ram, rds,
-        redshift, rekognition, resiliencehub, resourcegroups, rolesanywhere, route53,
-        route53domains, route53resolver, s3, s3control, s3tables, sagemaker, scheduler,
-        secretsmanager, securityhub, servicecatalog, servicecatalogappregistry, servicediscovery,
-        servicequotas, ses, sesv1, shield, signer, simpledbv2, sns, sqs, ssm, ssoadmin,
-        stepfunctions, swf, synthetics, timestreaminfluxdb, timestreamquery, timestreamwrite,
-        transcribe, transfer, vpclattice, wafv2, workspaces, xray,
+        mediapackage, mediapackagev2, mediastore, memorydb, mq, neptune, networkfirewall,
+        networkmanager, opensearch, opensearchserverless, organizations, osis, outposts, pinpoint,
+        pipes, quicksight, ram, rds, redshift, rekognition, resiliencehub, resourcegroups,
+        rolesanywhere, route53, route53domains, route53resolver, s3, s3control, s3tables,
+        sagemaker, scheduler, secretsmanager, securityhub, servicecatalog,
+        servicecatalogappregistry, servicediscovery, servicequotas, ses, sesv1, shield, signer,
+        simpledbv2, sns, sqs, ssm, ssoadmin, stepfunctions, swf, synthetics, timestreaminfluxdb,
+        timestreamquery, timestreamwrite, transcribe, transfer, vpclattice, wafv2, workspaces,
+        xray,
     };
     injector.register(accessanalyzer::AwsAccessAnalyzerAnalyzerConverter::new(
         Arc::clone(&injectable.accessanalyzer),
@@ -1229,6 +1236,20 @@ async fn load_tfstate(
     injector.register(appfabric::AwsAppFabricAppBundleConverter::new(Arc::clone(
         &injectable.appfabric,
     )));
+    injector.register(
+        appfabric::AwsAppFabricAppAuthorizationConnectionConverter::new(Arc::clone(
+            &injectable.appfabric,
+        )),
+    );
+    injector.register(appfabric::AwsAppFabricAppAuthorizationConverter::new(
+        Arc::clone(&injectable.appfabric),
+    ));
+    injector.register(appfabric::AwsAppFabricIngestionConverter::new(Arc::clone(
+        &injectable.appfabric,
+    )));
+    injector.register(appfabric::AwsAppFabricIngestionDestinationConverter::new(
+        Arc::clone(&injectable.appfabric),
+    ));
     injector.register(appflow::AwsAppFlowFlowConverter::new(Arc::clone(
         &injectable.appflow,
     )));
@@ -1246,13 +1267,48 @@ async fn load_tfstate(
     injector.register(acmpca::AwsAcmpcaCertificateAuthorityConverter::new(
         Arc::clone(&injectable.acmpca),
     ));
+    injector.register(acmpca::AwsAcmpcaCertificateConverter::new(Arc::clone(
+        &injectable.acmpca,
+    )));
+    injector.register(
+        acmpca::AwsAcmpcaCertificateAuthorityCertificateConverter::new(Arc::clone(
+            &injectable.acmpca,
+        )),
+    );
+    injector.register(acmpca::AwsAcmpcaPermissionConverter::new(Arc::clone(
+        &injectable.acmpca,
+    )));
+    injector.register(acmpca::AwsAcmpcaPolicyConverter::new(Arc::clone(
+        &injectable.acmpca,
+    )));
     injector.register(amp::AwsPrometheusWorkspaceConverter::new(Arc::clone(
         &injectable.amp,
     )));
+    injector.register(amp::AwsPrometheusAlertManagerDefinitionConverter::new(
+        Arc::clone(&injectable.amp),
+    ));
+    injector.register(amp::AwsPrometheusRuleGroupNamespaceConverter::new(
+        Arc::clone(&injectable.amp),
+    ));
+    injector.register(amp::AwsPrometheusScraperConverter::new(Arc::clone(
+        &injectable.amp,
+    )));
+    injector.register(amp::AwsPrometheusWorkspaceConfigurationConverter::new(
+        Arc::clone(&injectable.amp),
+    ));
     injector.register(amplify::AwsAmplifyAppConverter::new(Arc::clone(
         &injectable.amplify,
     )));
     injector.register(amplify::AwsAmplifyBranchConverter::new(Arc::clone(
+        &injectable.amplify,
+    )));
+    injector.register(amplify::AwsAmplifyBackendEnvironmentConverter::new(
+        Arc::clone(&injectable.amplify),
+    ));
+    injector.register(amplify::AwsAmplifyDomainAssociationConverter::new(
+        Arc::clone(&injectable.amplify),
+    ));
+    injector.register(amplify::AwsAmplifyWebhookConverter::new(Arc::clone(
         &injectable.amplify,
     )));
     injector.register(apigateway::AwsApiGatewayRestApiConverter::new(Arc::clone(
@@ -1379,6 +1435,20 @@ async fn load_tfstate(
     injector.register(appconfig::AwsAppconfigDeploymentStrategyConverter::new(
         Arc::clone(&injectable.appconfig),
     ));
+    injector.register(appconfig::AwsAppconfigDeploymentConverter::new(Arc::clone(
+        &injectable.appconfig,
+    )));
+    injector.register(appconfig::AwsAppconfigExtensionAssociationConverter::new(
+        Arc::clone(&injectable.appconfig),
+    ));
+    injector.register(appconfig::AwsAppconfigExtensionConverter::new(Arc::clone(
+        &injectable.appconfig,
+    )));
+    injector.register(
+        appconfig::AwsAppconfigHostedConfigurationVersionConverter::new(Arc::clone(
+            &injectable.appconfig,
+        )),
+    );
     injector.register(
         applicationautoscaling::AwsAppautoscalingTargetConverter::new(Arc::clone(
             &injectable.applicationautoscaling,
@@ -1396,6 +1466,18 @@ async fn load_tfstate(
         &injectable.appmesh,
     )));
     injector.register(appmesh::AwsAppmeshVirtualServiceConverter::new(Arc::clone(
+        &injectable.appmesh,
+    )));
+    injector.register(appmesh::AwsAppmeshGatewayRouteConverter::new(Arc::clone(
+        &injectable.appmesh,
+    )));
+    injector.register(appmesh::AwsAppmeshRouteConverter::new(Arc::clone(
+        &injectable.appmesh,
+    )));
+    injector.register(appmesh::AwsAppmeshVirtualGatewayConverter::new(Arc::clone(
+        &injectable.appmesh,
+    )));
+    injector.register(appmesh::AwsAppmeshVirtualRouterConverter::new(Arc::clone(
         &injectable.appmesh,
     )));
     injector.register(apprunner::AwsAppRunnerServiceConverter::new(Arc::clone(
@@ -1469,6 +1551,18 @@ async fn load_tfstate(
     injector.register(athena::AwsAthenaDataCatalogConverter::new(Arc::clone(
         &injectable.athena,
     )));
+    injector.register(athena::AwsAthenaCapacityReservationConverter::new(
+        Arc::clone(&injectable.athena),
+    ));
+    injector.register(athena::AwsAthenaDatabaseConverter::new(Arc::clone(
+        &injectable.athena,
+    )));
+    injector.register(athena::AwsAthenaNamedQueryConverter::new(Arc::clone(
+        &injectable.athena,
+    )));
+    injector.register(athena::AwsAthenaPreparedStatementConverter::new(
+        Arc::clone(&injectable.athena),
+    ));
     injector.register(auditmanager::AwsAuditManagerControlConverter::new(
         Arc::clone(&injectable.auditmanager),
     ));
@@ -1587,6 +1681,18 @@ async fn load_tfstate(
             &injectable.bedrock,
         )),
     );
+    injector.register(bedrock::AwsBedrockCustomModelConverter::new(Arc::clone(
+        &injectable.bedrock,
+    )));
+    injector.register(bedrock::AwsBedrockGuardrailVersionConverter::new(
+        Arc::clone(&injectable.bedrock),
+    ));
+    injector.register(bedrock::AwsBedrockInferenceProfileConverter::new(
+        Arc::clone(&injectable.bedrock),
+    ));
+    injector.register(bedrock::AwsBedrockProvisionedModelThroughputConverter::new(
+        Arc::clone(&injectable.bedrock),
+    ));
     injector.register(bedrockagent::AwsBedrockagentAgentConverter::new(
         Arc::clone(&injectable.bedrockagent),
     ));
@@ -1625,6 +1731,22 @@ async fn load_tfstate(
         Arc::clone(&injectable.chatbot),
     ));
     injector.register(cloudformation::AwsCloudformationStackConverter::new(
+        Arc::clone(&injectable.cloudformation),
+    ));
+    injector.register(
+        cloudformation::AwsCloudformationStackInstancesConverter::new(Arc::clone(
+            &injectable.cloudformation,
+        )),
+    );
+    injector.register(cloudformation::AwsCloudformationStackSetConverter::new(
+        Arc::clone(&injectable.cloudformation),
+    ));
+    injector.register(
+        cloudformation::AwsCloudformationStackSetInstanceConverter::new(Arc::clone(
+            &injectable.cloudformation,
+        )),
+    );
+    injector.register(cloudformation::AwsCloudformationTypeConverter::new(
         Arc::clone(&injectable.cloudformation),
     ));
     injector.register(cloudfront::AwsCloudfrontDistributionConverter::new(
@@ -1694,6 +1816,15 @@ async fn load_tfstate(
     injector.register(cloudwatch::AwsCloudwatchMetricAlarmConverter::new(
         Arc::clone(&injectable.cloudwatch),
     ));
+    injector.register(cloudwatch::AwsCloudwatchCompositeAlarmConverter::new(
+        Arc::clone(&injectable.cloudwatch),
+    ));
+    injector.register(cloudwatch::AwsCloudwatchDashboardConverter::new(
+        Arc::clone(&injectable.cloudwatch),
+    ));
+    injector.register(cloudwatch::AwsCloudwatchMetricStreamConverter::new(
+        Arc::clone(&injectable.cloudwatch),
+    ));
     injector.register(codeartifact::AwsCodeArtifactDomainConverter::new(
         Arc::clone(&injectable.codeartifact),
     ));
@@ -1703,9 +1834,35 @@ async fn load_tfstate(
     injector.register(codebuild::AwsCodebuildProjectConverter::new(Arc::clone(
         &injectable.codebuild,
     )));
+    injector.register(codebuild::AwsCodebuildFleetConverter::new(Arc::clone(
+        &injectable.codebuild,
+    )));
+    injector.register(codebuild::AwsCodebuildReportGroupConverter::new(
+        Arc::clone(&injectable.codebuild),
+    ));
+    injector.register(codebuild::AwsCodebuildResourcePolicyConverter::new(
+        Arc::clone(&injectable.codebuild),
+    ));
+    injector.register(codebuild::AwsCodebuildSourceCredentialConverter::new(
+        Arc::clone(&injectable.codebuild),
+    ));
+    injector.register(codebuild::AwsCodebuildWebhookConverter::new(Arc::clone(
+        &injectable.codebuild,
+    )));
     injector.register(codecommit::AwsCodecommitRepositoryConverter::new(
         Arc::clone(&injectable.codecommit),
     ));
+    injector.register(codecommit::AwsCodecommitApprovalRuleTemplateConverter::new(
+        Arc::clone(&injectable.codecommit),
+    ));
+    injector.register(
+        codecommit::AwsCodecommitApprovalRuleTemplateAssociationConverter::new(Arc::clone(
+            &injectable.codecommit,
+        )),
+    );
+    injector.register(codecommit::AwsCodecommitTriggerConverter::new(Arc::clone(
+        &injectable.codecommit,
+    )));
     injector.register(codedeploy::AwsCodedeployAppConverter::new(Arc::clone(
         &injectable.codedeploy,
     )));
@@ -1718,6 +1875,16 @@ async fn load_tfstate(
     injector.register(cognitoidentity::AwsCognitoIdentityPoolConverter::new(
         Arc::clone(&injectable.cognitoidentity),
     ));
+    injector.register(
+        cognitoidentity::AwsCognitoIdentityPoolProviderPrincipalTagConverter::new(Arc::clone(
+            &injectable.cognitoidentity,
+        )),
+    );
+    injector.register(
+        cognitoidentity::AwsCognitoIdentityPoolRolesAttachmentConverter::new(Arc::clone(
+            &injectable.cognitoidentity,
+        )),
+    );
     injector.register(cognitoidp::AwsCognitoUserPoolConverter::new(Arc::clone(
         &injectable.cognitoidp,
     )));
@@ -1997,6 +2164,21 @@ async fn load_tfstate(
         &injectable.dms,
     )));
     injector.register(dms::AwsDmsReplicationTaskConverter::new(Arc::clone(
+        &injectable.dms,
+    )));
+    injector.register(dms::AwsDmsCertificateConverter::new(Arc::clone(
+        &injectable.dms,
+    )));
+    injector.register(dms::AwsDmsEventSubscriptionConverter::new(Arc::clone(
+        &injectable.dms,
+    )));
+    injector.register(dms::AwsDmsReplicationConfigConverter::new(Arc::clone(
+        &injectable.dms,
+    )));
+    injector.register(dms::AwsDmsReplicationSubnetGroupConverter::new(Arc::clone(
+        &injectable.dms,
+    )));
+    injector.register(dms::AwsDmsS3EndpointConverter::new(Arc::clone(
         &injectable.dms,
     )));
     injector.register(dsql::AwsDsqlClusterConverter::new(Arc::clone(
@@ -2329,6 +2511,25 @@ async fn load_tfstate(
     injector.register(ec2::AwsEc2InstanceStateConverter::new(Arc::clone(
         &injectable.ec2,
     )));
+    // Wave 7 — EBS account-level
+    injector.register(ec2::AwsEbsDefaultKmsKeyConverter::new(Arc::clone(
+        &injectable.ec2,
+    )));
+    injector.register(ec2::AwsEbsEncryptionByDefaultConverter::new(Arc::clone(
+        &injectable.ec2,
+    )));
+    injector.register(ec2::AwsEbsFastSnapshotRestoreConverter::new(Arc::clone(
+        &injectable.ec2,
+    )));
+    injector.register(ec2::AwsEbsSnapshotBlockPublicAccessConverter::new(
+        Arc::clone(&injectable.ec2),
+    ));
+    injector.register(ec2::AwsEbsSnapshotCopyConverter::new(Arc::clone(
+        &injectable.ec2,
+    )));
+    injector.register(ec2::AwsEbsSnapshotImportConverter::new(Arc::clone(
+        &injectable.ec2,
+    )));
     // Wave 6 — IPAM extras
     injector.register(ec2::AwsVpcIpamOrganizationAdminAccountConverter::new(
         Arc::clone(&injectable.ec2),
@@ -2430,9 +2631,37 @@ async fn load_tfstate(
             mk_sp(),
         );
     }
+    injector.register(ecs::AwsEcsAccountSettingDefaultConverter::new(Arc::clone(
+        &injectable.ecs,
+    )));
+    injector.register(ecs::AwsEcsCapacityProviderConverter::new(Arc::clone(
+        &injectable.ecs,
+    )));
+    injector.register(ecs::AwsEcsClusterCapacityProvidersConverter::new(
+        Arc::clone(&injectable.ecs),
+    ));
+    injector.register(ecs::AwsEcsTagConverter::new(Arc::clone(&injectable.ecs)));
+    injector.register(ecs::AwsEcsTaskSetConverter::new(Arc::clone(
+        &injectable.ecs,
+    )));
     injector.register(efs::AwsEfsFileSystemConverter::new(Arc::clone(
         &injectable.efs,
     )));
+    injector.register(efs::AwsEfsAccessPointConverter::new(Arc::clone(
+        &injectable.efs,
+    )));
+    injector.register(efs::AwsEfsBackupPolicyConverter::new(Arc::clone(
+        &injectable.efs,
+    )));
+    injector.register(efs::AwsEfsFileSystemPolicyConverter::new(Arc::clone(
+        &injectable.efs,
+    )));
+    injector.register(efs::AwsEfsMountTargetConverter::new(Arc::clone(
+        &injectable.efs,
+    )));
+    injector.register(efs::AwsEfsReplicationConfigurationConverter::new(
+        Arc::clone(&injectable.efs),
+    ));
     {
         let mk_sp = || {
             let svc = Arc::clone(&injectable.eks);
@@ -2682,6 +2911,21 @@ async fn load_tfstate(
     injector.register(glue::AwsGlueWorkflowConverter::new(Arc::clone(
         &injectable.glue,
     )));
+    injector.register(glue::AwsGlueCatalogTableOptimizerConverter::new(
+        Arc::clone(&injectable.glue),
+    ));
+    injector.register(glue::AwsGlueClassifierConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueDataQualityRulesetConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGluePartitionIndexConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
+    injector.register(glue::AwsGlueUserDefinedFunctionConverter::new(Arc::clone(
+        &injectable.glue,
+    )));
     injector.register(guardduty::AwsGuarddutyDetectorConverter::new(Arc::clone(
         &injectable.guardduty,
     )));
@@ -2827,6 +3071,22 @@ async fn load_tfstate(
     injector.register(inspector2::AwsInspector2EnablerConverter::new(Arc::clone(
         &injectable.inspector2,
     )));
+    injector.register(
+        inspector2::AwsInspector2DelegatedAdminAccountConverter::new(Arc::clone(
+            &injectable.inspector2,
+        )),
+    );
+    injector.register(inspector2::AwsInspector2FilterConverter::new(Arc::clone(
+        &injectable.inspector2,
+    )));
+    injector.register(inspector2::AwsInspector2MemberAssociationConverter::new(
+        Arc::clone(&injectable.inspector2),
+    ));
+    injector.register(
+        inspector2::AwsInspector2OrganizationConfigurationConverter::new(Arc::clone(
+            &injectable.inspector2,
+        )),
+    );
     injector.register(iot::AwsIotThingConverter::new(Arc::clone(&injectable.iot)));
     injector.register(iot::AwsIotThingTypeConverter::new(Arc::clone(
         &injectable.iot,
@@ -2910,8 +3170,19 @@ async fn load_tfstate(
     injector.register(kinesis::AwsKinesisStreamConverter::new(Arc::clone(
         &injectable.kinesis,
     )));
+    injector.register(kinesis::AwsKinesisResourcePolicyConverter::new(Arc::clone(
+        &injectable.kinesis,
+    )));
+    injector.register(kinesis::AwsKinesisStreamConsumerConverter::new(Arc::clone(
+        &injectable.kinesis,
+    )));
     injector.register(
         kinesisanalyticsv2::AwsKinesisanalyticsv2ApplicationConverter::new(Arc::clone(
+            &injectable.kinesisanalyticsv2,
+        )),
+    );
+    injector.register(
+        kinesisanalyticsv2::AwsKinesisAnalyticsApplicationConverter::new(Arc::clone(
             &injectable.kinesisanalyticsv2,
         )),
     );
@@ -3018,6 +3289,48 @@ async fn load_tfstate(
     ));
     injector.register(lexmodelsv2::AwsLexv2modelsBotConverter::new(Arc::clone(
         &injectable.lexmodelsv2,
+    )));
+    injector.register(lexmodelsv2::AwsLexv2modelsBotLocaleConverter::new(
+        Arc::clone(&injectable.lexmodelsv2),
+    ));
+    injector.register(lexmodelsv2::AwsLexv2modelsBotVersionConverter::new(
+        Arc::clone(&injectable.lexmodelsv2),
+    ));
+    injector.register(lexmodelsv2::AwsLexv2modelsIntentConverter::new(Arc::clone(
+        &injectable.lexmodelsv2,
+    )));
+    injector.register(lexmodelsv2::AwsLexv2modelsSlotConverter::new(Arc::clone(
+        &injectable.lexmodelsv2,
+    )));
+    injector.register(lexmodelsv2::AwsLexv2modelsSlotTypeConverter::new(
+        Arc::clone(&injectable.lexmodelsv2),
+    ));
+    injector.register(memorydb::AwsMemoryDbMultiRegionClusterConverter::new(
+        Arc::clone(&injectable.memorydb),
+    ));
+    injector.register(memorydb::AwsMemoryDbParameterGroupConverter::new(
+        Arc::clone(&injectable.memorydb),
+    ));
+    injector.register(memorydb::AwsMemoryDbSnapshotConverter::new(Arc::clone(
+        &injectable.memorydb,
+    )));
+    injector.register(memorydb::AwsMemoryDbUserConverter::new(Arc::clone(
+        &injectable.memorydb,
+    )));
+    injector.register(neptune::AwsNeptuneClusterEndpointConverter::new(
+        Arc::clone(&injectable.neptune),
+    ));
+    injector.register(neptune::AwsNeptuneClusterParameterGroupConverter::new(
+        Arc::clone(&injectable.neptune),
+    ));
+    injector.register(neptune::AwsNeptuneClusterSnapshotConverter::new(
+        Arc::clone(&injectable.neptune),
+    ));
+    injector.register(neptune::AwsNeptuneEventSubscriptionConverter::new(
+        Arc::clone(&injectable.neptune),
+    ));
+    injector.register(neptune::AwsNeptuneGlobalClusterConverter::new(Arc::clone(
+        &injectable.neptune,
     )));
     injector.register(logs::AwsCloudwatchLogGroupConverter::new(Arc::clone(
         &injectable.logs,
@@ -3247,6 +3560,26 @@ async fn load_tfstate(
             &injectable.opensearchserverless,
         )),
     );
+    injector.register(
+        opensearchserverless::AwsOpensearchserverlessAccessPolicyConverter::new(Arc::clone(
+            &injectable.opensearchserverless,
+        )),
+    );
+    injector.register(
+        opensearchserverless::AwsOpensearchserverlessLifecyclePolicyConverter::new(Arc::clone(
+            &injectable.opensearchserverless,
+        )),
+    );
+    injector.register(
+        opensearchserverless::AwsOpensearchserverlessSecurityConfigConverter::new(Arc::clone(
+            &injectable.opensearchserverless,
+        )),
+    );
+    injector.register(
+        opensearchserverless::AwsOpensearchserverlessVpcEndpointConverter::new(Arc::clone(
+            &injectable.opensearchserverless,
+        )),
+    );
     injector.register(organizations::AwsOrganizationsAccountConverter::new(
         Arc::clone(&injectable.organizations),
     ));
@@ -3254,6 +3587,22 @@ async fn load_tfstate(
         &injectable.organizations,
     )));
     injector.register(organizations::AwsOrganizationsPolicyConverter::new(
+        Arc::clone(&injectable.organizations),
+    ));
+    injector.register(
+        organizations::AwsOrganizationsDelegatedAdministratorConverter::new(Arc::clone(
+            &injectable.organizations,
+        )),
+    );
+    injector.register(organizations::AwsOrganizationsOrganizationConverter::new(
+        Arc::clone(&injectable.organizations),
+    ));
+    injector.register(
+        organizations::AwsOrganizationsPolicyAttachmentConverter::new(Arc::clone(
+            &injectable.organizations,
+        )),
+    );
+    injector.register(organizations::AwsOrganizationsResourcePolicyConverter::new(
         Arc::clone(&injectable.organizations),
     ));
     injector.register(osis::AwsOsisPipelineConverter::new(Arc::clone(
@@ -3373,6 +3722,18 @@ async fn load_tfstate(
     injector.register(ram::AwsRamResourceShareConverter::new(Arc::clone(
         &injectable.ram,
     )));
+    injector.register(ram::AwsRamPrincipalAssociationConverter::new(Arc::clone(
+        &injectable.ram,
+    )));
+    injector.register(ram::AwsRamResourceAssociationConverter::new(Arc::clone(
+        &injectable.ram,
+    )));
+    injector.register(ram::AwsRamResourceShareAccepterConverter::new(Arc::clone(
+        &injectable.ram,
+    )));
+    injector.register(ram::AwsRamSharingWithOrganizationConverter::new(
+        Arc::clone(&injectable.ram),
+    ));
     {
         let mk_sp = || {
             let svc = Arc::clone(&injectable.rds);
@@ -4044,6 +4405,19 @@ async fn load_tfstate(
     injector.register(servicediscovery::AwsServiceDiscoveryServiceConverter::new(
         Arc::clone(&injectable.servicediscovery),
     ));
+    injector.register(
+        servicediscovery::AwsServiceDiscoveryHttpNamespaceConverter::new(Arc::clone(
+            &injectable.servicediscovery,
+        )),
+    );
+    injector.register(servicediscovery::AwsServiceDiscoveryInstanceConverter::new(
+        Arc::clone(&injectable.servicediscovery),
+    ));
+    injector.register(
+        servicediscovery::AwsServiceDiscoveryPublicDnsNamespaceConverter::new(Arc::clone(
+            &injectable.servicediscovery,
+        )),
+    );
     injector.register(servicequotas::AwsServicequotasServiceQuotaConverter::new(
         Arc::clone(&injectable.servicequotas),
     ));
@@ -4172,6 +4546,18 @@ async fn load_tfstate(
             move || sns_for_scopes.scopes_with_state(),
         );
     }
+    injector.register(sns::AwsSnsPlatformApplicationConverter::new(Arc::clone(
+        &injectable.sns,
+    )));
+    injector.register(sns::AwsSnsSmsPreferencesConverter::new(Arc::clone(
+        &injectable.sns,
+    )));
+    injector.register(sns::AwsSnsTopicDataProtectionPolicyConverter::new(
+        Arc::clone(&injectable.sns),
+    ));
+    injector.register(sns::AwsSnsTopicPolicyConverter::new(Arc::clone(
+        &injectable.sns,
+    )));
     {
         let sqs_for_scopes = Arc::clone(&injectable.sqs);
         injector.register_with_scopes(
@@ -4179,6 +4565,15 @@ async fn load_tfstate(
             move || sqs_for_scopes.scopes_with_state(),
         );
     }
+    injector.register(sqs::AwsSqsQueuePolicyConverter::new(Arc::clone(
+        &injectable.sqs,
+    )));
+    injector.register(sqs::AwsSqsQueueRedriveAllowPolicyConverter::new(
+        Arc::clone(&injectable.sqs),
+    ));
+    injector.register(sqs::AwsSqsQueueRedrivePolicyConverter::new(Arc::clone(
+        &injectable.sqs,
+    )));
     injector.register(ssm::AwsSsmParameterConverter::new(Arc::clone(
         &injectable.ssm,
     )));
@@ -4383,6 +4778,18 @@ async fn load_tfstate(
     injector.register(wafv2::AwsWafv2RuleGroupConverter::new(Arc::clone(
         &injectable.wafv2,
     )));
+    injector.register(wafv2::AwsWafv2ApiKeyConverter::new(Arc::clone(
+        &injectable.wafv2,
+    )));
+    injector.register(wafv2::AwsWafv2RegexPatternSetConverter::new(Arc::clone(
+        &injectable.wafv2,
+    )));
+    injector.register(wafv2::AwsWafv2WebAclAssociationConverter::new(Arc::clone(
+        &injectable.wafv2,
+    )));
+    injector.register(wafv2::AwsWafv2WebAclLoggingConfigurationConverter::new(
+        Arc::clone(&injectable.wafv2),
+    ));
     injector.register(workspaces::AwsWorkspacesWorkspaceConverter::new(
         Arc::clone(&injectable.workspaces),
     ));

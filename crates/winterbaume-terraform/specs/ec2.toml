@@ -5658,3 +5658,200 @@ required = true
 hcl = "id"
 view = "id"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# Wave 7 — EBS account-level singletons and snapshot lifecycle resources.
+# These six `aws_ebs_*` resource types are served by the EC2 service crate
+# (state lives on `Ec2State`), not the separate `winterbaume-ebs` crate.
+# `aws_ebs_snapshot_copy` and `aws_ebs_snapshot_import` use the existing
+# `ec2::SnapshotView` / `ec2::SnapshotImportTaskView` collections; nested
+# blocks (`disk_container`, `user_bucket`) are read raw in the converter
+# because they are outside the spec's scalar vocabulary.
+# `aws_ebs_snapshot_block_public_access` has no state field on `Ec2State`
+# today (the `EnableSnapshotBlockPublicAccess` handler is a stub), so the
+# converter is a no-op that records a warning.
+# ---------------------------------------------------------------------------
+
+# aws_ebs_default_kms_key
+[[resource]]
+type = "aws_ebs_default_kms_key"
+model = "EbsDefaultKmsKeyTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "key_arn"
+view = "key_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ebs_encryption_by_default
+[[resource]]
+type = "aws_ebs_encryption_by_default"
+model = "EbsEncryptionByDefaultTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ebs_fast_snapshot_restore
+[[resource]]
+type = "aws_ebs_fast_snapshot_restore"
+model = "EbsFastSnapshotRestoreTfModel"
+view = "SnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "snapshot_id"
+view = "snapshot_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ebs_snapshot_block_public_access
+[[resource]]
+type = "aws_ebs_snapshot_block_public_access"
+model = "EbsSnapshotBlockPublicAccessTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ebs_snapshot_copy — clone an existing snapshot to a new one.
+[[resource]]
+type = "aws_ebs_snapshot_copy"
+model = "EbsSnapshotCopyTfModel"
+view = "SnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "source_snapshot_id"
+view = "source_snapshot_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_region"
+view = "source_region"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "encrypted"
+view = "encrypted"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_tier"
+view = "storage_tier"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# aws_ebs_snapshot_import — import a snapshot from an S3 disk image.
+# `disk_container` is a nested block; format / url / s3 bucket / s3 key are
+# read raw in the converter, not modelled here.
+[[resource]]
+type = "aws_ebs_snapshot_import"
+model = "EbsSnapshotImportTfModel"
+view = "SnapshotImportTaskView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "encrypted"
+view = "encrypted"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_name"
+view = "role_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_tier"
+view = "storage_tier"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

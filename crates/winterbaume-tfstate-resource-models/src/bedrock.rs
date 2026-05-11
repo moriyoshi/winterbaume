@@ -31,3 +31,72 @@ pub struct GuardrailTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_bedrock_custom_model` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomModelTfModel {
+    pub custom_model_name: String,
+    pub base_model_identifier: String,
+    pub job_name: String,
+    pub role_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customization_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_model_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub job_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub job_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_model_kms_key_id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_bedrock_guardrail_version` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuardrailVersionTfModel {
+    pub guardrail_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub skip_destroy: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_bedrock_inference_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InferenceProfileTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub profile_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_bedrock_provisioned_model_throughput` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisionedModelThroughputTfModel {
+    pub provisioned_model_name: String,
+    pub model_arn: String,
+    pub model_units: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub commitment_duration: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provisioned_model_arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}

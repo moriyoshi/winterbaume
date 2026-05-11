@@ -47,6 +47,92 @@ pub struct VirtualNodeTfModel {
     pub tags: HashMap<String, String>,
 }
 
+/// Auto-generated TF-shaped projection of the `aws_appmesh_virtual_router` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VirtualRouterTfModel {
+    pub name: String,
+    pub mesh_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mesh_owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_date: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appmesh_virtual_gateway` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VirtualGatewayTfModel {
+    pub name: String,
+    pub mesh_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mesh_owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_date: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appmesh_route` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RouteTfModel {
+    pub name: String,
+    pub mesh_name: String,
+    pub virtual_router_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mesh_owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_date: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appmesh_gateway_route` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GatewayRouteTfModel {
+    pub name: String,
+    pub mesh_name: String,
+    pub virtual_gateway_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mesh_owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_date: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
 /// Auto-generated TF-shaped projection of the `aws_appmesh_virtual_service` resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VirtualServiceTfModel {

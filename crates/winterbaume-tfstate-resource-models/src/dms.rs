@@ -81,3 +81,66 @@ pub struct ReplicationTaskTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_dms_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertificateTfModel {
+    pub certificate_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_pem: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_wallet: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dms_event_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventSubscriptionTfModel {
+    pub name: String,
+    pub sns_topic_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_type: Option<String>,
+    #[serde(default = "default_event_subscription_enabled")]
+    pub enabled: bool,
+}
+
+fn default_event_subscription_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dms_replication_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplicationConfigTfModel {
+    pub replication_config_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub replication_type: String,
+    pub source_endpoint_arn: String,
+    pub target_endpoint_arn: String,
+    pub table_mappings: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dms_replication_subnet_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplicationSubnetGroupTfModel {
+    pub replication_subnet_group_id: String,
+    pub replication_subnet_group_description: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dms_s3_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3EndpointTfModel {
+    pub endpoint_id: String,
+    pub endpoint_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_access_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bucket_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bucket_folder: Option<String>,
+}

@@ -8,7 +8,10 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_tfstate::ResourceInstance;
 use winterbaume_wafv2::WafV2Service;
-use winterbaume_wafv2::views::{IpSetView, RuleGroupView, Wafv2StateView, WebAclView};
+use winterbaume_wafv2::views::{
+    ApiKeyView, IpSetView, LoggingConfigView, RegexPatternSetView, RuleGroupView, Wafv2StateView,
+    WebAclView,
+};
 
 use crate::converter::{
     ConversionContext, ConversionResult, ExtractedResource, TerraformResourceConverter,
@@ -485,6 +488,472 @@ impl AwsWafv2RuleGroupConverter {
             });
             results.push(ExtractedResource {
                 name: rg.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_wafv2_regex_pattern_set
+// ---------------------------------------------------------------------------
+
+pub struct AwsWafv2RegexPatternSetConverter {
+    service: Arc<WafV2Service>,
+}
+
+impl AwsWafv2RegexPatternSetConverter {
+    pub fn new(service: Arc<WafV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsWafv2RegexPatternSetConverter {
+    fn resource_type(&self) -> &str {
+        "aws_wafv2_regex_pattern_set"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsWafv2RegexPatternSetConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: wafv2_gen::Wafv2RegexPatternSetTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_wafv2_regex_pattern_set", e))?;
+
+        let name = model.name.clone();
+        let scope = model.scope.unwrap_or_else(|| "REGIONAL".to_string());
+        let key = format!("{}:{}", scope, name);
+
+        let id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:wafv2:{}:{}:{}/regexpatternset/{}/{}",
+                region,
+                ctx.default_account_id,
+                scope.to_lowercase(),
+                name,
+                id
+            )
+        });
+
+        let regular_expressions: Vec<String> = attrs
+            .get("regular_expression")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|e| {
+                        e.get("regex_string")
+                            .and_then(|s| s.as_str().map(|s| s.to_string()))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let tags: Vec<(String, String)> = attrs
+            .get("tags")
+            .and_then(|v| v.as_object())
+            .map(|obj| {
+                obj.iter()
+                    .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let view = RegexPatternSetView {
+            name: name.clone(),
+            id,
+            arn,
+            scope,
+            description: model.description.unwrap_or_default(),
+            lock_token: uuid::Uuid::new_v4().to_string(),
+            regular_expressions,
+            tags,
+        };
+
+        let mut state_view = minimal_wafv2_state_view();
+        state_view.regex_pattern_sets.insert(key, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for rps in view.regex_pattern_sets.values() {
+            let tags: serde_json::Map<String, serde_json::Value> = rps
+                .tags
+                .iter()
+                .map(|(k, v)| (k.clone(), serde_json::Value::String(v.clone())))
+                .collect();
+            let attrs = serde_json::json!({
+                "id": rps.id,
+                "name": rps.name,
+                "arn": rps.arn,
+                "scope": rps.scope,
+                "description": rps.description,
+                "lock_token": rps.lock_token,
+                "tags": tags,
+                "tags_all": tags,
+                "regular_expression": rps
+                    .regular_expressions
+                    .iter()
+                    .map(|e| serde_json::json!({"regex_string": e}))
+                    .collect::<Vec<_>>(),
+            });
+            results.push(ExtractedResource {
+                name: rps.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_wafv2_api_key
+// ---------------------------------------------------------------------------
+
+pub struct AwsWafv2ApiKeyConverter {
+    service: Arc<WafV2Service>,
+}
+
+impl AwsWafv2ApiKeyConverter {
+    pub fn new(service: Arc<WafV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsWafv2ApiKeyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_wafv2_api_key"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsWafv2ApiKeyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: wafv2_gen::Wafv2ApiKeyTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_wafv2_api_key", e))?;
+
+        let api_key = model
+            .api_key
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        let scope = model.scope;
+        let key = format!("{}:{}", scope, api_key);
+
+        let token_domains: Vec<String> = attrs
+            .get("token_domains")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let view = ApiKeyView {
+            api_key: api_key.clone(),
+            scope,
+            token_domains,
+            creation_timestamp: 0.0,
+        };
+
+        let mut state_view = minimal_wafv2_state_view();
+        state_view.api_keys.insert(key, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for k in view.api_keys.values() {
+            let attrs = serde_json::json!({
+                "id": k.api_key,
+                "api_key": k.api_key,
+                "scope": k.scope,
+                "token_domains": k.token_domains,
+            });
+            results.push(ExtractedResource {
+                name: k.api_key.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_wafv2_web_acl_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsWafv2WebAclAssociationConverter {
+    service: Arc<WafV2Service>,
+}
+
+impl AwsWafv2WebAclAssociationConverter {
+    pub fn new(service: Arc<WafV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsWafv2WebAclAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_wafv2_web_acl_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_wafv2_web_acl"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsWafv2WebAclAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: wafv2_gen::Wafv2WebAclAssociationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_wafv2_web_acl_association", e))?;
+
+        let mut state_view = minimal_wafv2_state_view();
+        state_view
+            .web_acl_associations
+            .insert(model.resource_arn, model.web_acl_arn);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for (resource_arn, web_acl_arn) in &view.web_acl_associations {
+            let id = format!("{},{}", web_acl_arn, resource_arn);
+            let attrs = serde_json::json!({
+                "id": id,
+                "web_acl_arn": web_acl_arn,
+                "resource_arn": resource_arn,
+            });
+            results.push(ExtractedResource {
+                name: id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_wafv2_web_acl_logging_configuration
+// ---------------------------------------------------------------------------
+
+pub struct AwsWafv2WebAclLoggingConfigurationConverter {
+    service: Arc<WafV2Service>,
+}
+
+impl AwsWafv2WebAclLoggingConfigurationConverter {
+    pub fn new(service: Arc<WafV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsWafv2WebAclLoggingConfigurationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_wafv2_web_acl_logging_configuration"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_wafv2_web_acl"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsWafv2WebAclLoggingConfigurationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: wafv2_gen::Wafv2WebAclLoggingConfigurationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_wafv2_web_acl_logging_configuration", e)
+            })?;
+
+        let log_destination_configs: Vec<String> = attrs
+            .get("log_destination_configs")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let view = LoggingConfigView {
+            resource_arn: model.resource_arn.clone(),
+            log_destination_configs,
+            logging_filter_json: attrs.get("logging_filter").cloned(),
+            redacted_fields_json: attrs.get("redacted_fields").cloned(),
+            log_scope: model.log_scope,
+            log_type: model.log_type,
+        };
+
+        let mut state_view = minimal_wafv2_state_view();
+        state_view.logging_configs.insert(model.resource_arn, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for lc in view.logging_configs.values() {
+            let attrs = serde_json::json!({
+                "id": lc.resource_arn,
+                "resource_arn": lc.resource_arn,
+                "log_destination_configs": lc.log_destination_configs,
+                "logging_filter": lc.logging_filter_json,
+                "redacted_fields": lc.redacted_fields_json,
+                "log_scope": lc.log_scope,
+                "log_type": lc.log_type,
+            });
+            results.push(ExtractedResource {
+                name: lc.resource_arn.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,

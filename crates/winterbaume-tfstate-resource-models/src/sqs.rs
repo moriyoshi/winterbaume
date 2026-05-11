@@ -74,3 +74,30 @@ fn default_sqs_queue_fifo_queue() -> bool {
 fn default_sqs_queue_content_based_deduplication() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_sqs_queue_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqsQueuePolicyTfModel {
+    pub queue_url: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sqs_queue_redrive_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqsQueueRedrivePolicyTfModel {
+    pub queue_url: String,
+    pub redrive_policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sqs_queue_redrive_allow_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqsQueueRedriveAllowPolicyTfModel {
+    pub queue_url: String,
+    pub redrive_allow_policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

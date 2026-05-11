@@ -26,3 +26,41 @@ pub struct CertificateAuthorityTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_acmpca_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertificateTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub certificate_authority_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_chain: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_acmpca_certificate_authority_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertificateAuthorityCertificateTfModel {
+    pub certificate_authority_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_chain: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_acmpca_permission` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionTfModel {
+    pub certificate_authority_arn: String,
+    pub principal: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_account: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_acmpca_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PolicyTfModel {
+    pub resource_arn: String,
+    pub policy: String,
+}

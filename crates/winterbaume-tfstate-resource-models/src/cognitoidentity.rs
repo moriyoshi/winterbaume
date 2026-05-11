@@ -23,3 +23,26 @@ pub struct IdentityPoolTfModel {
 fn default_identity_pool_allow_unauthenticated_identities() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_identity_pool_roles_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CognitoIdentityPoolRolesAttachmentTfModel {
+    pub identity_pool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_identity_pool_provider_principal_tag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CognitoIdentityPoolProviderPrincipalTagTfModel {
+    pub identity_pool_id: String,
+    pub identity_provider_name: String,
+    #[serde(default = "default_cognito_identity_pool_provider_principal_tag_use_defaults")]
+    pub use_defaults: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+fn default_cognito_identity_pool_provider_principal_tag_use_defaults() -> bool {
+    true
+}

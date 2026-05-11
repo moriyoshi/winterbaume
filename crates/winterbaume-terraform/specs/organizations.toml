@@ -129,3 +129,126 @@ type = "string?"
 hcl = "arn"
 view = "arn"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_organizations_organization
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_organizations_organization"
+model = "OrganizationsOrganizationTfModel"
+view = "OrganizationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "master_account_id"
+view = "master_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "master_account_email"
+view = "master_account_email"
+type = "string?"
+
+[[resource.field]]
+hcl = "feature_set"
+view = "feature_set"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_organizations_delegated_administrator
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_organizations_delegated_administrator"
+model = "OrganizationsDelegatedAdministratorTfModel"
+view = "DelegatedAdministratorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_principal"
+view = "service_principal"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_organizations_policy_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_organizations_policy_attachment"
+model = "OrganizationsPolicyAttachmentTfModel"
+view = "PolicyAttachmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "policy_id"
+view = "policy_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_id"
+view = "target_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_organizations_resource_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_organizations_resource_policy"
+model = "OrganizationsResourcePolicyTfModel"
+view = "OrganizationsResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "content"
+view = "content"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"

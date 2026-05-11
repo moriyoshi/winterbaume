@@ -32,3 +32,121 @@ default = false
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_ram_principal_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ram_principal_association"
+model = "RamPrincipalAssociationTfModel"
+view = "ResourceShareAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_share_arn"
+view = "resource_share_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal"
+view = "principal"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ram_resource_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ram_resource_association"
+model = "RamResourceAssociationTfModel"
+view = "ResourceShareAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_share_arn"
+view = "resource_share_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ram_resource_share_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ram_resource_share_accepter"
+model = "RamResourceShareAccepterTfModel"
+view = "ResourceShareInvitationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "share_arn"
+view = "share_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "invitation_arn"
+view = "invitation_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "receiver_account_id"
+view = "receiver_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "sender_account_id"
+view = "sender_account_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ram_sharing_with_organization
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ram_sharing_with_organization"
+model = "RamSharingWithOrganizationTfModel"
+view = "RamStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

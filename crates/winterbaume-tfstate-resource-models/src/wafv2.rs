@@ -53,3 +53,46 @@ pub struct Wafv2RuleGroupTfModel {
 fn default_wafv2_rule_group_capacity() -> i64 {
     100i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_wafv2_regex_pattern_set` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Wafv2RegexPatternSetTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scope: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_wafv2_api_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Wafv2ApiKeyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_key: Option<String>,
+    pub scope: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_wafv2_web_acl_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Wafv2WebAclAssociationTfModel {
+    pub web_acl_arn: String,
+    pub resource_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_wafv2_web_acl_logging_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Wafv2WebAclLoggingConfigurationTfModel {
+    pub resource_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_scope: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

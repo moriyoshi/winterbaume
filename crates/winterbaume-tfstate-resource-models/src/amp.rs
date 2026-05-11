@@ -21,3 +21,43 @@ pub struct WorkspaceTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_prometheus_rule_group_namespace` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleGroupsNamespaceTfModel {
+    pub name: String,
+    pub workspace_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_prometheus_alert_manager_definition` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlertManagerDefinitionTfModel {
+    pub workspace_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub definition: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_prometheus_scraper` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScraperTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub alias: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scraper_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_prometheus_workspace_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkspaceConfigurationTfModel {
+    pub workspace_id: String,
+    #[serde(default)]
+    pub retention_period_in_days: i64,
+}

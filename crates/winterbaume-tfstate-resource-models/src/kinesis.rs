@@ -33,3 +33,19 @@ fn default_stream_shard_count() -> i64 {
 fn default_stream_retention_period() -> i64 {
     24i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_kinesis_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcePolicyTfModel {
+    pub resource_arn: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_kinesis_stream_consumer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StreamConsumerTfModel {
+    pub name: String,
+    pub stream_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
