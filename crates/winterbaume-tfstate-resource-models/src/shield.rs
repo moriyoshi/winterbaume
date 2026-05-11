@@ -18,3 +18,71 @@ pub struct ProtectionTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_shield_application_layer_automatic_response` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplicationLayerAutomaticResponseTfModel {
+    pub resource_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_shield_drt_access_log_bucket_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DrtAccessLogBucketAssociationTfModel {
+    pub log_bucket: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn_association_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_shield_drt_access_role_arn_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DrtAccessRoleArnAssociationTfModel {
+    pub role_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_shield_proactive_engagement` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProactiveEngagementTfModel {
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_shield_protection_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProtectionGroupTfModel {
+    pub protection_group_id: String,
+    pub aggregation: String,
+    pub pattern: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub protection_group_arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_shield_protection_health_check_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProtectionHealthCheckAssociationTfModel {
+    pub shield_protection_id: String,
+    pub health_check_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_shield_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auto_renew: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

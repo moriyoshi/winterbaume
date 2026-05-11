@@ -219,3 +219,166 @@ type = "string?"
 hcl = "time_zone"
 view = "time_zone"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_autoscaling_attachment
+# ---------------------------------------------------------------------------
+# Associates a single ELB classic load balancer (`elb`) or target group
+# (`lb_target_group_arn`) with an autoscaling group. Mutates the existing
+# group view's `attached_load_balancers` / `attached_target_groups` lists
+# rather than creating a new resource.
+
+[[resource]]
+type = "aws_autoscaling_attachment"
+model = "AutoscalingAttachmentTfModel"
+view = "AutoScalingGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "autoscaling_group_name"
+view = "autoscaling_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "elb"
+view = "elb"
+type = "string?"
+
+[[resource.field]]
+hcl = "lb_target_group_arn"
+view = "lb_target_group_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_autoscaling_group_tag
+# ---------------------------------------------------------------------------
+# Adds a single tag (key/value/propagate_at_launch) to an existing
+# autoscaling group's `tags` collection.
+
+[[resource]]
+type = "aws_autoscaling_group_tag"
+model = "AutoscalingGroupTagTfModel"
+view = "AutoScalingGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "autoscaling_group_name"
+view = "autoscaling_group_name"
+type = "string"
+required = true
+
+# `tag` is a single-element nested block in HCL; we extract its three keys
+# (`key`, `value`, `propagate_at_launch`) by hand from `instance.attributes`
+# in the converter rather than projecting them through TOML.
+
+# ---------------------------------------------------------------------------
+# aws_autoscaling_lifecycle_hook
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_autoscaling_lifecycle_hook"
+model = "LifecycleHookTfModel"
+view = "LifecycleHookView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "autoscaling_group_name"
+view = "autoscaling_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "lifecycle_transition"
+view = "lifecycle_transition"
+type = "string?"
+
+[[resource.field]]
+hcl = "notification_target_arn"
+view = "notification_target_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "notification_metadata"
+view = "notification_metadata"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_result"
+view = "default_result"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_autoscaling_notification
+# ---------------------------------------------------------------------------
+# Subscribes one or more autoscaling groups to a single SNS topic for
+# selected notification types. Mutates each named group's
+# `notification_configurations` list. We extract `group_names` and
+# `notifications` from `instance.attributes` directly because they are
+# Vec<String>.
+
+[[resource]]
+type = "aws_autoscaling_notification"
+model = "AutoscalingNotificationTfModel"
+view = "AutoScalingGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "topic_arn"
+view = "topic_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_autoscaling_traffic_source_attachment
+# ---------------------------------------------------------------------------
+# Associates a traffic source (a target group ARN, NLB ARN, or VPC Lattice
+# target group ARN) with an autoscaling group via the unified
+# AttachTrafficSources API. We model it as appending to the group's
+# `attached_target_groups` list for parity with `aws_autoscaling_attachment`.
+# `traffic_source` is a single nested block whose `identifier` and `type`
+# keys are read by hand in the converter.
+
+[[resource]]
+type = "aws_autoscaling_traffic_source_attachment"
+model = "AutoscalingTrafficSourceAttachmentTfModel"
+view = "AutoScalingGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "autoscaling_group_name"
+view = "autoscaling_group_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_launch_template
+# ---------------------------------------------------------------------------
+# Listed under autoscaling by the per-service coverage script
+# (TERRAFORM_RESOURCE_COVERAGE.md). The full converter already lives in
+# `converters/ec2.rs` (registered via `ec2::AwsLaunchTemplateConverter`),
+# because launch templates are stored on the EC2 service state. This spec
+# entry exists only so the autoscaling coverage row counts the resource
+# as handled; no parallel autoscaling-state converter is generated.
+

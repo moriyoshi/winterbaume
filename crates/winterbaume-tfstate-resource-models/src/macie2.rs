@@ -54,3 +54,117 @@ pub struct ClassificationJobTfModel {
 fn default_classification_job_initial_run() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_macie2_classification_export_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClassificationExportConfigurationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_macie2_custom_data_identifier` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomDataIdentifierTfModel {
+    pub regex: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_custom_data_identifier_maximum_match_distance")]
+    pub maximum_match_distance: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_custom_data_identifier_maximum_match_distance() -> i64 {
+    50i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_macie2_findings_filter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FindingsFilterTfModel {
+    pub action: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_findings_filter_position")]
+    pub position: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_findings_filter_position() -> i64 {
+    1i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_macie2_invitation_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvitationAccepterTfModel {
+    pub administrator_account_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invitation_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_macie2_member` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemberTfModel {
+    pub account_id: String,
+    pub email: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub relationship_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub administrator_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub master_account_id: Option<String>,
+    #[serde(default = "default_member_invite")]
+    pub invite: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invited_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invitation_disable_email_notification: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invitation_message: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_member_invite() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_macie2_organization_admin_account` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationAdminAccountTfModel {
+    pub admin_account_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_macie2_organization_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationConfigurationTfModel {
+    pub auto_enable: bool,
+}

@@ -5,10 +5,12 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
+use chrono::Utc;
 use winterbaume_core::StatefulService;
 use winterbaume_eventbridge::EventBridgeService;
 use winterbaume_eventbridge::views::{
-    EventBusView, EventsStateView, RuleView, TagView, TargetView,
+    ApiDestinationView, ArchiveView, ConnectionView, EndpointView, EventBusView, EventsStateView,
+    RuleView, TagView, TargetView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -483,6 +485,876 @@ impl AwsCloudwatchEventTargetConverter {
                 let attrs = attr_map;
                 results.push(ExtractedResource {
                     name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_cloudwatch_event_api_destination
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_cloudwatch_event_api_destination` Terraform resources to/from EventBridge state.
+pub struct AwsCloudwatchEventApiDestinationConverter {
+    service: Arc<EventBridgeService>,
+}
+
+impl AwsCloudwatchEventApiDestinationConverter {
+    pub fn new(service: Arc<EventBridgeService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsCloudwatchEventApiDestinationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_cloudwatch_event_api_destination"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_cloudwatch_event_connection"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsCloudwatchEventApiDestinationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventApiDestinationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_cloudwatch_event_api_destination", e)
+            })?;
+
+        let name = model.name.clone();
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:events:{}:{}:api-destination/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+
+        let api_dest_view = ApiDestinationView {
+            name: name.clone(),
+            arn,
+            description: model.description,
+            connection_arn: model.connection_arn,
+            invocation_endpoint: model.invocation_endpoint,
+            http_method: model.http_method,
+            invocation_rate_limit: model.invocation_rate_limit_per_second,
+            state: "ACTIVE".to_string(),
+            creation_time: Utc::now().timestamp() as f64,
+        };
+
+        let mut api_destinations = HashMap::new();
+        api_destinations.insert(name, api_dest_view);
+        let state_view = EventsStateView {
+            api_destinations,
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for dest in view.api_destinations.values() {
+            let attrs = serde_json::json!({
+                "id": dest.name,
+                "name": dest.name,
+                "arn": dest.arn,
+                "description": dest.description,
+                "connection_arn": dest.connection_arn,
+                "invocation_endpoint": dest.invocation_endpoint,
+                "http_method": dest.http_method,
+                "invocation_rate_limit_per_second": dest.invocation_rate_limit,
+            });
+            results.push(ExtractedResource {
+                name: dest.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_cloudwatch_event_archive
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_cloudwatch_event_archive` Terraform resources to/from EventBridge state.
+pub struct AwsCloudwatchEventArchiveConverter {
+    service: Arc<EventBridgeService>,
+}
+
+impl AwsCloudwatchEventArchiveConverter {
+    pub fn new(service: Arc<EventBridgeService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsCloudwatchEventArchiveConverter {
+    fn resource_type(&self) -> &str {
+        "aws_cloudwatch_event_archive"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_cloudwatch_event_bus"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsCloudwatchEventArchiveConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventArchiveTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_event_archive", e))?;
+
+        let name = model.name.clone();
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:events:{}:{}:archive/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+
+        let archive_view = ArchiveView {
+            name: name.clone(),
+            arn,
+            event_source_arn: model.event_source_arn,
+            description: model.description,
+            event_pattern: model.event_pattern,
+            retention_days: model.retention_days,
+            state: "ENABLED".to_string(),
+            creation_time: Utc::now().timestamp() as f64,
+            size_bytes: 0,
+        };
+
+        let mut archives = HashMap::new();
+        archives.insert(name, archive_view);
+        let state_view = EventsStateView {
+            archives,
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for archive in view.archives.values() {
+            let attrs = serde_json::json!({
+                "id": archive.name,
+                "name": archive.name,
+                "arn": archive.arn,
+                "event_source_arn": archive.event_source_arn,
+                "description": archive.description,
+                "event_pattern": archive.event_pattern,
+                "retention_days": archive.retention_days,
+            });
+            results.push(ExtractedResource {
+                name: archive.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_cloudwatch_event_bus_policy
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_cloudwatch_event_bus_policy` Terraform resources to/from EventBridge state.
+///
+/// Sets the resource-based policy on an existing event bus. The event bus
+/// must exist (the converter creates a placeholder bus if needed so order
+/// independence is preserved).
+pub struct AwsCloudwatchEventBusPolicyConverter {
+    service: Arc<EventBridgeService>,
+}
+
+impl AwsCloudwatchEventBusPolicyConverter {
+    pub fn new(service: Arc<EventBridgeService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsCloudwatchEventBusPolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_cloudwatch_event_bus_policy"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_cloudwatch_event_bus"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsCloudwatchEventBusPolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventBusPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_event_bus_policy", e))?;
+
+        let event_bus_name = model
+            .event_bus_name
+            .clone()
+            .unwrap_or_else(|| "default".to_string());
+
+        // Snapshot, set policy on the bus (or create a placeholder), restore.
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        if let Some(bus) = state_view.event_buses.get_mut(&event_bus_name) {
+            bus.policy = Some(model.policy);
+        } else {
+            let bus_arn = format!(
+                "arn:aws:events:{}:{}:event-bus/{}",
+                region, ctx.default_account_id, event_bus_name
+            );
+            state_view.event_buses.insert(
+                event_bus_name.clone(),
+                EventBusView {
+                    name: event_bus_name.clone(),
+                    arn: bus_arn,
+                    policy: Some(model.policy),
+                    ..Default::default()
+                },
+            );
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for bus in view.event_buses.values() {
+            let Some(policy) = &bus.policy else { continue };
+            let attrs = serde_json::json!({
+                "id": bus.name,
+                "event_bus_name": bus.name,
+                "policy": policy,
+            });
+            results.push(ExtractedResource {
+                name: bus.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_cloudwatch_event_connection
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_cloudwatch_event_connection` Terraform resources to/from EventBridge state.
+///
+/// The nested `auth_parameters` block carries credential material that
+/// winterbaume's state model stores as a JSON-encoded string. The converter
+/// passes the raw nested block through to keep round-tripping intact without
+/// inventing schema for every authorisation type.
+pub struct AwsCloudwatchEventConnectionConverter {
+    service: Arc<EventBridgeService>,
+}
+
+impl AwsCloudwatchEventConnectionConverter {
+    pub fn new(service: Arc<EventBridgeService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsCloudwatchEventConnectionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_cloudwatch_event_connection"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsCloudwatchEventConnectionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventConnectionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_event_connection", e))?;
+
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:events:{}:{}:connection/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+
+        // Capture the nested `auth_parameters` block verbatim as a JSON string
+        // so the state retains whatever credential payload Terraform recorded.
+        let auth_parameters = attrs
+            .get("auth_parameters")
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| "{}".to_string());
+
+        let connection_view = ConnectionView {
+            name: name.clone(),
+            arn,
+            state: "AUTHORIZED".to_string(),
+            description: model.description,
+            authorization_type: model.authorization_type,
+            auth_parameters,
+            creation_time: Utc::now().timestamp() as f64,
+        };
+
+        let mut connections = HashMap::new();
+        connections.insert(name, connection_view);
+        let state_view = EventsStateView {
+            connections,
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for conn in view.connections.values() {
+            let auth_params: serde_json::Value =
+                serde_json::from_str(&conn.auth_parameters).unwrap_or(serde_json::Value::Null);
+            let attrs = serde_json::json!({
+                "id": conn.name,
+                "name": conn.name,
+                "arn": conn.arn,
+                "description": conn.description,
+                "authorization_type": conn.authorization_type,
+                "auth_parameters": auth_params,
+            });
+            results.push(ExtractedResource {
+                name: conn.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_cloudwatch_event_endpoint
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_cloudwatch_event_endpoint` Terraform resources to/from EventBridge state.
+///
+/// `routing_config`, `replication_config`, and `event_bus` are nested blocks
+/// in Terraform; winterbaume's state stores them as JSON-serialised strings
+/// (the former two) and a list of ARNs (the latter). The converter projects
+/// the nested blocks straight into those fields.
+pub struct AwsCloudwatchEventEndpointConverter {
+    service: Arc<EventBridgeService>,
+}
+
+impl AwsCloudwatchEventEndpointConverter {
+    pub fn new(service: Arc<EventBridgeService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsCloudwatchEventEndpointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_cloudwatch_event_endpoint"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsCloudwatchEventEndpointConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventEndpointTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_event_endpoint", e))?;
+
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:events:{}:{}:endpoint/{}",
+                region, ctx.default_account_id, name
+            )
+        });
+
+        let routing_config = attrs.get("routing_config").map(|v| v.to_string());
+        let replication_config = attrs.get("replication_config").map(|v| v.to_string());
+
+        // `event_bus` is a list of nested blocks each with `event_bus_arn`.
+        let event_buses: Vec<String> = attrs
+            .get("event_bus")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|b| {
+                        b.get("event_bus_arn")
+                            .and_then(|v| v.as_str())
+                            .map(str::to_string)
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let endpoint_url = model.endpoint_url.unwrap_or_default();
+        let endpoint_id = attrs
+            .get("endpoint_id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let now = Utc::now().timestamp() as f64;
+        let endpoint_view = EndpointView {
+            name: name.clone(),
+            arn,
+            description: model.description,
+            routing_config,
+            replication_config,
+            event_buses,
+            role_arn: model.role_arn,
+            state: "ACTIVE".to_string(),
+            endpoint_id,
+            endpoint_url,
+            creation_time: now,
+            last_modified_time: now,
+        };
+
+        let mut endpoints = HashMap::new();
+        endpoints.insert(name, endpoint_view);
+        let state_view = EventsStateView {
+            endpoints,
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for endpoint in view.endpoints.values() {
+            let event_bus_blocks: Vec<serde_json::Value> = endpoint
+                .event_buses
+                .iter()
+                .map(|arn| serde_json::json!({"event_bus_arn": arn}))
+                .collect();
+            let routing_config: serde_json::Value = endpoint
+                .routing_config
+                .as_deref()
+                .and_then(|s| serde_json::from_str(s).ok())
+                .unwrap_or(serde_json::Value::Null);
+            let replication_config: serde_json::Value = endpoint
+                .replication_config
+                .as_deref()
+                .and_then(|s| serde_json::from_str(s).ok())
+                .unwrap_or(serde_json::Value::Null);
+            let attrs = serde_json::json!({
+                "id": endpoint.name,
+                "name": endpoint.name,
+                "arn": endpoint.arn,
+                "description": endpoint.description,
+                "role_arn": endpoint.role_arn,
+                "endpoint_id": endpoint.endpoint_id,
+                "endpoint_url": endpoint.endpoint_url,
+                "event_bus": event_bus_blocks,
+                "routing_config": routing_config,
+                "replication_config": replication_config,
+            });
+            results.push(ExtractedResource {
+                name: endpoint.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_cloudwatch_event_permission
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_cloudwatch_event_permission` Terraform resources to/from EventBridge state.
+///
+/// Each permission adds (or replaces) a single statement keyed by `statement_id`
+/// in the target event bus's resource policy. Extract is best-effort: it walks
+/// the parsed policy on each bus and emits one resource per statement.
+pub struct AwsCloudwatchEventPermissionConverter {
+    service: Arc<EventBridgeService>,
+}
+
+impl AwsCloudwatchEventPermissionConverter {
+    pub fn new(service: Arc<EventBridgeService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsCloudwatchEventPermissionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_cloudwatch_event_permission"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_cloudwatch_event_bus"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsCloudwatchEventPermissionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: events_gen::EventPermissionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_cloudwatch_event_permission", e))?;
+
+        let event_bus_name = model
+            .event_bus_name
+            .clone()
+            .unwrap_or_else(|| "default".to_string());
+        let action = model
+            .action
+            .unwrap_or_else(|| "events:PutEvents".to_string());
+
+        // Snapshot, mutate the bus policy, restore.
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+
+        let bus_arn = state_view
+            .event_buses
+            .get(&event_bus_name)
+            .map(|b| b.arn.clone())
+            .unwrap_or_else(|| {
+                format!(
+                    "arn:aws:events:{}:{}:event-bus/{}",
+                    region, ctx.default_account_id, event_bus_name
+                )
+            });
+
+        // Optional `condition` nested block: { type, key, value }.
+        let condition = instance
+            .attributes
+            .get("condition")
+            .and_then(|v| v.as_array())
+            .and_then(|arr| arr.first())
+            .cloned();
+
+        let mut statement = serde_json::json!({
+            "Sid": model.statement_id,
+            "Effect": "Allow",
+            "Principal": if model.principal == "*" {
+                serde_json::json!("*")
+            } else {
+                serde_json::json!({"AWS": format!("arn:aws:iam::{}:root", model.principal)})
+            },
+            "Action": action,
+            "Resource": bus_arn,
+        });
+        if let Some(cond) = condition
+            && let (Some(key), Some(value), Some(ty)) = (
+                cond.get("key").and_then(|v| v.as_str()),
+                cond.get("value").and_then(|v| v.as_str()),
+                cond.get("type").and_then(|v| v.as_str()),
+            )
+        {
+            statement["Condition"] = serde_json::json!({
+                ty: { key: value }
+            });
+        }
+
+        let bus = state_view
+            .event_buses
+            .entry(event_bus_name.clone())
+            .or_insert_with(|| EventBusView {
+                name: event_bus_name.clone(),
+                arn: bus_arn.clone(),
+                policy: None,
+                ..Default::default()
+            });
+
+        let mut policy_doc = bus
+            .policy
+            .as_deref()
+            .and_then(|s| serde_json::from_str::<serde_json::Value>(s).ok())
+            .unwrap_or_else(|| {
+                serde_json::json!({
+                    "Version": "2012-10-17",
+                    "Statement": [],
+                })
+            });
+        if let Some(statements) = policy_doc
+            .get_mut("Statement")
+            .and_then(|v| v.as_array_mut())
+        {
+            let sid = model.statement_id.as_str();
+            if let Some(pos) = statements
+                .iter()
+                .position(|s| s.get("Sid").and_then(|v| v.as_str()) == Some(sid))
+            {
+                statements[pos] = statement;
+            } else {
+                statements.push(statement);
+            }
+        }
+        bus.policy = Some(policy_doc.to_string());
+
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for bus in view.event_buses.values() {
+            let Some(policy_str) = &bus.policy else {
+                continue;
+            };
+            let Ok(policy_doc) = serde_json::from_str::<serde_json::Value>(policy_str) else {
+                continue;
+            };
+            let Some(statements) = policy_doc.get("Statement").and_then(|v| v.as_array()) else {
+                continue;
+            };
+            for stmt in statements {
+                let Some(sid) = stmt.get("Sid").and_then(|v| v.as_str()) else {
+                    continue;
+                };
+                let action = stmt
+                    .get("Action")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("events:PutEvents")
+                    .to_string();
+                let principal = match stmt.get("Principal") {
+                    Some(serde_json::Value::String(s)) => s.clone(),
+                    Some(serde_json::Value::Object(o)) => o
+                        .get("AWS")
+                        .and_then(|v| v.as_str())
+                        .map(|aws| {
+                            aws.strip_prefix("arn:aws:iam::")
+                                .and_then(|rest| rest.strip_suffix(":root"))
+                                .unwrap_or(aws)
+                                .to_string()
+                        })
+                        .unwrap_or_default(),
+                    _ => String::new(),
+                };
+                let attrs = serde_json::json!({
+                    "id": format!("{}/{}", bus.name, sid),
+                    "event_bus_name": bus.name,
+                    "principal": principal,
+                    "action": action,
+                    "statement_id": sid,
+                });
+                results.push(ExtractedResource {
+                    name: format!("{}/{}", bus.name, sid),
                     account_id: ctx.default_account_id.clone(),
                     region: ctx.default_region.clone(),
                     attributes: attrs,

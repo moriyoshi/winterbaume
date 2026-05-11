@@ -53,3 +53,134 @@ pub struct AliasTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub arn: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_kms_ciphertext` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CiphertextTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub key_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub plaintext: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ciphertext_blob: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_kms_custom_key_store` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomKeyStoreTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_key_store_id: Option<String>,
+    pub custom_key_store_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cloud_hsm_cluster_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trust_anchor_certificate: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_key_store_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_kms_external_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalKeyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_external_key_enabled")]
+    pub enabled: bool,
+    #[serde(default = "default_external_key_multi_region")]
+    pub multi_region: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_external_key_enabled() -> bool {
+    true
+}
+
+fn default_external_key_multi_region() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_kms_grant` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrantTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    pub key_id: String,
+    pub grantee_principal: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub retiring_principal: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grant_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grant_token: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_kms_key_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyPolicyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub key_id: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_kms_replica_external_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplicaExternalKeyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub primary_key_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_replica_external_key_enabled")]
+    pub enabled: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_replica_external_key_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_kms_replica_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplicaKeyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub primary_key_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_replica_key_enabled")]
+    pub enabled: bool,
+    #[serde(default = "default_replica_key_key_rotation_enabled")]
+    pub key_rotation_enabled: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_replica_key_enabled() -> bool {
+    true
+}
+
+fn default_replica_key_key_rotation_enabled() -> bool {
+    false
+}

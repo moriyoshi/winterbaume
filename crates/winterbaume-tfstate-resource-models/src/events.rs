@@ -51,3 +51,97 @@ pub struct EventTargetTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub event_bus_name: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_event_api_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventApiDestinationTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub connection_arn: String,
+    pub invocation_endpoint: String,
+    pub http_method: String,
+    #[serde(default = "default_event_api_destination_invocation_rate_limit_per_second")]
+    pub invocation_rate_limit_per_second: i64,
+}
+
+fn default_event_api_destination_invocation_rate_limit_per_second() -> i64 {
+    300i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_event_archive` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventArchiveTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub event_source_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub event_pattern: Option<String>,
+    #[serde(default = "default_event_archive_retention_days")]
+    pub retention_days: i64,
+}
+
+fn default_event_archive_retention_days() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_event_bus_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventBusPolicyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub event_bus_name: Option<String>,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_event_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventConnectionTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub authorization_type: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_event_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventEndpointTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint_url: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_event_permission` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventPermissionTfModel {
+    pub principal: String,
+    pub statement_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub action: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub event_bus_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
