@@ -4,14 +4,23 @@
 
 ## Starting the server
 
-```sh
-cargo run -p winterbaume-server -- [OPTIONS]
-```
-
-Or, after building a release binary:
+The quickest way is to grab a pre-built executable from the [GitHub releases page](https://github.com/moriyoshi/winterbaume/releases/latest). Tarballs and a Windows zip are published for macOS (Apple Silicon and Intel), Linux (arm64 and x64), and Windows (x64). Extract the archive and run the binary:
 
 ```sh
 ./winterbaume-server [OPTIONS]
+```
+
+Alternatively, install from crates.io:
+
+```sh
+cargo install winterbaume-server
+winterbaume-server [OPTIONS]
+```
+
+Or, from a checkout of this repository, run it directly through cargo:
+
+```sh
+cargo run -p winterbaume-server -- [OPTIONS]
 ```
 
 The server listens on `127.0.0.1:5555` by default. Pass `--help` to print all options.
