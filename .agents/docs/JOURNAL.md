@@ -517,3 +517,37 @@ The condition only skips when **all three** of `push` + `refs/heads/main` + no c
 ### Finding: cascade-skip via `needs:` is sufficient
 
 There is no need to repeat the path-filter `if:` on every downstream job. GitHub Actions' implicit `if: success()` propagates `skipped` through the `needs:` chain ( `fmt` skipped → `clippy` skipped → `test` / `examples` skipped → `e2e` skipped ). Adding the guard only to the root job keeps the workflow concise.
+
+---
+
+## 2026-05-11 — CI: skip individual jobs when prior pass markers exist
+
+### Context
+
+Following the docs-only paths-filter skip, the next optimisation: when CI is forced to run ( real code change or workflow_dispatch ) but the source tree is byte-identical to a previously-passed run, individual jobs should short-circuit rather than redo deterministic work. The user accepted slightly weaker determinism for `e2e` ( Terraform + external network ) in exchange for the simplicity of uniform treatment across all jobs.
+
+### Change
+
+Added a `fingerprint` job after `changes`. It hashes the code-relevant tree with `hashFiles()` over `crates/**`, `src/**`, `tools/**`, `examples/**`, `Cargo.toml`, `Cargo.lock`, `rustfmt.toml`, `dist-workspace.toml`, `.gitmodules`, `.github/workflows/ci.yml`, `.github/actions/**` ( excluding `vendor/**` because the submodule is not checked out in CI, so it would contribute nothing ), then probes five `ci-pass-{fmt,clippy,test,examples,e2e}-Linux-<hash>` cache keys with `actions/cache/restore@v5.0.5` using `lookup-only: true`. The job exposes `<job>-hit` outputs ( `'true'` or empty ) plus the computed `hash`.
+
+Each downstream job ( `fmt`, `clippy`, `test`, `examples`, `e2e` ) gained:
+
+1. A leading `if:` that combines `!failure() && !cancelled()` ( for non-root jobs ), the per-job hit check, and the paths-filter clause. On a hit the job is fully skipped at the job level — no per-step `if:` plumbing.
+2. Two trailing steps: `mkdir .ci-marker && echo <hash> > .ci-marker/marker`, followed by `actions/cache/save@v5.0.5` under the matching `ci-pass-<job>-<os>-<hash>` key. The default `if: success()` on the save step prevents poisoning the cache on a failed `cargo` step.
+
+The `e2e` job's `upload-artifact@v7.0.1` for `tf-logs` keeps `if: always()` — when e2e is fully skipped via job-level `if`, the upload step doesn't run at all ( jobs evaluate `if` before any steps ), so there's no risk of attempting an upload from a non-existent directory.
+
+### Finding: `!failure() && !cancelled()` lets `skipped` upstream flow through
+
+The default job-level `if: success()` requires every `needs:` job to finish with `result == 'success'`. A `skipped` upstream short-circuits the chain. Replacing the default with `!failure() && !cancelled()` ( `skipped` is neither `failure` nor `cancelled` ) lets cache-hit-skipped jobs propagate through `fmt → clippy → test → e2e` while preserving the original fail-fast semantics on a real `failure()`. This avoided having to wrap every body step with a per-step `if:` ( the verbose pattern in the first draft ).
+
+### Finding: `github.ref` guard for `workflow_call` was redundant
+
+The first draft included `github.ref != 'refs/heads/main'` as a safety net for `release.yml` invoking ci.yml on a tag push ( `event_name == 'push'`, ref is a tag ). On reflection, the cache-hit short-circuit already gives release runs the right outcome — same source → cache hit → fast skip — and dorny/paths-filter's tag-push behaviour ( `event.before == 0000…` ) is unlikely to ever return `'false'` for a fresh ref. Removed the clause for simplicity.
+
+### Drawbacks accepted
+
+- Cache markers don't capture toolchain version pinning ( `actions-rust-lang/setup-rust-toolchain@<sha>` is in the hash, but the resolved rustc version is not ) or runner image drift. A GitHub-side rustc bump on the same `ubuntu-latest` won't invalidate markers; first failure manifests as a stale-marker re-run.
+- A flaky pass gets frozen — same source means future runs skip rather than retry. Acceptable for now per user direction; `e2e` is the obvious candidate to revisit.
+- Branch protection on `main` is not configured to require these as named checks, so `skipped` conclusions do not block anything. If that changes, downstream consumers of CI status will need to treat `skipped` as `success` ( or the markers will need to write a synthetic success status instead ).
+
