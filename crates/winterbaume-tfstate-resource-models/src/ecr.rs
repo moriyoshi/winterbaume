@@ -21,3 +21,98 @@ pub struct RepositoryTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_ecr_account_setting` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountSettingTfModel {
+    pub name: String,
+    pub value: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecr_lifecycle_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LifecyclePolicyTfModel {
+    pub repository: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub registry_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecr_pull_through_cache_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PullThroughCacheRuleTfModel {
+    pub ecr_repository_prefix: String,
+    pub upstream_registry_url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub credential_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub upstream_repository_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub registry_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecr_registry_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegistryPolicyTfModel {
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub registry_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecr_registry_scanning_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegistryScanningConfigurationTfModel {
+    pub scan_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub registry_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecr_replication_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplicationConfigurationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub registry_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecr_repository_creation_template` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepositoryCreationTemplateTfModel {
+    pub prefix: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image_tag_mutability: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lifecycle_policy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repository_policy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecr_repository_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepositoryPolicyTfModel {
+    pub repository: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub registry_id: Option<String>,
+}

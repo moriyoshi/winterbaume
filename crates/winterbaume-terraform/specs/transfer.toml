@@ -1,11 +1,13 @@
 # Auto-ingested by `tf-converter-codegen ingest transfer`.
 # Hand-tuned: split into one [[resource]] block per resource type
-# (server / user). Dropped raw-Value blob fields (endpoint_details,
+# (server / user / access / agreement / certificate / connector / profile /
+# ssh_key / tag / workflow). Dropped raw-Value blob fields (endpoint_details,
 # protocol_details, workflow_details, s3_storage_options,
-# home_directory_mappings, posix_profile), the Vec<String> protocols
-# field, the discarded force_destroy / host_key /
+# home_directory_mappings, posix_profile, as2_config, sftp_config,
+# steps, on_exception_steps), the Vec<String> protocols / certificate_ids
+# fields, the discarded force_destroy / host_key /
 # structured_log_destinations / pre_authentication_login_banner /
-# post_authentication_login_banner / policy fields, and the tag
+# post_authentication_login_banner / policy / body fields, and the tag
 # fields (the converter calls extract_tag_views() to merge tags
 # + tags_all into a Vec<TagView>). Those are read straight from
 # instance.attributes in the converter.
@@ -110,4 +112,333 @@ type = "string?"
 [[resource.field]]
 hcl = "home_directory_type"
 view = "home_directory_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_transfer_access
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transfer_access"
+model = "AccessTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "server_id"
+view = "server_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "external_id"
+view = "external_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role"
+view = "role"
+type = "string?"
+
+[[resource.field]]
+hcl = "home_directory"
+view = "home_directory"
+type = "string?"
+
+[[resource.field]]
+hcl = "home_directory_type"
+view = "home_directory_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_transfer_agreement
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transfer_agreement"
+model = "AgreementTfModel"
+view = "AgreementView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "agreement_id"
+view = "agreement_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "server_id"
+view = "server_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "local_profile_id"
+view = "local_profile_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "partner_profile_id"
+view = "partner_profile_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "base_directory"
+view = "base_directory"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "access_role"
+view = "access_role"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_transfer_certificate
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transfer_certificate"
+model = "CertificateTfModel"
+view = "CertificateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "certificate_id"
+view = "certificate_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate"
+view = "certificate"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "certificate_chain"
+view = "certificate_chain"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_key"
+view = "private_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "usage"
+view = "usage"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_type"
+view = "certificate_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_transfer_connector
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transfer_connector"
+model = "ConnectorTfModel"
+view = "ConnectorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "connector_id"
+view = "connector_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "url"
+view = "url"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_role"
+view = "access_role"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "logging_role"
+view = "logging_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "security_policy_name"
+view = "security_policy_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_transfer_profile
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transfer_profile"
+model = "ProfileTfModel"
+view = "ProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "profile_id"
+view = "profile_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "as2_id"
+view = "as2_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "profile_type"
+view = "profile_type"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_transfer_ssh_key
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transfer_ssh_key"
+model = "SshKeyTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "server_id"
+view = "server_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_name"
+view = "user_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "body"
+view = "body"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "ssh_public_key_id"
+view = "ssh_public_key_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_transfer_tag
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transfer_tag"
+model = "TagTfModel"
+view = "TransferStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key"
+view = "key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_transfer_workflow
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_transfer_workflow"
+model = "WorkflowTfModel"
+view = "WorkflowView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
 type = "string?"

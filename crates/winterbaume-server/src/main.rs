@@ -1661,6 +1661,27 @@ async fn load_tfstate(
     injector.register(cognitoidp::AwsCognitoUserPoolClientConverter::new(
         Arc::clone(&injectable.cognitoidp),
     ));
+    injector.register(cognitoidp::AwsCognitoIdentityProviderConverter::new(
+        Arc::clone(&injectable.cognitoidp),
+    ));
+    injector.register(cognitoidp::AwsCognitoManagedUserPoolClientConverter::new(
+        Arc::clone(&injectable.cognitoidp),
+    ));
+    injector.register(cognitoidp::AwsCognitoResourceServerConverter::new(
+        Arc::clone(&injectable.cognitoidp),
+    ));
+    injector.register(cognitoidp::AwsCognitoUserGroupConverter::new(Arc::clone(
+        &injectable.cognitoidp,
+    )));
+    injector.register(cognitoidp::AwsCognitoUserInGroupConverter::new(Arc::clone(
+        &injectable.cognitoidp,
+    )));
+    injector.register(cognitoidp::AwsCognitoUserPoolDomainConverter::new(
+        Arc::clone(&injectable.cognitoidp),
+    ));
+    injector.register(cognitoidp::AwsCognitoUserPoolUiCustomizationConverter::new(
+        Arc::clone(&injectable.cognitoidp),
+    ));
     injector.register(comprehend::AwsComprehendEntityRecognizerConverter::new(
         Arc::clone(&injectable.comprehend),
     ));
@@ -1900,6 +1921,32 @@ async fn load_tfstate(
             move || dynamodb_svc.scopes_with_state(),
         );
     }
+    injector.register(dynamodb::AwsDynamodbContributorInsightsConverter::new(
+        Arc::clone(&injectable.dynamodb),
+    ));
+    injector.register(dynamodb::AwsDynamodbGlobalTableConverter::new(Arc::clone(
+        &injectable.dynamodb,
+    )));
+    injector.register(
+        dynamodb::AwsDynamodbKinesisStreamingDestinationConverter::new(Arc::clone(
+            &injectable.dynamodb,
+        )),
+    );
+    injector.register(dynamodb::AwsDynamodbResourcePolicyConverter::new(
+        Arc::clone(&injectable.dynamodb),
+    ));
+    injector.register(dynamodb::AwsDynamodbTableExportConverter::new(Arc::clone(
+        &injectable.dynamodb,
+    )));
+    injector.register(dynamodb::AwsDynamodbTableItemConverter::new(Arc::clone(
+        &injectable.dynamodb,
+    )));
+    injector.register(dynamodb::AwsDynamodbTableReplicaConverter::new(Arc::clone(
+        &injectable.dynamodb,
+    )));
+    injector.register(dynamodb::AwsDynamodbTagConverter::new(Arc::clone(
+        &injectable.dynamodb,
+    )));
     injector.register(ec2::AwsVpcConverter::new(Arc::clone(&injectable.ec2)));
     injector.register(ec2::AwsSubnetConverter::new(Arc::clone(&injectable.ec2)));
     injector.register(ec2::AwsInternetGatewayConverter::new(Arc::clone(
@@ -2251,6 +2298,30 @@ async fn load_tfstate(
         )),
     );
     injector.register(ecr::AwsEcrRepositoryConverter::new(Arc::clone(
+        &injectable.ecr,
+    )));
+    injector.register(ecr::AwsEcrAccountSettingConverter::new(Arc::clone(
+        &injectable.ecr,
+    )));
+    injector.register(ecr::AwsEcrLifecyclePolicyConverter::new(Arc::clone(
+        &injectable.ecr,
+    )));
+    injector.register(ecr::AwsEcrPullThroughCacheRuleConverter::new(Arc::clone(
+        &injectable.ecr,
+    )));
+    injector.register(ecr::AwsEcrRegistryPolicyConverter::new(Arc::clone(
+        &injectable.ecr,
+    )));
+    injector.register(ecr::AwsEcrRegistryScanningConfigurationConverter::new(
+        Arc::clone(&injectable.ecr),
+    ));
+    injector.register(ecr::AwsEcrReplicationConfigurationConverter::new(
+        Arc::clone(&injectable.ecr),
+    ));
+    injector.register(ecr::AwsEcrRepositoryCreationTemplateConverter::new(
+        Arc::clone(&injectable.ecr),
+    ));
+    injector.register(ecr::AwsEcrRepositoryPolicyConverter::new(Arc::clone(
         &injectable.ecr,
     )));
     {
@@ -2655,6 +2726,27 @@ async fn load_tfstate(
     injector.register(kafka::AwsMskClusterConverter::new(Arc::clone(
         &injectable.kafka,
     )));
+    injector.register(kafka::AwsMskClusterPolicyConverter::new(Arc::clone(
+        &injectable.kafka,
+    )));
+    injector.register(kafka::AwsMskConfigurationConverter::new(Arc::clone(
+        &injectable.kafka,
+    )));
+    injector.register(kafka::AwsMskReplicatorConverter::new(Arc::clone(
+        &injectable.kafka,
+    )));
+    injector.register(kafka::AwsMskScramSecretAssociationConverter::new(
+        Arc::clone(&injectable.kafka),
+    ));
+    injector.register(kafka::AwsMskServerlessClusterConverter::new(Arc::clone(
+        &injectable.kafka,
+    )));
+    injector.register(kafka::AwsMskSingleScramSecretAssociationConverter::new(
+        Arc::clone(&injectable.kafka),
+    ));
+    injector.register(kafka::AwsMskVpcConnectionConverter::new(Arc::clone(
+        &injectable.kafka,
+    )));
     injector.register(kinesis::AwsKinesisStreamConverter::new(Arc::clone(
         &injectable.kinesis,
     )));
@@ -2895,6 +2987,34 @@ async fn load_tfstate(
     injector.register(opensearch::AwsOpensearchDomainConverter::new(Arc::clone(
         &injectable.opensearch,
     )));
+    injector.register(
+        opensearch::AwsOpensearchAuthorizeVpcEndpointAccessConverter::new(Arc::clone(
+            &injectable.opensearch,
+        )),
+    );
+    injector.register(opensearch::AwsOpensearchDomainPolicyConverter::new(
+        Arc::clone(&injectable.opensearch),
+    ));
+    injector.register(opensearch::AwsOpensearchDomainSamlOptionsConverter::new(
+        Arc::clone(&injectable.opensearch),
+    ));
+    injector.register(
+        opensearch::AwsOpensearchInboundConnectionAccepterConverter::new(Arc::clone(
+            &injectable.opensearch,
+        )),
+    );
+    injector.register(opensearch::AwsOpensearchOutboundConnectionConverter::new(
+        Arc::clone(&injectable.opensearch),
+    ));
+    injector.register(opensearch::AwsOpensearchPackageAssociationConverter::new(
+        Arc::clone(&injectable.opensearch),
+    ));
+    injector.register(opensearch::AwsOpensearchPackageConverter::new(Arc::clone(
+        &injectable.opensearch,
+    )));
+    injector.register(opensearch::AwsOpensearchVpcEndpointConverter::new(
+        Arc::clone(&injectable.opensearch),
+    ));
     injector.register(
         opensearchserverless::AwsOpensearchserverlessCollectionConverter::new(Arc::clone(
             &injectable.opensearchserverless,
@@ -3692,6 +3812,30 @@ async fn load_tfstate(
     injector.register(ses::AwsSesv2DedicatedIpPoolConverter::new(Arc::clone(
         &injectable.ses,
     )));
+    injector.register(ses::AwsSesv2AccountSuppressionAttributesConverter::new(
+        Arc::clone(&injectable.ses),
+    ));
+    injector.register(ses::AwsSesv2AccountVdmAttributesConverter::new(Arc::clone(
+        &injectable.ses,
+    )));
+    injector.register(ses::AwsSesv2ConfigurationSetEventDestinationConverter::new(
+        Arc::clone(&injectable.ses),
+    ));
+    injector.register(ses::AwsSesv2ContactListConverter::new(Arc::clone(
+        &injectable.ses,
+    )));
+    injector.register(ses::AwsSesv2DedicatedIpAssignmentConverter::new(
+        Arc::clone(&injectable.ses),
+    ));
+    injector.register(ses::AwsSesv2EmailIdentityFeedbackAttributesConverter::new(
+        Arc::clone(&injectable.ses),
+    ));
+    injector.register(ses::AwsSesv2EmailIdentityMailFromAttributesConverter::new(
+        Arc::clone(&injectable.ses),
+    ));
+    injector.register(ses::AwsSesv2EmailIdentityPolicyConverter::new(Arc::clone(
+        &injectable.ses,
+    )));
     injector.register(sesv1::AwsSesEmailIdentityConverter::new(Arc::clone(
         &injectable.sesv1,
     )));
@@ -3879,6 +4023,30 @@ async fn load_tfstate(
         &injectable.transfer,
     )));
     injector.register(transfer::AwsTransferUserConverter::new(Arc::clone(
+        &injectable.transfer,
+    )));
+    injector.register(transfer::AwsTransferAccessConverter::new(Arc::clone(
+        &injectable.transfer,
+    )));
+    injector.register(transfer::AwsTransferAgreementConverter::new(Arc::clone(
+        &injectable.transfer,
+    )));
+    injector.register(transfer::AwsTransferCertificateConverter::new(Arc::clone(
+        &injectable.transfer,
+    )));
+    injector.register(transfer::AwsTransferConnectorConverter::new(Arc::clone(
+        &injectable.transfer,
+    )));
+    injector.register(transfer::AwsTransferProfileConverter::new(Arc::clone(
+        &injectable.transfer,
+    )));
+    injector.register(transfer::AwsTransferSshKeyConverter::new(Arc::clone(
+        &injectable.transfer,
+    )));
+    injector.register(transfer::AwsTransferTagConverter::new(Arc::clone(
+        &injectable.transfer,
+    )));
+    injector.register(transfer::AwsTransferWorkflowConverter::new(Arc::clone(
         &injectable.transfer,
     )));
     injector.register(vpclattice::AwsVpcLatticeServiceConverter::new(Arc::clone(

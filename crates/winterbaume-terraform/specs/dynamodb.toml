@@ -13,6 +13,10 @@ name = "dynamodb"
 crate_name = "winterbaume_dynamodb"
 state_view_module = "views"
 
+# ---------------------------------------------------------------------------
+# aws_dynamodb_table
+# ---------------------------------------------------------------------------
+
 [[resource]]
 type = "aws_dynamodb_table"
 model = "TableTfModel"
@@ -74,4 +78,285 @@ default = false
 [[resource.field]]
 hcl = "stream_view_type"
 view = "stream_view_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dynamodb_contributor_insights
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dynamodb_contributor_insights"
+model = "ContributorInsightsTfModel"
+view = "ContributorInsightsConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "table_name"
+view = "table_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "index_name"
+view = "index_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dynamodb_global_table
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dynamodb_global_table"
+model = "GlobalTableTfModel"
+view = "GlobalTableInfoView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dynamodb_kinesis_streaming_destination
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dynamodb_kinesis_streaming_destination"
+model = "KinesisStreamingDestinationTfModel"
+view = "KinesisStreamingDestinationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "table_name"
+view = "table_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "stream_arn"
+view = "stream_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "approximate_creation_date_time_precision"
+view = "approximate_creation_date_time_precision"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dynamodb_resource_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dynamodb_resource_policy"
+model = "ResourcePolicyTfModel"
+view = "ResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "revision_id"
+view = "revision_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dynamodb_table_export
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dynamodb_table_export"
+model = "TableExportTfModel"
+view = "TableStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "table_arn"
+view = "table_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "s3_bucket"
+view = "s3_bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_prefix"
+view = "s3_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "export_format"
+view = "export_format"
+type = "string?"
+
+[[resource.field]]
+hcl = "export_type"
+view = "export_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dynamodb_table_item
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dynamodb_table_item"
+model = "TableItemTfModel"
+view = "TableStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "table_name"
+view = "table_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "hash_key"
+view = "hash_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "range_key"
+view = "range_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "item"
+view = "item"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dynamodb_table_replica
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dynamodb_table_replica"
+model = "TableReplicaTfModel"
+view = "TableStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "global_table_arn"
+view = "global_table_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kms_key_arn"
+view = "kms_key_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "point_in_time_recovery"
+view = "point_in_time_recovery"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "table_class_override"
+view = "table_class_override"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dynamodb_tag
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dynamodb_tag"
+model = "TagTfModel"
+view = "DynamoDbTagView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key"
+view = "key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
 type = "string?"

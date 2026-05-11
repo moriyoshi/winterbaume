@@ -103,3 +103,251 @@ hcl = "allowed_oauth_flows_user_pool_client"
 view = "allowed_oauth_flows_user_pool_client"
 type = "bool"
 default = false
+
+# ---------------------------------------------------------------------------
+# aws_cognito_identity_provider
+# ---------------------------------------------------------------------------
+# Hand-tuned: provider_details, attribute_mapping (HashMap<String,String>)
+# and idp_identifiers (Vec<String>) are read directly from instance.attributes
+# in the converter — the spec only carries the scalar required fields.
+
+[[resource]]
+type = "aws_cognito_identity_provider"
+model = "IdentityProviderTfModel"
+view = "IdentityProviderView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_pool_id"
+view = "user_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "provider_name"
+view = "provider_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "provider_type"
+view = "provider_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cognito_managed_user_pool_client
+# ---------------------------------------------------------------------------
+# Mirrors aws_cognito_user_pool_client but for pools managed by other AWS
+# services (OpenSearch etc.). The converter shape is identical; the only
+# difference is that `name` is a name_prefix / name_pattern in real TF, but
+# we accept the resolved `name` from state for round-tripping.
+
+[[resource]]
+type = "aws_cognito_managed_user_pool_client"
+model = "ManagedUserPoolClientTfModel"
+view = "UserPoolClientView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "user_pool_id"
+view = "user_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "client_secret"
+view = "client_secret"
+type = "string?"
+
+[[resource.field]]
+hcl = "allowed_oauth_flows_user_pool_client"
+view = "allowed_oauth_flows_user_pool_client"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_cognito_resource_server
+# ---------------------------------------------------------------------------
+# Hand-tuned: scope (Vec<{scope_name, scope_description}>) is read directly
+# from instance.attributes in the converter.
+
+[[resource]]
+type = "aws_cognito_resource_server"
+model = "ResourceServerTfModel"
+view = "ResourceServerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identifier"
+view = "identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_pool_id"
+view = "user_pool_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cognito_user_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cognito_user_group"
+model = "UserGroupTfModel"
+view = "GroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_pool_id"
+view = "user_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cognito_user_in_group
+# ---------------------------------------------------------------------------
+# Membership join: associates an existing user with an existing group within
+# a user pool. No standalone view type — the converter mutates the user's
+# `groups` list inside its pool's `users` map.
+
+[[resource]]
+type = "aws_cognito_user_in_group"
+model = "UserInGroupTfModel"
+view = "CognitoUserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_pool_id"
+view = "user_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "username"
+view = "username"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "group_name"
+view = "group_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cognito_user_pool_domain
+# ---------------------------------------------------------------------------
+# Hand-tuned: custom_domain_config is read directly from instance.attributes
+# (TF surfaces it as a `certificate_arn` scalar attribute).
+
+[[resource]]
+type = "aws_cognito_user_pool_domain"
+model = "UserPoolDomainTfModel"
+view = "UserPoolDomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_pool_id"
+view = "user_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "certificate_arn"
+view = "certificate_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cognito_user_pool_ui_customization
+# ---------------------------------------------------------------------------
+# State gap: the CognitoidpStateView intentionally excludes ui_customization
+# (see `views.rs` doc comment). The converter accepts the TF model for
+# round-trip purposes but emits a warning that the data is not persisted
+# in the state snapshot.
+
+[[resource]]
+type = "aws_cognito_user_pool_ui_customization"
+model = "UserPoolUiCustomizationTfModel"
+view = "UserPoolView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_pool_id"
+view = "user_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "client_id"
+view = "client_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "css"
+view = "css"
+type = "string?"
+
+[[resource.field]]
+hcl = "image_file"
+view = "image_file"
+type = "string?"

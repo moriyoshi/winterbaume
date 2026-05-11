@@ -5,11 +5,22 @@
 # off_peak_window_options, tags_all) — those are read straight from
 # instance.attributes in the converter (cluster_config and ebs_options
 # nested blocks are also handled there).
+#
+# Eight additional resources (authorize_vpc_endpoint_access,
+# domain_policy, domain_saml_options, inbound_connection_accepter,
+# outbound_connection, package, package_association, vpc_endpoint)
+# project to model_only and let the converter wire up service-specific
+# state (SAML options are not modelled in OpenSearchState so the
+# saml_options converter is a no-op state-wise).
 
 [service]
 name = "opensearch"
 crate_name = "winterbaume_opensearch"
 state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_domain
+# ---------------------------------------------------------------------------
 
 [[resource]]
 type = "aws_opensearch_domain"
@@ -54,3 +65,184 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_authorize_vpc_endpoint_access
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearch_authorize_vpc_endpoint_access"
+model = "AuthorizeVpcEndpointAccessTfModel"
+view = "AuthorizedPrincipalView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account"
+view = "account"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_domain_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearch_domain_policy"
+model = "DomainPolicyTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "access_policies"
+view = "access_policies"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_domain_saml_options
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearch_domain_saml_options"
+model = "DomainSamlOptionsTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_inbound_connection_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearch_inbound_connection_accepter"
+model = "InboundConnectionAccepterTfModel"
+view = "InboundConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_outbound_connection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearch_outbound_connection"
+model = "OutboundConnectionTfModel"
+view = "OutboundConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "connection_alias"
+view = "connection_alias"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_mode"
+view = "connection_mode"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_package
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearch_package"
+model = "PackageTfModel"
+view = "PackageView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "package_name"
+view = "package_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "package_type"
+view = "package_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "package_description"
+view = "package_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_package_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearch_package_association"
+model = "PackageAssociationTfModel"
+view = "PackageView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "package_id"
+view = "package_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_opensearch_vpc_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearch_vpc_endpoint"
+model = "VpcEndpointTfModel"
+view = "VpcEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_arn"
+view = "domain_arn"
+type = "string"
+required = true

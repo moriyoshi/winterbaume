@@ -38,3 +38,111 @@ pub struct UserTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub home_directory_type: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_transfer_access` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessTfModel {
+    pub server_id: String,
+    pub external_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub home_directory: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub home_directory_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_transfer_agreement` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgreementTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agreement_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub server_id: String,
+    pub local_profile_id: String,
+    pub partner_profile_id: String,
+    pub base_directory: String,
+    pub access_role: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_transfer_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertificateTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub certificate: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_chain: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub private_key: Option<String>,
+    pub usage: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_transfer_connector` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectorTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connector_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    pub access_role: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub logging_role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub security_policy_name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_transfer_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProfileTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub as2_id: String,
+    pub profile_type: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_transfer_ssh_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SshKeyTfModel {
+    pub server_id: String,
+    pub user_name: String,
+    pub body: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ssh_public_key_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_transfer_tag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagTfModel {
+    pub resource_arn: String,
+    pub key: String,
+    pub value: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_transfer_workflow` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkflowTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}

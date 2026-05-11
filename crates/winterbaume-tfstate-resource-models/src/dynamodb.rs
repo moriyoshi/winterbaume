@@ -38,3 +38,101 @@ fn default_table_write_capacity() -> i64 {
 fn default_table_stream_enabled() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_dynamodb_contributor_insights` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContributorInsightsTfModel {
+    pub table_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub index_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dynamodb_global_table` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GlobalTableTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dynamodb_kinesis_streaming_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KinesisStreamingDestinationTfModel {
+    pub table_name: String,
+    pub stream_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approximate_creation_date_time_precision: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dynamodb_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcePolicyTfModel {
+    pub resource_arn: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub revision_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dynamodb_table_export` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableExportTfModel {
+    pub table_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub s3_bucket: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub s3_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub export_format: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub export_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dynamodb_table_item` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableItemTfModel {
+    pub table_name: String,
+    pub hash_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub range_key: Option<String>,
+    pub item: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dynamodb_table_replica` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableReplicaTfModel {
+    pub global_table_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_arn: Option<String>,
+    #[serde(default = "default_table_replica_point_in_time_recovery")]
+    pub point_in_time_recovery: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub table_class_override: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+fn default_table_replica_point_in_time_recovery() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dynamodb_tag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagTfModel {
+    pub resource_arn: String,
+    pub key: String,
+    pub value: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

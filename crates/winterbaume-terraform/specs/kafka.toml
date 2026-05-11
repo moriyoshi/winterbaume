@@ -7,11 +7,22 @@
 # `node_exporter`, `storage_mode`, `tags_all`, the various `bootstrap_brokers_*`
 # computed outputs, `broker_count`) are read straight from instance.attributes
 # in the converter.
+#
+# Resources sharing the kafka prefix (aws_mskconnect_* would map separately).
+# Only `aws_msk_cluster` and `aws_msk_serverless_cluster` have backing state
+# slots in `winterbaume_kafka` (the latter via the shared `ClusterView` with
+# `cluster_type = "SERVERLESS"`). The other five resources are validated and
+# decoded but inject is a no-op with a warning, because the service crate
+# has no state slot for them.
 
 [service]
 name = "kafka"
 crate_name = "winterbaume_kafka"
 state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_msk_cluster
+# ---------------------------------------------------------------------------
 
 [[resource]]
 type = "aws_msk_cluster"
@@ -35,6 +46,222 @@ type = "string?"
 [[resource.field]]
 hcl = "kafka_version"
 view = "kafka_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_msk_cluster_policy (warning-only — no dedicated state slot)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_msk_cluster_policy"
+model = "ClusterPolicyTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_arn"
+view = "cluster_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_msk_configuration (warning-only — no dedicated state slot)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_msk_configuration"
+model = "ConfigurationTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "server_properties"
+view = "server_properties"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "latest_revision"
+view = "latest_revision"
+type = "i64"
+
+# ---------------------------------------------------------------------------
+# aws_msk_replicator (warning-only — no dedicated state slot;
+# `kafka_cluster` / `replication_info_list` blocks read raw)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_msk_replicator"
+model = "ReplicatorTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "replicator_name"
+view = "replicator_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_execution_role_arn"
+view = "service_execution_role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_msk_scram_secret_association (warning-only — no dedicated state slot;
+# `secret_arn_list` is a list of strings read raw from instance.attributes)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_msk_scram_secret_association"
+model = "ScramSecretAssociationTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_arn"
+view = "cluster_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_msk_serverless_cluster (backed by the shared `ClusterView` slot;
+# `client_authentication` / `vpc_config` blocks read raw)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_msk_serverless_cluster"
+model = "ServerlessClusterTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_msk_single_scram_secret_association (warning-only — no dedicated state slot)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_msk_single_scram_secret_association"
+model = "SingleScramSecretAssociationTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_arn"
+view = "cluster_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "secret_arn"
+view = "secret_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_msk_vpc_connection (warning-only — no dedicated state slot;
+# `client_subnets` / `security_groups` lists read raw from instance.attributes)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_msk_vpc_connection"
+model = "VpcConnectionTfModel"
+view = "ClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "authentication"
+view = "authentication"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_cluster_arn"
+view = "target_cluster_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
 type = "string?"
 
 [[resource.field]]
