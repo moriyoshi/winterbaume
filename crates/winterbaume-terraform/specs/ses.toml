@@ -87,3 +87,224 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_account_suppression_attributes
+# ---------------------------------------------------------------------------
+# Singleton modifier: replaces `AccountSettingsView.suppressed_reasons`.
+# The TF resource exposes `suppressed_reasons` as a `list(string)`; the
+# converter snapshots the SES state, swaps the list, and restores it.
+
+[[resource]]
+type = "aws_sesv2_account_suppression_attributes"
+model = "AccountSuppressionAttributesTfModel"
+view = "AccountSettingsView"
+
+[resource.modes]
+mode = "model_only"
+
+# `suppressed_reasons` is a list<string>, not modelled by the codegen's
+# scalar field types; the converter reads it from instance.attributes
+# directly. The struct intentionally has no fields beyond the implicit
+# `id` so deserialize is permissive.
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_account_vdm_attributes
+# ---------------------------------------------------------------------------
+# Singleton modifier: replaces `AccountSettingsView.vdm_attributes` with
+# the nested `vdm_enabled` + `dashboard_attributes` + `guardian_attributes`
+# blob (kept as raw `serde_json::Value`). The converter reads the relevant
+# scalar fields and assembles the value.
+
+[[resource]]
+type = "aws_sesv2_account_vdm_attributes"
+model = "AccountVdmAttributesTfModel"
+view = "AccountSettingsView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vdm_enabled"
+view = "vdm_enabled"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_configuration_set_event_destination
+# ---------------------------------------------------------------------------
+# Modifier on an existing configuration set: inserts an
+# EventDestinationView entry into `ConfigurationSetView.event_destinations`
+# keyed by event_destination_name. The nested `event_destination` block
+# (matching_event_types + destination sub-block) is read directly from
+# instance.attributes by the converter.
+
+[[resource]]
+type = "aws_sesv2_configuration_set_event_destination"
+model = "ConfigurationSetEventDestinationTfModel"
+view = "ConfigurationSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "configuration_set_name"
+view = "configuration_set_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "event_destination_name"
+view = "event_destination_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_contact_list
+# ---------------------------------------------------------------------------
+# Top-level fresh-write on `SesStateView.contact_lists`. The nested
+# `topic` blocks are not modelled here; the converter currently drops
+# them with a warning. created/last_updated timestamps are filled by the
+# converter at injection time.
+
+[[resource]]
+type = "aws_sesv2_contact_list"
+model = "ContactListTfModel"
+view = "ContactListView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "contact_list_name"
+view = "contact_list_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_dedicated_ip_assignment
+# ---------------------------------------------------------------------------
+# Modifier on an existing dedicated IP: sets the IP's `pool_name` to the
+# target pool. The IP must already exist in state (real AWS allocates
+# them via warmup); the converter creates a minimal `DedicatedIpView` if
+# absent so the assignment round-trips, while emitting a warning.
+
+[[resource]]
+type = "aws_sesv2_dedicated_ip_assignment"
+model = "DedicatedIpAssignmentTfModel"
+view = "DedicatedIpView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "ip"
+view = "ip"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_pool_name"
+view = "destination_pool_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_email_identity_feedback_attributes
+# ---------------------------------------------------------------------------
+# Modifier on an existing email identity: flips
+# `EmailIdentityView.feedback_forwarding_enabled`. If the identity does
+# not exist yet, a warning is emitted and the resource is skipped.
+
+[[resource]]
+type = "aws_sesv2_email_identity_feedback_attributes"
+model = "EmailIdentityFeedbackAttributesTfModel"
+view = "EmailIdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "email_identity"
+view = "email_identity"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "email_forwarding_enabled"
+view = "email_forwarding_enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_email_identity_mail_from_attributes
+# ---------------------------------------------------------------------------
+# Modifier on an existing email identity: sets `mail_from_domain` and
+# `behavior_on_mx_failure`. If the identity does not exist yet, a warning
+# is emitted and the resource is skipped.
+
+[[resource]]
+type = "aws_sesv2_email_identity_mail_from_attributes"
+model = "EmailIdentityMailFromAttributesTfModel"
+view = "EmailIdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "email_identity"
+view = "email_identity"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mail_from_domain"
+view = "mail_from_domain"
+type = "string?"
+
+[[resource.field]]
+hcl = "behavior_on_mx_failure"
+view = "behavior_on_mx_failure"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sesv2_email_identity_policy
+# ---------------------------------------------------------------------------
+# Modifier on an existing email identity: inserts an entry into
+# `EmailIdentityView.policies` keyed by `policy_name`. If the identity
+# does not exist yet, a warning is emitted and the resource is skipped.
+
+[[resource]]
+type = "aws_sesv2_email_identity_policy"
+model = "EmailIdentityPolicyTfModel"
+view = "EmailIdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "email_identity"
+view = "email_identity"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_name"
+view = "policy_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true

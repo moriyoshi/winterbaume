@@ -40,3 +40,80 @@ pub struct UserPoolClientTfModel {
 fn default_user_pool_client_allowed_oauth_flows_user_pool_client() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_identity_provider` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentityProviderTfModel {
+    pub user_pool_id: String,
+    pub provider_name: String,
+    pub provider_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_managed_user_pool_client` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedUserPoolClientTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    pub user_pool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_secret: Option<String>,
+    #[serde(default = "default_managed_user_pool_client_allowed_oauth_flows_user_pool_client")]
+    pub allowed_oauth_flows_user_pool_client: bool,
+}
+
+fn default_managed_user_pool_client_allowed_oauth_flows_user_pool_client() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_resource_server` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceServerTfModel {
+    pub identifier: String,
+    pub name: String,
+    pub user_pool_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_user_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserGroupTfModel {
+    #[serde(rename = "name")]
+    pub group_name: String,
+    pub user_pool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_user_in_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserInGroupTfModel {
+    pub user_pool_id: String,
+    pub username: String,
+    pub group_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_user_pool_domain` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPoolDomainTfModel {
+    pub domain: String,
+    pub user_pool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cognito_user_pool_ui_customization` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPoolUiCustomizationTfModel {
+    pub user_pool_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub css: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image_file: Option<String>,
+}

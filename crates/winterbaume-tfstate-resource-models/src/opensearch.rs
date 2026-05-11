@@ -23,3 +23,63 @@ pub struct DomainTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_opensearch_authorize_vpc_endpoint_access` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizeVpcEndpointAccessTfModel {
+    pub domain_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearch_domain_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainPolicyTfModel {
+    pub domain_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_policies: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearch_domain_saml_options` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainSamlOptionsTfModel {
+    pub domain_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearch_inbound_connection_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InboundConnectionAccepterTfModel {
+    pub connection_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearch_outbound_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OutboundConnectionTfModel {
+    pub connection_alias: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connection_mode: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearch_package` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PackageTfModel {
+    pub package_name: String,
+    pub package_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub package_description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearch_package_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PackageAssociationTfModel {
+    pub package_id: String,
+    pub domain_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearch_vpc_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcEndpointTfModel {
+    pub domain_arn: String,
+}

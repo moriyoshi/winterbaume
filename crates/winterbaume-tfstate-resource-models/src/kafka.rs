@@ -17,3 +17,71 @@ pub struct ClusterTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_msk_cluster_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClusterPolicyTfModel {
+    pub cluster_arn: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_msk_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationTfModel {
+    pub name: String,
+    pub server_properties: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub latest_revision: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_msk_replicator` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplicatorTfModel {
+    pub replicator_name: String,
+    pub service_execution_role_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_msk_scram_secret_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScramSecretAssociationTfModel {
+    pub cluster_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_msk_serverless_cluster` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerlessClusterTfModel {
+    pub cluster_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_msk_single_scram_secret_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SingleScramSecretAssociationTfModel {
+    pub cluster_arn: String,
+    pub secret_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_msk_vpc_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcConnectionTfModel {
+    pub authentication: String,
+    pub target_cluster_arn: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}

@@ -2,21 +2,14 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **859** (854 verified against schema)
-Missing within classified prefixes: **339**
+Currently handled by winterbaume: **913** (908 verified against schema)
+Missing within classified prefixes: **285**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
-| dynamodb | `aws_dynamodb_` | 1 | 9 | 8 | 11% |  |
-| ecr | `aws_ecr_` | 1 | 9 | 8 | 11% |  |
-| opensearch | `aws_opensearch_` | 1 | 9 | 8 | 11% |  |
-| ses | `aws_sesv2_` | 3 | 11 | 8 | 27% |  |
-| transfer | `aws_transfer_` | 2 | 10 | 8 | 20% |  |
-| cognitoidp | override (5 patterns) | 2 | 9 | 7 | 22% |  |
 | directory | `aws_directory_service_` | 1 | 8 | 7 | 12% |  |
-| kafka | `aws_msk_` | 1 | 8 | 7 | 12% |  |
 | kms | `aws_kms_` | 2 | 9 | 7 | 22% |  |
 | macie2 | `aws_macie2_` | 2 | 9 | 7 | 22% |  |
 | shield | `aws_shield_` | 1 | 8 | 7 | 12% |  |
@@ -110,19 +103,23 @@ Sorted by missing-count desc.
 | backup | `aws_backup_` | 13 | 13 | 0 | 100% |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
 | cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
+| cognitoidp | override (5 patterns) | 9 | 9 | 0 | 100% |  |
 | config | `aws_config_` | 13 | 13 | 0 | 100% |  |
 | connect | `aws_connect_` | 16 | 16 | 0 | 100% |  |
 | datasync | `aws_datasync_` | 13 | 13 | 0 | 100% |  |
 | dax | `aws_dax_` | 3 | 3 | 0 | 100% |  |
 | directconnect | `aws_dx_` | 19 | 19 | 0 | 100% |  |
+| dynamodb | `aws_dynamodb_` | 9 | 9 | 0 | 100% |  |
 | ec2 | override (37 patterns) | 139 | 139 | 0 | 100% |  |
 | ec2instanceconnect | `aws_ec2_instance_connect_` | 1 | 1 | 0 | 100% |  |
+| ecr | `aws_ecr_` | 9 | 9 | 0 | 100% |  |
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
 | firehose | `aws_kinesis_firehose_` | 1 | 1 | 0 | 100% |  |
 | fis | `aws_fis_` | 1 | 1 | 0 | 100% |  |
 | fsx | `aws_fsx_` | 11 | 11 | 0 | 100% |  |
 | guardduty | `aws_guardduty_` | 13 | 13 | 0 | 100% |  |
 | iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
+| kafka | `aws_msk_` | 8 | 8 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
 | lambda | `aws_lambda_` | 13 | 13 | 0 | 100% |  |
@@ -131,6 +128,7 @@ Sorted by missing-count desc.
 | mediapackagev2 | `aws_media_packagev2_` | 1 | 1 | 0 | 100% |  |
 | mq | `aws_mq_` | 2 | 2 | 0 | 100% |  |
 | networkmanager | `aws_networkmanager_` | 19 | 19 | 0 | 100% |  |
+| opensearch | `aws_opensearch_` | 9 | 9 | 0 | 100% |  |
 | osis | `aws_osis_` | 1 | 1 | 0 | 100% |  |
 | outposts | `aws_outposts_` | 2 | 0 | 0 | — |  |
 | pinpoint | `aws_pinpoint_` | 12 | 12 | 0 | 100% |  |
@@ -145,6 +143,7 @@ Sorted by missing-count desc.
 | scheduler | `aws_scheduler_` | 2 | 2 | 0 | 100% |  |
 | securityhub | `aws_securityhub_` | 15 | 15 | 0 | 100% |  |
 | servicecatalog | `aws_servicecatalog_` | 13 | 13 | 0 | 100% |  |
+| ses | `aws_sesv2_` | 11 | 11 | 0 | 100% |  |
 | sesv1 | `aws_ses_` | 14 | 14 | 0 | 100% |  |
 | simpledbv2 | `aws_simpledb_` | 1 | 1 | 0 | 100% |  |
 | ssm | `aws_ssm_` | 12 | 12 | 0 | 100% |  |
@@ -153,74 +152,10 @@ Sorted by missing-count desc.
 | timestreaminfluxdb | `aws_timestreaminfluxdb_` | 1 | 1 | 0 | 100% |  |
 | timestreamquery | `aws_timestreamquery_` | 1 | 1 | 0 | 100% |  |
 | timestreamwrite | `aws_timestreamwrite_` | 2 | 2 | 0 | 100% |  |
+| transfer | `aws_transfer_` | 10 | 10 | 0 | 100% |  |
 | vpclattice | `aws_vpclattice_` | 14 | 14 | 0 | 100% |  |
 
 ## Per-service missing resources
-
-### dynamodb — 8 missing
-
-- `aws_dynamodb_contributor_insights`
-- `aws_dynamodb_global_table`
-- `aws_dynamodb_kinesis_streaming_destination`
-- `aws_dynamodb_resource_policy`
-- `aws_dynamodb_table_export`
-- `aws_dynamodb_table_item`
-- `aws_dynamodb_table_replica`
-- `aws_dynamodb_tag`
-
-### ecr — 8 missing
-
-- `aws_ecr_account_setting`
-- `aws_ecr_lifecycle_policy`
-- `aws_ecr_pull_through_cache_rule`
-- `aws_ecr_registry_policy`
-- `aws_ecr_registry_scanning_configuration`
-- `aws_ecr_replication_configuration`
-- `aws_ecr_repository_creation_template`
-- `aws_ecr_repository_policy`
-
-### opensearch — 8 missing
-
-- `aws_opensearch_authorize_vpc_endpoint_access`
-- `aws_opensearch_domain_policy`
-- `aws_opensearch_domain_saml_options`
-- `aws_opensearch_inbound_connection_accepter`
-- `aws_opensearch_outbound_connection`
-- `aws_opensearch_package`
-- `aws_opensearch_package_association`
-- `aws_opensearch_vpc_endpoint`
-
-### ses — 8 missing
-
-- `aws_sesv2_account_suppression_attributes`
-- `aws_sesv2_account_vdm_attributes`
-- `aws_sesv2_configuration_set_event_destination`
-- `aws_sesv2_contact_list`
-- `aws_sesv2_dedicated_ip_assignment`
-- `aws_sesv2_email_identity_feedback_attributes`
-- `aws_sesv2_email_identity_mail_from_attributes`
-- `aws_sesv2_email_identity_policy`
-
-### transfer — 8 missing
-
-- `aws_transfer_access`
-- `aws_transfer_agreement`
-- `aws_transfer_certificate`
-- `aws_transfer_connector`
-- `aws_transfer_profile`
-- `aws_transfer_ssh_key`
-- `aws_transfer_tag`
-- `aws_transfer_workflow`
-
-### cognitoidp — 7 missing
-
-- `aws_cognito_identity_provider`
-- `aws_cognito_managed_user_pool_client`
-- `aws_cognito_resource_server`
-- `aws_cognito_user_group`
-- `aws_cognito_user_in_group`
-- `aws_cognito_user_pool_domain`
-- `aws_cognito_user_pool_ui_customization`
 
 ### directory — 7 missing
 
@@ -231,16 +166,6 @@ Sorted by missing-count desc.
 - `aws_directory_service_shared_directory`
 - `aws_directory_service_shared_directory_accepter`
 - `aws_directory_service_trust`
-
-### kafka — 7 missing
-
-- `aws_msk_cluster_policy`
-- `aws_msk_configuration`
-- `aws_msk_replicator`
-- `aws_msk_scram_secret_association`
-- `aws_msk_serverless_cluster`
-- `aws_msk_single_scram_secret_association`
-- `aws_msk_vpc_connection`
 
 ### kms — 7 missing
 

@@ -31,3 +31,68 @@ pub struct DedicatedIpPoolTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_sesv2_account_suppression_attributes` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountSuppressionAttributesTfModel {}
+
+/// Auto-generated TF-shaped projection of the `aws_sesv2_account_vdm_attributes` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountVdmAttributesTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vdm_enabled: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sesv2_configuration_set_event_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationSetEventDestinationTfModel {
+    pub configuration_set_name: String,
+    pub event_destination_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sesv2_contact_list` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContactListTfModel {
+    pub contact_list_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sesv2_dedicated_ip_assignment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DedicatedIpAssignmentTfModel {
+    pub ip: String,
+    pub destination_pool_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sesv2_email_identity_feedback_attributes` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmailIdentityFeedbackAttributesTfModel {
+    pub email_identity: String,
+    #[serde(default = "default_email_identity_feedback_attributes_email_forwarding_enabled")]
+    pub email_forwarding_enabled: bool,
+}
+
+fn default_email_identity_feedback_attributes_email_forwarding_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sesv2_email_identity_mail_from_attributes` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmailIdentityMailFromAttributesTfModel {
+    pub email_identity: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mail_from_domain: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub behavior_on_mx_failure: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_sesv2_email_identity_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmailIdentityPolicyTfModel {
+    pub email_identity: String,
+    pub policy_name: String,
+    pub policy: String,
+}

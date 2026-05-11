@@ -3,12 +3,20 @@
 # `EncryptionConfigView`; the projected view is `RepositoryView`). Nested
 # `image_scanning_configuration` and `encryption_configuration` blocks
 # are read raw by the converter because the spec can't express nested
-# arrays of objects.
+# arrays of objects. Same for the `rule`/`destination`/`repository_filter`
+# blocks on `aws_ecr_registry_scanning_configuration` /
+# `aws_ecr_replication_configuration` and the encryption-config block
+# on `aws_ecr_repository_creation_template` — those stay in the
+# hand-written converter body.
 
 [service]
 name = "ecr"
 crate_name = "winterbaume_ecr"
 state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_repository
+# ---------------------------------------------------------------------------
 
 [[resource]]
 type = "aws_ecr_repository"
@@ -48,3 +56,287 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_account_setting
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecr_account_setting"
+model = "AccountSettingTfModel"
+view = "AccountSettingView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_lifecycle_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecr_lifecycle_policy"
+model = "LifecyclePolicyTfModel"
+view = "LifecyclePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "repository"
+view = "repository"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "registry_id"
+view = "registry_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_pull_through_cache_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecr_pull_through_cache_rule"
+model = "PullThroughCacheRuleTfModel"
+view = "PullThroughCacheRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "ecr_repository_prefix"
+view = "ecr_repository_prefix"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "upstream_registry_url"
+view = "upstream_registry_url"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "credential_arn"
+view = "credential_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "upstream_repository_prefix"
+view = "upstream_repository_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_role_arn"
+view = "custom_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "registry_id"
+view = "registry_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_registry_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecr_registry_policy"
+model = "RegistryPolicyTfModel"
+view = "RegistryPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "registry_id"
+view = "registry_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_registry_scanning_configuration
+# ---------------------------------------------------------------------------
+#
+# `rule` is a list of nested objects: { scan_frequency,
+# repository_filter [{ filter, filter_type }] }. The spec format can't
+# describe list-of-object so the body reads the rules raw from
+# `instance.attributes`.
+
+[[resource]]
+type = "aws_ecr_registry_scanning_configuration"
+model = "RegistryScanningConfigurationTfModel"
+view = "RegistryScanningConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "scan_type"
+view = "scan_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "registry_id"
+view = "registry_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_replication_configuration
+# ---------------------------------------------------------------------------
+#
+# Body shape: `replication_configuration { rule { destination {…} ;
+# repository_filter {…} } }` — nested list-of-object. Body reads raw.
+
+[[resource]]
+type = "aws_ecr_replication_configuration"
+model = "ReplicationConfigurationTfModel"
+view = "ReplicationConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "registry_id"
+view = "registry_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_repository_creation_template
+# ---------------------------------------------------------------------------
+#
+# `applied_for` is a list<string> and `encryption_configuration` and
+# `resource_tags` are nested list-of-object blocks. Body reads them
+# raw from `instance.attributes`.
+
+[[resource]]
+type = "aws_ecr_repository_creation_template"
+model = "RepositoryCreationTemplateTfModel"
+view = "RepositoryCreationTemplateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "prefix"
+view = "prefix"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "image_tag_mutability"
+view = "image_tag_mutability"
+type = "string?"
+
+[[resource.field]]
+hcl = "lifecycle_policy"
+view = "lifecycle_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "repository_policy"
+view = "repository_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_role_arn"
+view = "custom_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecr_repository_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecr_repository_policy"
+model = "RepositoryPolicyTfModel"
+view = "RepositoryPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "repository"
+view = "repository"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "registry_id"
+view = "registry_id"
+type = "string?"
