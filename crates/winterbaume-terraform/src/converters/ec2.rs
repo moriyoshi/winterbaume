@@ -15,21 +15,38 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_ec2::Ec2Service;
 use winterbaume_ec2::views::{
-    CapacityBlockView, CapacityReservationView, CustomerGatewayView, Ec2StateView,
-    EgressOnlyIgwView, ElasticIpView, EoigwAttachmentView, IcmpTypeCodeView, IgwAttachmentView,
-    InstanceConnectEndpointView, InternetGatewayView, IpPermissionView, IpRangeView,
-    IpamOperatingRegionView, IpamPoolAllocationView, IpamPoolCidrView, IpamPoolView,
+    AwsNetworkPerformanceSubscriptionView, CapacityBlockView, CapacityReservationView,
+    CarrierGatewayView, ClientVpnAssociationStatusView, ClientVpnAuthorizationRuleStatusView,
+    ClientVpnAuthorizationRuleView, ClientVpnEndpointStatusView, ClientVpnEndpointView,
+    ClientVpnRouteStatusView, ClientVpnRouteView, ClientVpnTargetNetworkAssociationView,
+    CustomerGatewayView, DedicatedHostView, DhcpOptionsView, Ec2FleetView, Ec2StateView,
+    EgressOnlyIgwView, ElasticIpView, EoigwAttachmentView, FlowLogView, IcmpTypeCodeView,
+    IgwAttachmentView, ImageView, InstanceConnectEndpointView, InstanceStateView, InstanceView,
+    InternetGatewayView, IpPermissionView, IpRangeView, IpamOperatingRegionView,
+    IpamPoolAllocationView, IpamPoolCidrView, IpamPoolView, IpamResourceDiscoveryAssociationView,
     IpamResourceDiscoveryView, IpamScopeView, IpamView, Ipv6RangeView, KeyPairView,
-    LocalGatewayRouteTableVpcAssociationView, LocalGatewayRouteView, NatGatewayView,
+    LaunchPermissionView, LaunchTemplateView, LocalGatewayRouteTableVpcAssociationView,
+    LocalGatewayRouteView, ManagedPrefixListView, MulticastSubnetAssociationView, NatGatewayView,
     NetworkAclAssociationView, NetworkAclEntryView, NetworkAclView, NetworkInsightsAnalysisView,
-    NetworkInsightsPathView, NetworkInterfacePermissionView, PlacementGroupView, PortRangeView,
+    NetworkInsightsPathView, NetworkInterfacePermissionView, NetworkInterfaceView,
+    PlacementGroupView, PortRangeView, PrefixListEntryView, RouteServerAssociationView,
     RouteTableAssociationView, RouteTableView, RouteView, SecurityGroupView,
-    SubnetIpv6CidrAssocView, SubnetView, TrafficMirrorFilterRuleView, TrafficMirrorFilterView,
-    TrafficMirrorPortRangeView, TrafficMirrorSessionView, TrafficMirrorTargetView,
-    TransitGatewayConnectView, TransitGatewayMulticastDomainView, TransitGatewayPolicyTableView,
-    UserIdGroupPairView, VerifiedAccessEndpointView, VerifiedAccessGroupView,
-    VerifiedAccessInstanceView, VerifiedAccessSseSpecificationView,
-    VerifiedAccessTrustProviderView, VpcView,
+    SecurityGroupVpcAssociationView, SpotFleetRequestView, SpotInstanceRequestView,
+    SubnetCidrReservationView, SubnetIpv6CidrAssocView, SubnetView, TgwPeeringAttachmentView,
+    TgwRouteTableView, TgwRouteView, TgwVpcAttachmentView, TrafficMirrorFilterRuleView,
+    TrafficMirrorFilterView, TrafficMirrorPortRangeView, TrafficMirrorSessionView,
+    TrafficMirrorTargetView, TransitGatewayConnectPeerView, TransitGatewayConnectView,
+    TransitGatewayMulticastDomainAssociationView, TransitGatewayMulticastDomainView,
+    TransitGatewayMulticastGroupMemberView, TransitGatewayMulticastGroupSourceView,
+    TransitGatewayPolicyTableAssociationView, TransitGatewayPolicyTableView,
+    TransitGatewayPrefixListReferenceView, TransitGatewayView, UserIdGroupPairView,
+    VerifiedAccessEndpointView, VerifiedAccessGroupView, VerifiedAccessInstanceView,
+    VerifiedAccessSseSpecificationView, VerifiedAccessTrustProviderAttachmentView,
+    VerifiedAccessTrustProviderView, VgwVpcAttachmentView, VolumeAttachmentView,
+    VpcBlockPublicAccessExclusionView, VpcBlockPublicAccessOptionsView,
+    VpcEndpointConnectionNotificationView, VpcEndpointConnectionView, VpcEndpointServiceConfigView,
+    VpcEndpointView, VpcPeeringConnectionOptionsView, VpcPeeringConnectionView, VpcView,
+    VpnConnectionOptionsView, VpnConnectionView, VpnGatewayView, VpnStaticRouteView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -5387,6 +5404,10182 @@ impl AwsEc2CapacityBlockReservationConverter {
             });
         }
         Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_instance
+// ---------------------------------------------------------------------------
+
+pub struct AwsInstanceConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsInstanceConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsInstanceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_instance"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_subnet", "aws_security_group", "aws_key_pair"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsInstanceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::InstanceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_instance", e))?;
+
+        let instance_id = model
+            .id
+            .unwrap_or_else(|| format!("i-{}", &uuid::Uuid::new_v4().to_string()[..17]));
+        let tags = extract_tags(attrs);
+
+        // security_groups (classic) and vpc_security_group_ids (vpc) are both
+        // pulled into a unified set on the view.
+        let mut security_groups: Vec<String> = parse_string_array(attrs, "security_groups");
+        let vpc_sg_ids = parse_string_array(attrs, "vpc_security_group_ids");
+        for sg in vpc_sg_ids {
+            if !security_groups.contains(&sg) {
+                security_groups.push(sg);
+            }
+        }
+
+        // Resolve vpc_id from subnet snapshot if a subnet is given.
+        let subnet_id = model.subnet_id.clone();
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let vpc_id = subnet_id
+            .as_ref()
+            .and_then(|s| snapshot.subnets.get(s).map(|sn| sn.vpc_id.clone()));
+
+        let placement_az = model
+            .availability_zone
+            .clone()
+            .or_else(|| {
+                subnet_id.as_ref().and_then(|s| {
+                    snapshot
+                        .subnets
+                        .get(s)
+                        .map(|sn| sn.availability_zone.clone())
+                })
+            })
+            .unwrap_or_else(|| format!("{}a", region));
+
+        let placement_partition_number = if model.placement_partition_number > 0 {
+            Some(model.placement_partition_number as i32)
+        } else {
+            None
+        };
+
+        let iam_instance_profile_arn = model.iam_instance_profile.filter(|s| !s.is_empty());
+
+        let instance_view = InstanceView {
+            instance_id: instance_id.clone(),
+            image_id: model.ami.unwrap_or_default(),
+            instance_type: model
+                .instance_type
+                .unwrap_or_else(|| "t2.micro".to_string()),
+            state: InstanceStateView {
+                code: 16,
+                name: "running".to_string(),
+            },
+            private_ip_address: model.private_ip,
+            public_ip_address: model.public_ip,
+            subnet_id,
+            vpc_id,
+            key_name: model.key_name,
+            security_groups,
+            launch_time: "1970-01-01T00:00:00Z".to_string(),
+            tags,
+            iam_instance_profile_arn,
+            monitoring_state: if model.monitoring {
+                "enabled".to_string()
+            } else {
+                "disabled".to_string()
+            },
+            placement_az,
+            placement_group_name: model.placement_group.filter(|s| !s.is_empty()),
+            placement_tenancy: model.tenancy,
+            placement_host_id: model.host_id.filter(|s| !s.is_empty()),
+            placement_affinity: None,
+            placement_partition_number,
+            owner_id: ctx.default_account_id.clone(),
+            classic_link_vpc: None,
+            private_dns_hostname_type: None,
+            enable_resource_name_dns_a_record: None,
+            enable_resource_name_dns_aaaa_record: None,
+            credit_specification: None,
+            cpu_options: None,
+            maintenance_options: None,
+            network_bandwidth_weighting: None,
+            lifecycle: model.instance_lifecycle,
+            product_codes: vec![],
+            capacity_reservation_specification: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.instances.insert(instance_id, instance_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for inst in view.instances.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:instance/{}",
+                ctx.default_region, ctx.default_account_id, inst.instance_id
+            );
+            let attrs = serde_json::json!({
+                "id": inst.instance_id,
+                "ami": inst.image_id,
+                "arn": arn,
+                "instance_type": inst.instance_type,
+                "instance_state": inst.state.name,
+                "subnet_id": inst.subnet_id,
+                "key_name": inst.key_name,
+                "availability_zone": inst.placement_az,
+                "private_ip": inst.private_ip_address,
+                "public_ip": inst.public_ip_address,
+                "iam_instance_profile": inst.iam_instance_profile_arn,
+                "monitoring": inst.monitoring_state == "enabled",
+                "tenancy": inst.placement_tenancy,
+                "host_id": inst.placement_host_id,
+                "placement_group": inst.placement_group_name,
+                "placement_partition_number": inst.placement_partition_number.unwrap_or(0),
+                "security_groups": inst.security_groups,
+                "vpc_security_group_ids": inst.security_groups,
+                "outpost_arn": "",
+                "instance_lifecycle": inst.lifecycle,
+                "tags": inst.tags,
+                "tags_all": inst.tags,
+            });
+            results.push(ExtractedResource {
+                name: inst.instance_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_launch_template
+// ---------------------------------------------------------------------------
+
+pub struct AwsLaunchTemplateConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsLaunchTemplateConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLaunchTemplateConverter {
+    fn resource_type(&self) -> &str {
+        "aws_launch_template"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLaunchTemplateConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::LaunchTemplateTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_launch_template", e))?;
+
+        let template_id = model
+            .id
+            .unwrap_or_else(|| format!("lt-{}", &uuid::Uuid::new_v4().to_string()[..17]));
+        let template_name = model
+            .name
+            .or(model.name_prefix)
+            .unwrap_or_else(|| template_id.clone());
+        let default_version = if model.default_version > 0 {
+            model.default_version
+        } else {
+            1
+        };
+        let latest_version = if model.latest_version > 0 {
+            model.latest_version
+        } else {
+            default_version
+        };
+
+        let lt_view = LaunchTemplateView {
+            launch_template_id: template_id.clone(),
+            launch_template_name: template_name,
+            default_version_number: default_version,
+            latest_version_number: latest_version,
+            tags: extract_tags(attrs),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.launch_templates.insert(template_id, lt_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for lt in view.launch_templates.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:launch-template/{}",
+                ctx.default_region, ctx.default_account_id, lt.launch_template_id
+            );
+            let attrs = serde_json::json!({
+                "id": lt.launch_template_id,
+                "arn": arn,
+                "name": lt.launch_template_name,
+                "default_version": lt.default_version_number,
+                "latest_version": lt.latest_version_number,
+                "tags": lt.tags,
+                "tags_all": lt.tags,
+            });
+            results.push(ExtractedResource {
+                name: lt.launch_template_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_volume_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsVolumeAttachmentConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVolumeAttachmentConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVolumeAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_volume_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_instance"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVolumeAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VolumeAttachmentTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_volume_attachment", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(volume) = view.volumes.get_mut(&model.volume_id) {
+            let already = volume
+                .attachments
+                .iter()
+                .any(|a| a.instance_id == model.instance_id);
+            if !already {
+                volume.attachments.push(VolumeAttachmentView {
+                    volume_id: model.volume_id.clone(),
+                    instance_id: model.instance_id.clone(),
+                    device: model.device_name.clone(),
+                    state: "attached".to_string(),
+                    attach_time: "1970-01-01T00:00:00Z".to_string(),
+                    delete_on_termination: false,
+                });
+                volume.state = "in-use".to_string();
+            }
+        } else {
+            warnings.push(format!(
+                "volume '{}' not found in state; attachment skipped",
+                model.volume_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for volume in view.volumes.values() {
+            for att in &volume.attachments {
+                let id = format!("{}-{}-{}", att.device, att.volume_id, att.instance_id);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "volume_id": att.volume_id,
+                    "instance_id": att.instance_id,
+                    "device_name": att.device,
+                    "force_detach": false,
+                    "skip_destroy": false,
+                    "stop_instance_before_detaching": false,
+                });
+                results.push(ExtractedResource {
+                    name: format!("{}-{}", att.volume_id, att.instance_id),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_network_interface
+// ---------------------------------------------------------------------------
+
+pub struct AwsNetworkInterfaceConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsNetworkInterfaceConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNetworkInterfaceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_network_interface"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_subnet", "aws_security_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNetworkInterfaceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkInterfaceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_network_interface", e))?;
+
+        let eni_id = model
+            .id
+            .unwrap_or_else(|| format!("eni-{}", &uuid::Uuid::new_v4().to_string()[..17]));
+        let subnet_id = model.subnet_id;
+        let security_groups = parse_string_array(attrs, "security_groups");
+
+        let snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let vpc_id = snapshot
+            .subnets
+            .get(&subnet_id)
+            .map(|s| s.vpc_id.clone())
+            .unwrap_or_default();
+
+        let eni_view = NetworkInterfaceView {
+            network_interface_id: eni_id.clone(),
+            subnet_id,
+            vpc_id,
+            description: model.description.unwrap_or_default(),
+            private_ip_address: model.private_ip.unwrap_or_default(),
+            status: "available".to_string(),
+            attachment_id: None,
+            instance_id: None,
+            device_index: None,
+            security_groups,
+            source_dest_check: attrs
+                .get("source_dest_check")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true),
+            tags: extract_tags(attrs),
+            public_ip_dns_hostname_type: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.network_interfaces.insert(eni_id, eni_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for eni in view.network_interfaces.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:network-interface/{}",
+                ctx.default_region, ctx.default_account_id, eni.network_interface_id
+            );
+            let attrs = serde_json::json!({
+                "id": eni.network_interface_id,
+                "arn": arn,
+                "subnet_id": eni.subnet_id,
+                "description": eni.description,
+                "private_ip": eni.private_ip_address,
+                "private_ips": [eni.private_ip_address],
+                "security_groups": eni.security_groups,
+                "source_dest_check": eni.source_dest_check,
+                "interface_type": "interface",
+                "owner_id": ctx.default_account_id,
+                "tags": eni.tags,
+                "tags_all": eni.tags,
+            });
+            results.push(ExtractedResource {
+                name: eni.network_interface_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_network_interface_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsNetworkInterfaceAttachmentConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsNetworkInterfaceAttachmentConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNetworkInterfaceAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_network_interface_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_network_interface", "aws_instance"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNetworkInterfaceAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkInterfaceAttachmentTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_network_interface_attachment", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(eni) = view.network_interfaces.get_mut(&model.network_interface_id) {
+            let attachment_id = model.attachment_id.clone().unwrap_or_else(|| {
+                format!("eni-attach-{}", &uuid::Uuid::new_v4().to_string()[..17])
+            });
+            eni.attachment_id = Some(attachment_id);
+            eni.instance_id = Some(model.instance_id.clone());
+            eni.device_index = Some(model.device_index as i32);
+            eni.status = "in-use".to_string();
+        } else {
+            warnings.push(format!(
+                "network interface '{}' not found in state; attachment skipped",
+                model.network_interface_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for eni in view.network_interfaces.values() {
+            if let (Some(att_id), Some(inst_id)) =
+                (eni.attachment_id.as_ref(), eni.instance_id.as_ref())
+            {
+                let attrs = serde_json::json!({
+                    "id": att_id,
+                    "attachment_id": att_id,
+                    "network_interface_id": eni.network_interface_id,
+                    "instance_id": inst_id,
+                    "device_index": eni.device_index.unwrap_or(0),
+                    "status": eni.status,
+                });
+                results.push(ExtractedResource {
+                    name: att_id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_network_interface_sg_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsNetworkInterfaceSgAttachmentConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsNetworkInterfaceSgAttachmentConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNetworkInterfaceSgAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_network_interface_sg_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_network_interface", "aws_security_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNetworkInterfaceSgAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkInterfaceSgAttachmentTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_network_interface_sg_attachment", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(eni) = view.network_interfaces.get_mut(&model.network_interface_id) {
+            if !eni.security_groups.contains(&model.security_group_id) {
+                eni.security_groups.push(model.security_group_id.clone());
+            }
+        } else {
+            warnings.push(format!(
+                "network interface '{}' not found in state; sg attachment skipped",
+                model.network_interface_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for eni in view.network_interfaces.values() {
+            for sg_id in &eni.security_groups {
+                let id = format!("{}_{}", eni.network_interface_id, sg_id);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "network_interface_id": eni.network_interface_id,
+                    "security_group_id": sg_id,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_eip_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsEipAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEipAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEipAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_eip_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_eip", "aws_instance", "aws_network_interface"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEipAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::EipAssociationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_eip_association", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+
+        // Locate the EIP by allocation_id, falling back to public_ip.
+        let eip_key: Option<String> = if let Some(aid) = model.allocation_id.as_ref() {
+            view.elastic_ips.contains_key(aid).then(|| aid.clone())
+        } else if let Some(pip) = model.public_ip.as_ref() {
+            view.elastic_ips
+                .iter()
+                .find(|(_, eip)| eip.public_ip == *pip)
+                .map(|(k, _)| k.clone())
+        } else {
+            None
+        };
+
+        if let Some(key) = eip_key {
+            if let Some(eip) = view.elastic_ips.get_mut(&key) {
+                let association_id = model.id.clone().unwrap_or_else(|| {
+                    format!("eipassoc-{}", &uuid::Uuid::new_v4().to_string()[..17])
+                });
+                eip.association_id = Some(association_id);
+                eip.instance_id = model.instance_id.clone();
+                eip.network_interface_id = model.network_interface_id.clone();
+                eip.private_ip_address = model.private_ip_address.clone();
+            }
+        } else {
+            warnings.push(format!(
+                "eip not found in state for allocation_id={:?}/public_ip={:?}; association skipped",
+                model.allocation_id, model.public_ip
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for eip in view.elastic_ips.values() {
+            if let Some(assoc_id) = eip.association_id.as_ref() {
+                let attrs = serde_json::json!({
+                    "id": assoc_id,
+                    "allocation_id": eip.allocation_id,
+                    "instance_id": eip.instance_id,
+                    "network_interface_id": eip.network_interface_id,
+                    "private_ip_address": eip.private_ip_address,
+                    "public_ip": eip.public_ip,
+                    "allow_reassociation": false,
+                });
+                results.push(ExtractedResource {
+                    name: assoc_id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_internet_gateway_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsInternetGatewayAttachmentConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsInternetGatewayAttachmentConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsInternetGatewayAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_internet_gateway_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_internet_gateway", "aws_vpc"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsInternetGatewayAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::InternetGatewayAttachmentTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_internet_gateway_attachment", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(igw) = view.igws.get_mut(&model.internet_gateway_id) {
+            if !igw.attachments.iter().any(|a| a.vpc_id == model.vpc_id) {
+                igw.attachments.push(IgwAttachmentView {
+                    vpc_id: model.vpc_id.clone(),
+                    state: "available".to_string(),
+                });
+            }
+        } else {
+            warnings.push(format!(
+                "internet gateway '{}' not found in state; attachment skipped",
+                model.internet_gateway_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for igw in view.igws.values() {
+            for att in &igw.attachments {
+                let id = format!("{}:{}", igw.igw_id, att.vpc_id);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "internet_gateway_id": igw.igw_id,
+                    "vpc_id": att.vpc_id,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_flow_log
+// ---------------------------------------------------------------------------
+
+pub struct AwsFlowLogConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsFlowLogConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsFlowLogConverter {
+    fn resource_type(&self) -> &str {
+        "aws_flow_log"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsFlowLogConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::FlowLogTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_flow_log", e))?;
+
+        let flow_log_id = model
+            .id
+            .unwrap_or_else(|| format!("fl-{}", &uuid::Uuid::new_v4().to_string()[..17]));
+
+        // Pick the most specific resource id available; aws_flow_log applies
+        // to exactly one of vpc/subnet/eni/tgw/tgw_attachment.
+        let resource_id = model
+            .eni_id
+            .clone()
+            .or(model.subnet_id.clone())
+            .or(model.vpc_id.clone())
+            .or(model.transit_gateway_attachment_id.clone())
+            .or(model.transit_gateway_id.clone())
+            .unwrap_or_default();
+
+        let log_destination_type = model
+            .log_destination_type
+            .unwrap_or_else(|| "cloud-watch-logs".to_string());
+
+        let fl_view = FlowLogView {
+            flow_log_id: flow_log_id.clone(),
+            resource_id,
+            traffic_type: model.traffic_type.unwrap_or_else(|| "ALL".to_string()),
+            log_destination_type,
+            log_destination: model.log_destination,
+            log_group_name: model.log_group_name,
+            deliver_logs_status: "SUCCESS".to_string(),
+            flow_log_status: "ACTIVE".to_string(),
+            tags: extract_tags(attrs),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.flow_logs.insert(flow_log_id, fl_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for fl in view.flow_logs.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:vpc-flow-log/{}",
+                ctx.default_region, ctx.default_account_id, fl.flow_log_id
+            );
+            // Classify the resource_id by prefix so we can populate the right
+            // TF attribute (eni_id / subnet_id / vpc_id / transit_gateway_id).
+            let mut vpc_id = serde_json::Value::Null;
+            let mut subnet_id = serde_json::Value::Null;
+            let mut eni_id = serde_json::Value::Null;
+            let mut tgw_id = serde_json::Value::Null;
+            let mut tgw_attachment_id = serde_json::Value::Null;
+            if fl.resource_id.starts_with("vpc-") {
+                vpc_id = serde_json::Value::String(fl.resource_id.clone());
+            } else if fl.resource_id.starts_with("subnet-") {
+                subnet_id = serde_json::Value::String(fl.resource_id.clone());
+            } else if fl.resource_id.starts_with("eni-") {
+                eni_id = serde_json::Value::String(fl.resource_id.clone());
+            } else if fl.resource_id.starts_with("tgw-attach-") {
+                tgw_attachment_id = serde_json::Value::String(fl.resource_id.clone());
+            } else if fl.resource_id.starts_with("tgw-") {
+                tgw_id = serde_json::Value::String(fl.resource_id.clone());
+            }
+            let attrs = serde_json::json!({
+                "id": fl.flow_log_id,
+                "arn": arn,
+                "traffic_type": fl.traffic_type,
+                "log_destination_type": fl.log_destination_type,
+                "log_destination": fl.log_destination,
+                "log_group_name": fl.log_group_name,
+                "vpc_id": vpc_id,
+                "subnet_id": subnet_id,
+                "eni_id": eni_id,
+                "transit_gateway_id": tgw_id,
+                "transit_gateway_attachment_id": tgw_attachment_id,
+                "tags": fl.tags,
+                "tags_all": fl.tags,
+            });
+            results.push(ExtractedResource {
+                name: fl.flow_log_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_dhcp_options
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcDhcpOptionsConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcDhcpOptionsConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcDhcpOptionsConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_dhcp_options"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcDhcpOptionsConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcDhcpOptionsTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_dhcp_options", e))?;
+
+        let dhcp_options_id = model
+            .id
+            .unwrap_or_else(|| format!("dopt-{}", &uuid::Uuid::new_v4().to_string()[..17]));
+
+        let mut configurations = vec![];
+        if let Some(s) = model.domain_name.filter(|s| !s.is_empty()) {
+            configurations.push(winterbaume_ec2::views::DhcpConfigurationView {
+                key: "domain-name".to_string(),
+                values: vec![s],
+            });
+        }
+        for (tf_key, view_key) in [
+            ("domain_name_servers", "domain-name-servers"),
+            ("ntp_servers", "ntp-servers"),
+            ("netbios_name_servers", "netbios-name-servers"),
+        ] {
+            let values = parse_string_array(attrs, tf_key);
+            if !values.is_empty() {
+                configurations.push(winterbaume_ec2::views::DhcpConfigurationView {
+                    key: view_key.to_string(),
+                    values,
+                });
+            }
+        }
+        if let Some(s) = model.netbios_node_type.filter(|s| !s.is_empty()) {
+            configurations.push(winterbaume_ec2::views::DhcpConfigurationView {
+                key: "netbios-node-type".to_string(),
+                values: vec![s],
+            });
+        }
+        if let Some(s) = model
+            .ipv6_address_preferred_lease_time
+            .filter(|s| !s.is_empty())
+        {
+            configurations.push(winterbaume_ec2::views::DhcpConfigurationView {
+                key: "ipv6-address-preferred-lease-time".to_string(),
+                values: vec![s],
+            });
+        }
+
+        let dhcp_view = DhcpOptionsView {
+            dhcp_options_id: dhcp_options_id.clone(),
+            configurations,
+            tags: extract_tags(attrs),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.dhcp_options.insert(dhcp_options_id, dhcp_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for dopt in view.dhcp_options.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:dhcp-options/{}",
+                ctx.default_region, ctx.default_account_id, dopt.dhcp_options_id
+            );
+            let mut domain_name = String::new();
+            let mut domain_name_servers: Vec<String> = vec![];
+            let mut ntp_servers: Vec<String> = vec![];
+            let mut netbios_name_servers: Vec<String> = vec![];
+            let mut netbios_node_type = String::new();
+            let mut ipv6_lease = String::new();
+            for cfg in &dopt.configurations {
+                match cfg.key.as_str() {
+                    "domain-name" => domain_name = cfg.values.first().cloned().unwrap_or_default(),
+                    "domain-name-servers" => domain_name_servers = cfg.values.clone(),
+                    "ntp-servers" => ntp_servers = cfg.values.clone(),
+                    "netbios-name-servers" => netbios_name_servers = cfg.values.clone(),
+                    "netbios-node-type" => {
+                        netbios_node_type = cfg.values.first().cloned().unwrap_or_default();
+                    }
+                    "ipv6-address-preferred-lease-time" => {
+                        ipv6_lease = cfg.values.first().cloned().unwrap_or_default();
+                    }
+                    _ => {}
+                }
+            }
+            let attrs = serde_json::json!({
+                "id": dopt.dhcp_options_id,
+                "arn": arn,
+                "domain_name": domain_name,
+                "domain_name_servers": domain_name_servers,
+                "ntp_servers": ntp_servers,
+                "netbios_name_servers": netbios_name_servers,
+                "netbios_node_type": netbios_node_type,
+                "ipv6_address_preferred_lease_time": ipv6_lease,
+                "owner_id": ctx.default_account_id,
+                "tags": dopt.tags,
+                "tags_all": dopt.tags,
+            });
+            results.push(ExtractedResource {
+                name: dopt.dhcp_options_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_dhcp_options_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcDhcpOptionsAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcDhcpOptionsAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcDhcpOptionsAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_dhcp_options_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc", "aws_vpc_dhcp_options"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcDhcpOptionsAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcDhcpOptionsAssociationTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_vpc_dhcp_options_association", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(vpc) = view.vpcs.get_mut(&model.vpc_id) {
+            vpc.dhcp_options_id = model.dhcp_options_id.clone();
+        } else {
+            warnings.push(format!(
+                "vpc '{}' not found in state; dhcp options association skipped",
+                model.vpc_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for vpc in view.vpcs.values() {
+            // Filter out the implicit "dopt-default" baseline.
+            if vpc.dhcp_options_id.is_empty() || vpc.dhcp_options_id == "dopt-default" {
+                continue;
+            }
+            let id = format!("dopt-assoc-{}-{}", vpc.dhcp_options_id, vpc.vpc_id);
+            let attrs = serde_json::json!({
+                "id": id,
+                "dhcp_options_id": vpc.dhcp_options_id,
+                "vpc_id": vpc.vpc_id,
+            });
+            results.push(ExtractedResource {
+                name: id,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_security_group_rule (legacy single-rule resource)
+// ---------------------------------------------------------------------------
+
+pub struct AwsSecurityGroupRuleConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsSecurityGroupRuleConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSecurityGroupRuleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_security_group_rule"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_security_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSecurityGroupRuleConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::SecurityGroupRuleTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_security_group_rule", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+
+        let cidr_blocks: Vec<IpRangeView> = parse_string_array(attrs, "cidr_blocks")
+            .into_iter()
+            .map(|s| IpRangeView {
+                cidr_ip: s,
+                description: model.description.clone(),
+            })
+            .collect();
+        let ipv6_cidr_blocks: Vec<Ipv6RangeView> = parse_string_array(attrs, "ipv6_cidr_blocks")
+            .into_iter()
+            .map(|s| Ipv6RangeView {
+                cidr_ipv6: s,
+                description: model.description.clone(),
+            })
+            .collect();
+        let mut sg_refs: Vec<UserIdGroupPairView> =
+            parse_string_array(attrs, "source_security_group_ids")
+                .into_iter()
+                .map(|gid| UserIdGroupPairView {
+                    group_id: gid,
+                    user_id: None,
+                })
+                .collect();
+        if let Some(gid) = model.source_security_group_id.as_ref() {
+            if !gid.is_empty() && !sg_refs.iter().any(|p| p.group_id == *gid) {
+                sg_refs.push(UserIdGroupPairView {
+                    group_id: gid.clone(),
+                    user_id: None,
+                });
+            }
+        }
+        if model.self_
+            && !sg_refs
+                .iter()
+                .any(|p| p.group_id == model.security_group_id)
+        {
+            sg_refs.push(UserIdGroupPairView {
+                group_id: model.security_group_id.clone(),
+                user_id: None,
+            });
+        }
+
+        let from_port = if model.from_port == 0 && model.to_port == 0 && model.protocol == "-1" {
+            None
+        } else {
+            Some(model.from_port)
+        };
+        let to_port = if model.from_port == 0 && model.to_port == 0 && model.protocol == "-1" {
+            None
+        } else {
+            Some(model.to_port)
+        };
+
+        let permission = IpPermissionView {
+            from_port,
+            to_port,
+            ip_protocol: model.protocol.clone(),
+            ip_ranges: cidr_blocks,
+            ipv6_ranges: ipv6_cidr_blocks,
+            user_id_group_pairs: sg_refs,
+        };
+
+        if let Some(sg) = view.security_groups.get_mut(&model.security_group_id) {
+            match model.rule_type.as_str() {
+                "ingress" => sg.ingress_rules.push(permission),
+                "egress" => sg.egress_rules.push(permission),
+                other => warnings.push(format!(
+                    "aws_security_group_rule: unknown type '{other}'; ignored"
+                )),
+            }
+        } else {
+            warnings.push(format!(
+                "security group '{}' not found in state; rule skipped",
+                model.security_group_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Rules are already extracted inline with their parent aws_security_group;
+        // emitting them again as discrete aws_security_group_rule rows would
+        // produce duplicate state on a round-trip. Leave empty.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_security_group_ingress_rule
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcSecurityGroupIngressRuleConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcSecurityGroupIngressRuleConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcSecurityGroupIngressRuleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_security_group_ingress_rule"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_security_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx, false).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_security_group_egress_rule
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcSecurityGroupEgressRuleConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcSecurityGroupEgressRuleConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcSecurityGroupEgressRuleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_security_group_egress_rule"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_security_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            AwsVpcSecurityGroupIngressRuleConverter {
+                service: Arc::clone(&self.service),
+            }
+            .do_inject(instance, ctx, true)
+            .await
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcSecurityGroupIngressRuleConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+        egress: bool,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let resource_label = if egress {
+            "aws_vpc_security_group_egress_rule"
+        } else {
+            "aws_vpc_security_group_ingress_rule"
+        };
+        // Both ingress/egress models share the same field set.
+        let model: ec2_gen::VpcSecurityGroupIngressRuleTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error(resource_label, e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+
+        let mut ip_ranges = vec![];
+        if let Some(cidr) = model.cidr_ipv4.as_ref() {
+            ip_ranges.push(IpRangeView {
+                cidr_ip: cidr.clone(),
+                description: model.description.clone(),
+            });
+        }
+        let mut ipv6_ranges = vec![];
+        if let Some(cidr) = model.cidr_ipv6.as_ref() {
+            ipv6_ranges.push(Ipv6RangeView {
+                cidr_ipv6: cidr.clone(),
+                description: model.description.clone(),
+            });
+        }
+        let mut sg_refs = vec![];
+        if let Some(gid) = model.referenced_security_group_id.as_ref() {
+            sg_refs.push(UserIdGroupPairView {
+                group_id: gid.clone(),
+                user_id: None,
+            });
+        }
+
+        let from_port = if model.from_port == 0 && model.to_port == 0 && model.ip_protocol == "-1" {
+            None
+        } else {
+            Some(model.from_port)
+        };
+        let to_port = if model.from_port == 0 && model.to_port == 0 && model.ip_protocol == "-1" {
+            None
+        } else {
+            Some(model.to_port)
+        };
+
+        let permission = IpPermissionView {
+            from_port,
+            to_port,
+            ip_protocol: model.ip_protocol.clone(),
+            ip_ranges,
+            ipv6_ranges,
+            user_id_group_pairs: sg_refs,
+        };
+
+        if let Some(sg) = view.security_groups.get_mut(&model.security_group_id) {
+            if egress {
+                sg.egress_rules.push(permission);
+            } else {
+                sg.ingress_rules.push(permission);
+            }
+        } else {
+            warnings.push(format!(
+                "security group '{}' not found in state; rule skipped",
+                model.security_group_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_security_group_vpc_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcSecurityGroupVpcAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcSecurityGroupVpcAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcSecurityGroupVpcAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_security_group_vpc_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_security_group", "aws_vpc"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcSecurityGroupVpcAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcSecurityGroupVpcAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_security_group_vpc_association", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let already = view
+            .security_group_vpc_associations
+            .iter()
+            .any(|a| a.group_id == model.security_group_id && a.vpc_id == model.vpc_id);
+        if !already {
+            view.security_group_vpc_associations
+                .push(SecurityGroupVpcAssociationView {
+                    group_id: model.security_group_id.clone(),
+                    vpc_id: model.vpc_id.clone(),
+                    vpc_owner_id: ctx.default_account_id.clone(),
+                    state: model
+                        .state
+                        .clone()
+                        .unwrap_or_else(|| "associated".to_string()),
+                });
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for assoc in &view.security_group_vpc_associations {
+            let id = format!("{}_{}", assoc.group_id, assoc.vpc_id);
+            let attrs = serde_json::json!({
+                "id": id,
+                "security_group_id": assoc.group_id,
+                "vpc_id": assoc.vpc_id,
+                "state": assoc.state,
+            });
+            results.push(ExtractedResource {
+                name: id,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_eip_domain_name
+// ---------------------------------------------------------------------------
+
+pub struct AwsEipDomainNameConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEipDomainNameConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEipDomainNameConverter {
+    fn resource_type(&self) -> &str {
+        "aws_eip_domain_name"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_eip"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEipDomainNameConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::EipDomainNameTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_eip_domain_name", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(eip) = view.elastic_ips.get_mut(&model.allocation_id) {
+            eip.address_attribute_ptr_record =
+                Some(model.ptr_record.clone().unwrap_or_else(|| {
+                    let mut s = model.domain_name.clone();
+                    if !s.ends_with('.') {
+                        s.push('.');
+                    }
+                    s
+                }));
+        } else {
+            warnings.push(format!(
+                "eip '{}' not found in state; domain name skipped",
+                model.allocation_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for eip in view.elastic_ips.values() {
+            if let Some(ptr) = eip.address_attribute_ptr_record.as_ref() {
+                if ptr.is_empty() {
+                    continue;
+                }
+                let domain_name = ptr.trim_end_matches('.').to_string();
+                let attrs = serde_json::json!({
+                    "id": eip.allocation_id,
+                    "allocation_id": eip.allocation_id,
+                    "domain_name": domain_name,
+                    "ptr_record": ptr,
+                });
+                results.push(ExtractedResource {
+                    name: eip.allocation_id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_main_route_table_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsMainRouteTableAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsMainRouteTableAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsMainRouteTableAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_main_route_table_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc", "aws_route_table"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsMainRouteTableAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::MainRouteTableAssociationTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_main_route_table_association", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+
+        // Clear `main` from any other route tables in this VPC, then set on
+        // the target one. Each RT can have only one association, so we use the
+        // existing associations list (or push a new one if empty).
+        for rt in view.route_tables.values_mut() {
+            if rt.vpc_id != model.vpc_id {
+                continue;
+            }
+            for assoc in rt.associations.iter_mut() {
+                if assoc.main {
+                    assoc.main = false;
+                }
+            }
+        }
+        let assoc_id = model
+            .id
+            .clone()
+            .unwrap_or_else(|| random_short_id("rtbassoc"));
+        if let Some(rt) = view.route_tables.get_mut(&model.route_table_id) {
+            if let Some(existing) = rt.associations.iter_mut().find(|a| a.subnet_id.is_none()) {
+                existing.main = true;
+                existing.association_id = assoc_id;
+            } else {
+                rt.associations.push(RouteTableAssociationView {
+                    association_id: assoc_id,
+                    subnet_id: None,
+                    main: true,
+                    state: "associated".to_string(),
+                });
+            }
+        } else {
+            warnings.push(format!(
+                "route table '{}' not found in state; main association skipped",
+                model.route_table_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for rt in view.route_tables.values() {
+            for assoc in &rt.associations {
+                if assoc.main {
+                    let attrs = serde_json::json!({
+                        "id": assoc.association_id,
+                        "vpc_id": rt.vpc_id,
+                        "route_table_id": rt.route_table_id,
+                    });
+                    results.push(ExtractedResource {
+                        name: assoc.association_id.clone(),
+                        account_id: ctx.default_account_id.clone(),
+                        region: ctx.default_region.clone(),
+                        attributes: attrs,
+                    });
+                }
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_route_table_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsRouteTableAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsRouteTableAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRouteTableAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_route_table_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_route_table", "aws_subnet", "aws_internet_gateway"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRouteTableAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::RouteTableAssociationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_route_table_association", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+
+        let assoc_id = model
+            .id
+            .clone()
+            .unwrap_or_else(|| random_short_id("rtbassoc"));
+        if let Some(rt) = view.route_tables.get_mut(&model.route_table_id) {
+            // The view doesn't track gateway_id on RouteTableAssociationView, so
+            // gateway-side associations are recorded as a subnet-less entry.
+            let already = rt
+                .associations
+                .iter()
+                .any(|a| a.subnet_id == model.subnet_id && !a.main);
+            if !already {
+                rt.associations.push(RouteTableAssociationView {
+                    association_id: assoc_id,
+                    subnet_id: model.subnet_id.clone(),
+                    main: false,
+                    state: "associated".to_string(),
+                });
+            }
+        } else {
+            warnings.push(format!(
+                "route table '{}' not found in state; association skipped",
+                model.route_table_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for rt in view.route_tables.values() {
+            for assoc in &rt.associations {
+                if assoc.main {
+                    continue;
+                }
+                let attrs = serde_json::json!({
+                    "id": assoc.association_id,
+                    "route_table_id": rt.route_table_id,
+                    "subnet_id": assoc.subnet_id,
+                });
+                results.push(ExtractedResource {
+                    name: assoc.association_id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_network_acl_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsNetworkAclAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsNetworkAclAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNetworkAclAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_network_acl_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_network_acl", "aws_subnet"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNetworkAclAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::NetworkAclAssociationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_network_acl_association", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+
+        let assoc_id = model
+            .id
+            .clone()
+            .unwrap_or_else(|| random_short_id("aclassoc"));
+
+        if let Some(nacl) = view.network_acls.get_mut(&model.network_acl_id) {
+            let already = nacl
+                .associations
+                .iter()
+                .any(|a| a.subnet_id == model.subnet_id);
+            if !already {
+                nacl.associations.push(NetworkAclAssociationView {
+                    network_acl_association_id: assoc_id,
+                    network_acl_id: model.network_acl_id.clone(),
+                    subnet_id: model.subnet_id.clone(),
+                });
+            }
+        } else {
+            warnings.push(format!(
+                "network acl '{}' not found in state; association skipped",
+                model.network_acl_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for nacl in view.network_acls.values() {
+            for assoc in &nacl.associations {
+                let attrs = serde_json::json!({
+                    "id": assoc.network_acl_association_id,
+                    "network_acl_id": assoc.network_acl_id,
+                    "subnet_id": assoc.subnet_id,
+                });
+                results.push(ExtractedResource {
+                    name: assoc.network_acl_association_id.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpn_gateway_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpnGatewayAttachmentConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpnGatewayAttachmentConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpnGatewayAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpn_gateway_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpn_gateway", "aws_vpc"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpnGatewayAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpnGatewayAttachmentTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpn_gateway_attachment", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(vgw) = view.vpn_gateways.get_mut(&model.vpn_gateway_id) {
+            if !vgw.vpc_attachments.iter().any(|a| a.vpc_id == model.vpc_id) {
+                vgw.vpc_attachments.push(VgwVpcAttachmentView {
+                    vpc_id: model.vpc_id.clone(),
+                    state: "attached".to_string(),
+                });
+            }
+        } else {
+            warnings.push(format!(
+                "vpn gateway '{}' not found in state; attachment skipped",
+                model.vpn_gateway_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for vgw in view.vpn_gateways.values() {
+            for att in &vgw.vpc_attachments {
+                let id = format!("{}:{}", vgw.vpn_gateway_id, att.vpc_id);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "vpn_gateway_id": vgw.vpn_gateway_id,
+                    "vpc_id": att.vpc_id,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ami
+// ---------------------------------------------------------------------------
+
+pub struct AwsAmiConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsAmiConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAmiConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ami"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAmiConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::AmiTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ami", e))?;
+
+        let image_id = model
+            .id
+            .unwrap_or_else(|| format!("ami-{}", &uuid::Uuid::new_v4().to_string()[..17]));
+
+        let image_view = ImageView {
+            image_id: image_id.clone(),
+            name: model.name,
+            description: model.description.unwrap_or_default(),
+            state: "available".to_string(),
+            owner_id: ctx.default_account_id.clone(),
+            architecture: model.architecture.unwrap_or_else(|| "x86_64".to_string()),
+            image_type: "machine".to_string(),
+            platform: None,
+            virtualization_type: model
+                .virtualization_type
+                .unwrap_or_else(|| "hvm".to_string()),
+            root_device_type: "ebs".to_string(),
+            root_device_name: model
+                .root_device_name
+                .unwrap_or_else(|| "/dev/xvda".to_string()),
+            public: model.public_,
+            tags: extract_tags(attrs),
+            source_instance_id: None,
+            source_instance_type: String::new(),
+            launch_permissions: vec![],
+            recycle_bin_state: None,
+            deprecation_time: model.deprecation_time,
+            recycle_bin_enter_time: None,
+            product_codes: vec![],
+            fast_launch_state: None,
+            deregistration_protection: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.images.insert(image_id, image_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for image in view.images.values() {
+            // Only emit images that are not the product of an instance/copy,
+            // to roughly match the aws_ami resource (vs aws_ami_copy /
+            // aws_ami_from_instance). Source-less images are aws_ami.
+            if image.source_instance_id.is_some() {
+                continue;
+            }
+            let arn = format!(
+                "arn:aws:ec2:{}::image/{}",
+                ctx.default_region, image.image_id
+            );
+            let attrs = serde_json::json!({
+                "id": image.image_id,
+                "arn": arn,
+                "name": image.name,
+                "description": image.description,
+                "architecture": image.architecture,
+                "virtualization_type": image.virtualization_type,
+                "root_device_name": image.root_device_name,
+                "public": image.public,
+                "owner_id": image.owner_id,
+                "platform": image.platform,
+                "deprecation_time": image.deprecation_time,
+                "tags": image.tags,
+                "tags_all": image.tags,
+            });
+            results.push(ExtractedResource {
+                name: image.image_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ami_copy
+// ---------------------------------------------------------------------------
+
+pub struct AwsAmiCopyConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsAmiCopyConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAmiCopyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ami_copy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Copies are indistinguishable from aws_ami in the view; aws_ami's
+        // extract emits them. Skip here to avoid duplication.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAmiCopyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::AmiCopyTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ami_copy", e))?;
+
+        let image_id = model
+            .id
+            .unwrap_or_else(|| format!("ami-{}", &uuid::Uuid::new_v4().to_string()[..17]));
+
+        let image_view = ImageView {
+            image_id: image_id.clone(),
+            name: model.name,
+            description: model.description.unwrap_or_default(),
+            state: "available".to_string(),
+            owner_id: ctx.default_account_id.clone(),
+            architecture: "x86_64".to_string(),
+            image_type: "machine".to_string(),
+            platform: None,
+            virtualization_type: "hvm".to_string(),
+            root_device_type: "ebs".to_string(),
+            root_device_name: "/dev/xvda".to_string(),
+            public: false,
+            tags: extract_tags(attrs),
+            source_instance_id: None,
+            source_instance_type: String::new(),
+            launch_permissions: vec![],
+            recycle_bin_state: None,
+            deprecation_time: model.deprecation_time,
+            recycle_bin_enter_time: None,
+            product_codes: vec![],
+            fast_launch_state: None,
+            deregistration_protection: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.images.insert(image_id, image_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ami_from_instance
+// ---------------------------------------------------------------------------
+
+pub struct AwsAmiFromInstanceConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsAmiFromInstanceConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAmiFromInstanceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ami_from_instance"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_instance"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAmiFromInstanceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::AmiFromInstanceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ami_from_instance", e))?;
+
+        let image_id = model
+            .id
+            .unwrap_or_else(|| format!("ami-{}", &uuid::Uuid::new_v4().to_string()[..17]));
+
+        // Pull source instance properties from state so the AMI inherits
+        // architecture / instance_type sensibly.
+        let snap = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let source = snap.instances.get(&model.source_instance_id);
+
+        let image_view = ImageView {
+            image_id: image_id.clone(),
+            name: model.name,
+            description: model.description.unwrap_or_default(),
+            state: "available".to_string(),
+            owner_id: ctx.default_account_id.clone(),
+            architecture: "x86_64".to_string(),
+            image_type: "machine".to_string(),
+            platform: None,
+            virtualization_type: "hvm".to_string(),
+            root_device_type: "ebs".to_string(),
+            root_device_name: "/dev/xvda".to_string(),
+            public: false,
+            tags: extract_tags(attrs),
+            source_instance_id: Some(model.source_instance_id.clone()),
+            source_instance_type: source.map(|i| i.instance_type.clone()).unwrap_or_default(),
+            launch_permissions: vec![],
+            recycle_bin_state: None,
+            deprecation_time: model.deprecation_time,
+            recycle_bin_enter_time: None,
+            product_codes: vec![],
+            fast_launch_state: None,
+            deregistration_protection: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.images.insert(image_id, image_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for image in view.images.values() {
+            let Some(src) = image.source_instance_id.as_ref() else {
+                continue;
+            };
+            let arn = format!(
+                "arn:aws:ec2:{}::image/{}",
+                ctx.default_region, image.image_id
+            );
+            let attrs = serde_json::json!({
+                "id": image.image_id,
+                "arn": arn,
+                "name": image.name,
+                "description": image.description,
+                "source_instance_id": src,
+                "deprecation_time": image.deprecation_time,
+                "tags": image.tags,
+                "tags_all": image.tags,
+            });
+            results.push(ExtractedResource {
+                name: image.image_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ami_launch_permission
+// ---------------------------------------------------------------------------
+
+pub struct AwsAmiLaunchPermissionConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsAmiLaunchPermissionConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAmiLaunchPermissionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ami_launch_permission"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ami", "aws_ami_copy", "aws_ami_from_instance"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAmiLaunchPermissionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::AmiLaunchPermissionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ami_launch_permission", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(image) = view.images.get_mut(&model.image_id) {
+            let perm = LaunchPermissionView {
+                user_id: model.account_id.clone(),
+                group: model.group.clone(),
+            };
+            let already = image
+                .launch_permissions
+                .iter()
+                .any(|p| p.user_id == perm.user_id && p.group == perm.group);
+            if !already {
+                image.launch_permissions.push(perm);
+            }
+        } else {
+            warnings.push(format!(
+                "image '{}' not found in state; launch permission skipped",
+                model.image_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for image in view.images.values() {
+            for perm in &image.launch_permissions {
+                // Terraform-style composite id: "<account_or_group>-<image_id>"
+                let key = perm
+                    .user_id
+                    .clone()
+                    .or_else(|| perm.group.clone())
+                    .unwrap_or_default();
+                let id = format!("{}-{}", key, image.image_id);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "image_id": image.image_id,
+                    "account_id": perm.user_id,
+                    "group": perm.group,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcEndpointConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_endpoint", e))?;
+
+        let endpoint_id = model.id.unwrap_or_else(|| random_short_id("vpce"));
+        let tags = extract_tags(attrs);
+
+        let subnet_ids = parse_string_array(attrs, "subnet_ids");
+        let route_table_ids = parse_string_array(attrs, "route_table_ids");
+        let security_group_ids = parse_string_array(attrs, "security_group_ids");
+
+        let endpoint = VpcEndpointView {
+            endpoint_id: endpoint_id.clone(),
+            vpc_id: model.vpc_id,
+            service_name: model.service_name,
+            endpoint_type: model
+                .vpc_endpoint_type
+                .unwrap_or_else(|| "Gateway".to_string()),
+            state: model.state.unwrap_or_else(|| "available".to_string()),
+            policy_document: model.policy,
+            route_table_ids,
+            subnet_ids,
+            security_group_ids,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.vpc_endpoints.insert(endpoint_id, endpoint);
+        let mut warnings = vec![];
+        if model.private_dns_enabled {
+            warnings.push(
+                "aws_vpc_endpoint: private_dns_enabled not modelled in VpcEndpointView state; \
+                 field ignored"
+                    .to_string(),
+            );
+        }
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ep in view.vpc_endpoints.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:vpc-endpoint/{}",
+                ctx.default_region, ctx.default_account_id, ep.endpoint_id
+            );
+            let attrs = serde_json::json!({
+                "id": ep.endpoint_id,
+                "arn": arn,
+                "vpc_id": ep.vpc_id,
+                "service_name": ep.service_name,
+                "vpc_endpoint_type": ep.endpoint_type,
+                "state": ep.state,
+                "policy": ep.policy_document,
+                "route_table_ids": ep.route_table_ids,
+                "subnet_ids": ep.subnet_ids,
+                "security_group_ids": ep.security_group_ids,
+                "private_dns_enabled": false,
+                "auto_accept": false,
+                "owner_id": ctx.default_account_id,
+                "tags": ep.tags,
+                "tags_all": ep.tags,
+            });
+            results.push(ExtractedResource {
+                name: ep.endpoint_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_service
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointServiceConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointServiceConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointServiceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_service"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcEndpointServiceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointServiceTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_endpoint_service", e))?;
+
+        let service_id = model.id.unwrap_or_else(|| random_short_id("vpce-svc"));
+        let nlb_arns = parse_string_array(attrs, "network_load_balancer_arns");
+        let gwlb_arns = parse_string_array(attrs, "gateway_load_balancer_arns");
+        let allowed_principals = parse_string_array(attrs, "allowed_principals");
+        let tags = extract_tags(attrs);
+
+        let service_name = format!("com.amazonaws.vpce.{}.{}", region, service_id);
+
+        let svc = VpcEndpointServiceConfigView {
+            service_id: service_id.clone(),
+            service_name,
+            service_type: model
+                .service_type
+                .unwrap_or_else(|| "Interface".to_string()),
+            acceptance_required: model.acceptance_required,
+            state: model.state.unwrap_or_else(|| "Available".to_string()),
+            network_load_balancer_arns: nlb_arns,
+            gateway_load_balancer_arns: gwlb_arns,
+            allowed_principals,
+            tags,
+            payer_responsibility: model.payer_responsibility,
+            private_dns_state: model
+                .private_dns_name
+                .as_ref()
+                .map(|_| "pendingVerification".to_string()),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view
+            .vpc_endpoint_service_configs
+            .insert(service_id, svc);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for svc in view.vpc_endpoint_service_configs.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:vpc-endpoint-service/{}",
+                ctx.default_region, ctx.default_account_id, svc.service_id
+            );
+            let attrs = serde_json::json!({
+                "id": svc.service_id,
+                "arn": arn,
+                "service_name": svc.service_name,
+                "service_type": svc.service_type,
+                "state": svc.state,
+                "acceptance_required": svc.acceptance_required,
+                "network_load_balancer_arns": svc.network_load_balancer_arns,
+                "gateway_load_balancer_arns": svc.gateway_load_balancer_arns,
+                "allowed_principals": svc.allowed_principals,
+                "payer_responsibility": svc.payer_responsibility,
+                "tags": svc.tags,
+                "tags_all": svc.tags,
+            });
+            results.push(ExtractedResource {
+                name: svc.service_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_service_allowed_principal
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointServiceAllowedPrincipalConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointServiceAllowedPrincipalConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointServiceAllowedPrincipalConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_service_allowed_principal"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_endpoint_service"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Allowed principals are emitted as part of aws_vpc_endpoint_service.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcEndpointServiceAllowedPrincipalConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointServiceAllowedPrincipalTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_endpoint_service_allowed_principal", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(svc) = view
+            .vpc_endpoint_service_configs
+            .get_mut(&model.vpc_endpoint_service_id)
+        {
+            if !svc.allowed_principals.contains(&model.principal_arn) {
+                svc.allowed_principals.push(model.principal_arn);
+            }
+        } else {
+            warnings.push(format!(
+                "vpc endpoint service '{}' not found in state; allowed principal skipped",
+                model.vpc_endpoint_service_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_service_private_dns_verification
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointServicePrivateDnsVerificationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointServicePrivateDnsVerificationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointServicePrivateDnsVerificationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_service_private_dns_verification"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_endpoint_service"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Verification state is part of the service config; no standalone extract.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcEndpointServicePrivateDnsVerificationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointServicePrivateDnsVerificationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_endpoint_service_private_dns_verification", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(svc) = view.vpc_endpoint_service_configs.get_mut(&model.service_id) {
+            svc.private_dns_state = Some("verified".to_string());
+        } else {
+            warnings.push(format!(
+                "vpc endpoint service '{}' not found in state; private DNS verification skipped",
+                model.service_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_subnet_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointSubnetAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointSubnetAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointSubnetAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_subnet_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_endpoint", "aws_subnet"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Subnet associations are emitted as part of aws_vpc_endpoint.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcEndpointSubnetAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointSubnetAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_endpoint_subnet_association", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(ep) = view.vpc_endpoints.get_mut(&model.vpc_endpoint_id) {
+            if !ep.subnet_ids.contains(&model.subnet_id) {
+                ep.subnet_ids.push(model.subnet_id);
+            }
+        } else {
+            warnings.push(format!(
+                "vpc endpoint '{}' not found in state; subnet association skipped",
+                model.vpc_endpoint_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_route_table_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointRouteTableAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointRouteTableAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointRouteTableAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_route_table_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_endpoint", "aws_route_table"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Route table associations are emitted as part of aws_vpc_endpoint.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcEndpointRouteTableAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointRouteTableAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_endpoint_route_table_association", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(ep) = view.vpc_endpoints.get_mut(&model.vpc_endpoint_id) {
+            if !ep.route_table_ids.contains(&model.route_table_id) {
+                ep.route_table_ids.push(model.route_table_id);
+            }
+        } else {
+            warnings.push(format!(
+                "vpc endpoint '{}' not found in state; route table association skipped",
+                model.vpc_endpoint_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_security_group_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointSecurityGroupAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointSecurityGroupAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointSecurityGroupAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_security_group_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_endpoint", "aws_security_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Security group associations are emitted as part of aws_vpc_endpoint.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcEndpointSecurityGroupAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointSecurityGroupAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_endpoint_security_group_association", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(ep) = view.vpc_endpoints.get_mut(&model.vpc_endpoint_id) {
+            if !ep.security_group_ids.contains(&model.security_group_id) {
+                ep.security_group_ids.push(model.security_group_id);
+            }
+        } else {
+            warnings.push(format!(
+                "vpc endpoint '{}' not found in state; sg association skipped",
+                model.vpc_endpoint_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_connection_accepter
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointConnectionAccepterConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointConnectionAccepterConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointConnectionAccepterConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_connection_accepter"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_endpoint", "aws_vpc_endpoint_service"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcEndpointConnectionAccepterConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointConnectionAccepterTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_endpoint_connection_accepter", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+
+        let target_state = model
+            .vpc_endpoint_state
+            .unwrap_or_else(|| "available".to_string());
+
+        let existing = view.vpc_endpoint_connections.iter_mut().find(|c| {
+            c.service_id == model.vpc_endpoint_service_id
+                && c.vpc_endpoint_id == model.vpc_endpoint_id
+        });
+        if let Some(conn) = existing {
+            conn.vpc_endpoint_state = target_state.clone();
+        } else {
+            view.vpc_endpoint_connections
+                .push(VpcEndpointConnectionView {
+                    service_id: model.vpc_endpoint_service_id.clone(),
+                    vpc_endpoint_id: model.vpc_endpoint_id.clone(),
+                    vpc_endpoint_owner: ctx.default_account_id.clone(),
+                    vpc_endpoint_state: target_state,
+                    creation_timestamp: String::new(),
+                });
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for conn in &view.vpc_endpoint_connections {
+            let id = format!("{}_{}", conn.service_id, conn.vpc_endpoint_id);
+            let attrs = serde_json::json!({
+                "id": id,
+                "vpc_endpoint_service_id": conn.service_id,
+                "vpc_endpoint_id": conn.vpc_endpoint_id,
+                "vpc_endpoint_state": conn.vpc_endpoint_state,
+            });
+            results.push(ExtractedResource {
+                name: id,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_connection_notification
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointConnectionNotificationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointConnectionNotificationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointConnectionNotificationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_connection_notification"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcEndpointConnectionNotificationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointConnectionNotificationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_endpoint_connection_notification", e)
+            })?;
+
+        let notif_id = model.id.unwrap_or_else(|| random_short_id("vpce-cn"));
+        let events = parse_string_array(attrs, "connection_events");
+
+        let notif = VpcEndpointConnectionNotificationView {
+            connection_notification_id: notif_id.clone(),
+            connection_notification_arn: model.connection_notification_arn,
+            connection_events: events,
+            connection_notification_state: model.state.unwrap_or_else(|| "Enabled".to_string()),
+            connection_notification_type: model
+                .notification_type
+                .unwrap_or_else(|| "Topic".to_string()),
+            service_id: model.vpc_endpoint_service_id,
+            vpc_endpoint_id: model.vpc_endpoint_id,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view
+            .vpc_endpoint_connection_notifications
+            .insert(notif_id, notif);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for notif in view.vpc_endpoint_connection_notifications.values() {
+            let attrs = serde_json::json!({
+                "id": notif.connection_notification_id,
+                "connection_notification_arn": notif.connection_notification_arn,
+                "connection_events": notif.connection_events,
+                "state": notif.connection_notification_state,
+                "notification_type": notif.connection_notification_type,
+                "vpc_endpoint_service_id": notif.service_id,
+                "vpc_endpoint_id": notif.vpc_endpoint_id,
+            });
+            results.push(ExtractedResource {
+                name: notif.connection_notification_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_policy
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointPolicyConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointPolicyConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointPolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_policy"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_endpoint"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Policy is emitted as part of aws_vpc_endpoint.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcEndpointPolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointPolicyTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_endpoint_policy", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(ep) = view.vpc_endpoints.get_mut(&model.vpc_endpoint_id) {
+            ep.policy_document = model.policy;
+        } else {
+            warnings.push(format!(
+                "vpc endpoint '{}' not found in state; policy override skipped",
+                model.vpc_endpoint_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_endpoint_private_dns
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcEndpointPrivateDnsConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcEndpointPrivateDnsConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcEndpointPrivateDnsConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_endpoint_private_dns"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_endpoint"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // private_dns_enabled is not modelled in the VpcEndpointView; nothing
+        // to emit here.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcEndpointPrivateDnsConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcEndpointPrivateDnsTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_endpoint_private_dns", e))?;
+
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if !view.vpc_endpoints.contains_key(&model.vpc_endpoint_id) {
+            warnings.push(format!(
+                "vpc endpoint '{}' not found in state; private dns toggle ignored",
+                model.vpc_endpoint_id
+            ));
+        } else {
+            // VpcEndpointView has no private_dns_enabled field; track only via
+            // a warning so the converter is still observably wired.
+            let _ = model.private_dns_enabled;
+            warnings.push(
+                "aws_vpc_endpoint_private_dns: private_dns_enabled not modelled in \
+                 VpcEndpointView state; toggle ignored"
+                    .to_string(),
+            );
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpn_connection
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpnConnectionConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpnConnectionConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpnConnectionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpn_connection"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_customer_gateway", "aws_vpn_gateway"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpnConnectionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpnConnectionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpn_connection", e))?;
+
+        let vpn_id = model.id.unwrap_or_else(|| random_short_id("vpn"));
+        let tags = extract_tags(attrs);
+
+        let options = VpnConnectionOptionsView {
+            local_ipv4_network_cidr: model.local_ipv4_network_cidr,
+            local_ipv6_network_cidr: model.local_ipv6_network_cidr,
+            remote_ipv4_network_cidr: model.remote_ipv4_network_cidr,
+            remote_ipv6_network_cidr: model.remote_ipv6_network_cidr,
+            tunnel_inside_ip_version: model.tunnel_inside_ip_version,
+            static_routes_only: Some(model.static_routes_only),
+            tunnel_options: vec![],
+        };
+
+        let conn = VpnConnectionView {
+            vpn_connection_id: vpn_id.clone(),
+            vpn_gateway_id: model.vpn_gateway_id.unwrap_or_default(),
+            customer_gateway_id: model.customer_gateway_id,
+            transit_gateway_id: model.transit_gateway_id,
+            connection_type: model.connection_type,
+            state: "available".to_string(),
+            tags,
+            routes: vec![],
+            options: Some(options),
+            tunnel_replacement_status: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.vpn_connections.insert(vpn_id, conn);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for conn in view.vpn_connections.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:vpn-connection/{}",
+                ctx.default_region, ctx.default_account_id, conn.vpn_connection_id
+            );
+            let opts = conn.options.as_ref();
+            let static_routes_only = opts.and_then(|o| o.static_routes_only).unwrap_or(false);
+            let attrs = serde_json::json!({
+                "id": conn.vpn_connection_id,
+                "arn": arn,
+                "type": conn.connection_type,
+                "customer_gateway_id": conn.customer_gateway_id,
+                "vpn_gateway_id": conn.vpn_gateway_id,
+                "transit_gateway_id": conn.transit_gateway_id,
+                "state": conn.state,
+                "static_routes_only": static_routes_only,
+                "local_ipv4_network_cidr": opts.and_then(|o| o.local_ipv4_network_cidr.clone()),
+                "local_ipv6_network_cidr": opts.and_then(|o| o.local_ipv6_network_cidr.clone()),
+                "remote_ipv4_network_cidr": opts.and_then(|o| o.remote_ipv4_network_cidr.clone()),
+                "remote_ipv6_network_cidr": opts.and_then(|o| o.remote_ipv6_network_cidr.clone()),
+                "tunnel_inside_ip_version": opts.and_then(|o| o.tunnel_inside_ip_version.clone()),
+                "tags": conn.tags,
+                "tags_all": conn.tags,
+            });
+            results.push(ExtractedResource {
+                name: conn.vpn_connection_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpn_connection_route
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpnConnectionRouteConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpnConnectionRouteConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpnConnectionRouteConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpn_connection_route"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpn_connection"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpnConnectionRouteConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpnConnectionRouteTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpn_connection_route", e))?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(conn) = view.vpn_connections.get_mut(&model.vpn_connection_id) {
+            if !conn
+                .routes
+                .iter()
+                .any(|r| r.destination_cidr_block == model.destination_cidr_block)
+            {
+                conn.routes.push(VpnStaticRouteView {
+                    destination_cidr_block: model.destination_cidr_block,
+                    source: "Static".to_string(),
+                    state: "available".to_string(),
+                });
+            }
+        } else {
+            warnings.push(format!(
+                "vpn connection '{}' not found in state; route skipped",
+                model.vpn_connection_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for conn in view.vpn_connections.values() {
+            for route in &conn.routes {
+                let id = format!(
+                    "{}:{}",
+                    conn.vpn_connection_id, route.destination_cidr_block
+                );
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "vpn_connection_id": conn.vpn_connection_id,
+                    "destination_cidr_block": route.destination_cidr_block,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpn_gateway
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpnGatewayConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpnGatewayConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpnGatewayConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpn_gateway"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpnGatewayConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpnGatewayTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpn_gateway", e))?;
+
+        let vgw_id = model.id.unwrap_or_else(|| random_short_id("vgw"));
+        let tags = extract_tags(attrs);
+
+        let mut vpc_attachments = vec![];
+        if let Some(vpc) = model.vpc_id.as_ref().filter(|s| !s.is_empty()) {
+            vpc_attachments.push(VgwVpcAttachmentView {
+                vpc_id: vpc.clone(),
+                state: "attached".to_string(),
+            });
+        }
+
+        let amazon_side_asn = if model.amazon_side_asn != 0 {
+            Some(model.amazon_side_asn)
+        } else {
+            None
+        };
+
+        let vgw = VpnGatewayView {
+            vpn_gateway_id: vgw_id.clone(),
+            gateway_type: "ipsec.1".to_string(),
+            state: "available".to_string(),
+            amazon_side_asn,
+            vpc_attachments,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.vpn_gateways.insert(vgw_id, vgw);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for vgw in view.vpn_gateways.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:vpn-gateway/{}",
+                ctx.default_region, ctx.default_account_id, vgw.vpn_gateway_id
+            );
+            let vpc_id = vgw
+                .vpc_attachments
+                .iter()
+                .find(|a| a.state == "attached")
+                .map(|a| a.vpc_id.clone());
+            let attrs = serde_json::json!({
+                "id": vgw.vpn_gateway_id,
+                "arn": arn,
+                "vpc_id": vpc_id,
+                "amazon_side_asn": vgw.amazon_side_asn,
+                "tags": vgw.tags,
+                "tags_all": vgw.tags,
+            });
+            results.push(ExtractedResource {
+                name: vgw.vpn_gateway_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpn_gateway_route_propagation
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpnGatewayRoutePropagationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpnGatewayRoutePropagationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpnGatewayRoutePropagationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpn_gateway_route_propagation"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpn_gateway", "aws_route_table"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // RouteTableView has no propagating_vgws field; nothing to emit.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpnGatewayRoutePropagationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpnGatewayRoutePropagationTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_vpn_gateway_route_propagation", e))?;
+
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if !view.route_tables.contains_key(&model.route_table_id) {
+            warnings.push(format!(
+                "route table '{}' not found in state; vgw route propagation skipped",
+                model.route_table_id
+            ));
+        } else if !view.vpn_gateways.contains_key(&model.vpn_gateway_id) {
+            warnings.push(format!(
+                "vpn gateway '{}' not found in state; vgw route propagation skipped",
+                model.vpn_gateway_id
+            ));
+        } else {
+            warnings.push(
+                "aws_vpn_gateway_route_propagation: propagating_vgws not modelled in \
+                 RouteTableView state; propagation ignored"
+                    .to_string(),
+            );
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ===========================================================================
+// Wave 4: Transit Gateway family
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_transit_gateway", e))?;
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tgw"));
+        let description = model.description.unwrap_or_default();
+        let dns_support = model.dns_support.unwrap_or_else(|| "enable".to_string());
+        let vpn_ecmp_support = model
+            .vpn_ecmp_support
+            .unwrap_or_else(|| "enable".to_string());
+        let multicast_support = model
+            .multicast_support
+            .unwrap_or_else(|| "disable".to_string());
+        let amazon_side_asn = if model.amazon_side_asn != 0 {
+            model.amazon_side_asn
+        } else {
+            64512
+        };
+        let tags = extract_tags(attrs);
+
+        let view = TransitGatewayView {
+            transit_gateway_id: id.clone(),
+            state: "available".to_string(),
+            amazon_side_asn,
+            description,
+            dns_support,
+            vpn_ecmp_support,
+            multicast_support,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.transit_gateways.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for t in view.transit_gateways.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:transit-gateway/{}",
+                ctx.default_region, ctx.default_account_id, t.transit_gateway_id
+            );
+            let attrs = serde_json::json!({
+                "id": t.transit_gateway_id,
+                "arn": arn,
+                "description": t.description,
+                "amazon_side_asn": t.amazon_side_asn,
+                "dns_support": t.dns_support,
+                "vpn_ecmp_support": t.vpn_ecmp_support,
+                "multicast_support": t.multicast_support,
+                "owner_id": ctx.default_account_id,
+                "tags": t.tags,
+                "tags_all": t.tags,
+            });
+            results.push(ExtractedResource {
+                name: t.transit_gateway_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_route_table
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayRouteTableConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayRouteTableConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayRouteTableConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_route_table"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayRouteTableConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayRouteTableTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_transit_gateway_route_table", e))?;
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tgw-rtb"));
+        let tags = extract_tags(attrs);
+
+        let view = TgwRouteTableView {
+            route_table_id: id.clone(),
+            transit_gateway_id: model.transit_gateway_id,
+            state: "available".to_string(),
+            default_association_route_table: model.default_association_route_table,
+            default_propagation_route_table: model.default_propagation_route_table,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_route_tables.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for rt in view.tgw_route_tables.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:transit-gateway-route-table/{}",
+                ctx.default_region, ctx.default_account_id, rt.route_table_id
+            );
+            let attrs = serde_json::json!({
+                "id": rt.route_table_id,
+                "arn": arn,
+                "transit_gateway_id": rt.transit_gateway_id,
+                "default_association_route_table": rt.default_association_route_table,
+                "default_propagation_route_table": rt.default_propagation_route_table,
+                "tags": rt.tags,
+                "tags_all": rt.tags,
+            });
+            results.push(ExtractedResource {
+                name: rt.route_table_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_route
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayRouteConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayRouteConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayRouteConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_route"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_route_table"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayRouteConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayRouteTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_transit_gateway_route", e))?;
+
+        let mut warnings = vec![];
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+
+        if !view
+            .tgw_route_tables
+            .contains_key(&model.transit_gateway_route_table_id)
+        {
+            warnings.push(format!(
+                "transit gateway route table '{}' not found in state; tgw route skipped",
+                model.transit_gateway_route_table_id
+            ));
+        } else {
+            let entry = view
+                .tgw_routes
+                .entry(model.transit_gateway_route_table_id.clone())
+                .or_default();
+            let state = if model.blackhole {
+                "blackhole".to_string()
+            } else {
+                "active".to_string()
+            };
+            entry.push(TgwRouteView {
+                destination_cidr_block: model.destination_cidr_block,
+                route_type: "static".to_string(),
+                state,
+                attachment_id: model.transit_gateway_attachment_id,
+            });
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for (rtb_id, routes) in view.tgw_routes.iter() {
+            for r in routes {
+                let name = format!("{}_{}", rtb_id, r.destination_cidr_block);
+                let attrs = serde_json::json!({
+                    "id": name,
+                    "transit_gateway_route_table_id": rtb_id,
+                    "destination_cidr_block": r.destination_cidr_block,
+                    "transit_gateway_attachment_id": r.attachment_id,
+                    "blackhole": r.state == "blackhole",
+                });
+                results.push(ExtractedResource {
+                    name,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_route_table_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayRouteTableAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayRouteTableAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayRouteTableAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_route_table_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_ec2_transit_gateway_route_table",
+            "aws_ec2_transit_gateway_vpc_attachment",
+            "aws_ec2_transit_gateway_peering_attachment",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // TgwRouteTableView has no `associations` field; nothing to emit.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2TransitGatewayRouteTableAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayRouteTableAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_route_table_association", e)
+            })?;
+
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if !view
+            .tgw_route_tables
+            .contains_key(&model.transit_gateway_route_table_id)
+        {
+            warnings.push(format!(
+                "transit gateway route table '{}' not found in state; association skipped",
+                model.transit_gateway_route_table_id
+            ));
+        } else {
+            warnings.push(
+                "aws_ec2_transit_gateway_route_table_association: associations not modelled \
+                 on TgwRouteTableView; association recorded only in tf state"
+                    .to_string(),
+            );
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_route_table_propagation
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayRouteTablePropagationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayRouteTablePropagationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayRouteTablePropagationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_route_table_propagation"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_ec2_transit_gateway_route_table",
+            "aws_ec2_transit_gateway_vpc_attachment",
+            "aws_ec2_transit_gateway_peering_attachment",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // TgwRouteTableView has no `propagations` field; nothing to emit.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2TransitGatewayRouteTablePropagationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayRouteTablePropagationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_route_table_propagation", e)
+            })?;
+
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if !view
+            .tgw_route_tables
+            .contains_key(&model.transit_gateway_route_table_id)
+        {
+            warnings.push(format!(
+                "transit gateway route table '{}' not found in state; propagation skipped",
+                model.transit_gateway_route_table_id
+            ));
+        } else {
+            warnings.push(
+                "aws_ec2_transit_gateway_route_table_propagation: propagations not modelled \
+                 on TgwRouteTableView; propagation recorded only in tf state"
+                    .to_string(),
+            );
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_default_route_table_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayDefaultRouteTableAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayDefaultRouteTableAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayDefaultRouteTableAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_default_route_table_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_ec2_transit_gateway",
+            "aws_ec2_transit_gateway_route_table",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Modifier resource; emitted via aws_ec2_transit_gateway.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2TransitGatewayDefaultRouteTableAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayDefaultRouteTableAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error(
+                    "aws_ec2_transit_gateway_default_route_table_association",
+                    e,
+                )
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if !view
+            .transit_gateways
+            .contains_key(&model.transit_gateway_id)
+        {
+            warnings.push(format!(
+                "transit gateway '{}' not found in state; default association table skipped",
+                model.transit_gateway_id
+            ));
+        } else if !view
+            .tgw_route_tables
+            .contains_key(&model.transit_gateway_route_table_id)
+        {
+            warnings.push(format!(
+                "transit gateway route table '{}' not found in state; default association skipped",
+                model.transit_gateway_route_table_id
+            ));
+        } else {
+            // Flip the boolean flag on each TGW route table for this TGW.
+            for rt in view.tgw_route_tables.values_mut() {
+                if rt.transit_gateway_id == model.transit_gateway_id {
+                    rt.default_association_route_table =
+                        rt.route_table_id == model.transit_gateway_route_table_id;
+                }
+            }
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_default_route_table_propagation
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayDefaultRouteTablePropagationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayDefaultRouteTablePropagationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayDefaultRouteTablePropagationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_default_route_table_propagation"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_ec2_transit_gateway",
+            "aws_ec2_transit_gateway_route_table",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Modifier resource; emitted via aws_ec2_transit_gateway.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2TransitGatewayDefaultRouteTablePropagationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayDefaultRouteTablePropagationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error(
+                    "aws_ec2_transit_gateway_default_route_table_propagation",
+                    e,
+                )
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if !view
+            .transit_gateways
+            .contains_key(&model.transit_gateway_id)
+        {
+            warnings.push(format!(
+                "transit gateway '{}' not found in state; default propagation table skipped",
+                model.transit_gateway_id
+            ));
+        } else if !view
+            .tgw_route_tables
+            .contains_key(&model.transit_gateway_route_table_id)
+        {
+            warnings.push(format!(
+                "transit gateway route table '{}' not found in state; default propagation skipped",
+                model.transit_gateway_route_table_id
+            ));
+        } else {
+            for rt in view.tgw_route_tables.values_mut() {
+                if rt.transit_gateway_id == model.transit_gateway_id {
+                    rt.default_propagation_route_table =
+                        rt.route_table_id == model.transit_gateway_route_table_id;
+                }
+            }
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_vpc_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayVpcAttachmentConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayVpcAttachmentConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayVpcAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_vpc_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway", "aws_vpc", "aws_subnet"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayVpcAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayVpcAttachmentTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_vpc_attachment", e)
+            })?;
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tgw-attach"));
+        let tags = extract_tags(attrs);
+
+        // Pull subnet_ids list directly from attrs since spec only handles scalars.
+        let subnet_ids: Vec<String> = attrs
+            .get("subnet_ids")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let view = TgwVpcAttachmentView {
+            attachment_id: id.clone(),
+            transit_gateway_id: model.transit_gateway_id,
+            vpc_id: model.vpc_id,
+            subnet_ids,
+            state: "available".to_string(),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_vpc_attachments.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.tgw_vpc_attachments.values() {
+            let attrs = serde_json::json!({
+                "id": a.attachment_id,
+                "transit_gateway_id": a.transit_gateway_id,
+                "vpc_id": a.vpc_id,
+                "subnet_ids": a.subnet_ids,
+                "vpc_owner_id": ctx.default_account_id,
+                "tags": a.tags,
+                "tags_all": a.tags,
+            });
+            results.push(ExtractedResource {
+                name: a.attachment_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_vpc_attachment_accepter
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayVpcAttachmentAccepterConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayVpcAttachmentAccepterConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayVpcAttachmentAccepterConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_vpc_attachment_accepter"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_vpc_attachment"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Modifier resource; the underlying attachment is emitted by aws_ec2_transit_gateway_vpc_attachment.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2TransitGatewayVpcAttachmentAccepterConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayVpcAttachmentAccepterTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_vpc_attachment_accepter", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(att) = view
+            .tgw_vpc_attachments
+            .get_mut(&model.transit_gateway_attachment_id)
+        {
+            att.state = "available".to_string();
+        } else {
+            warnings.push(format!(
+                "tgw vpc attachment '{}' not found in state; accepter skipped",
+                model.transit_gateway_attachment_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_peering_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayPeeringAttachmentConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayPeeringAttachmentConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayPeeringAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_peering_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayPeeringAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayPeeringAttachmentTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_peering_attachment", e)
+            })?;
+
+        let id = model.id.unwrap_or_else(|| random_short_id("tgw-attach"));
+        let peer_account_id = model
+            .peer_account_id
+            .unwrap_or_else(|| ctx.default_account_id.clone());
+        let peer_region = model.peer_region.unwrap_or_else(|| region.clone());
+        let tags = extract_tags(attrs);
+
+        let view = TgwPeeringAttachmentView {
+            attachment_id: id.clone(),
+            transit_gateway_id: model.transit_gateway_id,
+            peer_transit_gateway_id: model.peer_transit_gateway_id,
+            peer_account_id,
+            peer_region,
+            state: "pendingAcceptance".to_string(),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_peering_attachments.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.tgw_peering_attachments.values() {
+            let attrs = serde_json::json!({
+                "id": a.attachment_id,
+                "transit_gateway_id": a.transit_gateway_id,
+                "peer_transit_gateway_id": a.peer_transit_gateway_id,
+                "peer_account_id": a.peer_account_id,
+                "peer_region": a.peer_region,
+                "state": a.state,
+                "tags": a.tags,
+                "tags_all": a.tags,
+            });
+            results.push(ExtractedResource {
+                name: a.attachment_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_peering_attachment_accepter
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayPeeringAttachmentAccepterConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayPeeringAttachmentAccepterConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayPeeringAttachmentAccepterConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_peering_attachment_accepter"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_peering_attachment"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2TransitGatewayPeeringAttachmentAccepterConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayPeeringAttachmentAccepterTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_peering_attachment_accepter", e)
+            })?;
+
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(att) = view
+            .tgw_peering_attachments
+            .get_mut(&model.transit_gateway_attachment_id)
+        {
+            att.state = "available".to_string();
+        } else {
+            warnings.push(format!(
+                "tgw peering attachment '{}' not found in state; accepter skipped",
+                model.transit_gateway_attachment_id
+            ));
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_connect_peer
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayConnectPeerConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayConnectPeerConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayConnectPeerConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_connect_peer"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_connect"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayConnectPeerConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayConnectPeerTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_connect_peer", e)
+            })?;
+
+        let id = model
+            .id
+            .unwrap_or_else(|| random_short_id("tgw-connect-peer"));
+        let transit_gateway_address = model.transit_gateway_address.unwrap_or_default();
+        let creation_time = model
+            .creation_time
+            .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+        let tags = extract_tags(attrs);
+
+        // Parse inside_cidr_blocks list directly from attrs.
+        let inside_cidr_blocks: Vec<String> = attrs
+            .get("inside_cidr_blocks")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let view = TransitGatewayConnectPeerView {
+            transit_gateway_attachment_id: model.transit_gateway_attachment_id,
+            transit_gateway_connect_peer_id: id.clone(),
+            state: "available".to_string(),
+            creation_time,
+            transit_gateway_address,
+            peer_address: model.peer_address,
+            inside_cidr_blocks,
+            protocol: "gre".to_string(),
+            bgp_configurations: vec![],
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_connect_peers.insert(id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for p in view.tgw_connect_peers.values() {
+            let arn = format!(
+                "arn:aws:ec2:{}:{}:transit-gateway-connect-peer/{}",
+                ctx.default_region, ctx.default_account_id, p.transit_gateway_connect_peer_id
+            );
+            let attrs = serde_json::json!({
+                "id": p.transit_gateway_connect_peer_id,
+                "arn": arn,
+                "transit_gateway_attachment_id": p.transit_gateway_attachment_id,
+                "peer_address": p.peer_address,
+                "transit_gateway_address": p.transit_gateway_address,
+                "inside_cidr_blocks": p.inside_cidr_blocks,
+                "creation_time": p.creation_time,
+                "tags": p.tags,
+                "tags_all": p.tags,
+            });
+            results.push(ExtractedResource {
+                name: p.transit_gateway_connect_peer_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_policy_table_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayPolicyTableAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayPolicyTableAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayPolicyTableAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_policy_table_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_policy_table"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayPolicyTableAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayPolicyTableAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_policy_table_association", e)
+            })?;
+
+        let view = TransitGatewayPolicyTableAssociationView {
+            transit_gateway_policy_table_id: model.transit_gateway_policy_table_id,
+            transit_gateway_attachment_id: model.transit_gateway_attachment_id,
+            resource_id: model.resource_id.unwrap_or_default(),
+            resource_type: model.resource_type.unwrap_or_else(|| "vpc".to_string()),
+            state: "associated".to_string(),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_policy_table_associations.push(view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.tgw_policy_table_associations.iter() {
+            let id = format!(
+                "{}_{}",
+                a.transit_gateway_policy_table_id, a.transit_gateway_attachment_id
+            );
+            let attrs = serde_json::json!({
+                "id": id,
+                "transit_gateway_policy_table_id": a.transit_gateway_policy_table_id,
+                "transit_gateway_attachment_id": a.transit_gateway_attachment_id,
+                "resource_id": a.resource_id,
+                "resource_type": a.resource_type,
+            });
+            results.push(ExtractedResource {
+                name: id,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_prefix_list_reference
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayPrefixListReferenceConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayPrefixListReferenceConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayPrefixListReferenceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_prefix_list_reference"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_route_table"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayPrefixListReferenceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayPrefixListReferenceTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_prefix_list_reference", e)
+            })?;
+
+        let view = TransitGatewayPrefixListReferenceView {
+            transit_gateway_route_table_id: model.transit_gateway_route_table_id,
+            prefix_list_id: model.prefix_list_id,
+            prefix_list_owner_id: model
+                .prefix_list_owner_id
+                .unwrap_or_else(|| ctx.default_account_id.clone()),
+            state: "available".to_string(),
+            blackhole: model.blackhole,
+            transit_gateway_attachment_id: model.transit_gateway_attachment_id,
+            resource_id: None,
+            resource_type: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_prefix_list_references.push(view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for r in view.tgw_prefix_list_references.iter() {
+            let id = format!("{}_{}", r.transit_gateway_route_table_id, r.prefix_list_id);
+            let attrs = serde_json::json!({
+                "id": id,
+                "transit_gateway_route_table_id": r.transit_gateway_route_table_id,
+                "prefix_list_id": r.prefix_list_id,
+                "prefix_list_owner_id": r.prefix_list_owner_id,
+                "blackhole": r.blackhole,
+                "transit_gateway_attachment_id": r.transit_gateway_attachment_id,
+            });
+            results.push(ExtractedResource {
+                name: id,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_multicast_domain_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayMulticastDomainAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayMulticastDomainAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayMulticastDomainAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_multicast_domain_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_multicast_domain"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayMulticastDomainAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayMulticastDomainAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error(
+                    "aws_ec2_transit_gateway_multicast_domain_association",
+                    e,
+                )
+            })?;
+
+        // Snapshot+mutate: find an existing association with the same domain+attachment, or push fresh.
+        let mut view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let subnet_assoc = MulticastSubnetAssociationView {
+            subnet_id: model.subnet_id.clone(),
+            state: "associated".to_string(),
+        };
+
+        let existing = view.tgw_multicast_domain_associations.iter_mut().find(|a| {
+            a.transit_gateway_multicast_domain_id == model.transit_gateway_multicast_domain_id
+                && a.transit_gateway_attachment_id == model.transit_gateway_attachment_id
+        });
+        if let Some(a) = existing {
+            if !a.subnets.iter().any(|s| s.subnet_id == model.subnet_id) {
+                a.subnets.push(subnet_assoc);
+            }
+        } else {
+            view.tgw_multicast_domain_associations.push(
+                TransitGatewayMulticastDomainAssociationView {
+                    transit_gateway_multicast_domain_id: model.transit_gateway_multicast_domain_id,
+                    transit_gateway_attachment_id: model.transit_gateway_attachment_id,
+                    resource_id: String::new(),
+                    resource_type: "vpc".to_string(),
+                    subnets: vec![subnet_assoc],
+                },
+            );
+        }
+
+        self.service
+            .restore(&ctx.default_account_id, &region, view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for a in view.tgw_multicast_domain_associations.iter() {
+            for s in &a.subnets {
+                let id = format!(
+                    "{}_{}_{}",
+                    a.transit_gateway_multicast_domain_id,
+                    a.transit_gateway_attachment_id,
+                    s.subnet_id
+                );
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "transit_gateway_multicast_domain_id": a.transit_gateway_multicast_domain_id,
+                    "transit_gateway_attachment_id": a.transit_gateway_attachment_id,
+                    "subnet_id": s.subnet_id,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_multicast_group_member
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayMulticastGroupMemberConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayMulticastGroupMemberConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayMulticastGroupMemberConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_multicast_group_member"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_multicast_domain"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayMulticastGroupMemberConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayMulticastGroupMemberTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_multicast_group_member", e)
+            })?;
+
+        let view = TransitGatewayMulticastGroupMemberView {
+            transit_gateway_multicast_domain_id: model.transit_gateway_multicast_domain_id,
+            group_ip_address: model.group_ip_address,
+            transit_gateway_attachment_id: None,
+            subnet_id: None,
+            resource_id: None,
+            resource_type: "vpc".to_string(),
+            network_interface_id: model.network_interface_id,
+            member_type: "static".to_string(),
+            source_type: "static".to_string(),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_multicast_group_members.push(view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for m in view.tgw_multicast_group_members.iter() {
+            let id = format!(
+                "{}_{}_{}",
+                m.transit_gateway_multicast_domain_id, m.group_ip_address, m.network_interface_id
+            );
+            let attrs = serde_json::json!({
+                "id": id,
+                "transit_gateway_multicast_domain_id": m.transit_gateway_multicast_domain_id,
+                "group_ip_address": m.group_ip_address,
+                "network_interface_id": m.network_interface_id,
+            });
+            results.push(ExtractedResource {
+                name: id,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_transit_gateway_multicast_group_source
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TransitGatewayMulticastGroupSourceConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TransitGatewayMulticastGroupSourceConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TransitGatewayMulticastGroupSourceConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_transit_gateway_multicast_group_source"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_transit_gateway_multicast_domain"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2TransitGatewayMulticastGroupSourceConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::TransitGatewayMulticastGroupSourceTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_transit_gateway_multicast_group_source", e)
+            })?;
+
+        let view = TransitGatewayMulticastGroupSourceView {
+            transit_gateway_multicast_domain_id: model.transit_gateway_multicast_domain_id,
+            group_ip_address: model.group_ip_address,
+            transit_gateway_attachment_id: None,
+            subnet_id: None,
+            resource_id: None,
+            resource_type: "vpc".to_string(),
+            network_interface_id: model.network_interface_id,
+            member_type: "static".to_string(),
+            source_type: "static".to_string(),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.tgw_multicast_group_sources.push(view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for m in view.tgw_multicast_group_sources.iter() {
+            let id = format!(
+                "{}_{}_{}",
+                m.transit_gateway_multicast_domain_id, m.group_ip_address, m.network_interface_id
+            );
+            let attrs = serde_json::json!({
+                "id": id,
+                "transit_gateway_multicast_domain_id": m.transit_gateway_multicast_domain_id,
+                "group_ip_address": m.group_ip_address,
+                "network_interface_id": m.network_interface_id,
+            });
+            results.push(ExtractedResource {
+                name: id,
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 — Client VPN family
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// aws_ec2_client_vpn_endpoint
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2ClientVpnEndpointConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2ClientVpnEndpointConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2ClientVpnEndpointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_client_vpn_endpoint"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2ClientVpnEndpointConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::ClientVpnEndpointTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_client_vpn_endpoint", e))?;
+
+        let endpoint_id = model
+            .id
+            .clone()
+            .unwrap_or_else(|| random_short_id("cvpn-endpoint"));
+        let tags = extract_tags(attrs);
+
+        let view = ClientVpnEndpointView {
+            client_vpn_endpoint_id: endpoint_id.clone(),
+            description: model.description,
+            status: ClientVpnEndpointStatusView {
+                code: "available".to_string(),
+                message: None,
+            },
+            creation_time: String::new(),
+            deletion_time: None,
+            dns_name: model.dns_name.unwrap_or_default(),
+            client_cidr_block: model.client_cidr_block,
+            dns_servers: parse_string_array(attrs, "dns_servers"),
+            split_tunnel: model.split_tunnel,
+            vpn_protocol: "openvpn".to_string(),
+            transport_protocol: model
+                .transport_protocol
+                .unwrap_or_else(|| "udp".to_string()),
+            vpn_port: model.vpn_port as i32,
+            server_certificate_arn: model.server_certificate_arn,
+            authentication_options: Vec::new(),
+            connection_log_options_enabled: false,
+            connection_log_options_cloudwatch_log_group: None,
+            connection_log_options_cloudwatch_log_stream: None,
+            tags,
+            security_group_ids: parse_string_array(attrs, "security_group_ids"),
+            vpc_id: model.vpc_id,
+            self_service_portal_url: None,
+            self_service_portal: model
+                .self_service_portal
+                .unwrap_or_else(|| "disabled".to_string()),
+            session_timeout_hours: if model.session_timeout_hours == 0 {
+                24
+            } else {
+                model.session_timeout_hours as i32
+            },
+            client_login_banner_enabled: false,
+            client_login_banner_text: None,
+            disconnect_on_session_timeout: false,
+            client_route_enforcement_enforced: false,
+            client_certificate_revocation_list: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.client_vpn_endpoints.insert(endpoint_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ep in view.client_vpn_endpoints.values() {
+            let attrs = serde_json::json!({
+                "id": ep.client_vpn_endpoint_id,
+                "client_cidr_block": ep.client_cidr_block,
+                "server_certificate_arn": ep.server_certificate_arn,
+                "description": ep.description,
+                "dns_name": ep.dns_name,
+                "split_tunnel": ep.split_tunnel,
+                "transport_protocol": ep.transport_protocol,
+                "vpn_port": ep.vpn_port,
+                "self_service_portal": ep.self_service_portal,
+                "session_timeout_hours": ep.session_timeout_hours,
+                "vpc_id": ep.vpc_id,
+                "tags": ep.tags,
+            });
+            results.push(ExtractedResource {
+                name: ep.client_vpn_endpoint_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_client_vpn_authorization_rule
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2ClientVpnAuthorizationRuleConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2ClientVpnAuthorizationRuleConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2ClientVpnAuthorizationRuleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_client_vpn_authorization_rule"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_client_vpn_endpoint"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2ClientVpnAuthorizationRuleConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::ClientVpnAuthorizationRuleTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_client_vpn_authorization_rule", e)
+            })?;
+
+        let rule = ClientVpnAuthorizationRuleView {
+            client_vpn_endpoint_id: model.client_vpn_endpoint_id.clone(),
+            group_id: model.access_group_id,
+            access_all: model.authorize_all_groups,
+            destination_cidr: model.target_network_cidr,
+            description: model.description,
+            status: ClientVpnAuthorizationRuleStatusView {
+                code: "active".to_string(),
+                message: None,
+            },
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot.client_vpn_authorization_rules.push(rule);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Authorization rules are modifiers on a client VPN endpoint; round-trip
+        // via the endpoint resource.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_client_vpn_network_association
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2ClientVpnNetworkAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2ClientVpnNetworkAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2ClientVpnNetworkAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_client_vpn_network_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_client_vpn_endpoint", "aws_subnet"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2ClientVpnNetworkAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::ClientVpnNetworkAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_client_vpn_network_association", e)
+            })?;
+
+        let association_id = model
+            .association_id
+            .clone()
+            .or_else(|| model.id.clone())
+            .unwrap_or_else(|| random_short_id("cvpn-assoc"));
+        let vpc_id = model.vpc_id.unwrap_or_default();
+        let assoc = ClientVpnTargetNetworkAssociationView {
+            association_id: association_id.clone(),
+            vpc_id,
+            target_network_id: model.subnet_id,
+            client_vpn_endpoint_id: model.client_vpn_endpoint_id,
+            security_groups: parse_string_array(attrs, "security_groups"),
+            status: ClientVpnAssociationStatusView {
+                code: "associated".to_string(),
+                message: None,
+            },
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view
+            .client_vpn_target_network_associations
+            .insert(association_id, assoc);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Modifier on the client VPN endpoint; round-trip via the endpoint.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_client_vpn_route
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2ClientVpnRouteConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2ClientVpnRouteConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2ClientVpnRouteConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_client_vpn_route"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_ec2_client_vpn_endpoint",
+            "aws_ec2_client_vpn_network_association",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2ClientVpnRouteConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::ClientVpnRouteTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_client_vpn_route", e))?;
+
+        let route = ClientVpnRouteView {
+            client_vpn_endpoint_id: model.client_vpn_endpoint_id,
+            destination_cidr: model.destination_cidr_block,
+            target_subnet: model.target_vpc_subnet_id,
+            r#type: model.r#type.unwrap_or_else(|| "Nat".to_string()),
+            origin: model.origin.unwrap_or_else(|| "add-route".to_string()),
+            status: ClientVpnRouteStatusView {
+                code: "active".to_string(),
+                message: None,
+            },
+            description: model.description,
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot.client_vpn_routes.push(route);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Routes are modifiers on the client VPN endpoint.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 — Host / Fleet / Spot
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// aws_ec2_host
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2HostConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2HostConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2HostConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_host"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2HostConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2HostTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_host", e))?;
+
+        let host_id = model
+            .host_id
+            .clone()
+            .or_else(|| model.id.clone())
+            .unwrap_or_else(|| random_short_id("h"));
+        let tags = extract_tags(attrs);
+
+        let view = DedicatedHostView {
+            host_id: host_id.clone(),
+            availability_zone: model.availability_zone,
+            instance_type: model.instance_type,
+            auto_placement: model.auto_placement.unwrap_or_else(|| "on".to_string()),
+            host_recovery: model.host_recovery.unwrap_or_else(|| "off".to_string()),
+            state: "available".to_string(),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.dedicated_hosts.insert(host_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for h in view.dedicated_hosts.values() {
+            let attrs = serde_json::json!({
+                "id": h.host_id,
+                "host_id": h.host_id,
+                "availability_zone": h.availability_zone,
+                "instance_type": h.instance_type,
+                "auto_placement": h.auto_placement,
+                "host_recovery": h.host_recovery,
+                "tags": h.tags,
+            });
+            results.push(ExtractedResource {
+                name: h.host_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_fleet
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2FleetConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2FleetConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2FleetConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_fleet"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2FleetConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2FleetTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_fleet", e))?;
+
+        let fleet_id = model.id.clone().unwrap_or_else(|| random_short_id("fleet"));
+        let tags = extract_tags(attrs);
+
+        let view = Ec2FleetView {
+            fleet_id: fleet_id.clone(),
+            state: "active".to_string(),
+            fleet_type: model.r#type.unwrap_or_else(|| "maintain".to_string()),
+            create_time: String::new(),
+            tags,
+            total_target_capacity: None,
+            on_demand_target_capacity: None,
+            spot_target_capacity: None,
+            context: model.context,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.ec2_fleets.insert(fleet_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for f in view.ec2_fleets.values() {
+            let attrs = serde_json::json!({
+                "id": f.fleet_id,
+                "type": f.fleet_type,
+                "context": f.context,
+                "tags": f.tags,
+            });
+            results.push(ExtractedResource {
+                name: f.fleet_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_spot_fleet_request
+// ---------------------------------------------------------------------------
+
+pub struct AwsSpotFleetRequestConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsSpotFleetRequestConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSpotFleetRequestConverter {
+    fn resource_type(&self) -> &str {
+        "aws_spot_fleet_request"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSpotFleetRequestConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::SpotFleetRequestTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_spot_fleet_request", e))?;
+
+        let request_id = model.id.clone().unwrap_or_else(|| random_short_id("sfr"));
+        let tags = extract_tags(attrs);
+
+        let view = SpotFleetRequestView {
+            spot_fleet_request_id: request_id.clone(),
+            spot_fleet_request_state: "active".to_string(),
+            target_capacity: model.target_capacity as i32,
+            iam_fleet_role: model.iam_fleet_role,
+            create_time: String::new(),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.spot_fleet_requests.insert(request_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for r in view.spot_fleet_requests.values() {
+            let attrs = serde_json::json!({
+                "id": r.spot_fleet_request_id,
+                "iam_fleet_role": r.iam_fleet_role,
+                "target_capacity": r.target_capacity,
+                "tags": r.tags,
+            });
+            results.push(ExtractedResource {
+                name: r.spot_fleet_request_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_spot_instance_request
+// ---------------------------------------------------------------------------
+
+pub struct AwsSpotInstanceRequestConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsSpotInstanceRequestConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSpotInstanceRequestConverter {
+    fn resource_type(&self) -> &str {
+        "aws_spot_instance_request"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsSpotInstanceRequestConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::SpotInstanceRequestTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_spot_instance_request", e))?;
+
+        let request_id = model.id.clone().unwrap_or_else(|| random_short_id("sir"));
+        let tags = extract_tags(attrs);
+
+        let view = SpotInstanceRequestView {
+            spot_instance_request_id: request_id.clone(),
+            spot_price: model.spot_price.unwrap_or_default(),
+            instance_type: model.instance_type.unwrap_or_default(),
+            image_id: model.ami.unwrap_or_default(),
+            state: "active".to_string(),
+            status_code: "fulfilled".to_string(),
+            instance_id: model.spot_instance_id,
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.spot_requests.insert(request_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for r in view.spot_requests.values() {
+            let attrs = serde_json::json!({
+                "id": r.spot_instance_request_id,
+                "spot_price": r.spot_price,
+                "instance_type": r.instance_type,
+                "ami": r.image_id,
+                "spot_instance_id": r.instance_id,
+                "tags": r.tags,
+            });
+            results.push(ExtractedResource {
+                name: r.spot_instance_request_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_spot_datafeed_subscription
+// ---------------------------------------------------------------------------
+
+pub struct AwsSpotDatafeedSubscriptionConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsSpotDatafeedSubscriptionConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsSpotDatafeedSubscriptionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_spot_datafeed_subscription"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // No backing state view: singleton subscription is not modelled in
+        // Ec2StateView.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsSpotDatafeedSubscriptionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let _model: ec2_gen::SpotDatafeedSubscriptionTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_spot_datafeed_subscription", e))?;
+
+        // The Ec2StateView does not currently model the singleton spot datafeed
+        // subscription. The TF state still round-trips through this converter so
+        // the resource can be parsed; we just do not project anything.
+        eprintln!(
+            "warning: aws_spot_datafeed_subscription: Ec2StateView has no slot for the singleton subscription; inject is a no-op"
+        );
+
+        // Touch the service so the merge log records visiting the scope.
+        self.service
+            .merge(&ctx.default_account_id, &region, minimal_ec2_state_view())
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec!["spot datafeed subscription is not modelled in state".to_string()],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 — Carrier Gateway + Managed Prefix List + Tag
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// aws_ec2_carrier_gateway
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2CarrierGatewayConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2CarrierGatewayConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2CarrierGatewayConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_carrier_gateway"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2CarrierGatewayConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::CarrierGatewayTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_carrier_gateway", e))?;
+
+        let carrier_gateway_id = model.id.clone().unwrap_or_else(|| random_short_id("cagw"));
+        let tags = extract_tags(attrs);
+
+        let view = CarrierGatewayView {
+            carrier_gateway_id: carrier_gateway_id.clone(),
+            vpc_id: model.vpc_id,
+            state: "available".to_string(),
+            tags,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.carrier_gateways.insert(carrier_gateway_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for cg in view.carrier_gateways.values() {
+            let attrs = serde_json::json!({
+                "id": cg.carrier_gateway_id,
+                "vpc_id": cg.vpc_id,
+                "tags": cg.tags,
+            });
+            results.push(ExtractedResource {
+                name: cg.carrier_gateway_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_managed_prefix_list
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2ManagedPrefixListConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2ManagedPrefixListConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2ManagedPrefixListConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_managed_prefix_list"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2ManagedPrefixListConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::ManagedPrefixListTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_managed_prefix_list", e))?;
+
+        let prefix_list_id = model.id.clone().unwrap_or_else(|| random_short_id("pl"));
+        let tags = extract_tags(attrs);
+
+        // Parse inline entry blocks if present.
+        let entries: Vec<PrefixListEntryView> = attrs
+            .get("entry")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|e| {
+                        let cidr = e.get("cidr").and_then(|v| v.as_str())?.to_string();
+                        let description = e
+                            .get("description")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
+                        Some(PrefixListEntryView { cidr, description })
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let view = ManagedPrefixListView {
+            prefix_list_id: prefix_list_id.clone(),
+            prefix_list_name: model.name,
+            state: "create-complete".to_string(),
+            address_family: model.address_family,
+            max_entries: model.max_entries as i32,
+            entries,
+            tags,
+            version: 1,
+            version_history: Vec::new(),
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.managed_prefix_lists.insert(prefix_list_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for pl in view.managed_prefix_lists.values() {
+            let entry_json: Vec<serde_json::Value> = pl
+                .entries
+                .iter()
+                .map(|e| {
+                    serde_json::json!({
+                        "cidr": e.cidr,
+                        "description": e.description,
+                    })
+                })
+                .collect();
+            let attrs = serde_json::json!({
+                "id": pl.prefix_list_id,
+                "name": pl.prefix_list_name,
+                "address_family": pl.address_family,
+                "max_entries": pl.max_entries,
+                "entry": entry_json,
+                "tags": pl.tags,
+            });
+            results.push(ExtractedResource {
+                name: pl.prefix_list_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_managed_prefix_list_entry
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2ManagedPrefixListEntryConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2ManagedPrefixListEntryConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2ManagedPrefixListEntryConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_managed_prefix_list_entry"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_ec2_managed_prefix_list"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsEc2ManagedPrefixListEntryConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::ManagedPrefixListEntryTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_ec2_managed_prefix_list_entry", e))?;
+
+        let entry = PrefixListEntryView {
+            cidr: model.cidr.clone(),
+            description: model.description,
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        if let Some(pl) = snapshot.managed_prefix_lists.get_mut(&model.prefix_list_id) {
+            pl.entries.retain(|e| e.cidr != model.cidr);
+            pl.entries.push(entry);
+        } else {
+            eprintln!(
+                "warning: aws_ec2_managed_prefix_list_entry: prefix list '{}' not found in state",
+                model.prefix_list_id
+            );
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // Entries round-trip via the parent aws_ec2_managed_prefix_list resource.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_tag
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2TagConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2TagConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2TagConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_tag"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Tags already round-trip through their parent resource's `tags` map.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2TagConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2TagTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_tag", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+
+        let prefix = model
+            .resource_id
+            .split('-')
+            .next()
+            .unwrap_or("")
+            .to_string();
+        let mut applied = false;
+        let mut warnings = vec![];
+
+        match prefix.as_str() {
+            "vpc" => {
+                if let Some(v) = snapshot.vpcs.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "subnet" => {
+                if let Some(v) = snapshot.subnets.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "igw" => {
+                if let Some(v) = snapshot.igws.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "sg" => {
+                if let Some(v) = snapshot.security_groups.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "rtb" => {
+                if let Some(v) = snapshot.route_tables.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "key" => {
+                if let Some(v) = snapshot.key_pairs.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "acl" => {
+                if let Some(v) = snapshot.network_acls.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "eipalloc" | "eipassoc" => {
+                if let Some(v) = snapshot.elastic_ips.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "nat" => {
+                if let Some(v) = snapshot.nat_gateways.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "dopt" => {
+                if let Some(v) = snapshot.dhcp_options.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "eigw" => {
+                if let Some(v) = snapshot.egress_only_igws.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "fl" => {
+                if let Some(v) = snapshot.flow_logs.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "pcx" => {
+                if let Some(v) = snapshot.vpc_peering_connections.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "vpce" => {
+                if let Some(v) = snapshot.vpc_endpoints.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "pl" => {
+                if let Some(v) = snapshot.managed_prefix_lists.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "cgw" => {
+                if let Some(v) = snapshot.customer_gateways.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "vgw" => {
+                if let Some(v) = snapshot.vpn_gateways.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "vpn" => {
+                if let Some(v) = snapshot.vpn_connections.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "cagw" => {
+                if let Some(v) = snapshot.carrier_gateways.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "eni" => {
+                if let Some(v) = snapshot.network_interfaces.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "tgw" => {
+                if let Some(v) = snapshot.transit_gateways.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "i" => {
+                if let Some(v) = snapshot.instances.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "vol" => {
+                if let Some(v) = snapshot.volumes.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "snap" => {
+                if let Some(v) = snapshot.snapshots.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "ami" => {
+                if let Some(v) = snapshot.images.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "lt" => {
+                if let Some(v) = snapshot.launch_templates.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "h" => {
+                if let Some(v) = snapshot.dedicated_hosts.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "fleet" => {
+                if let Some(v) = snapshot.ec2_fleets.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "sfr" => {
+                if let Some(v) = snapshot.spot_fleet_requests.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            "sir" => {
+                if let Some(v) = snapshot.spot_requests.get_mut(&model.resource_id) {
+                    v.tags.insert(model.key.clone(), model.value.clone());
+                    applied = true;
+                }
+            }
+            _ => {}
+        }
+
+        if !applied {
+            warnings.push(format!(
+                "aws_ec2_tag: resource '{}' (prefix '{}') not found or unsupported; tag not applied",
+                model.resource_id, prefix
+            ));
+        } else {
+            self.service
+                .restore(&ctx.default_account_id, &region, snapshot)
+                .await?;
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 — VPC Peering family
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// aws_vpc_peering_connection
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcPeeringConnectionConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcPeeringConnectionConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcPeeringConnectionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_peering_connection"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsVpcPeeringConnectionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcPeeringConnectionTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_peering_connection", e))?;
+
+        let peering_id = model.id.clone().unwrap_or_else(|| random_short_id("pcx"));
+        let tags = extract_tags(attrs);
+
+        let status = if model.auto_accept {
+            "active".to_string()
+        } else {
+            "pending-acceptance".to_string()
+        };
+
+        let view = VpcPeeringConnectionView {
+            peering_id: peering_id.clone(),
+            requester_vpc_id: model.vpc_id,
+            accepter_vpc_id: Some(model.peer_vpc_id),
+            status,
+            tags,
+            requester_peering_options: None,
+            accepter_peering_options: None,
+        };
+
+        let mut state_view = minimal_ec2_state_view();
+        state_view.vpc_peering_connections.insert(peering_id, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for p in view.vpc_peering_connections.values() {
+            let attrs = serde_json::json!({
+                "id": p.peering_id,
+                "vpc_id": p.requester_vpc_id,
+                "peer_vpc_id": p.accepter_vpc_id,
+                "auto_accept": p.status == "active",
+                "tags": p.tags,
+            });
+            results.push(ExtractedResource {
+                name: p.peering_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_peering_connection_accepter
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcPeeringConnectionAccepterConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcPeeringConnectionAccepterConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcPeeringConnectionAccepterConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_peering_connection_accepter"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_peering_connection"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Accepter is a status modifier; round-trip via aws_vpc_peering_connection.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcPeeringConnectionAccepterConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcPeeringConnectionAccepterTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_peering_connection_accepter", e)
+            })?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(conn) = snapshot
+            .vpc_peering_connections
+            .get_mut(&model.vpc_peering_connection_id)
+        {
+            conn.status = "active".to_string();
+        } else {
+            warnings.push(format!(
+                "vpc peering connection '{}' not found; accepter ignored",
+                model.vpc_peering_connection_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_vpc_peering_connection_options
+// ---------------------------------------------------------------------------
+
+pub struct AwsVpcPeeringConnectionOptionsConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcPeeringConnectionOptionsConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcPeeringConnectionOptionsConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_peering_connection_options"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_peering_connection"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Options round-trip via the parent aws_vpc_peering_connection resource.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcPeeringConnectionOptionsConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcPeeringConnectionOptionsTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_vpc_peering_connection_options", e))?;
+
+        let requester_opts = parse_peering_options_block(attrs, "requester");
+        let accepter_opts = parse_peering_options_block(attrs, "accepter");
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(conn) = snapshot
+            .vpc_peering_connections
+            .get_mut(&model.vpc_peering_connection_id)
+        {
+            if requester_opts.is_some() {
+                conn.requester_peering_options = requester_opts;
+            }
+            if accepter_opts.is_some() {
+                conn.accepter_peering_options = accepter_opts;
+            }
+        } else {
+            warnings.push(format!(
+                "vpc peering connection '{}' not found; options ignored",
+                model.vpc_peering_connection_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+fn parse_peering_options_block(
+    attrs: &serde_json::Value,
+    key: &str,
+) -> Option<VpcPeeringConnectionOptionsView> {
+    let block = attrs.get(key)?;
+    let first = match block {
+        serde_json::Value::Array(arr) => arr.first()?,
+        serde_json::Value::Object(_) => block,
+        _ => return None,
+    };
+    Some(VpcPeeringConnectionOptionsView {
+        allow_dns_resolution_from_remote_vpc: first
+            .get("allow_remote_vpc_dns_resolution")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false),
+        allow_egress_from_local_classic_link_to_remote_vpc: first
+            .get("allow_classic_link_to_remote_vpc")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false),
+        allow_egress_from_local_vpc_to_remote_classic_link: first
+            .get("allow_vpc_to_remote_classic_link")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false),
+    })
+}
+
+// ===========================================================================
+// Wave 6 — Default-* family, account singletons, IPAM extras, VPC misc,
+// route server family, Verified Access extras (~28 resources).
+//
+// For resources without a matching state view, the converter is a
+// warning-only inject — emit an `eprintln!` warning and return Ok(vec![])
+// from extract. Resources that do have state are full modifiers.
+// ===========================================================================
+
+// Helper: emit a warning-only converter for a resource whose state slot is
+// not modelled in winterbaume_ec2. Centralised to keep wave 6 boilerplate
+// compact.
+macro_rules! ec2_warning_only_converter {
+    (
+        struct_name = $struct_name:ident,
+        resource_type = $resource_type:expr,
+        model_type = $model_type:ident,
+        warn_msg = $warn_msg:expr $(,)?
+    ) => {
+        pub struct $struct_name {
+            #[allow(dead_code)]
+            service: Arc<Ec2Service>,
+        }
+
+        impl $struct_name {
+            pub fn new(service: Arc<Ec2Service>) -> Self {
+                Self { service }
+            }
+        }
+
+        impl TerraformResourceConverter for $struct_name {
+            fn resource_type(&self) -> &str {
+                $resource_type
+            }
+
+            fn inject<'a>(
+                &'a self,
+                instance: &'a ResourceInstance,
+                ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>,
+            > {
+                Box::pin(async move { self.do_inject(instance, ctx).await })
+            }
+
+            fn extract<'a>(
+                &'a self,
+                _ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<
+                    dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>>
+                        + Send
+                        + 'a,
+                >,
+            > {
+                Box::pin(async move { Ok(vec![]) })
+            }
+        }
+
+        impl $struct_name {
+            async fn do_inject(
+                &self,
+                instance: &ResourceInstance,
+                ctx: &ConversionContext,
+            ) -> Result<ConversionResult, ConversionError> {
+                let attrs = &instance.attributes;
+                let region = extract_region(attrs, &ctx.default_region);
+                let _model: ec2_gen::$model_type = serde_json::from_value(attrs.clone())
+                    .map_err(|e| classify_deserialize_error($resource_type, e))?;
+                eprintln!("warning: {}: {}", $resource_type, $warn_msg);
+                Ok(ConversionResult {
+                    region,
+                    warnings: vec![format!("{}: {}", $resource_type, $warn_msg)],
+                })
+            }
+        }
+    };
+}
+
+// ---------------------------------------------------------------------------
+// aws_default_network_acl — snapshot+adopt an existing default NACL.
+// ---------------------------------------------------------------------------
+
+pub struct AwsDefaultNetworkAclConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsDefaultNetworkAclConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDefaultNetworkAclConverter {
+    fn resource_type(&self) -> &str {
+        "aws_default_network_acl"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsDefaultNetworkAclConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::DefaultNetworkAclTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_default_network_acl", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(nacl) = snapshot.network_acls.get_mut(&model.default_network_acl_id) {
+            nacl.is_default = true;
+            let tags = extract_tags(attrs);
+            for (k, v) in tags {
+                nacl.tags.insert(k, v);
+            }
+        } else {
+            warnings.push(format!(
+                "aws_default_network_acl: NACL '{}' not found in state; default flag not applied",
+                model.default_network_acl_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_default_route_table — adopt an existing default route table.
+// ---------------------------------------------------------------------------
+
+pub struct AwsDefaultRouteTableConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsDefaultRouteTableConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDefaultRouteTableConverter {
+    fn resource_type(&self) -> &str {
+        "aws_default_route_table"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsDefaultRouteTableConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::DefaultRouteTableTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_default_route_table", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(rt) = snapshot.route_tables.get_mut(&model.default_route_table_id) {
+            let tags = extract_tags(attrs);
+            for (k, v) in tags {
+                rt.tags.insert(k, v);
+            }
+        } else {
+            warnings.push(format!(
+                "aws_default_route_table: route table '{}' not found in state",
+                model.default_route_table_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_default_security_group — adopt an existing default security group.
+// ---------------------------------------------------------------------------
+
+pub struct AwsDefaultSecurityGroupConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsDefaultSecurityGroupConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDefaultSecurityGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_default_security_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsDefaultSecurityGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::DefaultSecurityGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_default_security_group", e))?;
+
+        let sg_id = match model.id.as_deref() {
+            Some(id) => id.to_string(),
+            None => {
+                eprintln!(
+                    "warning: aws_default_security_group: no `id` attribute; cannot adopt default SG"
+                );
+                return Ok(ConversionResult {
+                    region,
+                    warnings: vec!["aws_default_security_group: missing id".into()],
+                });
+            }
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(sg) = snapshot.security_groups.get_mut(&sg_id) {
+            let tags = extract_tags(attrs);
+            for (k, v) in tags {
+                sg.tags.insert(k, v);
+            }
+        } else {
+            warnings.push(format!(
+                "aws_default_security_group: SG '{}' not found in state",
+                sg_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_default_subnet — adopt an existing default subnet for an AZ.
+// ---------------------------------------------------------------------------
+
+pub struct AwsDefaultSubnetConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsDefaultSubnetConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDefaultSubnetConverter {
+    fn resource_type(&self) -> &str {
+        "aws_default_subnet"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsDefaultSubnetConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::DefaultSubnetTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_default_subnet", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        let target_id = model.id.clone();
+        let mut adopted = false;
+        if let Some(id) = target_id.as_deref() {
+            if let Some(s) = snapshot.subnets.get_mut(id) {
+                let tags = extract_tags(attrs);
+                for (k, v) in tags {
+                    s.tags.insert(k, v);
+                }
+                adopted = true;
+            }
+        }
+        if !adopted {
+            // Fall back to looking up by AZ.
+            if let Some(s) = snapshot
+                .subnets
+                .values_mut()
+                .find(|s| s.availability_zone == model.availability_zone)
+            {
+                let tags = extract_tags(attrs);
+                for (k, v) in tags {
+                    s.tags.insert(k, v);
+                }
+                adopted = true;
+            }
+        }
+        if !adopted {
+            warnings.push(format!(
+                "aws_default_subnet: no default subnet found for AZ '{}'",
+                model.availability_zone
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_default_vpc — adopt the region's default VPC (or create if missing).
+// ---------------------------------------------------------------------------
+
+pub struct AwsDefaultVpcConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsDefaultVpcConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDefaultVpcConverter {
+    fn resource_type(&self) -> &str {
+        "aws_default_vpc"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsDefaultVpcConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::DefaultVpcTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_default_vpc", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        let mut adopted = false;
+        if let Some(id) = model.id.as_deref() {
+            if let Some(v) = snapshot.vpcs.get_mut(id) {
+                v.is_default = true;
+                v.enable_dns_hostnames = model.enable_dns_hostnames;
+                v.enable_dns_support = model.enable_dns_support;
+                let tags = extract_tags(attrs);
+                for (k, v_) in tags {
+                    v.tags.insert(k, v_);
+                }
+                adopted = true;
+            }
+        }
+        if !adopted {
+            if let Some(v) = snapshot.vpcs.values_mut().find(|v| v.is_default) {
+                v.enable_dns_hostnames = model.enable_dns_hostnames;
+                v.enable_dns_support = model.enable_dns_support;
+                let tags = extract_tags(attrs);
+                for (k, v_) in tags {
+                    v.tags.insert(k, v_);
+                }
+                adopted = true;
+            }
+        }
+        if !adopted {
+            warnings.push("aws_default_vpc: no default VPC found in state; nothing adopted".into());
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_default_vpc_dhcp_options — adopt the AWS-default DHCP option set.
+// ---------------------------------------------------------------------------
+
+pub struct AwsDefaultVpcDhcpOptionsConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsDefaultVpcDhcpOptionsConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsDefaultVpcDhcpOptionsConverter {
+    fn resource_type(&self) -> &str {
+        "aws_default_vpc_dhcp_options"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsDefaultVpcDhcpOptionsConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::DefaultVpcDhcpOptionsTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_default_vpc_dhcp_options", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        let mut adopted = false;
+        if let Some(id) = model.id.as_deref() {
+            if let Some(dopt) = snapshot.dhcp_options.get_mut(id) {
+                let tags = extract_tags(attrs);
+                for (k, v) in tags {
+                    dopt.tags.insert(k, v);
+                }
+                adopted = true;
+            }
+        }
+        if !adopted {
+            warnings.push("aws_default_vpc_dhcp_options: no matching DHCP option set found".into());
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_availability_zone_group — opt the AZ group into the account.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2AvailabilityZoneGroupConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2AvailabilityZoneGroupConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2AvailabilityZoneGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_availability_zone_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2AvailabilityZoneGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2AvailabilityZoneGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_availability_zone_group", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot
+            .az_group_opt_in
+            .insert(model.group_name.clone(), model.opt_in_status.clone());
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_default_credit_specification — set the per-family default credit
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2DefaultCreditSpecificationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2DefaultCreditSpecificationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2DefaultCreditSpecificationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_default_credit_specification"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2DefaultCreditSpecificationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2DefaultCreditSpecificationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_ec2_default_credit_specification", e)
+            })?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot
+            .default_credit_specifications
+            .insert(model.instance_family.clone(), model.cpu_credits.clone());
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_serial_console_access — account-wide toggle.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2SerialConsoleAccessConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2SerialConsoleAccessConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2SerialConsoleAccessConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_serial_console_access"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2SerialConsoleAccessConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2SerialConsoleAccessTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_ec2_serial_console_access", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot.serial_console_access_enabled = model.enabled;
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_image_block_public_access — account-wide toggle.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2ImageBlockPublicAccessConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2ImageBlockPublicAccessConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2ImageBlockPublicAccessConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_image_block_public_access"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2ImageBlockPublicAccessConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2ImageBlockPublicAccessTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_ec2_image_block_public_access", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot.image_block_public_access_state = Some(model.state.clone());
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_instance_metadata_defaults — write the account-wide IMDS defaults.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2InstanceMetadataDefaultsConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2InstanceMetadataDefaultsConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2InstanceMetadataDefaultsConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_instance_metadata_defaults"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2InstanceMetadataDefaultsConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2InstanceMetadataDefaultsTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_ec2_instance_metadata_defaults", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot.instance_metadata_defaults =
+            Some(winterbaume_ec2::views::InstanceMetadataDefaultsView {
+                http_tokens: model.http_tokens.clone(),
+                http_put_response_hop_limit: if model.http_put_response_hop_limit > 0 {
+                    Some(model.http_put_response_hop_limit as i32)
+                } else {
+                    None
+                },
+                http_endpoint: model.http_endpoint.clone(),
+                instance_metadata_tags: model.instance_metadata_tags.clone(),
+            });
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_ec2_instance_state — flip a single instance running/stopped.
+// ---------------------------------------------------------------------------
+
+pub struct AwsEc2InstanceStateConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2InstanceStateConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2InstanceStateConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_instance_state"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2InstanceStateConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2InstanceStateTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_instance_state", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(inst) = snapshot.instances.get_mut(&model.instance_id) {
+            let (code, name) = match model.state.as_str() {
+                "running" => (16, "running"),
+                "stopped" => (80, "stopped"),
+                "pending" => (0, "pending"),
+                "stopping" => (64, "stopping"),
+                "shutting-down" => (32, "shutting-down"),
+                "terminated" => (48, "terminated"),
+                other => (16, other),
+            };
+            inst.state = InstanceStateView {
+                code,
+                name: name.to_string(),
+            };
+        } else {
+            warnings.push(format!(
+                "aws_ec2_instance_state: instance '{}' not found in state",
+                model.instance_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// IPAM extras
+// ---------------------------------------------------------------------------
+
+ec2_warning_only_converter! {
+    struct_name = AwsVpcIpamOrganizationAdminAccountConverter,
+    resource_type = "aws_vpc_ipam_organization_admin_account",
+    model_type = VpcIpamOrganizationAdminAccountTfModel,
+    warn_msg = "Organizations IPAM-admin slot not modelled in winterbaume_ec2; inject is a no-op",
+}
+
+ec2_warning_only_converter! {
+    struct_name = AwsVpcIpamPreviewNextCidrConverter,
+    resource_type = "aws_vpc_ipam_preview_next_cidr",
+    model_type = VpcIpamPreviewNextCidrTfModel,
+    warn_msg = "preview-only resource; no state writes",
+}
+
+// aws_vpc_ipam_resource_discovery_association — modifier on IPAM resource
+// discovery association map.
+pub struct AwsVpcIpamResourceDiscoveryAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpamResourceDiscoveryAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpamResourceDiscoveryAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipam_resource_discovery_association"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcIpamResourceDiscoveryAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpamResourceDiscoveryAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_ipam_resource_discovery_association", e)
+            })?;
+
+        let association_id = model
+            .id
+            .clone()
+            .unwrap_or_else(|| random_short_id("ipam-res-disco-assoc"));
+        let assoc = IpamResourceDiscoveryAssociationView {
+            ipam_resource_discovery_association_id: association_id.clone(),
+            ipam_resource_discovery_association_arn: format!(
+                "arn:aws:ec2::{}:ipam-resource-discovery-association/{}",
+                ctx.default_account_id, association_id
+            ),
+            ipam_arn: format!(
+                "arn:aws:ec2::{}:ipam/{}",
+                ctx.default_account_id, model.ipam_id
+            ),
+            ipam_id: model.ipam_id.clone(),
+            ipam_region: region.clone(),
+            ipam_resource_discovery_id: model.ipam_resource_discovery_id.clone(),
+            owner_id: ctx.default_account_id.clone(),
+            is_default: false,
+            resource_discovery_status: "active".to_string(),
+            state: "associate-complete".to_string(),
+            tags: extract_tags(attrs),
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot
+            .ipam_resource_discovery_associations
+            .insert(association_id, assoc);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// aws_ec2_subnet_cidr_reservation — modifier on subnet_cidr_reservations.
+pub struct AwsEc2SubnetCidrReservationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsEc2SubnetCidrReservationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsEc2SubnetCidrReservationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_ec2_subnet_cidr_reservation"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsEc2SubnetCidrReservationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::Ec2SubnetCidrReservationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_ec2_subnet_cidr_reservation", e))?;
+
+        let reservation_id = model.id.clone().unwrap_or_else(|| random_short_id("scr"));
+        let view = SubnetCidrReservationView {
+            reservation_id: reservation_id.clone(),
+            subnet_id: model.subnet_id.clone(),
+            cidr: model.cidr_block.clone(),
+            reservation_type: model.reservation_type.clone(),
+            description: model.description.unwrap_or_default(),
+            owner_id: ctx.default_account_id.clone(),
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot
+            .subnet_cidr_reservations
+            .insert(reservation_id, view);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// VPC misc
+// ---------------------------------------------------------------------------
+
+// aws_vpc_block_public_access_exclusion
+pub struct AwsVpcBlockPublicAccessExclusionConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcBlockPublicAccessExclusionConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcBlockPublicAccessExclusionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_block_public_access_exclusion"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcBlockPublicAccessExclusionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcBlockPublicAccessExclusionTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_block_public_access_exclusion", e)
+            })?;
+
+        let exclusion_id = model
+            .id
+            .clone()
+            .unwrap_or_else(|| random_short_id("vbpa-excl"));
+        let resource_arn = match (&model.vpc_id, &model.subnet_id) {
+            (Some(vid), _) => format!(
+                "arn:aws:ec2:{}:{}:vpc/{}",
+                region, ctx.default_account_id, vid
+            ),
+            (_, Some(sid)) => format!(
+                "arn:aws:ec2:{}:{}:subnet/{}",
+                region, ctx.default_account_id, sid
+            ),
+            _ => String::new(),
+        };
+        let view = VpcBlockPublicAccessExclusionView {
+            exclusion_id: exclusion_id.clone(),
+            internet_gateway_exclusion_mode: model.internet_gateway_exclusion_mode.clone(),
+            resource_arn,
+            state: "create-complete".to_string(),
+            creation_timestamp: String::new(),
+            last_update_timestamp: String::new(),
+            tags: extract_tags(attrs),
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot
+            .vpc_block_public_access_exclusions
+            .insert(exclusion_id, view);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// aws_vpc_block_public_access_options
+pub struct AwsVpcBlockPublicAccessOptionsConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcBlockPublicAccessOptionsConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcBlockPublicAccessOptionsConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_block_public_access_options"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcBlockPublicAccessOptionsConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcBlockPublicAccessOptionsTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_block_public_access_options", e)
+            })?;
+
+        let view = VpcBlockPublicAccessOptionsView {
+            aws_account_id: ctx.default_account_id.clone(),
+            aws_region: region.clone(),
+            internet_gateway_block_mode: model.internet_gateway_block_mode.clone(),
+            state: "update-complete".to_string(),
+            last_update_timestamp: String::new(),
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot.vpc_block_public_access_options = Some(view);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// aws_vpc_ipv4_cidr_block_association — add a secondary CIDR to a VPC.
+pub struct AwsVpcIpv4CidrBlockAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpv4CidrBlockAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpv4CidrBlockAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipv4_cidr_block_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcIpv4CidrBlockAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpv4CidrBlockAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_ipv4_cidr_block_association", e)
+            })?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(vpc) = snapshot.vpcs.get_mut(&model.vpc_id) {
+            if let Some(cidr) = model.cidr_block.as_deref() {
+                let assoc_id = model
+                    .id
+                    .clone()
+                    .unwrap_or_else(|| random_short_id("vpc-cidr-assoc"));
+                vpc.secondary_cidr_blocks.push((assoc_id, cidr.to_string()));
+            } else {
+                warnings.push(
+                    "aws_vpc_ipv4_cidr_block_association: cidr_block not present; nothing applied"
+                        .into(),
+                );
+            }
+        } else {
+            warnings.push(format!(
+                "aws_vpc_ipv4_cidr_block_association: VPC '{}' not found in state",
+                model.vpc_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// aws_vpc_ipv6_cidr_block_association — add an IPv6 block to a VPC.
+pub struct AwsVpcIpv6CidrBlockAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcIpv6CidrBlockAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcIpv6CidrBlockAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_ipv6_cidr_block_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcIpv6CidrBlockAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcIpv6CidrBlockAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_ipv6_cidr_block_association", e)
+            })?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(vpc) = snapshot.vpcs.get_mut(&model.vpc_id) {
+            if let Some(cidr) = model.ipv6_cidr_block.as_deref() {
+                let assoc_id = model
+                    .id
+                    .clone()
+                    .unwrap_or_else(|| random_short_id("vpc-ipv6-cidr-assoc"));
+                vpc.secondary_cidr_blocks.push((assoc_id, cidr.to_string()));
+            } else {
+                warnings.push(
+                    "aws_vpc_ipv6_cidr_block_association: ipv6_cidr_block not present".into(),
+                );
+            }
+        } else {
+            warnings.push(format!(
+                "aws_vpc_ipv6_cidr_block_association: VPC '{}' not found in state",
+                model.vpc_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// aws_vpc_network_performance_metric_subscription
+pub struct AwsVpcNetworkPerformanceMetricSubscriptionConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcNetworkPerformanceMetricSubscriptionConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcNetworkPerformanceMetricSubscriptionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_network_performance_metric_subscription"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcNetworkPerformanceMetricSubscriptionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcNetworkPerformanceMetricSubscriptionTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_network_performance_metric_subscription", e)
+            })?;
+
+        let view = AwsNetworkPerformanceSubscriptionView {
+            source: model.source.clone(),
+            destination: model.destination.clone(),
+            metric: model.metric.clone(),
+            statistic: model.statistic.clone(),
+            period: model.period.unwrap_or_default(),
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        // Idempotent insert keyed by (source, destination, metric, statistic).
+        snapshot.aws_network_performance_subscriptions.retain(|s| {
+            !(s.source == view.source
+                && s.destination == view.destination
+                && s.metric == view.metric
+                && s.statistic == view.statistic)
+        });
+        snapshot.aws_network_performance_subscriptions.push(view);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Route server family — full state writes via route_servers/.../associations.
+// ---------------------------------------------------------------------------
+
+// aws_vpc_route_server
+pub struct AwsVpcRouteServerConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcRouteServerConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcRouteServerConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_route_server"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcRouteServerConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcRouteServerTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_route_server", e))?;
+
+        let rs_id = model.id.clone().unwrap_or_else(|| random_short_id("rs"));
+        let view = winterbaume_ec2::views::RouteServerView {
+            route_server_id: rs_id.clone(),
+            route_server_arn: format!(
+                "arn:aws:ec2:{}:{}:route-server/{}",
+                region, ctx.default_account_id, rs_id
+            ),
+            amazon_side_asn: model.amazon_side_asn,
+            state: "available".to_string(),
+            persist_routes: model
+                .persist_routes
+                .unwrap_or_else(|| "disable".to_string()),
+            persist_routes_duration: if model.persist_routes_duration > 0 {
+                Some(model.persist_routes_duration)
+            } else {
+                None
+            },
+            sns_notifications_enabled: model.sns_notifications_enabled,
+            sns_topic_arn: model.sns_topic_arn.clone(),
+            tags: extract_tags(attrs),
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        snapshot.route_servers.insert(rs_id, view);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// aws_vpc_route_server_endpoint
+pub struct AwsVpcRouteServerEndpointConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcRouteServerEndpointConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcRouteServerEndpointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_route_server_endpoint"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_route_server"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcRouteServerEndpointConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcRouteServerEndpointTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_vpc_route_server_endpoint", e))?;
+
+        let ep_id = model.id.clone().unwrap_or_else(|| random_short_id("rse"));
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let vpc_id = snapshot
+            .subnets
+            .get(&model.subnet_id)
+            .map(|s| s.vpc_id.clone())
+            .unwrap_or_default();
+        let view = winterbaume_ec2::views::RouteServerEndpointView {
+            route_server_endpoint_id: ep_id.clone(),
+            route_server_id: model.route_server_id.clone(),
+            vpc_id,
+            subnet_id: model.subnet_id.clone(),
+            eni_id: random_short_id("eni"),
+            eni_address: None,
+            state: "available".to_string(),
+            failure_reason: None,
+            tags: extract_tags(attrs),
+        };
+        snapshot.route_server_endpoints.insert(ep_id, view);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// aws_vpc_route_server_peer
+pub struct AwsVpcRouteServerPeerConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcRouteServerPeerConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcRouteServerPeerConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_route_server_peer"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_route_server_endpoint"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcRouteServerPeerConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcRouteServerPeerTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_vpc_route_server_peer", e))?;
+
+        let peer_id = model.id.clone().unwrap_or_else(|| random_short_id("rsp"));
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let (rs_id, vpc_id, subnet_id) = match snapshot
+            .route_server_endpoints
+            .get(&model.route_server_endpoint_id)
+        {
+            Some(ep) => (
+                ep.route_server_id.clone(),
+                ep.vpc_id.clone(),
+                ep.subnet_id.clone(),
+            ),
+            None => (String::new(), String::new(), String::new()),
+        };
+        let view = winterbaume_ec2::views::RouteServerPeerView {
+            route_server_peer_id: peer_id.clone(),
+            route_server_endpoint_id: model.route_server_endpoint_id.clone(),
+            route_server_id: rs_id,
+            vpc_id,
+            subnet_id,
+            peer_address: model.peer_address.clone(),
+            state: "available".to_string(),
+            failure_reason: None,
+            options: winterbaume_ec2::views::RouteServerPeerOptionsView::default(),
+            endpoint_eni_id: None,
+            endpoint_eni_address: None,
+            tags: extract_tags(attrs),
+        };
+        snapshot.route_server_peers.insert(peer_id, view);
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// aws_vpc_route_server_propagation — modifier appending propagation onto the
+// route-server association for the route table's VPC.
+pub struct AwsVpcRouteServerPropagationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcRouteServerPropagationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcRouteServerPropagationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_route_server_propagation"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_route_server"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcRouteServerPropagationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcRouteServerPropagationTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_vpc_route_server_propagation", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let vpc_id = snapshot
+            .route_tables
+            .get(&model.route_table_id)
+            .map(|rt| rt.vpc_id.clone())
+            .unwrap_or_default();
+        let mut warnings = vec![];
+        let assoc = snapshot.route_server_associations.iter_mut().find(|a| {
+            a.route_server_id == model.route_server_id && a.vpc_id == vpc_id && !vpc_id.is_empty()
+        });
+        match assoc {
+            Some(a) => {
+                if !a.propagations.contains(&model.route_table_id) {
+                    a.propagations.push(model.route_table_id.clone());
+                }
+            }
+            None => {
+                warnings.push(format!(
+                    "aws_vpc_route_server_propagation: no route-server '{}' association for VPC '{}'",
+                    model.route_server_id, vpc_id
+                ));
+            }
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// aws_vpc_route_server_vpc_association — append a new association.
+pub struct AwsVpcRouteServerVpcAssociationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVpcRouteServerVpcAssociationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVpcRouteServerVpcAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_vpc_route_server_vpc_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_vpc_route_server"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVpcRouteServerVpcAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VpcRouteServerVpcAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_vpc_route_server_vpc_association", e)
+            })?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let exists = snapshot
+            .route_server_associations
+            .iter()
+            .any(|a| a.route_server_id == model.route_server_id && a.vpc_id == model.vpc_id);
+        if !exists {
+            snapshot
+                .route_server_associations
+                .push(RouteServerAssociationView {
+                    route_server_id: model.route_server_id.clone(),
+                    vpc_id: model.vpc_id.clone(),
+                    state: "available".to_string(),
+                    propagations: vec![],
+                });
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Verified Access extras
+// ---------------------------------------------------------------------------
+
+// aws_verifiedaccess_instance_logging_configuration — modifier on
+// VerifiedAccessInstanceView's logging configuration map.
+pub struct AwsVerifiedaccessInstanceLoggingConfigurationConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVerifiedaccessInstanceLoggingConfigurationConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVerifiedaccessInstanceLoggingConfigurationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_verifiedaccess_instance_logging_configuration"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_verifiedaccess_instance"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVerifiedaccessInstanceLoggingConfigurationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VerifiedAccessInstanceLoggingConfigurationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_verifiedaccess_instance_logging_configuration", e)
+            })?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if snapshot
+            .verified_access_instances
+            .contains_key(&model.verifiedaccess_instance_id)
+        {
+            snapshot
+                .verified_access_instance_logging_configurations
+                .insert(
+                    model.verifiedaccess_instance_id.clone(),
+                    winterbaume_ec2::views::VerifiedAccessLogsView::default(),
+                );
+        } else {
+            warnings.push(format!(
+                "aws_verifiedaccess_instance_logging_configuration: instance '{}' not found",
+                model.verifiedaccess_instance_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// aws_verifiedaccess_instance_trust_provider_attachment
+pub struct AwsVerifiedaccessInstanceTrustProviderAttachmentConverter {
+    service: Arc<Ec2Service>,
+}
+
+impl AwsVerifiedaccessInstanceTrustProviderAttachmentConverter {
+    pub fn new(service: Arc<Ec2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsVerifiedaccessInstanceTrustProviderAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_verifiedaccess_instance_trust_provider_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_verifiedaccess_instance",
+            "aws_verifiedaccess_trust_provider",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsVerifiedaccessInstanceTrustProviderAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: ec2_gen::VerifiedAccessInstanceTrustProviderAttachmentTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error(
+                    "aws_verifiedaccess_instance_trust_provider_attachment",
+                    e,
+                )
+            })?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(va) = snapshot
+            .verified_access_instances
+            .get_mut(&model.verifiedaccess_instance_id)
+        {
+            if !va
+                .trust_provider_ids
+                .contains(&model.verifiedaccess_trust_provider_id)
+            {
+                va.trust_provider_ids
+                    .push(model.verifiedaccess_trust_provider_id.clone());
+            }
+        } else {
+            warnings.push(format!(
+                "aws_verifiedaccess_instance_trust_provider_attachment: instance '{}' not found",
+                model.verifiedaccess_instance_id
+            ));
+        }
+        let exists = snapshot
+            .verified_access_trust_provider_attachments
+            .iter()
+            .any(|a| {
+                a.instance_id == model.verifiedaccess_instance_id
+                    && a.trust_provider_id == model.verifiedaccess_trust_provider_id
+            });
+        if !exists {
+            snapshot.verified_access_trust_provider_attachments.push(
+                VerifiedAccessTrustProviderAttachmentView {
+                    instance_id: model.verifiedaccess_instance_id.clone(),
+                    trust_provider_id: model.verifiedaccess_trust_provider_id.clone(),
+                },
+            );
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
     }
 }
 

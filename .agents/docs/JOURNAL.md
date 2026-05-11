@@ -1157,3 +1157,164 @@ clippy on the first run.
   ( and the `verify-publish-ready` skill ) into a known-clean state
   before any release work; the per-crate gate is sufficient for routine
   development.
+
+## 2026-05-11 (cont.): Close the EC2 Terraform-converter coverage gap
+
+### Context
+
+EC2 was by far the largest remaining coverage gap on the
+`TERRAFORM_RESOURCE_COVERAGE.md` report — 100 of the missing 768 resource
+types lived under the `ec2` prefix, more than 4× the next service
+( `directconnect` at 18 ). The pre-existing EC2 converter file already
+held 39 spec-driven converters; the brief was to extend that out to the
+full TF AWS provider's EC2 surface.
+
+### Findings
+
+**Six sequential waves, one converter file.** Spec entries, generated
+projection models, hand-written converter bodies, and server
+registrations all live in shared files
+( `crates/winterbaume-terraform/specs/ec2.toml`,
+`crates/winterbaume-tfstate-resource-models/src/ec2.rs`,
+`crates/winterbaume-terraform/src/converters/ec2.rs`, and
+`crates/winterbaume-server/src/main.rs` ), which precludes a
+fan-out-then-merge strategy: sub-agents working on the same files in
+parallel would conflict on every line. The strategy that worked was
+sequential dispatch — one sub-agent at a time, each with a focused brief
+( wave-1 critical compute, wave-2 association/AMI families, wave-3 VPC
+endpoints + VPN, wave-4 Transit Gateway family, wave-5 Client VPN +
+Host/Fleet/Spot + carrier gateway + managed prefix list + peering,
+wave-6 default-* + account singletons + IPAM extras + VPC block public
+access + route servers + verified-access extras ) followed by an
+orchestrator-side cargo gate at the end of the chain. Six waves
+covered all 100 missing resources without rework.
+
+**Distribution of "full state" vs "warning-only" converters.** Of the
+100 new converters, 98 write real state into the `winterbaume-ec2`
+crate. Two converters
+( `aws_vpc_ipam_organization_admin_account`,
+`aws_vpc_ipam_preview_next_cidr` ) have no matching slot in
+`Ec2StateView` and were wired as warning-only injects — they
+successfully deserialize the TF model so terraform plan/apply can read
+them back out, but the body logs a `tracing`-style warning and does
+nothing else. This is the same shape that
+`aws_vpc_endpoint_private_dns` and `aws_vpn_gateway_route_propagation`
+already use ( for genuinely-absent state ). It is preferable to a hard
+error in the converter because a TF plan that references one of these
+must still parse: the converter has to claim the resource type so it
+isn't reported as "unknown resource".
+
+**Modifier idiom scaled to 50+ converters without becoming repetitive.**
+The snapshot+mutate+restore pattern — read the parent view from
+`self.service.snapshot()`, mutate the field, write the partial
+`Ec2StateView` back via `self.service.merge()`, and return
+`Ok(vec![])` from `do_extract` to avoid double-emit — is now the
+load-bearing pattern for every TF "association" / "attachment" /
+"rule" / "policy" / "accepter" resource. Roughly half of the 100 new
+converters are modifiers, and the pattern is the same shape in every
+one. The benefit is that each modifier is ~30 lines of code; the cost
+is that the parent resource's `do_extract` carries the entire
+flattened JSON schema for the resource family ( ingress rules,
+attachments, allowed principals, etc. ) so plans round-trip cleanly.
+
+**Generic `aws_ec2_tag` needed a prefix dispatch table.** The TF
+`aws_ec2_tag` resource attaches a single tag to any EC2 entity
+identified by a generic `resource_id`. The converter dispatches by the
+`resource_id` prefix ( `vpc-`, `subnet-`, `igw-`, `sg-`, `rtb-`,
+`key-`, `acl-`, `eipalloc-`, `nat-`, `dopt-`, `eigw-`, `fl-`,
+`pcx-`, `vpce-`, `pl-`, `cgw-`, `vgw-`, `vpn-`, `cagw-`, `eni-`,
+`tgw-`, `i-`, `vol-`, `snap-`, `ami-`, `lt-`, `h-`, `fleet-`,
+`sfr-`, `sir-` — 26 distinct prefixes ) to find the right view in
+`Ec2StateView` and mutate its `tags` map. This is the only EC2
+converter that touches more than one view in a single inject call.
+
+**The "Build is still running" hand-off message.** One sub-agent
+( wave 4 — Transit Gateway ) returned a literal "Build is still
+running. Let me wait for the monitor event." final message rather than
+a structured report. The actual files on disk reflected the
+completed work, so the empty report was misleading but not destructive.
+Manually verifying ( `grep '^type = "aws_ec2_transit_gateway' specs/ec2.toml`,
+`grep AwsEc2TransitGateway server/main.rs`, `tf-converter-codegen check` )
+took ~30 seconds and confirmed all 17 wave-4 resources were wired.
+Lesson: always trust the file-system delta over the agent's prose
+when it disagrees.
+
+**State-layer gaps observed ( not fixed ).** The wave intentionally did
+not modify the `winterbaume-ec2` crate's `views.rs` / `types.rs`. The
+following gaps were noted across the sub-agent reports for future
+state-layer work:
+
+- `RouteTableAssociationView` has no `gateway_id` field, so gateway-side
+  `aws_route_table_association` round-trips with a missing field.
+- `RouteTableView` has no `propagating_vgws` slot, so
+  `aws_vpn_gateway_route_propagation` is warning-only.
+- `VpcEndpointView` has no `private_dns_enabled` field, so the toggle
+  is warning-only.
+- `ImageView` is missing `kernel_id`, `ramdisk_id`, `ena_support`,
+  `sriov_net_support`, `tpm_support`, `boot_mode`, `imds_support`,
+  `image_location`, plus the `aws_ami_copy` source-AMI metadata.
+- `Ec2StateView` has no slot for the singleton spot datafeed
+  subscription.
+- The new `aws_vpc_route_server*` family ( 5 resources ) has no
+  existing state representation; converters are full-state writes into
+  fresh slots populated only on inject ( these may need extra
+  modelling once the AWS service handlers are completed ).
+
+### Repository deltas
+
+- `crates/winterbaume-terraform/specs/ec2.toml` ( +3,904 lines, +100
+  `[[resource]]` blocks ).
+- `crates/winterbaume-tfstate-resource-models/src/ec2.rs` ( +1,390
+  lines, regenerated ).
+- `crates/winterbaume-terraform/src/converters/ec2.rs` ( +10,217 lines
+  of new converter bodies, on top of the existing ~5,600-line file ).
+- `crates/winterbaume-server/src/main.rs` ( +318 lines, 100 new
+  `injector.register(ec2::Aws...Converter::new(...))` calls ).
+- `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md` ( regenerated ).
+
+Total diff: 15,820 insertions, 118 deletions, 5 files changed. Single
+signed commit `3036c2ef`.
+
+### Verification
+
+- `./.agents/bin/cargo.sh run -p tf-converter-codegen -- check`: all
+  generated files fresh.
+- `./.agents/bin/cargo.sh test -p winterbaume-terraform --no-fail-fast`:
+  293 + 6 tests pass, 22 ignored ( terraform-CLI E2E ).
+- `./.agents/bin/cargo.sh clippy -p winterbaume-terraform --all-targets
+  --all-features -- -D warnings`: clean.
+- `./.agents/bin/cargo.sh clippy -p winterbaume-tfstate-resource-models
+  --all-targets --all-features -- -D warnings`: clean.
+- `./.agents/bin/cargo.sh clippy -p winterbaume-server --all-targets
+  --all-features -- -D warnings`: clean.
+
+### Coverage snapshot
+
+| Metric                            | Before EC2 wave | After |
+|-----------------------------------|----------------:|------:|
+| Total `aws_*` resources handled   | 430             | 530   |
+| Schema-verified                   | 425             | 525   |
+| Missing within classified prefixes | 768             | 668   |
+| EC2 missing                       | 100             | 0     |
+
+EC2 is now the first AWS service to reach 100 % TF resource coverage
+beyond the bare-essentials baseline. The next-largest gaps remain
+`directconnect` ( 18 ), `quicksight` ( 17 ), `sagemaker` ( 17 remaining ),
+`networkmanager` ( 16 ), `cloudfront` ( 15 ), `connect` ( 15 ),
+`iot` ( 15 ).
+
+### Operational notes
+
+- The cargo-target dir under
+  `.agents-workspace/tmp/target-claude-<session>/` accumulated to ~9 GB
+  across the six waves because each sub-agent ran its own `cargo check`
+  via the tf-converter-codegen tool. The orchestrator-side gate run
+  reused this dir and finished in seconds; the cost of the sub-agent
+  rebuilds was the warm-cache `cargo run -p tf-converter-codegen -- gen`
+  invocation each one made ( ~5 s ).
+- The "Build is still running" sub-agent message means: re-verify with
+  `git diff --stat` and the four target files. Trust the disk state.
+- Three sub-agents independently ran `cargo clippy` despite the brief
+  saying "do not run clippy / build". This was harmless because the
+  per-crate gate is incremental, but the future-task guideline stands:
+  the orchestrator runs the gate once at the end.

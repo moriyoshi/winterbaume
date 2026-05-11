@@ -1754,3 +1754,3907 @@ type = "string?"
 hcl = "upfront_fee"
 view = "upfront_fee"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_instance"
+model = "InstanceTfModel"
+view = "InstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "ami"
+view = "ami"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_type"
+view = "instance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_name"
+view = "key_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_ip"
+view = "private_ip"
+type = "string?"
+
+[[resource.field]]
+hcl = "public_ip"
+view = "public_ip"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_instance_profile"
+view = "iam_instance_profile"
+type = "string?"
+
+[[resource.field]]
+hcl = "tenancy"
+view = "tenancy"
+type = "string?"
+
+[[resource.field]]
+hcl = "host_id"
+view = "host_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "placement_group"
+view = "placement_group"
+type = "string?"
+
+[[resource.field]]
+hcl = "placement_partition_number"
+view = "placement_partition_number"
+type = "i64"
+
+[[resource.field]]
+hcl = "monitoring"
+view = "monitoring"
+type = "bool"
+
+[[resource.field]]
+hcl = "user_data"
+view = "user_data"
+type = "string?"
+
+[[resource.field]]
+hcl = "user_data_base64"
+view = "user_data_base64"
+type = "string?"
+
+[[resource.field]]
+hcl = "outpost_arn"
+view = "outpost_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_lifecycle"
+view = "instance_lifecycle"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_launch_template
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_launch_template"
+model = "LaunchTemplateTfModel"
+view = "LaunchTemplateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "name_prefix"
+view = "name_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "image_id"
+view = "image_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_type"
+view = "instance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_name"
+view = "key_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_version"
+view = "default_version"
+type = "i64"
+
+[[resource.field]]
+hcl = "latest_version"
+view = "latest_version"
+type = "i64"
+
+[[resource.field]]
+hcl = "user_data"
+view = "user_data"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_volume_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_volume_attachment"
+model = "VolumeAttachmentTfModel"
+view = "VolumeAttachmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "volume_id"
+view = "volume_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "device_name"
+view = "device_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "force_detach"
+view = "force_detach"
+type = "bool"
+
+[[resource.field]]
+hcl = "skip_destroy"
+view = "skip_destroy"
+type = "bool"
+
+[[resource.field]]
+hcl = "stop_instance_before_detaching"
+view = "stop_instance_before_detaching"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_network_interface
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_network_interface"
+model = "NetworkInterfaceTfModel"
+view = "NetworkInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_ip"
+view = "private_ip"
+type = "string?"
+
+[[resource.field]]
+hcl = "interface_type"
+view = "interface_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_dest_check"
+view = "source_dest_check"
+type = "bool"
+
+[[resource.field]]
+hcl = "private_dns_name"
+view = "private_dns_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "outpost_arn"
+view = "outpost_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "mac_address"
+view = "mac_address"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_network_interface_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_network_interface_attachment"
+model = "NetworkInterfaceAttachmentTfModel"
+view = "NetworkInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "network_interface_id"
+view = "network_interface_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "device_index"
+view = "device_index"
+type = "i64"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "attachment_id"
+view = "attachment_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_network_interface_sg_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_network_interface_sg_attachment"
+model = "NetworkInterfaceSgAttachmentTfModel"
+view = "NetworkInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "network_interface_id"
+view = "network_interface_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "security_group_id"
+view = "security_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eip_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_eip_association"
+model = "EipAssociationTfModel"
+view = "ElasticIpView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "allocation_id"
+view = "allocation_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "network_interface_id"
+view = "network_interface_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_ip_address"
+view = "private_ip_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "public_ip"
+view = "public_ip"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "allow_reassociation"
+view = "allow_reassociation"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_internet_gateway_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_internet_gateway_attachment"
+model = "InternetGatewayAttachmentTfModel"
+view = "InternetGatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "internet_gateway_id"
+view = "internet_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_flow_log
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_flow_log"
+model = "FlowLogTfModel"
+view = "FlowLogView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "eni_id"
+view = "eni_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "transit_gateway_id"
+view = "transit_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "traffic_type"
+view = "traffic_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "log_destination_type"
+view = "log_destination_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "log_destination"
+view = "log_destination"
+type = "string?"
+
+[[resource.field]]
+hcl = "log_group_name"
+view = "log_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "deliver_cross_account_role"
+view = "deliver_cross_account_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "log_format"
+view = "log_format"
+type = "string?"
+
+[[resource.field]]
+hcl = "max_aggregation_interval"
+view = "max_aggregation_interval"
+type = "i64"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_dhcp_options
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_dhcp_options"
+model = "VpcDhcpOptionsTfModel"
+view = "DhcpOptionsView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "netbios_node_type"
+view = "netbios_node_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "ipv6_address_preferred_lease_time"
+view = "ipv6_address_preferred_lease_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_dhcp_options_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_dhcp_options_association"
+model = "VpcDhcpOptionsAssociationTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "dhcp_options_id"
+view = "dhcp_options_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_security_group_rule (legacy single-rule resource)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_security_group_rule"
+model = "SecurityGroupRuleTfModel"
+view = "SecurityGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "security_group_id"
+view = "security_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "rule_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "protocol"
+view = "protocol"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "from_port"
+view = "from_port"
+type = "i64"
+
+[[resource.field]]
+hcl = "to_port"
+view = "to_port"
+type = "i64"
+
+[[resource.field]]
+hcl = "source_security_group_id"
+view = "source_security_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "self"
+view = "self_"
+type = "bool"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_security_group_ingress_rule (modern split-style ingress rule)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_security_group_ingress_rule"
+model = "VpcSecurityGroupIngressRuleTfModel"
+view = "SecurityGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "security_group_id"
+view = "security_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "ip_protocol"
+view = "ip_protocol"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "from_port"
+view = "from_port"
+type = "i64"
+
+[[resource.field]]
+hcl = "to_port"
+view = "to_port"
+type = "i64"
+
+[[resource.field]]
+hcl = "cidr_ipv4"
+view = "cidr_ipv4"
+type = "string?"
+
+[[resource.field]]
+hcl = "cidr_ipv6"
+view = "cidr_ipv6"
+type = "string?"
+
+[[resource.field]]
+hcl = "referenced_security_group_id"
+view = "referenced_security_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "prefix_list_id"
+view = "prefix_list_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_security_group_egress_rule (modern split-style egress rule)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_security_group_egress_rule"
+model = "VpcSecurityGroupEgressRuleTfModel"
+view = "SecurityGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "security_group_id"
+view = "security_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "ip_protocol"
+view = "ip_protocol"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "from_port"
+view = "from_port"
+type = "i64"
+
+[[resource.field]]
+hcl = "to_port"
+view = "to_port"
+type = "i64"
+
+[[resource.field]]
+hcl = "cidr_ipv4"
+view = "cidr_ipv4"
+type = "string?"
+
+[[resource.field]]
+hcl = "cidr_ipv6"
+view = "cidr_ipv6"
+type = "string?"
+
+[[resource.field]]
+hcl = "referenced_security_group_id"
+view = "referenced_security_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "prefix_list_id"
+view = "prefix_list_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_security_group_vpc_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_security_group_vpc_association"
+model = "VpcSecurityGroupVpcAssociationTfModel"
+view = "SecurityGroupVpcAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "security_group_id"
+view = "security_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eip_domain_name (reverse-DNS domain on an EIP)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_eip_domain_name"
+model = "EipDomainNameTfModel"
+view = "ElasticIpView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "allocation_id"
+view = "allocation_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "ptr_record"
+view = "ptr_record"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_main_route_table_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_main_route_table_association"
+model = "MainRouteTableAssociationTfModel"
+view = "RouteTableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "route_table_id"
+view = "route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "original_route_table_id"
+view = "original_route_table_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route_table_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_route_table_association"
+model = "RouteTableAssociationTfModel"
+view = "RouteTableAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "route_table_id"
+view = "route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "gateway_id"
+view = "gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_network_acl_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_network_acl_association"
+model = "NetworkAclAssociationTfModel"
+view = "NetworkAclAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "network_acl_id"
+view = "network_acl_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpn_gateway_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpn_gateway_attachment"
+model = "VpnGatewayAttachmentTfModel"
+view = "VgwVpcAttachmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpn_gateway_id"
+view = "vpn_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ami (register AMI from a snapshot)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ami"
+model = "AmiTfModel"
+view = "ImageView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "architecture"
+view = "architecture"
+type = "string?"
+
+[[resource.field]]
+hcl = "virtualization_type"
+view = "virtualization_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "root_device_name"
+view = "root_device_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "image_location"
+view = "image_location"
+type = "string?"
+
+[[resource.field]]
+hcl = "kernel_id"
+view = "kernel_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ramdisk_id"
+view = "ramdisk_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ena_support"
+view = "ena_support"
+type = "bool"
+
+[[resource.field]]
+hcl = "sriov_net_support"
+view = "sriov_net_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "tpm_support"
+view = "tpm_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "boot_mode"
+view = "boot_mode"
+type = "string?"
+
+[[resource.field]]
+hcl = "imds_support"
+view = "imds_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "deprecation_time"
+view = "deprecation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "public"
+view = "public_"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_ami_copy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ami_copy"
+model = "AmiCopyTfModel"
+view = "ImageView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_ami_id"
+view = "source_ami_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_ami_region"
+view = "source_ami_region"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "encrypted"
+view = "encrypted"
+type = "bool"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "deprecation_time"
+view = "deprecation_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ami_from_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ami_from_instance"
+model = "AmiFromInstanceTfModel"
+view = "ImageView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_instance_id"
+view = "source_instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_without_reboot"
+view = "snapshot_without_reboot"
+type = "bool"
+
+[[resource.field]]
+hcl = "deprecation_time"
+view = "deprecation_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ami_launch_permission
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ami_launch_permission"
+model = "AmiLaunchPermissionTfModel"
+view = "LaunchPermissionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "image_id"
+view = "image_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "group"
+view = "group"
+type = "string?"
+
+[[resource.field]]
+hcl = "organization_arn"
+view = "organization_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "organizational_unit_arn"
+view = "organizational_unit_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint"
+model = "VpcEndpointTfModel"
+view = "VpcEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_name"
+view = "service_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_endpoint_type"
+view = "vpc_endpoint_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_dns_enabled"
+view = "private_dns_enabled"
+type = "bool"
+
+[[resource.field]]
+hcl = "auto_accept"
+view = "auto_accept"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_service
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_service"
+model = "VpcEndpointServiceTfModel"
+view = "VpcEndpointServiceConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_type"
+view = "service_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "acceptance_required"
+view = "acceptance_required"
+type = "bool"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "payer_responsibility"
+view = "payer_responsibility"
+type = "string?"
+
+[[resource.field]]
+hcl = "private_dns_name"
+view = "private_dns_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_service_allowed_principal
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_service_allowed_principal"
+model = "VpcEndpointServiceAllowedPrincipalTfModel"
+view = "VpcEndpointServiceConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_endpoint_service_id"
+view = "vpc_endpoint_service_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_arn"
+view = "principal_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_service_private_dns_verification
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_service_private_dns_verification"
+model = "VpcEndpointServicePrivateDnsVerificationTfModel"
+view = "VpcEndpointServiceConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "service_id"
+view = "service_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "wait_for_verification"
+view = "wait_for_verification"
+type = "bool"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_subnet_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_subnet_association"
+model = "VpcEndpointSubnetAssociationTfModel"
+view = "VpcEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_endpoint_id"
+view = "vpc_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_route_table_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_route_table_association"
+model = "VpcEndpointRouteTableAssociationTfModel"
+view = "VpcEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_endpoint_id"
+view = "vpc_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "route_table_id"
+view = "route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_security_group_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_security_group_association"
+model = "VpcEndpointSecurityGroupAssociationTfModel"
+view = "VpcEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_endpoint_id"
+view = "vpc_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "security_group_id"
+view = "security_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "replace_default_association"
+view = "replace_default_association"
+type = "bool"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_connection_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_connection_accepter"
+model = "VpcEndpointConnectionAccepterTfModel"
+view = "VpcEndpointConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_endpoint_service_id"
+view = "vpc_endpoint_service_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_endpoint_id"
+view = "vpc_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_endpoint_state"
+view = "vpc_endpoint_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_connection_notification
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_connection_notification"
+model = "VpcEndpointConnectionNotificationTfModel"
+view = "VpcEndpointConnectionNotificationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "connection_notification_arn"
+view = "connection_notification_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_endpoint_service_id"
+view = "vpc_endpoint_service_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_endpoint_id"
+view = "vpc_endpoint_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "notification_type"
+view = "notification_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_policy"
+model = "VpcEndpointPolicyTfModel"
+view = "VpcEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_endpoint_id"
+view = "vpc_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_endpoint_private_dns
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_endpoint_private_dns"
+model = "VpcEndpointPrivateDnsTfModel"
+view = "VpcEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_endpoint_id"
+view = "vpc_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "private_dns_enabled"
+view = "private_dns_enabled"
+type = "bool"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpn_connection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpn_connection"
+model = "VpnConnectionTfModel"
+view = "VpnConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "type"
+view = "connection_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "customer_gateway_id"
+view = "customer_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpn_gateway_id"
+view = "vpn_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "transit_gateway_id"
+view = "transit_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "static_routes_only"
+view = "static_routes_only"
+type = "bool"
+
+[[resource.field]]
+hcl = "enable_acceleration"
+view = "enable_acceleration"
+type = "bool"
+
+[[resource.field]]
+hcl = "outside_ip_address_type"
+view = "outside_ip_address_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "local_ipv4_network_cidr"
+view = "local_ipv4_network_cidr"
+type = "string?"
+
+[[resource.field]]
+hcl = "local_ipv6_network_cidr"
+view = "local_ipv6_network_cidr"
+type = "string?"
+
+[[resource.field]]
+hcl = "remote_ipv4_network_cidr"
+view = "remote_ipv4_network_cidr"
+type = "string?"
+
+[[resource.field]]
+hcl = "remote_ipv6_network_cidr"
+view = "remote_ipv6_network_cidr"
+type = "string?"
+
+[[resource.field]]
+hcl = "tunnel_inside_ip_version"
+view = "tunnel_inside_ip_version"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpn_connection_route
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpn_connection_route"
+model = "VpnConnectionRouteTfModel"
+view = "VpnStaticRouteView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpn_connection_id"
+view = "vpn_connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_cidr_block"
+view = "destination_cidr_block"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpn_gateway
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpn_gateway"
+model = "VpnGatewayTfModel"
+view = "VpnGatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "i64"
+
+# ---------------------------------------------------------------------------
+# aws_vpn_gateway_route_propagation
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpn_gateway_route_propagation"
+model = "VpnGatewayRoutePropagationTfModel"
+view = "RouteTableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpn_gateway_id"
+view = "vpn_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "route_table_id"
+view = "route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway"
+model = "TransitGatewayTfModel"
+view = "TransitGatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "i64"
+
+[[resource.field]]
+hcl = "dns_support"
+view = "dns_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpn_ecmp_support"
+view = "vpn_ecmp_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "multicast_support"
+view = "multicast_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "auto_accept_shared_attachments"
+view = "auto_accept_shared_attachments"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_route_table_association"
+view = "default_route_table_association"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_route_table_propagation"
+view = "default_route_table_propagation"
+type = "string?"
+
+[[resource.field]]
+hcl = "transit_gateway_cidr_blocks"
+view = "transit_gateway_cidr_blocks"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "association_default_route_table_id"
+view = "association_default_route_table_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "propagation_default_route_table_id"
+view = "propagation_default_route_table_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_route_table
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_route_table"
+model = "TransitGatewayRouteTableTfModel"
+view = "TgwRouteTableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_id"
+view = "transit_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_association_route_table"
+view = "default_association_route_table"
+type = "bool"
+
+[[resource.field]]
+hcl = "default_propagation_route_table"
+view = "default_propagation_route_table"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_route
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_route"
+model = "TransitGatewayRouteTfModel"
+view = "TgwRouteView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_route_table_id"
+view = "transit_gateway_route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_cidr_block"
+view = "destination_cidr_block"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "blackhole"
+view = "blackhole"
+type = "bool"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_route_table_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_route_table_association"
+model = "TransitGatewayRouteTableAssociationTfModel"
+view = "TgwRouteTableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_route_table_id"
+view = "transit_gateway_route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_type"
+view = "resource_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "replace_existing_association"
+view = "replace_existing_association"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_route_table_propagation
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_route_table_propagation"
+model = "TransitGatewayRouteTablePropagationTfModel"
+view = "TgwRouteTableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_route_table_id"
+view = "transit_gateway_route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_type"
+view = "resource_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_default_route_table_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_default_route_table_association"
+model = "TransitGatewayDefaultRouteTableAssociationTfModel"
+view = "TransitGatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_id"
+view = "transit_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_route_table_id"
+view = "transit_gateway_route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_default_route_table_propagation
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_default_route_table_propagation"
+model = "TransitGatewayDefaultRouteTablePropagationTfModel"
+view = "TransitGatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_id"
+view = "transit_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_route_table_id"
+view = "transit_gateway_route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_vpc_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_vpc_attachment"
+model = "TransitGatewayVpcAttachmentTfModel"
+view = "TgwVpcAttachmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_id"
+view = "transit_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "appliance_mode_support"
+view = "appliance_mode_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "dns_support"
+view = "dns_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "ipv6_support"
+view = "ipv6_support"
+type = "string?"
+
+[[resource.field]]
+hcl = "transit_gateway_default_route_table_association"
+view = "transit_gateway_default_route_table_association"
+type = "bool"
+
+[[resource.field]]
+hcl = "transit_gateway_default_route_table_propagation"
+view = "transit_gateway_default_route_table_propagation"
+type = "bool"
+
+[[resource.field]]
+hcl = "vpc_owner_id"
+view = "vpc_owner_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_vpc_attachment_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_vpc_attachment_accepter"
+model = "TransitGatewayVpcAttachmentAccepterTfModel"
+view = "TgwVpcAttachmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "transit_gateway_default_route_table_association"
+view = "transit_gateway_default_route_table_association"
+type = "bool"
+
+[[resource.field]]
+hcl = "transit_gateway_default_route_table_propagation"
+view = "transit_gateway_default_route_table_propagation"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_peering_attachment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_peering_attachment"
+model = "TransitGatewayPeeringAttachmentTfModel"
+view = "TgwPeeringAttachmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_id"
+view = "transit_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "peer_transit_gateway_id"
+view = "peer_transit_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "peer_account_id"
+view = "peer_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "peer_region"
+view = "peer_region"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_peering_attachment_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_peering_attachment_accepter"
+model = "TransitGatewayPeeringAttachmentAccepterTfModel"
+view = "TgwPeeringAttachmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_connect_peer
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_connect_peer"
+model = "TransitGatewayConnectPeerTfModel"
+view = "TransitGatewayConnectPeerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "peer_address"
+view = "peer_address"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_address"
+view = "transit_gateway_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_asn"
+view = "bgp_asn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_policy_table_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_policy_table_association"
+model = "TransitGatewayPolicyTableAssociationTfModel"
+view = "TransitGatewayPolicyTableAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_policy_table_id"
+view = "transit_gateway_policy_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_type"
+view = "resource_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_prefix_list_reference
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_prefix_list_reference"
+model = "TransitGatewayPrefixListReferenceTfModel"
+view = "TransitGatewayPrefixListReferenceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_route_table_id"
+view = "transit_gateway_route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "prefix_list_id"
+view = "prefix_list_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "blackhole"
+view = "blackhole"
+type = "bool"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "prefix_list_owner_id"
+view = "prefix_list_owner_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_multicast_domain_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_multicast_domain_association"
+model = "TransitGatewayMulticastDomainAssociationTfModel"
+view = "TransitGatewayMulticastDomainAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_multicast_domain_id"
+view = "transit_gateway_multicast_domain_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "transit_gateway_attachment_id"
+view = "transit_gateway_attachment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_multicast_group_member
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_multicast_group_member"
+model = "TransitGatewayMulticastGroupMemberTfModel"
+view = "TransitGatewayMulticastGroupMemberView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_multicast_domain_id"
+view = "transit_gateway_multicast_domain_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "group_ip_address"
+view = "group_ip_address"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "network_interface_id"
+view = "network_interface_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_transit_gateway_multicast_group_source
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_transit_gateway_multicast_group_source"
+model = "TransitGatewayMulticastGroupSourceTfModel"
+view = "TransitGatewayMulticastGroupSourceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "transit_gateway_multicast_domain_id"
+view = "transit_gateway_multicast_domain_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "group_ip_address"
+view = "group_ip_address"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "network_interface_id"
+view = "network_interface_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# Wave 5: Client VPN, Host/Fleet/Spot, Carrier Gateway, Managed Prefix List,
+# Tag, and VPC Peering family.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# aws_ec2_client_vpn_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_client_vpn_endpoint"
+model = "ClientVpnEndpointTfModel"
+view = "ClientVpnEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "client_cidr_block"
+view = "client_cidr_block"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "server_certificate_arn"
+view = "server_certificate_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "dns_name"
+view = "dns_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "split_tunnel"
+view = "split_tunnel"
+type = "bool"
+
+[[resource.field]]
+hcl = "transport_protocol"
+view = "transport_protocol"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpn_port"
+view = "vpn_port"
+type = "i64"
+
+[[resource.field]]
+hcl = "self_service_portal"
+view = "self_service_portal"
+type = "string?"
+
+[[resource.field]]
+hcl = "session_timeout_hours"
+view = "session_timeout_hours"
+type = "i64"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_client_vpn_authorization_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_client_vpn_authorization_rule"
+model = "ClientVpnAuthorizationRuleTfModel"
+view = "ClientVpnAuthorizationRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "client_vpn_endpoint_id"
+view = "client_vpn_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_network_cidr"
+view = "target_network_cidr"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_group_id"
+view = "access_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorize_all_groups"
+view = "authorize_all_groups"
+type = "bool"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_client_vpn_network_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_client_vpn_network_association"
+model = "ClientVpnNetworkAssociationTfModel"
+view = "ClientVpnTargetNetworkAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "client_vpn_endpoint_id"
+view = "client_vpn_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "association_id"
+view = "association_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_client_vpn_route
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_client_vpn_route"
+model = "ClientVpnRouteTfModel"
+view = "ClientVpnRouteView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "client_vpn_endpoint_id"
+view = "client_vpn_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_cidr_block"
+view = "destination_cidr_block"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_vpc_subnet_id"
+view = "target_vpc_subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "origin"
+view = "origin"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_host
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_host"
+model = "Ec2HostTfModel"
+view = "DedicatedHostView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "host_id"
+view = "host_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_type"
+view = "instance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_family"
+view = "instance_family"
+type = "string?"
+
+[[resource.field]]
+hcl = "auto_placement"
+view = "auto_placement"
+type = "string?"
+
+[[resource.field]]
+hcl = "host_recovery"
+view = "host_recovery"
+type = "string?"
+
+[[resource.field]]
+hcl = "outpost_arn"
+view = "outpost_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_fleet
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_fleet"
+model = "Ec2FleetTfModel"
+view = "Ec2FleetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "type"
+type = "string?"
+
+[[resource.field]]
+hcl = "context"
+view = "context"
+type = "string?"
+
+[[resource.field]]
+hcl = "excess_capacity_termination_policy"
+view = "excess_capacity_termination_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "replace_unhealthy_instances"
+view = "replace_unhealthy_instances"
+type = "bool"
+
+[[resource.field]]
+hcl = "terminate_instances"
+view = "terminate_instances"
+type = "bool"
+
+[[resource.field]]
+hcl = "terminate_instances_with_expiration"
+view = "terminate_instances_with_expiration"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_spot_fleet_request
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_spot_fleet_request"
+model = "SpotFleetRequestTfModel"
+view = "SpotFleetRequestView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "iam_fleet_role"
+view = "iam_fleet_role"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_capacity"
+view = "target_capacity"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "spot_price"
+view = "spot_price"
+type = "string?"
+
+[[resource.field]]
+hcl = "allocation_strategy"
+view = "allocation_strategy"
+type = "string?"
+
+[[resource.field]]
+hcl = "fleet_type"
+view = "fleet_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_interruption_behaviour"
+view = "instance_interruption_behaviour"
+type = "string?"
+
+[[resource.field]]
+hcl = "terminate_instances_with_expiration"
+view = "terminate_instances_with_expiration"
+type = "bool"
+
+[[resource.field]]
+hcl = "wait_for_fulfillment"
+view = "wait_for_fulfillment"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_spot_instance_request
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_spot_instance_request"
+model = "SpotInstanceRequestTfModel"
+view = "SpotInstanceRequestView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "spot_price"
+view = "spot_price"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_type"
+view = "instance_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "ami"
+view = "ami"
+type = "string?"
+
+[[resource.field]]
+hcl = "spot_type"
+view = "spot_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "wait_for_fulfillment"
+view = "wait_for_fulfillment"
+type = "bool"
+
+[[resource.field]]
+hcl = "spot_instance_id"
+view = "spot_instance_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_interruption_behavior"
+view = "instance_interruption_behavior"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_spot_datafeed_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_spot_datafeed_subscription"
+model = "SpotDatafeedSubscriptionTfModel"
+view = "SpotDatafeedSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "prefix"
+view = "prefix"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_carrier_gateway
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_carrier_gateway"
+model = "CarrierGatewayTfModel"
+view = "CarrierGatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_managed_prefix_list
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_managed_prefix_list"
+model = "ManagedPrefixListTfModel"
+view = "ManagedPrefixListView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "address_family"
+view = "address_family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "max_entries"
+view = "max_entries"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_managed_prefix_list_entry
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_managed_prefix_list_entry"
+model = "ManagedPrefixListEntryTfModel"
+view = "PrefixListEntryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "prefix_list_id"
+view = "prefix_list_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cidr"
+view = "cidr"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ec2_tag
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ec2_tag"
+model = "Ec2TagTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_id"
+view = "resource_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key"
+view = "key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_peering_connection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_peering_connection"
+model = "VpcPeeringConnectionTfModel"
+view = "VpcPeeringConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "peer_vpc_id"
+view = "peer_vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "peer_owner_id"
+view = "peer_owner_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "peer_region"
+view = "peer_region"
+type = "string?"
+
+[[resource.field]]
+hcl = "auto_accept"
+view = "auto_accept"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_peering_connection_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_peering_connection_accepter"
+model = "VpcPeeringConnectionAccepterTfModel"
+view = "VpcPeeringConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_peering_connection_id"
+view = "vpc_peering_connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "auto_accept"
+view = "auto_accept"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_vpc_peering_connection_options
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_vpc_peering_connection_options"
+model = "VpcPeeringConnectionOptionsTfModel"
+view = "VpcPeeringConnectionOptionsView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_peering_connection_id"
+view = "vpc_peering_connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# Wave 6 — Default-* family
+# ---------------------------------------------------------------------------
+
+# aws_default_network_acl
+[[resource]]
+type = "aws_default_network_acl"
+model = "DefaultNetworkAclTfModel"
+view = "NetworkAclView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "default_network_acl_id"
+view = "default_network_acl_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# aws_default_route_table
+[[resource]]
+type = "aws_default_route_table"
+model = "DefaultRouteTableTfModel"
+view = "RouteTableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "default_route_table_id"
+view = "default_route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# aws_default_security_group
+[[resource]]
+type = "aws_default_security_group"
+model = "DefaultSecurityGroupTfModel"
+view = "SecurityGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# aws_default_subnet
+[[resource]]
+type = "aws_default_subnet"
+model = "DefaultSubnetTfModel"
+view = "SubnetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "cidr_block"
+view = "cidr_block"
+type = "string?"
+
+# aws_default_vpc
+[[resource]]
+type = "aws_default_vpc"
+model = "DefaultVpcTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "cidr_block"
+view = "cidr_block"
+type = "string?"
+
+[[resource.field]]
+hcl = "enable_dns_hostnames"
+view = "enable_dns_hostnames"
+type = "bool"
+
+[[resource.field]]
+hcl = "enable_dns_support"
+view = "enable_dns_support"
+type = "bool"
+
+# aws_default_vpc_dhcp_options
+[[resource]]
+type = "aws_default_vpc_dhcp_options"
+model = "DefaultVpcDhcpOptionsTfModel"
+view = "DhcpOptionsView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_id"
+view = "owner_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# Wave 6 — Account-level singletons
+# ---------------------------------------------------------------------------
+
+# aws_ec2_availability_zone_group
+[[resource]]
+type = "aws_ec2_availability_zone_group"
+model = "Ec2AvailabilityZoneGroupTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "group_name"
+view = "group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "opt_in_status"
+view = "opt_in_status"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ec2_default_credit_specification
+[[resource]]
+type = "aws_ec2_default_credit_specification"
+model = "Ec2DefaultCreditSpecificationTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "instance_family"
+view = "instance_family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cpu_credits"
+view = "cpu_credits"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ec2_serial_console_access
+[[resource]]
+type = "aws_ec2_serial_console_access"
+model = "Ec2SerialConsoleAccessTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ec2_image_block_public_access
+[[resource]]
+type = "aws_ec2_image_block_public_access"
+model = "Ec2ImageBlockPublicAccessTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ec2_instance_metadata_defaults
+[[resource]]
+type = "aws_ec2_instance_metadata_defaults"
+model = "Ec2InstanceMetadataDefaultsTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "http_tokens"
+view = "http_tokens"
+type = "string?"
+
+[[resource.field]]
+hcl = "http_endpoint"
+view = "http_endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_metadata_tags"
+view = "instance_metadata_tags"
+type = "string?"
+
+[[resource.field]]
+hcl = "http_put_response_hop_limit"
+view = "http_put_response_hop_limit"
+type = "i64"
+
+# aws_ec2_instance_state
+[[resource]]
+type = "aws_ec2_instance_state"
+model = "Ec2InstanceStateTfModel"
+view = "InstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "force"
+view = "force"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# Wave 6 — IPAM extras
+# ---------------------------------------------------------------------------
+
+# aws_vpc_ipam_organization_admin_account
+[[resource]]
+type = "aws_vpc_ipam_organization_admin_account"
+model = "VpcIpamOrganizationAdminAccountTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "delegated_admin_account_id"
+view = "delegated_admin_account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_vpc_ipam_preview_next_cidr
+[[resource]]
+type = "aws_vpc_ipam_preview_next_cidr"
+model = "VpcIpamPreviewNextCidrTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "ipam_pool_id"
+view = "ipam_pool_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "netmask_length"
+view = "netmask_length"
+type = "i64"
+
+# aws_vpc_ipam_resource_discovery_association
+[[resource]]
+type = "aws_vpc_ipam_resource_discovery_association"
+model = "VpcIpamResourceDiscoveryAssociationTfModel"
+view = "IpamResourceDiscoveryAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "ipam_id"
+view = "ipam_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "ipam_resource_discovery_id"
+view = "ipam_resource_discovery_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_ec2_subnet_cidr_reservation
+[[resource]]
+type = "aws_ec2_subnet_cidr_reservation"
+model = "Ec2SubnetCidrReservationTfModel"
+view = "SubnetCidrReservationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cidr_block"
+view = "cidr_block"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "reservation_type"
+view = "reservation_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# Wave 6 — VPC misc
+# ---------------------------------------------------------------------------
+
+# aws_vpc_block_public_access_exclusion
+[[resource]]
+type = "aws_vpc_block_public_access_exclusion"
+model = "VpcBlockPublicAccessExclusionTfModel"
+view = "VpcBlockPublicAccessExclusionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "internet_gateway_exclusion_mode"
+view = "internet_gateway_exclusion_mode"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string?"
+
+# aws_vpc_block_public_access_options
+[[resource]]
+type = "aws_vpc_block_public_access_options"
+model = "VpcBlockPublicAccessOptionsTfModel"
+view = "VpcBlockPublicAccessOptionsView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "internet_gateway_block_mode"
+view = "internet_gateway_block_mode"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_vpc_ipv4_cidr_block_association
+[[resource]]
+type = "aws_vpc_ipv4_cidr_block_association"
+model = "VpcIpv4CidrBlockAssociationTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "cidr_block"
+view = "cidr_block"
+type = "string?"
+
+[[resource.field]]
+hcl = "ipv4_ipam_pool_id"
+view = "ipv4_ipam_pool_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ipv4_netmask_length"
+view = "ipv4_netmask_length"
+type = "i64"
+
+# aws_vpc_ipv6_cidr_block_association
+[[resource]]
+type = "aws_vpc_ipv6_cidr_block_association"
+model = "VpcIpv6CidrBlockAssociationTfModel"
+view = "VpcView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ipv6_cidr_block"
+view = "ipv6_cidr_block"
+type = "string?"
+
+[[resource.field]]
+hcl = "ipv6_ipam_pool_id"
+view = "ipv6_ipam_pool_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ipv6_netmask_length"
+view = "ipv6_netmask_length"
+type = "i64"
+
+# aws_vpc_network_performance_metric_subscription
+[[resource]]
+type = "aws_vpc_network_performance_metric_subscription"
+model = "VpcNetworkPerformanceMetricSubscriptionTfModel"
+view = "AwsNetworkPerformanceSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "source"
+view = "source"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination"
+view = "destination"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "metric"
+view = "metric"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "statistic"
+view = "statistic"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "period"
+view = "period"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# Wave 6 — Route server family
+# ---------------------------------------------------------------------------
+
+# aws_vpc_route_server
+[[resource]]
+type = "aws_vpc_route_server"
+model = "VpcRouteServerTfModel"
+view = "RouteServerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "persist_routes"
+view = "persist_routes"
+type = "string?"
+
+[[resource.field]]
+hcl = "persist_routes_duration"
+view = "persist_routes_duration"
+type = "i64"
+
+[[resource.field]]
+hcl = "sns_notifications_enabled"
+view = "sns_notifications_enabled"
+type = "bool"
+
+[[resource.field]]
+hcl = "sns_topic_arn"
+view = "sns_topic_arn"
+type = "string?"
+
+# aws_vpc_route_server_endpoint
+[[resource]]
+type = "aws_vpc_route_server_endpoint"
+model = "VpcRouteServerEndpointTfModel"
+view = "RouteServerEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "route_server_id"
+view = "route_server_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_vpc_route_server_peer
+[[resource]]
+type = "aws_vpc_route_server_peer"
+model = "VpcRouteServerPeerTfModel"
+view = "RouteServerPeerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "route_server_endpoint_id"
+view = "route_server_endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "peer_address"
+view = "peer_address"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_vpc_route_server_propagation
+[[resource]]
+type = "aws_vpc_route_server_propagation"
+model = "VpcRouteServerPropagationTfModel"
+view = "RouteServerAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "route_server_id"
+view = "route_server_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "route_table_id"
+view = "route_table_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_vpc_route_server_vpc_association
+[[resource]]
+type = "aws_vpc_route_server_vpc_association"
+model = "VpcRouteServerVpcAssociationTfModel"
+view = "RouteServerAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "route_server_id"
+view = "route_server_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# Wave 6 — Verified Access extras
+# ---------------------------------------------------------------------------
+
+# aws_verifiedaccess_instance_logging_configuration
+[[resource]]
+type = "aws_verifiedaccess_instance_logging_configuration"
+model = "VerifiedAccessInstanceLoggingConfigurationTfModel"
+view = "VerifiedAccessInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "verifiedaccess_instance_id"
+view = "verifiedaccess_instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_verifiedaccess_instance_trust_provider_attachment
+[[resource]]
+type = "aws_verifiedaccess_instance_trust_provider_attachment"
+model = "VerifiedAccessInstanceTrustProviderAttachmentTfModel"
+view = "VerifiedAccessInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "verifiedaccess_instance_id"
+view = "verifiedaccess_instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "verifiedaccess_trust_provider_id"
+view = "verifiedaccess_trust_provider_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
