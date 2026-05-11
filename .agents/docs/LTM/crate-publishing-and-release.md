@@ -13,6 +13,8 @@ Winterbaume's crate-publishing readiness was audited and prepared across April a
 - `winterbaume-core` has no internal dependencies and must be published first.
 - The first public release cannot be published as one workspace-sized `cargo release --execute` batch unless crates.io raises the `publish_new` quota.
 - `tools/release-batch/` is the first-launch driver: it topologically chunks publishable crates into batches small enough for the crates.io upfront quota check.
+- `release-batch` recovery must treat crates.io publication and git tag creation as separate side effects. A crate can upload successfully, then miss its tag if the surrounding cargo-release invocation aborts before the tag step.
+- The crates.io HTTP API is useful for pre-flight and best-effort pruning, but cargo's own `is already published to crates.io` pre-flight output is the stronger recovery signal because it reads the registry index cargo will actually use.
 - The DMS example uses raw `MockRequest`/`MockService` calls. The published AWS SDK crate for DMS is `aws-sdk-databasemigration` ( without the trailing `service` ); the v0.0.0 `aws-sdk-databasemigrationservice` is a placeholder. The winterbaume crate is `winterbaume-databasemigration` to match.
 
 ## Details
@@ -38,13 +40,30 @@ Operational details:
 
 - Default sleep is 660 seconds (600 second crates.io window plus 60 second buffer).
 - The driver tees cargo's stdout/stderr while capturing them. On a chunk failure, it scans the captured output for the `Please try again after <date> GMT` phrase that crates.io embeds in 429 response bodies, parses the RFC 1123 deadline with `httpdate`, sleeps until then plus `--retry-buffer` seconds (default: 30), and retries the same chunk. Capped at `--max-retries` retries (default: 3). This keeps the run alive when an account's `publish_new` quota is partially consumed before the run starts (default burst is 5, so even chunk-size 5 can hit the quota cold). Non-rate-limit failures still abort.
+- On retry, the driver works from a mutable `working_chunk`, not the original immutable chunk. After a 429 sleep, it prunes crates that have already landed on crates.io and retries only the survivors. If the whole chunk has already landed, the chunk is treated as successful.
+- Cargo may report already-published crates before the HTTP probe sees them because `/api/v1/crates/<name>/<version>` is Fastly-cached and can lag the registry index. `parse_already_published()` scans cargo output for `error: <crate> <version> is already published to crates.io`, prunes those crates regardless of whether a 429 is also present, and retries the smaller chunk.
+- Retry counters count only rate-limit sleeps. Prune-driven retries are naturally bounded by chunk size because every retry must remove at least one crate.
 - The cargo executable is resolved as `--cargo <path>` > `WB_CARGO` > `cargo` on `PATH`, so agents and operators can point the driver at `.agents/bin/cargo.sh`.
 - Plan-only runs do not require `--version`; they print `<version|level>` in the command preview.
 - `--execute` requires a version argument, but the argument is passed through verbatim to cargo-release and may be a concrete semver or a release level such as `patch`, `minor`, `major`, `release`, `alpha`, `beta`, or `rc`.
 - Resumability checks against `/api/v1/crates/<name>/<version>` only run for concrete semver versions. If the version is a level, the driver skips this check and prints a note because per-crate target versions are cargo-release's responsibility.
 - Printed per-chunk commands intentionally keep the display form `$ cargo ...` even when `--cargo` or `WB_CARGO` resolves to another executable. The resolved path appears once in the startup banner.
+- If a chunk is interrupted after some crates upload but before cargo-release reaches its tag step, those crates are published but untagged. The recovery path now calls `backfill_tag()` for pruned crates: if `<crate>-v<version>` is absent, create a signed annotated tag when `--sign` is enabled ( otherwise an annotated tag ) at the current `HEAD`, then push it. Tag-backfill warnings do not abort the chunk because missing tags are bookkeeping failures, not publication blockers.
+- The May 2026 first-launch run exposed this tag race at scale: 167 already-published crates lacked their `<crate>-v0.1.0` tags after repeated partial 429s. A one-off backfill created signed annotated tags for those published crates, all pointing at the same release commit as the existing tags.
 
 `tools/release-throttle.sh` and the Python `tools/release-batch.py` prototype were removed after the Rust driver landed.
+
+### Umbrella Dependency Limit
+
+The first public release also exposed a crates.io dependency-count limit on the umbrella `winterbaume` crate. The root package had 214 optional service dependencies and 455 dev-dependencies for example files. Because `autoexamples = false` and no `[[example]]` targets were declared, those dev-dependencies were unused, but cargo still kept versioned dev-dependencies in the published manifest. crates.io applies a maximum of 500 total dependencies, so the 669-entry manifest was rejected.
+
+The durable fix is to keep the umbrella crate's published manifest minimal:
+
+- delete unused root-package dev-dependencies when examples are not part of the package
+- keep `autoexamples = false` while examples are excluded from the root package include list
+- verify `cargo package -p winterbaume --no-verify` and inspect the generated manifest when changing the root package
+
+After removing the root dev-dependency block, the packaged umbrella manifest contained 214 dependencies and 0 dev-dependencies, and the compressed crate size dropped materially.
 
 ### Umbrella Package Include Rules
 
@@ -99,5 +118,8 @@ Each crate has its own `README.md` (no workspace-level `readme` inheritance):
 - Do not use bare root-package `include` patterns such as `README.md`; anchor them to avoid packaging nested repository content.
 - Do not remove `autoexamples = false` from the umbrella crate while `examples/` is excluded from the package include list.
 - Do not expect resumability checks to work when `release-batch --version` is a release level rather than a concrete semver.
+- Do not assume a successful upload implies a matching git tag exists. A partial cargo-release invocation can upload crates and abort before tag creation.
+- Do not rely only on the crates.io HTTP API immediately after publication. Cargo's `is already published to crates.io` message may be the first reliable sign that the registry index already contains the version.
+- Do not leave unused root dev-dependencies in the umbrella crate. crates.io counts dev-dependencies toward the package dependency limit.
 - `aws-sdk-databasemigrationservice` ( with trailing `service` ) is a v0.0.0 placeholder — depend on `aws-sdk-databasemigration` for the real SDK client.
 - The publish script was rewritten from shell to Python because bash `mapfile`, subshell variable scoping, and prezto alias interference made the shell version non-portable on macOS.

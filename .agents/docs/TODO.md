@@ -100,6 +100,13 @@ Opened from the 2026-05-01 v1/v2 and control-plane / data-plane state coherence 
 - [x] **public-release-cargo-dist-plan**: Done 2026-05-08 as part of the `verify-publish-ready` blocker sweep. Code-side release gates now pass; binary-release residuals are manual repository and hosted-CI gates. -- *source: 2026-05-01 first-public-release verification; updated 2026-05-08 Pre-Launch Publish-Readiness Hardening*
 - [ ] **public-release-publish-new-rate-limit**: First public crates.io release still needs either a crates.io `publish_new` quota raise from `help@crates.io` or an operator run through `tools/release-batch/` with chunk size <= 5 and an inter-chunk sleep window. One all-workspace `cargo release --execute` run will fail the upfront quota check before hooks can run. -- *source: 2026-05-08 Pre-Launch Publish-Readiness Hardening*
 - [ ] **public-release-manual-gates**: Finish the non-scriptable first-launch gates outside the code-side verifier: hosted CI green for the launch commit, GitHub Pages and release secrets, vendor licence review, README contribution policy and security wording, and public-facing crate description tone. Branch protection remains tracked by `public-release-branch-protection`. -- *source: 2026-05-08 Pre-Launch Publish-Readiness Hardening*
+- [ ] **release-batch-general-uploaded-tag-backfill**: Extend `tools/release-batch/` so any cargo-release failure path scans captured output for `Uploaded <crate> v<version>` lines and backfills missing tags for uploaded crates, not only the 429 / already-published recovery branches. -- *source: 2026-05-10 mass-publish post-mortem*
+
+### Documentation Maintenance
+
+- [ ] **docs-service-readme-server-install-refresh**: Update the per-crate README generation source so regenerated `docs/services/*.md` can mention the published `cargo install winterbaume-server` path where appropriate. Do not hand-edit generated service pages. -- *source: 2026-05-11 docs refresh after public release of all crates*
+- [ ] **readme-stub-count-refresh**: Refresh the root `README.md` intro paragraph so its stub count matches the authoritative supported-services table count. The stale prose said 329 while the table and docs reference showed 326. -- *source: 2026-05-11 docs refresh after public release of all crates*
+- [ ] **docs-vitepress-config-metadata**: Fix `docs/.vitepress/config.mts` metadata generation: `transformPageData` references undefined symbols and still falls back to `VitePress` browser and OpenGraph metadata. -- *source: 2026-05-11 docs refresh after public release of all crates*
 
 ### Services Not Yet Implemented
 

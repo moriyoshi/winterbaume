@@ -2,7 +2,7 @@
 
 ## Summary
 
-Winterbaume's repo-level operational knowledge now spans four areas that future agents repeatedly need together: safe parallel worktree collaboration, workspace-wide documentation and example maintenance, GitHub Actions security and release hardening, and the journal-to-LTM memory workflows. The stable pattern is to treat these as one operator layer around the codebase: how to work safely, how to refresh generated docs, how to keep CI and the release path resistant to supply-chain compromise, how to publish crates in dependency order without hitting first-launch quota limits, how to match local verification to CI, and how to keep project memory coherent without destroying traceability.
+Winterbaume's repo-level operational knowledge spans several areas that future agents repeatedly need together: safe parallel worktree collaboration, workspace-wide documentation and example maintenance, self-contained skill maintenance, GitHub Actions security and release hardening, and the journal-to-LTM memory workflows. The stable pattern is to treat these as one operator layer around the codebase: how to work safely, how to refresh generated docs, how to keep CI and the release path resistant to supply-chain compromise, how to publish crates in dependency order without hitting first-launch quota limits, how to match local verification to CI, how to keep repo skills portable and drift-checked, and how to keep project memory coherent without destroying traceability.
 
 ## Included Documents
 
@@ -12,6 +12,7 @@ Winterbaume's repo-level operational knowledge now spans four areas that future 
 | [sccache-wrapper-cross-worktree-cache.md](./sccache-wrapper-cross-worktree-cache.md) | Custom Rust cache wrapper, cross-worktree cache keys, singleflight locking, diagnostics, and stale-server recovery |
 | [workspace-readmes-and-service-examples.md](./workspace-readmes-and-service-examples.md) | Coverage and README regeneration, examples layout, and crate-name mapping pitfalls |
 | [crate-publishing-and-release.md](./crate-publishing-and-release.md) | Crate publishing order, cargo-dist binary releases, per-crate READMEs, and metadata corrections |
+| [winterbaume-skill-maintenance.md](./winterbaume-skill-maintenance.md) | Self-contained Winterbaume skills, embedded issue-template contracts, slug snapshots, drift CI, and Markdown template hygiene |
 | [github-issue-triage-and-automation.md](./github-issue-triage-and-automation.md) | Service labels, issue forms, AI triage, stale feedback handling, and GitHub-native triage memory |
 | [repo-security-and-supply-chain.md](./repo-security-and-supply-chain.md) | GHA action SHA pinning, cargo-dist installer SHA-256 verification, `GITHUB_TOKEN` scoping, and `workflow_run` chain documentation |
 | [journal-ltm-maintenance-workflows.md](./journal-ltm-maintenance-workflows.md) | `good-sleep`, `deep-sleep`, `reconcile-journal-ltm`, and the canonical consolidation record rule |
@@ -57,10 +58,16 @@ Winterbaume's repo-level operational knowledge now spans four areas that future 
 - Crate publishing must follow dependency-graph order: `winterbaume-core` first (no internal deps), then standalone library crates, then service crates, then the umbrella `winterbaume` and `winterbaume-server` last. For first public release, use `tools/release-batch/`; it reads `cargo metadata`, drops `publish = false` packages, topologically sorts publishable crates, and runs cargo-release in quota-sized chunks.
 - Crates.io checks the `publish_new` quota before cargo-release reaches any per-crate `pre-release-hook`, so hooks cannot throttle a first launch with hundreds of new crates. Either get a quota raise from `help@crates.io` or keep each `release-batch` chunk at or below the current quota (5 new crates in the May 2026 audit) with a full rate-window sleep between chunks.
 - The first-launch release-batch shape validated in May 2026 is 240 publishable crates, chunk size 5, and 48 chunks. The driver defaults to a 660 second sleep, accepts `--cargo <path>` or `WB_CARGO` for executable injection, and keeps printed per-chunk commands in stub form as `$ cargo ...` while reporting the resolved executable once in the startup banner.
+- `release-batch` recovery must account for partial side effects. 429s and `is already published to crates.io` failures can mean some crates uploaded before cargo-release reached its tag step. The driver prunes already-published crates from the retry chunk and backfills missing `<crate>-v<version>` tags for pruned crates.
+- The crates.io HTTP API can lag cargo's registry-index view after a publish. Prefer cargo's `is already published to crates.io` output as the authoritative immediate retry signal, with HTTP probes as best-effort support.
 - Plan-only `release-batch` runs do not need a version. Execute runs require a version argument, but it may be a concrete semver or a cargo-release level such as `patch`, `minor`, `major`, `release`, `alpha`, `beta`, or `rc`. Crates.io resumability checks only run for concrete semver values.
 - Binary releases for `winterbaume-server` use cargo-dist, triggered by version tags. The release workflow gates on CI via a reusable workflow call — no artefacts build unless CI passes.
 - The umbrella `winterbaume` root package must keep anchored `include` patterns ( for example `/Cargo.toml`, `/README.md`, `/src/**/*.rs` ) because bare patterns match nested files and can package `.agents/`, vendored Smithy models, docs, examples, and other repository content. Keep `autoexamples = false` while root `examples/` is intentionally excluded from the package whitelist.
+- The umbrella package should not carry unused root dev-dependencies. crates.io counts dev-dependencies in the published manifest dependency limit; the May 2026 release removed 455 unused dev-dependencies because root examples were not packaged or auto-discovered.
 - Each crate has its own `README.md` (no workspace-level `readme` inheritance). Service crate READMEs are generated by `update_readme.py` and include an umbrella crate reference and inline code examples.
+- Public documentation should now show registry dependencies and `cargo install winterbaume-server` where appropriate. Local `path = "..."` placeholders are contributor-only guidance.
+- `docs/services/*.md` is generated from per-crate READMEs. Fix generated service docs by changing README generation inputs, not by editing the generated VitePress pages.
+- Winterbaume-specific skills should be self-contained when advertised that way. Embed issue-body templates, labeller regexes, and slug snapshots in the skill directory, then enforce drift with CI instead of reading `.github` files at skill runtime.
 - `winterbaume-server` emits structured access logs through `tracing::info!` fields (`remote_addr`, `method`, `path`, `status`, `elapsed_ms`) rather than free-form access strings, so JSON log output can be enabled later without changing request handling.
 - GitHub issue triage is now service-label driven. Bug and feature forms require an AWS SDK service slug, auto-labelling maps it to `service:<slug>`, and AI triage writes machine memory to the orphan `memory/triage` branch rather than external storage.
 - The workspace license is `Apache-2.0` (not dual MIT/Apache). Only one `LICENSE` file exists at the root.
@@ -117,6 +124,8 @@ When doing repo-maintenance work:
 - `.agents/skills/test-coverage/scripts/test_coverage.py`: narrower integration-test coverage tooling
 - `.agents/skills/update-readme/scripts/update_readme.py`: root and per-crate README regeneration
 - `.agents/skills/update-readme/SKILL.md`: README generator contract, including dossier-section transcription
+- `skills/winterbaume-bug/SKILL.md` and `skills/winterbaume-bug/references/service-slugs.txt`: self-contained bug-report skill and service-slug snapshot
+- `.github/workflows/skill-slug-drift.yml`: CI guard for the bug skill's embedded slug snapshot
 - `crates/winterbaume-server/src/main.rs`: structured access logging and request timing
 - `tools/release-batch/`: dependency-ordered chunked cargo-release driver for first public crates.io release
 - `scripts/publish-all.py`: older dependency-ordered batch publish script
@@ -167,9 +176,13 @@ Success criteria are mostly document- and workflow-level:
 - Do not assume examples compile just because the service crate builds; `--all-targets` is what exposes example and test drift.
 - Do not publish crates out of dependency order; downstream crates will fail to resolve unpublished internal deps.
 - Do not rely on cargo-release hooks to beat crates.io's first-launch `publish_new` quota check; use `tools/release-batch/` or obtain a quota raise.
+- Do not assume a published crate was tagged if cargo-release aborted mid-chunk. Check and backfill tags when retry pruning skips crates that landed in an earlier attempt.
 - Do not let the umbrella crate package the whole repository. Root package include patterns must stay anchored, and `autoexamples = false` must stay in place while examples are excluded.
+- Do not let unused root-package dev-dependencies push the umbrella crate over crates.io's dependency limit.
 - Do not hand-edit generated per-crate READMEs; regenerate via `update_readme.py` instead.
+- Do not hand-edit generated `docs/services/*.md`; fix the per-crate README source and regenerate.
 - Do not put manual README guidance inside the generated auto block.
+- Do not make a self-contained skill read repository templates or workflow files during normal execution. Mirror the contract inside the skill and test drift separately.
 - Do not parse server access logs from message text when structured tracing fields are available.
 - The DMS example uses raw `MockRequest`/`MockService` calls. Note that `aws-sdk-databasemigrationservice` ( with trailing `service` ) is a v0.0.0 placeholder crate; the real AWS SDK Rust client is published as `aws-sdk-databasemigration` and the winterbaume crate was renamed to `winterbaume-databasemigration` to match. With `aws-sdk-databasemigration` already in dev-deps as a real v1.x SDK, the QG-8.1 TODO ( "tests cannot be ported until AWS ships a real Rust DMS SDK" ) is now actionable.
 - Do not assume `?` in the README Protocol column means coverage tooling cannot detect the protocol. It almost always means a missing entry in `CRATE_DISPLAY_INFO`. Read the `aws.protocols#...` trait directly from `vendor/api-models-aws/models/<service>/service.json` to determine the right value, then append the entry.

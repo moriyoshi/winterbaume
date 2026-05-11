@@ -17,6 +17,7 @@ Winterbaume's serialisation story evolved from hand-built XML and JSON strings i
 - Services that advertise multiple protocols may need secondary-protocol support even when `smithy-codegen` picks a different primary protocol. CloudWatch is the reference case: Terraform uses awsQuery while the Smithy priority path chose rpc-v2-cbor.
 - Additional-protocol awsQuery request deserialisers are now generated for services such as CloudWatch, including nested struct deserialisers and non-XML list/timestamp handling.
 - The 2026-05 request-deserialiser adoption sweep moved 166 / 168 service crates to `body.get = 0`; the remaining two are intentional or deferred hybrids: API Gateway PATCH-style flat-scalar fallbacks and CloudWatch multi-protocol awsQuery + rpc-v2-cbor request parsing.
+- The current `smithy-codegen gen-serializers` CLI takes a service slug, not an `sdk-models/<dir>` path. Use `list-services` to find the slug and model directory.
 
 ## Details
 
@@ -30,6 +31,25 @@ The main durable rule is operational:
 - regenerate the affected crate
 
 This matters because the same failure mode usually appears in more than one crate.
+
+### Current CLI Contract
+
+The generator resolves service slugs against `vendor/api-models-aws/models` by default. Documentation and agent workflows should use:
+
+```bash
+./.agents/bin/cargo.sh run -p smithy-codegen -- list-services
+./.agents/bin/cargo.sh run -p smithy-codegen -- gen-serializers <service-slug>
+```
+
+`list-services` prints two whitespace-separated columns:
+
+```text
+<crate-suffix>  <model-dir>
+```
+
+The first column is the slug accepted by `gen-serializers`; the second is the Smithy model directory. They are not always the same, and aliases may exist. For example, `elbv2` is an alias slug, but the workspace crate is `winterbaume-elasticloadbalancingv2`.
+
+There is no `gen-serializers --all` flag. A full sweep is a shell loop over `list-services | awk '{print $1}'`, with normal care for aliases, generated-file blast radius, and per-crate validation. Do not document `sdk-models/`; that directory does not exist in this repo.
 
 ### Response Serialisation Evolution
 
@@ -342,7 +362,7 @@ The durable rule is to distinguish legitimate boundary glue from avoidable hand-
 - `tools/smithy-codegen/src/gen_serializers.rs` - main serializer and deserializer generation logic
 - `tools/smithy-codegen/src/gen_rpcv2_cbor.rs` - rpc-v2-cbor-specific generation path
 - `tools/smithy-codegen/src/model.rs` - protocol detection and model parsing
-- `tools/smithy-codegen/src/main.rs` - generation entry points and post-processing
+- `tools/smithy-codegen/src/main.rs` - CLI shape, generation entry points, and post-processing
 - `tools/smithy-codegen/ec2-features.toml` - EC2 operation-to-feature mapping used during generated-crate regeneration
 - `crates/winterbaume-rds/src/handlers.rs` - reference migration from manual XML and query parsing onto generated wire helpers
 - `crates/winterbaume-cloudwatch/src/wire.rs` and `handlers.rs` - reference rpc-v2-cbor adoption path
