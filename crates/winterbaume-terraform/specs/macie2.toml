@@ -127,3 +127,290 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_classification_export_configuration
+# ---------------------------------------------------------------------------
+# `s3_destination` is a structured block — read raw from instance.attributes.
+
+[[resource]]
+type = "aws_macie2_classification_export_configuration"
+model = "ClassificationExportConfigurationTfModel"
+view = "MacieClassificationExportConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_custom_data_identifier
+# ---------------------------------------------------------------------------
+# `keywords` / `ignore_words` are Vec<String> — read raw.
+# `severity_levels` is a structured list — read raw.
+
+[[resource]]
+type = "aws_macie2_custom_data_identifier"
+model = "CustomDataIdentifierTfModel"
+view = "MacieCustomDataIdentifierView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "regex"
+view = "regex"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "name_prefix"
+view = "name_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "maximum_match_distance"
+view = "maximum_match_distance"
+type = "i64"
+default = 50
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_findings_filter
+# ---------------------------------------------------------------------------
+# `finding_criteria` is a structured block — read raw.
+
+[[resource]]
+type = "aws_macie2_findings_filter"
+model = "FindingsFilterTfModel"
+view = "MacieFindingsFilterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "action"
+view = "action"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "name_prefix"
+view = "name_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "position"
+view = "position"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_invitation_accepter
+# ---------------------------------------------------------------------------
+# Acceptance is a peer-account operation that mutates the inviting account's
+# member record; this converter is warning-only on inject because Winterbaume's
+# state is keyed per-account and lacks a state slot for invitation acceptance
+# from the recipient's perspective.
+
+[[resource]]
+type = "aws_macie2_invitation_accepter"
+model = "InvitationAccepterTfModel"
+view = "MacieAdministratorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "administrator_account_id"
+view = "administrator_account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "invitation_id"
+view = "invitation_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_member
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_macie2_member"
+model = "MemberTfModel"
+view = "MacieMemberView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "email"
+view = "email"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "relationship_status"
+view = "relationship_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "administrator_account_id"
+view = "administrator_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "master_account_id"
+view = "master_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "invite"
+view = "invite"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "invited_at"
+view = "invited_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "invitation_disable_email_notification"
+view = "invitation_disable_email_notification"
+type = "string?"
+
+[[resource.field]]
+hcl = "invitation_message"
+view = "invitation_message"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_organization_admin_account
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_macie2_organization_admin_account"
+model = "OrganizationAdminAccountTfModel"
+view = "MacieAdminAccountView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "admin_account_id"
+view = "admin_account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_macie2_organization_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_macie2_organization_configuration"
+model = "OrganizationConfigurationTfModel"
+view = "MacieOrgConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "auto_enable"
+view = "auto_enable"
+type = "bool"
+required = true

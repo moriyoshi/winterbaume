@@ -2,6 +2,8 @@
 //! Source: specs/directory.toml
 //! Regenerate with: cargo run -p tf-converter-codegen -- gen directory
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 /// Auto-generated TF-shaped projection of the `aws_directory_service_directory` resource.
@@ -31,5 +33,120 @@ pub struct DirectoryTfModel {
 }
 
 fn default_directory_enable_sso() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_directory_service_conditional_forwarder` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConditionalForwarderTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub directory_id: String,
+    pub remote_domain_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_directory_service_log_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogSubscriptionTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub directory_id: String,
+    pub log_group_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_directory_service_radius_settings` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RadiusSettingsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub directory_id: String,
+    pub authentication_protocol: String,
+    pub display_label: String,
+    pub shared_secret: String,
+    #[serde(default)]
+    pub radius_port: i64,
+    #[serde(default)]
+    pub radius_retries: i64,
+    #[serde(default)]
+    pub radius_timeout: i64,
+    #[serde(default = "default_radius_settings_use_same_username")]
+    pub use_same_username: bool,
+}
+
+fn default_radius_settings_use_same_username() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_directory_service_region` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub directory_id: String,
+    pub region_name: String,
+    #[serde(default)]
+    pub desired_number_of_domain_controllers: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_directory_service_shared_directory` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SharedDirectoryTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub directory_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub shared_directory_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_directory_service_shared_directory_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SharedDirectoryAccepterTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub shared_directory_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_directory_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_directory_service_trust` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrustTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub directory_id: String,
+    pub remote_domain_name: String,
+    pub trust_direction: String,
+    pub trust_password: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trust_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selective_auth: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trust_state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trust_state_reason: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_date_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_date_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state_last_updated_date_time: Option<String>,
+    #[serde(default = "default_trust_delete_associated_conditional_forwarder")]
+    pub delete_associated_conditional_forwarder: bool,
+}
+
+fn default_trust_delete_associated_conditional_forwarder() -> bool {
     false
 }

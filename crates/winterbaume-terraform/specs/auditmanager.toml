@@ -80,3 +80,236 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_auditmanager_account_registration
+# ---------------------------------------------------------------------------
+# Singleton resource that toggles `account_status` between ACTIVE and INACTIVE
+# on the AuditManagerStateView. The optional `delegated_admin_account`,
+# `deregister_on_destroy`, and `kms_key` inputs do not map to local state and
+# are dropped in the converter.
+
+[[resource]]
+type = "aws_auditmanager_account_registration"
+model = "AccountRegistrationTfModel"
+view = "AuditManagerStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "delegated_admin_account"
+view = "delegated_admin_account"
+type = "string?"
+
+[[resource.field]]
+hcl = "deregister_on_destroy"
+view = "deregister_on_destroy"
+type = "bool"
+
+[[resource.field]]
+hcl = "kms_key"
+view = "kms_key"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_auditmanager_assessment
+# ---------------------------------------------------------------------------
+# Maps to AssessmentView. The synthesised UUID identifier, the `arn`, the
+# default `ACTIVE` status, and the nested `roles` / `scope` /
+# `assessment_reports_destination` blocks are wired up in the converter and
+# read straight from `instance.attributes`.
+
+[[resource]]
+type = "aws_auditmanager_assessment"
+model = "AssessmentTfModel"
+view = "AssessmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "framework_id"
+view = "framework_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_auditmanager_assessment_delegation
+# ---------------------------------------------------------------------------
+# Sub-resource of an assessment; AuditManagerState does not track delegations,
+# so the converter is a thin shim: deserialise to validate, ignore the rest,
+# and emit nothing on extract.
+
+[[resource]]
+type = "aws_auditmanager_assessment_delegation"
+model = "AssessmentDelegationTfModel"
+view = "AssessmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "assessment_id"
+view = "assessment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "control_set_id"
+view = "control_set_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_type"
+view = "role_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_auditmanager_assessment_report
+# ---------------------------------------------------------------------------
+# Sub-resource of an assessment; AuditManagerState does not track reports.
+# Converter deserialises the model for validation and is a no-op on the
+# state side.
+
+[[resource]]
+type = "aws_auditmanager_assessment_report"
+model = "AssessmentReportTfModel"
+view = "AssessmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "assessment_id"
+view = "assessment_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_auditmanager_framework_share
+# ---------------------------------------------------------------------------
+# Records a framework share request. AuditManagerState does not track share
+# requests, so the converter validates and is a no-op on the state side.
+
+[[resource]]
+type = "aws_auditmanager_framework_share"
+model = "FrameworkShareTfModel"
+view = "FrameworkView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "framework_id"
+view = "framework_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_account"
+view = "destination_account"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_region"
+view = "destination_region"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_auditmanager_organization_admin_account_registration
+# ---------------------------------------------------------------------------
+# Singleton resource declaring the delegated Audit Manager admin in an
+# AWS Organization. AuditManagerState does not track this binding directly;
+# the converter validates the input and is a no-op on the state side.
+
+[[resource]]
+type = "aws_auditmanager_organization_admin_account_registration"
+model = "OrganizationAdminAccountRegistrationTfModel"
+view = "AuditManagerStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "admin_account_id"
+view = "admin_account_id"
+type = "string"
+required = true

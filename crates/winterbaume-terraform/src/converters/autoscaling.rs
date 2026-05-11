@@ -7,8 +7,8 @@ use std::sync::Arc;
 
 use winterbaume_autoscaling::AutoScalingService;
 use winterbaume_autoscaling::views::{
-    AutoScalingGroupView, AutoScalingStateView, LaunchConfigurationView, ScalingPolicyView,
-    ScheduledActionView, TagView,
+    AutoScalingGroupView, AutoScalingStateView, LaunchConfigurationView, LifecycleHookView,
+    NotificationConfigView, ScalingPolicyView, ScheduledActionView, TagView,
 };
 use winterbaume_core::StatefulService;
 use winterbaume_tfstate::ResourceInstance;
@@ -543,6 +543,507 @@ impl AwsAutoscalingScheduleConverter {
             });
         }
         Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_autoscaling_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsAutoscalingAttachmentConverter {
+    service: Arc<AutoScalingService>,
+}
+
+impl AwsAutoscalingAttachmentConverter {
+    pub fn new(service: Arc<AutoScalingService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAutoscalingAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_autoscaling_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_autoscaling_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Attachments are reconstructed by enumerating each group's
+        // `attached_load_balancers` / `attached_target_groups` lists, which
+        // the group converter already round-trips. Surface nothing here to
+        // avoid double-counting.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAutoscalingAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: autoscaling_gen::AutoscalingAttachmentTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_autoscaling_attachment", e))?;
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(group) = snapshot.groups.get_mut(&model.autoscaling_group_name) {
+            if let Some(elb) = model.elb {
+                if !group.attached_load_balancers.contains(&elb) {
+                    group.attached_load_balancers.push(elb);
+                }
+            }
+            if let Some(tg) = model.lb_target_group_arn {
+                if !group.attached_target_groups.contains(&tg) {
+                    group.attached_target_groups.push(tg);
+                }
+            }
+            self.service
+                .restore(&ctx.default_account_id, &region, snapshot)
+                .await?;
+        } else {
+            warnings.push(format!(
+                "aws_autoscaling_attachment: autoscaling group '{}' not found; attachment ignored",
+                model.autoscaling_group_name
+            ));
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_autoscaling_group_tag
+// ---------------------------------------------------------------------------
+
+pub struct AwsAutoscalingGroupTagConverter {
+    service: Arc<AutoScalingService>,
+}
+
+impl AwsAutoscalingGroupTagConverter {
+    pub fn new(service: Arc<AutoScalingService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAutoscalingGroupTagConverter {
+    fn resource_type(&self) -> &str {
+        "aws_autoscaling_group_tag"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_autoscaling_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Tags round-trip through their parent group's `tags` collection.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAutoscalingGroupTagConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: autoscaling_gen::AutoscalingGroupTagTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_autoscaling_group_tag", e))?;
+
+        // `tag` is a single nested block: pull `key`/`value`/`propagate_at_launch`
+        // out by hand. Both flat `tag.0.key` style (when TF projects it as a
+        // list) and the JSON-array form are supported.
+        let tag_block = instance
+            .attributes
+            .get("tag")
+            .and_then(|v| v.as_array())
+            .and_then(|a| a.first())
+            .or_else(|| instance.attributes.get("tag"));
+        let (key, value, propagate) = match tag_block {
+            Some(t) => (
+                t.get("key").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                t.get("value")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string()),
+                t.get("propagate_at_launch")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false),
+            ),
+            None => (None, None, false),
+        };
+
+        let mut warnings = vec![];
+        let (Some(key), Some(value)) = (key, value) else {
+            warnings.push(
+                "aws_autoscaling_group_tag: `tag.key` and `tag.value` are required; tag ignored"
+                    .to_string(),
+            );
+            return Ok(ConversionResult { region, warnings });
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        if let Some(group) = snapshot.groups.get_mut(&model.autoscaling_group_name) {
+            // Replace any existing tag with the same key on the group.
+            group.tags.retain(|t| t.key != key);
+            group.tags.push(TagView {
+                key,
+                value,
+                resource_id: model.autoscaling_group_name.clone(),
+                resource_type: "auto-scaling-group".to_string(),
+                propagate_at_launch: propagate,
+            });
+            self.service
+                .restore(&ctx.default_account_id, &region, snapshot)
+                .await?;
+        } else {
+            warnings.push(format!(
+                "aws_autoscaling_group_tag: autoscaling group '{}' not found; tag ignored",
+                model.autoscaling_group_name
+            ));
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_autoscaling_lifecycle_hook
+// ---------------------------------------------------------------------------
+
+pub struct AwsAutoscalingLifecycleHookConverter {
+    service: Arc<AutoScalingService>,
+}
+
+impl AwsAutoscalingLifecycleHookConverter {
+    pub fn new(service: Arc<AutoScalingService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAutoscalingLifecycleHookConverter {
+    fn resource_type(&self) -> &str {
+        "aws_autoscaling_lifecycle_hook"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_autoscaling_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsAutoscalingLifecycleHookConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let attrs = &instance.attributes;
+        let model: autoscaling_gen::LifecycleHookTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_autoscaling_lifecycle_hook", e))?;
+
+        let view = LifecycleHookView {
+            name: model.name.clone(),
+            group_name: model.autoscaling_group_name,
+            lifecycle_transition: model.lifecycle_transition,
+            notification_target_arn: model.notification_target_arn,
+            role_arn: model.role_arn,
+            notification_metadata: model.notification_metadata,
+            heartbeat_timeout: optional_i64(attrs, "heartbeat_timeout").map(|v| v as i32),
+            default_result: model.default_result,
+        };
+
+        let mut state_view = minimal_asg_state_view();
+        state_view.lifecycle_hooks.insert(model.name, view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for hook in view.lifecycle_hooks.values() {
+            let attrs = serde_json::json!({
+                "id": hook.name,
+                "name": hook.name,
+                "autoscaling_group_name": hook.group_name,
+                "lifecycle_transition": hook.lifecycle_transition,
+                "notification_target_arn": hook.notification_target_arn,
+                "role_arn": hook.role_arn,
+                "notification_metadata": hook.notification_metadata,
+                "heartbeat_timeout": hook.heartbeat_timeout,
+                "default_result": hook.default_result,
+            });
+            results.push(ExtractedResource {
+                name: hook.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_autoscaling_notification
+// ---------------------------------------------------------------------------
+
+pub struct AwsAutoscalingNotificationConverter {
+    service: Arc<AutoScalingService>,
+}
+
+impl AwsAutoscalingNotificationConverter {
+    pub fn new(service: Arc<AutoScalingService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAutoscalingNotificationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_autoscaling_notification"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_autoscaling_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Notification configurations round-trip through each group's
+        // `notification_configurations` list. Avoid emitting duplicates here.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAutoscalingNotificationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let attrs = &instance.attributes;
+        let model: autoscaling_gen::AutoscalingNotificationTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_autoscaling_notification", e))?;
+
+        let group_names = extract_string_array(attrs, "group_names");
+        let notification_types = extract_string_array(attrs, "notifications");
+
+        let mut warnings = vec![];
+        if group_names.is_empty() {
+            warnings.push(
+                "aws_autoscaling_notification: `group_names` is empty; notification ignored"
+                    .to_string(),
+            );
+            return Ok(ConversionResult { region, warnings });
+        }
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        for group_name in &group_names {
+            let Some(group) = snapshot.groups.get_mut(group_name) else {
+                warnings.push(format!(
+                    "aws_autoscaling_notification: autoscaling group '{}' not found; skipped",
+                    group_name
+                ));
+                continue;
+            };
+            for notification_type in &notification_types {
+                let already = group.notification_configurations.iter().any(|n| {
+                    n.notification_type == *notification_type && n.topic_arn == model.topic_arn
+                });
+                if already {
+                    continue;
+                }
+                group
+                    .notification_configurations
+                    .push(NotificationConfigView {
+                        group_name: group_name.clone(),
+                        notification_type: notification_type.clone(),
+                        topic_arn: model.topic_arn.clone(),
+                    });
+            }
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, snapshot)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_autoscaling_traffic_source_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsAutoscalingTrafficSourceAttachmentConverter {
+    service: Arc<AutoScalingService>,
+}
+
+impl AwsAutoscalingTrafficSourceAttachmentConverter {
+    pub fn new(service: Arc<AutoScalingService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsAutoscalingTrafficSourceAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_autoscaling_traffic_source_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_autoscaling_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Traffic-source attachments are reconstructed alongside their parent
+        // group's `attached_target_groups`. Avoid duplicate extraction here.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsAutoscalingTrafficSourceAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let attrs = &instance.attributes;
+        let model: autoscaling_gen::AutoscalingTrafficSourceAttachmentTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_autoscaling_traffic_source_attachment", e)
+            })?;
+
+        // `traffic_source` is a single nested block: `{ identifier, type }`.
+        let ts_block = attrs
+            .get("traffic_source")
+            .and_then(|v| v.as_array())
+            .and_then(|a| a.first())
+            .or_else(|| attrs.get("traffic_source"));
+        let identifier = ts_block
+            .and_then(|t| t.get("identifier"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+
+        let mut warnings = vec![];
+        let Some(identifier) = identifier else {
+            warnings.push(
+                "aws_autoscaling_traffic_source_attachment: `traffic_source.identifier` is required; attachment ignored"
+                    .to_string(),
+            );
+            return Ok(ConversionResult { region, warnings });
+        };
+
+        let mut snapshot = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        if let Some(group) = snapshot.groups.get_mut(&model.autoscaling_group_name) {
+            if !group.attached_target_groups.contains(&identifier) {
+                group.attached_target_groups.push(identifier);
+            }
+            self.service
+                .restore(&ctx.default_account_id, &region, snapshot)
+                .await?;
+        } else {
+            warnings.push(format!(
+                "aws_autoscaling_traffic_source_attachment: autoscaling group '{}' not found; attachment ignored",
+                model.autoscaling_group_name
+            ));
+        }
+
+        Ok(ConversionResult { region, warnings })
     }
 }
 

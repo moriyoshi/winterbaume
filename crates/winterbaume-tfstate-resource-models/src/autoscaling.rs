@@ -97,3 +97,48 @@ pub struct ScheduledActionTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub time_zone: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_autoscaling_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoscalingAttachmentTfModel {
+    pub autoscaling_group_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub elb: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lb_target_group_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_autoscaling_group_tag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoscalingGroupTagTfModel {
+    pub autoscaling_group_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_autoscaling_lifecycle_hook` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LifecycleHookTfModel {
+    pub name: String,
+    pub autoscaling_group_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lifecycle_transition: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notification_target_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notification_metadata: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_result: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_autoscaling_notification` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoscalingNotificationTfModel {
+    pub topic_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_autoscaling_traffic_source_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoscalingTrafficSourceAttachmentTfModel {
+    pub autoscaling_group_name: String,
+}

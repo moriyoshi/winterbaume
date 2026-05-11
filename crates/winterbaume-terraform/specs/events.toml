@@ -146,3 +146,259 @@ type = "string?"
 hcl = "event_bus_name"
 view = "event_bus_name"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_api_destination
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_api_destination"
+model = "EventApiDestinationTfModel"
+view = "ApiDestinationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "connection_arn"
+view = "connection_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "invocation_endpoint"
+view = "invocation_endpoint"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "http_method"
+view = "http_method"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "invocation_rate_limit_per_second"
+view = "invocation_rate_limit_per_second"
+type = "i64"
+default = 300
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_archive
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_archive"
+model = "EventArchiveTfModel"
+view = "ArchiveView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "event_source_arn"
+view = "event_source_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "event_pattern"
+view = "event_pattern"
+type = "string?"
+
+[[resource.field]]
+hcl = "retention_days"
+view = "retention_days"
+type = "i64"
+default = 0
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_bus_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_bus_policy"
+model = "EventBusPolicyTfModel"
+view = "EventBusView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "event_bus_name"
+view = "event_bus_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_connection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_connection"
+model = "EventConnectionTfModel"
+view = "ConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorization_type"
+view = "authorization_type"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_endpoint"
+model = "EventEndpointTfModel"
+view = "EndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint_url"
+view = "endpoint_url"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_event_permission
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_event_permission"
+model = "EventPermissionTfModel"
+view = "EventBusView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "principal"
+view = "principal"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "statement_id"
+view = "statement_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "action"
+view = "action"
+type = "string?"
+
+[[resource.field]]
+hcl = "event_bus_name"
+view = "event_bus_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

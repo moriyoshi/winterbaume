@@ -7,6 +7,10 @@
 #     `tags` field; merge tags_all in the converter)
 #   - The alias `target_key_id` is required only for the alias resource;
 #     keep it on that block alone.
+#   - List-shaped HCL attributes (`operations`, `grant_creation_tokens`,
+#     `context`) and nested blocks (`constraints`) are not expressible in
+#     the spec vocabulary; the converter reads them raw from
+#     `instance.attributes`.
 
 [service]
 name = "kms"
@@ -111,3 +115,328 @@ required = true
 hcl = "arn"
 view = "arn"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_kms_ciphertext
+# ---------------------------------------------------------------------------
+# `context` is a map<string, string> in HCL; map shape is not expressible
+# in the current spec vocabulary, so the converter reads it raw.
+
+[[resource]]
+type = "aws_kms_ciphertext"
+model = "CiphertextTfModel"
+view = "CiphertextView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "plaintext"
+view = "plaintext"
+type = "string?"
+
+[[resource.field]]
+hcl = "ciphertext_blob"
+view = "ciphertext_blob"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_kms_custom_key_store
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_kms_custom_key_store"
+model = "CustomKeyStoreTfModel"
+view = "CustomKeyStoreView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_key_store_id"
+view = "custom_key_store_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_key_store_name"
+view = "custom_key_store_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cloud_hsm_cluster_id"
+view = "cloud_hsm_cluster_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "trust_anchor_certificate"
+view = "trust_anchor_certificate"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_key_store_type"
+view = "custom_key_store_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_kms_external_key
+# ---------------------------------------------------------------------------
+# Like `aws_kms_key`, but `origin` is forced to `EXTERNAL` and the
+# key material is supplied (or generated stub) by the converter.
+# `policy`, `deletion_window_in_days`, `bypass_policy_lockout_safety_check`,
+# `key_material_base64`, and `valid_to` are consumed and discarded by the
+# converter (read raw from instance.attributes).
+
+[[resource]]
+type = "aws_kms_external_key"
+model = "ExternalKeyTfModel"
+view = "KeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "multi_region"
+view = "multi_region"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_kms_grant
+# ---------------------------------------------------------------------------
+# `operations`, `grant_creation_tokens`, and the `constraints` nested
+# block list are not expressible in the spec vocabulary; the converter
+# reads them raw from `instance.attributes`.
+
+[[resource]]
+type = "aws_kms_grant"
+model = "GrantTfModel"
+view = "GrantView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "grantee_principal"
+view = "grantee_principal"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "retiring_principal"
+view = "retiring_principal"
+type = "string?"
+
+[[resource.field]]
+hcl = "grant_id"
+view = "grant_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "grant_token"
+view = "grant_token"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_kms_key_policy
+# ---------------------------------------------------------------------------
+# Sets the key policy for an existing key; `bypass_policy_lockout_safety_check`
+# is consumed and discarded.
+
+[[resource]]
+type = "aws_kms_key_policy"
+model = "KeyPolicyTfModel"
+view = "KeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_kms_replica_external_key
+# ---------------------------------------------------------------------------
+# Multi-region replica seeded with externally supplied material.
+# `policy`, `deletion_window_in_days`, `bypass_policy_lockout_safety_check`,
+# `key_material_base64`, and `valid_to` are read raw by the converter.
+
+[[resource]]
+type = "aws_kms_replica_external_key"
+model = "ReplicaExternalKeyTfModel"
+view = "KeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "primary_key_arn"
+view = "primary_key_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_kms_replica_key
+# ---------------------------------------------------------------------------
+# Multi-region replica with KMS-managed key material.
+# `policy`, `deletion_window_in_days`, `bypass_policy_lockout_safety_check`
+# are read raw by the converter.
+
+[[resource]]
+type = "aws_kms_replica_key"
+model = "ReplicaKeyTfModel"
+view = "KeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "key_id"
+view = "key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "primary_key_arn"
+view = "primary_key_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "key_rotation_enabled"
+view = "key_rotation_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

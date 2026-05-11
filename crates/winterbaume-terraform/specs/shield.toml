@@ -3,6 +3,10 @@ name = "shield"
 crate_name = "winterbaume_shield"
 state_view_module = "views"
 
+# ---------------------------------------------------------------------------
+# aws_shield_protection
+# ---------------------------------------------------------------------------
+
 [[resource]]
 type = "aws_shield_protection"
 model = "ProtectionTfModel"
@@ -37,3 +41,212 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_shield_application_layer_automatic_response
+# Has no dedicated state on ShieldStateView. The spec captures the flat
+# scalar; the converter records a warning when the state crate cannot
+# represent the action block.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_shield_application_layer_automatic_response"
+model = "ApplicationLayerAutomaticResponseTfModel"
+view = "ProtectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_shield_drt_access_log_bucket_association
+# No state representation; the converter records a warning at inject and
+# returns an empty extract list.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_shield_drt_access_log_bucket_association"
+model = "DrtAccessLogBucketAssociationTfModel"
+view = "ProtectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "log_bucket"
+view = "log_bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn_association_id"
+view = "role_arn_association_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_shield_drt_access_role_arn_association
+# No state representation.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_shield_drt_access_role_arn_association"
+model = "DrtAccessRoleArnAssociationTfModel"
+view = "ProtectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_shield_proactive_engagement
+# No state representation; emergency_contact blocks are read straight from
+# instance.attributes in the converter for the warning text.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_shield_proactive_engagement"
+model = "ProactiveEngagementTfModel"
+view = "ProtectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_shield_protection_group
+# No state representation on ShieldStateView; members/tags are read from
+# instance.attributes in the converter.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_shield_protection_group"
+model = "ProtectionGroupTfModel"
+view = "ProtectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "protection_group_id"
+view = "protection_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "aggregation"
+view = "aggregation"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "pattern"
+view = "pattern"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_type"
+view = "resource_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "protection_group_arn"
+view = "protection_group_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_shield_protection_health_check_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_shield_protection_health_check_association"
+model = "ProtectionHealthCheckAssociationTfModel"
+view = "ProtectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "shield_protection_id"
+view = "shield_protection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "health_check_arn"
+view = "health_check_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_shield_subscription
+# Singleton per (account, region).
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_shield_subscription"
+model = "SubscriptionTfModel"
+view = "SubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "auto_renew"
+view = "auto_renew"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

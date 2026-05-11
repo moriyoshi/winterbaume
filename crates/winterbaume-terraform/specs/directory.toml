@@ -5,6 +5,14 @@
 # DateTime<Utc>-typed `launch_time` / `stage_last_updated_date_time`
 # fields (read raw and parsed in the converter). The resource model
 # only carries scalar inputs.
+#
+# The seven sibling resources (conditional_forwarder, log_subscription,
+# radius_settings, region, shared_directory, shared_directory_accepter,
+# trust) are warnings-only converters: DsStateView only persists
+# `directories`, so each sibling converter just deserializes its model
+# for round-trip validation and warns that the payload is dropped.
+# Vec<String> / Set<String> / nested-block fields are dropped from the
+# spec and read raw in the converter (per the spec vocabulary rules).
 
 [service]
 name = "directory"
@@ -73,5 +81,337 @@ type = "string?"
 [[resource.field]]
 hcl = "enable_sso"
 view = "enable_sso"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_directory_service_conditional_forwarder
+# ---------------------------------------------------------------------------
+# `dns_ips` is Vec<String>; read raw in converter.
+
+[[resource]]
+type = "aws_directory_service_conditional_forwarder"
+model = "ConditionalForwarderTfModel"
+view = "DirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "remote_domain_name"
+view = "remote_domain_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_directory_service_log_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_directory_service_log_subscription"
+model = "LogSubscriptionTfModel"
+view = "DirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "log_group_name"
+view = "log_group_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_directory_service_radius_settings
+# ---------------------------------------------------------------------------
+# `radius_servers` is Set<String>; `radius_port`, `radius_retries`,
+# `radius_timeout` are TF "number" types (cast to i64). `timeouts` block
+# is dropped (lifecycle hint, not data).
+
+[[resource]]
+type = "aws_directory_service_radius_settings"
+model = "RadiusSettingsTfModel"
+view = "DirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "authentication_protocol"
+view = "authentication_protocol"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "display_label"
+view = "display_label"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "shared_secret"
+view = "shared_secret"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "radius_port"
+view = "radius_port"
+type = "i64"
+
+[[resource.field]]
+hcl = "radius_retries"
+view = "radius_retries"
+type = "i64"
+
+[[resource.field]]
+hcl = "radius_timeout"
+view = "radius_timeout"
+type = "i64"
+
+[[resource.field]]
+hcl = "use_same_username"
+view = "use_same_username"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_directory_service_region
+# ---------------------------------------------------------------------------
+# `vpc_settings` is a nested block (read raw); `tags`/`tags_all` go through
+# the model as `tags`; `desired_number_of_domain_controllers` is i64;
+# `timeouts` block is dropped.
+
+[[resource]]
+type = "aws_directory_service_region"
+model = "RegionTfModel"
+view = "DirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "region_name"
+view = "region_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "desired_number_of_domain_controllers"
+view = "desired_number_of_domain_controllers"
+type = "i64"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_directory_service_shared_directory
+# ---------------------------------------------------------------------------
+# `target` is a nested block (read raw); `timeouts` block is dropped.
+
+[[resource]]
+type = "aws_directory_service_shared_directory"
+model = "SharedDirectoryTfModel"
+view = "DirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "shared_directory_id"
+view = "shared_directory_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "method"
+view = "method"
+type = "string?"
+
+[[resource.field]]
+hcl = "notes"
+view = "notes"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_directory_service_shared_directory_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_directory_service_shared_directory_accepter"
+model = "SharedDirectoryAccepterTfModel"
+view = "DirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "shared_directory_id"
+view = "shared_directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "method"
+view = "method"
+type = "string?"
+
+[[resource.field]]
+hcl = "notes"
+view = "notes"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_directory_id"
+view = "owner_directory_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_directory_service_trust
+# ---------------------------------------------------------------------------
+# `conditional_forwarder_ip_addrs` is Set<String>; read raw in converter.
+# Several `*_date_time` fields are computed strings; read raw if needed.
+
+[[resource]]
+type = "aws_directory_service_trust"
+model = "TrustTfModel"
+view = "DirectoryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_id"
+view = "directory_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "remote_domain_name"
+view = "remote_domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "trust_direction"
+view = "trust_direction"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "trust_password"
+view = "trust_password"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "trust_type"
+view = "trust_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "selective_auth"
+view = "selective_auth"
+type = "string?"
+
+[[resource.field]]
+hcl = "trust_state"
+view = "trust_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "trust_state_reason"
+view = "trust_state_reason"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_date_time"
+view = "created_date_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date_time"
+view = "last_updated_date_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "state_last_updated_date_time"
+view = "state_last_updated_date_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "delete_associated_conditional_forwarder"
+view = "delete_associated_conditional_forwarder"
 type = "bool"
 default = false

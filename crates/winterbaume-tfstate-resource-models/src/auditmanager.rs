@@ -31,3 +31,73 @@ pub struct FrameworkTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_auditmanager_account_registration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountRegistrationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delegated_admin_account: Option<String>,
+    #[serde(default)]
+    pub deregister_on_destroy: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_auditmanager_assessment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssessmentTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub framework_id: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_auditmanager_assessment_delegation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssessmentDelegationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub assessment_id: String,
+    pub control_set_id: String,
+    pub role_arn: String,
+    pub role_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_auditmanager_assessment_report` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssessmentReportTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub assessment_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_auditmanager_framework_share` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FrameworkShareTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub framework_id: String,
+    pub destination_account: String,
+    pub destination_region: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_auditmanager_organization_admin_account_registration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationAdminAccountRegistrationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub admin_account_id: String,
+}

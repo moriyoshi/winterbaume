@@ -2,26 +2,19 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **913** (908 verified against schema)
-Missing within classified prefixes: **285**
+Currently handled by winterbaume: **958** (953 verified against schema)
+Missing within classified prefixes: **240**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
-| directory | `aws_directory_service_` | 1 | 8 | 7 | 12% |  |
-| kms | `aws_kms_` | 2 | 9 | 7 | 22% |  |
-| macie2 | `aws_macie2_` | 2 | 9 | 7 | 22% |  |
-| shield | `aws_shield_` | 1 | 8 | 7 | 12% |  |
-| auditmanager | `aws_auditmanager_` | 2 | 8 | 6 | 25% |  |
-| autoscaling | override (3 patterns) | 4 | 10 | 6 | 40% |  |
 | bedrockagent | `aws_bedrockagent_` | 2 | 8 | 6 | 25% |  |
 | ebs | `aws_ebs_` | 2 | 8 | 6 | 25% |  |
 | eks | `aws_eks_` | 2 | 8 | 6 | 25% |  |
 | elasticache | `aws_elasticache_` | 4 | 10 | 6 | 40% |  |
 | elbv2 | override (2 patterns) | 10 | 16 | 6 | 62% |  |
 | emr | `aws_emr_` | 2 | 8 | 6 | 25% |  |
-| events | `aws_cloudwatch_event_` | 3 | 9 | 6 | 33% |  |
 | lakeformation | `aws_lakeformation_` | 2 | 8 | 6 | 25% |  |
 | redshift | `aws_redshift_` | 17 | 23 | 6 | 74% |  |
 | bedrock | `aws_bedrock_` | 1 | 6 | 5 | 17% |  |
@@ -82,6 +75,7 @@ Sorted by missing-count desc.
 | acm | `aws_acm_` | 1 | 2 | 1 | 50% |  |
 | appflow | `aws_appflow_` | 1 | 2 | 1 | 50% |  |
 | applicationautoscaling | `aws_appautoscaling_` | 2 | 3 | 1 | 67% |  |
+| autoscaling | override (3 patterns) | 9 | 10 | 1 | 90% |  |
 | budgets | `aws_budgets_` | 1 | 2 | 1 | 50% |  |
 | chatbot | `aws_chatbot_` | 2 | 2 | 1 | 50% |  |
 | cloudhsmv2 | `aws_cloudhsm_v2_` | 1 | 2 | 1 | 50% |  |
@@ -100,6 +94,7 @@ Sorted by missing-count desc.
 | applicationcostprofiler | `aws_applicationcostprofiler_` | 1 | 0 | 0 | — |  |
 | apprunner | `aws_apprunner_` | 9 | 9 | 0 | 100% |  |
 | appsync | `aws_appsync_` | 10 | 10 | 0 | 100% |  |
+| auditmanager | `aws_auditmanager_` | 8 | 8 | 0 | 100% |  |
 | backup | `aws_backup_` | 13 | 13 | 0 | 100% |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
 | cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
@@ -109,11 +104,13 @@ Sorted by missing-count desc.
 | datasync | `aws_datasync_` | 13 | 13 | 0 | 100% |  |
 | dax | `aws_dax_` | 3 | 3 | 0 | 100% |  |
 | directconnect | `aws_dx_` | 19 | 19 | 0 | 100% |  |
+| directory | `aws_directory_service_` | 8 | 8 | 0 | 100% |  |
 | dynamodb | `aws_dynamodb_` | 9 | 9 | 0 | 100% |  |
 | ec2 | override (37 patterns) | 139 | 139 | 0 | 100% |  |
 | ec2instanceconnect | `aws_ec2_instance_connect_` | 1 | 1 | 0 | 100% |  |
 | ecr | `aws_ecr_` | 9 | 9 | 0 | 100% |  |
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
+| events | `aws_cloudwatch_event_` | 9 | 9 | 0 | 100% |  |
 | firehose | `aws_kinesis_firehose_` | 1 | 1 | 0 | 100% |  |
 | fis | `aws_fis_` | 1 | 1 | 0 | 100% |  |
 | fsx | `aws_fsx_` | 11 | 11 | 0 | 100% |  |
@@ -122,8 +119,10 @@ Sorted by missing-count desc.
 | kafka | `aws_msk_` | 8 | 8 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
+| kms | `aws_kms_` | 9 | 9 | 0 | 100% |  |
 | lambda | `aws_lambda_` | 13 | 13 | 0 | 100% |  |
 | logs | `aws_cloudwatch_log_` | 15 | 15 | 0 | 100% |  |
+| macie2 | `aws_macie2_` | 9 | 9 | 0 | 100% |  |
 | mediapackage | `aws_media_package_` | 1 | 1 | 0 | 100% |  |
 | mediapackagev2 | `aws_media_packagev2_` | 1 | 1 | 0 | 100% |  |
 | mq | `aws_mq_` | 2 | 2 | 0 | 100% |  |
@@ -145,6 +144,7 @@ Sorted by missing-count desc.
 | servicecatalog | `aws_servicecatalog_` | 13 | 13 | 0 | 100% |  |
 | ses | `aws_sesv2_` | 11 | 11 | 0 | 100% |  |
 | sesv1 | `aws_ses_` | 14 | 14 | 0 | 100% |  |
+| shield | `aws_shield_` | 8 | 8 | 0 | 100% |  |
 | simpledbv2 | `aws_simpledb_` | 1 | 1 | 0 | 100% |  |
 | ssm | `aws_ssm_` | 12 | 12 | 0 | 100% |  |
 | ssoadmin | `aws_ssoadmin_` | 12 | 12 | 0 | 100% |  |
@@ -156,64 +156,6 @@ Sorted by missing-count desc.
 | vpclattice | `aws_vpclattice_` | 14 | 14 | 0 | 100% |  |
 
 ## Per-service missing resources
-
-### directory — 7 missing
-
-- `aws_directory_service_conditional_forwarder`
-- `aws_directory_service_log_subscription`
-- `aws_directory_service_radius_settings`
-- `aws_directory_service_region`
-- `aws_directory_service_shared_directory`
-- `aws_directory_service_shared_directory_accepter`
-- `aws_directory_service_trust`
-
-### kms — 7 missing
-
-- `aws_kms_ciphertext`
-- `aws_kms_custom_key_store`
-- `aws_kms_external_key`
-- `aws_kms_grant`
-- `aws_kms_key_policy`
-- `aws_kms_replica_external_key`
-- `aws_kms_replica_key`
-
-### macie2 — 7 missing
-
-- `aws_macie2_classification_export_configuration`
-- `aws_macie2_custom_data_identifier`
-- `aws_macie2_findings_filter`
-- `aws_macie2_invitation_accepter`
-- `aws_macie2_member`
-- `aws_macie2_organization_admin_account`
-- `aws_macie2_organization_configuration`
-
-### shield — 7 missing
-
-- `aws_shield_application_layer_automatic_response`
-- `aws_shield_drt_access_log_bucket_association`
-- `aws_shield_drt_access_role_arn_association`
-- `aws_shield_proactive_engagement`
-- `aws_shield_protection_group`
-- `aws_shield_protection_health_check_association`
-- `aws_shield_subscription`
-
-### auditmanager — 6 missing
-
-- `aws_auditmanager_account_registration`
-- `aws_auditmanager_assessment`
-- `aws_auditmanager_assessment_delegation`
-- `aws_auditmanager_assessment_report`
-- `aws_auditmanager_framework_share`
-- `aws_auditmanager_organization_admin_account_registration`
-
-### autoscaling — 6 missing
-
-- `aws_autoscaling_attachment`
-- `aws_autoscaling_group_tag`
-- `aws_autoscaling_lifecycle_hook`
-- `aws_autoscaling_notification`
-- `aws_autoscaling_traffic_source_attachment`
-- `aws_launch_template`
 
 ### bedrockagent — 6 missing
 
@@ -268,15 +210,6 @@ Sorted by missing-count desc.
 - `aws_emr_managed_scaling_policy`
 - `aws_emr_studio`
 - `aws_emr_studio_session_mapping`
-
-### events — 6 missing
-
-- `aws_cloudwatch_event_api_destination`
-- `aws_cloudwatch_event_archive`
-- `aws_cloudwatch_event_bus_policy`
-- `aws_cloudwatch_event_connection`
-- `aws_cloudwatch_event_endpoint`
-- `aws_cloudwatch_event_permission`
 
 ### lakeformation — 6 missing
 
@@ -646,6 +579,10 @@ Sorted by missing-count desc.
 ### applicationautoscaling — 1 missing
 
 - `aws_appautoscaling_scheduled_action`
+
+### autoscaling — 1 missing
+
+- `aws_launch_template`
 
 ### budgets — 1 missing
 

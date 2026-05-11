@@ -1475,6 +1475,30 @@ async fn load_tfstate(
     injector.register(auditmanager::AwsAuditManagerFrameworkConverter::new(
         Arc::clone(&injectable.auditmanager),
     ));
+    injector.register(
+        auditmanager::AwsAuditManagerAccountRegistrationConverter::new(Arc::clone(
+            &injectable.auditmanager,
+        )),
+    );
+    injector.register(auditmanager::AwsAuditManagerAssessmentConverter::new(
+        Arc::clone(&injectable.auditmanager),
+    ));
+    injector.register(
+        auditmanager::AwsAuditManagerAssessmentDelegationConverter::new(Arc::clone(
+            &injectable.auditmanager,
+        )),
+    );
+    injector.register(auditmanager::AwsAuditManagerAssessmentReportConverter::new(
+        Arc::clone(&injectable.auditmanager),
+    ));
+    injector.register(auditmanager::AwsAuditManagerFrameworkShareConverter::new(
+        Arc::clone(&injectable.auditmanager),
+    ));
+    injector.register(
+        auditmanager::AwsAuditManagerOrganizationAdminAccountRegistrationConverter::new(
+            Arc::clone(&injectable.auditmanager),
+        ),
+    );
     injector.register(autoscaling::AwsAutoscalingGroupConverter::new(Arc::clone(
         &injectable.autoscaling,
     )));
@@ -1487,6 +1511,23 @@ async fn load_tfstate(
     injector.register(autoscaling::AwsAutoscalingScheduleConverter::new(
         Arc::clone(&injectable.autoscaling),
     ));
+    injector.register(autoscaling::AwsAutoscalingAttachmentConverter::new(
+        Arc::clone(&injectable.autoscaling),
+    ));
+    injector.register(autoscaling::AwsAutoscalingGroupTagConverter::new(
+        Arc::clone(&injectable.autoscaling),
+    ));
+    injector.register(autoscaling::AwsAutoscalingLifecycleHookConverter::new(
+        Arc::clone(&injectable.autoscaling),
+    ));
+    injector.register(autoscaling::AwsAutoscalingNotificationConverter::new(
+        Arc::clone(&injectable.autoscaling),
+    ));
+    injector.register(
+        autoscaling::AwsAutoscalingTrafficSourceAttachmentConverter::new(Arc::clone(
+            &injectable.autoscaling,
+        )),
+    );
     injector.register(backup::AwsBackupVaultConverter::new(Arc::clone(
         &injectable.backup,
     )));
@@ -1900,6 +1941,31 @@ async fn load_tfstate(
         Arc::clone(&injectable.directconnect),
     ));
     injector.register(directory::AwsDirectoryServiceDirectoryConverter::new(
+        Arc::clone(&injectable.directory),
+    ));
+    injector.register(
+        directory::AwsDirectoryServiceConditionalForwarderConverter::new(Arc::clone(
+            &injectable.directory,
+        )),
+    );
+    injector.register(directory::AwsDirectoryServiceLogSubscriptionConverter::new(
+        Arc::clone(&injectable.directory),
+    ));
+    injector.register(directory::AwsDirectoryServiceRadiusSettingsConverter::new(
+        Arc::clone(&injectable.directory),
+    ));
+    injector.register(directory::AwsDirectoryServiceRegionConverter::new(
+        Arc::clone(&injectable.directory),
+    ));
+    injector.register(
+        directory::AwsDirectoryServiceSharedDirectoryAccepterConverter::new(Arc::clone(
+            &injectable.directory,
+        )),
+    );
+    injector.register(directory::AwsDirectoryServiceSharedDirectoryConverter::new(
+        Arc::clone(&injectable.directory),
+    ));
+    injector.register(directory::AwsDirectoryServiceTrustConverter::new(
         Arc::clone(&injectable.directory),
     ));
     injector.register(dms::AwsDmsEndpointConverter::new(Arc::clone(
@@ -2439,6 +2505,24 @@ async fn load_tfstate(
     injector.register(events::AwsCloudwatchEventTargetConverter::new(Arc::clone(
         &injectable.events,
     )));
+    injector.register(events::AwsCloudwatchEventApiDestinationConverter::new(
+        Arc::clone(&injectable.events),
+    ));
+    injector.register(events::AwsCloudwatchEventArchiveConverter::new(Arc::clone(
+        &injectable.events,
+    )));
+    injector.register(events::AwsCloudwatchEventBusPolicyConverter::new(
+        Arc::clone(&injectable.events),
+    ));
+    injector.register(events::AwsCloudwatchEventConnectionConverter::new(
+        Arc::clone(&injectable.events),
+    ));
+    injector.register(events::AwsCloudwatchEventEndpointConverter::new(
+        Arc::clone(&injectable.events),
+    ));
+    injector.register(events::AwsCloudwatchEventPermissionConverter::new(
+        Arc::clone(&injectable.events),
+    ));
     injector.register(firehose::AwsKinesisFirehoseDeliveryStreamConverter::new(
         Arc::clone(&injectable.firehose),
     ));
@@ -2760,6 +2844,25 @@ async fn load_tfstate(
     ));
     injector.register(kms::AwsKmsKeyConverter::new(Arc::clone(&injectable.kms)));
     injector.register(kms::AwsKmsAliasConverter::new(Arc::clone(&injectable.kms)));
+    injector.register(kms::AwsKmsCiphertextConverter::new(Arc::clone(
+        &injectable.kms,
+    )));
+    injector.register(kms::AwsKmsCustomKeyStoreConverter::new(Arc::clone(
+        &injectable.kms,
+    )));
+    injector.register(kms::AwsKmsExternalKeyConverter::new(Arc::clone(
+        &injectable.kms,
+    )));
+    injector.register(kms::AwsKmsGrantConverter::new(Arc::clone(&injectable.kms)));
+    injector.register(kms::AwsKmsKeyPolicyConverter::new(Arc::clone(
+        &injectable.kms,
+    )));
+    injector.register(kms::AwsKmsReplicaExternalKeyConverter::new(Arc::clone(
+        &injectable.kms,
+    )));
+    injector.register(kms::AwsKmsReplicaKeyConverter::new(Arc::clone(
+        &injectable.kms,
+    )));
     injector.register(lakeformation::AwsLakeformationResourceConverter::new(
         Arc::clone(&injectable.lakeformation),
     ));
@@ -2869,6 +2972,29 @@ async fn load_tfstate(
         &injectable.macie2,
     )));
     injector.register(macie2::AwsMacie2ClassificationJobConverter::new(
+        Arc::clone(&injectable.macie2),
+    ));
+    injector.register(
+        macie2::AwsMacie2ClassificationExportConfigurationConverter::new(Arc::clone(
+            &injectable.macie2,
+        )),
+    );
+    injector.register(macie2::AwsMacie2CustomDataIdentifierConverter::new(
+        Arc::clone(&injectable.macie2),
+    ));
+    injector.register(macie2::AwsMacie2FindingsFilterConverter::new(Arc::clone(
+        &injectable.macie2,
+    )));
+    injector.register(macie2::AwsMacie2InvitationAccepterConverter::new(
+        Arc::clone(&injectable.macie2),
+    ));
+    injector.register(macie2::AwsMacie2MemberConverter::new(Arc::clone(
+        &injectable.macie2,
+    )));
+    injector.register(macie2::AwsMacie2OrganizationAdminAccountConverter::new(
+        Arc::clone(&injectable.macie2),
+    ));
+    injector.register(macie2::AwsMacie2OrganizationConfigurationConverter::new(
         Arc::clone(&injectable.macie2),
     ));
     injector.register(medialive::AwsMedialiveChannelConverter::new(Arc::clone(
@@ -3879,6 +4005,33 @@ async fn load_tfstate(
         &injectable.sesv1,
     )));
     injector.register(shield::AwsShieldProtectionConverter::new(Arc::clone(
+        &injectable.shield,
+    )));
+    injector.register(
+        shield::AwsShieldApplicationLayerAutomaticResponseConverter::new(Arc::clone(
+            &injectable.shield,
+        )),
+    );
+    injector.register(
+        shield::AwsShieldDrtAccessLogBucketAssociationConverter::new(Arc::clone(
+            &injectable.shield,
+        )),
+    );
+    injector.register(shield::AwsShieldDrtAccessRoleArnAssociationConverter::new(
+        Arc::clone(&injectable.shield),
+    ));
+    injector.register(shield::AwsShieldProactiveEngagementConverter::new(
+        Arc::clone(&injectable.shield),
+    ));
+    injector.register(shield::AwsShieldProtectionGroupConverter::new(Arc::clone(
+        &injectable.shield,
+    )));
+    injector.register(
+        shield::AwsShieldProtectionHealthCheckAssociationConverter::new(Arc::clone(
+            &injectable.shield,
+        )),
+    );
+    injector.register(shield::AwsShieldSubscriptionConverter::new(Arc::clone(
         &injectable.shield,
     )));
     injector.register(signer::AwsSignerSigningProfileConverter::new(Arc::clone(
