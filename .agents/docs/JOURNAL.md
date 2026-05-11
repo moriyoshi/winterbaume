@@ -532,6 +532,74 @@ Make cargo's own error message the primary recovery signal, and treat the HTTP p
 
 If `release-batch` is invoked through a pre-built binary on `$PATH` rather than `cargo run -p release-batch`, the operator must rebuild after pulling this change for the new recovery path to take effect. The retry-loop fix only exists in the binary, not in the input data.
 
+## 2026-05-09: winterbaume-bug skill — make it self-contained
+
+### Symptom
+
+The `skills/winterbaume-bug/SKILL.md` skill was advertised as a self-contained skill but its workflow leaned on three out-of-skill files:
+
+1. Step 1 told Claude to read `.github/ISSUE_TEMPLATE/bug_report.yml` and `.github/workflows/auto-label-service.yml` "before drafting" to confirm the field set, ordering, and labeller regex still matched the skill's assumptions.
+2. The body-template section described the labeller regex by pointing at the workflow file rather than embedding the pattern.
+3. The valid-slug list was implicitly delegated to the dropdown options inside `bug_report.yml` — Claude had no way to validate a slug without reading that file.
+4. Crate-locating examples used full paths like `crates/winterbaume-ec2/...` and `crates/winterbaume-s3/src/handlers.rs`, reinforcing the habit of reaching into the source tree at runtime.
+
+A skill that reads files outside its own directory cannot be exported / used in isolation, and its behaviour silently changes when the consumer's tree differs from the authoring tree.
+
+### Fix
+
+Made the skill directory `skills/winterbaume-bug/` self-contained by embedding all the previously external information:
+
+- Added `skills/winterbaume-bug/references/service-slugs.txt`: the canonical 425-slug list copied verbatim from `bug_report.yml`'s dropdown options, one slug per line, in the same order the form presents them. Step 1 (renumbered, "Identify the affected service slug") now points to this file as the single source of truth for slug validity.
+- Inlined the auto-labeller's extraction regex `/###\s+Affected AWS service\s*\n+\s*([a-z0-9]+)\s*\n/i` into the body-template step, with a one-paragraph spec of what the regex requires (lowercase, on its own line, `[a-z0-9]` only, no surrounding markup). The skill no longer references the workflow file.
+- Removed the original step 1 ("Confirm the authoritative template is unchanged") entirely. The remaining steps were renumbered 1-6.
+- Added a self-containment paragraph near the top stating that the embedded body template, regex, and slug list are authoritative — drift is a maintenance task on this skill, not a runtime lookup.
+- Added a matching anti-pattern at the bottom: "Reading repository files to confirm the template."
+- Replaced the path-style examples (`crates/winterbaume-ec2/...`, `crates/winterbaume-s3/src/handlers.rs`) with crate-name-only phrasing (`the winterbaume-ec2 crate`). Where the example originally said "link the file and line", clarified that this is content for the issue's human reader, not a runtime lookup performed by the skill.
+
+### Verification
+
+- `grep -E '\.github|crates/winterbaume-|bug_report\.yml|auto-label-service\.yml' skills/winterbaume-bug/SKILL.md` returns no matches: every previous outside-the-skill reference is gone.
+- The skill directory now contains `SKILL.md` and `references/service-slugs.txt`. No other files inside or outside the skill directory were modified.
+
+### Out of scope
+
+The slug list in `references/service-slugs.txt` is a snapshot of the dropdown options at the time of this change. If the project's `bug_report.yml` adds or removes slugs, the maintainer must update the file in this skill directory (and ideally add a CI check that diffs the two). Adding such a CI check was not done here because this change is scoped to the self-containment fix; it is recorded as a known follow-up.
+
+## 2026-05-09: winterbaume-bug skill — follow-ups from self-review
+
+After landing the self-containment change above, a self-review surfaced four issues. Three were addressed in this follow-up; one was deliberately deferred.
+
+### Drift detection: added a CI check
+
+Removing the original step 1 ( "Confirm the authoritative template is unchanged" ) closed off the only mechanism that would have caught a drift between the embedded slug snapshot and `bug_report.yml`'s dropdown. Without a replacement, the snapshot can rot silently.
+
+- Added `.github/workflows/skill-slug-drift.yml`. Triggered by pushes to main and pull requests that touch either `bug_report.yml`, the slug snapshot, or the workflow itself. It extracts dropdown items via `grep -oE '^        - [a-z0-9]+$' .github/ISSUE_TEMPLATE/bug_report.yml | sed 's/^        - //'`, diffs them against `skills/winterbaume-bug/references/service-slugs.txt`, and fails the job with a `::error::` annotation when they diverge.
+- The extraction relies on the dropdown being the only options block at 8-space indent in the YAML file. A comment in the workflow flags this assumption so it gets revisited if the form ever grows a second dropdown.
+- Verified locally: `bash -c '...same pipeline...'` produced "425 slugs match" against the current snapshot.
+- `actions/checkout` is pinned to the same SHA used elsewhere in `.github/workflows/` ( `de0fac2e4500dabe0009e67214ff5f5447ce83dd`, v6 ) to match the project's pinning convention.
+
+### Markdown nesting in the body template
+
+`skills/winterbaume-bug/SKILL.md` showed the canonical issue body inside a triple-backtick `markdown` fence, with two inner triple-backtick `shell` fences. CommonMark closes the outer fence at the first inner fence, so the rendered skill page split the template across three sibling code blocks rather than one.
+
+- Promoted the outer fence to four backticks and added a one-sentence note that the issue body itself uses three-backtick fences for the shell blocks. Inner three-backtick fences now nest correctly.
+- This was a pre-existing rendering bug copied from the original skill, not regression from the self-containment edit. Fixed here because it is cheap and the surrounding section was already being touched.
+
+### Example 2 wording
+
+The previous wording ( "Cite actual behaviour from the handler code path ( link the file and line in the issue body ... )" ) could be misread as licence to grep the source tree at skill-runtime. The example's setup already places Claude in a code-review context, so the file and line are content Claude already saw — not something to be looked up by the skill itself.
+
+- Rewrote step 5 to "Cite the file and line you already saw during the review in the issue body, so a reader of the issue can navigate there. This is content for the reader; do not re-grep the source tree as part of running this skill."
+
+### Deferred: paren-spacing style in the prior JOURNAL entry
+
+The 2026-05-09 entry above uses standard English paren style ( `(text)` ) where most recent JOURNAL entries use the project's wider half-width style ( `( text )` ). CLAUDE.md forbids editing existing JOURNAL sections except via the `reconcile-journal-ltm` skill, so the prior entry is left as-is rather than reformatted retroactively. This new entry is written in the local style.
+
+### Verification
+
+- `grep -E '\.github|crates/winterbaume-|bug_report\.yml|auto-label-service\.yml' skills/winterbaume-bug/SKILL.md` — still returns no matches; the SKILL.md edits did not reintroduce any outside-the-skill references.
+- The CI workflow is the only place where `bug_report.yml` is read from disk, and it lives outside the skill directory by design ( workflows must live under `.github/workflows/` ); it enforces self-containment rather than violating it.
+
 ## 2026-05-10: mass-publish post-mortem — dropped tags after partial 429s, umbrella over the 500-dep limit
 
 ### Context

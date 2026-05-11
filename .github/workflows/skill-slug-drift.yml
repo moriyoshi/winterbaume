@@ -1,0 +1,39 @@
+name: skill-slug-drift
+
+on:
+  pull_request:
+    paths:
+      - '.github/ISSUE_TEMPLATE/bug_report.yml'
+      - 'skills/winterbaume-bug/references/service-slugs.txt'
+      - '.github/workflows/skill-slug-drift.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/ISSUE_TEMPLATE/bug_report.yml'
+      - 'skills/winterbaume-bug/references/service-slugs.txt'
+      - '.github/workflows/skill-slug-drift.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Compare dropdown slugs to skill snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+      - name: Diff dropdown against snapshot
+        run: |
+          set -euo pipefail
+          dropdown=$(mktemp)
+          # The Affected AWS service dropdown is the only options block in
+          # bug_report.yml, with each entry indented to exactly 8 spaces. If
+          # other dropdowns are added later this extraction must be revisited.
+          grep -oE '^        - [a-z0-9]+$' .github/ISSUE_TEMPLATE/bug_report.yml \
+            | sed 's/^        - //' > "$dropdown"
+          if ! diff -u "$dropdown" skills/winterbaume-bug/references/service-slugs.txt; then
+            echo "::error::skills/winterbaume-bug/references/service-slugs.txt is out of sync with the Affected AWS service dropdown in .github/ISSUE_TEMPLATE/bug_report.yml. Update the snapshot to match."
+            exit 1
+          fi
+          echo "skill slug snapshot matches the dropdown."
