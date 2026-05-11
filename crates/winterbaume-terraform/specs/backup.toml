@@ -5,6 +5,13 @@
 # `advanced_backup_setting` are read straight from instance.attributes
 # in the converter (`tags_all` is a HashMap merged with `tags`; `rule`
 # and `advanced_backup_setting` are raw nested-block arrays).
+#
+# The 11 newer resources (framework, global_settings,
+# logically_air_gapped_vault, region_settings, report_plan,
+# restore_testing_plan, restore_testing_selection, selection,
+# vault_lock_configuration, vault_notifications, vault_policy) are
+# scalar-only here; nullable integers, lists, maps, and nested blocks
+# are read raw from `instance.attributes` in the converter.
 
 [service]
 name = "backup"
@@ -71,3 +78,386 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_backup_framework
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_backup_framework"
+model = "FrameworkTfModel"
+view = "FrameworkView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_status"
+view = "deployment_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_backup_global_settings
+# ---------------------------------------------------------------------------
+# No state slot on the BackupStateView (state-only field). Warning-only.
+
+[[resource]]
+type = "aws_backup_global_settings"
+model = "GlobalSettingsTfModel"
+view = "BackupStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_backup_logically_air_gapped_vault
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_backup_logically_air_gapped_vault"
+model = "LogicallyAirGappedVaultTfModel"
+view = "BackupVaultView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_backup_region_settings
+# ---------------------------------------------------------------------------
+# No state slot on the BackupStateView (state-only field). Warning-only.
+
+[[resource]]
+type = "aws_backup_region_settings"
+model = "RegionSettingsTfModel"
+view = "BackupStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_backup_report_plan
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_backup_report_plan"
+model = "ReportPlanTfModel"
+view = "ReportPlanView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_status"
+view = "deployment_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_backup_restore_testing_plan
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_backup_restore_testing_plan"
+model = "RestoreTestingPlanTfModel"
+view = "RestoreTestingPlanView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "schedule_expression"
+view = "schedule_expression"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "schedule_expression_timezone"
+view = "schedule_expression_timezone"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_backup_restore_testing_selection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_backup_restore_testing_selection"
+model = "RestoreTestingSelectionTfModel"
+view = "RestoreTestingSelectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "restore_testing_plan_name"
+view = "restore_testing_plan_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "protected_resource_type"
+view = "protected_resource_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_backup_selection
+# ---------------------------------------------------------------------------
+# No state slot on the BackupStateView (the underlying state has
+# `backup_selections` keyed by plan_id, but it is not surfaced via the
+# StateView, so this is warning-only).
+
+[[resource]]
+type = "aws_backup_selection"
+model = "SelectionTfModel"
+view = "BackupStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "plan_id"
+view = "plan_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_backup_vault_lock_configuration
+# ---------------------------------------------------------------------------
+# Modifier on an existing BackupVaultView entry: snapshot+mutate to set
+# `locked`, `min_retention_days`, `max_retention_days`, `lock_date`.
+# Nullable retention integers are read raw from instance.attributes in
+# the converter.
+
+[[resource]]
+type = "aws_backup_vault_lock_configuration"
+model = "VaultLockConfigurationTfModel"
+view = "BackupVaultView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "backup_vault_name"
+view = "backup_vault_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "backup_vault_arn"
+view = "backup_vault_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_backup_vault_notifications
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_backup_vault_notifications"
+model = "VaultNotificationsTfModel"
+view = "VaultNotificationConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "backup_vault_name"
+view = "backup_vault_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "sns_topic_arn"
+view = "sns_topic_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "backup_vault_arn"
+view = "backup_vault_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_backup_vault_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_backup_vault_policy"
+model = "VaultPolicyTfModel"
+view = "VaultAccessPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "backup_vault_name"
+view = "backup_vault_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "backup_vault_arn"
+view = "backup_vault_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

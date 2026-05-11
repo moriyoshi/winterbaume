@@ -49,3 +49,159 @@ pub struct BucketTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_access_grant` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessGrantTfModel {
+    pub access_grants_location_id: String,
+    pub permission: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_grant_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_grant_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub grant_scope: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub s3_prefix_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub application_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_access_grants_instance` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessGrantsInstanceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_grants_instance_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_grants_instance_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_center_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_center_application_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_access_grants_instance_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessGrantsInstanceResourcePolicyTfModel {
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub organization: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_access_grants_location` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessGrantsLocationTfModel {
+    pub iam_role_arn: String,
+    pub location_scope: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_grants_location_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_grants_location_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_access_point_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessPointPolicyTfModel {
+    pub access_point_arn: String,
+    pub policy: String,
+    #[serde(default)]
+    pub has_public_access_policy: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_bucket_lifecycle_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketLifecycleConfigurationTfModel {
+    pub bucket: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_bucket_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketPolicyTfModel {
+    pub bucket: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_directory_bucket_access_point_scope` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DirectoryBucketAccessPointScopeTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_multi_region_access_point` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiRegionAccessPointTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub alias: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub domain_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_multi_region_access_point_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiRegionAccessPointPolicyTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub established: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub proposed: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_object_lambda_access_point` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObjectLambdaAccessPointTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub alias: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_object_lambda_access_point_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObjectLambdaAccessPointPolicyTfModel {
+    pub name: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default)]
+    pub has_public_access_policy: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3control_storage_lens_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageLensConfigurationTfModel {
+    pub config_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}

@@ -21,3 +21,147 @@ pub struct DomainIdentityTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub verification_token: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_ses_active_receipt_rule_set` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveReceiptRuleSetTfModel {
+    pub rule_set_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_configuration_set` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationSetTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_configuration_set_reputation_metrics_enabled")]
+    pub reputation_metrics_enabled: bool,
+    #[serde(default = "default_configuration_set_sending_enabled")]
+    pub sending_enabled: bool,
+}
+
+fn default_configuration_set_reputation_metrics_enabled() -> bool {
+    false
+}
+
+fn default_configuration_set_sending_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_domain_dkim` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainDkimTfModel {
+    pub domain: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_domain_identity_verification` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainIdentityVerificationTfModel {
+    pub domain: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_domain_mail_from` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainMailFromTfModel {
+    pub domain: String,
+    pub mail_from_domain: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub behavior_on_mx_failure: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_event_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventDestinationTfModel {
+    pub name: String,
+    pub configuration_set_name: String,
+    #[serde(default = "default_event_destination_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+fn default_event_destination_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_identity_notification_topic` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentityNotificationTopicTfModel {
+    pub identity: String,
+    pub notification_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub topic_arn: Option<String>,
+    #[serde(default = "default_identity_notification_topic_include_original_headers")]
+    pub include_original_headers: bool,
+}
+
+fn default_identity_notification_topic_include_original_headers() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_identity_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentityPolicyTfModel {
+    pub identity: String,
+    pub name: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_receipt_filter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReceiptFilterTfModel {
+    pub name: String,
+    pub cidr: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_receipt_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReceiptRuleTfModel {
+    pub name: String,
+    pub rule_set_name: String,
+    #[serde(default = "default_receipt_rule_enabled")]
+    pub enabled: bool,
+    #[serde(default = "default_receipt_rule_scan_enabled")]
+    pub scan_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tls_policy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub after: Option<String>,
+}
+
+fn default_receipt_rule_enabled() -> bool {
+    false
+}
+
+fn default_receipt_rule_scan_enabled() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_receipt_rule_set` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReceiptRuleSetTfModel {
+    pub rule_set_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ses_template` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TemplateTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subject: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub html: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}

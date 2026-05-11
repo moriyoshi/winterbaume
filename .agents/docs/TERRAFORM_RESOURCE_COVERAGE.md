@@ -2,20 +2,13 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **643** (638 verified against schema)
-Missing within classified prefixes: **555**
+Currently handled by winterbaume: **723** (718 verified against schema)
+Missing within classified prefixes: **475**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
-| elbv2 | override (2 patterns) | 3 | 16 | 13 | 19% |  |
-| logs | `aws_cloudwatch_log_` | 2 | 15 | 13 | 13% |  |
-| s3control | `aws_s3control_` | 2 | 14 | 13 | 7% |  |
-| securityhub | `aws_securityhub_` | 2 | 15 | 13 | 13% |  |
-| sesv1 | `aws_ses_` | 2 | 14 | 12 | 14% |  |
-| apigatewayv2 | `aws_apigatewayv2_` | 1 | 12 | 11 | 8% |  |
-| backup | `aws_backup_` | 2 | 13 | 11 | 15% |  |
 | datasync | `aws_datasync_` | 2 | 13 | 11 | 15% |  |
 | servicecatalog | `aws_servicecatalog_` | 2 | 13 | 11 | 15% |  |
 | ssm | `aws_ssm_` | 1 | 12 | 11 | 8% |  |
@@ -47,6 +40,7 @@ Sorted by missing-count desc.
 | ebs | `aws_ebs_` | 2 | 8 | 6 | 25% |  |
 | eks | `aws_eks_` | 2 | 8 | 6 | 25% |  |
 | elasticache | `aws_elasticache_` | 4 | 10 | 6 | 40% |  |
+| elbv2 | override (2 patterns) | 10 | 16 | 6 | 62% |  |
 | emr | `aws_emr_` | 2 | 8 | 6 | 25% |  |
 | events | `aws_cloudwatch_event_` | 3 | 9 | 6 | 33% |  |
 | lakeformation | `aws_lakeformation_` | 2 | 8 | 6 | 25% |  |
@@ -122,7 +116,9 @@ Sorted by missing-count desc.
 | kinesisanalyticsv2 | `aws_kinesisanalyticsv2_` | 1 | 2 | 1 | 50% |  |
 | mediastore | override (2 patterns) | 1 | 2 | 1 | 50% |  |
 | resourcegroups | `aws_resourcegroups_` | 1 | 2 | 1 | 50% |  |
+| apigatewayv2 | `aws_apigatewayv2_` | 12 | 12 | 0 | 100% |  |
 | applicationcostprofiler | `aws_applicationcostprofiler_` | 1 | 0 | 0 | — |  |
+| backup | `aws_backup_` | 13 | 13 | 0 | 100% |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
 | cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
 | connect | `aws_connect_` | 16 | 16 | 0 | 100% |  |
@@ -136,6 +132,7 @@ Sorted by missing-count desc.
 | iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
+| logs | `aws_cloudwatch_log_` | 15 | 15 | 0 | 100% |  |
 | mediapackage | `aws_media_package_` | 1 | 1 | 0 | 100% |  |
 | mediapackagev2 | `aws_media_packagev2_` | 1 | 1 | 0 | 100% |  |
 | mq | `aws_mq_` | 2 | 2 | 0 | 100% |  |
@@ -147,8 +144,11 @@ Sorted by missing-count desc.
 | resiliencehub | `aws_resiliencehub_` | 1 | 1 | 0 | 100% |  |
 | rolesanywhere | `aws_rolesanywhere_` | 2 | 2 | 0 | 100% |  |
 | route53 | override (11 patterns) | 13 | 13 | 0 | 100% |  |
+| s3control | `aws_s3control_` | 15 | 14 | 0 | 100% |  |
 | sagemaker | `aws_sagemaker_` | 30 | 30 | 0 | 100% |  |
 | scheduler | `aws_scheduler_` | 2 | 2 | 0 | 100% |  |
+| securityhub | `aws_securityhub_` | 15 | 15 | 0 | 100% |  |
+| sesv1 | `aws_ses_` | 14 | 14 | 0 | 100% |  |
 | simpledbv2 | `aws_simpledb_` | 1 | 1 | 0 | 100% |  |
 | swf | `aws_swf_` | 1 | 1 | 0 | 100% |  |
 | timestreaminfluxdb | `aws_timestreaminfluxdb_` | 1 | 1 | 0 | 100% |  |
@@ -156,113 +156,6 @@ Sorted by missing-count desc.
 | timestreamwrite | `aws_timestreamwrite_` | 2 | 2 | 0 | 100% |  |
 
 ## Per-service missing resources
-
-### elbv2 — 13 missing
-
-- `aws_alb`
-- `aws_alb_listener`
-- `aws_alb_listener_certificate`
-- `aws_alb_listener_rule`
-- `aws_alb_target_group`
-- `aws_alb_target_group_attachment`
-- `aws_lb_cookie_stickiness_policy`
-- `aws_lb_listener_certificate`
-- `aws_lb_listener_rule`
-- `aws_lb_ssl_negotiation_policy`
-- `aws_lb_target_group_attachment`
-- `aws_lb_trust_store`
-- `aws_lb_trust_store_revocation`
-
-### logs — 13 missing
-
-- `aws_cloudwatch_log_account_policy`
-- `aws_cloudwatch_log_anomaly_detector`
-- `aws_cloudwatch_log_data_protection_policy`
-- `aws_cloudwatch_log_delivery`
-- `aws_cloudwatch_log_delivery_destination`
-- `aws_cloudwatch_log_delivery_destination_policy`
-- `aws_cloudwatch_log_delivery_source`
-- `aws_cloudwatch_log_destination`
-- `aws_cloudwatch_log_destination_policy`
-- `aws_cloudwatch_log_index_policy`
-- `aws_cloudwatch_log_metric_filter`
-- `aws_cloudwatch_log_resource_policy`
-- `aws_cloudwatch_log_subscription_filter`
-
-### s3control — 13 missing
-
-- `aws_s3control_access_grant`
-- `aws_s3control_access_grants_instance`
-- `aws_s3control_access_grants_instance_resource_policy`
-- `aws_s3control_access_grants_location`
-- `aws_s3control_access_point_policy`
-- `aws_s3control_bucket_lifecycle_configuration`
-- `aws_s3control_bucket_policy`
-- `aws_s3control_directory_bucket_access_point_scope`
-- `aws_s3control_multi_region_access_point`
-- `aws_s3control_multi_region_access_point_policy`
-- `aws_s3control_object_lambda_access_point`
-- `aws_s3control_object_lambda_access_point_policy`
-- `aws_s3control_storage_lens_configuration`
-
-### securityhub — 13 missing
-
-- `aws_securityhub_action_target`
-- `aws_securityhub_automation_rule`
-- `aws_securityhub_configuration_policy`
-- `aws_securityhub_configuration_policy_association`
-- `aws_securityhub_finding_aggregator`
-- `aws_securityhub_insight`
-- `aws_securityhub_invite_accepter`
-- `aws_securityhub_member`
-- `aws_securityhub_organization_admin_account`
-- `aws_securityhub_organization_configuration`
-- `aws_securityhub_product_subscription`
-- `aws_securityhub_standards_control`
-- `aws_securityhub_standards_control_association`
-
-### sesv1 — 12 missing
-
-- `aws_ses_active_receipt_rule_set`
-- `aws_ses_configuration_set`
-- `aws_ses_domain_dkim`
-- `aws_ses_domain_identity_verification`
-- `aws_ses_domain_mail_from`
-- `aws_ses_event_destination`
-- `aws_ses_identity_notification_topic`
-- `aws_ses_identity_policy`
-- `aws_ses_receipt_filter`
-- `aws_ses_receipt_rule`
-- `aws_ses_receipt_rule_set`
-- `aws_ses_template`
-
-### apigatewayv2 — 11 missing
-
-- `aws_apigatewayv2_api_mapping`
-- `aws_apigatewayv2_authorizer`
-- `aws_apigatewayv2_deployment`
-- `aws_apigatewayv2_domain_name`
-- `aws_apigatewayv2_integration`
-- `aws_apigatewayv2_integration_response`
-- `aws_apigatewayv2_model`
-- `aws_apigatewayv2_route`
-- `aws_apigatewayv2_route_response`
-- `aws_apigatewayv2_stage`
-- `aws_apigatewayv2_vpc_link`
-
-### backup — 11 missing
-
-- `aws_backup_framework`
-- `aws_backup_global_settings`
-- `aws_backup_logically_air_gapped_vault`
-- `aws_backup_region_settings`
-- `aws_backup_report_plan`
-- `aws_backup_restore_testing_plan`
-- `aws_backup_restore_testing_selection`
-- `aws_backup_selection`
-- `aws_backup_vault_lock_configuration`
-- `aws_backup_vault_notifications`
-- `aws_backup_vault_policy`
 
 ### datasync — 11 missing
 
@@ -612,6 +505,15 @@ Sorted by missing-count desc.
 - `aws_elasticache_user`
 - `aws_elasticache_user_group`
 - `aws_elasticache_user_group_association`
+
+### elbv2 — 6 missing
+
+- `aws_alb`
+- `aws_alb_listener`
+- `aws_alb_listener_certificate`
+- `aws_alb_listener_rule`
+- `aws_alb_target_group`
+- `aws_alb_target_group_attachment`
 
 ### emr — 6 missing
 
@@ -1053,10 +955,6 @@ Sorted by missing-count desc.
 
 ## Resources declared in specs but absent from the AWS provider schema
 
-### s3control
-
-- `aws_s3control_access_point` (typo or removed in schema)
-
 ### chatbot
 
 - `aws_chatbot_microsoft_teams_channel_configuration` (typo or removed in schema)
@@ -1069,4 +967,8 @@ Sorted by missing-count desc.
 
 - `aws_outposts_outpost` (typo or removed in schema)
 - `aws_outposts_site` (typo or removed in schema)
+
+### s3control
+
+- `aws_s3control_access_point` (typo or removed in schema)
 

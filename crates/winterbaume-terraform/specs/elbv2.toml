@@ -149,3 +149,223 @@ type = "string?"
 hcl = "certificate_arn"
 view = "certificate_arn"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lb_listener_certificate
+# (modifier; appends a non-default Certificate to ListenerView.certificates)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_listener_certificate"
+model = "LbListenerCertificateTfModel"
+view = "ListenerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "listener_arn"
+view = "listener_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "certificate_arn"
+view = "certificate_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_lb_listener_rule
+# (top-level rule on a listener; lands in Elbv2StateView.rules)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_listener_rule"
+model = "LbListenerRuleTfModel"
+view = "RuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "listener_arn"
+view = "listener_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "priority"
+view = "priority"
+type = "i64"
+default = 1
+
+# ---------------------------------------------------------------------------
+# aws_lb_target_group_attachment
+# (modifier; appends a TargetDescription to TargetGroupView.targets)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_target_group_attachment"
+model = "LbTargetGroupAttachmentTfModel"
+view = "TargetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "target_group_arn"
+view = "target_group_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_id"
+view = "target_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "port"
+view = "port"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lb_trust_store
+# (top-level; lands in Elbv2StateView.trust_stores)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_trust_store"
+model = "LbTrustStoreTfModel"
+view = "TrustStoreView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "ca_certificates_bundle_s3_bucket"
+view = "ca_certificates_bundle_s3_bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "ca_certificates_bundle_s3_key"
+view = "ca_certificates_bundle_s3_key"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lb_trust_store_revocation
+# (modifier; appends a revocation entry to TrustStoreView.revocations)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_trust_store_revocation"
+model = "LbTrustStoreRevocationTfModel"
+view = "TrustStoreView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "trust_store_arn"
+view = "trust_store_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "revocations_s3_bucket"
+view = "revocations_s3_bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "revocations_s3_key"
+view = "revocations_s3_key"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lb_cookie_stickiness_policy
+# (Classic ELB feature; no slot in ElbV2 state. Warning-only inject.)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_cookie_stickiness_policy"
+model = "LbCookieStickinessPolicyTfModel"
+view = "LoadBalancerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "load_balancer"
+view = "load_balancer"
+type = "string?"
+
+[[resource.field]]
+hcl = "lb_port"
+view = "lb_port"
+type = "i64"
+default = 80
+
+[[resource.field]]
+hcl = "cookie_expiration_period"
+view = "cookie_expiration_period"
+type = "i64"
+default = 0
+
+# ---------------------------------------------------------------------------
+# aws_lb_ssl_negotiation_policy
+# (Classic ELB feature; no slot in ElbV2 state. Warning-only inject.)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lb_ssl_negotiation_policy"
+model = "LbSslNegotiationPolicyTfModel"
+view = "LoadBalancerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "load_balancer"
+view = "load_balancer"
+type = "string?"
+
+[[resource.field]]
+hcl = "lb_port"
+view = "lb_port"
+type = "i64"
+default = 443

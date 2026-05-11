@@ -59,3 +59,95 @@ pub struct LbListenerTfModel {
 fn default_lb_listener_port() -> i64 {
     80i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_lb_listener_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbListenerCertificateTfModel {
+    pub listener_arn: String,
+    pub certificate_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lb_listener_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbListenerRuleTfModel {
+    pub listener_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_lb_listener_rule_priority")]
+    pub priority: i64,
+}
+
+fn default_lb_listener_rule_priority() -> i64 {
+    1i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lb_target_group_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbTargetGroupAttachmentTfModel {
+    pub target_group_arn: String,
+    pub target_id: String,
+    #[serde(default = "default_lb_target_group_attachment_port")]
+    pub port: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub availability_zone: Option<String>,
+}
+
+fn default_lb_target_group_attachment_port() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lb_trust_store` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbTrustStoreTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ca_certificates_bundle_s3_bucket: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ca_certificates_bundle_s3_key: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lb_trust_store_revocation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbTrustStoreRevocationTfModel {
+    pub trust_store_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub revocations_s3_bucket: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub revocations_s3_key: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lb_cookie_stickiness_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbCookieStickinessPolicyTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub load_balancer: Option<String>,
+    #[serde(default = "default_lb_cookie_stickiness_policy_lb_port")]
+    pub lb_port: i64,
+    #[serde(default = "default_lb_cookie_stickiness_policy_cookie_expiration_period")]
+    pub cookie_expiration_period: i64,
+}
+
+fn default_lb_cookie_stickiness_policy_lb_port() -> i64 {
+    80i64
+}
+
+fn default_lb_cookie_stickiness_policy_cookie_expiration_period() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lb_ssl_negotiation_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbSslNegotiationPolicyTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub load_balancer: Option<String>,
+    #[serde(default = "default_lb_ssl_negotiation_policy_lb_port")]
+    pub lb_port: i64,
+}
+
+fn default_lb_ssl_negotiation_policy_lb_port() -> i64 {
+    443i64
+}

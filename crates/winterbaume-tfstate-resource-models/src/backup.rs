@@ -27,3 +27,131 @@ pub struct PlanTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_backup_framework` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FrameworkTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deployment_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_global_settings` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GlobalSettingsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_logically_air_gapped_vault` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogicallyAirGappedVaultTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_region_settings` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionSettingsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_report_plan` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportPlanTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deployment_status: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_restore_testing_plan` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreTestingPlanTfModel {
+    pub name: String,
+    pub schedule_expression: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schedule_expression_timezone: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_restore_testing_selection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreTestingSelectionTfModel {
+    pub name: String,
+    pub restore_testing_plan_name: String,
+    pub iam_role_arn: String,
+    pub protected_resource_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_selection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectionTfModel {
+    pub name: String,
+    pub plan_id: String,
+    pub iam_role_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_vault_lock_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VaultLockConfigurationTfModel {
+    pub backup_vault_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub backup_vault_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_vault_notifications` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VaultNotificationsTfModel {
+    pub backup_vault_name: String,
+    pub sns_topic_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub backup_vault_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_backup_vault_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VaultPolicyTfModel {
+    pub backup_vault_name: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub backup_vault_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

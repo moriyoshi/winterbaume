@@ -51,3 +51,332 @@ hcl = "standards_arn"
 view = "standards_arn"
 type = "string"
 required = true
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_action_target
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_action_target"
+model = "ActionTargetTfModel"
+view = "ActionTargetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "identifier"
+view = "identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_automation_rule
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_automation_rule"
+model = "AutomationRuleTfModel"
+view = "AutomationRuleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rule_name"
+view = "rule_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "rule_order"
+view = "rule_order"
+type = "u32"
+required = true
+
+[[resource.field]]
+hcl = "rule_status"
+view = "rule_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "is_terminal"
+view = "is_terminal"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_configuration_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_configuration_policy"
+model = "ConfigurationPolicyTfModel"
+view = "ConfigPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_configuration_policy_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_configuration_policy_association"
+model = "ConfigurationPolicyAssociationTfModel"
+view = "ConfigPolicyAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "policy_id"
+view = "policy_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_id"
+view = "target_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_finding_aggregator
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_finding_aggregator"
+model = "FindingAggregatorTfModel"
+view = "FindingAggregatorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "linking_mode"
+view = "linking_mode"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_insight
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_insight"
+model = "InsightTfModel"
+view = "InsightView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "group_by_attribute"
+view = "group_by_attribute"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_invite_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_invite_accepter"
+model = "InviteAccepterTfModel"
+view = "MemberView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "master_id"
+view = "master_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_member
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_member"
+model = "MemberTfModel"
+view = "MemberView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "email"
+view = "email"
+type = "string?"
+
+[[resource.field]]
+hcl = "invite"
+view = "invite"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_organization_admin_account
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_organization_admin_account"
+model = "OrganizationAdminAccountTfModel"
+view = "OrgAdminAccountView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "admin_account_id"
+view = "admin_account_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_organization_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_organization_configuration"
+model = "OrganizationConfigurationTfModel"
+view = "OrgConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "auto_enable"
+view = "auto_enable"
+type = "bool"
+required = true
+
+[[resource.field]]
+hcl = "auto_enable_standards"
+view = "auto_enable_standards"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_product_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_product_subscription"
+model = "ProductSubscriptionTfModel"
+view = "ProductSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "product_arn"
+view = "product_arn"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_standards_control
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_standards_control"
+model = "StandardsControlTfModel"
+view = "StandardsControlView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "standards_control_arn"
+view = "standards_control_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "control_status"
+view = "control_status"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "disabled_reason"
+view = "disabled_reason"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_securityhub_standards_control_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_securityhub_standards_control_association"
+model = "StandardsControlAssociationTfModel"
+view = "StandardsControlAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "security_control_id"
+view = "security_control_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "standards_arn"
+view = "standards_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "association_status"
+view = "association_status"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "updated_reason"
+view = "updated_reason"
+type = "string?"

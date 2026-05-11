@@ -21,7 +21,8 @@ use winterbaume_core::StatefulService;
 use winterbaume_elasticloadbalancingv2::ElasticLoadBalancingV2Service;
 use winterbaume_elasticloadbalancingv2::views::{
     AvailabilityZoneView, CertificateView, Elbv2StateView, ListenerActionView, ListenerView,
-    LoadBalancerView, TargetGroupView,
+    LoadBalancerView, RuleActionView, RuleConditionView, RuleView, TargetDescriptionView,
+    TargetGroupView, TrustStoreRevocationEntryView, TrustStoreView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -881,5 +882,1086 @@ fn minimal_elbv2_state_view() -> Elbv2StateView {
         resource_tags: HashMap::new(),
         trust_stores: HashMap::new(),
         ..Default::default()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_alb (alias for aws_lb)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_alb` Terraform resources. Alias for `aws_lb`; delegates to
+/// the same projection logic via `AwsLbConverter::do_inject` and
+/// `AwsLbConverter::do_extract`.
+pub struct AwsAlbConverter {
+    inner: AwsLbConverter,
+}
+
+impl AwsAlbConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self {
+            inner: AwsLbConverter::new(service),
+        }
+    }
+}
+
+impl TerraformResourceConverter for AwsAlbConverter {
+    fn resource_type(&self) -> &str {
+        "aws_alb"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.inner.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        // Avoid duplicating the same state row under both resource types in
+        // an extract; the `aws_lb` converter already emits these.
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_alb_target_group (alias for aws_lb_target_group)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_alb_target_group` Terraform resources. Alias for
+/// `aws_lb_target_group`.
+pub struct AwsAlbTargetGroupConverter {
+    inner: AwsLbTargetGroupConverter,
+}
+
+impl AwsAlbTargetGroupConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self {
+            inner: AwsLbTargetGroupConverter::new(service),
+        }
+    }
+}
+
+impl TerraformResourceConverter for AwsAlbTargetGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_alb_target_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.inner.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_alb_listener (alias for aws_lb_listener)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_alb_listener` Terraform resources. Alias for
+/// `aws_lb_listener`.
+pub struct AwsAlbListenerConverter {
+    inner: AwsLbListenerConverter,
+}
+
+impl AwsAlbListenerConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self {
+            inner: AwsLbListenerConverter::new(service),
+        }
+    }
+}
+
+impl TerraformResourceConverter for AwsAlbListenerConverter {
+    fn resource_type(&self) -> &str {
+        "aws_alb_listener"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec![
+            "aws_lb",
+            "aws_alb",
+            "aws_lb_target_group",
+            "aws_alb_target_group",
+        ]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.inner.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lb_listener_certificate (and aws_alb_listener_certificate)
+// (modifier; appends a non-default Certificate to the parent ListenerView)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lb_listener_certificate` Terraform resources by appending
+/// a non-default certificate to the parent listener's certificates list.
+/// If the listener is not yet in state, the resource is accepted but
+/// produces a warning (full snapshot+restore round-trip is still applied so
+/// any partial state remains visible to subsequent converters).
+pub struct AwsLbListenerCertificateConverter {
+    service: Arc<ElasticLoadBalancingV2Service>,
+}
+
+impl AwsLbListenerCertificateConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLbListenerCertificateConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lb_listener_certificate"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lb_listener", "aws_alb_listener"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLbListenerCertificateConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: elbv2_gen::LbListenerCertificateTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lb_listener_certificate", e))?;
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(listener) = state_view.listeners.get_mut(&model.listener_arn) {
+            // Skip duplicates; otherwise append as a non-default cert.
+            if !listener
+                .certificates
+                .iter()
+                .any(|c| c.certificate_arn == model.certificate_arn)
+            {
+                listener.certificates.push(CertificateView {
+                    certificate_arn: model.certificate_arn.clone(),
+                    is_default: Some(false),
+                });
+            }
+        } else {
+            warnings.push(format!(
+                "listener '{}' not found in state; certificate '{}' attachment skipped",
+                model.listener_arn, model.certificate_arn
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for listener in view.listeners.values() {
+            for cert in &listener.certificates {
+                // The default certificate is exposed by the parent
+                // aws_lb_listener resource via `certificate_arn`; only
+                // emit explicit non-default attachments here.
+                if cert.is_default.unwrap_or(false) {
+                    continue;
+                }
+                let id = format!("{}_{}", listener.arn, cert.certificate_arn);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "listener_arn": listener.arn,
+                    "certificate_arn": cert.certificate_arn,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+/// Converts `aws_alb_listener_certificate` Terraform resources. Alias for
+/// `aws_lb_listener_certificate`.
+pub struct AwsAlbListenerCertificateConverter {
+    inner: AwsLbListenerCertificateConverter,
+}
+
+impl AwsAlbListenerCertificateConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self {
+            inner: AwsLbListenerCertificateConverter::new(service),
+        }
+    }
+}
+
+impl TerraformResourceConverter for AwsAlbListenerCertificateConverter {
+    fn resource_type(&self) -> &str {
+        "aws_alb_listener_certificate"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lb_listener", "aws_alb_listener"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.inner.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lb_listener_rule (and aws_alb_listener_rule)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lb_listener_rule` Terraform resources to/from the listener
+/// rules slot on ELBv2 state. The TF `condition` / `action` repeated blocks
+/// are parsed by hand because the spec format does not yet express nested
+/// arrays-of-objects.
+pub struct AwsLbListenerRuleConverter {
+    service: Arc<ElasticLoadBalancingV2Service>,
+}
+
+impl AwsLbListenerRuleConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLbListenerRuleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lb_listener_rule"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lb_listener", "aws_alb_listener"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLbListenerRuleConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: elbv2_gen::LbListenerRuleTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lb_listener_rule", e))?;
+
+        let rule_arn = model.arn.unwrap_or_else(|| {
+            // Derive a rule ARN from the listener ARN by swapping
+            // ":listener/" for ":listener-rule/" and appending an id.
+            let listener_part = model
+                .listener_arn
+                .find("listener/")
+                .map(|i| &model.listener_arn[i + "listener/".len()..])
+                .unwrap_or("unknown/unknown/unknown");
+            format!(
+                "arn:aws:elasticloadbalancing:{}:{}:listener-rule/{}/{}",
+                region,
+                ctx.default_account_id,
+                listener_part,
+                &uuid::Uuid::new_v4().to_string()[..16],
+            )
+        });
+
+        // Parse `condition` blocks: [{ field, values }] (values typically a
+        // Vec<String>, but some condition types carry richer sub-blocks).
+        let conditions: Vec<RuleConditionView> = attrs
+            .get("condition")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .map(|cond| RuleConditionView {
+                        field: cond
+                            .get("field")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        values: cond
+                            .get("values")
+                            .and_then(|v| v.as_array())
+                            .map(|vals| {
+                                vals.iter()
+                                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                                    .collect()
+                            })
+                            .unwrap_or_default(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        // Parse `action` blocks: [{ type, target_group_arn }].
+        let actions: Vec<RuleActionView> = attrs
+            .get("action")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .map(|action| RuleActionView {
+                        action_type: action
+                            .get("type")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("forward")
+                            .to_string(),
+                        target_group_arn: action
+                            .get("target_group_arn")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let rule_view = RuleView {
+            rule_arn: rule_arn.clone(),
+            priority: model.priority.to_string(),
+            conditions,
+            actions,
+            is_default: false,
+            listener_arn: model.listener_arn,
+        };
+
+        let tags = extract_tags(attrs);
+
+        let mut state_view = minimal_elbv2_state_view();
+        state_view.rules.insert(rule_arn.clone(), rule_view);
+        if !tags.is_empty() {
+            state_view.resource_tags.insert(rule_arn, tags);
+        }
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for rule in view.rules.values() {
+            if rule.is_default {
+                // Skip default rules; they belong to the parent listener.
+                continue;
+            }
+            let tags = view
+                .resource_tags
+                .get(&rule.rule_arn)
+                .cloned()
+                .unwrap_or_default();
+            let conditions: Vec<serde_json::Value> = rule
+                .conditions
+                .iter()
+                .map(|c| {
+                    serde_json::json!({
+                        "field": c.field,
+                        "values": c.values,
+                    })
+                })
+                .collect();
+            let actions: Vec<serde_json::Value> = rule
+                .actions
+                .iter()
+                .map(|a| {
+                    serde_json::json!({
+                        "type": a.action_type,
+                        "target_group_arn": a.target_group_arn,
+                    })
+                })
+                .collect();
+            let priority_i = rule.priority.parse::<i64>().unwrap_or(0);
+            let attrs = serde_json::json!({
+                "id": rule.rule_arn,
+                "arn": rule.rule_arn,
+                "listener_arn": rule.listener_arn,
+                "priority": priority_i,
+                "condition": conditions,
+                "action": actions,
+                "tags": tags,
+                "tags_all": tags,
+            });
+            results.push(ExtractedResource {
+                name: rule.rule_arn.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+/// Converts `aws_alb_listener_rule` Terraform resources. Alias for
+/// `aws_lb_listener_rule`.
+pub struct AwsAlbListenerRuleConverter {
+    inner: AwsLbListenerRuleConverter,
+}
+
+impl AwsAlbListenerRuleConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self {
+            inner: AwsLbListenerRuleConverter::new(service),
+        }
+    }
+}
+
+impl TerraformResourceConverter for AwsAlbListenerRuleConverter {
+    fn resource_type(&self) -> &str {
+        "aws_alb_listener_rule"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lb_listener", "aws_alb_listener"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.inner.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lb_target_group_attachment (and aws_alb_target_group_attachment)
+// (modifier; appends a TargetDescription to the parent TargetGroupView)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lb_target_group_attachment` Terraform resources by appending
+/// the registered target to the parent target group's `targets` list. If the
+/// target group is not yet in state, the resource is accepted with a warning.
+pub struct AwsLbTargetGroupAttachmentConverter {
+    service: Arc<ElasticLoadBalancingV2Service>,
+}
+
+impl AwsLbTargetGroupAttachmentConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLbTargetGroupAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lb_target_group_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lb_target_group", "aws_alb_target_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLbTargetGroupAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: elbv2_gen::LbTargetGroupAttachmentTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_lb_target_group_attachment", e))?;
+
+        // TF treats `port = 0` as unset; only forward an explicit port.
+        let port = if model.port > 0 {
+            Some(model.port as i32)
+        } else {
+            None
+        };
+        let target = TargetDescriptionView {
+            id: model.target_id.clone(),
+            port,
+            availability_zone: model.availability_zone.clone(),
+        };
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(tg) = state_view.target_groups.get_mut(&model.target_group_arn) {
+            // Skip duplicates: a target is uniquely identified by (id, port).
+            let exists = tg
+                .targets
+                .iter()
+                .any(|t| t.id == target.id && t.port == target.port);
+            if !exists {
+                tg.targets.push(target);
+            }
+        } else {
+            warnings.push(format!(
+                "target group '{}' not found in state; target '{}' attachment skipped",
+                model.target_group_arn, model.target_id
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for tg in view.target_groups.values() {
+            for t in &tg.targets {
+                let port_part = t.port.map(|p| p.to_string()).unwrap_or_default();
+                let id = format!("{}/{}/{}", tg.arn, t.id, port_part);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "target_group_arn": tg.arn,
+                    "target_id": t.id,
+                    "port": t.port.unwrap_or(0),
+                    "availability_zone": t.availability_zone.clone().unwrap_or_default(),
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+/// Converts `aws_alb_target_group_attachment` Terraform resources. Alias for
+/// `aws_lb_target_group_attachment`.
+pub struct AwsAlbTargetGroupAttachmentConverter {
+    inner: AwsLbTargetGroupAttachmentConverter,
+}
+
+impl AwsAlbTargetGroupAttachmentConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self {
+            inner: AwsLbTargetGroupAttachmentConverter::new(service),
+        }
+    }
+}
+
+impl TerraformResourceConverter for AwsAlbTargetGroupAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_alb_target_group_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lb_target_group", "aws_alb_target_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.inner.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lb_trust_store
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lb_trust_store` Terraform resources to/from
+/// `Elbv2StateView.trust_stores`. The `ca_certificates_bundle_s3_*` fields
+/// are accepted but not stored (the TrustStoreView models the trust store
+/// status and revocation count rather than the bundle source).
+pub struct AwsLbTrustStoreConverter {
+    service: Arc<ElasticLoadBalancingV2Service>,
+}
+
+impl AwsLbTrustStoreConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLbTrustStoreConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lb_trust_store"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLbTrustStoreConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: elbv2_gen::LbTrustStoreTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lb_trust_store", e))?;
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:elasticloadbalancing:{}:{}:truststore/{}/{}",
+                region,
+                ctx.default_account_id,
+                model.name,
+                &uuid::Uuid::new_v4().to_string()[..16],
+            )
+        });
+
+        // Bundle metadata is accepted but not modelled in the view.
+        let _ = model.ca_certificates_bundle_s3_bucket;
+        let _ = model.ca_certificates_bundle_s3_key;
+        let _ = attrs.get("ca_certificates_bundle_s3_object_version");
+
+        let ts_view = TrustStoreView {
+            arn: arn.clone(),
+            name: model.name,
+            status: "ACTIVE".to_string(),
+            number_of_ca_certificates: 0,
+            total_revoked_entries: 0,
+            revocations: HashMap::new(),
+            next_revocation_id: 1,
+        };
+
+        let tags = extract_tags(attrs);
+
+        let mut state_view = minimal_elbv2_state_view();
+        state_view.trust_stores.insert(arn.clone(), ts_view);
+        if !tags.is_empty() {
+            state_view.resource_tags.insert(arn, tags);
+        }
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ts in view.trust_stores.values() {
+            let tags = view.resource_tags.get(&ts.arn).cloned().unwrap_or_default();
+            let attrs = serde_json::json!({
+                "id": ts.arn,
+                "arn": ts.arn,
+                "name": ts.name,
+                "status": ts.status,
+                "number_of_ca_certificates": ts.number_of_ca_certificates,
+                "total_revoked_entries": ts.total_revoked_entries,
+                "tags": tags,
+                "tags_all": tags,
+            });
+            results.push(ExtractedResource {
+                name: ts.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lb_trust_store_revocation
+// (modifier; appends a revocation entry to the parent TrustStoreView)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lb_trust_store_revocation` Terraform resources by appending
+/// a revocation entry to the parent trust store. If the trust store is not
+/// in state, the resource is accepted with a warning. The `revocations_s3_*`
+/// fields are read for parity but the view only tracks counts.
+pub struct AwsLbTrustStoreRevocationConverter {
+    service: Arc<ElasticLoadBalancingV2Service>,
+}
+
+impl AwsLbTrustStoreRevocationConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLbTrustStoreRevocationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lb_trust_store_revocation"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_lb_trust_store"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsLbTrustStoreRevocationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: elbv2_gen::LbTrustStoreRevocationTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_lb_trust_store_revocation", e))?;
+
+        let _ = model.revocations_s3_bucket;
+        let _ = model.revocations_s3_key;
+        let _ = attrs.get("revocations_s3_object_version");
+
+        let mut state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        let mut warnings = vec![];
+        if let Some(ts) = state_view.trust_stores.get_mut(&model.trust_store_arn) {
+            let revocation_id = ts.next_revocation_id;
+            ts.next_revocation_id += 1;
+            // Number of entries in this batch is opaque to the TF model;
+            // count the upload as a single revocation event (1) so the
+            // trust store's totals advance and round-trip cleanly.
+            let entry_count: i64 = 1;
+            ts.total_revoked_entries += entry_count;
+            ts.revocations.insert(
+                revocation_id.to_string(),
+                TrustStoreRevocationEntryView {
+                    revocation_id,
+                    revocation_type: "CRL".to_string(),
+                    number_of_revoked_entries: entry_count,
+                },
+            );
+        } else {
+            warnings.push(format!(
+                "trust store '{}' not found in state; revocation skipped",
+                model.trust_store_arn
+            ));
+        }
+        self.service
+            .restore(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ts in view.trust_stores.values() {
+            for rev in ts.revocations.values() {
+                let id = format!("{},{}", ts.arn, rev.revocation_id);
+                let attrs = serde_json::json!({
+                    "id": id,
+                    "trust_store_arn": ts.arn,
+                    "revocation_id": rev.revocation_id,
+                });
+                results.push(ExtractedResource {
+                    name: id,
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lb_cookie_stickiness_policy (warning-only: classic ELB feature)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lb_cookie_stickiness_policy` resources. This is a Classic
+/// Load Balancer feature with no slot in the ELBv2 state model. Inject is
+/// best-effort and emits a warning; extract returns empty.
+pub struct AwsLbCookieStickinessPolicyConverter {
+    #[allow(dead_code)]
+    service: Arc<ElasticLoadBalancingV2Service>,
+}
+
+impl AwsLbCookieStickinessPolicyConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLbCookieStickinessPolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lb_cookie_stickiness_policy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsLbCookieStickinessPolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: elbv2_gen::LbCookieStickinessPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_lb_cookie_stickiness_policy", e))?;
+        let msg = format!(
+            "aws_lb_cookie_stickiness_policy '{}' accepted but not stored; Classic ELB stickiness has no ELBv2 state slot",
+            model.name
+        );
+        eprintln!("warning: {msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![msg],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_lb_ssl_negotiation_policy (warning-only: classic ELB feature)
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_lb_ssl_negotiation_policy` resources. This is a Classic
+/// Load Balancer feature with no slot in the ELBv2 state model. Inject is
+/// best-effort and emits a warning; extract returns empty.
+pub struct AwsLbSslNegotiationPolicyConverter {
+    #[allow(dead_code)]
+    service: Arc<ElasticLoadBalancingV2Service>,
+}
+
+impl AwsLbSslNegotiationPolicyConverter {
+    pub fn new(service: Arc<ElasticLoadBalancingV2Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsLbSslNegotiationPolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_lb_ssl_negotiation_policy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsLbSslNegotiationPolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: elbv2_gen::LbSslNegotiationPolicyTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_lb_ssl_negotiation_policy", e))?;
+        let msg = format!(
+            "aws_lb_ssl_negotiation_policy '{}' accepted but not stored; Classic ELB SSL policy has no ELBv2 state slot",
+            model.name
+        );
+        eprintln!("warning: {msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![msg],
+        })
     }
 }
