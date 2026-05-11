@@ -87,3 +87,387 @@ type = "string?"
 hcl = "health_check_id"
 view = "health_check_id"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_cidr_collection
+# ---------------------------------------------------------------------------
+# Top-level collection on `Route53StateView.cidr_collections` keyed by
+# collection id (UUID). The TF resource creates an empty collection; the
+# converter synthesises the id and arn.
+
+[[resource]]
+type = "aws_route53_cidr_collection"
+model = "CidrCollectionTfModel"
+view = "CidrCollectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_cidr_location
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: pushes the `cidr_blocks` list onto an existing
+# collection's `locations` map under `name`. The converter uses
+# snapshot+mutate+restore. `cidr_blocks` is a `Vec<String>` which the spec
+# format does not express, so the converter reads it directly from
+# `instance.attributes`.
+
+[[resource]]
+type = "aws_route53_cidr_location"
+model = "CidrLocationTfModel"
+view = "CidrCollectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cidr_collection_id"
+view = "cidr_collection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_route53_delegation_set
+# ---------------------------------------------------------------------------
+# Top-level collection on `Route53StateView.reusable_delegation_sets` keyed
+# by delegation set id (UUID). `reference_name` is captured as the caller
+# reference.
+
+[[resource]]
+type = "aws_route53_delegation_set"
+model = "DelegationSetTfModel"
+view = "DelegationSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "reference_name"
+view = "reference_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_health_check
+# ---------------------------------------------------------------------------
+# Top-level collection on `Route53StateView.health_checks` keyed by health
+# check id (UUID). The TF resource has a number of optional integer and
+# boolean fields, plus two `Vec<String>` lists (`child_health_checks`,
+# `regions`). The spec only captures the simple required `type` and the
+# `reference_name`; the converter reads the rest directly from
+# `instance.attributes`.
+
+[[resource]]
+type = "aws_route53_health_check"
+model = "HealthCheckTfModel"
+view = "HealthCheckView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "type"
+view = "type_"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "reference_name"
+view = "reference_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "fqdn"
+view = "fqdn"
+type = "string?"
+
+[[resource.field]]
+hcl = "ip_address"
+view = "ip_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_path"
+view = "resource_path"
+type = "string?"
+
+[[resource.field]]
+hcl = "search_string"
+view = "search_string"
+type = "string?"
+
+[[resource.field]]
+hcl = "cloudwatch_alarm_name"
+view = "cloudwatch_alarm_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "cloudwatch_alarm_region"
+view = "cloudwatch_alarm_region"
+type = "string?"
+
+[[resource.field]]
+hcl = "insufficient_data_health_status"
+view = "insufficient_data_health_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "routing_control_arn"
+view = "routing_control_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_hosted_zone_dnssec
+# ---------------------------------------------------------------------------
+# Singleton flag map: `dnssec_enabled: HashMap<String, bool>` keyed by
+# hosted zone id. Inserts `true` if `signing_status == "SIGNING"`,
+# else `false`.
+
+[[resource]]
+type = "aws_route53_hosted_zone_dnssec"
+model = "HostedZoneDnssecTfModel"
+view = "Route53StateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "hosted_zone_id"
+view = "hosted_zone_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "signing_status"
+view = "signing_status"
+type = "string"
+default = "SIGNING"
+
+# ---------------------------------------------------------------------------
+# aws_route53_key_signing_key
+# ---------------------------------------------------------------------------
+# Top-level collection on `Route53StateView.key_signing_keys` keyed by
+# `{hosted_zone_id}/{name}` (the natural TF id format).
+
+[[resource]]
+type = "aws_route53_key_signing_key"
+model = "KeySigningKeyTfModel"
+view = "KeySigningKeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "hosted_zone_id"
+view = "hosted_zone_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key_management_service_arn"
+view = "key_management_service_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string"
+default = "ACTIVE"
+
+# ---------------------------------------------------------------------------
+# aws_route53_query_log
+# ---------------------------------------------------------------------------
+# Top-level collection on `Route53StateView.query_logging_configs` keyed
+# by query-log config id (UUID).
+
+[[resource]]
+type = "aws_route53_query_log"
+model = "QueryLogTfModel"
+view = "QueryLoggingConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cloudwatch_log_group_arn"
+view = "cloudwatch_log_group_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "zone_id"
+view = "zone_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_route53_traffic_policy
+# ---------------------------------------------------------------------------
+# Top-level collection on `Route53StateView.traffic_policies` keyed by
+# `{id}:{version}`. The converter synthesises the id (UUID) and defaults
+# version to 1.
+
+[[resource]]
+type = "aws_route53_traffic_policy"
+model = "TrafficPolicyTfModel"
+view = "TrafficPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "document"
+view = "document"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "type_"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_traffic_policy_instance
+# ---------------------------------------------------------------------------
+# Top-level collection on `Route53StateView.traffic_policy_instances`
+# keyed by instance id (UUID).
+
+[[resource]]
+type = "aws_route53_traffic_policy_instance"
+model = "TrafficPolicyInstanceTfModel"
+view = "TrafficPolicyInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "hosted_zone_id"
+view = "hosted_zone_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "traffic_policy_id"
+view = "traffic_policy_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "traffic_policy_version"
+view = "traffic_policy_version"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "ttl"
+view = "ttl"
+type = "i64"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_route53_vpc_association_authorization
+# ---------------------------------------------------------------------------
+# Top-level collection on `Route53StateView.vpc_association_authorizations`
+# keyed by `{zone_id}/{vpc_id}`.
+
+[[resource]]
+type = "aws_route53_vpc_association_authorization"
+model = "VpcAssociationAuthorizationTfModel"
+view = "VpcAssociationAuthorizationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "zone_id"
+view = "zone_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_region"
+view = "vpc_region"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_route53_zone_association
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: snapshots the named hosted zone, pushes a fresh
+# `VpcView` onto its `vpcs` Vec (deduplicated), and restores. The TF id is
+# `{zone_id}:{vpc_id}`.
+
+[[resource]]
+type = "aws_route53_zone_association"
+model = "ZoneAssociationTfModel"
+view = "HostedZoneView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "zone_id"
+view = "zone_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_region"
+view = "vpc_region"
+type = "string?"

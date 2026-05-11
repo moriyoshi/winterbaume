@@ -1,18 +1,16 @@
 # Per-service Terraform resource coverage
 
 Schema resources total: **1526**
-Resources classified to a service via prefix: **1206**
-Currently handled by winterbaume: **332** (327 verified against schema)
-Missing within classified prefixes: **879**
+Resources classified to a service via prefix: **1193**
+Currently handled by winterbaume: **365** (360 verified against schema)
+Missing within classified prefixes: **833**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
 | ec2 | override (37 patterns) | 39 | 139 | 100 | 28% |  |
-| s3 | `aws_s3_` | 1 | 26 | 25 | 4% |  |
 | sagemaker | `aws_sagemaker_` | 5 | 30 | 25 | 17% |  |
-| route53 | `aws_route53_` | 2 | 26 | 24 | 8% |  |
 | rds | override (2 patterns) | 7 | 29 | 22 | 24% |  |
 | redshift | `aws_redshift_` | 2 | 23 | 21 | 9% |  |
 | apigateway | `aws_api_gateway_` | 6 | 26 | 20 | 23% |  |
@@ -91,6 +89,7 @@ Sorted by missing-count desc.
 | cognitoidentity | `aws_cognito_identity_` | 1 | 4 | 3 | 25% |  |
 | medialive | `aws_medialive_` | 2 | 5 | 3 | 40% |  |
 | networkfirewall | `aws_networkfirewall_` | 3 | 6 | 3 | 50% |  |
+| s3 | `aws_s3_` | 23 | 26 | 3 | 88% |  |
 | s3tables | `aws_s3tables_` | 2 | 5 | 3 | 40% |  |
 | servicediscovery | `aws_service_discovery_` | 2 | 5 | 3 | 40% |  |
 | sqs | `aws_sqs_` | 1 | 4 | 3 | 25% |  |
@@ -148,6 +147,7 @@ Sorted by missing-count desc.
 | pipes | `aws_pipes_` | 1 | 1 | 0 | 100% |  |
 | resiliencehub | `aws_resiliencehub_` | 1 | 1 | 0 | 100% |  |
 | rolesanywhere | `aws_rolesanywhere_` | 2 | 2 | 0 | 100% |  |
+| route53 | override (11 patterns) | 13 | 13 | 0 | 100% |  |
 | scheduler | `aws_scheduler_` | 2 | 2 | 0 | 100% |  |
 | simpledbv2 | `aws_simpledb_` | 1 | 1 | 0 | 100% |  |
 | swf | `aws_swf_` | 1 | 1 | 0 | 100% |  |
@@ -260,34 +260,6 @@ Sorted by missing-count desc.
 - `aws_vpn_gateway_attachment`
 - `aws_vpn_gateway_route_propagation`
 
-### s3 — 25 missing
-
-- `aws_s3_access_point`
-- `aws_s3_account_public_access_block`
-- `aws_s3_bucket_accelerate_configuration`
-- `aws_s3_bucket_acl`
-- `aws_s3_bucket_analytics_configuration`
-- `aws_s3_bucket_cors_configuration`
-- `aws_s3_bucket_intelligent_tiering_configuration`
-- `aws_s3_bucket_inventory`
-- `aws_s3_bucket_lifecycle_configuration`
-- `aws_s3_bucket_logging`
-- `aws_s3_bucket_metric`
-- `aws_s3_bucket_notification`
-- `aws_s3_bucket_object`
-- `aws_s3_bucket_object_lock_configuration`
-- `aws_s3_bucket_ownership_controls`
-- `aws_s3_bucket_policy`
-- `aws_s3_bucket_public_access_block`
-- `aws_s3_bucket_replication_configuration`
-- `aws_s3_bucket_request_payment_configuration`
-- `aws_s3_bucket_server_side_encryption_configuration`
-- `aws_s3_bucket_versioning`
-- `aws_s3_bucket_website_configuration`
-- `aws_s3_directory_bucket`
-- `aws_s3_object`
-- `aws_s3_object_copy`
-
 ### sagemaker — 25 missing
 
 - `aws_sagemaker_app`
@@ -315,33 +287,6 @@ Sorted by missing-count desc.
 - `aws_sagemaker_user_profile`
 - `aws_sagemaker_workforce`
 - `aws_sagemaker_workteam`
-
-### route53 — 24 missing
-
-- `aws_route53_cidr_collection`
-- `aws_route53_cidr_location`
-- `aws_route53_delegation_set`
-- `aws_route53_health_check`
-- `aws_route53_hosted_zone_dnssec`
-- `aws_route53_key_signing_key`
-- `aws_route53_query_log`
-- `aws_route53_records_exclusive`
-- `aws_route53_resolver_config`
-- `aws_route53_resolver_dnssec_config`
-- `aws_route53_resolver_endpoint`
-- `aws_route53_resolver_firewall_config`
-- `aws_route53_resolver_firewall_domain_list`
-- `aws_route53_resolver_firewall_rule`
-- `aws_route53_resolver_firewall_rule_group`
-- `aws_route53_resolver_firewall_rule_group_association`
-- `aws_route53_resolver_query_log_config`
-- `aws_route53_resolver_query_log_config_association`
-- `aws_route53_resolver_rule`
-- `aws_route53_resolver_rule_association`
-- `aws_route53_traffic_policy`
-- `aws_route53_traffic_policy_instance`
-- `aws_route53_vpc_association_authorization`
-- `aws_route53_zone_association`
 
 ### rds — 22 missing
 
@@ -1216,6 +1161,12 @@ Sorted by missing-count desc.
 - `aws_networkfirewall_logging_configuration`
 - `aws_networkfirewall_resource_policy`
 - `aws_networkfirewall_tls_inspection_configuration`
+
+### s3 — 3 missing
+
+- `aws_s3_access_point`
+- `aws_s3_account_public_access_block`
+- `aws_s3_bucket_inventory`
 
 ### s3tables — 3 missing
 

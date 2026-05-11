@@ -1854,6 +1854,41 @@ async fn load_tfstate(
     injector.register(route53::AwsRoute53RecordConverter::new(Arc::clone(
         &injectable.route53,
     )));
+    injector.register(route53::AwsRoute53CidrCollectionConverter::new(Arc::clone(
+        &injectable.route53,
+    )));
+    injector.register(route53::AwsRoute53CidrLocationConverter::new(Arc::clone(
+        &injectable.route53,
+    )));
+    injector.register(route53::AwsRoute53DelegationSetConverter::new(Arc::clone(
+        &injectable.route53,
+    )));
+    injector.register(route53::AwsRoute53HealthCheckConverter::new(Arc::clone(
+        &injectable.route53,
+    )));
+    injector.register(route53::AwsRoute53HostedZoneDnssecConverter::new(
+        Arc::clone(&injectable.route53),
+    ));
+    injector.register(route53::AwsRoute53KeySigningKeyConverter::new(Arc::clone(
+        &injectable.route53,
+    )));
+    injector.register(route53::AwsRoute53QueryLogConverter::new(Arc::clone(
+        &injectable.route53,
+    )));
+    injector.register(route53::AwsRoute53TrafficPolicyConverter::new(Arc::clone(
+        &injectable.route53,
+    )));
+    injector.register(route53::AwsRoute53TrafficPolicyInstanceConverter::new(
+        Arc::clone(&injectable.route53),
+    ));
+    injector.register(
+        route53::AwsRoute53VpcAssociationAuthorizationConverter::new(Arc::clone(
+            &injectable.route53,
+        )),
+    );
+    injector.register(route53::AwsRoute53ZoneAssociationConverter::new(Arc::clone(
+        &injectable.route53,
+    )));
     injector.register(
         route53domains::AwsRoute53DomainsRegisteredDomainConverter::new(Arc::clone(
             &injectable.route53domains,
