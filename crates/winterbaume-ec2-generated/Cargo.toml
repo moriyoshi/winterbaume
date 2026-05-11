@@ -4,6 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords.workspace = true
 description = "Auto-generated Smithy types and wire serialisers for the EC2 service"
 readme = "README.md"
 

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+keywords.workspace = true
 readme = "README.md"
 description = "AWS Route 53 Application Recovery Controller -- Cluster (data-plane) implementation for winterbaume"
 

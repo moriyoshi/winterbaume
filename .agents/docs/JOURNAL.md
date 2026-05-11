@@ -628,3 +628,37 @@ No need to regenerate `release.yml`. Removing the target from the `targets = [..
 
 Pending: the next tag push will exercise the slimmed-down matrix. Five targets now in `build-local-artifacts` ( the two dropped + five remaining = seven planned originally, five expected after this commit ).
 
+---
+
+## 2026-05-12 — Add crates.io keywords across the workspace
+
+### Motivation
+
+For crates.io discoverability, every publishable crate should advertise the project as a mock AWS testing tool. Audit confirmed no crate in the workspace previously set `keywords` — neither the umbrella `winterbaume` nor any of the 240 service crates.
+
+### Approach
+
+Single source of truth in `[workspace.package]`, inherited per-crate via `keywords.workspace = true`. This keeps the keyword list editable in one place ( workspace `Cargo.toml` ) and avoids 241 parallel maintenance points if the keywords ever change.
+
+Chose `["aws", "mock", "testing"]` — three out of crates.io's 5-keyword cap, matching the umbrella description "Mock AWS services for local development and testing". Left two slots open for future additions ( e.g. a service-category keyword ) without churning every crate.
+
+### Change
+
+1. Workspace `Cargo.toml`:
+   - Added `keywords = ["aws", "mock", "testing"]` to `[workspace.package]`.
+   - Added `keywords.workspace = true` to the umbrella `[package]` section.
+2. All 240 `crates/winterbaume-*/Cargo.toml` files: injected `keywords.workspace = true` immediately after `repository.workspace = true` via a perl one-shot ( `perl -i -pe 's/^(repository\.workspace = true)$/$1\nkeywords.workspace = true/'` ) wrapped in an idempotency guard ( skip files that already match `^keywords` ).
+3. The three `tools/*` crates ( `release-batch`, `sccache-wrapper`, `smithy-codegen` ) were intentionally left untouched because they are `publish = false` and never reach crates.io.
+
+### Verification
+
+- `cargo metadata --no-deps --format-version 1` parsed cleanly across the workspace.
+- Parsed the JSON output and counted keyword presence: 241 packages report `["aws","mock","testing"]` ( umbrella + 240 service crates ); the three skipped tools crates report `[]` as expected.
+- Spot-checked `crates/winterbaume-acm/Cargo.toml` and `crates/winterbaume-s3/Cargo.toml` to confirm the inserted line landed in the right position inside `[package]`.
+
+### Notes for future work
+
+- If we ever publish the `tools/*` crates, they will need `keywords.workspace = true` added too. Until then they are correctly excluded.
+- Adding or changing keywords only requires editing the `[workspace.package]` array; no per-crate sweep needed.
+- Crates.io enforces lowercase, alphanumeric+`_-`, ≤ 20 chars, ≤ 5 keywords. The current set is well within those bounds.
+
