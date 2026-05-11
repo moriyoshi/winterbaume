@@ -1431,6 +1431,61 @@ async fn load_tfstate(
     injector.register(cloudfront::AwsCloudfrontDistributionConverter::new(
         Arc::clone(&injectable.cloudfront),
     ));
+    injector.register(cloudfront::AwsCloudfrontCachePolicyConverter::new(
+        Arc::clone(&injectable.cloudfront),
+    ));
+    injector.register(
+        cloudfront::AwsCloudfrontContinuousDeploymentPolicyConverter::new(Arc::clone(
+            &injectable.cloudfront,
+        )),
+    );
+    injector.register(
+        cloudfront::AwsCloudfrontFieldLevelEncryptionConfigConverter::new(Arc::clone(
+            &injectable.cloudfront,
+        )),
+    );
+    injector.register(
+        cloudfront::AwsCloudfrontFieldLevelEncryptionProfileConverter::new(Arc::clone(
+            &injectable.cloudfront,
+        )),
+    );
+    injector.register(cloudfront::AwsCloudfrontFunctionConverter::new(Arc::clone(
+        &injectable.cloudfront,
+    )));
+    injector.register(cloudfront::AwsCloudfrontKeyGroupConverter::new(Arc::clone(
+        &injectable.cloudfront,
+    )));
+    injector.register(cloudfront::AwsCloudfrontKeyValueStoreConverter::new(
+        Arc::clone(&injectable.cloudfront),
+    ));
+    injector.register(
+        cloudfront::AwsCloudfrontMonitoringSubscriptionConverter::new(Arc::clone(
+            &injectable.cloudfront,
+        )),
+    );
+    injector.register(cloudfront::AwsCloudfrontOriginAccessControlConverter::new(
+        Arc::clone(&injectable.cloudfront),
+    ));
+    injector.register(cloudfront::AwsCloudfrontOriginAccessIdentityConverter::new(
+        Arc::clone(&injectable.cloudfront),
+    ));
+    injector.register(cloudfront::AwsCloudfrontOriginRequestPolicyConverter::new(
+        Arc::clone(&injectable.cloudfront),
+    ));
+    injector.register(cloudfront::AwsCloudfrontPublicKeyConverter::new(
+        Arc::clone(&injectable.cloudfront),
+    ));
+    injector.register(cloudfront::AwsCloudfrontRealtimeLogConfigConverter::new(
+        Arc::clone(&injectable.cloudfront),
+    ));
+    injector.register(
+        cloudfront::AwsCloudfrontResponseHeadersPolicyConverter::new(Arc::clone(
+            &injectable.cloudfront,
+        )),
+    );
+    injector.register(cloudfront::AwsCloudfrontVpcOriginConverter::new(
+        Arc::clone(&injectable.cloudfront),
+    ));
     injector.register(cloudhsmv2::AwsCloudHsmV2ClusterConverter::new(Arc::clone(
         &injectable.cloudhsmv2,
     )));
@@ -1485,6 +1540,51 @@ async fn load_tfstate(
     injector.register(connect::AwsConnectInstanceConverter::new(Arc::clone(
         &injectable.connect,
     )));
+    injector.register(connect::AwsConnectBotAssociationConverter::new(Arc::clone(
+        &injectable.connect,
+    )));
+    injector.register(connect::AwsConnectContactFlowConverter::new(Arc::clone(
+        &injectable.connect,
+    )));
+    injector.register(connect::AwsConnectContactFlowModuleConverter::new(
+        Arc::clone(&injectable.connect),
+    ));
+    injector.register(connect::AwsConnectHoursOfOperationConverter::new(
+        Arc::clone(&injectable.connect),
+    ));
+    injector.register(connect::AwsConnectInstanceStorageConfigConverter::new(
+        Arc::clone(&injectable.connect),
+    ));
+    injector.register(connect::AwsConnectLambdaFunctionAssociationConverter::new(
+        Arc::clone(&injectable.connect),
+    ));
+    injector.register(connect::AwsConnectPhoneNumberConverter::new(Arc::clone(
+        &injectable.connect,
+    )));
+    injector.register(connect::AwsConnectQueueConverter::new(Arc::clone(
+        &injectable.connect,
+    )));
+    injector.register(connect::AwsConnectQuickConnectConverter::new(Arc::clone(
+        &injectable.connect,
+    )));
+    injector.register(connect::AwsConnectRoutingProfileConverter::new(Arc::clone(
+        &injectable.connect,
+    )));
+    injector.register(connect::AwsConnectSecurityProfileConverter::new(
+        Arc::clone(&injectable.connect),
+    ));
+    injector.register(connect::AwsConnectUserConverter::new(Arc::clone(
+        &injectable.connect,
+    )));
+    injector.register(connect::AwsConnectUserHierarchyGroupConverter::new(
+        Arc::clone(&injectable.connect),
+    ));
+    injector.register(connect::AwsConnectUserHierarchyStructureConverter::new(
+        Arc::clone(&injectable.connect),
+    ));
+    injector.register(connect::AwsConnectVocabularyConverter::new(Arc::clone(
+        &injectable.connect,
+    )));
     injector.register(costexplorer::AwsCeAnomalyMonitorConverter::new(Arc::clone(
         &injectable.costexplorer,
     )));
@@ -1503,6 +1603,74 @@ async fn load_tfstate(
     injector.register(directconnect::AwsDxConnectionConverter::new(Arc::clone(
         &injectable.directconnect,
     )));
+    injector.register(directconnect::AwsDxBgpPeerConverter::new(Arc::clone(
+        &injectable.directconnect,
+    )));
+    injector.register(directconnect::AwsDxConnectionAssociationConverter::new(
+        Arc::clone(&injectable.directconnect),
+    ));
+    injector.register(directconnect::AwsDxConnectionConfirmationConverter::new(
+        Arc::clone(&injectable.directconnect),
+    ));
+    injector.register(directconnect::AwsDxGatewayAssociationConverter::new(
+        Arc::clone(&injectable.directconnect),
+    ));
+    injector.register(
+        directconnect::AwsDxGatewayAssociationProposalConverter::new(Arc::clone(
+            &injectable.directconnect,
+        )),
+    );
+    injector.register(directconnect::AwsDxGatewayConverter::new(Arc::clone(
+        &injectable.directconnect,
+    )));
+    injector.register(directconnect::AwsDxHostedConnectionConverter::new(
+        Arc::clone(&injectable.directconnect),
+    ));
+    injector.register(
+        directconnect::AwsDxHostedPrivateVirtualInterfaceAccepterConverter::new(Arc::clone(
+            &injectable.directconnect,
+        )),
+    );
+    injector.register(
+        directconnect::AwsDxHostedPrivateVirtualInterfaceConverter::new(Arc::clone(
+            &injectable.directconnect,
+        )),
+    );
+    injector.register(
+        directconnect::AwsDxHostedPublicVirtualInterfaceAccepterConverter::new(Arc::clone(
+            &injectable.directconnect,
+        )),
+    );
+    injector.register(
+        directconnect::AwsDxHostedPublicVirtualInterfaceConverter::new(Arc::clone(
+            &injectable.directconnect,
+        )),
+    );
+    injector.register(
+        directconnect::AwsDxHostedTransitVirtualInterfaceAccepterConverter::new(Arc::clone(
+            &injectable.directconnect,
+        )),
+    );
+    injector.register(
+        directconnect::AwsDxHostedTransitVirtualInterfaceConverter::new(Arc::clone(
+            &injectable.directconnect,
+        )),
+    );
+    injector.register(directconnect::AwsDxLagConverter::new(Arc::clone(
+        &injectable.directconnect,
+    )));
+    injector.register(directconnect::AwsDxMacsecKeyAssociationConverter::new(
+        Arc::clone(&injectable.directconnect),
+    ));
+    injector.register(directconnect::AwsDxPrivateVirtualInterfaceConverter::new(
+        Arc::clone(&injectable.directconnect),
+    ));
+    injector.register(directconnect::AwsDxPublicVirtualInterfaceConverter::new(
+        Arc::clone(&injectable.directconnect),
+    ));
+    injector.register(directconnect::AwsDxTransitVirtualInterfaceConverter::new(
+        Arc::clone(&injectable.directconnect),
+    ));
     injector.register(directory::AwsDirectoryServiceDirectoryConverter::new(
         Arc::clone(&injectable.directory),
     ));
@@ -2125,6 +2293,51 @@ async fn load_tfstate(
     injector.register(iot::AwsIotCertificateConverter::new(Arc::clone(
         &injectable.iot,
     )));
+    injector.register(iot::AwsIotAuthorizerConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotBillingGroupConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotCaCertificateConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotDomainConfigurationConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotEventConfigurationsConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotIndexingConfigurationConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotLoggingOptionsConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotPolicyAttachmentConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotProvisioningTemplateConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotRoleAliasConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotThingGroupConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotThingGroupMembershipConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotThingPrincipalAttachmentConverter::new(
+        Arc::clone(&injectable.iot),
+    ));
+    injector.register(iot::AwsIotTopicRuleConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
+    injector.register(iot::AwsIotTopicRuleDestinationConverter::new(Arc::clone(
+        &injectable.iot,
+    )));
     injector.register(ivs::AwsIvsChannelConverter::new(Arc::clone(
         &injectable.ivs,
     )));
@@ -2230,6 +2443,78 @@ async fn load_tfstate(
     injector.register(networkmanager::AwsNetworkmanagerDeviceConverter::new(
         Arc::clone(&injectable.networkmanager),
     ));
+    injector.register(
+        networkmanager::AwsNetworkmanagerAttachmentAccepterConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerConnectAttachmentConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(networkmanager::AwsNetworkmanagerConnectPeerConverter::new(
+        Arc::clone(&injectable.networkmanager),
+    ));
+    injector.register(networkmanager::AwsNetworkmanagerConnectionConverter::new(
+        Arc::clone(&injectable.networkmanager),
+    ));
+    injector.register(networkmanager::AwsNetworkmanagerCoreNetworkConverter::new(
+        Arc::clone(&injectable.networkmanager),
+    ));
+    injector.register(
+        networkmanager::AwsNetworkmanagerCoreNetworkPolicyAttachmentConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerCustomerGatewayAssociationConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerDxGatewayAttachmentConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerLinkAssociationConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(networkmanager::AwsNetworkmanagerLinkConverter::new(
+        Arc::clone(&injectable.networkmanager),
+    ));
+    injector.register(
+        networkmanager::AwsNetworkmanagerSiteToSiteVpnAttachmentConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerTransitGatewayConnectPeerAssociationConverter::new(
+            Arc::clone(&injectable.networkmanager),
+        ),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerTransitGatewayPeeringConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerTransitGatewayRegistrationConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerTransitGatewayRouteTableAttachmentConverter::new(
+            Arc::clone(&injectable.networkmanager),
+        ),
+    );
+    injector.register(
+        networkmanager::AwsNetworkmanagerVpcAttachmentConverter::new(Arc::clone(
+            &injectable.networkmanager,
+        )),
+    );
     injector.register(opensearch::AwsOpensearchDomainConverter::new(Arc::clone(
         &injectable.opensearch,
     )));
@@ -2285,6 +2570,57 @@ async fn load_tfstate(
     injector.register(quicksight::AwsQuicksightUserConverter::new(Arc::clone(
         &injectable.quicksight,
     )));
+    injector.register(quicksight::AwsQuicksightAccountSettingsConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightAccountSubscriptionConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightAnalysisConverter::new(Arc::clone(
+        &injectable.quicksight,
+    )));
+    injector.register(quicksight::AwsQuicksightDashboardConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightDataSetConverter::new(Arc::clone(
+        &injectable.quicksight,
+    )));
+    injector.register(quicksight::AwsQuicksightFolderConverter::new(Arc::clone(
+        &injectable.quicksight,
+    )));
+    injector.register(quicksight::AwsQuicksightFolderMembershipConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightGroupMembershipConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightIamPolicyAssignmentConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightIngestionConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightNamespaceConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightRefreshScheduleConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightRoleMembershipConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightTemplateConverter::new(Arc::clone(
+        &injectable.quicksight,
+    )));
+    injector.register(quicksight::AwsQuicksightTemplateAliasConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
+    injector.register(quicksight::AwsQuicksightThemeConverter::new(Arc::clone(
+        &injectable.quicksight,
+    )));
+    injector.register(quicksight::AwsQuicksightVpcConnectionConverter::new(
+        Arc::clone(&injectable.quicksight),
+    ));
     injector.register(ram::AwsRamResourceShareConverter::new(Arc::clone(
         &injectable.ram,
     )));
@@ -2620,6 +2956,61 @@ async fn load_tfstate(
     injector.register(sagemaker::AwsSagemakerUserProfileConverter::new(
         Arc::clone(&injectable.sagemaker),
     ));
+    injector.register(sagemaker::AwsSagemakerAppImageConfigConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerCodeRepositoryConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerDeviceConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerDeviceFleetConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerFlowDefinitionConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerHubConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerHumanTaskUiConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerImageConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerImageVersionConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerMlflowTrackingServerConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(
+        sagemaker::AwsSagemakerModelPackageGroupPolicyConverter::new(Arc::clone(
+            &injectable.sagemaker,
+        )),
+    );
+    injector.register(sagemaker::AwsSagemakerMonitoringScheduleConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerProjectConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(
+        sagemaker::AwsSagemakerServicecatalogPortfolioStatusConverter::new(Arc::clone(
+            &injectable.sagemaker,
+        )),
+    );
+    injector.register(sagemaker::AwsSagemakerStudioLifecycleConfigConverter::new(
+        Arc::clone(&injectable.sagemaker),
+    ));
+    injector.register(sagemaker::AwsSagemakerWorkforceConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
+    injector.register(sagemaker::AwsSagemakerWorkteamConverter::new(Arc::clone(
+        &injectable.sagemaker,
+    )));
     injector.register(scheduler::AwsSchedulerScheduleGroupConverter::new(
         Arc::clone(&injectable.scheduler),
     ));

@@ -2,20 +2,13 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **530** (525 verified against schema)
-Missing within classified prefixes: **668**
+Currently handled by winterbaume: **643** (638 verified against schema)
+Missing within classified prefixes: **555**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
-| directconnect | `aws_dx_` | 1 | 19 | 18 | 5% |  |
-| quicksight | `aws_quicksight_` | 3 | 20 | 17 | 15% |  |
-| sagemaker | `aws_sagemaker_` | 13 | 30 | 17 | 43% |  |
-| networkmanager | `aws_networkmanager_` | 3 | 19 | 16 | 16% |  |
-| cloudfront | `aws_cloudfront_` | 1 | 16 | 15 | 6% |  |
-| connect | `aws_connect_` | 1 | 16 | 15 | 6% |  |
-| iot | `aws_iot_` | 4 | 19 | 15 | 21% |  |
 | elbv2 | override (2 patterns) | 3 | 16 | 13 | 19% |  |
 | logs | `aws_cloudwatch_log_` | 2 | 15 | 13 | 13% |  |
 | s3control | `aws_s3control_` | 2 | 14 | 13 | 7% |  |
@@ -131,23 +124,30 @@ Sorted by missing-count desc.
 | resourcegroups | `aws_resourcegroups_` | 1 | 2 | 1 | 50% |  |
 | applicationcostprofiler | `aws_applicationcostprofiler_` | 1 | 0 | 0 | — |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
+| cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
+| connect | `aws_connect_` | 16 | 16 | 0 | 100% |  |
 | dax | `aws_dax_` | 3 | 3 | 0 | 100% |  |
+| directconnect | `aws_dx_` | 19 | 19 | 0 | 100% |  |
 | ec2 | override (37 patterns) | 139 | 139 | 0 | 100% |  |
 | ec2instanceconnect | `aws_ec2_instance_connect_` | 1 | 1 | 0 | 100% |  |
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
 | firehose | `aws_kinesis_firehose_` | 1 | 1 | 0 | 100% |  |
 | fis | `aws_fis_` | 1 | 1 | 0 | 100% |  |
+| iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
 | mediapackage | `aws_media_package_` | 1 | 1 | 0 | 100% |  |
 | mediapackagev2 | `aws_media_packagev2_` | 1 | 1 | 0 | 100% |  |
 | mq | `aws_mq_` | 2 | 2 | 0 | 100% |  |
+| networkmanager | `aws_networkmanager_` | 19 | 19 | 0 | 100% |  |
 | osis | `aws_osis_` | 1 | 1 | 0 | 100% |  |
 | outposts | `aws_outposts_` | 2 | 0 | 0 | — |  |
 | pipes | `aws_pipes_` | 1 | 1 | 0 | 100% |  |
+| quicksight | `aws_quicksight_` | 20 | 20 | 0 | 100% |  |
 | resiliencehub | `aws_resiliencehub_` | 1 | 1 | 0 | 100% |  |
 | rolesanywhere | `aws_rolesanywhere_` | 2 | 2 | 0 | 100% |  |
 | route53 | override (11 patterns) | 13 | 13 | 0 | 100% |  |
+| sagemaker | `aws_sagemaker_` | 30 | 30 | 0 | 100% |  |
 | scheduler | `aws_scheduler_` | 2 | 2 | 0 | 100% |  |
 | simpledbv2 | `aws_simpledb_` | 1 | 1 | 0 | 100% |  |
 | swf | `aws_swf_` | 1 | 1 | 0 | 100% |  |
@@ -156,140 +156,6 @@ Sorted by missing-count desc.
 | timestreamwrite | `aws_timestreamwrite_` | 2 | 2 | 0 | 100% |  |
 
 ## Per-service missing resources
-
-### directconnect — 18 missing
-
-- `aws_dx_bgp_peer`
-- `aws_dx_connection_association`
-- `aws_dx_connection_confirmation`
-- `aws_dx_gateway`
-- `aws_dx_gateway_association`
-- `aws_dx_gateway_association_proposal`
-- `aws_dx_hosted_connection`
-- `aws_dx_hosted_private_virtual_interface`
-- `aws_dx_hosted_private_virtual_interface_accepter`
-- `aws_dx_hosted_public_virtual_interface`
-- `aws_dx_hosted_public_virtual_interface_accepter`
-- `aws_dx_hosted_transit_virtual_interface`
-- `aws_dx_hosted_transit_virtual_interface_accepter`
-- `aws_dx_lag`
-- `aws_dx_macsec_key_association`
-- `aws_dx_private_virtual_interface`
-- `aws_dx_public_virtual_interface`
-- `aws_dx_transit_virtual_interface`
-
-### quicksight — 17 missing
-
-- `aws_quicksight_account_settings`
-- `aws_quicksight_account_subscription`
-- `aws_quicksight_analysis`
-- `aws_quicksight_dashboard`
-- `aws_quicksight_data_set`
-- `aws_quicksight_folder`
-- `aws_quicksight_folder_membership`
-- `aws_quicksight_group_membership`
-- `aws_quicksight_iam_policy_assignment`
-- `aws_quicksight_ingestion`
-- `aws_quicksight_namespace`
-- `aws_quicksight_refresh_schedule`
-- `aws_quicksight_role_membership`
-- `aws_quicksight_template`
-- `aws_quicksight_template_alias`
-- `aws_quicksight_theme`
-- `aws_quicksight_vpc_connection`
-
-### sagemaker — 17 missing
-
-- `aws_sagemaker_app_image_config`
-- `aws_sagemaker_code_repository`
-- `aws_sagemaker_device`
-- `aws_sagemaker_device_fleet`
-- `aws_sagemaker_flow_definition`
-- `aws_sagemaker_hub`
-- `aws_sagemaker_human_task_ui`
-- `aws_sagemaker_image`
-- `aws_sagemaker_image_version`
-- `aws_sagemaker_mlflow_tracking_server`
-- `aws_sagemaker_model_package_group_policy`
-- `aws_sagemaker_monitoring_schedule`
-- `aws_sagemaker_project`
-- `aws_sagemaker_servicecatalog_portfolio_status`
-- `aws_sagemaker_studio_lifecycle_config`
-- `aws_sagemaker_workforce`
-- `aws_sagemaker_workteam`
-
-### networkmanager — 16 missing
-
-- `aws_networkmanager_attachment_accepter`
-- `aws_networkmanager_connect_attachment`
-- `aws_networkmanager_connect_peer`
-- `aws_networkmanager_connection`
-- `aws_networkmanager_core_network`
-- `aws_networkmanager_core_network_policy_attachment`
-- `aws_networkmanager_customer_gateway_association`
-- `aws_networkmanager_dx_gateway_attachment`
-- `aws_networkmanager_link`
-- `aws_networkmanager_link_association`
-- `aws_networkmanager_site_to_site_vpn_attachment`
-- `aws_networkmanager_transit_gateway_connect_peer_association`
-- `aws_networkmanager_transit_gateway_peering`
-- `aws_networkmanager_transit_gateway_registration`
-- `aws_networkmanager_transit_gateway_route_table_attachment`
-- `aws_networkmanager_vpc_attachment`
-
-### cloudfront — 15 missing
-
-- `aws_cloudfront_cache_policy`
-- `aws_cloudfront_continuous_deployment_policy`
-- `aws_cloudfront_field_level_encryption_config`
-- `aws_cloudfront_field_level_encryption_profile`
-- `aws_cloudfront_function`
-- `aws_cloudfront_key_group`
-- `aws_cloudfront_key_value_store`
-- `aws_cloudfront_monitoring_subscription`
-- `aws_cloudfront_origin_access_control`
-- `aws_cloudfront_origin_access_identity`
-- `aws_cloudfront_origin_request_policy`
-- `aws_cloudfront_public_key`
-- `aws_cloudfront_realtime_log_config`
-- `aws_cloudfront_response_headers_policy`
-- `aws_cloudfront_vpc_origin`
-
-### connect — 15 missing
-
-- `aws_connect_bot_association`
-- `aws_connect_contact_flow`
-- `aws_connect_contact_flow_module`
-- `aws_connect_hours_of_operation`
-- `aws_connect_instance_storage_config`
-- `aws_connect_lambda_function_association`
-- `aws_connect_phone_number`
-- `aws_connect_queue`
-- `aws_connect_quick_connect`
-- `aws_connect_routing_profile`
-- `aws_connect_security_profile`
-- `aws_connect_user`
-- `aws_connect_user_hierarchy_group`
-- `aws_connect_user_hierarchy_structure`
-- `aws_connect_vocabulary`
-
-### iot — 15 missing
-
-- `aws_iot_authorizer`
-- `aws_iot_billing_group`
-- `aws_iot_ca_certificate`
-- `aws_iot_domain_configuration`
-- `aws_iot_event_configurations`
-- `aws_iot_indexing_configuration`
-- `aws_iot_logging_options`
-- `aws_iot_policy_attachment`
-- `aws_iot_provisioning_template`
-- `aws_iot_role_alias`
-- `aws_iot_thing_group`
-- `aws_iot_thing_group_membership`
-- `aws_iot_thing_principal_attachment`
-- `aws_iot_topic_rule`
-- `aws_iot_topic_rule_destination`
 
 ### elbv2 — 13 missing
 

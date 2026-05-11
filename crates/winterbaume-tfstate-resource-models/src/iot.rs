@@ -68,3 +68,225 @@ pub struct CertificateTfModel {
 fn default_certificate_active() -> bool {
     true
 }
+
+/// Auto-generated TF-shaped projection of the `aws_iot_authorizer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotAuthorizerTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorizer_function_arn: Option<String>,
+    #[serde(default = "default_iot_authorizer_signing_disabled")]
+    pub signing_disabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token_key_name: Option<String>,
+    #[serde(default = "default_iot_authorizer_enable_caching_for_http")]
+    pub enable_caching_for_http: bool,
+}
+
+fn default_iot_authorizer_signing_disabled() -> bool {
+    false
+}
+
+fn default_iot_authorizer_enable_caching_for_http() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_billing_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotBillingGroupTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_ca_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotCaCertificateTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ca_certificate_pem: Option<String>,
+    #[serde(default = "default_iot_ca_certificate_active")]
+    pub active: bool,
+    #[serde(default = "default_iot_ca_certificate_allow_auto_registration")]
+    pub allow_auto_registration: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub certificate_mode: Option<String>,
+}
+
+fn default_iot_ca_certificate_active() -> bool {
+    true
+}
+
+fn default_iot_ca_certificate_allow_auto_registration() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_domain_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotDomainConfigurationTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub domain_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_event_configurations` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotEventConfigurationsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_indexing_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotIndexingConfigurationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_logging_options` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotLoggingOptionsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_log_level: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default = "default_iot_logging_options_disable_all_logs")]
+    pub disable_all_logs: bool,
+}
+
+fn default_iot_logging_options_disable_all_logs() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotPolicyAttachmentTfModel {
+    pub policy: String,
+    pub target: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_provisioning_template` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotProvisioningTemplateTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_iot_provisioning_template_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provisioning_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub template_body: Option<String>,
+    #[serde(default = "default_iot_provisioning_template_default_version_id")]
+    pub default_version_id: i64,
+}
+
+fn default_iot_provisioning_template_enabled() -> bool {
+    true
+}
+
+fn default_iot_provisioning_template_default_version_id() -> i64 {
+    1i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_role_alias` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotRoleAliasTfModel {
+    pub alias: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub role_arn: String,
+    #[serde(default = "default_iot_role_alias_credential_duration")]
+    pub credential_duration: i64,
+}
+
+fn default_iot_role_alias_credential_duration() -> i64 {
+    3600i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_thing_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotThingGroupTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_group_name: Option<String>,
+    #[serde(default = "default_iot_thing_group_version")]
+    pub version: i64,
+}
+
+fn default_iot_thing_group_version() -> i64 {
+    1i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_thing_group_membership` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotThingGroupMembershipTfModel {
+    pub thing_name: String,
+    pub thing_group_name: String,
+    #[serde(default = "default_iot_thing_group_membership_override_dynamic_group")]
+    pub override_dynamic_group: bool,
+}
+
+fn default_iot_thing_group_membership_override_dynamic_group() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_thing_principal_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotThingPrincipalAttachmentTfModel {
+    pub thing: String,
+    pub principal: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_topic_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotTopicRuleTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_iot_topic_rule_enabled")]
+    pub enabled: bool,
+    pub sql: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sql_version: Option<String>,
+}
+
+fn default_iot_topic_rule_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_iot_topic_rule_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IotTopicRuleDestinationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_iot_topic_rule_destination_enabled")]
+    pub enabled: bool,
+}
+
+fn default_iot_topic_rule_destination_enabled() -> bool {
+    true
+}

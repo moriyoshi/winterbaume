@@ -57,3 +57,722 @@ default = true
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# Resources below have no state slot in winterbaume_connect. They are
+# warning-only injects: the converter deserialises the TF attributes via the
+# generated `*TfModel` (validates the shape) and returns Ok with a warning.
+# Extract returns an empty list for these.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_connect_bot_association"
+model = "ConnectBotAssociationTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "lex_bot"
+view = "lex_bot"
+type = "string?"
+
+[[resource]]
+type = "aws_connect_contact_flow"
+model = "ConnectContactFlowTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "contact_flow_id"
+view = "contact_flow_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "type"
+type = "string?"
+
+[[resource.field]]
+hcl = "content"
+view = "content"
+type = "string?"
+
+[[resource.field]]
+hcl = "content_hash"
+view = "content_hash"
+type = "string?"
+
+[[resource.field]]
+hcl = "filename"
+view = "filename"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_contact_flow_module"
+model = "ConnectContactFlowModuleTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "contact_flow_module_id"
+view = "contact_flow_module_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "content"
+view = "content"
+type = "string?"
+
+[[resource.field]]
+hcl = "content_hash"
+view = "content_hash"
+type = "string?"
+
+[[resource.field]]
+hcl = "filename"
+view = "filename"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_hours_of_operation"
+model = "ConnectHoursOfOperationTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "hours_of_operation_id"
+view = "hours_of_operation_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "time_zone"
+view = "time_zone"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_instance_storage_config"
+model = "ConnectInstanceStorageConfigTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "association_id"
+view = "association_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_type"
+view = "resource_type"
+type = "string"
+required = true
+
+[[resource]]
+type = "aws_connect_lambda_function_association"
+model = "ConnectLambdaFunctionAssociationTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "function_arn"
+view = "function_arn"
+type = "string"
+required = true
+
+[[resource]]
+type = "aws_connect_phone_number"
+model = "ConnectPhoneNumberTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_arn"
+view = "target_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "country_code"
+view = "country_code"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "phone_number"
+view = "phone_number"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_queue"
+model = "ConnectQueueTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "queue_id"
+view = "queue_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "hours_of_operation_id"
+view = "hours_of_operation_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "max_contacts"
+view = "max_contacts"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_quick_connect"
+model = "ConnectQuickConnectTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "quick_connect_id"
+view = "quick_connect_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_routing_profile"
+model = "ConnectRoutingProfileTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "routing_profile_id"
+view = "routing_profile_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "default_outbound_queue_id"
+view = "default_outbound_queue_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_security_profile"
+model = "ConnectSecurityProfileTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "security_profile_id"
+view = "security_profile_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "organization_resource_id"
+view = "organization_resource_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_user"
+model = "ConnectUserTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_id"
+view = "user_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "password"
+view = "password"
+type = "string?"
+
+[[resource.field]]
+hcl = "directory_user_id"
+view = "directory_user_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "hierarchy_group_id"
+view = "hierarchy_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "routing_profile_id"
+view = "routing_profile_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_user_hierarchy_group"
+model = "ConnectUserHierarchyGroupTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "hierarchy_group_id"
+view = "hierarchy_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "parent_group_id"
+view = "parent_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "level_id"
+view = "level_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+[[resource]]
+type = "aws_connect_user_hierarchy_structure"
+model = "ConnectUserHierarchyStructureTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource]]
+type = "aws_connect_vocabulary"
+model = "ConnectVocabularyTfModel"
+view = "ConnectInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_id"
+view = "instance_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vocabulary_id"
+view = "vocabulary_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "language_code"
+view = "language_code"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "content"
+view = "content"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "failure_reason"
+view = "failure_reason"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

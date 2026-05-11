@@ -45,3 +45,556 @@ default = true
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_cache_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_cache_policy"
+model = "CachePolicyTfModel"
+view = "CachePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_ttl"
+view = "default_ttl"
+type = "i64"
+default = 86400
+
+[[resource.field]]
+hcl = "max_ttl"
+view = "max_ttl"
+type = "i64"
+default = 31536000
+
+[[resource.field]]
+hcl = "min_ttl"
+view = "min_ttl"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_continuous_deployment_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_continuous_deployment_policy"
+model = "ContinuousDeploymentPolicyTfModel"
+view = "ContinuousDeploymentPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_field_level_encryption_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_field_level_encryption_config"
+model = "FieldLevelEncryptionConfigTfModel"
+view = "FieldLevelEncryptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_field_level_encryption_profile
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_field_level_encryption_profile"
+model = "FieldLevelEncryptionProfileTfModel"
+view = "FieldLevelEncryptionProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_function
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_function"
+model = "FunctionTfModel"
+view = "CloudFrontFunctionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "runtime"
+view = "runtime"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "code"
+view = "code"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "publish"
+view = "publish"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_key_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_key_group"
+model = "KeyGroupTfModel"
+view = "KeyGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_key_value_store
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_key_value_store"
+model = "KeyValueStoreTfModel"
+view = "KeyValueStoreView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_monitoring_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_monitoring_subscription"
+model = "MonitoringSubscriptionTfModel"
+view = "MonitoringSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "distribution_id"
+view = "distribution_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_origin_access_control
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_origin_access_control"
+model = "OriginAccessControlTfModel"
+view = "OriginAccessControlView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "origin_access_control_origin_type"
+view = "origin_access_control_origin_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "signing_behavior"
+view = "signing_behavior"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "signing_protocol"
+view = "signing_protocol"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_origin_access_identity
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_origin_access_identity"
+model = "OriginAccessIdentityTfModel"
+view = "OaiView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "caller_reference"
+view = "caller_reference"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_canonical_user_id"
+view = "s3_canonical_user_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_origin_request_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_origin_request_policy"
+model = "OriginRequestPolicyTfModel"
+view = "OriginRequestPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_public_key
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_public_key"
+model = "PublicKeyTfModel"
+view = "PublicKeyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "encoded_key"
+view = "encoded_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "caller_reference"
+view = "caller_reference"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_realtime_log_config
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_realtime_log_config"
+model = "RealtimeLogConfigTfModel"
+view = "RealtimeLogConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "sampling_rate"
+view = "sampling_rate"
+type = "i64"
+default = 100
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_response_headers_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_response_headers_policy"
+model = "ResponseHeadersPolicyTfModel"
+view = "ResponseHeadersPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudfront_vpc_origin
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudfront_vpc_origin"
+model = "VpcOriginTfModel"
+view = "VpcOriginView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "etag"
+view = "etag"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

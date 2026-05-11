@@ -23,6 +23,338 @@ pub struct GlobalNetworkTfModel {
     pub tags: HashMap<String, String>,
 }
 
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_attachment_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttachmentAccepterTfModel {
+    pub attachment_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attachment_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_connect_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectAttachmentTfModel {
+    pub core_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transport_attachment_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edge_location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub segment_name: Option<String>,
+    #[serde(default = "default_connect_attachment_attachment_policy_rule_number")]
+    pub attachment_policy_rule_number: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_connect_attachment_attachment_policy_rule_number() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_connect_peer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectPeerTfModel {
+    pub connect_attachment_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub core_network_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edge_location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub peer_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub core_network_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionTfModel {
+    pub global_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub device_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connected_device_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub link_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connected_link_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_core_network` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoreNetworkTfModel {
+    pub global_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_core_network_policy_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoreNetworkPolicyAttachmentTfModel {
+    pub core_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_document: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_customer_gateway_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerGatewayAssociationTfModel {
+    pub global_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_gateway_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub device_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub link_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_dx_gateway_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DxGatewayAttachmentTfModel {
+    pub core_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub direct_connect_gateway_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edge_locations: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub segment_name: Option<String>,
+    #[serde(default = "default_dx_gateway_attachment_attachment_policy_rule_number")]
+    pub attachment_policy_rule_number: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_dx_gateway_attachment_attachment_policy_rule_number() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_link` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkTfModel {
+    pub global_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub site_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provider_name: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub link_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_link_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkAssociationTfModel {
+    pub global_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub device_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub link_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_site_to_site_vpn_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SiteToSiteVpnAttachmentTfModel {
+    pub core_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpn_connection_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edge_location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub segment_name: Option<String>,
+    #[serde(default = "default_site_to_site_vpn_attachment_attachment_policy_rule_number")]
+    pub attachment_policy_rule_number: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_site_to_site_vpn_attachment_attachment_policy_rule_number() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_transit_gateway_connect_peer_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayConnectPeerAssociationTfModel {
+    pub global_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_connect_peer_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub device_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub link_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_transit_gateway_peering` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayPeeringTfModel {
+    pub core_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub peering_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edge_location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_transit_gateway_registration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayRegistrationTfModel {
+    pub global_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_transit_gateway_route_table_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitGatewayRouteTableAttachmentTfModel {
+    pub peering_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transit_gateway_route_table_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub core_network_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edge_location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub segment_name: Option<String>,
+    #[serde(
+        default = "default_transit_gateway_route_table_attachment_attachment_policy_rule_number"
+    )]
+    pub attachment_policy_rule_number: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_transit_gateway_route_table_attachment_attachment_policy_rule_number() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkmanager_vpc_attachment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcAttachmentTfModel {
+    pub core_network_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edge_location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub segment_name: Option<String>,
+    #[serde(default = "default_vpc_attachment_attachment_policy_rule_number")]
+    pub attachment_policy_rule_number: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_vpc_attachment_attachment_policy_rule_number() -> i64 {
+    0i64
+}
+
 /// Auto-generated TF-shaped projection of the `aws_networkmanager_site` resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SiteTfModel {

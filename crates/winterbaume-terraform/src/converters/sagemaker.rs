@@ -1732,3 +1732,198 @@ impl AwsSagemakerUserProfileConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// Warning-only converters
+//
+// These resource types lack a matching state slot in winterbaume_sagemaker.
+// Inject deserialises the TF payload (so type errors are still surfaced)
+// then emits a single warning and skips writing into state. Extract returns
+// an empty Vec, since there is nothing to project back.
+// ---------------------------------------------------------------------------
+
+macro_rules! sagemaker_warning_only_converter {
+    (
+        struct_name = $struct_name:ident,
+        resource_type = $resource_type:expr,
+        model_type = $model_type:ident,
+        warn_msg = $warn_msg:expr $(,)?
+    ) => {
+        pub struct $struct_name {
+            #[allow(dead_code)]
+            service: Arc<SageMakerService>,
+        }
+
+        impl $struct_name {
+            pub fn new(service: Arc<SageMakerService>) -> Self {
+                Self { service }
+            }
+        }
+
+        impl TerraformResourceConverter for $struct_name {
+            fn resource_type(&self) -> &str {
+                $resource_type
+            }
+
+            fn inject<'a>(
+                &'a self,
+                instance: &'a ResourceInstance,
+                ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>,
+            > {
+                Box::pin(async move { self.do_inject(instance, ctx).await })
+            }
+
+            fn extract<'a>(
+                &'a self,
+                _ctx: &'a ConversionContext,
+            ) -> Pin<
+                Box<
+                    dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>>
+                        + Send
+                        + 'a,
+                >,
+            > {
+                Box::pin(async move { Ok(vec![]) })
+            }
+        }
+
+        impl $struct_name {
+            async fn do_inject(
+                &self,
+                instance: &ResourceInstance,
+                ctx: &ConversionContext,
+            ) -> Result<ConversionResult, ConversionError> {
+                let attrs = &instance.attributes;
+                let region = extract_region(attrs, &ctx.default_region);
+                let _model: sagemaker_gen::$model_type = serde_json::from_value(attrs.clone())
+                    .map_err(|e| classify_deserialize_error($resource_type, e))?;
+                eprintln!("warning: {}: {}", $resource_type, $warn_msg);
+                Ok(ConversionResult {
+                    region,
+                    warnings: vec![format!("{}: {}", $resource_type, $warn_msg)],
+                })
+            }
+        }
+    };
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerAppImageConfigConverter,
+    resource_type = "aws_sagemaker_app_image_config",
+    model_type = AppImageConfigTfModel,
+    warn_msg = "app-image-config slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerCodeRepositoryConverter,
+    resource_type = "aws_sagemaker_code_repository",
+    model_type = CodeRepositoryTfModel,
+    warn_msg = "code-repository slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerDeviceConverter,
+    resource_type = "aws_sagemaker_device",
+    model_type = DeviceTfModel,
+    warn_msg = "device slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerDeviceFleetConverter,
+    resource_type = "aws_sagemaker_device_fleet",
+    model_type = DeviceFleetTfModel,
+    warn_msg = "device-fleet slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerFlowDefinitionConverter,
+    resource_type = "aws_sagemaker_flow_definition",
+    model_type = FlowDefinitionTfModel,
+    warn_msg = "flow-definition slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerHubConverter,
+    resource_type = "aws_sagemaker_hub",
+    model_type = HubTfModel,
+    warn_msg = "hub slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerHumanTaskUiConverter,
+    resource_type = "aws_sagemaker_human_task_ui",
+    model_type = HumanTaskUiTfModel,
+    warn_msg = "human-task-ui slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerImageConverter,
+    resource_type = "aws_sagemaker_image",
+    model_type = ImageTfModel,
+    warn_msg = "image slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerImageVersionConverter,
+    resource_type = "aws_sagemaker_image_version",
+    model_type = ImageVersionTfModel,
+    warn_msg = "image-version slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerMlflowTrackingServerConverter,
+    resource_type = "aws_sagemaker_mlflow_tracking_server",
+    model_type = MlflowTrackingServerTfModel,
+    warn_msg = "mlflow-tracking-server slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerModelPackageGroupPolicyConverter,
+    resource_type = "aws_sagemaker_model_package_group_policy",
+    model_type = ModelPackageGroupPolicyTfModel,
+    warn_msg = "model-package-group resource_policy field not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerMonitoringScheduleConverter,
+    resource_type = "aws_sagemaker_monitoring_schedule",
+    model_type = MonitoringScheduleTfModel,
+    warn_msg = "monitoring-schedule slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerProjectConverter,
+    resource_type = "aws_sagemaker_project",
+    model_type = ProjectTfModel,
+    warn_msg = "project slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerServicecatalogPortfolioStatusConverter,
+    resource_type = "aws_sagemaker_servicecatalog_portfolio_status",
+    model_type = ServicecatalogPortfolioStatusTfModel,
+    warn_msg = "servicecatalog portfolio status not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerStudioLifecycleConfigConverter,
+    resource_type = "aws_sagemaker_studio_lifecycle_config",
+    model_type = StudioLifecycleConfigTfModel,
+    warn_msg = "studio-lifecycle-config slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerWorkforceConverter,
+    resource_type = "aws_sagemaker_workforce",
+    model_type = WorkforceTfModel,
+    warn_msg = "workforce slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}
+
+sagemaker_warning_only_converter! {
+    struct_name = AwsSagemakerWorkteamConverter,
+    resource_type = "aws_sagemaker_workteam",
+    model_type = WorkteamTfModel,
+    warn_msg = "workteam slot not modelled in winterbaume_sagemaker; inject is a no-op",
+}

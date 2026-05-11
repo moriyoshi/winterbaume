@@ -585,3 +585,517 @@ type = "string?"
 hcl = "last_modified_time"
 view = "last_modified_time"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# Wave 3 — warning-only converters (no matching state slot in winterbaume_sagemaker)
+# ---------------------------------------------------------------------------
+
+# aws_sagemaker_app_image_config
+[[resource]]
+type = "aws_sagemaker_app_image_config"
+model = "AppImageConfigTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "app_image_config_name"
+view = "app_image_config_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# aws_sagemaker_code_repository
+[[resource]]
+type = "aws_sagemaker_code_repository"
+model = "CodeRepositoryTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "code_repository_name"
+view = "code_repository_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# aws_sagemaker_device
+[[resource]]
+type = "aws_sagemaker_device"
+model = "DeviceTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "device_fleet_name"
+view = "device_fleet_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "agent_version"
+view = "agent_version"
+type = "string?"
+
+# aws_sagemaker_device_fleet
+[[resource]]
+type = "aws_sagemaker_device_fleet"
+model = "DeviceFleetTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "device_fleet_name"
+view = "device_fleet_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# aws_sagemaker_flow_definition
+[[resource]]
+type = "aws_sagemaker_flow_definition"
+model = "FlowDefinitionTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "flow_definition_name"
+view = "flow_definition_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+# aws_sagemaker_hub
+[[resource]]
+type = "aws_sagemaker_hub"
+model = "HubTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "hub_name"
+view = "hub_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "hub_description"
+view = "hub_description"
+type = "string?"
+
+# aws_sagemaker_human_task_ui
+[[resource]]
+type = "aws_sagemaker_human_task_ui"
+model = "HumanTaskUiTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "human_task_ui_name"
+view = "human_task_ui_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# aws_sagemaker_image
+[[resource]]
+type = "aws_sagemaker_image"
+model = "ImageTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "image_name"
+view = "image_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "display_name"
+view = "display_name"
+type = "string?"
+
+# aws_sagemaker_image_version
+[[resource]]
+type = "aws_sagemaker_image_version"
+model = "ImageVersionTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "image_name"
+view = "image_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "base_image"
+view = "base_image"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "i64"
+
+# aws_sagemaker_mlflow_tracking_server
+[[resource]]
+type = "aws_sagemaker_mlflow_tracking_server"
+model = "MlflowTrackingServerTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "tracking_server_name"
+view = "tracking_server_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "artifact_store_uri"
+view = "artifact_store_uri"
+type = "string?"
+
+# aws_sagemaker_model_package_group_policy
+[[resource]]
+type = "aws_sagemaker_model_package_group_policy"
+model = "ModelPackageGroupPolicyTfModel"
+view = "ModelPackageGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "model_package_group_name"
+view = "model_package_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_policy"
+view = "resource_policy"
+type = "string?"
+
+# aws_sagemaker_monitoring_schedule
+[[resource]]
+type = "aws_sagemaker_monitoring_schedule"
+model = "MonitoringScheduleTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# aws_sagemaker_project
+[[resource]]
+type = "aws_sagemaker_project"
+model = "ProjectTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "project_name"
+view = "project_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "project_description"
+view = "project_description"
+type = "string?"
+
+# aws_sagemaker_servicecatalog_portfolio_status
+[[resource]]
+type = "aws_sagemaker_servicecatalog_portfolio_status"
+model = "ServicecatalogPortfolioStatusTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# aws_sagemaker_studio_lifecycle_config
+[[resource]]
+type = "aws_sagemaker_studio_lifecycle_config"
+model = "StudioLifecycleConfigTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "studio_lifecycle_config_name"
+view = "studio_lifecycle_config_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "studio_lifecycle_config_app_type"
+view = "studio_lifecycle_config_app_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "studio_lifecycle_config_content"
+view = "studio_lifecycle_config_content"
+type = "string?"
+
+# aws_sagemaker_workforce
+[[resource]]
+type = "aws_sagemaker_workforce"
+model = "WorkforceTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "workforce_name"
+view = "workforce_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdomain"
+view = "subdomain"
+type = "string?"
+
+# aws_sagemaker_workteam
+[[resource]]
+type = "aws_sagemaker_workteam"
+model = "WorkteamTfModel"
+view = "DomainView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "workteam_name"
+view = "workteam_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "workforce_name"
+view = "workforce_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "subdomain"
+view = "subdomain"
+type = "string?"

@@ -31,3 +31,493 @@ pub struct ConnectionTfModel {
 fn default_connection_vlan() -> i64 {
     0i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_dx_bgp_peer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BgpPeerTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address_family: Option<String>,
+    #[serde(default = "default_bgp_peer_bgp_asn")]
+    pub bgp_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub virtual_interface_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_auth_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_peer_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_status: Option<String>,
+}
+
+fn default_bgp_peer_bgp_asn() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_connection_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionAssociationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub connection_id: String,
+    pub lag_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_connection_confirmation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionConfirmationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub connection_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_gateway` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GatewayTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_side_asn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_gateway_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GatewayAssociationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub dx_gateway_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub associated_gateway_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub associated_gateway_owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub associated_gateway_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dx_gateway_association_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dx_gateway_owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub proposal_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpn_gateway_id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_gateway_association_proposal` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GatewayAssociationProposalTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub dx_gateway_id: String,
+    pub dx_gateway_owner_account_id: String,
+    pub associated_gateway_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub associated_gateway_owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub associated_gateway_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_hosted_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedConnectionTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub connection_id: String,
+    pub owner_account_id: String,
+    pub bandwidth: String,
+    #[serde(default = "default_hosted_connection_vlan")]
+    pub vlan: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connection_state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub partner_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub loa_issue_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_device: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub has_logical_redundancy: Option<String>,
+    #[serde(default = "default_hosted_connection_jumbo_frame_capable")]
+    pub jumbo_frame_capable: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub region: Option<String>,
+}
+
+fn default_hosted_connection_vlan() -> i64 {
+    0i64
+}
+
+fn default_hosted_connection_jumbo_frame_capable() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_hosted_private_virtual_interface` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedPrivateVirtualInterfaceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub connection_id: String,
+    #[serde(default = "default_hosted_private_virtual_interface_vlan")]
+    pub vlan: i64,
+    #[serde(default = "default_hosted_private_virtual_interface_bgp_asn")]
+    pub bgp_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_auth_key: Option<String>,
+    #[serde(default = "default_hosted_private_virtual_interface_mtu")]
+    pub mtu: i64,
+    pub owner_account_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_side_asn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_device: Option<String>,
+    #[serde(default = "default_hosted_private_virtual_interface_jumbo_frame_capable")]
+    pub jumbo_frame_capable: bool,
+}
+
+fn default_hosted_private_virtual_interface_vlan() -> i64 {
+    0i64
+}
+
+fn default_hosted_private_virtual_interface_bgp_asn() -> i64 {
+    0i64
+}
+
+fn default_hosted_private_virtual_interface_mtu() -> i64 {
+    1500i64
+}
+
+fn default_hosted_private_virtual_interface_jumbo_frame_capable() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_hosted_private_virtual_interface_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedPrivateVirtualInterfaceAccepterTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub virtual_interface_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dx_gateway_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpn_gateway_id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_hosted_public_virtual_interface` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedPublicVirtualInterfaceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub connection_id: String,
+    #[serde(default = "default_hosted_public_virtual_interface_vlan")]
+    pub vlan: i64,
+    #[serde(default = "default_hosted_public_virtual_interface_bgp_asn")]
+    pub bgp_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_auth_key: Option<String>,
+    pub owner_account_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_side_asn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_device: Option<String>,
+}
+
+fn default_hosted_public_virtual_interface_vlan() -> i64 {
+    0i64
+}
+
+fn default_hosted_public_virtual_interface_bgp_asn() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_hosted_public_virtual_interface_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedPublicVirtualInterfaceAccepterTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub virtual_interface_id: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_hosted_transit_virtual_interface` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedTransitVirtualInterfaceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub connection_id: String,
+    #[serde(default = "default_hosted_transit_virtual_interface_vlan")]
+    pub vlan: i64,
+    #[serde(default = "default_hosted_transit_virtual_interface_bgp_asn")]
+    pub bgp_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_auth_key: Option<String>,
+    #[serde(default = "default_hosted_transit_virtual_interface_mtu")]
+    pub mtu: i64,
+    pub owner_account_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_side_asn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_device: Option<String>,
+    #[serde(default = "default_hosted_transit_virtual_interface_jumbo_frame_capable")]
+    pub jumbo_frame_capable: bool,
+}
+
+fn default_hosted_transit_virtual_interface_vlan() -> i64 {
+    0i64
+}
+
+fn default_hosted_transit_virtual_interface_bgp_asn() -> i64 {
+    0i64
+}
+
+fn default_hosted_transit_virtual_interface_mtu() -> i64 {
+    1500i64
+}
+
+fn default_hosted_transit_virtual_interface_jumbo_frame_capable() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_hosted_transit_virtual_interface_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedTransitVirtualInterfaceAccepterTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub virtual_interface_id: String,
+    pub dx_gateway_id: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_lag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LagTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub connections_bandwidth: String,
+    pub location: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connection_id: Option<String>,
+    #[serde(default = "default_lag_force_destroy")]
+    pub force_destroy: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provider_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub has_logical_redundancy: Option<String>,
+    #[serde(default = "default_lag_jumbo_frame_capable")]
+    pub jumbo_frame_capable: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_lag_force_destroy() -> bool {
+    false
+}
+
+fn default_lag_jumbo_frame_capable() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_macsec_key_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MacsecKeyAssociationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub connection_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secret_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ckn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cak: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub start_on: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_private_virtual_interface` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrivateVirtualInterfaceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub connection_id: String,
+    #[serde(default = "default_private_virtual_interface_vlan")]
+    pub vlan: i64,
+    #[serde(default = "default_private_virtual_interface_bgp_asn")]
+    pub bgp_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_auth_key: Option<String>,
+    #[serde(default = "default_private_virtual_interface_mtu")]
+    pub mtu: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpn_gateway_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dx_gateway_id: Option<String>,
+    #[serde(default = "default_private_virtual_interface_sitelink_enabled")]
+    pub sitelink_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_side_asn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_device: Option<String>,
+    #[serde(default = "default_private_virtual_interface_jumbo_frame_capable")]
+    pub jumbo_frame_capable: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_private_virtual_interface_vlan() -> i64 {
+    0i64
+}
+
+fn default_private_virtual_interface_bgp_asn() -> i64 {
+    0i64
+}
+
+fn default_private_virtual_interface_mtu() -> i64 {
+    1500i64
+}
+
+fn default_private_virtual_interface_sitelink_enabled() -> bool {
+    false
+}
+
+fn default_private_virtual_interface_jumbo_frame_capable() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_public_virtual_interface` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicVirtualInterfaceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub connection_id: String,
+    #[serde(default = "default_public_virtual_interface_vlan")]
+    pub vlan: i64,
+    #[serde(default = "default_public_virtual_interface_bgp_asn")]
+    pub bgp_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_auth_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_side_asn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_device: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_public_virtual_interface_vlan() -> i64 {
+    0i64
+}
+
+fn default_public_virtual_interface_bgp_asn() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_dx_transit_virtual_interface` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitVirtualInterfaceTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    pub connection_id: String,
+    pub dx_gateway_id: String,
+    #[serde(default = "default_transit_virtual_interface_vlan")]
+    pub vlan: i64,
+    #[serde(default = "default_transit_virtual_interface_bgp_asn")]
+    pub bgp_asn: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub address_family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bgp_auth_key: Option<String>,
+    #[serde(default = "default_transit_virtual_interface_mtu")]
+    pub mtu: i64,
+    #[serde(default = "default_transit_virtual_interface_sitelink_enabled")]
+    pub sitelink_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub amazon_side_asn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub aws_device: Option<String>,
+    #[serde(default = "default_transit_virtual_interface_jumbo_frame_capable")]
+    pub jumbo_frame_capable: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_transit_virtual_interface_vlan() -> i64 {
+    0i64
+}
+
+fn default_transit_virtual_interface_bgp_asn() -> i64 {
+    0i64
+}
+
+fn default_transit_virtual_interface_mtu() -> i64 {
+    1500i64
+}
+
+fn default_transit_virtual_interface_sitelink_enabled() -> bool {
+    false
+}
+
+fn default_transit_virtual_interface_jumbo_frame_capable() -> bool {
+    false
+}

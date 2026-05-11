@@ -3,6 +3,10 @@ name = "directconnect"
 crate_name = "winterbaume_directconnect"
 state_view_module = "views"
 
+# ---------------------------------------------------------------------------
+# aws_dx_connection (existing)
+# ---------------------------------------------------------------------------
+
 [[resource]]
 type = "aws_dx_connection"
 model = "ConnectionTfModel"
@@ -52,6 +56,1105 @@ type = "string?"
 hcl = "connection_state"
 view = "connection_state"
 type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_bgp_peer
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_bgp_peer"
+model = "BgpPeerTfModel"
+view = "BgpPeerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "address_family"
+view = "address_family"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_asn"
+view = "bgp_asn"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "virtual_interface_id"
+view = "virtual_interface_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_address"
+view = "amazon_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_address"
+view = "customer_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_auth_key"
+view = "bgp_auth_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_peer_id"
+view = "bgp_peer_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_status"
+view = "bgp_status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dx_connection_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_connection_association"
+model = "ConnectionAssociationTfModel"
+view = "ConnectionAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "lag_id"
+view = "lag_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_dx_connection_confirmation
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_connection_confirmation"
+model = "ConnectionConfirmationTfModel"
+view = "ConnectionConfirmationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_dx_gateway
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_gateway"
+model = "GatewayTfModel"
+view = "GatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_gateway_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_gateway_association"
+model = "GatewayAssociationTfModel"
+view = "GatewayAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "dx_gateway_id"
+view = "dx_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "associated_gateway_id"
+view = "associated_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "associated_gateway_owner_account_id"
+view = "associated_gateway_owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "associated_gateway_type"
+view = "associated_gateway_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "dx_gateway_association_id"
+view = "dx_gateway_association_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "dx_gateway_owner_account_id"
+view = "dx_gateway_owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "proposal_id"
+view = "proposal_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpn_gateway_id"
+view = "vpn_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_gateway_association_proposal
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_gateway_association_proposal"
+model = "GatewayAssociationProposalTfModel"
+view = "GatewayAssociationProposalView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "dx_gateway_id"
+view = "dx_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "dx_gateway_owner_account_id"
+view = "dx_gateway_owner_account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "associated_gateway_id"
+view = "associated_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "associated_gateway_owner_account_id"
+view = "associated_gateway_owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "associated_gateway_type"
+view = "associated_gateway_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dx_hosted_connection
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_hosted_connection"
+model = "HostedConnectionTfModel"
+view = "HostedConnectionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bandwidth"
+view = "bandwidth"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vlan"
+view = "vlan"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "connection_state"
+view = "connection_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "partner_name"
+view = "partner_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "location"
+view = "location"
+type = "string?"
+
+[[resource.field]]
+hcl = "loa_issue_time"
+view = "loa_issue_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "aws_device"
+view = "aws_device"
+type = "string?"
+
+[[resource.field]]
+hcl = "has_logical_redundancy"
+view = "has_logical_redundancy"
+type = "string?"
+
+[[resource.field]]
+hcl = "jumbo_frame_capable"
+view = "jumbo_frame_capable"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "region"
+view = "region"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dx_hosted_private_virtual_interface
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_hosted_private_virtual_interface"
+model = "HostedPrivateVirtualInterfaceTfModel"
+view = "HostedPrivateVirtualInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vlan"
+view = "vlan"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "bgp_asn"
+view = "bgp_asn"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "address_family"
+view = "address_family"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_address"
+view = "amazon_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_address"
+view = "customer_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_auth_key"
+view = "bgp_auth_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "mtu"
+view = "mtu"
+type = "i64"
+default = 1500
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "string?"
+
+[[resource.field]]
+hcl = "aws_device"
+view = "aws_device"
+type = "string?"
+
+[[resource.field]]
+hcl = "jumbo_frame_capable"
+view = "jumbo_frame_capable"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_dx_hosted_private_virtual_interface_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_hosted_private_virtual_interface_accepter"
+model = "HostedPrivateVirtualInterfaceAccepterTfModel"
+view = "HostedPrivateVirtualInterfaceAccepterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "virtual_interface_id"
+view = "virtual_interface_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "dx_gateway_id"
+view = "dx_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpn_gateway_id"
+view = "vpn_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_hosted_public_virtual_interface
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_hosted_public_virtual_interface"
+model = "HostedPublicVirtualInterfaceTfModel"
+view = "HostedPublicVirtualInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vlan"
+view = "vlan"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "bgp_asn"
+view = "bgp_asn"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "address_family"
+view = "address_family"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_address"
+view = "amazon_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_address"
+view = "customer_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_auth_key"
+view = "bgp_auth_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "string?"
+
+[[resource.field]]
+hcl = "aws_device"
+view = "aws_device"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dx_hosted_public_virtual_interface_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_hosted_public_virtual_interface_accepter"
+model = "HostedPublicVirtualInterfaceAccepterTfModel"
+view = "HostedPublicVirtualInterfaceAccepterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "virtual_interface_id"
+view = "virtual_interface_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_hosted_transit_virtual_interface
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_hosted_transit_virtual_interface"
+model = "HostedTransitVirtualInterfaceTfModel"
+view = "HostedTransitVirtualInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vlan"
+view = "vlan"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "bgp_asn"
+view = "bgp_asn"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "address_family"
+view = "address_family"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_address"
+view = "amazon_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_address"
+view = "customer_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_auth_key"
+view = "bgp_auth_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "mtu"
+view = "mtu"
+type = "i64"
+default = 1500
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "string?"
+
+[[resource.field]]
+hcl = "aws_device"
+view = "aws_device"
+type = "string?"
+
+[[resource.field]]
+hcl = "jumbo_frame_capable"
+view = "jumbo_frame_capable"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_dx_hosted_transit_virtual_interface_accepter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_hosted_transit_virtual_interface_accepter"
+model = "HostedTransitVirtualInterfaceAccepterTfModel"
+view = "HostedTransitVirtualInterfaceAccepterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "virtual_interface_id"
+view = "virtual_interface_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "dx_gateway_id"
+view = "dx_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_lag
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_lag"
+model = "LagTfModel"
+view = "LagView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connections_bandwidth"
+view = "connections_bandwidth"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "location"
+view = "location"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "force_destroy"
+view = "force_destroy"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "provider_name"
+view = "provider_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "has_logical_redundancy"
+view = "has_logical_redundancy"
+type = "string?"
+
+[[resource.field]]
+hcl = "jumbo_frame_capable"
+view = "jumbo_frame_capable"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_macsec_key_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_macsec_key_association"
+model = "MacsecKeyAssociationTfModel"
+view = "MacsecKeyAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "secret_arn"
+view = "secret_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "ckn"
+view = "ckn"
+type = "string?"
+
+[[resource.field]]
+hcl = "cak"
+view = "cak"
+type = "string?"
+
+[[resource.field]]
+hcl = "start_on"
+view = "start_on"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dx_private_virtual_interface
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_private_virtual_interface"
+model = "PrivateVirtualInterfaceTfModel"
+view = "PrivateVirtualInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vlan"
+view = "vlan"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "bgp_asn"
+view = "bgp_asn"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "address_family"
+view = "address_family"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_address"
+view = "amazon_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_address"
+view = "customer_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_auth_key"
+view = "bgp_auth_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "mtu"
+view = "mtu"
+type = "i64"
+default = 1500
+
+[[resource.field]]
+hcl = "vpn_gateway_id"
+view = "vpn_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "dx_gateway_id"
+view = "dx_gateway_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "sitelink_enabled"
+view = "sitelink_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "string?"
+
+[[resource.field]]
+hcl = "aws_device"
+view = "aws_device"
+type = "string?"
+
+[[resource.field]]
+hcl = "jumbo_frame_capable"
+view = "jumbo_frame_capable"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_public_virtual_interface
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_public_virtual_interface"
+model = "PublicVirtualInterfaceTfModel"
+view = "PublicVirtualInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vlan"
+view = "vlan"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "bgp_asn"
+view = "bgp_asn"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "address_family"
+view = "address_family"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_address"
+view = "amazon_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_address"
+view = "customer_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_auth_key"
+view = "bgp_auth_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "string?"
+
+[[resource.field]]
+hcl = "aws_device"
+view = "aws_device"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dx_transit_virtual_interface
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dx_transit_virtual_interface"
+model = "TransitVirtualInterfaceTfModel"
+view = "TransitVirtualInterfaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "connection_id"
+view = "connection_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "dx_gateway_id"
+view = "dx_gateway_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vlan"
+view = "vlan"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "bgp_asn"
+view = "bgp_asn"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "address_family"
+view = "address_family"
+type = "string?"
+
+[[resource.field]]
+hcl = "amazon_address"
+view = "amazon_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_address"
+view = "customer_address"
+type = "string?"
+
+[[resource.field]]
+hcl = "bgp_auth_key"
+view = "bgp_auth_key"
+type = "string?"
+
+[[resource.field]]
+hcl = "mtu"
+view = "mtu"
+type = "i64"
+default = 1500
+
+[[resource.field]]
+hcl = "sitelink_enabled"
+view = "sitelink_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "amazon_side_asn"
+view = "amazon_side_asn"
+type = "string?"
+
+[[resource.field]]
+hcl = "aws_device"
+view = "aws_device"
+type = "string?"
+
+[[resource.field]]
+hcl = "jumbo_frame_capable"
+view = "jumbo_frame_capable"
+type = "bool"
+default = false
 
 [[resource.field]]
 hcl = "tags"
