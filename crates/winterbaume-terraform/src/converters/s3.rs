@@ -1668,3 +1668,158 @@ impl TerraformResourceConverter for AwsS3DirectoryBucketConverter {
         Box::pin(async move { Ok(vec![]) })
     }
 }
+
+// ===========================================================================
+// aws_s3_access_point
+// ===========================================================================
+// Warning-only: S3StateView has no per-bucket access point slot.
+
+/// Converts `aws_s3_access_point` Terraform resources to/from S3 service state.
+pub struct AwsS3AccessPointConverter {
+    #[allow(dead_code)]
+    service: Arc<S3Service>,
+}
+
+impl AwsS3AccessPointConverter {
+    pub fn new(service: Arc<S3Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsS3AccessPointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_s3_access_point"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: s3_gen::S3AccessPointTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_s3_access_point", e))?;
+            let warn_msg = "S3StateView has no access-point slot; inject is a no-op".to_string();
+            eprintln!("warning: aws_s3_access_point: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_s3_access_point: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ===========================================================================
+// aws_s3_account_public_access_block
+// ===========================================================================
+// Warning-only: only per-bucket `public_access_block` is stored on
+// S3StateView; account-level configuration has no state slot.
+
+pub struct AwsS3AccountPublicAccessBlockConverter {
+    #[allow(dead_code)]
+    service: Arc<S3Service>,
+}
+
+impl AwsS3AccountPublicAccessBlockConverter {
+    pub fn new(service: Arc<S3Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsS3AccountPublicAccessBlockConverter {
+    fn resource_type(&self) -> &str {
+        "aws_s3_account_public_access_block"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: s3_gen::S3AccountPublicAccessBlockTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_s3_account_public_access_block", e)
+                })?;
+            let warn_msg = "account-level public access block is not stored in S3StateView; \
+                            inject is a no-op"
+                .to_string();
+            eprintln!("warning: aws_s3_account_public_access_block: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_s3_account_public_access_block: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ===========================================================================
+// aws_s3_bucket_inventory
+// ===========================================================================
+// Warning-only: `inventory_configurations` is intentionally excluded from
+// BucketStateView (transient).
+
+pub struct AwsS3BucketInventoryConverter {
+    #[allow(dead_code)]
+    service: Arc<S3Service>,
+}
+
+impl AwsS3BucketInventoryConverter {
+    pub fn new(service: Arc<S3Service>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsS3BucketInventoryConverter {
+    fn resource_type(&self) -> &str {
+        "aws_s3_bucket_inventory"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: s3_gen::S3BucketInventoryTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_s3_bucket_inventory", e))?;
+            let warn_msg = "inventory_configurations is excluded from BucketStateView \
+                            (transient); inject is a no-op"
+                .to_string();
+            eprintln!("warning: aws_s3_bucket_inventory: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_s3_bucket_inventory: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}

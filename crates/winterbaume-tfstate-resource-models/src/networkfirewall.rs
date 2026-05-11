@@ -71,3 +71,30 @@ pub struct RuleGroupTfModel {
 fn default_rule_group_capacity() -> i64 {
     100i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_networkfirewall_logging_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoggingConfigurationTfModel {
+    pub firewall_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkfirewall_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkFirewallResourcePolicyTfModel {
+    pub resource_arn: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_networkfirewall_tls_inspection_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsInspectionConfigurationTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}

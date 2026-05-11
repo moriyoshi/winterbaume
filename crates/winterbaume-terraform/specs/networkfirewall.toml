@@ -154,3 +154,88 @@ type = "string?"
 hcl = "rules"
 view = "rules"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_networkfirewall_logging_configuration
+# ---------------------------------------------------------------------------
+# Sub-resource: serialises the `logging_configuration` nested block onto
+# `NetworkFirewallStateView.logging_configs[firewall_arn]` (a JSON string).
+
+[[resource]]
+type = "aws_networkfirewall_logging_configuration"
+model = "LoggingConfigurationTfModel"
+view = "FirewallView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "firewall_arn"
+view = "firewall_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_networkfirewall_resource_policy
+# ---------------------------------------------------------------------------
+# Stores the policy on `NetworkFirewallStateView.resource_policies[resource_arn]`.
+
+[[resource]]
+type = "aws_networkfirewall_resource_policy"
+model = "NetworkFirewallResourcePolicyTfModel"
+view = "ResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_networkfirewall_tls_inspection_configuration
+# ---------------------------------------------------------------------------
+# Stores the configuration on
+# `NetworkFirewallStateView.tls_inspection_configurations[arn]`.
+
+[[resource]]
+type = "aws_networkfirewall_tls_inspection_configuration"
+model = "TlsInspectionConfigurationTfModel"
+view = "TlsInspectionConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"

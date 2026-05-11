@@ -1318,3 +1318,201 @@ beyond the bare-essentials baseline. The next-largest gaps remain
   saying "do not run clippy / build". This was harmless because the
   per-crate gate is incremental, but the future-task guideline stands:
   the orchestrator runs the gate once at the end.
+
+## 2026-05-11 / 2026-05-12: Post-EC2 sweep — close the workspace coverage tail
+
+### Context
+
+After the EC2 wave closed the single largest missing-resource gap, the
+remaining `TERRAFORM_RESOURCE_COVERAGE.md` listed roughly 50 services
+with 4–18 missing types each, totalling about 668 missing TF resource
+types. The user directive was open-ended ("continue with the rest of the
+converters"). The strategy was to clear as many of these as remained
+viable in a single push, dispatching parallel sub-agents one service
+per agent and merging registrations centrally to avoid `main.rs` write
+contention.
+
+### Findings
+
+**Parallel fan-out with central main.rs merge scaled to ~120 services.**
+The pattern that worked across nine successive batches was: dispatch
+3–7 sub-agents in parallel, each handling one service end-to-end on
+the spec / generated-model / converter files (which are independent
+per service), and have them return `injector.register(...)` snippets
+in their report. The orchestrator then merged the snippets into
+`crates/winterbaume-server/src/main.rs` sequentially, one service per
+Edit call. This avoided the file-write conflicts that an "each agent
+edits main.rs" pattern would have hit. The merge step was the bottleneck
+because `main.rs` has alphabetised insertion points for ~50 services and
+each insertion needed a precise unique-anchor Edit. Total time per
+seven-service batch was ~10–20 minutes wall-clock for the agents,
+~5–10 minutes for the orchestrator merge, ~3 minutes for the cargo
+gate.
+
+**Per-batch progression**:
+
+| Commit       | Services in batch                                                                           | Resources |
+|--------------|----------------------------------------------------------------------------------------------|----------:|
+| `46bee347`   | directconnect, quicksight, sagemaker, networkmanager, cloudfront, connect, iot              | 113       |
+| `927cbdeb`   | elbv2, logs, s3control, securityhub, sesv1, apigatewayv2, backup                            | 86        |
+| `f464c970`   | datasync, servicecatalog, ssm, config, guardduty, rds, pinpoint                             | 71        |
+| `84d7bed3`   | route53resolver, ssoadmin, vpclattice, appsync, fsx, lambda, apprunner                      | 65        |
+| `482e8fb9`   | dynamodb, ecr, opensearch, ses, transfer, cognitoidp, kafka                                 | 54        |
+| `d1d745dd`   | directory, kms, macie2, shield, auditmanager, autoscaling, events                           | 45        |
+| `23896cae`   | bedrockagent, eks, elasticache, emr, lakeformation, redshift                                | 36        |
+| `1a0b52e8`   | bedrock, ebs, codebuild, dms, ecs, efs, glue, kinesis, lexmodelsv2, neptune, acmpca, amp,   |           |
+|              | appconfig, appfabric, appmesh, athena, cloudformation, inspector2, memorydb,                | 121       |
+|              | opensearchserverless, organizations, ram, sns, wafv2, amplify, cloudwatch, codecommit,      |           |
+|              | cognitoidentity, sqs, servicediscovery                                                      |           |
+| `93581ee2`   | medialive, networkfirewall, s3, s3tables                                                    | 12        |
+
+Total this session: **603 converters across 8 commits** ( on top of
+EC2's 100 from commit `3036c2ef` earlier the same day, the full single-
+day total is **703** ). Coverage rose from **430** handled / 768 missing
+to **1127** handled / 77 missing.
+
+**Warning-only as the dominant pattern for tail services.** Of the ~600
+new converters, roughly 40 % are warning-only ( inject parses the TF
+model, emits a warning, no state mutation; extract returns empty ).
+This is the right shape when a service crate's state layer simply
+doesn't model the resource family ( e.g. `aws_servicecatalog_constraint`,
+`aws_appfabric_app_authorization`, `aws_macie2_findings_filter` ): the
+TF plan must still parse, so the converter has to claim the resource
+type, but persisting the data would require state-layer changes that
+were out of scope for this push. Every warning-only converter has a
+documented state-layer gap noted in either the sub-agent's report or
+the commit message.
+
+**Service-specific naming-convention drift.** Sub-agents independently
+landed on the canonical struct-name style for each service: `AwsAppRunner*`
+( not `AwsApprunner* ), `AwsElastiCache*` ( not `AwsElasticache* ),
+`AwsAuditManager*` ( not `AwsAuditmanager* ), `AwsVpcLattice*` ( not
+`AwsVpclattice* ). Each matches an existing pre-wave converter for the
+same service. The orchestrator caught these on merge and used the right
+case in the `injector.register(...)` calls.
+
+**InjectableServices hoisting was the recurring main.rs surgery.**
+Five services started this push without a named Arc in the
+`InjectableServices` struct — pinpoint, servicecatalog, fsx, neptune,
+memorydb — because their service crates had only been instantiated
+inline in the `MockService` vec. For each, the merge required:
+
+1. New field on `InjectableServices` ( `pinpoint: Arc<winterbaume_pinpoint::PinpointService>` ).
+2. New local binding ( `let pinpoint_svc = Arc::new(...);` ).
+3. Replace the inline `Arc::new(winterbaume_pinpoint::PinpointService::new())`
+   in the MockService vec with `Arc::clone(&pinpoint_svc) as Arc<dyn MockService>`.
+4. New field initialiser in the `InjectableServices { ... }` literal.
+5. Add the service to the `use winterbaume_terraform::converters::{ ... }`
+   list.
+
+The pattern is mechanical and the same shape every time. None of the
+service crates themselves had to change.
+
+**`Default::default()` vs struct-update syntax — recurring clippy hit.**
+A handful of sub-agents wrote `let mut sv = StateView::default(); sv.x = Some(v);`
+which clippy flags as `field_reassign_with_default` under `-D warnings`.
+The fix is always the same struct-update rewrite:
+`let sv = StateView { x: Some(v), ..Default::default() };`. After the
+first batch tripped on this, subsequent agents got the pattern in their
+brief and the issue stopped appearing — except in s3control, which
+needed a manual fixup in commit `927cbdeb`.
+
+**`for (_k, v) in &map` clippy hit.** Sub-agents using
+`for (_, value) in &hashmap` for extract loops trigger the `for_kv_map`
+lint. The fix is `for value in map.values()`. Same pattern: caught
+once, added to brief, then stopped recurring — except in elbv2, fixed
+inline.
+
+**Coverage-script classification quirks.** A few "missing" entries in
+`TERRAFORM_RESOURCE_COVERAGE.md` are artefacts of the prefix-based
+classifier rather than genuine gaps:
+
+- elbv2's six `aws_alb_*` aliases delegate to `aws_lb_*` converters and
+  return empty from extract; they're functionally present but the
+  classifier sees no entry in `specs/elbv2.toml` for the alias name.
+- kinesis's `aws_kinesis_firehose_delivery_stream`,
+  `aws_kinesis_video_stream`, and `aws_kinesis_analytics_application` are
+  implemented in the `firehose`, `kinesisvideo`, and `kinesisanalyticsv2`
+  crates respectively. The classifier groups them under the `kinesis`
+  prefix because that's the longest common prefix in
+  `winterbaume-terraform/specs/`.
+
+Resolving these would require widening `PREFIX_OVERRIDES` in
+`.agents/skills/api-coverage/scripts/generate_terraform_resource_coverage.py`.
+Documented but not fixed.
+
+**Sub-agent "stale concurrent-agent state" reports.** When 7 agents
+run in parallel against the same shared cargo target dir, each one's
+`cargo clippy` invocation occasionally fails because another agent's
+concurrent file edit ( on a different file in the same crate ) hasn't
+finished syncing. Several agent reports include phrases like "the
+clippy failures are in cloudfront.rs which is concurrent agent work,
+not my service". This is harmless — the orchestrator's post-merge
+clippy gate is the source of truth — but it means sub-agent reports
+that say "all gates green" are not trustworthy on their own. Always
+re-run cargo from the orchestrator after merging.
+
+### Repository deltas
+
+Across the nine commits this session:
+
+- `crates/winterbaume-terraform/specs/*.toml` ( ~50 files modified or
+  created, each with the new `[[resource]]` blocks ).
+- `crates/winterbaume-tfstate-resource-models/src/*.rs` ( regenerated
+  for each touched service ).
+- `crates/winterbaume-terraform/src/converters/*.rs` ( ~50 files
+  extended with new converter struct + impl pairs ).
+- `crates/winterbaume-server/src/main.rs` ( +700 `injector.register(...)`
+  calls plus five new `InjectableServices` fields and bindings ).
+- `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md` ( regenerated after each
+  batch ).
+
+### Verification
+
+After every batch:
+- `./.agents/bin/cargo.sh run -p tf-converter-codegen -- check` →
+  all generated files fresh.
+- `./.agents/bin/cargo.sh test -p winterbaume-terraform --no-fail-fast`
+  → 293 + 6 tests pass, 22 ignored ( unchanged through the entire
+  sequence — no integration-test regressions ).
+- `./.agents/bin/cargo.sh clippy -p winterbaume-terraform --all-targets
+  --all-features -- -D warnings` → clean.
+- `./.agents/bin/cargo.sh clippy -p winterbaume-tfstate-resource-models
+  --all-targets --all-features -- -D warnings` → clean.
+- `./.agents/bin/cargo.sh clippy -p winterbaume-server --all-targets
+  --all-features -- -D warnings` → clean.
+
+### Coverage snapshot ( workspace-wide )
+
+| Metric                              | Session start | Session end |
+|-------------------------------------|--------------:|------------:|
+| Total `aws_*` resources handled     | 430           | 1127        |
+| Schema-verified                     | 425           | 1122        |
+| Missing within classified prefixes  | 768           | 77          |
+| Services at 0 missing               | many          | many ( + EC2, route53, cloudfront, apigatewayv2, ecr, transfer, ses, neptune, lexmodelsv2, opensearchserverless and others now complete ) |
+
+The remaining 77 missing are concentrated across ~50 long-tail services
+with 1–3 each, most of which are either:
+
+- Genuinely warning-only-eligible because the service crate doesn't
+  model that resource family.
+- Coverage-script classification artefacts as described above.
+
+### Operational notes
+
+- The orchestrator-side cargo gate run was the dominant cost per batch
+  ( ~3 min for fmt + clippy + tests + server clippy ). The sub-agent
+  fan-out averaged ~12 min per batch. So a ten-service batch landed in
+  about 15 wall-clock minutes once dispatched.
+- Sub-agents repeatedly violated the "don't run cargo clippy yourself"
+  directive ( five of seven in some batches ). This is harmless given
+  the orchestrator runs it again, but the shared cargo target dir is
+  the contention point: parallel `cargo check` runs from sub-agents
+  can serialise on the target dir lock and bloat the dir. Stale
+  `.agents-workspace/tmp/target-*` dirs should be periodically pruned;
+  one cleanup at the end of this push freed ~14 GB.
+- The `tf-converter-codegen -- gen <svc>` step is the only sub-agent
+  cargo invocation that's load-bearing; it regenerates the projection
+  model file from the updated spec. Per-service it takes ~5–10 s warm.
+  Multiple sub-agents calling `gen` in parallel are fine: each writes
+  a different `src/<svc>.rs` file.

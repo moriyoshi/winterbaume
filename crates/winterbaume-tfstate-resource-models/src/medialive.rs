@@ -26,6 +26,50 @@ pub struct MediaLiveChannelTfModel {
     pub tags: HashMap<String, String>,
 }
 
+/// Auto-generated TF-shaped projection of the `aws_medialive_input_security_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediaLiveInputSecurityGroupTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inputs: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_medialive_multiplex` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediaLiveMultiplexTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default = "default_media_live_multiplex_start_multiplex")]
+    pub start_multiplex: bool,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_media_live_multiplex_start_multiplex() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_medialive_multiplex_program` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MediaLiveMultiplexProgramTfModel {
+    pub program_name: String,
+    pub multiplex_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
 /// Auto-generated TF-shaped projection of the `aws_medialive_input` resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MediaLiveInputTfModel {

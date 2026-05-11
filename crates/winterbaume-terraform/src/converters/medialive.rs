@@ -368,3 +368,157 @@ impl AwsMedialiveInputConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// aws_medialive_input_security_group — warning-only. MediaLiveStateView has
+// no input-security-group slot; parsing happens so the model still validates.
+// ---------------------------------------------------------------------------
+
+pub struct AwsMedialiveInputSecurityGroupConverter {
+    #[allow(dead_code)]
+    service: Arc<MediaLiveService>,
+}
+
+impl AwsMedialiveInputSecurityGroupConverter {
+    pub fn new(service: Arc<MediaLiveService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsMedialiveInputSecurityGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_medialive_input_security_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: medialive_gen::MediaLiveInputSecurityGroupTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_medialive_input_security_group", e)
+                })?;
+            let warn_msg = "MediaLiveStateView has no input-security-group slot; inject \
+                            is a no-op"
+                .to_string();
+            eprintln!("warning: aws_medialive_input_security_group: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_medialive_input_security_group: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_medialive_multiplex — warning-only. MediaLiveStateView has no
+// multiplex slot.
+// ---------------------------------------------------------------------------
+
+pub struct AwsMedialiveMultiplexConverter {
+    #[allow(dead_code)]
+    service: Arc<MediaLiveService>,
+}
+
+impl AwsMedialiveMultiplexConverter {
+    pub fn new(service: Arc<MediaLiveService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsMedialiveMultiplexConverter {
+    fn resource_type(&self) -> &str {
+        "aws_medialive_multiplex"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: medialive_gen::MediaLiveMultiplexTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_medialive_multiplex", e))?;
+            let warn_msg =
+                "MediaLiveStateView has no multiplex slot; inject is a no-op".to_string();
+            eprintln!("warning: aws_medialive_multiplex: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_medialive_multiplex: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_medialive_multiplex_program — warning-only. Programs hang off a
+// multiplex that has no state slot.
+// ---------------------------------------------------------------------------
+
+pub struct AwsMedialiveMultiplexProgramConverter {
+    #[allow(dead_code)]
+    service: Arc<MediaLiveService>,
+}
+
+impl AwsMedialiveMultiplexProgramConverter {
+    pub fn new(service: Arc<MediaLiveService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsMedialiveMultiplexProgramConverter {
+    fn resource_type(&self) -> &str {
+        "aws_medialive_multiplex_program"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: medialive_gen::MediaLiveMultiplexProgramTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_medialive_multiplex_program", e)
+                })?;
+            let warn_msg = "MediaLiveStateView has no multiplex slot; programs cannot \
+                            attach — inject is a no-op"
+                .to_string();
+            eprintln!("warning: aws_medialive_multiplex_program: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_medialive_multiplex_program: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
