@@ -262,3 +262,326 @@ type = "string?"
 hcl = "notebook_instance_status"
 view = "notebook_instance_status"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_app
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_app"
+model = "AppTfModel"
+view = "AppView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_id"
+view = "domain_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "app_name"
+view = "app_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "app_type"
+view = "app_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_profile_name"
+view = "user_profile_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "space_name"
+view = "space_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_data_quality_job_definition
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_data_quality_job_definition"
+model = "DataQualityJobDefinitionTfModel"
+view = "JobDefinitionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_feature_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_feature_group"
+model = "FeatureGroupTfModel"
+view = "FeatureGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "feature_group_name"
+view = "feature_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "feature_group_status"
+view = "feature_group_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_model_package_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_model_package_group"
+model = "ModelPackageGroupTfModel"
+view = "ModelPackageGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "model_package_group_name"
+view = "model_package_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "model_package_group_description"
+view = "model_package_group_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_notebook_instance_lifecycle_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_notebook_instance_lifecycle_configuration"
+model = "NotebookInstanceLifecycleConfigurationTfModel"
+view = "NotebookInstanceLifecycleConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_pipeline
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_pipeline"
+model = "PipelineTfModel"
+view = "PipelineView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "pipeline_name"
+view = "pipeline_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "pipeline_display_name"
+view = "pipeline_display_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "pipeline_description"
+view = "pipeline_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "pipeline_definition"
+view = "pipeline_definition"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_space
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_space"
+model = "SpaceTfModel"
+view = "SpaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_id"
+view = "domain_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "space_name"
+view = "space_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sagemaker_user_profile
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sagemaker_user_profile"
+model = "UserProfileTfModel"
+view = "UserProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_id"
+view = "domain_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_profile_name"
+view = "user_profile_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "creation_time"
+view = "creation_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_modified_time"
+view = "last_modified_time"
+type = "string?"

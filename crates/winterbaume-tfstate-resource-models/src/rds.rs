@@ -213,3 +213,412 @@ pub struct DbEventSubscriptionTfModel {
 fn default_db_event_subscription_enabled() -> bool {
     true
 }
+
+/// Auto-generated TF-shaped projection of the `aws_db_proxy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbProxyTfModel {
+    pub name: String,
+    pub engine_family: String,
+    pub role_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default = "default_db_proxy_require_tls")]
+    pub require_tls: bool,
+    #[serde(default = "default_db_proxy_debug_logging")]
+    pub debug_logging: bool,
+    #[serde(default = "default_db_proxy_idle_client_timeout")]
+    pub idle_client_timeout: i64,
+}
+
+fn default_db_proxy_require_tls() -> bool {
+    false
+}
+
+fn default_db_proxy_debug_logging() -> bool {
+    false
+}
+
+fn default_db_proxy_idle_client_timeout() -> i64 {
+    1800i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_db_proxy_default_target_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbProxyDefaultTargetGroupTfModel {
+    pub db_proxy_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_db_proxy_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbProxyEndpointTfModel {
+    pub db_proxy_name: String,
+    pub db_proxy_endpoint_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_role: Option<String>,
+    #[serde(default = "default_db_proxy_endpoint_is_default")]
+    pub is_default: bool,
+}
+
+fn default_db_proxy_endpoint_is_default() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_db_snapshot` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbSnapshotTfModel {
+    pub db_instance_identifier: String,
+    pub db_snapshot_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_snapshot_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub availability_zone: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub license_model: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub option_group_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_db_snapshot_identifier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default = "default_db_snapshot_allocated_storage")]
+    pub allocated_storage: i64,
+    #[serde(default = "default_db_snapshot_port")]
+    pub port: i64,
+    #[serde(default = "default_db_snapshot_iops")]
+    pub iops: i64,
+    #[serde(default = "default_db_snapshot_encrypted")]
+    pub encrypted: bool,
+}
+
+fn default_db_snapshot_allocated_storage() -> i64 {
+    0i64
+}
+
+fn default_db_snapshot_port() -> i64 {
+    0i64
+}
+
+fn default_db_snapshot_iops() -> i64 {
+    0i64
+}
+
+fn default_db_snapshot_encrypted() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_db_snapshot_copy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbSnapshotCopyTfModel {
+    pub source_db_snapshot_identifier: String,
+    pub target_db_snapshot_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_snapshot_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub destination_region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub license_model: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub option_group_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target_custom_availability_zone: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default = "default_db_snapshot_copy_allocated_storage")]
+    pub allocated_storage: i64,
+    #[serde(default = "default_db_snapshot_copy_port")]
+    pub port: i64,
+    #[serde(default = "default_db_snapshot_copy_iops")]
+    pub iops: i64,
+    #[serde(default = "default_db_snapshot_copy_copy_tags")]
+    pub copy_tags: bool,
+    #[serde(default = "default_db_snapshot_copy_encrypted")]
+    pub encrypted: bool,
+}
+
+fn default_db_snapshot_copy_allocated_storage() -> i64 {
+    0i64
+}
+
+fn default_db_snapshot_copy_port() -> i64 {
+    0i64
+}
+
+fn default_db_snapshot_copy_iops() -> i64 {
+    0i64
+}
+
+fn default_db_snapshot_copy_copy_tags() -> bool {
+    false
+}
+
+fn default_db_snapshot_copy_encrypted() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_db_cluster_snapshot` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbClusterSnapshotTfModel {
+    pub db_cluster_identifier: String,
+    pub db_cluster_snapshot_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_cluster_snapshot_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub license_model: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_db_cluster_snapshot_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default = "default_db_cluster_snapshot_allocated_storage")]
+    pub allocated_storage: i64,
+    #[serde(default = "default_db_cluster_snapshot_port")]
+    pub port: i64,
+    #[serde(default = "default_db_cluster_snapshot_storage_encrypted")]
+    pub storage_encrypted: bool,
+}
+
+fn default_db_cluster_snapshot_allocated_storage() -> i64 {
+    0i64
+}
+
+fn default_db_cluster_snapshot_port() -> i64 {
+    0i64
+}
+
+fn default_db_cluster_snapshot_storage_encrypted() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_cluster_snapshot_copy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsClusterSnapshotCopyTfModel {
+    pub source_db_cluster_snapshot_identifier: String,
+    pub target_db_cluster_snapshot_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_cluster_snapshot_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub destination_region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub license_model: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default = "default_rds_cluster_snapshot_copy_allocated_storage")]
+    pub allocated_storage: i64,
+    #[serde(default = "default_rds_cluster_snapshot_copy_copy_tags")]
+    pub copy_tags: bool,
+    #[serde(default = "default_rds_cluster_snapshot_copy_storage_encrypted")]
+    pub storage_encrypted: bool,
+}
+
+fn default_rds_cluster_snapshot_copy_allocated_storage() -> i64 {
+    0i64
+}
+
+fn default_rds_cluster_snapshot_copy_copy_tags() -> bool {
+    false
+}
+
+fn default_rds_cluster_snapshot_copy_storage_encrypted() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_cluster_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsClusterEndpointTfModel {
+    pub cluster_identifier: String,
+    pub cluster_endpoint_identifier: String,
+    pub custom_endpoint_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_cluster_instance` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsClusterInstanceTfModel {
+    pub identifier: String,
+    pub cluster_identifier: String,
+    pub instance_class: String,
+    pub engine: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub availability_zone: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_parameter_group_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_subnet_group_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ca_cert_identifier: Option<String>,
+    #[serde(default = "default_rds_cluster_instance_auto_minor_version_upgrade")]
+    pub auto_minor_version_upgrade: bool,
+    #[serde(default = "default_rds_cluster_instance_publicly_accessible")]
+    pub publicly_accessible: bool,
+    #[serde(default = "default_rds_cluster_instance_performance_insights_enabled")]
+    pub performance_insights_enabled: bool,
+    #[serde(default = "default_rds_cluster_instance_copy_tags_to_snapshot")]
+    pub copy_tags_to_snapshot: bool,
+}
+
+fn default_rds_cluster_instance_auto_minor_version_upgrade() -> bool {
+    true
+}
+
+fn default_rds_cluster_instance_publicly_accessible() -> bool {
+    false
+}
+
+fn default_rds_cluster_instance_performance_insights_enabled() -> bool {
+    false
+}
+
+fn default_rds_cluster_instance_copy_tags_to_snapshot() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_export_task` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsExportTaskTfModel {
+    pub export_task_identifier: String,
+    pub iam_role_arn: String,
+    pub kms_key_id: String,
+    pub s3_bucket_name: String,
+    pub source_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub s3_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_cause: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub warning_message: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task_start_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task_end_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default = "default_rds_export_task_percent_progress")]
+    pub percent_progress: i64,
+}
+
+fn default_rds_export_task_percent_progress() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_global_cluster` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsGlobalClusterTfModel {
+    pub global_cluster_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub database_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_db_cluster_identifier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub global_cluster_resource_id: Option<String>,
+    #[serde(default = "default_rds_global_cluster_deletion_protection")]
+    pub deletion_protection: bool,
+    #[serde(default = "default_rds_global_cluster_storage_encrypted")]
+    pub storage_encrypted: bool,
+}
+
+fn default_rds_global_cluster_deletion_protection() -> bool {
+    false
+}
+
+fn default_rds_global_cluster_storage_encrypted() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_rds_shard_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RdsShardGroupTfModel {
+    pub db_shard_group_identifier: String,
+    pub db_cluster_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_shard_group_resource_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint: Option<String>,
+    #[serde(default = "default_rds_shard_group_publicly_accessible")]
+    pub publicly_accessible: bool,
+}
+
+fn default_rds_shard_group_publicly_accessible() -> bool {
+    false
+}

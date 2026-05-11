@@ -57,3 +57,156 @@ pub struct CrawlerTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub table_prefix: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_glue_catalog_table` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CatalogTableTfModel {
+    pub name: String,
+    pub database_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub table_type: Option<String>,
+    #[serde(default = "default_catalog_table_retention")]
+    pub retention: i64,
+}
+
+fn default_catalog_table_retention() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connection_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_data_catalog_encryption_settings` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataCatalogEncryptionSettingsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_dev_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DevEndpointTfModel {
+    #[serde(rename = "name")]
+    pub endpoint_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subnet_id: Option<String>,
+    #[serde(default = "default_dev_endpoint_number_of_nodes")]
+    pub number_of_nodes: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub worker_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub glue_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub public_key: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extra_python_libs_s3_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extra_jars_s3_path: Option<String>,
+}
+
+fn default_dev_endpoint_number_of_nodes() -> i64 {
+    0i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_ml_transform` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MlTransformTfModel {
+    pub name: String,
+    #[serde(rename = "role_arn", default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub glue_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub worker_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_partition` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartitionTfModel {
+    pub database_name: String,
+    pub table_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_registry` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegistryTfModel {
+    pub registry_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcePolicyTfModel {
+    #[serde(rename = "policy")]
+    pub policy_in_json: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_schema` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaTfModel {
+    pub schema_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub registry_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_format: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compatibility: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_security_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecurityConfigurationTfModel {
+    pub name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_trigger` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerTfModel {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub trigger_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schedule: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workflow_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_workflow` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkflowTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_workflow_max_concurrent_runs")]
+    pub max_concurrent_runs: i64,
+}
+
+fn default_workflow_max_concurrent_runs() -> i64 {
+    0i64
+}

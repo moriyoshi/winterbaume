@@ -458,3 +458,890 @@ hcl = "enabled"
 view = "enabled"
 type = "bool"
 default = true
+
+# ---------------------------------------------------------------------------
+# aws_db_proxy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_proxy"
+model = "DbProxyTfModel"
+view = "DbProxyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "engine_family"
+view = "engine_family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "require_tls"
+view = "require_tls"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "debug_logging"
+view = "debug_logging"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "idle_client_timeout"
+view = "idle_client_timeout"
+type = "i64"
+default = 1800
+
+# ---------------------------------------------------------------------------
+# aws_db_proxy_default_target_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_proxy_default_target_group"
+model = "DbProxyDefaultTargetGroupTfModel"
+view = "DbProxyTargetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "db_proxy_name"
+view = "db_proxy_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_db_proxy_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_proxy_endpoint"
+model = "DbProxyEndpointTfModel"
+view = "DbProxyEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "db_proxy_name"
+view = "db_proxy_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_proxy_endpoint_name"
+view = "db_proxy_endpoint_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_role"
+view = "target_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "is_default"
+view = "is_default"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_db_proxy_target
+# ---------------------------------------------------------------------------
+# Sub-resource of aws_db_proxy: snapshot+mutate+restore DbProxyView.targets.
+# Spec block omitted; converter is hand-written.
+
+# ---------------------------------------------------------------------------
+# aws_db_snapshot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_snapshot"
+model = "DbSnapshotTfModel"
+view = "DbSnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "db_instance_identifier"
+view = "db_instance_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_snapshot_identifier"
+view = "db_snapshot_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_snapshot_arn"
+view = "db_snapshot_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "license_model"
+view = "license_model"
+type = "string?"
+
+[[resource.field]]
+hcl = "option_group_name"
+view = "option_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_type"
+view = "snapshot_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_db_snapshot_identifier"
+view = "source_db_snapshot_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_region"
+view = "source_region"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_type"
+view = "storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "allocated_storage"
+view = "allocated_storage"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "port"
+view = "port"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "iops"
+view = "iops"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "encrypted"
+view = "encrypted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_db_snapshot_copy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_snapshot_copy"
+model = "DbSnapshotCopyTfModel"
+view = "DbSnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "source_db_snapshot_identifier"
+view = "source_db_snapshot_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_db_snapshot_identifier"
+view = "target_db_snapshot_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_snapshot_arn"
+view = "db_snapshot_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "destination_region"
+view = "destination_region"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "license_model"
+view = "license_model"
+type = "string?"
+
+[[resource.field]]
+hcl = "option_group_name"
+view = "option_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_type"
+view = "snapshot_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_region"
+view = "source_region"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_type"
+view = "storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_custom_availability_zone"
+view = "target_custom_availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "allocated_storage"
+view = "allocated_storage"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "port"
+view = "port"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "iops"
+view = "iops"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "copy_tags"
+view = "copy_tags"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "encrypted"
+view = "encrypted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_db_cluster_snapshot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_db_cluster_snapshot"
+model = "DbClusterSnapshotTfModel"
+view = "DbClusterSnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "db_cluster_identifier"
+view = "db_cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_cluster_snapshot_identifier"
+view = "db_cluster_snapshot_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_cluster_snapshot_arn"
+view = "db_cluster_snapshot_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "license_model"
+view = "license_model"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_type"
+view = "snapshot_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_db_cluster_snapshot_arn"
+view = "source_db_cluster_snapshot_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_type"
+view = "storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "allocated_storage"
+view = "allocated_storage"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "port"
+view = "port"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_rds_cluster_snapshot_copy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rds_cluster_snapshot_copy"
+model = "RdsClusterSnapshotCopyTfModel"
+view = "DbClusterSnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "source_db_cluster_snapshot_identifier"
+view = "source_db_cluster_snapshot_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_db_cluster_snapshot_identifier"
+view = "target_db_cluster_snapshot_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_cluster_snapshot_arn"
+view = "db_cluster_snapshot_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "destination_region"
+view = "destination_region"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "license_model"
+view = "license_model"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_type"
+view = "snapshot_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "storage_type"
+view = "storage_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "allocated_storage"
+view = "allocated_storage"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "copy_tags"
+view = "copy_tags"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_rds_cluster_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rds_cluster_endpoint"
+model = "RdsClusterEndpointTfModel"
+view = "DbClusterEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cluster_endpoint_identifier"
+view = "cluster_endpoint_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "custom_endpoint_type"
+view = "custom_endpoint_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_rds_cluster_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rds_cluster_instance"
+model = "RdsClusterInstanceTfModel"
+view = "DbInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identifier"
+view = "identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "instance_class"
+view = "instance_class"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "availability_zone"
+view = "availability_zone"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_parameter_group_name"
+view = "db_parameter_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_subnet_group_name"
+view = "db_subnet_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "ca_cert_identifier"
+view = "ca_cert_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "auto_minor_version_upgrade"
+view = "auto_minor_version_upgrade"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "publicly_accessible"
+view = "publicly_accessible"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "performance_insights_enabled"
+view = "performance_insights_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "copy_tags_to_snapshot"
+view = "copy_tags_to_snapshot"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_rds_export_task
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rds_export_task"
+model = "RdsExportTaskTfModel"
+view = "ExportTaskView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "export_task_identifier"
+view = "export_task_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "s3_bucket_name"
+view = "s3_bucket_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_arn"
+view = "source_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "s3_prefix"
+view = "s3_prefix"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_type"
+view = "source_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "failure_cause"
+view = "failure_cause"
+type = "string?"
+
+[[resource.field]]
+hcl = "warning_message"
+view = "warning_message"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_time"
+view = "snapshot_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "task_start_time"
+view = "task_start_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "task_end_time"
+view = "task_end_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "percent_progress"
+view = "percent_progress"
+type = "i64"
+default = 0
+
+# ---------------------------------------------------------------------------
+# aws_rds_global_cluster
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rds_global_cluster"
+model = "RdsGlobalClusterTfModel"
+view = "GlobalClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "global_cluster_identifier"
+view = "global_cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_db_cluster_identifier"
+view = "source_db_cluster_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "global_cluster_resource_id"
+view = "global_cluster_resource_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "deletion_protection"
+view = "deletion_protection"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_rds_shard_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_rds_shard_group"
+model = "RdsShardGroupTfModel"
+view = "DbShardGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "db_shard_group_identifier"
+view = "db_shard_group_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_cluster_identifier"
+view = "db_cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "db_shard_group_resource_id"
+view = "db_shard_group_resource_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+[[resource.field]]
+hcl = "publicly_accessible"
+view = "publicly_accessible"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_rds_instance_state
+# ---------------------------------------------------------------------------
+# Snapshot+mutate+restore on DbInstance.status, no generated TfModel needed.
+# Spec block omitted; converter is hand-written.

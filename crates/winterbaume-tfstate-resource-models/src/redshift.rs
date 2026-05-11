@@ -73,3 +73,198 @@ pub struct RedshiftSubnetGroupTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vpc_id: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_authentication_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftAuthenticationProfileTfModel {
+    #[serde(rename = "authentication_profile_name")]
+    pub name: String,
+    #[serde(
+        rename = "authentication_profile_content",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub content: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_cluster_iam_roles` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftClusterIamRolesTfModel {
+    pub cluster_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_iam_role_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_cluster_snapshot` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftClusterSnapshotTfModel {
+    pub snapshot_identifier: String,
+    pub cluster_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_event_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftEventSubscriptionTfModel {
+    #[serde(rename = "name")]
+    pub subscription_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sns_topic_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub severity: Option<String>,
+    #[serde(default = "default_redshift_event_subscription_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_aws_id: Option<String>,
+}
+
+fn default_redshift_event_subscription_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_hsm_client_certificate` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftHsmClientCertificateTfModel {
+    #[serde(rename = "hsm_client_certificate_identifier")]
+    pub identifier: String,
+    #[serde(
+        rename = "hsm_client_certificate_public_key",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub public_key: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_hsm_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftHsmConfigurationTfModel {
+    #[serde(rename = "hsm_configuration_identifier")]
+    pub identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hsm_ip_address: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hsm_partition_name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_logging` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftLoggingTfModel {
+    pub cluster_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bucket_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub s3_key_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_destination_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_parameter_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftParameterGroupTfModel {
+    pub name: String,
+    pub family: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_partner` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftPartnerTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    pub cluster_identifier: String,
+    pub database_name: String,
+    pub partner_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status_message: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftResourcePolicyTfModel {
+    pub resource_arn: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_scheduled_action` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftScheduledActionTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schedule: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub iam_role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub start_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub end_time: Option<String>,
+    #[serde(default = "default_redshift_scheduled_action_enable")]
+    pub enable: bool,
+}
+
+fn default_redshift_scheduled_action_enable() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_snapshot_copy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftSnapshotCopyTfModel {
+    pub cluster_identifier: String,
+    pub destination_region: String,
+    #[serde(default = "default_redshift_snapshot_copy_retention_period")]
+    pub retention_period: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_copy_grant_name: Option<String>,
+}
+
+fn default_redshift_snapshot_copy_retention_period() -> i64 {
+    7i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_snapshot_copy_grant` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftSnapshotCopyGrantTfModel {
+    #[serde(rename = "snapshot_copy_grant_name")]
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_snapshot_schedule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftSnapshotScheduleTfModel {
+    #[serde(rename = "identifier")]
+    pub schedule_identifier: String,
+    #[serde(
+        rename = "description",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub schedule_description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_usage_limit` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftUsageLimitTfModel {
+    pub cluster_identifier: String,
+    pub feature_type: String,
+    pub limit_type: String,
+    pub amount: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub period: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub breach_action: Option<String>,
+}
