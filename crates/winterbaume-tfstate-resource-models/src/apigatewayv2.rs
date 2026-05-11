@@ -25,3 +25,170 @@ pub struct ApiTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_api_mapping` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiMappingTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_mapping_id: Option<String>,
+    pub domain_name: String,
+    pub api_id: String,
+    pub stage: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_mapping_key: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_authorizer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2AuthorizerTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorizer_id: Option<String>,
+    pub api_id: String,
+    pub name: String,
+    pub authorizer_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorizer_uri: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorizer_credentials_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorizer_payload_format_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_validation_expression: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_deployment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2DeploymentTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deployment_id: Option<String>,
+    pub api_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_domain_name` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2DomainNameTfModel {
+    pub domain_name: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_integration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2IntegrationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub integration_id: Option<String>,
+    pub api_id: String,
+    pub integration_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub integration_uri: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub integration_method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payload_format_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub connection_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_integration_response` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2IntegrationResponseTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub integration_response_id: Option<String>,
+    pub api_id: String,
+    pub integration_id: String,
+    pub integration_response_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_handling_strategy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub template_selection_expression: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_model` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2ModelTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_id: Option<String>,
+    pub api_id: String,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schema: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_route` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2RouteTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub route_id: Option<String>,
+    pub api_id: String,
+    pub route_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorization_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorizer_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_route_response` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2RouteResponseTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub route_response_id: Option<String>,
+    pub api_id: String,
+    pub route_id: String,
+    pub route_response_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_selection_expression: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_stage` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2StageTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(rename = "name")]
+    pub stage_name: String,
+    pub api_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deployment_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_apigatewayv2_vpc_link` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApigatewayV2VpcLinkTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_link_id: Option<String>,
+    pub name: String,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}

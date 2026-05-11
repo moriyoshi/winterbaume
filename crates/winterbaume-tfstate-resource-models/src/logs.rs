@@ -28,3 +28,161 @@ pub struct LogStreamTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub arn: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_account_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogAccountPolicyTfModel {
+    pub policy_name: String,
+    pub policy_document: String,
+    pub policy_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scope: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection_criteria: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_anomaly_detector` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogAnomalyDetectorTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detector_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evaluation_frequency: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filter_pattern: Option<String>,
+    #[serde(default = "default_log_anomaly_detector_anomaly_visibility_time")]
+    pub anomaly_visibility_time: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_log_anomaly_detector_enabled")]
+    pub enabled: bool,
+}
+
+fn default_log_anomaly_detector_anomaly_visibility_time() -> i64 {
+    0i64
+}
+
+fn default_log_anomaly_detector_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_data_protection_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogDataProtectionPolicyTfModel {
+    pub log_group_name: String,
+    pub policy_document: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_delivery` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogDeliveryTfModel {
+    pub delivery_source_name: String,
+    pub delivery_destination_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub field_delimiter: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_delivery_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogDeliveryDestinationTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub delivery_destination_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub output_format: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_delivery_destination_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogDeliveryDestinationPolicyTfModel {
+    pub delivery_destination_name: String,
+    pub delivery_destination_policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_delivery_source` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogDeliverySourceTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub log_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogDestinationTfModel {
+    pub name: String,
+    pub role_arn: String,
+    pub target_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_destination_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogDestinationPolicyTfModel {
+    pub destination_name: String,
+    pub access_policy: String,
+    #[serde(default = "default_log_destination_policy_force_update")]
+    pub force_update: bool,
+}
+
+fn default_log_destination_policy_force_update() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_index_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogIndexPolicyTfModel {
+    pub log_group_name: String,
+    pub policy_document: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_metric_filter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogMetricFilterTfModel {
+    pub name: String,
+    pub log_group_name: String,
+    pub pattern: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogResourcePolicyTfModel {
+    pub policy_name: String,
+    pub policy_document: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_log_subscription_filter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogSubscriptionFilterTfModel {
+    pub name: String,
+    pub log_group_name: String,
+    pub filter_pattern: String,
+    pub destination_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub distribution: Option<String>,
+}

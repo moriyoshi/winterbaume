@@ -131,3 +131,439 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_access_grant
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_access_grant"
+model = "AccessGrantTfModel"
+view = "AccessGrantView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "access_grants_location_id"
+view = "access_grants_location_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "permission"
+view = "permission"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_grant_id"
+view = "access_grant_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_grant_arn"
+view = "access_grant_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "grant_scope"
+view = "grant_scope"
+type = "string?"
+
+[[resource.field]]
+hcl = "s3_prefix_type"
+view = "s3_prefix_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "application_arn"
+view = "application_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_access_grants_instance
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_access_grants_instance"
+model = "AccessGrantsInstanceTfModel"
+view = "AccessGrantsInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_grants_instance_id"
+view = "access_grants_instance_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_grants_instance_arn"
+view = "access_grants_instance_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "identity_center_arn"
+view = "identity_center_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "identity_center_application_arn"
+view = "identity_center_application_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_access_grants_instance_resource_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_access_grants_instance_resource_policy"
+model = "AccessGrantsInstanceResourcePolicyTfModel"
+view = "AccessGrantsResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "organization"
+view = "organization"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_access_grants_location
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_access_grants_location"
+model = "AccessGrantsLocationTfModel"
+view = "AccessGrantsLocationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "iam_role_arn"
+view = "iam_role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "location_scope"
+view = "location_scope"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_grants_location_id"
+view = "access_grants_location_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_grants_location_arn"
+view = "access_grants_location_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_access_point_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_access_point_policy"
+model = "AccessPointPolicyTfModel"
+view = "AccessPointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "access_point_arn"
+view = "access_point_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "has_public_access_policy"
+view = "has_public_access_policy"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_bucket_lifecycle_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_bucket_lifecycle_configuration"
+model = "BucketLifecycleConfigurationTfModel"
+view = "BucketLifecycleConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3control_bucket_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_bucket_policy"
+model = "BucketPolicyTfModel"
+view = "OutpostsBucketView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3control_directory_bucket_access_point_scope
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_directory_bucket_access_point_scope"
+model = "DirectoryBucketAccessPointScopeTfModel"
+view = "AccessPointScopeView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_multi_region_access_point
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_multi_region_access_point"
+model = "MultiRegionAccessPointTfModel"
+view = "MultiRegionAccessPointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "alias"
+view = "alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_multi_region_access_point_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_multi_region_access_point_policy"
+model = "MultiRegionAccessPointPolicyTfModel"
+view = "MultiRegionAccessPointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "established"
+view = "established"
+type = "string?"
+
+[[resource.field]]
+hcl = "proposed"
+view = "proposed"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_object_lambda_access_point
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_object_lambda_access_point"
+model = "ObjectLambdaAccessPointTfModel"
+view = "OlAccessPointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "alias"
+view = "alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_object_lambda_access_point_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_object_lambda_access_point_policy"
+model = "ObjectLambdaAccessPointPolicyTfModel"
+view = "OlAccessPointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "has_public_access_policy"
+view = "has_public_access_policy"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_s3control_storage_lens_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_s3control_storage_lens_configuration"
+model = "StorageLensConfigurationTfModel"
+view = "StorageLensConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "config_id"
+view = "config_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"

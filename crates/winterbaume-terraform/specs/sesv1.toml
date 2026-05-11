@@ -1,7 +1,11 @@
 # Auto-ingested by `tf-converter-codegen ingest sesv1`.
-# Hand-tuned: split into one [[resource]] block per resource type,
-# yielding two TfModels (EmailIdentityTfModel, DomainIdentityTfModel).
-# The shared IdentityView projection is built in the converter.
+# Hand-tuned: split into one [[resource]] block per resource type.
+# All resources use `mode = "model_only"` so that nested-block fields and
+# list fields can be sliced off at the spec layer and handled directly in
+# the converter where needed. The IdentityView projection, the ARN
+# templates, the SES tag merges, and the snapshot-and-mutate plumbing for
+# modifier-style resources (DKIM enable, mail-from, notification topic,
+# event destination, identity verification) live in the converter.
 
 [service]
 name = "sesv1"
@@ -57,4 +61,415 @@ type = "string?"
 [[resource.field]]
 hcl = "verification_token"
 view = "verification_token"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_active_receipt_rule_set
+# ---------------------------------------------------------------------------
+# Singleton modifier: sets `SesV1StateView.active_receipt_rule_set` to the
+# named rule set. The converter takes a snapshot, swaps the field, and
+# restores the view.
+
+[[resource]]
+type = "aws_ses_active_receipt_rule_set"
+model = "ActiveReceiptRuleSetTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rule_set_name"
+view = "rule_set_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_configuration_set
+# ---------------------------------------------------------------------------
+# Top-level fresh-write on `SesV1StateView.configuration_sets`. The nested
+# delivery_options / reputation_metrics_enabled / sending_enabled / tracking_options
+# blocks are scalar-only in TF and we only model the name + flags here;
+# event destinations live on the sibling `aws_ses_event_destination`
+# resource.
+
+[[resource]]
+type = "aws_ses_configuration_set"
+model = "ConfigurationSetTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "reputation_metrics_enabled"
+view = "reputation_metrics_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "sending_enabled"
+view = "sending_enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_ses_domain_dkim
+# ---------------------------------------------------------------------------
+# Modifier on an existing domain identity: flips dkim_enabled on the
+# `IdentityView` and seeds dkim_tokens. If the identity does not yet
+# exist in state, a warning is emitted and the resource is skipped.
+
+[[resource]]
+type = "aws_ses_domain_dkim"
+model = "DomainDkimTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_ses_domain_identity_verification
+# ---------------------------------------------------------------------------
+# Modifier that asserts verification on an existing domain identity. The
+# converter sets `verification_status` to "Success" on the matching
+# `IdentityView`.
+
+[[resource]]
+type = "aws_ses_domain_identity_verification"
+model = "DomainIdentityVerificationTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_domain_mail_from
+# ---------------------------------------------------------------------------
+# Modifier: sets the mail_from_domain on an existing domain identity.
+# behavior_on_mx_failure is not modelled in the IdentityView; the
+# converter accepts it but drops the value.
+
+[[resource]]
+type = "aws_ses_domain_mail_from"
+model = "DomainMailFromTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain"
+view = "domain"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mail_from_domain"
+view = "mail_from_domain"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "behavior_on_mx_failure"
+view = "behavior_on_mx_failure"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_event_destination
+# ---------------------------------------------------------------------------
+# Modifier on an existing configuration set: appends an EventDestinationView
+# entry to `ConfigurationSetView.event_destinations`. The matching_types
+# list and the destination-type sub-blocks (cloudwatch_destination,
+# kinesis_destination, sns_destination) are not modelled at the spec layer.
+
+[[resource]]
+type = "aws_ses_event_destination"
+model = "EventDestinationTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "configuration_set_name"
+view = "configuration_set_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_identity_notification_topic
+# ---------------------------------------------------------------------------
+# Modifier on an existing identity: routes one of the three notification
+# types (Bounce / Complaint / Delivery) to an SNS topic ARN. The converter
+# dispatches on notification_type and writes the matching field on
+# `IdentityView` (`bounce_topic` / `complaint_topic` / `delivery_topic`).
+# `include_original_headers` is not modelled in the view.
+
+[[resource]]
+type = "aws_ses_identity_notification_topic"
+model = "IdentityNotificationTopicTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identity"
+view = "identity"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "notification_type"
+view = "notification_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "topic_arn"
+view = "topic_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "include_original_headers"
+view = "include_original_headers"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_ses_identity_policy
+# ---------------------------------------------------------------------------
+# No state slot on `SesV1StateView` for identity policies, so this is a
+# warning-only converter: the model is parsed for schema validation but no
+# state is mutated.
+
+[[resource]]
+type = "aws_ses_identity_policy"
+model = "IdentityPolicyTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "identity"
+view = "identity"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_ses_receipt_filter
+# ---------------------------------------------------------------------------
+# No state slot on `SesV1StateView` for receipt filters, so this is
+# warning-only.
+
+[[resource]]
+type = "aws_ses_receipt_filter"
+model = "ReceiptFilterTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cidr"
+view = "cidr"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_receipt_rule
+# ---------------------------------------------------------------------------
+# Modifier on an existing receipt rule set: appends a `ReceiptRuleView`
+# entry to `ReceiptRuleSetView.rules`. The recipients list and the action
+# sub-blocks (add_header_action, bounce_action, lambda_action, s3_action,
+# sns_action, stop_action, workmail_action) are not modelled at the spec
+# layer.
+
+[[resource]]
+type = "aws_ses_receipt_rule"
+model = "ReceiptRuleTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "rule_set_name"
+view = "rule_set_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "scan_enabled"
+view = "scan_enabled"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tls_policy"
+view = "tls_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "after"
+view = "after"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_receipt_rule_set
+# ---------------------------------------------------------------------------
+# Top-level fresh-write on `SesV1StateView.receipt_rule_sets` keyed by
+# rule_set_name. Created with an empty rules vector; rules are added via
+# the sibling `aws_ses_receipt_rule` resource.
+
+[[resource]]
+type = "aws_ses_receipt_rule_set"
+model = "ReceiptRuleSetTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "rule_set_name"
+view = "rule_set_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ses_template
+# ---------------------------------------------------------------------------
+# Top-level fresh-write on `SesV1StateView.templates` keyed by name. The
+# created_at timestamp is filled by the converter at injection time.
+
+[[resource]]
+type = "aws_ses_template"
+model = "TemplateTfModel"
+view = "IdentityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subject"
+view = "subject"
+type = "string?"
+
+[[resource.field]]
+hcl = "html"
+view = "html"
+type = "string?"
+
+[[resource.field]]
+hcl = "text"
+view = "text"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
 type = "string?"

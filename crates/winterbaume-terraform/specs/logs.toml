@@ -74,3 +74,469 @@ required = true
 hcl = "arn"
 view = "arn"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_account_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_log_account_policy"
+model = "LogAccountPolicyTfModel"
+view = "AccountPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "policy_name"
+view = "policy_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_document"
+view = "policy_document"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_type"
+view = "policy_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "scope"
+view = "scope"
+type = "string?"
+
+[[resource.field]]
+hcl = "selection_criteria"
+view = "selection_criteria"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_anomaly_detector
+# ---------------------------------------------------------------------------
+# `log_group_arn_list` is a Vec<String> — not in spec vocabulary, read raw.
+
+[[resource]]
+type = "aws_cloudwatch_log_anomaly_detector"
+model = "LogAnomalyDetectorTfModel"
+view = "LogAnomalyDetectorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "detector_name"
+view = "detector_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "evaluation_frequency"
+view = "evaluation_frequency"
+type = "string?"
+
+[[resource.field]]
+hcl = "filter_pattern"
+view = "filter_pattern"
+type = "string?"
+
+[[resource.field]]
+hcl = "anomaly_visibility_time"
+view = "anomaly_visibility_time"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_data_protection_policy
+# ---------------------------------------------------------------------------
+# Modifier resource: sets `data_protection_policy` on the parent log group.
+
+[[resource]]
+type = "aws_cloudwatch_log_data_protection_policy"
+model = "LogDataProtectionPolicyTfModel"
+view = "LogGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "log_group_name"
+view = "log_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_document"
+view = "policy_document"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_delivery
+# ---------------------------------------------------------------------------
+# Non-scalar `s3_delivery_configuration`/`record_fields` are out of vocabulary;
+# the converter reads them raw if needed.
+
+[[resource]]
+type = "aws_cloudwatch_log_delivery"
+model = "LogDeliveryTfModel"
+view = "DeliveryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "delivery_source_name"
+view = "delivery_source_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "delivery_destination_arn"
+view = "delivery_destination_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "field_delimiter"
+view = "field_delimiter"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_delivery_destination
+# ---------------------------------------------------------------------------
+# `delivery_destination_configuration` is a block with a single
+# `destination_resource_arn` attribute — handled in the converter.
+
+[[resource]]
+type = "aws_cloudwatch_log_delivery_destination"
+model = "LogDeliveryDestinationTfModel"
+view = "DeliveryDestinationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "delivery_destination_type"
+view = "delivery_destination_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "output_format"
+view = "output_format"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_delivery_destination_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_log_delivery_destination_policy"
+model = "LogDeliveryDestinationPolicyTfModel"
+view = "DeliveryDestinationPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "delivery_destination_name"
+view = "delivery_destination_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "delivery_destination_policy"
+view = "delivery_destination_policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_delivery_source
+# ---------------------------------------------------------------------------
+# `resource_arn` is a single string in TF (not a list); winterbaume keeps it
+# in a Vec<String> on the view.
+
+[[resource]]
+type = "aws_cloudwatch_log_delivery_source"
+model = "LogDeliverySourceTfModel"
+view = "DeliverySourceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "log_type"
+view = "log_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "service"
+view = "service"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_destination
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_log_destination"
+model = "LogDestinationTfModel"
+view = "DestinationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_arn"
+view = "target_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_destination_policy
+# ---------------------------------------------------------------------------
+# Modifier resource: sets `access_policy` on the parent destination.
+
+[[resource]]
+type = "aws_cloudwatch_log_destination_policy"
+model = "LogDestinationPolicyTfModel"
+view = "DestinationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "destination_name"
+view = "destination_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "access_policy"
+view = "access_policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "force_update"
+view = "force_update"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_index_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_log_index_policy"
+model = "LogIndexPolicyTfModel"
+view = "IndexPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "log_group_name"
+view = "log_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_document"
+view = "policy_document"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_metric_filter
+# ---------------------------------------------------------------------------
+# `metric_transformation` is a nested block — handled raw in the converter.
+
+[[resource]]
+type = "aws_cloudwatch_log_metric_filter"
+model = "LogMetricFilterTfModel"
+view = "MetricFilterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "log_group_name"
+view = "log_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "pattern"
+view = "pattern"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_resource_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_log_resource_policy"
+model = "LogResourcePolicyTfModel"
+view = "ResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "policy_name"
+view = "policy_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_document"
+view = "policy_document"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_log_subscription_filter
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_log_subscription_filter"
+model = "LogSubscriptionFilterTfModel"
+view = "SubscriptionFilterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "log_group_name"
+view = "log_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "filter_pattern"
+view = "filter_pattern"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "destination_arn"
+view = "destination_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "distribution"
+view = "distribution"
+type = "string?"

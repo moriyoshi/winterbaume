@@ -32,3 +32,115 @@ fn default_account_auto_enable_controls() -> bool {
 pub struct StandardsSubscriptionTfModel {
     pub standards_arn: String,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_action_target` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionTargetTfModel {
+    pub name: String,
+    pub identifier: String,
+    pub description: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_automation_rule` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutomationRuleTfModel {
+    pub rule_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub rule_order: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rule_status: Option<String>,
+    #[serde(default = "default_automation_rule_is_terminal")]
+    pub is_terminal: bool,
+}
+
+fn default_automation_rule_is_terminal() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_configuration_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationPolicyTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_configuration_policy_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigurationPolicyAssociationTfModel {
+    pub policy_id: String,
+    pub target_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_finding_aggregator` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FindingAggregatorTfModel {
+    pub linking_mode: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_insight` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightTfModel {
+    pub name: String,
+    pub group_by_attribute: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_invite_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InviteAccepterTfModel {
+    pub master_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_member` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemberTfModel {
+    pub account_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+    #[serde(default = "default_member_invite")]
+    pub invite: bool,
+}
+
+fn default_member_invite() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_organization_admin_account` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationAdminAccountTfModel {
+    pub admin_account_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_organization_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationConfigurationTfModel {
+    pub auto_enable: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auto_enable_standards: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_product_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductSubscriptionTfModel {
+    pub product_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_standards_control` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StandardsControlTfModel {
+    pub standards_control_arn: String,
+    pub control_status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub disabled_reason: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_securityhub_standards_control_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StandardsControlAssociationTfModel {
+    pub security_control_id: String,
+    pub standards_arn: String,
+    pub association_status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_reason: Option<String>,
+}

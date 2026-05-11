@@ -1,7 +1,16 @@
+# Auto-ingested by `tf-converter-codegen ingest apigatewayv2` and hand-tuned.
+# Scalar-only `model_only` projections; nested blocks (e.g. cors_configuration,
+# response_parameters maps, domain_name_configuration list, route_settings
+# list, request_parameters maps) are read raw or skipped in the converter.
+
 [service]
 name = "apigatewayv2"
 crate_name = "winterbaume_apigatewayv2"
 state_view_module = "views"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_api
+# ---------------------------------------------------------------------------
 
 [[resource]]
 type = "aws_apigatewayv2_api"
@@ -46,6 +55,509 @@ type = "string?"
 hcl = "api_endpoint"
 view = "api_endpoint"
 type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_api_mapping
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apigatewayv2_api_mapping"
+model = "ApiMappingTfModel"
+view = "ApiMappingView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_mapping_id"
+view = "api_mapping_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "stage"
+view = "stage"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "api_mapping_key"
+view = "api_mapping_key"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_authorizer
+# ---------------------------------------------------------------------------
+# Vec<String> identity_source and Option<i32>
+# authorizer_result_ttl_in_seconds are read raw in the converter.
+
+[[resource]]
+type = "aws_apigatewayv2_authorizer"
+model = "ApigatewayV2AuthorizerTfModel"
+view = "AuthorizerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorizer_id"
+view = "authorizer_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "authorizer_type"
+view = "authorizer_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "authorizer_uri"
+view = "authorizer_uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorizer_credentials_arn"
+view = "authorizer_credentials_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorizer_payload_format_version"
+view = "authorizer_payload_format_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "identity_validation_expression"
+view = "identity_validation_expression"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_deployment
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apigatewayv2_deployment"
+model = "ApigatewayV2DeploymentTfModel"
+view = "DeploymentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_id"
+view = "deployment_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_domain_name
+# ---------------------------------------------------------------------------
+# The `domain_name_configuration` HCL block is a nested object — read raw
+# in the converter and split into StoredDomainNameConfigurationView entries.
+
+[[resource]]
+type = "aws_apigatewayv2_domain_name"
+model = "ApigatewayV2DomainNameTfModel"
+view = "DomainNameView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_integration
+# ---------------------------------------------------------------------------
+# request_parameters / request_templates / response_parameters maps and
+# tls_config nested blocks are not modelled on IntegrationView.
+
+[[resource]]
+type = "aws_apigatewayv2_integration"
+model = "ApigatewayV2IntegrationTfModel"
+view = "IntegrationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "integration_id"
+view = "integration_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "integration_type"
+view = "integration_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "integration_uri"
+view = "integration_uri"
+type = "string?"
+
+[[resource.field]]
+hcl = "integration_method"
+view = "integration_method"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "payload_format_version"
+view = "payload_format_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "connection_type"
+view = "connection_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_integration_response
+# ---------------------------------------------------------------------------
+# Sub-resource of an integration. HashMap<String, String> fields
+# (response_parameters, response_templates) are read raw in the converter.
+
+[[resource]]
+type = "aws_apigatewayv2_integration_response"
+model = "ApigatewayV2IntegrationResponseTfModel"
+view = "IntegrationResponseView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "integration_response_id"
+view = "integration_response_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "integration_id"
+view = "integration_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "integration_response_key"
+view = "integration_response_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "content_handling_strategy"
+view = "content_handling_strategy"
+type = "string?"
+
+[[resource.field]]
+hcl = "template_selection_expression"
+view = "template_selection_expression"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_model
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apigatewayv2_model"
+model = "ApigatewayV2ModelTfModel"
+view = "ModelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "model_id"
+view = "model_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "content_type"
+view = "content_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "schema"
+view = "schema"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_route
+# ---------------------------------------------------------------------------
+# Vec<String> request_models / authorization_scopes and bool
+# api_key_required are read raw in the converter when needed.
+
+[[resource]]
+type = "aws_apigatewayv2_route"
+model = "ApigatewayV2RouteTfModel"
+view = "RouteView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "route_id"
+view = "route_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "route_key"
+view = "route_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target"
+view = "target"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorization_type"
+view = "authorization_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "authorizer_id"
+view = "authorizer_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_route_response
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_apigatewayv2_route_response"
+model = "ApigatewayV2RouteResponseTfModel"
+view = "RouteResponseView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "route_response_id"
+view = "route_response_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "route_id"
+view = "route_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "route_response_key"
+view = "route_response_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "model_selection_expression"
+view = "model_selection_expression"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_stage
+# ---------------------------------------------------------------------------
+# Tags merged via `tags` typed field. Nested route_settings /
+# default_route_settings / access_log_settings blocks are not modelled.
+
+[[resource]]
+type = "aws_apigatewayv2_stage"
+model = "ApigatewayV2StageTfModel"
+view = "StageView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "stage_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "api_id"
+view = "api_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "deployment_id"
+view = "deployment_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_apigatewayv2_vpc_link
+# ---------------------------------------------------------------------------
+# Vec<String> security_group_ids and subnet_ids are read raw in the converter.
+
+[[resource]]
+type = "aws_apigatewayv2_vpc_link"
+model = "ApigatewayV2VpcLinkTfModel"
+view = "VpcLinkView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_link_id"
+view = "vpc_link_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
 
 [[resource.field]]
 hcl = "tags"
