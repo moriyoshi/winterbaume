@@ -644,3 +644,213 @@ type = "string?"
 hcl = "breach_action"
 view = "breach_action"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_data_share_authorization
+# ---------------------------------------------------------------------------
+# Stub: no first-class state in the redshift service. The converter parses
+# the HCL fields, performs best-effort validation, and extracts nothing.
+
+[[resource]]
+type = "aws_redshift_data_share_authorization"
+model = "RedshiftDataShareAuthorizationTfModel"
+view = "RedshiftResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "data_share_arn"
+view = "data_share_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "consumer_identifier"
+view = "consumer_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "allow_writes"
+view = "allow_writes"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_redshift_data_share_consumer_association
+# ---------------------------------------------------------------------------
+# Stub: no first-class state in the redshift service.
+
+[[resource]]
+type = "aws_redshift_data_share_consumer_association"
+model = "RedshiftDataShareConsumerAssociationTfModel"
+view = "RedshiftResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "data_share_arn"
+view = "data_share_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "allow_writes"
+view = "allow_writes"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "associate_entire_account"
+view = "associate_entire_account"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "consumer_arn"
+view = "consumer_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "consumer_region"
+view = "consumer_region"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_endpoint_access
+# ---------------------------------------------------------------------------
+# Stub: no first-class state in the redshift service. `vpc_security_group_ids`
+# is read straight from instance.attributes.
+
+[[resource]]
+type = "aws_redshift_endpoint_access"
+model = "RedshiftEndpointAccessTfModel"
+view = "RedshiftClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "endpoint_name"
+view = "endpoint_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subnet_group_name"
+view = "subnet_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_owner"
+view = "resource_owner"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_endpoint_authorization
+# ---------------------------------------------------------------------------
+# Stub: no first-class state in the redshift service. `vpc_ids` is read
+# straight from instance.attributes.
+
+[[resource]]
+type = "aws_redshift_endpoint_authorization"
+model = "RedshiftEndpointAuthorizationTfModel"
+view = "RedshiftClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account"
+view = "account"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "force_delete"
+view = "force_delete"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_redshift_integration
+# ---------------------------------------------------------------------------
+# Stub: no first-class state in the redshift service.
+
+[[resource]]
+type = "aws_redshift_integration"
+model = "RedshiftIntegrationTfModel"
+view = "RedshiftClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "integration_name"
+view = "integration_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_arn"
+view = "source_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_arn"
+view = "target_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_redshift_snapshot_schedule_association
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: attaches a snapshot schedule to a cluster.
+# The cluster view does not track schedule associations, so this is a
+# best-effort validation-only converter.
+
+[[resource]]
+type = "aws_redshift_snapshot_schedule_association"
+model = "RedshiftSnapshotScheduleAssociationTfModel"
+view = "RedshiftClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "schedule_identifier"
+view = "schedule_identifier"
+type = "string"
+required = true

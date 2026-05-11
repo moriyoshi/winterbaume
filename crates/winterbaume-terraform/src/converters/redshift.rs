@@ -2198,3 +2198,506 @@ impl AwsRedshiftUsageLimitConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// aws_redshift_data_share_authorization
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_redshift_data_share_authorization` Terraform resources.
+///
+/// Stub: the redshift service does not track datashare authorizations in its
+/// state view. The converter parses the HCL fields for shape validation and
+/// extracts nothing. Future work: extend `RedshiftStateView` with a datashare
+/// authorization map.
+pub struct AwsRedshiftDataShareAuthorizationConverter {
+    #[allow(dead_code)]
+    service: Arc<RedshiftService>,
+}
+
+impl AwsRedshiftDataShareAuthorizationConverter {
+    pub fn new(service: Arc<RedshiftService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRedshiftDataShareAuthorizationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_redshift_data_share_authorization"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRedshiftDataShareAuthorizationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: redshift_gen::RedshiftDataShareAuthorizationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_redshift_data_share_authorization", e)
+            })?;
+
+        let _ = model.data_share_arn;
+        let _ = model.consumer_identifier;
+        let _ = model.allow_writes;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![
+                "aws_redshift_data_share_authorization is not tracked by redshift state; \
+                 inject is a no-op"
+                    .to_string(),
+            ],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_redshift_data_share_consumer_association
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_redshift_data_share_consumer_association` Terraform resources.
+///
+/// Stub: the redshift service does not track datashare consumer associations
+/// in its state view. The converter parses the HCL fields for shape validation
+/// and extracts nothing.
+pub struct AwsRedshiftDataShareConsumerAssociationConverter {
+    #[allow(dead_code)]
+    service: Arc<RedshiftService>,
+}
+
+impl AwsRedshiftDataShareConsumerAssociationConverter {
+    pub fn new(service: Arc<RedshiftService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRedshiftDataShareConsumerAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_redshift_data_share_consumer_association"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRedshiftDataShareConsumerAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: redshift_gen::RedshiftDataShareConsumerAssociationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_redshift_data_share_consumer_association", e)
+            })?;
+
+        let _ = model.data_share_arn;
+        let _ = model.allow_writes;
+        let _ = model.associate_entire_account;
+        let _ = model.consumer_arn;
+        let _ = model.consumer_region;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![
+                "aws_redshift_data_share_consumer_association is not tracked by redshift state; \
+                 inject is a no-op"
+                    .to_string(),
+            ],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_redshift_endpoint_access
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_redshift_endpoint_access` Terraform resources.
+///
+/// Stub: the redshift service does not track Redshift-managed VPC endpoints in
+/// its state view. The converter parses the HCL fields, validates that the
+/// referenced cluster exists, and extracts nothing.
+pub struct AwsRedshiftEndpointAccessConverter {
+    service: Arc<RedshiftService>,
+}
+
+impl AwsRedshiftEndpointAccessConverter {
+    pub fn new(service: Arc<RedshiftService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRedshiftEndpointAccessConverter {
+    fn resource_type(&self) -> &str {
+        "aws_redshift_endpoint_access"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_redshift_cluster", "aws_redshift_subnet_group"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRedshiftEndpointAccessConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: redshift_gen::RedshiftEndpointAccessTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_redshift_endpoint_access", e))?;
+
+        let _ = attrs.get("vpc_security_group_ids");
+        let _ = model.endpoint_name;
+        let _ = model.subnet_group_name;
+        let _ = model.resource_owner;
+
+        let mut warnings = vec![];
+        let state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        if !state_view.clusters.contains_key(&model.cluster_identifier) {
+            warnings.push(format!(
+                "cluster '{}' not found in state; endpoint_access association skipped",
+                model.cluster_identifier
+            ));
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // No endpoint_access entries are persisted on the redshift state view.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_redshift_endpoint_authorization
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_redshift_endpoint_authorization` Terraform resources.
+///
+/// Stub: the redshift service does not track endpoint authorizations in its
+/// state view. The converter parses the HCL fields, validates that the
+/// referenced cluster exists, and extracts nothing.
+pub struct AwsRedshiftEndpointAuthorizationConverter {
+    service: Arc<RedshiftService>,
+}
+
+impl AwsRedshiftEndpointAuthorizationConverter {
+    pub fn new(service: Arc<RedshiftService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRedshiftEndpointAuthorizationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_redshift_endpoint_authorization"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_redshift_cluster"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRedshiftEndpointAuthorizationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: redshift_gen::RedshiftEndpointAuthorizationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_redshift_endpoint_authorization", e)
+            })?;
+
+        let _ = attrs.get("vpc_ids");
+        let _ = model.account;
+        let _ = model.force_delete;
+
+        let mut warnings = vec![];
+        let state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        if !state_view.clusters.contains_key(&model.cluster_identifier) {
+            warnings.push(format!(
+                "cluster '{}' not found in state; endpoint_authorization association skipped",
+                model.cluster_identifier
+            ));
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // No endpoint_authorization entries are persisted on the redshift state view.
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_redshift_integration
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_redshift_integration` Terraform resources.
+///
+/// Stub: the redshift service does not track zero-ETL or S3 event integrations
+/// in its state view. The converter parses the HCL fields, captures
+/// `additional_encryption_context` for coverage, and extracts nothing.
+pub struct AwsRedshiftIntegrationConverter {
+    #[allow(dead_code)]
+    service: Arc<RedshiftService>,
+}
+
+impl AwsRedshiftIntegrationConverter {
+    pub fn new(service: Arc<RedshiftService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRedshiftIntegrationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_redshift_integration"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRedshiftIntegrationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: redshift_gen::RedshiftIntegrationTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_redshift_integration", e))?;
+
+        let _ = attrs.get("additional_encryption_context");
+        let _ = attrs.get("tags_all");
+        let _ = extract_tags(attrs);
+        let _ = model.integration_name;
+        let _ = model.source_arn;
+        let _ = model.target_arn;
+        let _ = model.description;
+        let _ = model.kms_key_id;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![
+                "aws_redshift_integration is not tracked by redshift state; inject is a no-op"
+                    .to_string(),
+            ],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        Ok(vec![])
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_redshift_snapshot_schedule_association
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_redshift_snapshot_schedule_association` Terraform resources.
+///
+/// Sub-resource modifier: attaches a snapshot schedule to a cluster. The
+/// cluster view does not track schedule associations, so this is a
+/// validation-only converter that warns when the cluster or the schedule is
+/// missing from state.
+pub struct AwsRedshiftSnapshotScheduleAssociationConverter {
+    service: Arc<RedshiftService>,
+}
+
+impl AwsRedshiftSnapshotScheduleAssociationConverter {
+    pub fn new(service: Arc<RedshiftService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsRedshiftSnapshotScheduleAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_redshift_snapshot_schedule_association"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_redshift_cluster", "aws_redshift_snapshot_schedule"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsRedshiftSnapshotScheduleAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let model: redshift_gen::RedshiftSnapshotScheduleAssociationTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_redshift_snapshot_schedule_association", e)
+            })?;
+
+        let mut warnings = vec![];
+        let state_view = self
+            .service
+            .snapshot(&ctx.default_account_id, &region)
+            .await;
+        if !state_view.clusters.contains_key(&model.cluster_identifier) {
+            warnings.push(format!(
+                "cluster '{}' not found in state; \
+                 snapshot_schedule_association skipped",
+                model.cluster_identifier
+            ));
+        }
+        if !state_view
+            .snapshot_schedules
+            .contains_key(&model.schedule_identifier)
+        {
+            warnings.push(format!(
+                "snapshot schedule '{}' not found in state; \
+                 snapshot_schedule_association skipped",
+                model.schedule_identifier
+            ));
+        }
+
+        Ok(ConversionResult { region, warnings })
+    }
+
+    async fn do_extract(
+        &self,
+        _ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        // No snapshot_schedule_association entries are persisted on the redshift state view.
+        Ok(vec![])
+    }
+}

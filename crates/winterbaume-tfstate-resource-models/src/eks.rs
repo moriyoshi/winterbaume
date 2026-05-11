@@ -30,3 +30,86 @@ pub struct NodeGroupTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub node_role_arn: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_eks_access_entry` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessEntryTfModel {
+    pub cluster_name: String,
+    pub principal_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_entry_arn: Option<String>,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub entry_type: Option<String>,
+    #[serde(rename = "user_name", default, skip_serializing_if = "Option::is_none")]
+    pub username: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub modified_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_eks_access_policy_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessPolicyAssociationTfModel {
+    pub cluster_name: String,
+    pub principal_arn: String,
+    pub policy_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub associated_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub modified_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_eks_addon` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddonTfModel {
+    pub cluster_name: String,
+    pub addon_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub addon_version: Option<String>,
+    #[serde(rename = "arn", default, skip_serializing_if = "Option::is_none")]
+    pub addon_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_account_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub modified_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_eks_fargate_profile` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FargateProfileTfModel {
+    pub cluster_name: String,
+    #[serde(rename = "fargate_profile_name")]
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pod_execution_role_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_eks_identity_provider_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentityProviderConfigTfModel {
+    pub cluster_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_eks_pod_identity_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PodIdentityAssociationTfModel {
+    pub cluster_name: String,
+    pub namespace: String,
+    pub service_account: String,
+    pub role_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub association_id: Option<String>,
+}

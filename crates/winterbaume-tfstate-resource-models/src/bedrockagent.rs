@@ -42,6 +42,140 @@ pub struct AgentTfModel {
     pub tags: HashMap<String, String>,
 }
 
+/// Auto-generated TF-shaped projection of the `aws_bedrockagent_agent_action_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentActionGroupTfModel {
+    pub agent_id: String,
+    pub agent_version: String,
+    pub action_group_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub action_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub action_group_state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_action_group_signature: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_bedrockagent_agent_alias` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentAliasTfModel {
+    pub agent_id: String,
+    pub agent_alias_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_alias_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_alias_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_alias_status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_bedrockagent_agent_collaborator` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentCollaboratorTfModel {
+    pub agent_id: String,
+    pub agent_version: String,
+    pub collaborator_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub collaboration_instruction: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub collaborator_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub relay_conversation_history: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub client_token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_updated_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_bedrockagent_agent_knowledge_base_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentKnowledgeBaseAssociationTfModel {
+    pub agent_id: String,
+    pub knowledge_base_id: String,
+    pub description: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub knowledge_base_state: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_bedrockagent_data_source` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSourceTfModel {
+    pub name: String,
+    pub knowledge_base_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_source_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data_deletion_policy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_bedrockagent_prompt` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PromptTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub customer_encryption_key_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_variant: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
 /// Auto-generated TF-shaped projection of the `aws_bedrockagent_knowledge_base` resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KnowledgeBaseTfModel {

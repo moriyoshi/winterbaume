@@ -61,3 +61,128 @@ hcl = "allow_external_data_filtering"
 view = "allow_external_data_filtering"
 type = "bool"
 default = false
+
+# ---------------------------------------------------------------------------
+# aws_lakeformation_lf_tag
+# ---------------------------------------------------------------------------
+# Dropped:
+#   - `values` (Vec<String> — not in spec vocab, read raw)
+
+[[resource]]
+type = "aws_lakeformation_lf_tag"
+model = "LfTagTfModel"
+view = "LFTagView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "key"
+view = "tag_key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lakeformation_permissions
+# ---------------------------------------------------------------------------
+# Dropped:
+#   - `permissions`, `permissions_with_grant_option` (Vec<String> — read raw)
+#   - `catalog_resource` (bool) and the resource-selector nested blocks
+#     (`data_location`, `database`, `lf_tag`, `lf_tag_policy`, `table`,
+#     `table_with_columns`) — encoded as a single JSON `resource` value in
+#     the converter body
+#   - `catalog_id` (top-level — only meaningful inside nested resource
+#     selectors)
+
+[[resource]]
+type = "aws_lakeformation_permissions"
+model = "PermissionsTfModel"
+view = "PermissionGrantView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "principal"
+view = "principal"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_lakeformation_resource_lf_tag
+# ---------------------------------------------------------------------------
+# Dropped:
+#   - Nested `database`, `table`, `table_with_columns` resource-selector
+#     blocks — read raw to build the tag-assignment key
+#   - Top-level `catalog_id`, `tag_key`, `tag_value` are spec-vocab strings
+#     and round-trip via the model
+
+[[resource]]
+type = "aws_lakeformation_resource_lf_tag"
+model = "ResourceLfTagTfModel"
+view = "LFTagPairView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lakeformation_resource_lf_tags
+# ---------------------------------------------------------------------------
+# Dropped:
+#   - Nested `database`, `table`, `table_with_columns` resource-selector
+#     blocks (read raw to derive the tag-assignment key)
+#   - Repeated `lf_tag { catalog_id, key, value }` blocks (Vec — read raw)
+
+[[resource]]
+type = "aws_lakeformation_resource_lf_tags"
+model = "ResourceLfTagsTfModel"
+view = "LFTagPairView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "catalog_id"
+view = "catalog_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lakeformation_data_cells_filter
+# ---------------------------------------------------------------------------
+# winterbaume_lakeformation does not model data-cells filters in state; the
+# converter validates the HCL shape and emits a no-op warning. Only the
+# inert `table_data { name }` projection is captured here so a typo in HCL
+# would still fail the deserialize.
+
+[[resource]]
+type = "aws_lakeformation_data_cells_filter"
+model = "DataCellsFilterTfModel"
+view = "LakeFormationStateView"
+
+[resource.modes]
+mode = "model_only"
+
+# ---------------------------------------------------------------------------
+# aws_lakeformation_opt_in
+# ---------------------------------------------------------------------------
+# winterbaume_lakeformation does not model opt-ins in state; converter is
+# validation-only.
+
+[[resource]]
+type = "aws_lakeformation_opt_in"
+model = "OptInTfModel"
+view = "LakeFormationStateView"
+
+[resource.modes]
+mode = "model_only"
+

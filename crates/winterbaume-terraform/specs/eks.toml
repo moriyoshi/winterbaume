@@ -91,3 +91,266 @@ type = "string?"
 hcl = "node_role_arn"
 view = "node_role_arn"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eks_access_entry
+# ---------------------------------------------------------------------------
+# Vec<String> kubernetes_groups and tags / tags_all are read raw in the
+# converter. access_entry_arn and modified_at are synthesised when absent.
+
+[[resource]]
+type = "aws_eks_access_entry"
+model = "AccessEntryTfModel"
+view = "AccessEntryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_arn"
+view = "principal_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "access_entry_arn"
+view = "access_entry_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "entry_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "user_name"
+view = "username"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "modified_at"
+view = "modified_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eks_access_policy_association
+# ---------------------------------------------------------------------------
+# Nested access_scope block { type, namespaces } is read raw in the converter.
+# The associated_at and modified_at timestamps are synthesised when absent.
+
+[[resource]]
+type = "aws_eks_access_policy_association"
+model = "AccessPolicyAssociationTfModel"
+view = "AssociatedPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_arn"
+view = "principal_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy_arn"
+view = "policy_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "associated_at"
+view = "associated_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "modified_at"
+view = "modified_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eks_addon
+# ---------------------------------------------------------------------------
+# tags / tags_all / configuration_values / preserve / resolve_conflicts_*
+# are read raw in the converter.
+
+[[resource]]
+type = "aws_eks_addon"
+model = "AddonTfModel"
+view = "AddonView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "addon_name"
+view = "addon_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "addon_version"
+view = "addon_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "addon_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_account_role_arn"
+view = "service_account_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "modified_at"
+view = "modified_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eks_fargate_profile
+# ---------------------------------------------------------------------------
+# selector nested blocks and Vec<String> subnet_ids / tags / tags_all are
+# read raw in the converter.
+
+[[resource]]
+type = "aws_eks_fargate_profile"
+model = "FargateProfileTfModel"
+view = "FargateProfileView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "fargate_profile_name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "pod_execution_role_arn"
+view = "pod_execution_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eks_identity_provider_config
+# ---------------------------------------------------------------------------
+# The oidc nested block (client_id, groups_claim, groups_prefix,
+# identity_provider_config_name, issuer_url, required_claims, username_claim,
+# username_prefix) and tags / tags_all are read raw in the converter.
+
+[[resource]]
+type = "aws_eks_identity_provider_config"
+model = "IdentityProviderConfigTfModel"
+view = "IdentityProviderConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_eks_pod_identity_association
+# ---------------------------------------------------------------------------
+# tags / tags_all are read raw in the converter.
+
+[[resource]]
+type = "aws_eks_pod_identity_association"
+model = "PodIdentityAssociationTfModel"
+view = "PodIdentityAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "namespace"
+view = "namespace"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "service_account"
+view = "service_account"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "association_arn"
+view = "association_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "association_id"
+view = "association_id"
+type = "string?"

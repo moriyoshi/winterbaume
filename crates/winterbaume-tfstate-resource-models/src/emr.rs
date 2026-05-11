@@ -45,3 +45,88 @@ pub struct SecurityConfigurationTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub creation_date: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_emr_block_public_access_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockPublicAccessConfigurationTfModel {
+    pub block_public_security_group_rules: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_emr_instance_fleet` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceFleetTfModel {
+    pub cluster_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub target_on_demand_capacity: i64,
+    #[serde(default)]
+    pub target_spot_capacity: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_emr_instance_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceGroupTfModel {
+    pub cluster_id: String,
+    pub name: String,
+    pub instance_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub instance_count: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bid_price: Option<String>,
+    #[serde(default)]
+    pub ebs_optimized: bool,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_emr_managed_scaling_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedScalingPolicyTfModel {
+    pub cluster_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scaling_strategy: Option<String>,
+    #[serde(default)]
+    pub utilization_performance_index: i64,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_emr_studio` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StudioTfModel {
+    pub name: String,
+    pub auth_mode: String,
+    #[serde(rename = "id", default, skip_serializing_if = "Option::is_none")]
+    pub studio_id: Option<String>,
+    #[serde(rename = "arn", default, skip_serializing_if = "Option::is_none")]
+    pub studio_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user_role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workspace_security_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_security_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_s3_location: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_emr_studio_session_mapping` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StudioSessionMappingTfModel {
+    pub studio_id: String,
+    pub identity_type: String,
+    pub session_policy_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_name: Option<String>,
+}

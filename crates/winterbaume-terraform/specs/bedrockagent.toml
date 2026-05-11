@@ -1,11 +1,17 @@
 # Auto-ingested by `tf-converter-codegen ingest bedrockagent`.
 # Hand-tuned: split into one [[resource]] block per resource type
-# (agent / knowledge_base). Dropped Option<i64> field
-# (`idle_session_ttl_in_seconds`), nested-block fields
-# (`knowledge_base_configuration`, `storage_configuration`), the
-# Vec<String> fields (`failure_reasons`, `recommended_actions`), the
-# `tags_all` overlay and the `prepare_agent` bool — those are read
-# straight from instance.attributes in the converter.
+# (agent / agent_action_group / agent_alias / agent_collaborator /
+# agent_knowledge_base_association / data_source / knowledge_base /
+# prompt). Dropped Option<i64> field (`idle_session_ttl_in_seconds`),
+# nested-block fields (`knowledge_base_configuration`,
+# `storage_configuration`, `action_group_executor`, `api_schema`,
+# `function_schema`, `agent_descriptor`, `routing_configuration`,
+# `data_source_configuration`, `vector_ingestion_configuration`,
+# `server_side_encryption_configuration`, `variant`), the Vec<String>
+# fields (`failure_reasons`, `recommended_actions`), the `tags_all`
+# overlay, the `prepare_agent` bool, and the `skip_resource_in_use_check`
+# bool — those are read straight from instance.attributes in the
+# converter.
 
 [service]
 name = "bedrockagent"
@@ -98,6 +104,387 @@ type = "string?"
 [[resource.field]]
 hcl = "prepared_at"
 view = "prepared_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_bedrockagent_agent_action_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrockagent_agent_action_group"
+model = "AgentActionGroupTfModel"
+view = "AgentActionGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "agent_id"
+view = "agent_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "agent_version"
+view = "agent_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "action_group_name"
+view = "action_group_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "action_group_id"
+view = "action_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "action_group_state"
+view = "action_group_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "parent_action_group_signature"
+view = "parent_action_group_signature"
+type = "string?"
+
+[[resource.field]]
+hcl = "client_token"
+view = "client_token"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_bedrockagent_agent_alias
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrockagent_agent_alias"
+model = "AgentAliasTfModel"
+view = "AgentAliasView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "agent_id"
+view = "agent_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "agent_alias_name"
+view = "agent_alias_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "agent_alias_id"
+view = "agent_alias_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "agent_alias_arn"
+view = "agent_alias_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "agent_alias_status"
+view = "agent_alias_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "client_token"
+view = "client_token"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_bedrockagent_agent_collaborator
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrockagent_agent_collaborator"
+model = "AgentCollaboratorTfModel"
+view = "AgentCollaboratorView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "agent_id"
+view = "agent_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "agent_version"
+view = "agent_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "collaborator_name"
+view = "collaborator_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "collaboration_instruction"
+view = "collaboration_instruction"
+type = "string?"
+
+[[resource.field]]
+hcl = "collaborator_id"
+view = "collaborator_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "relay_conversation_history"
+view = "relay_conversation_history"
+type = "string?"
+
+[[resource.field]]
+hcl = "client_token"
+view = "client_token"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_at"
+view = "last_updated_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_bedrockagent_agent_knowledge_base_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrockagent_agent_knowledge_base_association"
+model = "AgentKnowledgeBaseAssociationTfModel"
+view = "AgentKnowledgeBaseAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "agent_id"
+view = "agent_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "knowledge_base_id"
+view = "knowledge_base_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "agent_version"
+view = "agent_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "knowledge_base_state"
+view = "knowledge_base_state"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_bedrockagent_data_source
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrockagent_data_source"
+model = "DataSourceTfModel"
+view = "DataSourceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "knowledge_base_id"
+view = "knowledge_base_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "data_source_id"
+view = "data_source_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "data_deletion_policy"
+view = "data_deletion_policy"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_bedrockagent_prompt
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrockagent_prompt"
+model = "PromptTfModel"
+view = "PromptView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "customer_encryption_key_arn"
+view = "customer_encryption_key_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_variant"
+view = "default_variant"
+type = "string?"
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
 type = "string?"
 
 [[resource.field]]

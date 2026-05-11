@@ -121,3 +121,267 @@ type = "string?"
 hcl = "creation_date"
 view = "creation_date"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_emr_block_public_access_configuration
+# ---------------------------------------------------------------------------
+# Hand-tuned: `permitted_public_security_group_rule_range` is a repeated
+# nested block of {min_range, max_range} pairs; reshaped by the converter.
+# `block_public_security_group_rules` is the only required scalar.
+
+[[resource]]
+type = "aws_emr_block_public_access_configuration"
+model = "BlockPublicAccessConfigurationTfModel"
+view = "BlockPublicAccessConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "block_public_security_group_rules"
+view = "block_public_security_group_rules"
+type = "bool"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_emr_instance_fleet
+# ---------------------------------------------------------------------------
+# Hand-tuned: dropped `instance_type_configs` / `launch_specifications`
+# nested blocks (handled raw by the converter); `cluster_id` is required to
+# bind the fleet to a parent cluster.
+
+[[resource]]
+type = "aws_emr_instance_fleet"
+model = "InstanceFleetTfModel"
+view = "InstanceFleetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_id"
+view = "cluster_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+[[resource.field]]
+hcl = "target_on_demand_capacity"
+view = "target_on_demand_capacity"
+type = "i64"
+
+[[resource.field]]
+hcl = "target_spot_capacity"
+view = "target_spot_capacity"
+type = "i64"
+
+# ---------------------------------------------------------------------------
+# aws_emr_instance_group
+# ---------------------------------------------------------------------------
+# Hand-tuned: dropped `ebs_config` (nested block), `autoscaling_policy`
+# (JSON blob), and `configurations_json` — those are read raw by the
+# converter. `cluster_id` binds the group to a parent cluster.
+
+[[resource]]
+type = "aws_emr_instance_group"
+model = "InstanceGroupTfModel"
+view = "InstanceGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_id"
+view = "cluster_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "instance_type"
+view = "instance_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "instance_count"
+view = "instance_count"
+type = "i64"
+
+[[resource.field]]
+hcl = "bid_price"
+view = "bid_price"
+type = "string?"
+
+[[resource.field]]
+hcl = "ebs_optimized"
+view = "ebs_optimized"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_emr_managed_scaling_policy
+# ---------------------------------------------------------------------------
+# Hand-tuned: `compute_limits` is a required nested block, parsed manually
+# in the converter. Only `cluster_id` and the top-level `scaling_strategy`
+# / `utilization_performance_index` scalars project here.
+
+[[resource]]
+type = "aws_emr_managed_scaling_policy"
+model = "ManagedScalingPolicyTfModel"
+view = "ManagedScalingPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_id"
+view = "cluster_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "scaling_strategy"
+view = "scaling_strategy"
+type = "string?"
+
+[[resource.field]]
+hcl = "utilization_performance_index"
+view = "utilization_performance_index"
+type = "i64"
+
+# ---------------------------------------------------------------------------
+# aws_emr_studio
+# ---------------------------------------------------------------------------
+# Hand-tuned: dropped `subnet_ids` (Vec<String>) and `tags` / `tags_all`
+# (read raw); ARN/URL are computed by the converter, not the spec.
+
+[[resource]]
+type = "aws_emr_studio"
+model = "StudioTfModel"
+view = "StudioView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "auth_mode"
+view = "auth_mode"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "studio_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "studio_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "url"
+view = "url"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_role"
+view = "service_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "user_role"
+view = "user_role"
+type = "string?"
+
+[[resource.field]]
+hcl = "workspace_security_group_id"
+view = "workspace_security_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_security_group_id"
+view = "engine_security_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_s3_location"
+view = "default_s3_location"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_emr_studio_session_mapping
+# ---------------------------------------------------------------------------
+# The Terraform id format is `studio-id:identity-type:identity-id` —
+# synthesised by the converter, not the spec.
+
+[[resource]]
+type = "aws_emr_studio_session_mapping"
+model = "StudioSessionMappingTfModel"
+view = "SessionMappingView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "studio_id"
+view = "studio_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "identity_type"
+view = "identity_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "session_policy_arn"
+view = "session_policy_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "identity_id"
+view = "identity_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "identity_name"
+view = "identity_name"
+type = "string?"

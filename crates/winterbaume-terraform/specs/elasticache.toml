@@ -148,6 +148,280 @@ view = "description"
 type = "string?"
 
 # ---------------------------------------------------------------------------
+# aws_elasticache_user
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_user"
+model = "UserTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_id"
+view = "user_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_name"
+view = "user_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "access_string"
+view = "access_string"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_user_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_user_group"
+model = "UserGroupTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_group_id"
+view = "user_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_user_group_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_user_group_association"
+model = "UserGroupAssociationTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_group_id"
+view = "user_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "user_id"
+view = "user_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_global_replication_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_global_replication_group"
+model = "GlobalReplicationGroupTfModel"
+view = "ReplicationGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "global_replication_group_id_suffix"
+view = "global_replication_group_id_suffix"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "primary_replication_group_id"
+view = "primary_replication_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "global_replication_group_id"
+view = "global_replication_group_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "global_replication_group_description"
+view = "global_replication_group_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "cache_node_type"
+view = "cache_node_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_reserved_cache_node
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_reserved_cache_node"
+model = "ReservedCacheNodeTfModel"
+view = "CacheClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "reserved_cache_nodes_offering_id"
+view = "reserved_cache_nodes_offering_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "reservation_id"
+view = "reservation_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "cache_node_type"
+view = "cache_node_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "cache_node_count"
+view = "cache_node_count"
+type = "i64"
+default = 1
+
+# ---------------------------------------------------------------------------
+# aws_elasticache_serverless_cache
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_elasticache_serverless_cache"
+model = "ServerlessCacheTfModel"
+view = "CacheClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "major_engine_version"
+view = "major_engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_retention_limit"
+view = "snapshot_retention_limit"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "daily_snapshot_time"
+view = "daily_snapshot_time"
+type = "string?"
+
+[[resource.field]]
+hcl = "user_group_id"
+view = "user_group_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
 # aws_elasticache_parameter_group
 # ---------------------------------------------------------------------------
 
