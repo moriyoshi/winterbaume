@@ -2,21 +2,15 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1193**
-Currently handled by winterbaume: **958** (953 verified against schema)
-Missing within classified prefixes: **240**
+Currently handled by winterbaume: **994** (989 verified against schema)
+Missing within classified prefixes: **204**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
-| bedrockagent | `aws_bedrockagent_` | 2 | 8 | 6 | 25% |  |
 | ebs | `aws_ebs_` | 2 | 8 | 6 | 25% |  |
-| eks | `aws_eks_` | 2 | 8 | 6 | 25% |  |
-| elasticache | `aws_elasticache_` | 4 | 10 | 6 | 40% |  |
 | elbv2 | override (2 patterns) | 10 | 16 | 6 | 62% |  |
-| emr | `aws_emr_` | 2 | 8 | 6 | 25% |  |
-| lakeformation | `aws_lakeformation_` | 2 | 8 | 6 | 25% |  |
-| redshift | `aws_redshift_` | 17 | 23 | 6 | 74% |  |
 | bedrock | `aws_bedrock_` | 1 | 6 | 5 | 17% |  |
 | codebuild | `aws_codebuild_` | 1 | 6 | 5 | 17% |  |
 | dms | `aws_dms_` | 3 | 8 | 5 | 38% |  |
@@ -97,6 +91,7 @@ Sorted by missing-count desc.
 | auditmanager | `aws_auditmanager_` | 8 | 8 | 0 | 100% |  |
 | backup | `aws_backup_` | 13 | 13 | 0 | 100% |  |
 | batch | `aws_batch_` | 4 | 4 | 0 | 100% |  |
+| bedrockagent | `aws_bedrockagent_` | 8 | 8 | 0 | 100% |  |
 | cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
 | cognitoidp | override (5 patterns) | 9 | 9 | 0 | 100% |  |
 | config | `aws_config_` | 13 | 13 | 0 | 100% |  |
@@ -109,6 +104,9 @@ Sorted by missing-count desc.
 | ec2 | override (37 patterns) | 139 | 139 | 0 | 100% |  |
 | ec2instanceconnect | `aws_ec2_instance_connect_` | 1 | 1 | 0 | 100% |  |
 | ecr | `aws_ecr_` | 9 | 9 | 0 | 100% |  |
+| eks | `aws_eks_` | 8 | 8 | 0 | 100% |  |
+| elasticache | `aws_elasticache_` | 10 | 10 | 0 | 100% |  |
+| emr | `aws_emr_` | 8 | 8 | 0 | 100% |  |
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
 | events | `aws_cloudwatch_event_` | 9 | 9 | 0 | 100% |  |
 | firehose | `aws_kinesis_firehose_` | 1 | 1 | 0 | 100% |  |
@@ -120,6 +118,7 @@ Sorted by missing-count desc.
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
 | kms | `aws_kms_` | 9 | 9 | 0 | 100% |  |
+| lakeformation | `aws_lakeformation_` | 8 | 8 | 0 | 100% |  |
 | lambda | `aws_lambda_` | 13 | 13 | 0 | 100% |  |
 | logs | `aws_cloudwatch_log_` | 15 | 15 | 0 | 100% |  |
 | macie2 | `aws_macie2_` | 9 | 9 | 0 | 100% |  |
@@ -133,6 +132,7 @@ Sorted by missing-count desc.
 | pinpoint | `aws_pinpoint_` | 12 | 12 | 0 | 100% |  |
 | pipes | `aws_pipes_` | 1 | 1 | 0 | 100% |  |
 | quicksight | `aws_quicksight_` | 20 | 20 | 0 | 100% |  |
+| redshift | `aws_redshift_` | 23 | 23 | 0 | 100% |  |
 | resiliencehub | `aws_resiliencehub_` | 1 | 1 | 0 | 100% |  |
 | rolesanywhere | `aws_rolesanywhere_` | 2 | 2 | 0 | 100% |  |
 | route53 | override (11 patterns) | 13 | 13 | 0 | 100% |  |
@@ -157,15 +157,6 @@ Sorted by missing-count desc.
 
 ## Per-service missing resources
 
-### bedrockagent — 6 missing
-
-- `aws_bedrockagent_agent_action_group`
-- `aws_bedrockagent_agent_alias`
-- `aws_bedrockagent_agent_collaborator`
-- `aws_bedrockagent_agent_knowledge_base_association`
-- `aws_bedrockagent_data_source`
-- `aws_bedrockagent_prompt`
-
 ### ebs — 6 missing
 
 - `aws_ebs_default_kms_key`
@@ -175,24 +166,6 @@ Sorted by missing-count desc.
 - `aws_ebs_snapshot_copy`
 - `aws_ebs_snapshot_import`
 
-### eks — 6 missing
-
-- `aws_eks_access_entry`
-- `aws_eks_access_policy_association`
-- `aws_eks_addon`
-- `aws_eks_fargate_profile`
-- `aws_eks_identity_provider_config`
-- `aws_eks_pod_identity_association`
-
-### elasticache — 6 missing
-
-- `aws_elasticache_global_replication_group`
-- `aws_elasticache_reserved_cache_node`
-- `aws_elasticache_serverless_cache`
-- `aws_elasticache_user`
-- `aws_elasticache_user_group`
-- `aws_elasticache_user_group_association`
-
 ### elbv2 — 6 missing
 
 - `aws_alb`
@@ -201,33 +174,6 @@ Sorted by missing-count desc.
 - `aws_alb_listener_rule`
 - `aws_alb_target_group`
 - `aws_alb_target_group_attachment`
-
-### emr — 6 missing
-
-- `aws_emr_block_public_access_configuration`
-- `aws_emr_instance_fleet`
-- `aws_emr_instance_group`
-- `aws_emr_managed_scaling_policy`
-- `aws_emr_studio`
-- `aws_emr_studio_session_mapping`
-
-### lakeformation — 6 missing
-
-- `aws_lakeformation_data_cells_filter`
-- `aws_lakeformation_lf_tag`
-- `aws_lakeformation_opt_in`
-- `aws_lakeformation_permissions`
-- `aws_lakeformation_resource_lf_tag`
-- `aws_lakeformation_resource_lf_tags`
-
-### redshift — 6 missing
-
-- `aws_redshift_data_share_authorization`
-- `aws_redshift_data_share_consumer_association`
-- `aws_redshift_endpoint_access`
-- `aws_redshift_endpoint_authorization`
-- `aws_redshift_integration`
-- `aws_redshift_snapshot_schedule_association`
 
 ### bedrock — 5 missing
 

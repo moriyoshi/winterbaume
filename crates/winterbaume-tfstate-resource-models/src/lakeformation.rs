@@ -29,3 +29,40 @@ pub struct DataLakeSettingsTfModel {
 fn default_data_lake_settings_allow_external_data_filtering() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_lakeformation_lf_tag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LfTagTfModel {
+    #[serde(rename = "key")]
+    pub tag_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lakeformation_permissions` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionsTfModel {
+    pub principal: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lakeformation_resource_lf_tag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceLfTagTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lakeformation_resource_lf_tags` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceLfTagsTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lakeformation_data_cells_filter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataCellsFilterTfModel {}
+
+/// Auto-generated TF-shaped projection of the `aws_lakeformation_opt_in` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OptInTfModel {}

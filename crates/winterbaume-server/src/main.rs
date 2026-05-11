@@ -1593,6 +1593,28 @@ async fn load_tfstate(
     injector.register(bedrockagent::AwsBedrockagentKnowledgeBaseConverter::new(
         Arc::clone(&injectable.bedrockagent),
     ));
+    injector.register(bedrockagent::AwsBedrockagentAgentActionGroupConverter::new(
+        Arc::clone(&injectable.bedrockagent),
+    ));
+    injector.register(bedrockagent::AwsBedrockagentAgentAliasConverter::new(
+        Arc::clone(&injectable.bedrockagent),
+    ));
+    injector.register(
+        bedrockagent::AwsBedrockagentAgentCollaboratorConverter::new(Arc::clone(
+            &injectable.bedrockagent,
+        )),
+    );
+    injector.register(
+        bedrockagent::AwsBedrockagentAgentKnowledgeBaseAssociationConverter::new(Arc::clone(
+            &injectable.bedrockagent,
+        )),
+    );
+    injector.register(bedrockagent::AwsBedrockagentDataSourceConverter::new(
+        Arc::clone(&injectable.bedrockagent),
+    ));
+    injector.register(bedrockagent::AwsBedrockagentPromptConverter::new(
+        Arc::clone(&injectable.bedrockagent),
+    ));
     injector.register(budgets::AwsBudgetsBudgetConverter::new(Arc::clone(
         &injectable.budgets,
     )));
@@ -2425,6 +2447,22 @@ async fn load_tfstate(
             mk_sp(),
         );
     }
+    injector.register(eks::AwsEksAccessEntryConverter::new(Arc::clone(
+        &injectable.eks,
+    )));
+    injector.register(eks::AwsEksAccessPolicyAssociationConverter::new(
+        Arc::clone(&injectable.eks),
+    ));
+    injector.register(eks::AwsEksAddonConverter::new(Arc::clone(&injectable.eks)));
+    injector.register(eks::AwsEksFargateProfileConverter::new(Arc::clone(
+        &injectable.eks,
+    )));
+    injector.register(eks::AwsEksIdentityProviderConfigConverter::new(Arc::clone(
+        &injectable.eks,
+    )));
+    injector.register(eks::AwsEksPodIdentityAssociationConverter::new(Arc::clone(
+        &injectable.eks,
+    )));
     injector.register(elasticache::AwsElastiCacheClusterConverter::new(
         Arc::clone(&injectable.elasticache),
     ));
@@ -2435,6 +2473,28 @@ async fn load_tfstate(
         Arc::clone(&injectable.elasticache),
     ));
     injector.register(elasticache::AwsElastiCacheParameterGroupConverter::new(
+        Arc::clone(&injectable.elasticache),
+    ));
+    injector.register(
+        elasticache::AwsElastiCacheGlobalReplicationGroupConverter::new(Arc::clone(
+            &injectable.elasticache,
+        )),
+    );
+    injector.register(elasticache::AwsElastiCacheReservedCacheNodeConverter::new(
+        Arc::clone(&injectable.elasticache),
+    ));
+    injector.register(elasticache::AwsElastiCacheServerlessCacheConverter::new(
+        Arc::clone(&injectable.elasticache),
+    ));
+    injector.register(elasticache::AwsElastiCacheUserConverter::new(Arc::clone(
+        &injectable.elasticache,
+    )));
+    injector.register(
+        elasticache::AwsElastiCacheUserGroupAssociationConverter::new(Arc::clone(
+            &injectable.elasticache,
+        )),
+    );
+    injector.register(elasticache::AwsElastiCacheUserGroupConverter::new(
         Arc::clone(&injectable.elasticache),
     ));
     injector.register(elasticloadbalancing::AwsElbConverter::new(Arc::clone(
@@ -2488,6 +2548,22 @@ async fn load_tfstate(
         &injectable.emr,
     )));
     injector.register(emr::AwsEmrSecurityConfigurationConverter::new(Arc::clone(
+        &injectable.emr,
+    )));
+    injector.register(emr::AwsEmrBlockPublicAccessConfigurationConverter::new(
+        Arc::clone(&injectable.emr),
+    ));
+    injector.register(emr::AwsEmrInstanceFleetConverter::new(Arc::clone(
+        &injectable.emr,
+    )));
+    injector.register(emr::AwsEmrInstanceGroupConverter::new(Arc::clone(
+        &injectable.emr,
+    )));
+    injector.register(emr::AwsEmrManagedScalingPolicyConverter::new(Arc::clone(
+        &injectable.emr,
+    )));
+    injector.register(emr::AwsEmrStudioConverter::new(Arc::clone(&injectable.emr)));
+    injector.register(emr::AwsEmrStudioSessionMappingConverter::new(Arc::clone(
         &injectable.emr,
     )));
     injector.register(emrcontainers::AwsEmrcontainersVirtualClusterConverter::new(
@@ -2871,6 +2947,26 @@ async fn load_tfstate(
             &injectable.lakeformation,
         )),
     );
+    injector.register(
+        lakeformation::AwsLakeformationDataCellsFilterConverter::new(Arc::clone(
+            &injectable.lakeformation,
+        )),
+    );
+    injector.register(lakeformation::AwsLakeformationLfTagConverter::new(
+        Arc::clone(&injectable.lakeformation),
+    ));
+    injector.register(lakeformation::AwsLakeformationOptInConverter::new(
+        Arc::clone(&injectable.lakeformation),
+    ));
+    injector.register(lakeformation::AwsLakeformationPermissionsConverter::new(
+        Arc::clone(&injectable.lakeformation),
+    ));
+    injector.register(lakeformation::AwsLakeformationResourceLfTagConverter::new(
+        Arc::clone(&injectable.lakeformation),
+    ));
+    injector.register(lakeformation::AwsLakeformationResourceLfTagsConverter::new(
+        Arc::clone(&injectable.lakeformation),
+    ));
     {
         let mk_sp = || {
             let svc = Arc::clone(&injectable.lambda);
@@ -3442,6 +3538,28 @@ async fn load_tfstate(
     injector.register(redshift::AwsRedshiftUsageLimitConverter::new(Arc::clone(
         &injectable.redshift,
     )));
+    injector.register(redshift::AwsRedshiftDataShareAuthorizationConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(
+        redshift::AwsRedshiftDataShareConsumerAssociationConverter::new(Arc::clone(
+            &injectable.redshift,
+        )),
+    );
+    injector.register(redshift::AwsRedshiftEndpointAccessConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftEndpointAuthorizationConverter::new(
+        Arc::clone(&injectable.redshift),
+    ));
+    injector.register(redshift::AwsRedshiftIntegrationConverter::new(Arc::clone(
+        &injectable.redshift,
+    )));
+    injector.register(
+        redshift::AwsRedshiftSnapshotScheduleAssociationConverter::new(Arc::clone(
+            &injectable.redshift,
+        )),
+    );
     injector.register(rekognition::AwsRekognitionCollectionConverter::new(
         Arc::clone(&injectable.rekognition),
     ));

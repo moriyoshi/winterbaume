@@ -268,3 +268,80 @@ pub struct RedshiftUsageLimitTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub breach_action: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_data_share_authorization` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftDataShareAuthorizationTfModel {
+    pub data_share_arn: String,
+    pub consumer_identifier: String,
+    #[serde(default = "default_redshift_data_share_authorization_allow_writes")]
+    pub allow_writes: bool,
+}
+
+fn default_redshift_data_share_authorization_allow_writes() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_data_share_consumer_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftDataShareConsumerAssociationTfModel {
+    pub data_share_arn: String,
+    #[serde(default = "default_redshift_data_share_consumer_association_allow_writes")]
+    pub allow_writes: bool,
+    #[serde(default = "default_redshift_data_share_consumer_association_associate_entire_account")]
+    pub associate_entire_account: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub consumer_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub consumer_region: Option<String>,
+}
+
+fn default_redshift_data_share_consumer_association_allow_writes() -> bool {
+    false
+}
+
+fn default_redshift_data_share_consumer_association_associate_entire_account() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_endpoint_access` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftEndpointAccessTfModel {
+    pub endpoint_name: String,
+    pub cluster_identifier: String,
+    pub subnet_group_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resource_owner: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_endpoint_authorization` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftEndpointAuthorizationTfModel {
+    pub account: String,
+    pub cluster_identifier: String,
+    #[serde(default = "default_redshift_endpoint_authorization_force_delete")]
+    pub force_delete: bool,
+}
+
+fn default_redshift_endpoint_authorization_force_delete() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_integration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftIntegrationTfModel {
+    pub integration_name: String,
+    pub source_arn: String,
+    pub target_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_redshift_snapshot_schedule_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RedshiftSnapshotScheduleAssociationTfModel {
+    pub cluster_identifier: String,
+    pub schedule_identifier: String,
+}

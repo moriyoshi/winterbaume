@@ -58,6 +58,110 @@ pub struct CacheSubnetGroupTfModel {
     pub description: Option<String>,
 }
 
+/// Auto-generated TF-shaped projection of the `aws_elasticache_user` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserTfModel {
+    pub user_id: String,
+    pub user_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access_string: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_elasticache_user_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserGroupTfModel {
+    pub user_group_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_elasticache_user_group_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserGroupAssociationTfModel {
+    pub user_group_id: String,
+    pub user_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_elasticache_global_replication_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GlobalReplicationGroupTfModel {
+    pub global_replication_group_id_suffix: String,
+    pub primary_replication_group_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub global_replication_group_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub global_replication_group_description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_node_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_elasticache_reserved_cache_node` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReservedCacheNodeTfModel {
+    pub reserved_cache_nodes_offering_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reservation_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_node_type: Option<String>,
+    #[serde(default = "default_reserved_cache_node_cache_node_count")]
+    pub cache_node_count: i64,
+}
+
+fn default_reserved_cache_node_cache_node_count() -> i64 {
+    1i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_elasticache_serverless_cache` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerlessCacheTfModel {
+    pub name: String,
+    pub engine: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub major_engine_version: Option<String>,
+    #[serde(default = "default_serverless_cache_snapshot_retention_limit")]
+    pub snapshot_retention_limit: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub daily_snapshot_time: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user_group_id: Option<String>,
+}
+
+fn default_serverless_cache_snapshot_retention_limit() -> i64 {
+    0i64
+}
+
 /// Auto-generated TF-shaped projection of the `aws_elasticache_parameter_group` resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheParameterGroupTfModel {

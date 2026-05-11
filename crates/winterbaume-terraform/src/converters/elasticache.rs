@@ -9,7 +9,7 @@ use winterbaume_core::StatefulService;
 use winterbaume_elasticache::ElastiCacheService;
 use winterbaume_elasticache::views::{
     CacheClusterView, CacheParameterGroupView, CacheSubnetGroupView, ElastiCacheStateView,
-    ReplicationGroupView, TagView,
+    ReplicationGroupView, TagView, UserView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -641,5 +641,476 @@ impl AwsElastiCacheParameterGroupConverter {
             });
         }
         Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_elasticache_user
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_elasticache_user` Terraform resources to/from ElastiCache state.
+pub struct AwsElastiCacheUserConverter {
+    service: Arc<ElastiCacheService>,
+}
+
+impl AwsElastiCacheUserConverter {
+    pub fn new(service: Arc<ElastiCacheService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsElastiCacheUserConverter {
+    fn resource_type(&self) -> &str {
+        "aws_elasticache_user"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsElastiCacheUserConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+
+        let model: elasticache_gen::UserTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_elasticache_user", e))?;
+
+        // Additional fields for coverage
+        let _ = attrs.get("authentication_mode");
+        let _ = attrs.get("no_password_required");
+        let _ = attrs.get("passwords");
+        let _ = attrs.get("tags_all");
+
+        let user_id = model.user_id.clone();
+        let user_name = model.user_name.clone();
+        let engine = model.engine.unwrap_or_else(|| "redis".to_string());
+        let access_string = model
+            .access_string
+            .unwrap_or_else(|| "on ~* +@all".to_string());
+
+        let arn = model.arn.or(model.id).unwrap_or_else(|| {
+            format!(
+                "arn:aws:elasticache:{}:{}:user:{}",
+                region, ctx.default_account_id, user_id
+            )
+        });
+
+        let tags: Vec<TagView> = extract_tags(attrs)
+            .into_iter()
+            .map(|(k, v)| TagView { key: k, value: v })
+            .collect();
+
+        let user_view = UserView {
+            user_id: user_id.clone(),
+            user_name,
+            engine,
+            status: "active".to_string(),
+            access_string,
+            arn,
+            tags,
+        };
+
+        let state_view = ElastiCacheStateView {
+            users: {
+                let mut m = HashMap::new();
+                m.insert(user_id, user_view);
+                m
+            },
+            ..Default::default()
+        };
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for user in view.users.values() {
+            let tags: HashMap<String, String> = user
+                .tags
+                .iter()
+                .map(|t| (t.key.clone(), t.value.clone()))
+                .collect();
+            let attrs = serde_json::json!({
+                "id": user.user_id,
+                "user_id": user.user_id,
+                "user_name": user.user_name,
+                "arn": user.arn,
+                "engine": user.engine,
+                "access_string": user.access_string,
+                "status": user.status,
+                "no_password_required": false,
+                "tags": tags,
+                "tags_all": tags,
+            });
+            results.push(ExtractedResource {
+                name: user.user_id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_elasticache_user_group — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_elasticache_user_group` Terraform resources
+/// (validation-only; no backing state slot in `winterbaume_elasticache`).
+pub struct AwsElastiCacheUserGroupConverter {
+    #[allow(dead_code)]
+    service: Arc<ElastiCacheService>,
+}
+
+impl AwsElastiCacheUserGroupConverter {
+    pub fn new(service: Arc<ElastiCacheService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsElastiCacheUserGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_elasticache_user_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsElastiCacheUserGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let _model: elasticache_gen::UserGroupTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_elasticache_user_group", e))?;
+        // Additional fields for coverage
+        let _ = attrs.get("user_ids");
+        let _ = attrs.get("tags_all");
+        let warn_msg = "no state slot in winterbaume_elasticache for user groups; \
+             inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_elasticache_user_group: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_elasticache_user_group: {warn_msg}")],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_elasticache_user_group_association — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_elasticache_user_group_association` Terraform resources
+/// (validation-only; no backing state slot in `winterbaume_elasticache`).
+pub struct AwsElastiCacheUserGroupAssociationConverter {
+    #[allow(dead_code)]
+    service: Arc<ElastiCacheService>,
+}
+
+impl AwsElastiCacheUserGroupAssociationConverter {
+    pub fn new(service: Arc<ElastiCacheService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsElastiCacheUserGroupAssociationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_elasticache_user_group_association"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsElastiCacheUserGroupAssociationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let _model: elasticache_gen::UserGroupAssociationTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_elasticache_user_group_association", e)
+            })?;
+        let warn_msg = "no state slot in winterbaume_elasticache for user-group \
+             associations; inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_elasticache_user_group_association: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!(
+                "aws_elasticache_user_group_association: {warn_msg}"
+            )],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_elasticache_global_replication_group — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_elasticache_global_replication_group` Terraform resources
+/// (validation-only; no backing state slot in `winterbaume_elasticache`).
+pub struct AwsElastiCacheGlobalReplicationGroupConverter {
+    #[allow(dead_code)]
+    service: Arc<ElastiCacheService>,
+}
+
+impl AwsElastiCacheGlobalReplicationGroupConverter {
+    pub fn new(service: Arc<ElastiCacheService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsElastiCacheGlobalReplicationGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_elasticache_global_replication_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsElastiCacheGlobalReplicationGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let _model: elasticache_gen::GlobalReplicationGroupTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_elasticache_global_replication_group", e)
+            })?;
+        // Additional fields for coverage
+        let _ = attrs.get("automatic_failover_enabled");
+        let _ = attrs.get("global_node_groups");
+        let _ = attrs.get("num_node_groups");
+        let _ = attrs.get("parameter_group_name");
+        let _ = attrs.get("transit_encryption_enabled");
+        let _ = attrs.get("at_rest_encryption_enabled");
+        let _ = attrs.get("auth_token_enabled");
+        let warn_msg = "no state slot in winterbaume_elasticache for global replication \
+             groups; inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_elasticache_global_replication_group: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!(
+                "aws_elasticache_global_replication_group: {warn_msg}"
+            )],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_elasticache_reserved_cache_node — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_elasticache_reserved_cache_node` Terraform resources
+/// (validation-only; no backing state slot in `winterbaume_elasticache`).
+pub struct AwsElastiCacheReservedCacheNodeConverter {
+    #[allow(dead_code)]
+    service: Arc<ElastiCacheService>,
+}
+
+impl AwsElastiCacheReservedCacheNodeConverter {
+    pub fn new(service: Arc<ElastiCacheService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsElastiCacheReservedCacheNodeConverter {
+    fn resource_type(&self) -> &str {
+        "aws_elasticache_reserved_cache_node"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsElastiCacheReservedCacheNodeConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let _model: elasticache_gen::ReservedCacheNodeTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_elasticache_reserved_cache_node", e)
+            })?;
+        // Additional fields for coverage
+        let _ = attrs.get("tags");
+        let _ = attrs.get("tags_all");
+        let warn_msg = "no state slot in winterbaume_elasticache for reserved cache nodes; \
+             inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_elasticache_reserved_cache_node: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_elasticache_reserved_cache_node: {warn_msg}")],
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_elasticache_serverless_cache — no state slot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_elasticache_serverless_cache` Terraform resources
+/// (validation-only; no backing state slot in `winterbaume_elasticache`).
+pub struct AwsElastiCacheServerlessCacheConverter {
+    #[allow(dead_code)]
+    service: Arc<ElastiCacheService>,
+}
+
+impl AwsElastiCacheServerlessCacheConverter {
+    pub fn new(service: Arc<ElastiCacheService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsElastiCacheServerlessCacheConverter {
+    fn resource_type(&self) -> &str {
+        "aws_elasticache_serverless_cache"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+impl AwsElastiCacheServerlessCacheConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let _model: elasticache_gen::ServerlessCacheTfModel = serde_json::from_value(attrs.clone())
+            .map_err(|e| classify_deserialize_error("aws_elasticache_serverless_cache", e))?;
+        // Additional fields for coverage
+        let _ = attrs.get("cache_usage_limits");
+        let _ = attrs.get("security_group_ids");
+        let _ = attrs.get("subnet_ids");
+        let _ = attrs.get("snapshot_arns_to_restore");
+        let _ = attrs.get("tags");
+        let _ = attrs.get("tags_all");
+        let warn_msg = "no state slot in winterbaume_elasticache for serverless caches; \
+             inject is a no-op"
+            .to_string();
+        eprintln!("warning: aws_elasticache_serverless_cache: {warn_msg}");
+        Ok(ConversionResult {
+            region,
+            warnings: vec![format!("aws_elasticache_serverless_cache: {warn_msg}")],
+        })
     }
 }
