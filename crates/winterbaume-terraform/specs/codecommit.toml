@@ -41,3 +41,84 @@ type = "string?"
 hcl = "clone_url_ssh"
 view = "clone_url_ssh"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_codecommit_approval_rule_template — no state slot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codecommit_approval_rule_template"
+model = "CodecommitApprovalRuleTemplateTfModel"
+view = "CodecommitApprovalRuleTemplateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "content"
+view = "content"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "approval_rule_template_id"
+view = "approval_rule_template_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_codecommit_approval_rule_template_association — no state slot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codecommit_approval_rule_template_association"
+model = "CodecommitApprovalRuleTemplateAssociationTfModel"
+view = "CodecommitApprovalRuleTemplateAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "approval_rule_template_name"
+view = "approval_rule_template_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "repository_name"
+view = "repository_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_codecommit_trigger — no state slot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codecommit_trigger"
+model = "CodecommitTriggerTfModel"
+view = "CodecommitTriggerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "repository_name"
+view = "repository_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "configuration_id"
+view = "configuration_id"
+type = "string?"

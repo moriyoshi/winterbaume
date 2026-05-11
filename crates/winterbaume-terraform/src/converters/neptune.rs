@@ -8,8 +8,10 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_neptune::NeptuneService;
 use winterbaume_neptune::views::{
-    DbClusterView, DbInstanceView, DbParameterGroupView, DbSubnetGroupView, NeptuneStateView,
-    ParameterView, ServerlessV2ScalingConfigurationView, TagView,
+    DbClusterEndpointView, DbClusterParameterGroupView, DbClusterSnapshotView, DbClusterView,
+    DbInstanceView, DbParameterGroupView, DbSubnetGroupView, EventSubscriptionView,
+    GlobalClusterView, NeptuneStateView, ParameterView, ServerlessV2ScalingConfigurationView,
+    TagView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -756,6 +758,721 @@ impl AwsNeptuneParameterGroupConverter {
             });
             results.push(ExtractedResource {
                 name: pg.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_neptune_cluster_endpoint
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_neptune_cluster_endpoint` Terraform resources to/from Neptune state.
+pub struct AwsNeptuneClusterEndpointConverter {
+    service: Arc<NeptuneService>,
+}
+
+impl AwsNeptuneClusterEndpointConverter {
+    pub fn new(service: Arc<NeptuneService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNeptuneClusterEndpointConverter {
+    fn resource_type(&self) -> &str {
+        "aws_neptune_cluster_endpoint"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNeptuneClusterEndpointConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::DbClusterEndpointTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_neptune_cluster_endpoint", e))?;
+
+        let attrs = &instance.attributes;
+        let identifier = model.cluster_endpoint_identifier.clone();
+
+        let static_members: Vec<String> = attrs
+            .get("static_members")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let excluded_members: Vec<String> = attrs
+            .get("excluded_members")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:cluster-endpoint:{}",
+                region, ctx.default_account_id, identifier
+            )
+        });
+        let endpoint = model.endpoint.unwrap_or_else(|| {
+            format!(
+                "{}.cluster-custom-xxxxxxxxxx.{}.neptune.amazonaws.com",
+                identifier, region
+            )
+        });
+
+        let endpoint_view = DbClusterEndpointView {
+            identifier: identifier.clone(),
+            db_cluster_identifier: model.cluster_identifier,
+            endpoint_type: model.endpoint_type.clone(),
+            custom_endpoint_type: Some(model.endpoint_type),
+            endpoint: Some(endpoint),
+            arn,
+            resource_identifier: format!("cluster-endpoint-{}", uuid::Uuid::new_v4().simple()),
+            status: "available".to_string(),
+            static_members,
+            excluded_members,
+        };
+
+        let mut state_view = NeptuneStateView::default();
+        state_view
+            .db_cluster_endpoints
+            .insert(identifier, endpoint_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for ep in view.db_cluster_endpoints.values() {
+            let attrs = serde_json::json!({
+                "id": ep.identifier,
+                "cluster_endpoint_identifier": ep.identifier,
+                "cluster_identifier": ep.db_cluster_identifier,
+                "endpoint_type": ep.endpoint_type,
+                "endpoint": ep.endpoint,
+                "arn": ep.arn,
+                "static_members": ep.static_members,
+                "excluded_members": ep.excluded_members,
+            });
+            results.push(ExtractedResource {
+                name: ep.identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_neptune_cluster_parameter_group
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_neptune_cluster_parameter_group` Terraform resources to/from Neptune state.
+pub struct AwsNeptuneClusterParameterGroupConverter {
+    service: Arc<NeptuneService>,
+}
+
+impl AwsNeptuneClusterParameterGroupConverter {
+    pub fn new(service: Arc<NeptuneService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNeptuneClusterParameterGroupConverter {
+    fn resource_type(&self) -> &str {
+        "aws_neptune_cluster_parameter_group"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNeptuneClusterParameterGroupConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::DbClusterParameterGroupTfModel =
+            serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                classify_deserialize_error("aws_neptune_cluster_parameter_group", e)
+            })?;
+
+        let attrs = &instance.attributes;
+        let name = model.name.clone();
+        let family = model.family.clone();
+        let description = model
+            .description
+            .unwrap_or_else(|| "Managed by Terraform".to_string());
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:cluster-pg:{}",
+                region, ctx.default_account_id, name
+            )
+        });
+
+        let tags: Vec<TagView> = extract_tags(attrs)
+            .into_iter()
+            .map(|(k, v)| TagView { key: k, value: v })
+            .collect();
+
+        // Parse parameter blocks from raw attributes.
+        let parameters: Vec<ParameterView> = attrs
+            .get("parameter")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|item| {
+                        let obj = item.as_object()?;
+                        let param_name = obj.get("name")?.as_str()?.to_string();
+                        let value = obj.get("value")?.as_str()?.to_string();
+                        let apply_method = obj
+                            .get("apply_method")
+                            .and_then(|v| v.as_str())
+                            .map(String::from);
+                        Some(ParameterView {
+                            name: param_name,
+                            value,
+                            apply_method,
+                        })
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let pg_view = DbClusterParameterGroupView {
+            name: name.clone(),
+            family,
+            description,
+            arn,
+            tags,
+            parameters,
+        };
+
+        let mut state_view = NeptuneStateView::default();
+        state_view.db_cluster_parameter_groups.insert(name, pg_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for pg in view.db_cluster_parameter_groups.values() {
+            let tags: HashMap<String, String> = pg
+                .tags
+                .iter()
+                .map(|t| (t.key.clone(), t.value.clone()))
+                .collect();
+            let parameters: Vec<serde_json::Value> = pg
+                .parameters
+                .iter()
+                .map(|p| {
+                    let mut obj = serde_json::json!({
+                        "name": p.name,
+                        "value": p.value,
+                    });
+                    if let Some(ref method) = p.apply_method {
+                        obj["apply_method"] = serde_json::json!(method);
+                    }
+                    obj
+                })
+                .collect();
+            let attrs = serde_json::json!({
+                "id": pg.name,
+                "name": pg.name,
+                "arn": pg.arn,
+                "family": pg.family,
+                "description": pg.description,
+                "parameter": parameters,
+                "tags": tags,
+                "tags_all": tags,
+            });
+            results.push(ExtractedResource {
+                name: pg.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_neptune_cluster_snapshot
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_neptune_cluster_snapshot` Terraform resources to/from Neptune state.
+pub struct AwsNeptuneClusterSnapshotConverter {
+    service: Arc<NeptuneService>,
+}
+
+impl AwsNeptuneClusterSnapshotConverter {
+    pub fn new(service: Arc<NeptuneService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNeptuneClusterSnapshotConverter {
+    fn resource_type(&self) -> &str {
+        "aws_neptune_cluster_snapshot"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNeptuneClusterSnapshotConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::DbClusterSnapshotTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_neptune_cluster_snapshot", e))?;
+
+        let attrs = &instance.attributes;
+        let identifier = model.db_cluster_snapshot_identifier.clone();
+
+        let availability_zones: Vec<String> = attrs
+            .get("availability_zones")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let arn = model.db_cluster_snapshot_arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:cluster-snapshot:{}",
+                region, ctx.default_account_id, identifier
+            )
+        });
+
+        let engine = model.engine.unwrap_or_else(|| "neptune".to_string());
+        let status = model.status.unwrap_or_else(|| "available".to_string());
+        let snapshot_type = model.snapshot_type.unwrap_or_else(|| "manual".to_string());
+        let port = optional_i64(attrs, "port").map(|v| v as i32);
+
+        let tags: Vec<TagView> = extract_tags(attrs)
+            .into_iter()
+            .map(|(k, v)| TagView { key: k, value: v })
+            .collect();
+
+        let snapshot_view = DbClusterSnapshotView {
+            identifier: identifier.clone(),
+            db_cluster_identifier: model.db_cluster_identifier,
+            engine,
+            engine_version: model.engine_version,
+            allocated_storage: model.allocated_storage as i32,
+            status,
+            port,
+            vpc_id: model.vpc_id,
+            cluster_create_time: None,
+            master_username: None,
+            snapshot_type,
+            percent_progress: 100,
+            storage_encrypted: model.storage_encrypted,
+            kms_key_id: model.kms_key_id,
+            db_cluster_snapshot_arn: arn,
+            availability_zones,
+            snapshot_create_time: None,
+            tags,
+        };
+
+        let mut state_view = NeptuneStateView::default();
+        state_view
+            .db_cluster_snapshots
+            .insert(identifier, snapshot_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for s in view.db_cluster_snapshots.values() {
+            let tags: HashMap<String, String> = s
+                .tags
+                .iter()
+                .map(|t| (t.key.clone(), t.value.clone()))
+                .collect();
+            let attrs = serde_json::json!({
+                "id": s.identifier,
+                "db_cluster_snapshot_identifier": s.identifier,
+                "db_cluster_identifier": s.db_cluster_identifier,
+                "db_cluster_snapshot_arn": s.db_cluster_snapshot_arn,
+                "engine": s.engine,
+                "engine_version": s.engine_version,
+                "allocated_storage": s.allocated_storage,
+                "availability_zones": s.availability_zones,
+                "kms_key_id": s.kms_key_id,
+                "port": s.port,
+                "snapshot_type": s.snapshot_type,
+                "status": s.status,
+                "storage_encrypted": s.storage_encrypted,
+                "vpc_id": s.vpc_id,
+                "tags": tags,
+                "tags_all": tags,
+            });
+            results.push(ExtractedResource {
+                name: s.identifier.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_neptune_event_subscription
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_neptune_event_subscription` Terraform resources to/from Neptune state.
+pub struct AwsNeptuneEventSubscriptionConverter {
+    service: Arc<NeptuneService>,
+}
+
+impl AwsNeptuneEventSubscriptionConverter {
+    pub fn new(service: Arc<NeptuneService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNeptuneEventSubscriptionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_neptune_event_subscription"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNeptuneEventSubscriptionConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::EventSubscriptionTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_neptune_event_subscription", e))?;
+
+        let attrs = &instance.attributes;
+        let name = model.subscription_name.clone();
+
+        let event_categories: Vec<String> = attrs
+            .get("event_categories")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let source_ids: Vec<String> = attrs
+            .get("source_ids")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds:{}:{}:es:{}",
+                region, ctx.default_account_id, name
+            )
+        });
+
+        let subscription_view = EventSubscriptionView {
+            subscription_name: name.clone(),
+            sns_topic_arn: model.sns_topic_arn,
+            source_type: model.source_type,
+            enabled: model.enabled,
+            event_categories,
+            source_ids,
+            status: "active".to_string(),
+            arn,
+            customer_aws_id: ctx.default_account_id.clone(),
+            subscription_creation_time: None,
+        };
+
+        let mut state_view = NeptuneStateView::default();
+        state_view
+            .event_subscriptions
+            .insert(name, subscription_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for es in view.event_subscriptions.values() {
+            let attrs = serde_json::json!({
+                "id": es.subscription_name,
+                "name": es.subscription_name,
+                "sns_topic_arn": es.sns_topic_arn,
+                "source_type": es.source_type,
+                "enabled": es.enabled,
+                "event_categories": es.event_categories,
+                "source_ids": es.source_ids,
+                "status": es.status,
+                "arn": es.arn,
+                "customer_aws_id": es.customer_aws_id,
+            });
+            results.push(ExtractedResource {
+                name: es.subscription_name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_neptune_global_cluster
+// ---------------------------------------------------------------------------
+
+/// Converts `aws_neptune_global_cluster` Terraform resources to/from Neptune state.
+pub struct AwsNeptuneGlobalClusterConverter {
+    service: Arc<NeptuneService>,
+}
+
+impl AwsNeptuneGlobalClusterConverter {
+    pub fn new(service: Arc<NeptuneService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNeptuneGlobalClusterConverter {
+    fn resource_type(&self) -> &str {
+        "aws_neptune_global_cluster"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsNeptuneGlobalClusterConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let region = extract_region(&instance.attributes, &ctx.default_region);
+        let model: neptune_gen::GlobalClusterTfModel =
+            serde_json::from_value(instance.attributes.clone())
+                .map_err(|e| classify_deserialize_error("aws_neptune_global_cluster", e))?;
+
+        let identifier = model.global_cluster_identifier.clone();
+        let engine = model.engine.unwrap_or_else(|| "neptune".to_string());
+
+        let arn = model.arn.unwrap_or_else(|| {
+            format!(
+                "arn:aws:rds::{}:global-cluster:{}",
+                ctx.default_account_id, identifier
+            )
+        });
+
+        let global_cluster_view = GlobalClusterView {
+            identifier: identifier.clone(),
+            engine,
+            engine_version: model.engine_version,
+            database_name: model.database_name,
+            deletion_protection: model.deletion_protection,
+            storage_encrypted: model.storage_encrypted,
+            status: "available".to_string(),
+            arn,
+            source_db_cluster_identifier: model.source_db_cluster_identifier,
+        };
+
+        let mut state_view = NeptuneStateView::default();
+        state_view
+            .global_clusters
+            .insert(identifier, global_cluster_view);
+        self.service
+            .merge(&ctx.default_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for gc in view.global_clusters.values() {
+            let attrs = serde_json::json!({
+                "id": gc.identifier,
+                "global_cluster_identifier": gc.identifier,
+                "engine": gc.engine,
+                "engine_version": gc.engine_version,
+                "database_name": gc.database_name,
+                "deletion_protection": gc.deletion_protection,
+                "storage_encrypted": gc.storage_encrypted,
+                "status": gc.status,
+                "arn": gc.arn,
+                "source_db_cluster_identifier": gc.source_db_cluster_identifier,
+            });
+            results.push(ExtractedResource {
+                name: gc.identifier.clone(),
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,

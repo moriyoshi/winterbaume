@@ -80,3 +80,118 @@ hcl = "actions_enabled"
 view = "actions_enabled"
 type = "bool"
 default = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_composite_alarm
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_composite_alarm"
+model = "CompositeAlarmTfModel"
+view = "CompositeAlarmView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "alarm_name"
+view = "alarm_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "alarm_rule"
+view = "alarm_rule"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "alarm_description"
+view = "alarm_description"
+type = "string?"
+
+[[resource.field]]
+hcl = "actions_enabled"
+view = "actions_enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_dashboard
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_dashboard"
+model = "DashboardTfModel"
+view = "DashboardView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "dashboard_name"
+view = "dashboard_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "dashboard_body"
+view = "dashboard_body"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "dashboard_arn"
+view = "dashboard_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudwatch_metric_stream
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudwatch_metric_stream"
+model = "MetricStreamTfModel"
+view = "MetricStreamView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "firehose_arn"
+view = "firehose_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "output_format"
+view = "output_format"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"

@@ -49,3 +49,236 @@ default = 300
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_lexv2models_bot_locale
+# Hand-written: only scalar fields per the codegen vocabulary. Computed
+# state-only fields (status, timestamps) are filled in the converter body.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lexv2models_bot_locale"
+model = "BotLocaleTfModel"
+view = "BotLocaleView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bot_id"
+view = "bot_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bot_version"
+view = "bot_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "locale_id"
+view = "locale_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "locale_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lexv2models_bot_version
+# Hand-written: bot_version is computed server-side; we synthesise it in the
+# converter body. `description` is the only scalar tunable here.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lexv2models_bot_version"
+model = "BotVersionTfModel"
+view = "BotVersionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bot_id"
+view = "bot_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lexv2models_intent
+# Hand-written: nested-block fields (sample_utterances, dialog_code_hook,
+# fulfillment_code_hook, intent_closing_setting, intent_confirmation_setting,
+# input_contexts, output_contexts, kendra_configuration, slot_priorities,
+# initial_response_setting) are dropped — they are parsed from raw attributes
+# or simply ignored when not yet modelled.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lexv2models_intent"
+model = "IntentTfModel"
+view = "IntentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "intent_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bot_id"
+view = "bot_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bot_version"
+view = "bot_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "locale_id"
+view = "locale_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "intent_id"
+view = "intent_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lexv2models_slot
+# Hand-written: complex nested settings (value_elicitation_setting,
+# multiple_values_setting, obfuscation_setting, sub_slot_setting) are dropped
+# from the spec since the codegen vocabulary does not cover JSON value blobs.
+# The converter body fills them as `serde_json::Value::Null`.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lexv2models_slot"
+model = "SlotTfModel"
+view = "SlotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "slot_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bot_id"
+view = "bot_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bot_version"
+view = "bot_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "locale_id"
+view = "locale_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "intent_id"
+view = "intent_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "slot_id"
+view = "slot_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "slot_type_id"
+view = "slot_type_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_lexv2models_slot_type
+# Hand-written: nested blobs (slot_type_values, value_selection_setting,
+# external_source_setting, composite_slot_type_setting) are dropped from the
+# spec and synthesised as `None` in the converter body.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_lexv2models_slot_type"
+model = "SlotTypeTfModel"
+view = "SlotTypeView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "slot_type_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bot_id"
+view = "bot_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bot_version"
+view = "bot_version"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "locale_id"
+view = "locale_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "slot_type_id"
+view = "slot_type_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "parent_slot_type_signature"
+view = "parent_slot_type_signature"
+type = "string?"

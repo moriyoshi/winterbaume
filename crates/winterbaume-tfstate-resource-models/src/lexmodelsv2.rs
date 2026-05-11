@@ -25,3 +25,70 @@ pub struct BotTfModel {
 fn default_bot_idle_session_ttl_in_seconds() -> i64 {
     300i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_lexv2models_bot_locale` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BotLocaleTfModel {
+    pub bot_id: String,
+    pub bot_version: String,
+    pub locale_id: String,
+    #[serde(rename = "name", default, skip_serializing_if = "Option::is_none")]
+    pub locale_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lexv2models_bot_version` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BotVersionTfModel {
+    pub bot_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lexv2models_intent` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntentTfModel {
+    #[serde(rename = "name")]
+    pub intent_name: String,
+    pub bot_id: String,
+    pub bot_version: String,
+    pub locale_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub intent_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lexv2models_slot` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SlotTfModel {
+    #[serde(rename = "name")]
+    pub slot_name: String,
+    pub bot_id: String,
+    pub bot_version: String,
+    pub locale_id: String,
+    pub intent_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub slot_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub slot_type_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_lexv2models_slot_type` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SlotTypeTfModel {
+    #[serde(rename = "name")]
+    pub slot_type_name: String,
+    pub bot_id: String,
+    pub bot_version: String,
+    pub locale_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub slot_type_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parent_slot_type_signature: Option<String>,
+}

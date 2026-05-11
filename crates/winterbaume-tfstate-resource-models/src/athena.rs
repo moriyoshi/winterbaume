@@ -27,3 +27,51 @@ pub struct DataCatalogTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_athena_capacity_reservation` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CapacityReservationTfModel {
+    pub name: String,
+    #[serde(default)]
+    pub target_dpus: i64,
+    #[serde(default)]
+    pub allocated_dpus: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_athena_named_query` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NamedQueryTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    pub database: String,
+    pub query: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workgroup: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_athena_prepared_statement` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreparedStatementTfModel {
+    pub name: String,
+    pub workgroup: String,
+    pub query_statement: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_athena_database` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bucket: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+}

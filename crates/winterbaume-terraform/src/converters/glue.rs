@@ -1996,3 +1996,253 @@ impl AwsGlueWorkflowConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// aws_glue_catalog_table_optimizer — no state slot in winterbaume_glue.
+// ---------------------------------------------------------------------------
+
+pub struct AwsGlueCatalogTableOptimizerConverter {
+    #[allow(dead_code)]
+    service: Arc<GlueService>,
+}
+
+impl AwsGlueCatalogTableOptimizerConverter {
+    pub fn new(service: Arc<GlueService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsGlueCatalogTableOptimizerConverter {
+    fn resource_type(&self) -> &str {
+        "aws_glue_catalog_table_optimizer"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: glue_gen::CatalogTableOptimizerTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_glue_catalog_table_optimizer", e)
+                })?;
+            let warn_msg =
+                "no state slot in winterbaume_glue for catalog table optimizers; inject is a no-op"
+                    .to_string();
+            eprintln!("warning: aws_glue_catalog_table_optimizer: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_glue_catalog_table_optimizer: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_glue_classifier — no state slot in winterbaume_glue.
+// ---------------------------------------------------------------------------
+
+pub struct AwsGlueClassifierConverter {
+    #[allow(dead_code)]
+    service: Arc<GlueService>,
+}
+
+impl AwsGlueClassifierConverter {
+    pub fn new(service: Arc<GlueService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsGlueClassifierConverter {
+    fn resource_type(&self) -> &str {
+        "aws_glue_classifier"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: glue_gen::ClassifierTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_glue_classifier", e))?;
+            let warn_msg =
+                "no state slot in winterbaume_glue for classifiers; inject is a no-op".to_string();
+            eprintln!("warning: aws_glue_classifier: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_glue_classifier: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_glue_data_quality_ruleset — no state slot in winterbaume_glue.
+// ---------------------------------------------------------------------------
+
+pub struct AwsGlueDataQualityRulesetConverter {
+    #[allow(dead_code)]
+    service: Arc<GlueService>,
+}
+
+impl AwsGlueDataQualityRulesetConverter {
+    pub fn new(service: Arc<GlueService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsGlueDataQualityRulesetConverter {
+    fn resource_type(&self) -> &str {
+        "aws_glue_data_quality_ruleset"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: glue_gen::DataQualityRulesetTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_glue_data_quality_ruleset", e))?;
+            let warn_msg =
+                "no state slot in winterbaume_glue for data quality rulesets; inject is a no-op"
+                    .to_string();
+            eprintln!("warning: aws_glue_data_quality_ruleset: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_glue_data_quality_ruleset: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_glue_partition_index — no state slot in winterbaume_glue.
+// ---------------------------------------------------------------------------
+
+pub struct AwsGluePartitionIndexConverter {
+    #[allow(dead_code)]
+    service: Arc<GlueService>,
+}
+
+impl AwsGluePartitionIndexConverter {
+    pub fn new(service: Arc<GlueService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsGluePartitionIndexConverter {
+    fn resource_type(&self) -> &str {
+        "aws_glue_partition_index"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: glue_gen::PartitionIndexTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_glue_partition_index", e))?;
+            let warn_msg =
+                "no state slot in winterbaume_glue for partition indexes; inject is a no-op"
+                    .to_string();
+            eprintln!("warning: aws_glue_partition_index: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_glue_partition_index: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_glue_user_defined_function — no state slot in winterbaume_glue.
+// ---------------------------------------------------------------------------
+
+pub struct AwsGlueUserDefinedFunctionConverter {
+    #[allow(dead_code)]
+    service: Arc<GlueService>,
+}
+
+impl AwsGlueUserDefinedFunctionConverter {
+    pub fn new(service: Arc<GlueService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsGlueUserDefinedFunctionConverter {
+    fn resource_type(&self) -> &str {
+        "aws_glue_user_defined_function"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: glue_gen::UserDefinedFunctionTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_glue_user_defined_function", e))?;
+            let warn_msg =
+                "no state slot in winterbaume_glue for user-defined functions; inject is a no-op"
+                    .to_string();
+            eprintln!("warning: aws_glue_user_defined_function: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_glue_user_defined_function: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}

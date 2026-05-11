@@ -175,3 +175,109 @@ impl AwsKinesisStreamConverter {
         Ok(results)
     }
 }
+
+// ---------------------------------------------------------------------------
+// aws_kinesis_resource_policy — mutates StreamView.resource_policy on an
+// existing stream; the view-layer merge only inserts streams, so there is no
+// path to attach a policy to a stream we did not create here. Inject is a
+// no-op with a warning.
+// ---------------------------------------------------------------------------
+
+pub struct AwsKinesisResourcePolicyConverter {
+    #[allow(dead_code)]
+    service: Arc<KinesisService>,
+}
+
+impl AwsKinesisResourcePolicyConverter {
+    pub fn new(service: Arc<KinesisService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsKinesisResourcePolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_kinesis_resource_policy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: kinesis_gen::ResourcePolicyTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_kinesis_resource_policy", e))?;
+            let warn_msg = "stream resource policies attach to an existing StreamView; the \
+                            view-layer merge has no per-stream policy patch path — inject is \
+                            a no-op"
+                .to_string();
+            eprintln!("warning: aws_kinesis_resource_policy: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_kinesis_resource_policy: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_kinesis_stream_consumer — populates StreamView.consumers on an
+// existing stream. Same view-layer limitation as resource_policy: warning-only.
+// ---------------------------------------------------------------------------
+
+pub struct AwsKinesisStreamConsumerConverter {
+    #[allow(dead_code)]
+    service: Arc<KinesisService>,
+}
+
+impl AwsKinesisStreamConsumerConverter {
+    pub fn new(service: Arc<KinesisService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsKinesisStreamConsumerConverter {
+    fn resource_type(&self) -> &str {
+        "aws_kinesis_stream_consumer"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let _model: kinesis_gen::StreamConsumerTfModel =
+                serde_json::from_value(instance.attributes.clone())
+                    .map_err(|e| classify_deserialize_error("aws_kinesis_stream_consumer", e))?;
+            let warn_msg = "stream consumers attach to an existing StreamView.consumers; the \
+                            view-layer merge has no consumer-list patch path — inject is a \
+                            no-op"
+                .to_string();
+            eprintln!("warning: aws_kinesis_stream_consumer: {warn_msg}");
+            Ok(ConversionResult {
+                region,
+                warnings: vec![format!("aws_kinesis_stream_consumer: {warn_msg}")],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        _ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { Ok(vec![]) })
+    }
+}

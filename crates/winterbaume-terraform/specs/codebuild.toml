@@ -44,3 +44,172 @@ type = "string?"
 hcl = "service_role"
 view = "service_role"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_codebuild_fleet (no state slot in winterbaume_codebuild)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codebuild_fleet"
+model = "FleetTfModel"
+view = "FleetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "base_capacity"
+view = "base_capacity"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "environment_type"
+view = "environment_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "compute_type"
+view = "compute_type"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_codebuild_report_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codebuild_report_group"
+model = "ReportGroupTfModel"
+view = "ReportGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "report_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_codebuild_resource_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codebuild_resource_policy"
+model = "ResourcePolicyTfModel"
+view = "ResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_codebuild_source_credential
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codebuild_source_credential"
+model = "SourceCredentialTfModel"
+view = "SourceCredentialView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "auth_type"
+view = "auth_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "server_type"
+view = "server_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "token"
+view = "token"
+type = "string?"
+
+[[resource.field]]
+hcl = "user_name"
+view = "user_name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_codebuild_webhook
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_codebuild_webhook"
+model = "WebhookTfModel"
+view = "WebhookView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "project_name"
+view = "project_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "branch_filter"
+view = "branch_filter"
+type = "string?"
+
+[[resource.field]]
+hcl = "build_type"
+view = "build_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "url"
+view = "url"
+type = "string?"
+
+[[resource.field]]
+hcl = "secret"
+view = "secret"
+type = "string?"

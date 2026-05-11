@@ -58,3 +58,125 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_acmpca_certificate
+# Issued cert under a certificate_authority. Maps to
+# CertificateAuthorityView.issued_certificates entry keyed by the cert ARN.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_acmpca_certificate"
+model = "CertificateTfModel"
+view = "IssuedCertificateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_authority_arn"
+view = "certificate_authority_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "certificate"
+view = "certificate"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_chain"
+view = "certificate_chain"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_acmpca_certificate_authority_certificate
+# Installs the issued certificate (and optional chain) onto the parent CA.
+# Updates CertificateAuthorityView.{certificate_pem, certificate_chain_pem}.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_acmpca_certificate_authority_certificate"
+model = "CertificateAuthorityCertificateTfModel"
+view = "CertificateAuthorityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "certificate_authority_arn"
+view = "certificate_authority_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "certificate"
+view = "certificate"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_chain"
+view = "certificate_chain"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_acmpca_permission
+# Grants a service principal permission on a CA. Stored on
+# CertificateAuthorityView.permissions keyed by principal.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_acmpca_permission"
+model = "PermissionTfModel"
+view = "CaPermissionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "certificate_authority_arn"
+view = "certificate_authority_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal"
+view = "principal"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_account"
+view = "source_account"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_acmpca_policy
+# Sets the resource policy on a CA. Stored on
+# CertificateAuthorityView.policy.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_acmpca_policy"
+model = "PolicyTfModel"
+view = "CertificateAuthorityView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true

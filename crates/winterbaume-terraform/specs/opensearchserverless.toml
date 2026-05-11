@@ -91,3 +91,140 @@ type = "string?"
 hcl = "description"
 view = "description"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_opensearchserverless_access_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearchserverless_access_policy"
+model = "OpensearchserverlessAccessPolicyTfModel"
+view = "SecurityPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "policy_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "policy_version"
+view = "policy_version"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_opensearchserverless_vpc_endpoint
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearchserverless_vpc_endpoint"
+model = "OpensearchserverlessVpcEndpointTfModel"
+view = "VpcEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_opensearchserverless_lifecycle_policy — no state slot (warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearchserverless_lifecycle_policy"
+model = "OpensearchserverlessLifecyclePolicyTfModel"
+view = "OpensearchserverlessLifecyclePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "policy_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_opensearchserverless_security_config — no state slot (warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_opensearchserverless_security_config"
+model = "OpensearchserverlessSecurityConfigTfModel"
+view = "OpensearchserverlessSecurityConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "config_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

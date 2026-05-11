@@ -21,3 +21,44 @@ pub struct ResourceShareTfModel {
 fn default_resource_share_allow_external_principals() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_ram_principal_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RamPrincipalAssociationTfModel {
+    pub resource_share_arn: String,
+    pub principal: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ram_resource_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RamResourceAssociationTfModel {
+    pub resource_share_arn: String,
+    pub resource_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ram_resource_share_accepter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RamResourceShareAccepterTfModel {
+    pub share_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub invitation_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sender_account_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ram_sharing_with_organization` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RamSharingWithOrganizationTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

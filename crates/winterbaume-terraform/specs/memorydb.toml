@@ -175,3 +175,179 @@ type = "string?"
 hcl = "minimum_engine_version"
 view = "minimum_engine_version"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_memorydb_snapshot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_memorydb_snapshot"
+model = "SnapshotTfModel"
+view = "SnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "kms_key_arn"
+view = "kms_key_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "source"
+view = "source"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_memorydb_parameter_group — no state slot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_memorydb_parameter_group"
+model = "ParameterGroupTfModel"
+view = "ParameterGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "family"
+view = "family"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_memorydb_user — no state slot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_memorydb_user"
+model = "UserTfModel"
+view = "UserView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "user_name"
+view = "user_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "access_string"
+view = "access_string"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "minimum_engine_version"
+view = "minimum_engine_version"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_memorydb_multi_region_cluster — no state slot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_memorydb_multi_region_cluster"
+model = "MultiRegionClusterTfModel"
+view = "MultiRegionClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "multi_region_cluster_name_suffix"
+view = "multi_region_cluster_name_suffix"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "multi_region_cluster_name"
+view = "multi_region_cluster_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "node_type"
+view = "node_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "multi_region_parameter_group_name"
+view = "multi_region_parameter_group_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "num_shards"
+view = "num_shards"
+type = "i64"
+default = 1
+
+[[resource.field]]
+hcl = "tls_enabled"
+view = "tls_enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "update_strategy"
+view = "update_strategy"
+type = "string?"

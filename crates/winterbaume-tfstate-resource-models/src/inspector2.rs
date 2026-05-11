@@ -2,8 +2,39 @@
 //! Source: specs/inspector2.toml
 //! Regenerate with: cargo run -p tf-converter-codegen -- gen inspector2
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 /// Auto-generated TF-shaped projection of the `aws_inspector2_enabler` resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnablerTfModel {}
+
+/// Auto-generated TF-shaped projection of the `aws_inspector2_delegated_admin_account` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegatedAdminAccountTfModel {
+    pub account_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_inspector2_filter` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilterTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub action: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_inspector2_member_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemberAssociationTfModel {
+    pub account_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_inspector2_organization_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationConfigurationTfModel {}

@@ -140,3 +140,143 @@ type = "string?"
 hcl = "scheduling_strategy"
 view = "scheduling_strategy"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecs_account_setting_default
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecs_account_setting_default"
+model = "AccountSettingDefaultTfModel"
+view = "EcsAccountSettingView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "principal_arn"
+view = "principal_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecs_capacity_provider
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecs_capacity_provider"
+model = "CapacityProviderTfModel"
+view = "EcsCapacityProviderView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_ecs_cluster_capacity_providers (modifies existing cluster — warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecs_cluster_capacity_providers"
+model = "ClusterCapacityProvidersTfModel"
+view = "ClusterCapacityProvidersView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_name"
+view = "cluster_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_ecs_tag
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecs_tag"
+model = "TagTfModel"
+view = "EcsResourceTagView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "key"
+view = "key"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "value"
+view = "value"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_ecs_task_set (no view-level state slot)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_ecs_task_set"
+model = "TaskSetTfModel"
+view = "TaskSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "service"
+view = "service"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cluster"
+view = "cluster"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "task_definition"
+view = "task_definition"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "task_set_id"
+view = "task_set_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "launch_type"
+view = "launch_type"
+type = "string?"

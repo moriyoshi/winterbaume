@@ -15,3 +15,94 @@ view = "Inspector2StateView"
 
 [resource.modes]
 mode = "model_only"
+
+# ---------------------------------------------------------------------------
+# aws_inspector2_delegated_admin_account
+# Stored under Inspector2StateView.delegated_admin_accounts keyed by account id.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_inspector2_delegated_admin_account"
+model = "DelegatedAdminAccountTfModel"
+view = "DelegatedAdminView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_inspector2_filter
+# Stored under Inspector2StateView.filters keyed by ARN.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_inspector2_filter"
+model = "FilterTfModel"
+view = "FilterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "action"
+view = "action"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_inspector2_member_association
+# Stored under Inspector2StateView.members keyed by account id.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_inspector2_member_association"
+model = "MemberAssociationTfModel"
+view = "MemberView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_inspector2_organization_configuration
+# Stored under Inspector2StateView.auto_enable (singleton).
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_inspector2_organization_configuration"
+model = "OrganizationConfigurationTfModel"
+view = "AutoEnableView"
+
+[resource.modes]
+mode = "model_only"

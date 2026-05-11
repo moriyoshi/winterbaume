@@ -214,3 +214,191 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_dms_certificate
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dms_certificate"
+model = "CertificateTfModel"
+view = "CertificateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "certificate_id"
+view = "certificate_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "certificate_arn"
+view = "certificate_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_pem"
+view = "certificate_pem"
+type = "string?"
+
+[[resource.field]]
+hcl = "certificate_wallet"
+view = "certificate_wallet"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dms_event_subscription
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dms_event_subscription"
+model = "EventSubscriptionTfModel"
+view = "EventSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "sns_topic_arn"
+view = "sns_topic_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_type"
+view = "source_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_dms_replication_config (no state slot in winterbaume_databasemigration)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dms_replication_config"
+model = "ReplicationConfigTfModel"
+view = "ReplicationConfigView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "replication_config_identifier"
+view = "replication_config_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "replication_type"
+view = "replication_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "source_endpoint_arn"
+view = "source_endpoint_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_endpoint_arn"
+view = "target_endpoint_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "table_mappings"
+view = "table_mappings"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_dms_replication_subnet_group
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dms_replication_subnet_group"
+model = "ReplicationSubnetGroupTfModel"
+view = "ReplicationSubnetGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "replication_subnet_group_id"
+view = "replication_subnet_group_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "replication_subnet_group_description"
+view = "replication_subnet_group_description"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_dms_s3_endpoint (re-uses endpoints state slot with engine_name=s3)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_dms_s3_endpoint"
+model = "S3EndpointTfModel"
+view = "S3EndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "endpoint_id"
+view = "endpoint_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "endpoint_type"
+view = "endpoint_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "endpoint_arn"
+view = "endpoint_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "service_access_role_arn"
+view = "service_access_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "bucket_name"
+view = "bucket_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "bucket_folder"
+view = "bucket_folder"
+type = "string?"

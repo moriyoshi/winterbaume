@@ -31,3 +31,48 @@ pub struct SecurityPolicyTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_opensearchserverless_access_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpensearchserverlessAccessPolicyTfModel {
+    pub name: String,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub policy_type: Option<String>,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_version: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearchserverless_vpc_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpensearchserverlessVpcEndpointTfModel {
+    pub name: String,
+    pub vpc_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearchserverless_lifecycle_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpensearchserverlessLifecyclePolicyTfModel {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub policy_type: String,
+    pub policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_opensearchserverless_security_config` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpensearchserverlessSecurityConfigTfModel {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub config_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

@@ -83,3 +83,73 @@ pub struct AclTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub minimum_engine_version: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_memorydb_snapshot` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub cluster_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_memorydb_parameter_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParameterGroupTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub family: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_memorydb_user` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserTfModel {
+    pub user_name: String,
+    pub access_string: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub minimum_engine_version: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_memorydb_multi_region_cluster` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiRegionClusterTfModel {
+    pub multi_region_cluster_name_suffix: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub multi_region_cluster_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub node_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub multi_region_parameter_group_name: Option<String>,
+    #[serde(default = "default_multi_region_cluster_num_shards")]
+    pub num_shards: i64,
+    #[serde(default = "default_multi_region_cluster_tls_enabled")]
+    pub tls_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub update_strategy: Option<String>,
+}
+
+fn default_multi_region_cluster_num_shards() -> i64 {
+    1i64
+}
+
+fn default_multi_region_cluster_tls_enabled() -> bool {
+    true
+}

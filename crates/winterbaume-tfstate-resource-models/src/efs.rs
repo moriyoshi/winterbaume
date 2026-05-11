@@ -24,3 +24,45 @@ pub struct FileSystemTfModel {
 fn default_file_system_encrypted() -> bool {
     false
 }
+
+/// Auto-generated TF-shaped projection of the `aws_efs_access_point` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessPointTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub file_system_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_efs_backup_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupPolicyTfModel {
+    pub file_system_id: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_efs_file_system_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileSystemPolicyTfModel {
+    pub file_system_id: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_efs_mount_target` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MountTargetTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    pub file_system_id: String,
+    pub subnet_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ip_address: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_efs_replication_configuration` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplicationConfigurationTfModel {
+    pub source_file_system_id: String,
+}

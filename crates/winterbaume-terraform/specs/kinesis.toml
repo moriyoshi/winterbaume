@@ -60,3 +60,56 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_kinesis_resource_policy (mutates StreamView.resource_policy — warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_kinesis_resource_policy"
+model = "ResourcePolicyTfModel"
+view = "ResourcePolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "resource_arn"
+view = "resource_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_kinesis_stream_consumer (mutates StreamView.consumers — warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_kinesis_stream_consumer"
+model = "StreamConsumerTfModel"
+view = "StreamConsumerView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "stream_arn"
+view = "stream_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"

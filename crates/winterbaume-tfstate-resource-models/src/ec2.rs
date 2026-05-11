@@ -2,6 +2,8 @@
 //! Source: specs/ec2.toml
 //! Regenerate with: cargo run -p tf-converter-codegen -- gen ec2
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 /// Auto-generated TF-shaped projection of the `aws_vpc` resource.
@@ -2026,4 +2028,89 @@ pub struct VerifiedAccessInstanceTrustProviderAttachmentTfModel {
     pub verifiedaccess_trust_provider_id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ebs_default_kms_key` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EbsDefaultKmsKeyTfModel {
+    pub key_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ebs_encryption_by_default` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EbsEncryptionByDefaultTfModel {
+    #[serde(default = "default_ebs_encryption_by_default_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+fn default_ebs_encryption_by_default_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ebs_fast_snapshot_restore` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EbsFastSnapshotRestoreTfModel {
+    pub availability_zone: String,
+    pub snapshot_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ebs_snapshot_block_public_access` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EbsSnapshotBlockPublicAccessTfModel {
+    pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ebs_snapshot_copy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EbsSnapshotCopyTfModel {
+    pub source_snapshot_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_ebs_snapshot_copy_encrypted")]
+    pub encrypted: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_tier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_ebs_snapshot_copy_encrypted() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ebs_snapshot_import` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EbsSnapshotImportTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_ebs_snapshot_import_encrypted")]
+    pub encrypted: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub storage_tier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_ebs_snapshot_import_encrypted() -> bool {
+    false
 }

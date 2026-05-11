@@ -41,3 +41,119 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_prometheus_rule_group_namespace
+# Stored under AmpStateView.rule_groups_namespaces[workspace_id][name].
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_prometheus_rule_group_namespace"
+model = "RuleGroupsNamespaceTfModel"
+view = "RuleGroupsNamespaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "workspace_id"
+view = "workspace_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "data"
+view = "data"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_prometheus_alert_manager_definition
+# No state slot in winterbaume_amp; warning-only inject.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_prometheus_alert_manager_definition"
+model = "AlertManagerDefinitionTfModel"
+view = "WorkspaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "workspace_id"
+view = "workspace_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "definition"
+view = "definition"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_prometheus_scraper
+# No state slot in winterbaume_amp; warning-only inject.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_prometheus_scraper"
+model = "ScraperTfModel"
+view = "WorkspaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "alias"
+view = "alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "scraper_id"
+view = "scraper_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_prometheus_workspace_configuration
+# No state slot in winterbaume_amp; warning-only inject.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_prometheus_workspace_configuration"
+model = "WorkspaceConfigurationTfModel"
+view = "WorkspaceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "workspace_id"
+view = "workspace_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "retention_period_in_days"
+view = "retention_period_in_days"
+type = "i64"

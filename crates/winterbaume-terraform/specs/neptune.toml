@@ -265,3 +265,254 @@ type = "string?"
 hcl = "description"
 view = "description"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_neptune_cluster_endpoint
+# Hand-written: Vec<String> fields (static_members, excluded_members) and
+# tags are read from raw attributes inside the converter body.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_cluster_endpoint"
+model = "DbClusterEndpointTfModel"
+view = "DbClusterEndpointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "cluster_identifier"
+view = "cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "cluster_endpoint_identifier"
+view = "cluster_endpoint_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "endpoint_type"
+view = "endpoint_type"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoint"
+view = "endpoint"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_neptune_cluster_parameter_group
+# Hand-written: nested `parameter` blocks and tags are parsed from raw
+# attributes inside the converter body.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_cluster_parameter_group"
+model = "DbClusterParameterGroupTfModel"
+view = "DbClusterParameterGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "family"
+view = "family"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_neptune_cluster_snapshot
+# Hand-written: Vec<String> availability_zones, tags and timestamps are
+# filled in the converter body. Option<i32> port is read raw from attrs.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_cluster_snapshot"
+model = "DbClusterSnapshotTfModel"
+view = "DbClusterSnapshotView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "db_cluster_identifier"
+view = "db_cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_cluster_snapshot_identifier"
+view = "db_cluster_snapshot_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "db_cluster_snapshot_arn"
+view = "db_cluster_snapshot_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "kms_key_id"
+view = "kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "snapshot_type"
+view = "snapshot_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "vpc_id"
+view = "vpc_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "allocated_storage"
+view = "allocated_storage"
+type = "i64"
+default = 0
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_neptune_event_subscription
+# Hand-written: Vec<String> event_categories and source_ids are read raw,
+# as are tags. ARN, customer_aws_id, and creation timestamp are filled in
+# the converter body.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_event_subscription"
+model = "EventSubscriptionTfModel"
+view = "EventSubscriptionView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "subscription_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "sns_topic_arn"
+view = "sns_topic_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_type"
+view = "source_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_neptune_global_cluster
+# Hand-written: status and source-cluster identifier are filled in the
+# converter body when not provided.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_neptune_global_cluster"
+model = "GlobalClusterTfModel"
+view = "GlobalClusterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "global_cluster_identifier"
+view = "global_cluster_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine"
+view = "engine"
+type = "string?"
+
+[[resource.field]]
+hcl = "engine_version"
+view = "engine_version"
+type = "string?"
+
+[[resource.field]]
+hcl = "database_name"
+view = "database_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "source_db_cluster_identifier"
+view = "source_db_cluster_identifier"
+type = "string?"
+
+[[resource.field]]
+hcl = "deletion_protection"
+view = "deletion_protection"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "storage_encrypted"
+view = "storage_encrypted"
+type = "bool"
+default = false

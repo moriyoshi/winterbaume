@@ -15,3 +15,65 @@ pub struct ProjectTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub service_role: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_codebuild_fleet` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FleetTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_fleet_base_capacity")]
+    pub base_capacity: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub environment_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compute_type: Option<String>,
+}
+
+fn default_fleet_base_capacity() -> i64 {
+    1i64
+}
+
+/// Auto-generated TF-shaped projection of the `aws_codebuild_report_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportGroupTfModel {
+    pub name: String,
+    #[serde(rename = "type")]
+    pub report_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_codebuild_resource_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcePolicyTfModel {
+    pub resource_arn: String,
+    pub policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_codebuild_source_credential` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceCredentialTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub auth_type: String,
+    pub server_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub user_name: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_codebuild_webhook` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebhookTfModel {
+    pub project_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub branch_filter: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub build_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+}

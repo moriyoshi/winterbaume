@@ -88,3 +88,90 @@ type = "string?"
 hcl = "policy"
 view = "policy"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sqs_queue_policy — modifier: writes policy onto the existing queue
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sqs_queue_policy"
+model = "SqsQueuePolicyTfModel"
+view = "QueueStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "queue_url"
+view = "queue_url"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sqs_queue_redrive_policy — modifier: writes redrive_policy onto queue
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sqs_queue_redrive_policy"
+model = "SqsQueueRedrivePolicyTfModel"
+view = "QueueStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "queue_url"
+view = "queue_url"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "redrive_policy"
+view = "redrive_policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sqs_queue_redrive_allow_policy — no state slot
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sqs_queue_redrive_allow_policy"
+model = "SqsQueueRedriveAllowPolicyTfModel"
+view = "QueueStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "queue_url"
+view = "queue_url"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "redrive_allow_policy"
+view = "redrive_allow_policy"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"

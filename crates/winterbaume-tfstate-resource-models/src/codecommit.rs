@@ -19,3 +19,29 @@ pub struct RepositoryTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub clone_url_ssh: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_codecommit_approval_rule_template` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodecommitApprovalRuleTemplateTfModel {
+    pub name: String,
+    pub content: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub approval_rule_template_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_codecommit_approval_rule_template_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodecommitApprovalRuleTemplateAssociationTfModel {
+    pub approval_rule_template_name: String,
+    pub repository_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_codecommit_trigger` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodecommitTriggerTfModel {
+    pub repository_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub configuration_id: Option<String>,
+}

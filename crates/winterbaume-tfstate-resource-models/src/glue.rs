@@ -210,3 +210,51 @@ pub struct WorkflowTfModel {
 fn default_workflow_max_concurrent_runs() -> i64 {
     0i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_glue_catalog_table_optimizer` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CatalogTableOptimizerTfModel {
+    pub catalog_id: String,
+    pub database_name: String,
+    pub table_name: String,
+    #[serde(rename = "type")]
+    pub optimizer_type: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_classifier` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClassifierTfModel {
+    pub name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_data_quality_ruleset` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataQualityRulesetTfModel {
+    pub name: String,
+    pub ruleset: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_partition_index` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartitionIndexTfModel {
+    pub database_name: String,
+    pub table_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_glue_user_defined_function` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserDefinedFunctionTfModel {
+    pub name: String,
+    pub database_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_id: Option<String>,
+    pub class_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_type: Option<String>,
+}

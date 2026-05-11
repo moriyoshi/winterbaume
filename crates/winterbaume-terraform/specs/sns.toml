@@ -209,3 +209,137 @@ type = "string?"
 hcl = "subscription_role_arn"
 view = "subscription_role_arn"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sns_platform_application
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sns_platform_application"
+model = "PlatformApplicationTfModel"
+view = "PlatformApplicationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "platform"
+view = "platform"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "platform_credential"
+view = "platform_credential"
+type = "string?"
+
+[[resource.field]]
+hcl = "platform_principal"
+view = "platform_principal"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sns_sms_preferences
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sns_sms_preferences"
+model = "SmsPreferencesTfModel"
+view = "SmsPreferencesView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "monthly_spend_limit"
+view = "monthly_spend_limit"
+type = "string?"
+
+[[resource.field]]
+hcl = "delivery_status_iam_role_arn"
+view = "delivery_status_iam_role_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "delivery_status_success_sampling_rate"
+view = "delivery_status_success_sampling_rate"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_sender_id"
+view = "default_sender_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_sms_type"
+view = "default_sms_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "usage_report_s3_bucket"
+view = "usage_report_s3_bucket"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_sns_topic_data_protection_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sns_topic_data_protection_policy"
+model = "TopicDataProtectionPolicyTfModel"
+view = "TopicView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_sns_topic_policy
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_sns_topic_policy"
+model = "TopicPolicyTfModel"
+view = "TopicView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true

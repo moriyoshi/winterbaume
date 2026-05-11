@@ -16,3 +16,43 @@ pub struct AppBundleTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_appfabric_app_authorization` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppAuthorizationTfModel {
+    pub app: String,
+    pub app_bundle_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth_type: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appfabric_app_authorization_connection` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppAuthorizationConnectionTfModel {
+    pub app_authorization_arn: String,
+    pub app_bundle_arn: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appfabric_ingestion` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IngestionTfModel {
+    pub app: String,
+    pub app_bundle_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ingestion_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tenant_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appfabric_ingestion_destination` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IngestionDestinationTfModel {
+    pub app_bundle_arn: String,
+    pub ingestion_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}

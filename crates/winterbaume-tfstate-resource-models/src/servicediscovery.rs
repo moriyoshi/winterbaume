@@ -41,3 +41,42 @@ pub struct ServiceTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_service_discovery_http_namespace` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpNamespaceTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_service_discovery_public_dns_namespace` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PublicDnsNamespaceTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hosted_zone_id: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_service_discovery_instance` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceDiscoveryInstanceTfModel {
+    pub instance_id: String,
+    pub service_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+}

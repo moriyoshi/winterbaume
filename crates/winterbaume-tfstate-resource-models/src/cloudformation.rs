@@ -15,3 +15,51 @@ pub struct StackTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub template_body: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_cloudformation_stack_set` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StackSetTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stack_set_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub template_body: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudformation_stack_set_instance` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StackSetInstanceTfModel {
+    pub stack_set_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub region: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stack_id: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudformation_stack_instances` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StackInstancesTfModel {
+    pub stack_set_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudformation_type` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TypeTfModel {
+    pub type_name: String,
+    #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
+    pub type_kind: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_version_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}

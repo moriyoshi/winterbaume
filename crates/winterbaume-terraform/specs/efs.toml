@@ -49,3 +49,130 @@ hcl = "encrypted"
 view = "encrypted"
 type = "bool"
 default = false
+
+# ---------------------------------------------------------------------------
+# aws_efs_access_point
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_efs_access_point"
+model = "AccessPointTfModel"
+view = "AccessPointView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "file_system_id"
+view = "file_system_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_efs_backup_policy (modifies existing file_system — warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_efs_backup_policy"
+model = "BackupPolicyTfModel"
+view = "BackupPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "file_system_id"
+view = "file_system_id"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_efs_file_system_policy (modifies existing file_system — warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_efs_file_system_policy"
+model = "FileSystemPolicyTfModel"
+view = "FileSystemPolicyView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "file_system_id"
+view = "file_system_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "policy"
+view = "policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_efs_mount_target
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_efs_mount_target"
+model = "MountTargetTfModel"
+view = "MountTargetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "file_system_id"
+view = "file_system_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "subnet_id"
+view = "subnet_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "ip_address"
+view = "ip_address"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_efs_replication_configuration
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_efs_replication_configuration"
+model = "ReplicationConfigurationTfModel"
+view = "ReplicationConfigurationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "source_file_system_id"
+view = "source_file_system_id"
+type = "string"
+required = true

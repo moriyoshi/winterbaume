@@ -117,3 +117,122 @@ type = "string?"
 hcl = "framework"
 view = "framework"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_amplify_domain_association
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_amplify_domain_association"
+model = "AmplifyDomainAssociationTfModel"
+view = "AmplifyDomainAssociationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "app_id"
+view = "app_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "enable_auto_sub_domain"
+view = "enable_auto_sub_domain"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "wait_for_verification"
+view = "wait_for_verification"
+type = "bool"
+default = true
+
+# ---------------------------------------------------------------------------
+# aws_amplify_backend_environment — no state slot (warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_amplify_backend_environment"
+model = "AmplifyBackendEnvironmentTfModel"
+view = "AmplifyBackendEnvironmentView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "app_id"
+view = "app_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "environment_name"
+view = "environment_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "stack_name"
+view = "stack_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "deployment_artifacts"
+view = "deployment_artifacts"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_amplify_webhook — no state slot (warning-only)
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_amplify_webhook"
+model = "AmplifyWebhookTfModel"
+view = "AmplifyWebhookView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "app_id"
+view = "app_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "branch_name"
+view = "branch_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "url"
+view = "url"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"

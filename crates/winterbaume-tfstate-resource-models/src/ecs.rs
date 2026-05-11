@@ -56,3 +56,46 @@ pub struct ServiceTfModel {
 fn default_service_desired_count() -> i64 {
     1i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_ecs_account_setting_default` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountSettingDefaultTfModel {
+    pub name: String,
+    pub value: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub principal_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecs_capacity_provider` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CapacityProviderTfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecs_cluster_capacity_providers` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClusterCapacityProvidersTfModel {
+    pub cluster_name: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecs_tag` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagTfModel {
+    pub resource_arn: String,
+    pub key: String,
+    pub value: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_ecs_task_set` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskSetTfModel {
+    pub service: String,
+    pub cluster: String,
+    pub task_definition: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task_set_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub launch_type: Option<String>,
+}

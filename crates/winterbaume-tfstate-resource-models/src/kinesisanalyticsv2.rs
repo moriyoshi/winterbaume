@@ -27,3 +27,21 @@ pub struct ApplicationTfModel {
 fn default_application_version_id() -> i64 {
     1i64
 }
+
+/// Auto-generated TF-shaped projection of the `aws_kinesis_analytics_application` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalyticsApplicationV1TfModel {
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default = "default_analytics_application_v1_version")]
+    pub version: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+fn default_analytics_application_v1_version() -> i64 {
+    1i64
+}

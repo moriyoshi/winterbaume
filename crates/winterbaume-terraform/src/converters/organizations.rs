@@ -15,7 +15,8 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_organizations::OrganizationsService;
 use winterbaume_organizations::views::{
-    AccountView, OrgPolicyView, OrgTagView, OrganizationalUnitView, OrganizationsStateView,
+    AccountView, DelegatedAdministratorView, OrgPolicyView, OrgTagView, OrganizationView,
+    OrganizationalUnitView, OrganizationsStateView, PolicyAttachmentView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -361,6 +362,418 @@ impl AwsOrganizationsPolicyConverter {
             });
             results.push(ExtractedResource {
                 name: pol.name.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_organizations_organization
+// ---------------------------------------------------------------------------
+
+pub struct AwsOrganizationsOrganizationConverter {
+    service: Arc<OrganizationsService>,
+}
+
+impl AwsOrganizationsOrganizationConverter {
+    pub fn new(service: Arc<OrganizationsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsOrganizationsOrganizationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_organizations_organization"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsOrganizationsOrganizationConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let account_id = extract_account_id(attrs, &ctx.default_account_id);
+
+        let model: organizations_gen::OrganizationsOrganizationTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_organizations_organization", e))?;
+
+        let id = model.id.unwrap_or_else(|| "o-example".to_string());
+        let arn = model.arn.unwrap_or_else(|| {
+            format!("arn:aws:organizations::{}:organization/{}", account_id, id)
+        });
+        let master_account_id = model
+            .master_account_id
+            .unwrap_or_else(|| account_id.clone());
+        let master_account_email = model
+            .master_account_email
+            .unwrap_or_else(|| format!("master+{}@example.com", master_account_id));
+
+        let mut state_view = minimal_org_state_view();
+        state_view.organization = Some(OrganizationView {
+            id,
+            arn,
+            master_account_id,
+            master_account_email,
+        });
+
+        self.service.merge(&account_id, &region, state_view).await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        if let Some(org) = &view.organization {
+            let attrs = serde_json::json!({
+                "id": org.id,
+                "arn": org.arn,
+                "master_account_id": org.master_account_id,
+                "master_account_email": org.master_account_email,
+                "feature_set": "ALL",
+            });
+            results.push(ExtractedResource {
+                name: org.id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_organizations_delegated_administrator
+// ---------------------------------------------------------------------------
+
+pub struct AwsOrganizationsDelegatedAdministratorConverter {
+    service: Arc<OrganizationsService>,
+}
+
+impl AwsOrganizationsDelegatedAdministratorConverter {
+    pub fn new(service: Arc<OrganizationsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsOrganizationsDelegatedAdministratorConverter {
+    fn resource_type(&self) -> &str {
+        "aws_organizations_delegated_administrator"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsOrganizationsDelegatedAdministratorConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let mgmt_account_id = extract_account_id(attrs, &ctx.default_account_id);
+
+        let model: organizations_gen::OrganizationsDelegatedAdministratorTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_organizations_delegated_administrator", e)
+            })?;
+
+        let delegation_enabled_date = chrono::Utc::now().to_rfc3339();
+        let delegated_account = AccountView {
+            id: model.account_id.clone(),
+            arn: format!(
+                "arn:aws:organizations::{}:account/o-example/{}",
+                mgmt_account_id, model.account_id
+            ),
+            name: format!("delegated-{}", model.account_id),
+            email: format!("delegated+{}@example.com", model.account_id),
+            status: "ACTIVE".to_string(),
+            joined_method: "INVITED".to_string(),
+            joined_timestamp: delegation_enabled_date.clone(),
+            create_account_status_id: String::new(),
+            parent_id: "r-root".to_string(),
+        };
+
+        let mut state_view = minimal_org_state_view();
+        state_view
+            .delegated_admins
+            .push(DelegatedAdministratorView {
+                account: delegated_account,
+                delegation_enabled_date,
+                services: vec![],
+            });
+
+        self.service
+            .merge(&mgmt_account_id, &region, state_view)
+            .await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for da in &view.delegated_admins {
+            let service_principal = da
+                .services
+                .first()
+                .map(|s| s.service_principal.clone())
+                .unwrap_or_default();
+            let id = format!("{}/{}", da.account.id, service_principal);
+            let attrs = serde_json::json!({
+                "id": id,
+                "account_id": da.account.id,
+                "service_principal": service_principal,
+                "delegation_enabled_date": da.delegation_enabled_date,
+                "arn": da.account.arn,
+                "email": da.account.email,
+                "name": da.account.name,
+                "status": da.account.status,
+                "joined_method": da.account.joined_method,
+                "joined_timestamp": da.account.joined_timestamp,
+            });
+            results.push(ExtractedResource {
+                name: da.account.id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_organizations_policy_attachment
+// ---------------------------------------------------------------------------
+
+pub struct AwsOrganizationsPolicyAttachmentConverter {
+    service: Arc<OrganizationsService>,
+}
+
+impl AwsOrganizationsPolicyAttachmentConverter {
+    pub fn new(service: Arc<OrganizationsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsOrganizationsPolicyAttachmentConverter {
+    fn resource_type(&self) -> &str {
+        "aws_organizations_policy_attachment"
+    }
+
+    fn depends_on_types(&self) -> Vec<&str> {
+        vec!["aws_organizations_policy"]
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsOrganizationsPolicyAttachmentConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let account_id = extract_account_id(attrs, &ctx.default_account_id);
+
+        let model: organizations_gen::OrganizationsPolicyAttachmentTfModel =
+            serde_json::from_value(attrs.clone()).map_err(|e| {
+                classify_deserialize_error("aws_organizations_policy_attachment", e)
+            })?;
+
+        let mut state_view = minimal_org_state_view();
+        state_view.policy_attachments.push(PolicyAttachmentView {
+            policy_id: model.policy_id,
+            target_id: model.target_id,
+        });
+        self.service.merge(&account_id, &region, state_view).await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        for att in &view.policy_attachments {
+            let id = format!("{}/{}", att.target_id, att.policy_id);
+            let attrs = serde_json::json!({
+                "id": id,
+                "policy_id": att.policy_id,
+                "target_id": att.target_id,
+            });
+            results.push(ExtractedResource {
+                name: id.clone(),
+                account_id: ctx.default_account_id.clone(),
+                region: ctx.default_region.clone(),
+                attributes: attrs,
+            });
+        }
+        Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_organizations_resource_policy
+// ---------------------------------------------------------------------------
+
+pub struct AwsOrganizationsResourcePolicyConverter {
+    service: Arc<OrganizationsService>,
+}
+
+impl AwsOrganizationsResourcePolicyConverter {
+    pub fn new(service: Arc<OrganizationsService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsOrganizationsResourcePolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_organizations_resource_policy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move { self.do_inject(instance, ctx).await })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move { self.do_extract(ctx).await })
+    }
+}
+
+impl AwsOrganizationsResourcePolicyConverter {
+    async fn do_inject(
+        &self,
+        instance: &ResourceInstance,
+        ctx: &ConversionContext,
+    ) -> Result<ConversionResult, ConversionError> {
+        let attrs = &instance.attributes;
+        let region = extract_region(attrs, &ctx.default_region);
+        let account_id = extract_account_id(attrs, &ctx.default_account_id);
+
+        let model: organizations_gen::OrganizationsResourcePolicyTfModel =
+            serde_json::from_value(attrs.clone())
+                .map_err(|e| classify_deserialize_error("aws_organizations_resource_policy", e))?;
+
+        let mut state_view = minimal_org_state_view();
+        state_view.resource_policy = Some(model.content);
+        self.service.merge(&account_id, &region, state_view).await?;
+
+        Ok(ConversionResult {
+            region,
+            warnings: vec![],
+        })
+    }
+
+    async fn do_extract(
+        &self,
+        ctx: &ConversionContext,
+    ) -> Result<Vec<ExtractedResource>, ConversionError> {
+        let view = self
+            .service
+            .snapshot(&ctx.default_account_id, &ctx.default_region)
+            .await;
+        let mut results = vec![];
+        if let Some(content) = &view.resource_policy {
+            let id = "resource-policy".to_string();
+            let attrs = serde_json::json!({
+                "id": id,
+                "content": content,
+                "arn": format!("arn:aws:organizations::{}:resourcepolicy/o-example", ctx.default_account_id),
+            });
+            results.push(ExtractedResource {
+                name: id,
                 account_id: ctx.default_account_id.clone(),
                 region: ctx.default_region.clone(),
                 attributes: attrs,

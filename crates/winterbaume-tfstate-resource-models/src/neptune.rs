@@ -122,3 +122,105 @@ pub struct DbParameterGroupTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_neptune_cluster_endpoint` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbClusterEndpointTfModel {
+    pub cluster_identifier: String,
+    pub cluster_endpoint_identifier: String,
+    pub endpoint_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_neptune_cluster_parameter_group` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbClusterParameterGroupTfModel {
+    pub name: String,
+    pub family: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_neptune_cluster_snapshot` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DbClusterSnapshotTfModel {
+    pub db_cluster_identifier: String,
+    pub db_cluster_snapshot_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub db_cluster_snapshot_arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kms_key_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vpc_id: Option<String>,
+    #[serde(default = "default_db_cluster_snapshot_allocated_storage")]
+    pub allocated_storage: i64,
+    #[serde(default = "default_db_cluster_snapshot_storage_encrypted")]
+    pub storage_encrypted: bool,
+}
+
+fn default_db_cluster_snapshot_allocated_storage() -> i64 {
+    0i64
+}
+
+fn default_db_cluster_snapshot_storage_encrypted() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_neptune_event_subscription` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventSubscriptionTfModel {
+    #[serde(rename = "name")]
+    pub subscription_name: String,
+    pub sns_topic_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_type: Option<String>,
+    #[serde(default = "default_event_subscription_enabled")]
+    pub enabled: bool,
+}
+
+fn default_event_subscription_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_neptune_global_cluster` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GlobalClusterTfModel {
+    pub global_cluster_identifier: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub engine_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub database_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_db_cluster_identifier: Option<String>,
+    #[serde(default = "default_global_cluster_deletion_protection")]
+    pub deletion_protection: bool,
+    #[serde(default = "default_global_cluster_storage_encrypted")]
+    pub storage_encrypted: bool,
+}
+
+fn default_global_cluster_deletion_protection() -> bool {
+    false
+}
+
+fn default_global_cluster_storage_encrypted() -> bool {
+    false
+}

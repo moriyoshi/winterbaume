@@ -126,6 +126,254 @@ type = "tags"
 # aws_appmesh_virtual_service
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# aws_appmesh_virtual_router
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appmesh_virtual_router"
+model = "VirtualRouterTfModel"
+view = "VirtualRouterView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mesh_name"
+view = "mesh_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "mesh_owner"
+view = "mesh_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_owner"
+view = "resource_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_date"
+view = "created_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date"
+view = "last_updated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appmesh_virtual_gateway
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appmesh_virtual_gateway"
+model = "VirtualGatewayTfModel"
+view = "VirtualGatewayView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mesh_name"
+view = "mesh_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "mesh_owner"
+view = "mesh_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_owner"
+view = "resource_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_date"
+view = "created_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date"
+view = "last_updated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appmesh_route
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appmesh_route"
+model = "RouteTfModel"
+view = "RouteView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mesh_name"
+view = "mesh_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "virtual_router_name"
+view = "virtual_router_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "mesh_owner"
+view = "mesh_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_owner"
+view = "resource_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_date"
+view = "created_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date"
+view = "last_updated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_appmesh_gateway_route
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_appmesh_gateway_route"
+model = "GatewayRouteTfModel"
+view = "GatewayRouteView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "mesh_name"
+view = "mesh_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "virtual_gateway_name"
+view = "virtual_gateway_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "mesh_owner"
+view = "mesh_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "resource_owner"
+view = "resource_owner"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_date"
+view = "created_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "last_updated_date"
+view = "last_updated_date"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
 [[resource]]
 type = "aws_appmesh_virtual_service"
 model = "VirtualServiceTfModel"

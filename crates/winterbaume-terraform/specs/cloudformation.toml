@@ -38,3 +38,142 @@ type = "string?"
 hcl = "template_body"
 view = "template_body"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudformation_stack_set
+# Stored under CloudFormationStateView.stack_sets keyed by name.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudformation_stack_set"
+model = "StackSetTfModel"
+view = "StackSetView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "stack_set_id"
+view = "stack_set_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "template_body"
+view = "template_body"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudformation_stack_set_instance
+# Stored under CloudFormationStateView.stack_instances as a Vec entry keyed by
+# (stack_set_name, account, region).
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudformation_stack_set_instance"
+model = "StackSetInstanceTfModel"
+view = "StackInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "stack_set_name"
+view = "stack_set_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "region"
+view = "region"
+type = "string?"
+
+[[resource.field]]
+hcl = "stack_id"
+view = "stack_id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_cloudformation_stack_instances
+# Bulk variant — single resource holds many (account, region) pairs as
+# arrays. We expand each pair into a StackInstance.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudformation_stack_instances"
+model = "StackInstancesTfModel"
+view = "StackInstanceView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "stack_set_name"
+view = "stack_set_name"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_cloudformation_type
+# Stored under CloudFormationStateView.registered_types (Vec). Identity:
+# (type_name, type_kind).
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_cloudformation_type"
+model = "TypeTfModel"
+view = "RegisteredType"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "type_name"
+view = "type_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "type"
+view = "type_kind"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "default_version_id"
+view = "default_version_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"

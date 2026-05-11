@@ -40,3 +40,50 @@ pub struct AmplifyBranchTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub framework: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_amplify_domain_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmplifyDomainAssociationTfModel {
+    pub app_id: String,
+    pub domain_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default = "default_amplify_domain_association_enable_auto_sub_domain")]
+    pub enable_auto_sub_domain: bool,
+    #[serde(default = "default_amplify_domain_association_wait_for_verification")]
+    pub wait_for_verification: bool,
+}
+
+fn default_amplify_domain_association_enable_auto_sub_domain() -> bool {
+    false
+}
+
+fn default_amplify_domain_association_wait_for_verification() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_amplify_backend_environment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmplifyBackendEnvironmentTfModel {
+    pub app_id: String,
+    pub environment_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stack_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deployment_artifacts: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_amplify_webhook` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmplifyWebhookTfModel {
+    pub app_id: String,
+    pub branch_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}

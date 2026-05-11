@@ -9,6 +9,23 @@
 # `sensitive_information_policy_config`, `topic_policy_config`,
 # `word_policy_config`, `tags_all`, `kms_key_arn`) — those are read
 # straight from instance.attributes in the converter or discarded.
+#
+# Additional resources covered hand-tuned:
+#   - aws_bedrock_custom_model: nested blocks
+#     `training_data_config`, `output_data_config`,
+#     `validation_data_config`, `vpc_config`, and the
+#     `hyperparameters` map are read straight from instance.attributes
+#     in the converter (the model.rs CustomModel struct stores them as
+#     strongly-typed sub-structs that we populate explicitly).
+#   - aws_bedrock_guardrail_version: routes the guardrail by `guardrail_arn`
+#     and updates the existing `Guardrail.version` field (the state model
+#     does not track per-version snapshots; see the state-gap note in
+#     converters/bedrock.rs).
+#   - aws_bedrock_inference_profile: the `model_source` nested block carrying
+#     `copy_from` is parsed in the converter into `model_arn`; the spec
+#     captures the scalar inputs only.
+#   - aws_bedrock_provisioned_model_throughput: straightforward scalar
+#     inputs.
 
 [service]
 name = "bedrock"
@@ -76,6 +93,208 @@ type = "string?"
 [[resource.field]]
 hcl = "blocked_outputs_messaging"
 view = "blocked_outputs_messaging"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_bedrock_custom_model
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrock_custom_model"
+model = "CustomModelTfModel"
+view = "BedrockStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "custom_model_name"
+view = "custom_model_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "base_model_identifier"
+view = "base_model_identifier"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "job_name"
+view = "job_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "role_arn"
+view = "role_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "customization_type"
+view = "customization_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_model_arn"
+view = "custom_model_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "job_arn"
+view = "job_arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "job_status"
+view = "job_status"
+type = "string?"
+
+[[resource.field]]
+hcl = "custom_model_kms_key_id"
+view = "custom_model_kms_key_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_bedrock_guardrail_version
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrock_guardrail_version"
+model = "GuardrailVersionTfModel"
+view = "BedrockStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "guardrail_arn"
+view = "guardrail_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "version"
+view = "version"
+type = "string?"
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "skip_destroy"
+view = "skip_destroy"
+type = "bool"
+
+# ---------------------------------------------------------------------------
+# aws_bedrock_inference_profile
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrock_inference_profile"
+model = "InferenceProfileTfModel"
+view = "BedrockStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "type"
+view = "profile_type"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "updated_at"
+view = "updated_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_bedrock_provisioned_model_throughput
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_bedrock_provisioned_model_throughput"
+model = "ProvisionedModelThroughputTfModel"
+view = "BedrockStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "provisioned_model_name"
+view = "provisioned_model_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "model_arn"
+view = "model_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "model_units"
+view = "model_units"
+type = "i64"
+required = true
+
+[[resource.field]]
+hcl = "commitment_duration"
+view = "commitment_duration"
+type = "string?"
+
+[[resource.field]]
+hcl = "provisioned_model_arn"
+view = "provisioned_model_arn"
 type = "string?"
 
 [[resource.field]]

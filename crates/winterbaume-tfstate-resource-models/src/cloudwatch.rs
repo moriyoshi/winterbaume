@@ -38,3 +38,42 @@ fn default_metric_alarm_period() -> u32 {
 fn default_metric_alarm_actions_enabled() -> bool {
     true
 }
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_composite_alarm` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompositeAlarmTfModel {
+    pub alarm_name: String,
+    pub alarm_rule: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub alarm_description: Option<String>,
+    #[serde(default = "default_composite_alarm_actions_enabled")]
+    pub actions_enabled: bool,
+}
+
+fn default_composite_alarm_actions_enabled() -> bool {
+    true
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_dashboard` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DashboardTfModel {
+    pub dashboard_name: String,
+    pub dashboard_body: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dashboard_arn: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_cloudwatch_metric_stream` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetricStreamTfModel {
+    pub name: String,
+    pub firehose_arn: String,
+    pub role_arn: String,
+    pub output_format: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}

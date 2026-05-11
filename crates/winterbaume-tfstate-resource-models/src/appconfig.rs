@@ -61,3 +61,63 @@ pub struct DeploymentStrategyTfModel {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub replicate_to: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_appconfig_deployment` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeploymentTfModel {
+    pub application_id: String,
+    pub environment_id: String,
+    pub deployment_strategy_id: String,
+    pub configuration_profile_id: String,
+    pub configuration_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub deployment_number: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appconfig_extension` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtensionTfModel {
+    pub id: String,
+    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    pub version: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appconfig_extension_association` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtensionAssociationTfModel {
+    pub id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    pub extension_arn: String,
+    pub resource_arn: String,
+    #[serde(default)]
+    pub extension_version: i64,
+    #[serde(default)]
+    pub tags: HashMap<String, String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_appconfig_hosted_configuration_version` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostedConfigurationVersionTfModel {
+    pub application_id: String,
+    pub configuration_profile_id: String,
+    #[serde(default)]
+    pub version_number: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}

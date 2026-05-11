@@ -71,3 +71,154 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_athena_capacity_reservation
+# Stored under AthenaStateView.capacity_reservations keyed by name.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_athena_capacity_reservation"
+model = "CapacityReservationTfModel"
+view = "CapacityReservationView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "target_dpus"
+view = "target_dpus"
+type = "i64"
+
+[[resource.field]]
+hcl = "allocated_dpus"
+view = "allocated_dpus"
+type = "i64"
+
+[[resource.field]]
+hcl = "status"
+view = "status"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_athena_named_query
+# Stored under AthenaStateView.named_queries keyed by query id.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_athena_named_query"
+model = "NamedQueryTfModel"
+view = "NamedQueryView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+[[resource.field]]
+hcl = "database"
+view = "database"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "query"
+view = "query"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "workgroup"
+view = "workgroup"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_athena_prepared_statement
+# Stored under AthenaStateView.prepared_statements keyed by
+# "{workgroup}/{statement_name}".
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_athena_prepared_statement"
+model = "PreparedStatementTfModel"
+view = "PreparedStatementView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "workgroup"
+view = "workgroup"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "query_statement"
+view = "query_statement"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "description"
+view = "description"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_athena_database
+# No state slot in winterbaume_athena; warning-only inject.
+# ---------------------------------------------------------------------------
+
+[[resource]]
+type = "aws_athena_database"
+model = "DatabaseTfModel"
+view = "WorkGroupView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string?"
+
+[[resource.field]]
+hcl = "comment"
+view = "comment"
+type = "string?"
