@@ -1,9 +1,26 @@
-import { defineConfig } from 'vitepress'
+import { defineConfig, type HeadConfig } from 'vitepress'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const siteTitle = 'Winterbäume'
+const siteDescription = 'Stateful AWS service mocking for aws-sdk-rust'
+const siteUrl = process.env.VITEPRESS_SITE_URL ?? 'https://winterbau.me/'
+const ogImagePath = '/ogp.jpg'
+const ogImageUrl = new URL(ogImagePath, siteUrl).href
+
+function pageUrl(relativePath: string) {
+  if (relativePath === 'index.md') {
+    return new URL('/', siteUrl).href
+  }
+
+  const urlPath = relativePath
+    .replace(/(^|\/)index\.md$/, '$1')
+    .replace(/\.md$/, '.html')
+
+  return new URL(urlPath, siteUrl).href
+}
 
 /** Read docs/services/ and build a sidebar item list, grouped A–Z. */
 function servicesSidebar() {
@@ -34,8 +51,40 @@ function servicesSidebar() {
 }
 
 export default defineConfig({
-  title: 'Winterbäume',
-  description: 'Stateful AWS service mocking for aws-sdk-rust',
+  title: siteTitle,
+  description: siteDescription,
+  head: [
+    ['meta', { name: 'theme-color', content: '#4d75ec' }],
+  ],
+  transformPageData(pageData) {
+    const title = pageData.title && pageData.title !== siteTitle
+      ? `${pageData.title} | ${siteTitle}`
+      : siteTitle
+    const description = pageData.description || siteDescription
+    const url = pageUrl(pageData.relativePath)
+    const head = (pageData.frontmatter.head ??= []) as HeadConfig[]
+
+    head.push(
+      ['meta', { property: 'og:url', content: url }],
+      ['meta', { property: 'og:title', content: title }],
+      ['meta', { property: 'og:description', content: description }],
+      ['meta', { property: 'og:type', content: 'website' }],
+      ['meta', { property: 'og:locale', content: 'en_US' }],
+      ['meta', { property: 'og:site_name', content: siteTitle }],
+      ['meta', { property: 'og:image', content: ogImageUrl }],
+      ['meta', { property: 'og:image:secure_url', content: ogImageUrl }],
+      ['meta', { property: 'og:image:type', content: 'image/jpeg' }],
+      ['meta', { property: 'og:image:width', content: '1200' }],
+      ['meta', { property: 'og:image:height', content: '630' }],
+      ['meta', { property: 'og:image:alt', content: 'Winterbäume: stateful AWS service mocking for Rust integration tests' }],
+      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+      ['meta', { name: 'twitter:title', content: title }],
+      ['meta', { name: 'twitter:description', content: description }],
+      ['meta', { name: 'twitter:image', content: ogImageUrl }],
+      ['meta', { name: 'twitter:image:alt', content: 'Winterbäume: stateful AWS service mocking for Rust integration tests' }],
+      ['link', { rel: 'canonical', href: url }],
+    )
+  },
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
@@ -104,33 +153,5 @@ export default defineConfig({
       provider: 'local',
     },
 
-    head: [
-      ['link', { rel: 'icon', type: 'image/svg+xml', href: '/vitepress-logo-mini.svg' }],
-      ['link', { rel: 'icon', type: 'image/png', href: '/vitepress-logo-mini.png' }],
-      ['meta', { name: 'theme-color', content: '#5f67ee' }],
-    ],
-
-    transformPageData: (pageData, ctx) => {
-      const url = new URL(pageData.relativePath.replace(/(?:(^|\/)index)?\.md$/, '$1'), siteUrl).href;
-      const site = resolveSiteDataByRoute(ctx.siteConfig.site, pageData.relativePath);
-      const title = pageData.title ? `${pageData.title} | VitePress` : site.title;
-      const description = pageData.description || site.description;
-      const locale = localeToOgLocaleMap[site.localeIndex || 'root'];
-      ((pageData.frontmatter.head ??= []) as HeadConfig[]).push(
-        ['meta', { property: 'og:url', content: url }],
-        ['meta', { property: 'og:title', content: title }],
-        ['meta', { property: 'og:description', content: description }],
-        ['meta', { property: 'og:type', content: 'website' }],
-        ['meta', { property: 'og:locale', content: locale }],
-        ['meta', { property: 'og:site_name', content: 'VitePress' }],
-        ['meta', { property: 'og:image', content: ogImage }],
-        ['meta', { property: 'og:image:secure_url', content: ogImage }],
-        ['meta', { property: 'og:image:type', content: 'image/jpeg' }],
-        ['meta', { property: 'og:image:width', content: '1280' }],
-        ['meta', { property: 'og:image:height', content: '640' }],
-        ['meta', { property: 'og:image:alt', content: 'VitePress' }],
-        ['link', { rel: 'canonical', href: url }],
-      ) ;
-    },
   },
 })

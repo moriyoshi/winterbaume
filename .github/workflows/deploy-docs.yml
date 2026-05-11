@@ -46,6 +46,8 @@ jobs:
 
       - name: Build VitePress site
         working-directory: docs
+        env:
+          VITEPRESS_SITE_URL: https://winterbau.me/
         run: npm run build
 
       - name: Deploy to Cloudflare Pages
