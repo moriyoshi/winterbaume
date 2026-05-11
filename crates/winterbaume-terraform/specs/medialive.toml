@@ -69,6 +69,122 @@ view = "tags"
 type = "tags"
 
 # ---------------------------------------------------------------------------
+# aws_medialive_input_security_group
+# ---------------------------------------------------------------------------
+# Warning-only: there is no per-input-security-group slot on
+# MediaLiveStateView. The converter parses the model so the spec entry
+# still contributes to coverage and would gain a state slot in future.
+
+[[resource]]
+type = "aws_medialive_input_security_group"
+model = "MediaLiveInputSecurityGroupTfModel"
+view = "MediaLiveInputView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "inputs"
+view = "inputs"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_medialive_multiplex
+# ---------------------------------------------------------------------------
+# Warning-only: there is no per-multiplex slot on MediaLiveStateView.
+
+[[resource]]
+type = "aws_medialive_multiplex"
+model = "MediaLiveMultiplexTfModel"
+view = "MediaLiveChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "state"
+view = "state"
+type = "string?"
+
+[[resource.field]]
+hcl = "start_multiplex"
+view = "start_multiplex"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "tags"
+view = "tags"
+type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_medialive_multiplex_program
+# ---------------------------------------------------------------------------
+# Warning-only: programs hang off a multiplex which itself has no state
+# slot, so injection logs a warning and skips.
+
+[[resource]]
+type = "aws_medialive_multiplex_program"
+model = "MediaLiveMultiplexProgramTfModel"
+view = "MediaLiveChannelView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "program_name"
+view = "program_name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "multiplex_id"
+view = "multiplex_id"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "id"
+view = "id"
+type = "string?"
+
+# ---------------------------------------------------------------------------
 # aws_medialive_input
 # ---------------------------------------------------------------------------
 

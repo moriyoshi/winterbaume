@@ -114,3 +114,149 @@ type = "string?"
 hcl = "tags"
 view = "tags"
 type = "tags"
+
+# ---------------------------------------------------------------------------
+# aws_s3tables_table
+# ---------------------------------------------------------------------------
+# Stores a TableView under `S3TablesStateView.tables`, keyed by
+# (table_bucket_arn, namespace, name).
+
+[[resource]]
+type = "aws_s3tables_table"
+model = "S3TablesTableTfModel"
+view = "TableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "namespace"
+view = "namespace"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "table_bucket_arn"
+view = "table_bucket_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "format"
+view = "format"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "version_token"
+view = "version_token"
+type = "string?"
+
+[[resource.field]]
+hcl = "warehouse_location"
+view = "warehouse_location"
+type = "string?"
+
+[[resource.field]]
+hcl = "owner_account_id"
+view = "owner_account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_at"
+view = "created_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "created_by"
+view = "created_by"
+type = "string?"
+
+[[resource.field]]
+hcl = "modified_at"
+view = "modified_at"
+type = "string?"
+
+[[resource.field]]
+hcl = "modified_by"
+view = "modified_by"
+type = "string?"
+
+[[resource.field]]
+hcl = "metadata_location"
+view = "metadata_location"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3tables_table_bucket_policy
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: snapshots+mutates+restores the table bucket's
+# `policy` field.
+
+[[resource]]
+type = "aws_s3tables_table_bucket_policy"
+model = "S3TablesTableBucketPolicyTfModel"
+view = "TableBucketView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "table_bucket_arn"
+view = "table_bucket_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_policy"
+view = "resource_policy"
+type = "string"
+required = true
+
+# ---------------------------------------------------------------------------
+# aws_s3tables_table_policy
+# ---------------------------------------------------------------------------
+# Sub-resource modifier: snapshots+mutates+restores the table's `policy`
+# field, keyed by (table_bucket_arn, namespace, name).
+
+[[resource]]
+type = "aws_s3tables_table_policy"
+model = "S3TablesTablePolicyTfModel"
+view = "TableView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "table_bucket_arn"
+view = "table_bucket_arn"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "namespace"
+view = "namespace"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "resource_policy"
+view = "resource_policy"
+type = "string"
+required = true

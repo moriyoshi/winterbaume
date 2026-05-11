@@ -798,3 +798,142 @@ type = "string?"
 hcl = "type"
 view = "bucket_type"
 type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_access_point
+# ---------------------------------------------------------------------------
+# Warning-only: S3StateView has no per-bucket access point slot. The
+# converter parses the model so the spec entry still contributes to
+# coverage and would gain a state slot in future.
+
+[[resource]]
+type = "aws_s3_access_point"
+model = "S3AccessPointTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "arn"
+view = "arn"
+type = "string?"
+
+[[resource.field]]
+hcl = "alias"
+view = "alias"
+type = "string?"
+
+[[resource.field]]
+hcl = "domain_name"
+view = "domain_name"
+type = "string?"
+
+[[resource.field]]
+hcl = "endpoints"
+view = "endpoints"
+type = "string?"
+
+[[resource.field]]
+hcl = "network_origin"
+view = "network_origin"
+type = "string?"
+
+# ---------------------------------------------------------------------------
+# aws_s3_account_public_access_block
+# ---------------------------------------------------------------------------
+# Warning-only: account-level public access block is not stored on
+# S3StateView (only per-bucket `public_access_block` exists). Parsing
+# happens for forward compatibility.
+
+[[resource]]
+type = "aws_s3_account_public_access_block"
+model = "S3AccountPublicAccessBlockTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "account_id"
+view = "account_id"
+type = "string?"
+
+[[resource.field]]
+hcl = "block_public_acls"
+view = "block_public_acls"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "ignore_public_acls"
+view = "ignore_public_acls"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "block_public_policy"
+view = "block_public_policy"
+type = "bool"
+default = false
+
+[[resource.field]]
+hcl = "restrict_public_buckets"
+view = "restrict_public_buckets"
+type = "bool"
+default = false
+
+# ---------------------------------------------------------------------------
+# aws_s3_bucket_inventory
+# ---------------------------------------------------------------------------
+# Warning-only: inventory_configurations is intentionally excluded from
+# BucketStateView (transient). Parsing happens so the spec entry still
+# contributes to coverage.
+
+[[resource]]
+type = "aws_s3_bucket_inventory"
+model = "S3BucketInventoryTfModel"
+view = "BucketStateView"
+
+[resource.modes]
+mode = "model_only"
+
+[[resource.field]]
+hcl = "bucket"
+view = "bucket"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "name"
+view = "name"
+type = "string"
+required = true
+
+[[resource.field]]
+hcl = "enabled"
+view = "enabled"
+type = "bool"
+default = true
+
+[[resource.field]]
+hcl = "included_object_versions"
+view = "included_object_versions"
+type = "string?"

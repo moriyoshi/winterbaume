@@ -46,3 +46,47 @@ pub struct NamespaceTfModel {
     #[serde(default)]
     pub tags: HashMap<String, String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_s3tables_table` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3TablesTableTfModel {
+    pub name: String,
+    pub namespace: String,
+    pub table_bucket_arn: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub format: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version_token: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub warehouse_location: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub owner_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_by: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub modified_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub modified_by: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata_location: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3tables_table_bucket_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3TablesTableBucketPolicyTfModel {
+    pub table_bucket_arn: String,
+    pub resource_policy: String,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3tables_table_policy` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3TablesTablePolicyTfModel {
+    pub table_bucket_arn: String,
+    pub namespace: String,
+    pub name: String,
+    pub resource_policy: String,
+}

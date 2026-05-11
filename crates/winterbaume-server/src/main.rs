@@ -3412,6 +3412,15 @@ async fn load_tfstate(
     injector.register(medialive::AwsMedialiveInputConverter::new(Arc::clone(
         &injectable.medialive,
     )));
+    injector.register(medialive::AwsMedialiveInputSecurityGroupConverter::new(
+        Arc::clone(&injectable.medialive),
+    ));
+    injector.register(medialive::AwsMedialiveMultiplexConverter::new(Arc::clone(
+        &injectable.medialive,
+    )));
+    injector.register(medialive::AwsMedialiveMultiplexProgramConverter::new(
+        Arc::clone(&injectable.medialive),
+    ));
     injector.register(mediapackage::AwsMediaPackageChannelConverter::new(
         Arc::clone(&injectable.mediapackage),
     ));
@@ -3436,6 +3445,21 @@ async fn load_tfstate(
     injector.register(networkfirewall::AwsNetworkFirewallRuleGroupConverter::new(
         Arc::clone(&injectable.networkfirewall),
     ));
+    injector.register(
+        networkfirewall::AwsNetworkFirewallLoggingConfigurationConverter::new(Arc::clone(
+            &injectable.networkfirewall,
+        )),
+    );
+    injector.register(
+        networkfirewall::AwsNetworkFirewallResourcePolicyConverter::new(Arc::clone(
+            &injectable.networkfirewall,
+        )),
+    );
+    injector.register(
+        networkfirewall::AwsNetworkFirewallTlsInspectionConfigurationConverter::new(Arc::clone(
+            &injectable.networkfirewall,
+        )),
+    );
     injector.register(
         networkmanager::AwsNetworkmanagerGlobalNetworkConverter::new(Arc::clone(
             &injectable.networkmanager,
@@ -4039,6 +4063,15 @@ async fn load_tfstate(
             move || svc.scopes_with_state(),
         );
     }
+    injector.register(s3::AwsS3AccessPointConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3AccountPublicAccessBlockConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
+    injector.register(s3::AwsS3BucketInventoryConverter::new(Arc::clone(
+        &injectable.s3,
+    )));
     // S3 bucket sub-resources (single Option<String> fields)
     injector.register(s3::AwsS3BucketAccelerateConfigurationConverter::new(
         Arc::clone(&injectable.s3),
@@ -4168,6 +4201,15 @@ async fn load_tfstate(
         &injectable.s3tables,
     )));
     injector.register(s3tables::AwsS3tablesNamespaceConverter::new(Arc::clone(
+        &injectable.s3tables,
+    )));
+    injector.register(s3tables::AwsS3tablesTableConverter::new(Arc::clone(
+        &injectable.s3tables,
+    )));
+    injector.register(s3tables::AwsS3tablesTableBucketPolicyConverter::new(
+        Arc::clone(&injectable.s3tables),
+    ));
+    injector.register(s3tables::AwsS3tablesTablePolicyConverter::new(Arc::clone(
         &injectable.s3tables,
     )));
     injector.register(sagemaker::AwsSagemakerDomainConverter::new(Arc::clone(

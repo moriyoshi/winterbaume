@@ -2,8 +2,8 @@
 
 Schema resources total: **1526**
 Resources classified to a service via prefix: **1191**
-Currently handled by winterbaume: **1115** (1110 verified against schema)
-Missing within classified prefixes: **89**
+Currently handled by winterbaume: **1127** (1122 verified against schema)
+Missing within classified prefixes: **77**
 
 Sorted by missing-count desc.
 
@@ -12,10 +12,6 @@ Sorted by missing-count desc.
 | ebs | `aws_ebs_` | 2 | 8 | 6 | 25% |  |
 | elbv2 | override (2 patterns) | 10 | 16 | 6 | 62% |  |
 | kinesis | `aws_kinesis_` | 3 | 6 | 3 | 50% |  |
-| medialive | `aws_medialive_` | 2 | 5 | 3 | 40% |  |
-| networkfirewall | `aws_networkfirewall_` | 3 | 6 | 3 | 50% |  |
-| s3 | `aws_s3_` | 23 | 26 | 3 | 88% |  |
-| s3tables | `aws_s3tables_` | 2 | 5 | 3 | 40% |  |
 | account | `aws_account_` | 1 | 3 | 2 | 33% |  |
 | apigateway | `aws_api_gateway_` | 24 | 26 | 2 | 92% |  |
 | cloudtrail | `aws_cloudtrail` | 1 | 3 | 2 | 33% |  |
@@ -113,11 +109,13 @@ Sorted by missing-count desc.
 | lexmodelsv2 | `aws_lexv2models_` | 6 | 6 | 0 | 100% |  |
 | logs | `aws_cloudwatch_log_` | 15 | 15 | 0 | 100% |  |
 | macie2 | `aws_macie2_` | 9 | 9 | 0 | 100% |  |
+| medialive | `aws_medialive_` | 5 | 5 | 0 | 100% |  |
 | mediapackage | `aws_media_package_` | 1 | 1 | 0 | 100% |  |
 | mediapackagev2 | `aws_media_packagev2_` | 1 | 1 | 0 | 100% |  |
 | memorydb | `aws_memorydb_` | 7 | 7 | 0 | 100% |  |
 | mq | `aws_mq_` | 2 | 2 | 0 | 100% |  |
 | neptune | `aws_neptune_` | 9 | 9 | 0 | 100% |  |
+| networkfirewall | `aws_networkfirewall_` | 6 | 6 | 0 | 100% |  |
 | networkmanager | `aws_networkmanager_` | 19 | 19 | 0 | 100% |  |
 | opensearch | `aws_opensearch_` | 9 | 9 | 0 | 100% |  |
 | opensearchserverless | `aws_opensearchserverless_` | 6 | 6 | 0 | 100% |  |
@@ -133,7 +131,9 @@ Sorted by missing-count desc.
 | rolesanywhere | `aws_rolesanywhere_` | 2 | 2 | 0 | 100% |  |
 | route53 | override (11 patterns) | 13 | 13 | 0 | 100% |  |
 | route53resolver | `aws_route53_resolver_` | 12 | 12 | 0 | 100% |  |
+| s3 | `aws_s3_` | 26 | 26 | 0 | 100% |  |
 | s3control | `aws_s3control_` | 15 | 14 | 0 | 100% |  |
+| s3tables | `aws_s3tables_` | 5 | 5 | 0 | 100% |  |
 | sagemaker | `aws_sagemaker_` | 30 | 30 | 0 | 100% |  |
 | scheduler | `aws_scheduler_` | 2 | 2 | 0 | 100% |  |
 | securityhub | `aws_securityhub_` | 15 | 15 | 0 | 100% |  |
@@ -180,30 +180,6 @@ Sorted by missing-count desc.
 - `aws_kinesis_analytics_application`
 - `aws_kinesis_firehose_delivery_stream`
 - `aws_kinesis_video_stream`
-
-### medialive — 3 missing
-
-- `aws_medialive_input_security_group`
-- `aws_medialive_multiplex`
-- `aws_medialive_multiplex_program`
-
-### networkfirewall — 3 missing
-
-- `aws_networkfirewall_logging_configuration`
-- `aws_networkfirewall_resource_policy`
-- `aws_networkfirewall_tls_inspection_configuration`
-
-### s3 — 3 missing
-
-- `aws_s3_access_point`
-- `aws_s3_account_public_access_block`
-- `aws_s3_bucket_inventory`
-
-### s3tables — 3 missing
-
-- `aws_s3tables_table`
-- `aws_s3tables_table_bucket_policy`
-- `aws_s3tables_table_policy`
 
 ### account — 2 missing
 

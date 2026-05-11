@@ -271,3 +271,68 @@ pub struct S3DirectoryBucketTfModel {
     #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
     pub bucket_type: Option<String>,
 }
+
+/// Auto-generated TF-shaped projection of the `aws_s3_access_point` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3AccessPointTfModel {
+    pub name: String,
+    pub bucket: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub alias: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub domain_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoints: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub network_origin: Option<String>,
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_account_public_access_block` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3AccountPublicAccessBlockTfModel {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_id: Option<String>,
+    #[serde(default = "default_s3_account_public_access_block_block_public_acls")]
+    pub block_public_acls: bool,
+    #[serde(default = "default_s3_account_public_access_block_ignore_public_acls")]
+    pub ignore_public_acls: bool,
+    #[serde(default = "default_s3_account_public_access_block_block_public_policy")]
+    pub block_public_policy: bool,
+    #[serde(default = "default_s3_account_public_access_block_restrict_public_buckets")]
+    pub restrict_public_buckets: bool,
+}
+
+fn default_s3_account_public_access_block_block_public_acls() -> bool {
+    false
+}
+
+fn default_s3_account_public_access_block_ignore_public_acls() -> bool {
+    false
+}
+
+fn default_s3_account_public_access_block_block_public_policy() -> bool {
+    false
+}
+
+fn default_s3_account_public_access_block_restrict_public_buckets() -> bool {
+    false
+}
+
+/// Auto-generated TF-shaped projection of the `aws_s3_bucket_inventory` resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct S3BucketInventoryTfModel {
+    pub bucket: String,
+    pub name: String,
+    #[serde(default = "default_s3_bucket_inventory_enabled")]
+    pub enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub included_object_versions: Option<String>,
+}
+
+fn default_s3_bucket_inventory_enabled() -> bool {
+    true
+}

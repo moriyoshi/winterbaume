@@ -8,7 +8,8 @@ use std::sync::Arc;
 use winterbaume_core::StatefulService;
 use winterbaume_networkfirewall::NetworkFirewallService;
 use winterbaume_networkfirewall::views::{
-    FirewallPolicyView, FirewallView, NetworkFirewallStateView, RuleGroupView, SubnetMappingView,
+    FirewallPolicyView, FirewallView, NetworkFirewallStateView, ResourcePolicyView, RuleGroupView,
+    SubnetMappingView, TlsInspectionConfigurationView,
 };
 use winterbaume_tfstate::ResourceInstance;
 
@@ -467,5 +468,282 @@ impl AwsNetworkFirewallRuleGroupConverter {
             });
         }
         Ok(results)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_networkfirewall_logging_configuration
+// ---------------------------------------------------------------------------
+// Stores the nested `logging_configuration` block as a JSON string on
+// `NetworkFirewallStateView.logging_configs[firewall_arn]`.
+
+pub struct AwsNetworkFirewallLoggingConfigurationConverter {
+    service: Arc<NetworkFirewallService>,
+}
+
+impl AwsNetworkFirewallLoggingConfigurationConverter {
+    pub fn new(service: Arc<NetworkFirewallService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNetworkFirewallLoggingConfigurationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_networkfirewall_logging_configuration"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let model: networkfirewall_gen::LoggingConfigurationTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_networkfirewall_logging_configuration", e)
+                })?;
+            let body = instance
+                .attributes
+                .get("logging_configuration")
+                .cloned()
+                .unwrap_or(serde_json::Value::Null);
+            let body_str = serde_json::to_string(&body).unwrap_or_default();
+
+            let mut state_view = NetworkFirewallStateView::default();
+            state_view
+                .logging_configs
+                .insert(model.firewall_arn.clone(), body_str);
+            self.service
+                .merge(&ctx.default_account_id, &region, state_view)
+                .await?;
+
+            Ok(ConversionResult {
+                region,
+                warnings: vec![],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            let view = self
+                .service
+                .snapshot(&ctx.default_account_id, &ctx.default_region)
+                .await;
+            let mut results = vec![];
+            for (firewall_arn, cfg_str) in view.logging_configs.iter() {
+                let cfg: serde_json::Value =
+                    serde_json::from_str(cfg_str).unwrap_or(serde_json::Value::Null);
+                let attrs = serde_json::json!({
+                    "id": firewall_arn,
+                    "firewall_arn": firewall_arn,
+                    "logging_configuration": cfg,
+                });
+                results.push(ExtractedResource {
+                    name: firewall_arn.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+            Ok(results)
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_networkfirewall_resource_policy
+// ---------------------------------------------------------------------------
+// Stores the policy at
+// `NetworkFirewallStateView.resource_policies[resource_arn]`.
+
+pub struct AwsNetworkFirewallResourcePolicyConverter {
+    service: Arc<NetworkFirewallService>,
+}
+
+impl AwsNetworkFirewallResourcePolicyConverter {
+    pub fn new(service: Arc<NetworkFirewallService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNetworkFirewallResourcePolicyConverter {
+    fn resource_type(&self) -> &str {
+        "aws_networkfirewall_resource_policy"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let model: networkfirewall_gen::NetworkFirewallResourcePolicyTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error("aws_networkfirewall_resource_policy", e)
+                })?;
+
+            let rp_view = ResourcePolicyView {
+                resource_arn: model.resource_arn.clone(),
+                policy: model.policy.clone(),
+            };
+            let mut state_view = NetworkFirewallStateView::default();
+            state_view
+                .resource_policies
+                .insert(model.resource_arn, rp_view);
+            self.service
+                .merge(&ctx.default_account_id, &region, state_view)
+                .await?;
+
+            Ok(ConversionResult {
+                region,
+                warnings: vec![],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            let view = self
+                .service
+                .snapshot(&ctx.default_account_id, &ctx.default_region)
+                .await;
+            let mut results = vec![];
+            for rp in view.resource_policies.values() {
+                let attrs = serde_json::json!({
+                    "id": rp.resource_arn,
+                    "resource_arn": rp.resource_arn,
+                    "policy": rp.policy,
+                });
+                results.push(ExtractedResource {
+                    name: rp.resource_arn.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+            Ok(results)
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// aws_networkfirewall_tls_inspection_configuration
+// ---------------------------------------------------------------------------
+// Stores the typed config at
+// `NetworkFirewallStateView.tls_inspection_configurations[arn]`.
+
+pub struct AwsNetworkFirewallTlsInspectionConfigurationConverter {
+    service: Arc<NetworkFirewallService>,
+}
+
+impl AwsNetworkFirewallTlsInspectionConfigurationConverter {
+    pub fn new(service: Arc<NetworkFirewallService>) -> Self {
+        Self { service }
+    }
+}
+
+impl TerraformResourceConverter for AwsNetworkFirewallTlsInspectionConfigurationConverter {
+    fn resource_type(&self) -> &str {
+        "aws_networkfirewall_tls_inspection_configuration"
+    }
+
+    fn inject<'a>(
+        &'a self,
+        instance: &'a ResourceInstance,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<ConversionResult, ConversionError>> + Send + 'a>> {
+        Box::pin(async move {
+            let region = extract_region(&instance.attributes, &ctx.default_region);
+            let model: networkfirewall_gen::TlsInspectionConfigurationTfModel =
+                serde_json::from_value(instance.attributes.clone()).map_err(|e| {
+                    classify_deserialize_error(
+                        "aws_networkfirewall_tls_inspection_configuration",
+                        e,
+                    )
+                })?;
+            let attrs = &instance.attributes;
+
+            let name = model.name.clone();
+            let tls_id = model.id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+            let tls_arn = model.arn.unwrap_or_else(|| {
+                format!(
+                    "arn:aws:network-firewall:{}:{}:tls-configuration/{}",
+                    region, ctx.default_account_id, name
+                )
+            });
+
+            let body = attrs
+                .get("tls_inspection_configuration")
+                .cloned()
+                .unwrap_or(serde_json::Value::Null);
+
+            let tls_view = TlsInspectionConfigurationView {
+                name,
+                arn: tls_arn.clone(),
+                id: tls_id,
+                description: model.description,
+                tags: extract_tags_vec(attrs),
+                body,
+            };
+            let mut state_view = NetworkFirewallStateView::default();
+            state_view
+                .tls_inspection_configurations
+                .insert(tls_arn, tls_view);
+            self.service
+                .merge(&ctx.default_account_id, &region, state_view)
+                .await?;
+
+            Ok(ConversionResult {
+                region,
+                warnings: vec![],
+            })
+        })
+    }
+
+    fn extract<'a>(
+        &'a self,
+        ctx: &'a ConversionContext,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<ExtractedResource>, ConversionError>> + Send + 'a>>
+    {
+        Box::pin(async move {
+            let view = self
+                .service
+                .snapshot(&ctx.default_account_id, &ctx.default_region)
+                .await;
+            let mut results = vec![];
+            for tls in view.tls_inspection_configurations.values() {
+                let tags: HashMap<String, String> = tls
+                    .tags
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone()))
+                    .collect();
+                let attrs = serde_json::json!({
+                    "id": tls.id,
+                    "arn": tls.arn,
+                    "name": tls.name,
+                    "description": tls.description,
+                    "tls_inspection_configuration": tls.body,
+                    "tags": tags,
+                });
+                results.push(ExtractedResource {
+                    name: tls.name.clone(),
+                    account_id: ctx.default_account_id.clone(),
+                    region: ctx.default_region.clone(),
+                    attributes: attrs,
+                });
+            }
+            Ok(results)
+        })
     }
 }
