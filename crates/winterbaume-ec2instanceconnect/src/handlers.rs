@@ -77,7 +77,7 @@ async fn shape_error(err: Ec2InstanceConnectError) -> MockResponse {
 impl Ec2InstanceConnectService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = winterbaume_core::DEFAULT_ACCOUNT_ID;
+        let account_id = winterbaume_core::default_account_id();
 
         // Extract action from X-Amz-Target header
         // Format: "AWSEC2InstanceConnectService.SendSSHPublicKey"

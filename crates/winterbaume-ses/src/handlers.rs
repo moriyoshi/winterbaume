@@ -14,8 +14,8 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::state::{SesV1Error, SesV1State};
@@ -70,7 +70,7 @@ impl MockService for SesService {
 impl SesService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         // Parse form-encoded body (awsQuery protocol)
         let body_str = std::str::from_utf8(&request.body).unwrap_or("");

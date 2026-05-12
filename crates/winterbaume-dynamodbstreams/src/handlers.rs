@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
 use winterbaume_dynamodb::{DynamoDbBackend, DynamoDbError, StreamChangeRecord};
 
@@ -83,7 +83,7 @@ impl DynamoDbStreamsService {
         // (returns "dynamodb" instead of the actual region).
         let region = winterbaume_core::auth::extract_region_from_headers(&request.headers)
             .unwrap_or_else(|| winterbaume_core::auth::extract_region_from_uri(&request.uri));
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         // Extract action from X-Amz-Target header
         // Format: "DynamoDBStreams_20120810.ListStreams"

@@ -7,7 +7,7 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::json;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
 
 use crate::state::{BedrockError, BedrockState};
@@ -57,7 +57,7 @@ impl MockService for BedrockService {
 impl BedrockService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         let path = extract_path(&request.uri);

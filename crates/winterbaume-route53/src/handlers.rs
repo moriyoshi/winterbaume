@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use serde::Serialize;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::state::{
@@ -60,7 +60,7 @@ impl MockService for Route53Service {
 impl Route53Service {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = "us-east-1";
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, region);
 
         let method = request.method.as_str();
@@ -796,7 +796,7 @@ impl Route53Service {
                         hosted_zone_id: Some(zone.id.clone()),
                         name: Some(zone.name.clone()),
                         owner: Some(wire::HostedZoneOwner {
-                            owning_account: Some(DEFAULT_ACCOUNT_ID.to_string()),
+                            owning_account: Some(default_account_id().to_string()),
                             owning_service: None,
                         }),
                     })

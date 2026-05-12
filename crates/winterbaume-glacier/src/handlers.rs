@@ -9,8 +9,8 @@ use sha2::{Digest, Sha256};
 use tokio::io::AsyncReadExt;
 use tokio::sync::RwLock;
 use winterbaume_core::{
-    BackendState, BlobStoreMap, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService,
-    StateChangeNotifier, Vfs,
+    BackendState, BlobStoreMap, MockRequest, MockResponse, MockService, StateChangeNotifier, Vfs,
+    default_account_id,
 };
 
 use crate::state::{GlacierError, GlacierState, JobOutput};
@@ -198,7 +198,7 @@ impl MockService for GlacierService {
 impl GlacierService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
         let blobs = self.blobs.get(account_id, &region);
 

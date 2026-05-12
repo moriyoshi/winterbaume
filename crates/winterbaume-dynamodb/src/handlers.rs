@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::backend::{DynamoDbBackend, InMemoryDynamoDbBackend};
@@ -160,7 +160,7 @@ impl MockService for DynamoDbService {
 impl DynamoDbService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = extract_dynamodb_region(&request);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         // Extract action from X-Amz-Target header
         // Format: "DynamoDB_20120810.CreateTable"

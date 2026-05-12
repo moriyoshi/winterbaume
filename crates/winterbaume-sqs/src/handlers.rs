@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
 
 use crate::backend::{InMemorySqsBackend, SqsBackend};
@@ -72,7 +72,7 @@ impl MockService for SqsService {
 impl SqsService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID.to_string();
+        let account_id = default_account_id().to_string();
 
         // Extract action from X-Amz-Target header (awsJson1.0 protocol)
         // Format: "AmazonSQS.CreateQueue"

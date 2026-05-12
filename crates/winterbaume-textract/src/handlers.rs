@@ -94,7 +94,7 @@ impl TextractService {
             .headers
             .get("x-amz-account-id")
             .and_then(|v| v.to_str().ok())
-            .unwrap_or(winterbaume_core::DEFAULT_ACCOUNT_ID);
+            .unwrap_or(winterbaume_core::default_account_id());
         let region = request
             .headers
             .get("x-amz-region")

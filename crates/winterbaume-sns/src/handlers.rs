@@ -4,7 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use winterbaume_core::{
-    DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
 
 use crate::backend::{InMemorySnsBackend, SnsBackend};
@@ -69,7 +69,7 @@ impl MockService for SnsService {
 impl SnsService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID.to_string();
+        let account_id = default_account_id().to_string();
 
         let body_str = std::str::from_utf8(&request.body).unwrap_or("");
         let params = parse_query_string(body_str);

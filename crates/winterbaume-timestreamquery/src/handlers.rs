@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::model;
@@ -54,7 +54,7 @@ impl MockService for TimestreamQueryService {
 impl TimestreamQueryService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         // Extract action from X-Amz-Target header
         // Format: "Timestream_20181101.Query"
@@ -150,7 +150,7 @@ impl TimestreamQueryService {
     }
 
     async fn handle_describe_endpoints(&self, region: &str) -> MockResponse {
-        let state_lock = self.state.get(DEFAULT_ACCOUNT_ID, region);
+        let state_lock = self.state.get(default_account_id(), region);
         let state = state_lock.read().await;
         let endpoints = state.describe_endpoints(region);
 

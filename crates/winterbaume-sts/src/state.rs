@@ -1,4 +1,4 @@
-use winterbaume_core::DEFAULT_ACCOUNT_ID;
+use winterbaume_core::default_account_id;
 
 use crate::types::{AssumedRole, CallerIdentity};
 
@@ -46,8 +46,11 @@ impl StsState {
         // Default fallback identity
         CallerIdentity {
             user_id: "AKIAIOSFODNN7EXAMPLE".to_string(),
-            account: DEFAULT_ACCOUNT_ID.to_string(),
-            arn: format!("arn:aws:sts::{DEFAULT_ACCOUNT_ID}:user/moto"),
+            account: default_account_id().to_string(),
+            arn: format!(
+                "arn:aws:sts::{account_id}:user/moto",
+                account_id = default_account_id()
+            ),
         }
     }
 }

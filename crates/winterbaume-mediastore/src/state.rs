@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use chrono::Utc;
 use serde_json::Value;
 use thiserror::Error;
-use winterbaume_core::DEFAULT_ACCOUNT_ID;
+use winterbaume_core::default_account_id;
 
 use crate::types::*;
 
@@ -43,7 +43,10 @@ impl MediaStoreState {
         // `arn:aws:mediastore:container:<name>` shape broke terraform's ListTagsForResource
         // round-trip (terraform sends the ARN back, and the handler parses the trailing
         // path component as the container name).
-        let arn = format!("arn:aws:mediastore:us-east-1:{DEFAULT_ACCOUNT_ID}:container/{name}");
+        let arn = format!(
+            "arn:aws:mediastore:us-east-1:{account_id}:container/{name}",
+            account_id = default_account_id()
+        );
         let creation_time = Utc::now().timestamp().to_string();
         let container = Container {
             arn,

@@ -4,8 +4,8 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::model;
@@ -200,7 +200,7 @@ async fn job_to_summary(j: &crate::types::AmplifyJob) -> model::JobSummary {
 
 impl AmplifyService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
         let state = self.state.get(account_id, &region);
 

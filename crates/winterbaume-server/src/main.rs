@@ -4884,7 +4884,9 @@ struct CliArgs {
     #[arg(long, short = 'p', value_name = "PORT", env = "WB_PORT")]
     port: Option<u16>,
 
-    /// AWS account ID for state injection.
+    /// Mock AWS account ID. Used for ARN construction, Owner/AccountId
+    /// response fields, per-account state isolation, and as the default
+    /// account for Terraform state injection. Defaults to "123456789012".
     #[arg(long, value_name = "ID", env = "WB_ACCOUNT_ID")]
     account_id: Option<String>,
 
@@ -4989,7 +4991,7 @@ fn parse_options() -> ServerOptions {
     let account_id = cli
         .account_id
         .or(file_cfg.account_id)
-        .unwrap_or_else(|| winterbaume_core::DEFAULT_ACCOUNT_ID.to_string());
+        .unwrap_or_else(|| winterbaume_core::default_account_id().to_string());
 
     let default_region = cli
         .region
@@ -5033,6 +5035,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .init();
 
     let opts = parse_options();
+
+    // Install the configured account ID before any service handles a request,
+    // so handlers that consult `winterbaume_core::default_account_id()` (ARN
+    // construction, Owner/AccountId fields, per-account state lookup, etc.)
+    // observe the value supplied via `--account-id` / `WB_ACCOUNT_ID`.
+    winterbaume_core::set_default_account_id(opts.account_id.clone());
 
     let addr: SocketAddr = format!("{}:{}", opts.host, opts.port).parse()?;
     let listener = TcpListener::bind(addr).await?;

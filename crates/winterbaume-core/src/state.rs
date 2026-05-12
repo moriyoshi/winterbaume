@@ -1,10 +1,38 @@
 //! Per-account, per-region backend state management.
 
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, OnceLock, RwLock};
 
-/// Default mock account ID.
+/// Built-in fallback mock account ID.
+///
+/// Use [`default_account_id`] in handler code: it returns the value
+/// installed by [`set_default_account_id`] (e.g. from `winterbaume-server`'s
+/// `--account-id` flag) and falls back to this constant otherwise.
 pub const DEFAULT_ACCOUNT_ID: &str = "123456789012";
+
+static CONFIGURED_ACCOUNT_ID: OnceLock<&'static str> = OnceLock::new();
+
+/// Install a process-wide default account ID. Idempotent: calling with the
+/// same value is a no-op; a different value after one has been installed is
+/// silently ignored (the first writer wins). Intended to be called once at
+/// server / `MockAws` startup, before any service handles a request.
+pub fn set_default_account_id(id: impl Into<String>) {
+    let id = id.into();
+    if id == DEFAULT_ACCOUNT_ID {
+        return;
+    }
+    let leaked: &'static str = Box::leak(id.into_boxed_str());
+    let _ = CONFIGURED_ACCOUNT_ID.set(leaked);
+}
+
+/// The currently effective default account ID. Returns the value installed via
+/// [`set_default_account_id`] if any, otherwise [`DEFAULT_ACCOUNT_ID`].
+pub fn default_account_id() -> &'static str {
+    match CONFIGURED_ACCOUNT_ID.get() {
+        Some(s) => s,
+        None => DEFAULT_ACCOUNT_ID,
+    }
+}
 
 /// Manages per-account, per-region state for a service backend.
 ///

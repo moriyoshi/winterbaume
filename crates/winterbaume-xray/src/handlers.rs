@@ -4,8 +4,8 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService, extract_path, extract_query_string, parse_query_string, rest_json_error,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id, extract_path, extract_query_string, parse_query_string, rest_json_error,
 };
 
 use crate::state::{XRayError, XRayState};
@@ -56,7 +56,7 @@ impl MockService for XRayService {
 impl XRayService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         let path = extract_path(&request.uri);
         let query = extract_query_string(&request.uri);

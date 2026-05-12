@@ -6,8 +6,8 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::{Value, json, to_value};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
     protocol::common::{extract_path, extract_query_string, parse_query_string, percent_decode},
 };
 
@@ -59,7 +59,7 @@ type SharedState = Arc<tokio::sync::RwLock<ChimeSdkMeetingsState>>;
 impl ChimeSdkMeetingsService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         let path = extract_path(&request.uri);

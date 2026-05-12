@@ -6,8 +6,8 @@ use http::header::HeaderName;
 use serde_json::{Value, json};
 use tokio::io::AsyncReadExt;
 use winterbaume_core::{
-    BackendState, BlobStore, BlobStoreMap, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse,
-    MockService, StateChangeNotifier, Vfs,
+    BackendState, BlobStore, BlobStoreMap, MockRequest, MockResponse, MockService,
+    StateChangeNotifier, Vfs, default_account_id,
 };
 
 use crate::state::{EbsError, EbsState};
@@ -72,7 +72,7 @@ impl MockService for EbsService {
 impl EbsService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
         let blobs = self.blobs.get(account_id, &region);
 
@@ -184,7 +184,7 @@ impl EbsService {
                     block_size: Some(snapshot.block_size),
                     description: Some(snapshot.description.clone()),
                     status: Some(snapshot.status.as_str().to_string()),
-                    owner_id: Some(DEFAULT_ACCOUNT_ID.to_string()),
+                    owner_id: Some(default_account_id().to_string()),
                     ..Default::default()
                 };
                 wire::serialize_start_snapshot_response(&resp)

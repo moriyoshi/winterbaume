@@ -1556,3 +1556,185 @@ with 1–3 each, most of which are either:
   model file from the updated spec. Per-service it takes ~5–10 s warm.
   Multiple sub-agents calling `gen` in parallel are fine: each writes
   a different `src/<svc>.rs` file.
+
+## 2026-05-13 — `winterbaume-server --account-id` honoured at runtime
+
+### Symptom
+
+User reported that `--account-id` ( and equivalently `WB_ACCOUNT_ID` /
+`account_id = ...` in the TOML config ) had no observable effect on
+responses from `winterbaume-server`. Starting the server with
+`--account-id 999999999999` and calling e.g. `aws s3api list-buckets`
+still returned `Owner.ID = "123456789012"`; STS `GetCallerIdentity`
+still returned `Account = "123456789012"`; ARNs constructed by
+handlers still embedded `123456789012`.
+
+### Root cause
+
+The CLI option was parsed and merged with the documented
+`CLI > env > config > default` precedence in
+`crates/winterbaume-server/src/main.rs::parse_options` ( the resolved
+value landed in `ServerOptions.account_id` correctly ). But the only
+consumer of that field was `load_tfstate`, where it became
+`ConversionContext.default_account_id` for terraform-state injection.
+
+After the server bound its listener, every service handler resolved
+"the current account" by referencing the hard-coded
+`winterbaume_core::state::DEFAULT_ACCOUNT_ID = "123456789012"`
+constant: ~512 occurrences across ~231 source files in
+`crates/winterbaume-*/src/**.rs`. The constant was used for ARN
+construction, for `Owner` / `AccountId` response fields, and as the
+account-id key for `BackendState::get(account_id, region)` per-account
+state isolation. No path threaded the configured value to handlers, so
+the flag was effectively documentation only.
+
+### Fix
+
+Introduced a single process-wide, runtime-installable override and
+migrated handlers off the constant onto an accessor function.
+
+1. `crates/winterbaume-core/src/state.rs`: added
+   ```
+   static CONFIGURED_ACCOUNT_ID: OnceLock<&'static str> = OnceLock::new();
+   pub fn set_default_account_id(id: impl Into<String>);
+   pub fn default_account_id() -> &'static str;
+   ```
+   `set_default_account_id` leaks the supplied `String` to obtain a
+   `&'static str` and installs it via `OnceLock::set`. Semantics:
+   - First-writer-wins ( a second call with a different value is
+     silently ignored ).
+   - Calling with the literal default `"123456789012"` is a no-op so
+     repeated explicit defaults don't burn the `OnceLock` slot.
+   - `default_account_id()` returns the installed value, falling back
+     to the `DEFAULT_ACCOUNT_ID` constant.
+   The constant itself was kept for tests that compare against the
+   string literal "123456789012".
+
+2. Re-exported both symbols from `winterbaume_core` ( `lib.rs` ).
+
+3. Migrated handler-side usage en masse via a one-shot Python script
+   ( `.agents-workspace/tmp/migrate_account_id.py`, removed after the
+   run ) which:
+   - In every `use` statement under any `crates/**/src/**/*.rs`,
+     renames the imported `DEFAULT_ACCOUNT_ID` to
+     `default_account_id`.
+   - In every non-import occurrence, replaces the bare
+     `DEFAULT_ACCOUNT_ID` token with `default_account_id()`.
+   - Excludes `winterbaume-core/src/{state,lib,mock_aws}.rs` ( which
+     define / re-export the constant and use it as the `MockAws`
+     builder default ).
+   227 files rewritten. `cargo fmt --all` afterwards normalised
+   formatting ( use-list ordering, etc. ).
+
+4. Two `format!("...{DEFAULT_ACCOUNT_ID}...")` interpolation sites
+   couldn't be rewritten by the script ( inline identifiers inside
+   format strings can't be replaced with `default_account_id()` —
+   Rust format syntax doesn't allow function-call expressions inside
+   `{}` ). These were hand-converted to named-arg form first so the
+   script could pick them up cleanly:
+   - `crates/winterbaume-sts/src/state.rs` line 50
+   - `crates/winterbaume-mediastore/src/state.rs` line 46
+
+5. `crates/winterbaume-codepipeline` carried a private parallel
+   constant `pub(crate) const DEFAULT_ACCOUNT_ID_STR: &str = "123456789012";`
+   in its `state.rs`, with ~12 use sites in `state.rs` and
+   `handlers.rs`. Replaced this with calls to
+   `winterbaume_core::default_account_id()` and removed the local
+   constant.
+
+6. `crates/winterbaume-server/src/main.rs`: call
+   `winterbaume_core::set_default_account_id(opts.account_id.clone())`
+   in `main()` after `parse_options()` and before
+   `register_all_services` / `TcpListener::bind`. Updated the
+   `--account-id` `#[arg(...)]` help text to reflect that it now
+   affects ARN construction, `Owner` / `AccountId` response fields,
+   per-account state isolation, and tfstate injection ( previously
+   advertised only as "for state injection" ).
+
+### Why a process-wide global, not per-service threading
+
+The principled alternative was to thread an `Arc<str>` ( or a
+`ServerContext { account_id, default_region }` ) through every service
+constructor and into request handlers. Two concerns ruled it out for
+this fix:
+
+- Surface area: every `MockService` constructor and every handler
+  signature would change. The `MockService` trait has 200+ implementors;
+  the bus that pipes request → handler would need a new context
+  argument throughout.
+- Semantics today: the de-facto status quo before this fix was already
+  a single global account ID ( the const ). Making that single global
+  runtime-configurable is a strictly broader behaviour with the same
+  blast radius, not a regression.
+
+The known limitation is that two `MockAws` instances in the same
+process can't have different effective account IDs — but
+`MockAws::builder().account_id(...)` already did NOT affect handlers
+before this fix, so no existing test depends on per-instance
+isolation. `MockAws::build()` was deliberately left to keep its old
+behaviour ( the builder's `account_id` is stored on the struct for the
+`mock.account_id()` getter only ). A follow-up could have
+`MockAws::build()` also invoke `set_default_account_id` to extend
+the override to library users — guarded by the same first-writer-wins
+semantics — but that wasn't required by the reported symptom.
+
+### Regression test
+
+`crates/winterbaume-core/tests/default_account_id.rs` (new): a single
+integration-test binary that asserts
+- `default_account_id()` returns `DEFAULT_ACCOUNT_ID` before
+  configuration;
+- after `set_default_account_id("999988887777")`, `default_account_id()`
+  returns the new value;
+- a second `set_default_account_id` call with a different value is a
+  no-op ( first-writer-wins ).
+Each `tests/*.rs` file is its own test binary, so the process-once
+`OnceLock` does not collide with the crate's `#[cfg(test)]` unit
+tests in `src/state.rs`, which observe the unconfigured fallback.
+
+### Verification
+
+- `./.agents/bin/cargo.sh check --workspace --all-targets` → clean
+  ( 61m cold workspace check after the 227-file rewrite, exit 0 ).
+- `./.agents/bin/cargo.sh fmt --all -- --check` → clean.
+- Per-crate clippy gate, all `-D warnings`, on a sampling
+  representative of the migrated patterns:
+  `winterbaume-core` ( accessor + test ),
+  `winterbaume-server` ( startup wiring ),
+  `winterbaume-s3` ( multi-line use block + 4 call sites incl.
+   `Owner.ID` ),
+  `winterbaume-codepipeline` ( local const removal + 15 call sites ),
+  `winterbaume-sts` ( format-arg rewrite + caller-identity ARN ),
+  `winterbaume-mediastore` ( format-arg rewrite ). All clean.
+- `./.agents/bin/cargo.sh test -p winterbaume-core --test default_account_id` → 1 passed.
+
+### Files touched ( summary )
+
+- `crates/winterbaume-core/src/state.rs` (+25 / -2): accessor +
+  `set_default_account_id`, `DEFAULT_ACCOUNT_ID` const kept.
+- `crates/winterbaume-core/src/lib.rs` (+1 / -1): re-exports.
+- `crates/winterbaume-core/tests/default_account_id.rs` (new): regression.
+- `crates/winterbaume-server/src/main.rs`: install global at startup,
+  updated `--account-id` help.
+- ~229 service-crate source files: mechanical
+  `DEFAULT_ACCOUNT_ID` → `default_account_id()` migration
+  ( 227 via script + 2 format-arg sites hand-rewritten first ).
+- `crates/winterbaume-codepipeline/src/{state,handlers}.rs`: removed
+  the parallel local `DEFAULT_ACCOUNT_ID_STR` const, routed through
+  `winterbaume_core::default_account_id()`.
+
+### Operational notes
+
+- The migration script lives at
+  `.agents-workspace/tmp/migrate_account_id.py` ( recreatable from
+  this entry ) and was removed after the rewrite. Two passes per
+  file: rewrite `use ...;` blocks that reference `winterbaume_core` /
+  `crate::state` / `crate::DEFAULT_ACCOUNT_ID` first ( token rename
+  with no parens added ), then replace remaining bare
+  `DEFAULT_ACCOUNT_ID` tokens with `default_account_id()`. The two-pass
+  split avoids accidentally appending `()` to an import.
+- Watch out for `{IDENT}` Rust format-string interpolation when
+  renaming a value-binding identifier to a function call: the
+  interpolation form requires a bare identifier, so the call form has
+  to be moved to a positional or named argument. Two such sites
+  existed in this codebase; greppable with `\{DEFAULT_ACCOUNT_ID`.

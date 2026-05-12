@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::state::{Filter, FsxError, FsxState};
@@ -56,7 +56,7 @@ impl MockService for FsxService {
 impl FsxService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         // FSx uses awsJson1.1 protocol with X-Amz-Target header

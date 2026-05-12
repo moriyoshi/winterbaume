@@ -5,7 +5,7 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
 
 use crate::state::{RecoveryClusterError, RecoveryClusterState};
@@ -62,7 +62,7 @@ const MUTATING_ACTIONS: &[&str] = &["UpdateRoutingControlState", "UpdateRoutingC
 impl RecoveryClusterService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         let action = request
             .headers

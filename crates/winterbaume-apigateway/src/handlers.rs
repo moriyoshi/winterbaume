@@ -7,8 +7,8 @@ use http::header::HeaderName;
 use serde_json::Value;
 use tokio::sync::RwLock;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::model;
@@ -71,7 +71,7 @@ impl MockService for ApiGatewayService {
 impl ApiGatewayService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         let path = extract_path(&request.uri);
@@ -4334,7 +4334,7 @@ impl ApiGatewayService {
             &input.access_association_source,
             &input.access_association_source_type,
             input.tags.unwrap_or_default(),
-            DEFAULT_ACCOUNT_ID,
+            default_account_id(),
             region,
         );
         wire::serialize_create_domain_name_access_association_response(
