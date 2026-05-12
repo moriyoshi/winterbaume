@@ -14,7 +14,7 @@ Amazon Textract service implementation for winterbaume.
 | moto coverage | 5/25 operations (20.0%) |
 | floci coverage | 0/25 operations (0.0%) |
 | kumo coverage | 0/25 operations (0.0%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

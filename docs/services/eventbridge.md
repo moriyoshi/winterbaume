@@ -14,7 +14,7 @@ EventBridge service implementation for winterbaume.
 | moto coverage | 45/57 operations (78.9%) |
 | floci coverage | 0/57 operations (0.0%) |
 | kumo coverage | 15/57 operations (26.3%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

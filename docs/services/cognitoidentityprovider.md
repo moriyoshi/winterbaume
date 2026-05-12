@@ -12,9 +12,9 @@ Cognito Identity Provider service implementation for winterbaume.
 | winterbaume coverage | 104/122 operations (85.2%) |
 | stubs (routed, returns empty/default) | 18/122 operations (14.8%) |
 | moto coverage | 62/122 operations (50.8%) |
-| floci coverage | 38/122 operations (31.1%) |
-| kumo coverage | 15/122 operations (12.3%) |
-| Coverage report date | 2026-05-06 |
+| floci coverage | 39/122 operations (32.0%) |
+| kumo coverage | 17/122 operations (13.9%) |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

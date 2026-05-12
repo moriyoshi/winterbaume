@@ -13,8 +13,8 @@ KMS service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/54 operations (0.0%) |
 | moto coverage | 40/54 operations (74.1%) |
 | floci coverage | 0/54 operations (0.0%) |
-| kumo coverage | 12/54 operations (22.2%) |
-| Coverage report date | 2026-05-06 |
+| kumo coverage | 19/54 operations (35.2%) |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

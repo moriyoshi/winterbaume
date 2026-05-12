@@ -16,7 +16,7 @@ Database Migration Service (DMS) implementation for winterbaume.
 | moto coverage | 17/119 operations (14.3%) |
 | floci coverage | 0/119 operations (0.0%) |
 | kumo coverage | 0/119 operations (0.0%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

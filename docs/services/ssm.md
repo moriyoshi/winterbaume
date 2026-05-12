@@ -14,7 +14,7 @@ SSM service implementation for winterbaume.
 | moto coverage | 41/146 operations (28.1%) |
 | floci coverage | 0/146 operations (0.0%) |
 | kumo coverage | 7/146 operations (4.8%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

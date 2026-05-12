@@ -14,7 +14,7 @@ WAFv2 service implementation for winterbaume.
 | moto coverage | 29/55 operations (52.7%) |
 | floci coverage | 0/55 operations (0.0%) |
 | kumo coverage | 0/55 operations (0.0%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

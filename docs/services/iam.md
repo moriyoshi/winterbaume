@@ -13,8 +13,8 @@ IAM service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 22/176 operations (12.5%) |
 | moto coverage | 119/176 operations (67.6%) |
 | floci coverage | 0/176 operations (0.0%) |
-| kumo coverage | 19/176 operations (10.8%) |
-| Coverage report date | 2026-05-06 |
+| kumo coverage | 39/176 operations (22.2%) |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

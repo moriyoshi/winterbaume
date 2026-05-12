@@ -1,13 +1,13 @@
 # API Coverage Report
 
-Generated: 2026-05-06
+Generated: 2026-05-12
 
 | Project | Version |
 |---------|---------|
-| winterbaume | 257b2e00 |
+| winterbaume | winterbaume-server-v0.1.0-25-g535016a3 |
 | moto | 5.2.1.dev |
-| floci | 1.5.9 |
-| kumo | v0.15.0 |
+| floci | 1.5.14 |
+| kumo | v0.19.0 |
 
 ## Overview
 
@@ -24,7 +24,7 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-amplify | amplify | 23 | 0 | 0 | 0 | 9 | 37 | 62.2% | 0.0% | 0.0% | 0.0% | 24.3% |
 | winterbaume-amplifybackend | amplifybackend | 4 | 0 | 0 | 0 | 0 | 31 | 12.9% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-amplifyuibuilder | amplifyuibuilder | 28 | 0 | 0 | 0 | 0 | 28 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
-| winterbaume-apigateway | api-gateway | 117 | 2 | 78 | 62 | 16 | 124 | 94.4% | 1.6% | 62.9% | 50.0% | 12.9% |
+| winterbaume-apigateway | api-gateway | 117 | 2 | 78 | 70 | 17 | 124 | 94.4% | 1.6% | 62.9% | 56.5% | 13.7% |
 | winterbaume-apigatewaymanagement | apigatewaymanagementapi | 3 | 0 | 3 | 0 | 0 | 3 | 100.0% | 0.0% | 100.0% | 0.0% | 0.0% |
 | winterbaume-apigatewayv2 | apigatewayv2 | 62 | 0 | 54 | 0 | 0 | 103 | 60.2% | 0.0% | 52.4% | 0.0% | 0.0% |
 | winterbaume-appconfig | appconfig | 45 | 0 | 15 | 0 | 0 | 45 | 100.0% | 0.0% | 33.3% | 0.0% | 0.0% |
@@ -70,8 +70,8 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-cloudsearchdomain | cloudsearch-domain | 2 | 0 | 0 | 0 | 0 | 3 | 66.7% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-cloudtrail | cloudtrail | 21 | 2 | 16 | 0 | 8 | 60 | 35.0% | 3.3% | 26.7% | 0.0% | 13.3% |
 | winterbaume-cloudtraildata | cloudtrail-data | 1 | 0 | 0 | 0 | 0 | 1 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
-| winterbaume-cloudwatch | cloudwatch | 38 | 5 | 20 | 0 | 7 | 46 | 82.6% | 10.9% | 43.5% | 0.0% | 15.2% |
-| winterbaume-cloudwatchlogs | cloudwatch-logs | 93 | 15 | 51 | 0 | 9 | 113 | 82.3% | 13.3% | 45.1% | 0.0% | 8.0% |
+| winterbaume-cloudwatch | cloudwatch | 38 | 5 | 20 | 0 | 10 | 46 | 82.6% | 10.9% | 43.5% | 0.0% | 21.7% |
+| winterbaume-cloudwatchlogs | cloudwatch-logs | 93 | 15 | 51 | 0 | 11 | 113 | 82.3% | 13.3% | 45.1% | 0.0% | 9.7% |
 | winterbaume-codeartifact | codeartifact | 9 | 0 | 0 | 0 | 0 | 48 | 18.8% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-codebuild | codebuild | 29 | 0 | 9 | 0 | 0 | 59 | 49.2% | 0.0% | 15.3% | 0.0% | 0.0% |
 | winterbaume-codecommit | codecommit | 25 | 0 | 3 | 0 | 0 | 79 | 31.6% | 0.0% | 3.8% | 0.0% | 0.0% |
@@ -81,7 +81,7 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-codepipeline | codepipeline | 44 | 0 | 8 | 0 | 0 | 44 | 100.0% | 0.0% | 18.2% | 0.0% | 0.0% |
 | winterbaume-codestarnotifications | codestar-notifications | 7 | 0 | 0 | 0 | 0 | 13 | 53.8% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-cognitoidentity | cognito-identity | 20 | 3 | 10 | 0 | 0 | 23 | 87.0% | 13.0% | 43.5% | 0.0% | 0.0% |
-| winterbaume-cognitoidentityprovider | cognito-identity-provider | 104 | 18 | 62 | 38 | 15 | 122 | 85.2% | 14.8% | 50.8% | 31.1% | 12.3% |
+| winterbaume-cognitoidentityprovider | cognito-identity-provider | 104 | 18 | 62 | 39 | 17 | 122 | 85.2% | 14.8% | 50.8% | 32.0% | 13.9% |
 | winterbaume-cognitosync | cognito-sync | 11 | 0 | 0 | 0 | 0 | 17 | 64.7% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-comprehend | comprehend | 60 | 5 | 63 | 0 | 12 | 85 | 70.6% | 5.9% | 74.1% | 0.0% | 14.1% |
 | winterbaume-config | config-service | 46 | 3 | 38 | 0 | 9 | 97 | 47.4% | 3.1% | 39.2% | 0.0% | 9.3% |
@@ -102,19 +102,19 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-directory | directory-service | 4 | 0 | 0 | 0 | 6 | 80 | 5.0% | 0.0% | 0.0% | 0.0% | 7.5% |
 | winterbaume-dlm | dlm | 2 | 0 | 0 | 0 | 5 | 8 | 25.0% | 0.0% | 0.0% | 0.0% | 62.5% |
 | winterbaume-dsql | dsql | 12 | 0 | 5 | 0 | 0 | 12 | 100.0% | 0.0% | 41.7% | 0.0% | 0.0% |
-| winterbaume-dynamodb | dynamodb | 57 | 0 | 39 | 0 | 16 | 57 | 100.0% | 0.0% | 68.4% | 0.0% | 28.1% |
+| winterbaume-dynamodb | dynamodb | 57 | 0 | 39 | 0 | 20 | 57 | 100.0% | 0.0% | 68.4% | 0.0% | 35.1% |
 | winterbaume-dynamodbstreams | dynamodb-streams | 4 | 0 | 0 | 0 | 0 | 4 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-ebs | ebs | 6 | 0 | 6 | 0 | 0 | 6 | 100.0% | 0.0% | 100.0% | 0.0% | 0.0% |
-| winterbaume-ec2 | ec2 | 713 | 43 | 223 | 0 | 27 | 763 | 93.4% | 5.6% | 29.2% | 0.0% | 3.5% |
+| winterbaume-ec2 | ec2 | 713 | 43 | 223 | 0 | 39 | 763 | 93.4% | 5.6% | 29.2% | 0.0% | 5.1% |
 | winterbaume-ec2instanceconnect | ec2-instance-connect | 2 | 0 | 1 | 0 | 0 | 2 | 100.0% | 0.0% | 50.0% | 0.0% | 0.0% |
-| winterbaume-ecr | ecr | 58 | 0 | 29 | 0 | 8 | 58 | 100.0% | 0.0% | 50.0% | 0.0% | 13.8% |
+| winterbaume-ecr | ecr | 58 | 0 | 29 | 0 | 11 | 58 | 100.0% | 0.0% | 50.0% | 0.0% | 19.0% |
 | winterbaume-ecs | ecs | 63 | 1 | 45 | 0 | 12 | 76 | 82.9% | 1.3% | 59.2% | 0.0% | 15.8% |
 | winterbaume-efs | efs | 31 | 0 | 19 | 0 | 0 | 31 | 100.0% | 0.0% | 61.3% | 0.0% | 0.0% |
 | winterbaume-eks | eks | 55 | 4 | 17 | 0 | 8 | 64 | 85.9% | 6.2% | 26.6% | 0.0% | 12.5% |
 | winterbaume-elasticache | elasticache | 24 | 0 | 17 | 0 | 7 | 75 | 32.0% | 0.0% | 22.7% | 0.0% | 9.3% |
 | winterbaume-elasticbeanstalk | elastic-beanstalk | 7 | 0 | 0 | 0 | 7 | 47 | 14.9% | 0.0% | 0.0% | 0.0% | 14.9% |
 | winterbaume-elasticloadbalancing | elastic-load-balancing | 29 | 0 | 21 | 0 | 0 | 29 | 100.0% | 0.0% | 72.4% | 0.0% | 0.0% |
-| winterbaume-elasticloadbalancingv2 | elastic-load-balancing-v2 | 50 | 1 | 33 | 0 | 10 | 51 | 98.0% | 2.0% | 64.7% | 0.0% | 19.6% |
+| winterbaume-elasticloadbalancingv2 | elastic-load-balancing-v2 | 50 | 1 | 33 | 0 | 22 | 51 | 98.0% | 2.0% | 64.7% | 0.0% | 43.1% |
 | winterbaume-emr | emr | 54 | 2 | 26 | 0 | 0 | 60 | 90.0% | 3.3% | 43.3% | 0.0% | 0.0% |
 | winterbaume-emrcontainers | emr-containers | 23 | 0 | 8 | 0 | 0 | 23 | 100.0% | 0.0% | 34.8% | 0.0% | 0.0% |
 | winterbaume-emrserverless | emr-serverless | 16 | 0 | 11 | 0 | 11 | 22 | 72.7% | 0.0% | 50.0% | 0.0% | 50.0% |
@@ -125,10 +125,10 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-freetier | freetier | 5 | 0 | 0 | 0 | 0 | 5 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-fsx | fsx | 9 | 0 | 9 | 0 | 0 | 48 | 18.8% | 0.0% | 18.8% | 0.0% | 0.0% |
 | winterbaume-glacier | glacier | 33 | 0 | 10 | 0 | 4 | 33 | 100.0% | 0.0% | 30.3% | 0.0% | 12.1% |
-| winterbaume-glue | glue | 132 | 0 | 96 | 0 | 11 | 265 | 49.8% | 0.0% | 36.2% | 0.0% | 4.2% |
+| winterbaume-glue | glue | 132 | 0 | 96 | 0 | 14 | 265 | 49.8% | 0.0% | 36.2% | 0.0% | 5.3% |
 | winterbaume-greengrass | greengrass | 71 | 0 | 55 | 0 | 0 | 92 | 77.2% | 0.0% | 59.8% | 0.0% | 0.0% |
 | winterbaume-guardduty | guardduty | 85 | 2 | 12 | 0 | 0 | 87 | 97.7% | 2.3% | 13.8% | 0.0% | 0.0% |
-| winterbaume-iam | iam | 154 | 22 | 119 | 0 | 19 | 176 | 87.5% | 12.5% | 67.6% | 0.0% | 10.8% |
+| winterbaume-iam | iam | 154 | 22 | 119 | 0 | 39 | 176 | 87.5% | 12.5% | 67.6% | 0.0% | 22.2% |
 | winterbaume-identitystore | identitystore | 17 | 0 | 14 | 0 | 0 | 19 | 89.5% | 0.0% | 73.7% | 0.0% | 0.0% |
 | winterbaume-inspector2 | inspector2 | 49 | 21 | 19 | 0 | 0 | 75 | 65.3% | 28.0% | 25.3% | 0.0% | 0.0% |
 | winterbaume-iot | iot | 103 | 0 | 100 | 0 | 0 | 272 | 37.9% | 0.0% | 36.8% | 0.0% | 0.0% |
@@ -140,9 +140,9 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-kinesisanalyticsv2 | kinesis-analytics-v2 | 32 | 1 | 0 | 0 | 0 | 33 | 97.0% | 3.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-kinesisvideo | kinesis-video | 32 | 0 | 0 | 0 | 0 | 32 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-kinesisvideoarchivedmedia | kinesis-video-archived-media | 6 | 0 | 3 | 0 | 0 | 6 | 100.0% | 0.0% | 50.0% | 0.0% | 0.0% |
-| winterbaume-kms | kms | 53 | 0 | 40 | 0 | 12 | 54 | 98.1% | 0.0% | 74.1% | 0.0% | 22.2% |
+| winterbaume-kms | kms | 53 | 0 | 40 | 0 | 19 | 54 | 98.1% | 0.0% | 74.1% | 0.0% | 35.2% |
 | winterbaume-lakeformation | lakeformation | 19 | 1 | 20 | 0 | 0 | 61 | 31.1% | 1.6% | 32.8% | 0.0% | 0.0% |
-| winterbaume-lambda | lambda | 85 | 0 | 46 | 0 | 12 | 85 | 100.0% | 0.0% | 54.1% | 0.0% | 14.1% |
+| winterbaume-lambda | lambda | 85 | 0 | 46 | 0 | 17 | 85 | 100.0% | 0.0% | 54.1% | 0.0% | 20.0% |
 | winterbaume-lexmodelsv2 | lex-models-v2 | 58 | 2 | 17 | 0 | 0 | 107 | 54.2% | 1.9% | 15.9% | 0.0% | 0.0% |
 | winterbaume-macie2 | macie2 | 67 | 14 | 13 | 0 | 24 | 81 | 82.7% | 17.3% | 16.0% | 0.0% | 29.6% |
 | winterbaume-managedblockchain | managedblockchain | 27 | 0 | 20 | 0 | 0 | 27 | 100.0% | 0.0% | 74.1% | 0.0% | 0.0% |
@@ -186,11 +186,11 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-resourcegroups | resource-groups | 22 | 1 | 15 | 0 | 0 | 23 | 95.7% | 4.3% | 65.2% | 0.0% | 0.0% |
 | winterbaume-resourcegroupstagging | resource-groups-tagging-api | 5 | 0 | 0 | 0 | 0 | 9 | 55.6% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-rolesanywhere | rolesanywhere | 28 | 2 | 0 | 0 | 0 | 30 | 93.3% | 6.7% | 0.0% | 0.0% | 0.0% |
-| winterbaume-route53 | route-53 | 71 | 0 | 30 | 0 | 7 | 71 | 100.0% | 0.0% | 42.3% | 0.0% | 9.9% |
+| winterbaume-route53 | route-53 | 71 | 0 | 30 | 0 | 10 | 71 | 100.0% | 0.0% | 42.3% | 0.0% | 14.1% |
 | winterbaume-route53domains | route-53-domains | 5 | 0 | 0 | 0 | 0 | 34 | 14.7% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-route53recoverycluster | route53-recovery-cluster | 4 | 0 | 0 | 0 | 0 | 4 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-route53resolver | route53resolver | 28 | 0 | 28 | 0 | 11 | 68 | 41.2% | 0.0% | 41.2% | 0.0% | 16.2% |
-| winterbaume-s3 | s3 | 103 | 4 | 73 | 51 | 22 | 107 | 96.3% | 3.7% | 68.2% | 47.7% | 20.6% |
+| winterbaume-s3 | s3 | 103 | 4 | 73 | 51 | 36 | 107 | 96.3% | 3.7% | 68.2% | 47.7% | 33.6% |
 | winterbaume-s3control | s3-control | 87 | 10 | 0 | 0 | 7 | 97 | 89.7% | 10.3% | 0.0% | 0.0% | 7.2% |
 | winterbaume-s3files | s3files | 21 | 0 | 0 | 0 | 0 | 21 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-s3outposts | s3outposts | 3 | 1 | 0 | 0 | 0 | 5 | 60.0% | 20.0% | 0.0% | 0.0% | 0.0% |
@@ -201,7 +201,7 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-sagemakerruntime | sagemaker-runtime | 3 | 0 | 2 | 0 | 0 | 3 | 100.0% | 0.0% | 66.7% | 0.0% | 0.0% |
 | winterbaume-savingsplans | savingsplans | 10 | 0 | 0 | 0 | 0 | 10 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-scheduler | scheduler | 12 | 0 | 12 | 0 | 9 | 12 | 100.0% | 0.0% | 100.0% | 0.0% | 75.0% |
-| winterbaume-secretsmanager | secrets-manager | 22 | 1 | 21 | 0 | 8 | 23 | 95.7% | 4.3% | 91.3% | 0.0% | 34.8% |
+| winterbaume-secretsmanager | secrets-manager | 22 | 1 | 21 | 0 | 11 | 23 | 95.7% | 4.3% | 91.3% | 0.0% | 47.8% |
 | winterbaume-securityhub | securityhub | 97 | 10 | 13 | 0 | 0 | 107 | 90.7% | 9.3% | 12.1% | 0.0% | 0.0% |
 | winterbaume-servicecatalog | service-catalog | 4 | 0 | 0 | 0 | 0 | 90 | 4.4% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-servicecatalogappregistry | service-catalog-appregistry | 23 | 1 | 0 | 0 | 0 | 24 | 95.8% | 4.2% | 0.0% | 0.0% | 0.0% |
@@ -209,13 +209,13 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-servicequotas | service-quotas | 5 | 0 | 2 | 0 | 8 | 26 | 19.2% | 0.0% | 7.7% | 0.0% | 30.8% |
 | winterbaume-ses | ses | 38 | 2 | 38 | 0 | 0 | 71 | 53.5% | 2.8% | 53.5% | 0.0% | 0.0% |
 | winterbaume-sesv2 | sesv2 | 106 | 4 | 28 | 0 | 9 | 110 | 96.4% | 3.6% | 25.5% | 0.0% | 8.2% |
-| winterbaume-sfn | sfn | 35 | 2 | 29 | 0 | 9 | 37 | 94.6% | 5.4% | 78.4% | 0.0% | 24.3% |
+| winterbaume-sfn | sfn | 35 | 2 | 29 | 0 | 18 | 37 | 94.6% | 5.4% | 78.4% | 0.0% | 48.6% |
 | winterbaume-shield | shield | 9 | 0 | 9 | 0 | 0 | 36 | 25.0% | 0.0% | 25.0% | 0.0% | 0.0% |
 | winterbaume-signer | signer | 19 | 0 | 7 | 0 | 0 | 19 | 100.0% | 0.0% | 36.8% | 0.0% | 0.0% |
 | winterbaume-simpledbv2 | simpledbv2 | 3 | 0 | 0 | 0 | 0 | 3 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-simspaceweaver | simspaceweaver | 15 | 0 | 0 | 0 | 0 | 16 | 93.8% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-snowdevicemanagement | snow-device-management | 11 | 0 | 0 | 0 | 0 | 13 | 84.6% | 0.0% | 0.0% | 0.0% | 0.0% |
-| winterbaume-sns | sns | 41 | 1 | 33 | 0 | 8 | 42 | 97.6% | 2.4% | 78.6% | 0.0% | 19.0% |
+| winterbaume-sns | sns | 41 | 1 | 33 | 0 | 13 | 42 | 97.6% | 2.4% | 78.6% | 0.0% | 31.0% |
 | winterbaume-sqs | sqs | 23 | 0 | 20 | 0 | 14 | 23 | 100.0% | 0.0% | 87.0% | 0.0% | 60.9% |
 | winterbaume-ssm | ssm | 127 | 19 | 41 | 0 | 7 | 146 | 87.0% | 13.0% | 28.1% | 0.0% | 4.8% |
 | winterbaume-ssmquicksetup | ssm-quicksetup | 6 | 0 | 0 | 0 | 0 | 14 | 42.9% | 0.0% | 0.0% | 0.0% | 0.0% |
@@ -240,15 +240,15 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-workspacesweb | workspaces-web | 68 | 0 | 27 | 0 | 0 | 75 | 90.7% | 0.0% | 36.0% | 0.0% | 0.0% |
 | winterbaume-xray | xray | 34 | 4 | 0 | 0 | 6 | 38 | 89.5% | 10.5% | 0.0% | 0.0% | 15.8% |
 
-**winterbaume 257b2e00: 7210 / 11367 operations across 224 services (63.4%)**
+**winterbaume winterbaume-server-v0.1.0-25-g535016a3: 7210 / 11367 operations across 224 services (63.4%)**
 
 **winterbaume stubs: 326 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
 
 **moto 5.2.1.dev: 3302 / 11367 operations across 224 services (29.0%)**
 
-**floci 1.5.9: 151 / 11367 operations across 224 services (1.3%)**
+**floci 1.5.14: 160 / 11367 operations across 224 services (1.4%)**
 
-**kumo v0.15.0: 682 / 11367 operations across 224 services (6.0%)**
+**kumo v0.19.0: 790 / 11367 operations across 224 services (6.9%)**
 
 **integration tests: 6126 / 7210 implemented operations tested (85.0%)**
 
@@ -1044,7 +1044,7 @@ Integration tests: 4/4 implemented operations tested (100.0%)
 Integration tests: 18/28 implemented operations tested (64.3%)
 Untested implemented operations: 10
 
-### winterbaume-apigateway (api-gateway) - W: 117/124, S: 2/124, M: 78/124, F: 62/124, K: 16/124
+### winterbaume-apigateway (api-gateway) - W: 117/124, S: 2/124, M: 78/124, F: 70/124, K: 17/124
 
 - W[x] S[ ] M[x] F[x] K[ ] CreateApiKey
 - W[x] S[ ] M[x] F[x] K[ ] CreateAuthorizer
@@ -1066,15 +1066,15 @@ Untested implemented operations: 10
 - W[x] S[ ] M[x] F[x] K[ ] DeleteAuthorizer
 - W[x] S[ ] M[x] F[x] K[ ] DeleteBasePathMapping
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteClientCertificate
-- W[x] S[ ] M[x] F[ ] K[x] DeleteDeployment
+- W[x] S[ ] M[x] F[x] K[x] DeleteDeployment
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteDocumentationPart
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteDocumentationVersion
 - W[x] S[ ] M[x] F[x] K[ ] DeleteDomainName
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteDomainNameAccessAssociation
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteGatewayResponse
 - W[x] S[ ] M[x] F[x] K[ ] DeleteIntegration
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteIntegrationResponse
-- W[x] S[ ] M[x] F[x] K[ ] DeleteMethod
+- W[x] S[ ] M[x] F[x] K[ ] DeleteIntegrationResponse
+- W[x] S[ ] M[x] F[x] K[x] DeleteMethod
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteMethodResponse
 - W[x] S[ ] M[x] F[x] K[ ] DeleteModel
 - W[x] S[ ] M[x] F[x] K[ ] DeleteRequestValidator
@@ -1096,7 +1096,7 @@ Untested implemented operations: 10
 - W[x] S[ ] M[x] F[x] K[ ] GetBasePathMappings
 - W[x] S[ ] M[ ] F[ ] K[ ] GetClientCertificate
 - W[x] S[ ] M[ ] F[ ] K[ ] GetClientCertificates
-- W[x] S[ ] M[x] F[ ] K[x] GetDeployment
+- W[x] S[ ] M[x] F[x] K[x] GetDeployment
 - W[x] S[ ] M[x] F[x] K[x] GetDeployments
 - W[x] S[ ] M[ ] F[ ] K[ ] GetDocumentationPart
 - W[x] S[ ] M[ ] F[ ] K[ ] GetDocumentationParts
@@ -1126,7 +1126,7 @@ Untested implemented operations: 10
 - W[ ] S[ ] M[ ] F[ ] K[ ] GetSdkTypes
 - W[x] S[ ] M[x] F[x] K[x] GetStage
 - W[x] S[ ] M[x] F[x] K[x] GetStages
-- W[x] S[ ] M[ ] F[ ] K[ ] GetTags
+- W[x] S[ ] M[ ] F[x] K[ ] GetTags
 - W[x] S[ ] M[ ] F[ ] K[ ] GetUsage
 - W[x] S[ ] M[x] F[ ] K[ ] GetUsagePlan
 - W[x] S[ ] M[x] F[x] K[ ] GetUsagePlanKey
@@ -1150,19 +1150,19 @@ Untested implemented operations: 10
 - W[x] S[ ] M[ ] F[x] K[ ] UntagResource
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateAccount
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateApiKey
-- W[x] S[ ] M[x] F[ ] K[ ] UpdateAuthorizer
+- W[x] S[ ] M[x] F[x] K[ ] UpdateAuthorizer
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateBasePathMapping
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateClientCertificate
-- W[x] S[ ] M[ ] F[ ] K[ ] UpdateDeployment
+- W[x] S[ ] M[ ] F[x] K[ ] UpdateDeployment
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateDocumentationPart
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateDocumentationVersion
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateDomainName
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateGatewayResponse
 - W[x] S[ ] M[ ] F[x] K[ ] UpdateIntegration
-- W[x] S[ ] M[ ] F[ ] K[ ] UpdateIntegrationResponse
+- W[x] S[ ] M[ ] F[x] K[ ] UpdateIntegrationResponse
 - W[x] S[ ] M[ ] F[x] K[ ] UpdateMethod
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateMethodResponse
-- W[x] S[ ] M[ ] F[ ] K[ ] UpdateModel
+- W[x] S[ ] M[ ] F[x] K[ ] UpdateModel
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateRequestValidator
 - W[x] S[ ] M[ ] F[x] K[ ] UpdateResource
 - W[x] S[ ] M[x] F[x] K[ ] UpdateRestApi
@@ -3082,7 +3082,7 @@ Untested implemented operations: 5
 
 Integration tests: 1/1 implemented operations tested (100.0%)
 
-### winterbaume-cloudwatch (cloudwatch) - W: 38/46, S: 5/46, M: 20/46, F: 0/46, K: 7/46
+### winterbaume-cloudwatch (cloudwatch) - W: 38/46, S: 5/46, M: 20/46, F: 0/46, K: 10/46
 
 Terraform E2E: 12 tests across 3 terraform resource types
 
@@ -3117,7 +3117,7 @@ Resource types: aws_cloudwatch_dashboard, aws_cloudwatch_metric_alarm, aws_cloud
 - W[x] S[ ] M[ ] F[ ] K[ ] ListManagedInsightRules
 - W[x] S[ ] M[ ] F[ ] K[ ] ListMetricStreams
 - W[x] S[ ] M[x] F[ ] K[x] ListMetrics
-- W[x] S[ ] M[x] F[ ] K[ ] ListTagsForResource
+- W[x] S[ ] M[x] F[ ] K[x] ListTagsForResource
 - W[x] S[ ] M[ ] F[ ] K[ ] PutAlarmMuteRule
 - W[x] S[ ] M[ ] F[ ] K[ ] PutAnomalyDetector
 - W[x] S[ ] M[ ] F[ ] K[ ] PutCompositeAlarm
@@ -3132,13 +3132,13 @@ Resource types: aws_cloudwatch_dashboard, aws_cloudwatch_metric_alarm, aws_cloud
 - W[ ] S[ ] M[ ] F[ ] K[ ] StartOTelEnrichment
 - W[x] S[ ] M[ ] F[ ] K[ ] StopMetricStreams
 - W[ ] S[ ] M[ ] F[ ] K[ ] StopOTelEnrichment
-- W[x] S[ ] M[x] F[ ] K[ ] TagResource
-- W[x] S[ ] M[x] F[ ] K[ ] UntagResource
+- W[x] S[ ] M[x] F[ ] K[x] TagResource
+- W[x] S[ ] M[x] F[ ] K[x] UntagResource
 
 Integration tests: 29/38 implemented operations tested (76.3%)
 Untested implemented operations: 9
 
-### winterbaume-cloudwatchlogs (cloudwatch-logs) - W: 93/113, S: 15/113, M: 51/113, F: 0/113, K: 9/113
+### winterbaume-cloudwatchlogs (cloudwatch-logs) - W: 93/113, S: 15/113, M: 51/113, F: 0/113, K: 11/113
 
 Terraform E2E: 5 tests across 3 terraform resource types
 
@@ -3172,7 +3172,7 @@ Resource types: aws_cloudwatch_log_group, aws_cloudwatch_log_metric_filter, aws_
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteMetricFilter
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteQueryDefinition
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteResourcePolicy
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteRetentionPolicy
+- W[x] S[ ] M[x] F[ ] K[x] DeleteRetentionPolicy
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteScheduledQuery
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteSubscriptionFilter
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTransformer
@@ -3240,7 +3240,7 @@ Resource types: aws_cloudwatch_log_group, aws_cloudwatch_log_metric_filter, aws_
 - W[x] S[ ] M[x] F[ ] K[ ] PutMetricFilter
 - W[x] S[ ] M[ ] F[ ] K[ ] PutQueryDefinition
 - W[x] S[ ] M[x] F[ ] K[ ] PutResourcePolicy
-- W[x] S[ ] M[x] F[ ] K[ ] PutRetentionPolicy
+- W[x] S[ ] M[x] F[ ] K[x] PutRetentionPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] PutSubscriptionFilter
 - W[x] S[ ] M[ ] F[ ] K[ ] PutTransformer
 - W[ ] S[x] M[ ] F[ ] K[ ] StartLiveTail
@@ -3655,7 +3655,7 @@ Untested implemented operations: 2
 Integration tests: 18/20 implemented operations tested (90.0%)
 Untested implemented operations: 2
 
-### winterbaume-cognitoidentityprovider (cognito-identity-provider) - W: 104/122, S: 18/122, M: 62/122, F: 38/122, K: 15/122
+### winterbaume-cognitoidentityprovider (cognito-identity-provider) - W: 104/122, S: 18/122, M: 62/122, F: 39/122, K: 17/122
 
 Terraform E2E: 15 tests across 7 terraform resource types
 
@@ -3665,7 +3665,7 @@ Resource types: aws_cognito_identity_provider, aws_cognito_resource_server, aws_
 - W[x] S[ ] M[ ] F[ ] K[ ] AddUserPoolClientSecret
 - W[x] S[ ] M[x] F[x] K[ ] AdminAddUserToGroup
 - W[x] S[ ] M[x] F[ ] K[ ] AdminConfirmSignUp
-- W[x] S[ ] M[x] F[x] K[x] AdminCreateUser
+- W[x] S[ ] M[x] F[ ] K[x] AdminCreateUser
 - W[x] S[ ] M[x] F[x] K[x] AdminDeleteUser
 - W[x] S[ ] M[x] F[ ] K[ ] AdminDeleteUserAttributes
 - W[x] S[ ] M[ ] F[ ] K[ ] AdminDisableProviderForUser
@@ -3739,7 +3739,7 @@ Resource types: aws_cognito_identity_provider, aws_cognito_resource_server, aws_
 - W[ ] S[x] M[x] F[x] K[ ] GetUser
 - W[ ] S[x] M[ ] F[ ] K[ ] GetUserAttributeVerificationCode
 - W[ ] S[x] M[ ] F[ ] K[ ] GetUserAuthFactors
-- W[x] S[ ] M[x] F[ ] K[ ] GetUserPoolMfaConfig
+- W[x] S[ ] M[x] F[ ] K[x] GetUserPoolMfaConfig
 - W[x] S[ ] M[x] F[ ] K[ ] GlobalSignOut
 - W[x] S[ ] M[x] F[x] K[x] InitiateAuth
 - W[x] S[ ] M[ ] F[ ] K[ ] ListDevices
@@ -3753,7 +3753,7 @@ Resource types: aws_cognito_identity_provider, aws_cognito_resource_server, aws_
 - W[x] S[ ] M[x] F[x] K[x] ListUserPoolClients
 - W[x] S[ ] M[x] F[x] K[x] ListUserPools
 - W[x] S[ ] M[x] F[x] K[x] ListUsers
-- W[x] S[ ] M[x] F[ ] K[ ] ListUsersInGroup
+- W[x] S[ ] M[x] F[x] K[ ] ListUsersInGroup
 - W[x] S[ ] M[ ] F[ ] K[ ] ListWebAuthnCredentials
 - W[x] S[ ] M[ ] F[ ] K[ ] ResendConfirmationCode
 - W[x] S[ ] M[x] F[ ] K[ ] RespondToAuthChallenge
@@ -3762,7 +3762,7 @@ Resource types: aws_cognito_identity_provider, aws_cognito_resource_server, aws_
 - W[x] S[ ] M[ ] F[ ] K[ ] SetRiskConfiguration
 - W[x] S[ ] M[ ] F[ ] K[ ] SetUICustomization
 - W[ ] S[x] M[x] F[ ] K[ ] SetUserMFAPreference
-- W[x] S[ ] M[x] F[ ] K[ ] SetUserPoolMfaConfig
+- W[x] S[ ] M[x] F[ ] K[x] SetUserPoolMfaConfig
 - W[ ] S[x] M[ ] F[ ] K[ ] SetUserSettings
 - W[x] S[ ] M[x] F[x] K[x] SignUp
 - W[x] S[ ] M[ ] F[ ] K[ ] StartUserImportJob
@@ -3772,7 +3772,7 @@ Resource types: aws_cognito_identity_provider, aws_cognito_resource_server, aws_
 - W[x] S[ ] M[ ] F[x] K[ ] UntagResource
 - W[ ] S[x] M[ ] F[ ] K[ ] UpdateAuthEventFeedback
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateDeviceStatus
-- W[x] S[ ] M[x] F[ ] K[ ] UpdateGroup
+- W[x] S[ ] M[x] F[x] K[ ] UpdateGroup
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateIdentityProvider
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateManagedLoginBranding
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateResourceServer
@@ -4987,7 +4987,7 @@ Integration tests: 2/2 implemented operations tested (100.0%)
 
 Integration tests: 12/12 implemented operations tested (100.0%)
 
-### winterbaume-dynamodb (dynamodb) - W: 57/57, S: 0/57, M: 39/57, F: 0/57, K: 16/57
+### winterbaume-dynamodb (dynamodb) - W: 57/57, S: 0/57, M: 39/57, F: 0/57, K: 20/57
 
 Terraform E2E: 8 tests across 2 terraform resource types
 
@@ -5004,7 +5004,7 @@ Resource types: aws_dynamodb_table, aws_dynamodb_table_item
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteResourcePolicy
 - W[x] S[ ] M[x] F[ ] K[x] DeleteTable
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeBackup
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeContinuousBackups
+- W[x] S[ ] M[x] F[ ] K[x] DescribeContinuousBackups
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeContributorInsights
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeEndpoints
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeExport
@@ -5030,17 +5030,17 @@ Resource types: aws_dynamodb_table, aws_dynamodb_table_item
 - W[x] S[ ] M[ ] F[ ] K[ ] ListGlobalTables
 - W[x] S[ ] M[ ] F[ ] K[ ] ListImports
 - W[x] S[ ] M[x] F[ ] K[x] ListTables
-- W[x] S[ ] M[x] F[ ] K[ ] ListTagsOfResource
+- W[x] S[ ] M[x] F[ ] K[x] ListTagsOfResource
 - W[x] S[ ] M[x] F[ ] K[x] PutItem
 - W[x] S[ ] M[x] F[ ] K[ ] PutResourcePolicy
 - W[x] S[ ] M[x] F[ ] K[x] Query
 - W[x] S[ ] M[x] F[ ] K[ ] RestoreTableFromBackup
 - W[x] S[ ] M[x] F[ ] K[ ] RestoreTableToPointInTime
 - W[x] S[ ] M[x] F[ ] K[x] Scan
-- W[x] S[ ] M[x] F[ ] K[ ] TagResource
+- W[x] S[ ] M[x] F[ ] K[x] TagResource
 - W[x] S[ ] M[x] F[ ] K[x] TransactGetItems
 - W[x] S[ ] M[x] F[ ] K[x] TransactWriteItems
-- W[x] S[ ] M[x] F[ ] K[ ] UntagResource
+- W[x] S[ ] M[x] F[ ] K[x] UntagResource
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateContinuousBackups
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateContributorInsights
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateGlobalTable
@@ -5073,7 +5073,7 @@ Integration tests: 4/4 implemented operations tested (100.0%)
 
 Integration tests: 6/6 implemented operations tested (100.0%)
 
-### winterbaume-ec2 (ec2) - W: 713/763, S: 43/763, M: 223/763, F: 0/763, K: 27/763
+### winterbaume-ec2 (ec2) - W: 713/763, S: 43/763, M: 223/763, F: 0/763, K: 39/763
 
 Terraform E2E: 20 tests across 7 terraform resource types
 
@@ -5211,7 +5211,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] CreateStoreImageTask
 - W[x] S[ ] M[x] F[ ] K[x] CreateSubnet
 - W[x] S[ ] M[x] F[ ] K[ ] CreateSubnetCidrReservation
-- W[x] S[ ] M[x] F[ ] K[ ] CreateTags
+- W[x] S[ ] M[x] F[ ] K[x] CreateTags
 - W[x] S[ ] M[x] F[ ] K[ ] CreateTrafficMirrorFilter
 - W[x] S[ ] M[ ] F[ ] K[ ] CreateTrafficMirrorFilterRule
 - W[x] S[ ] M[ ] F[ ] K[ ] CreateTrafficMirrorSession
@@ -5260,7 +5260,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteImageUsageReport
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteInstanceConnectEndpoint
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteInstanceEventWindow
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteInternetGateway
+- W[x] S[ ] M[x] F[ ] K[x] DeleteInternetGateway
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteIpam
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteIpamExternalResourceVerificationToken
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteIpamPolicy
@@ -5303,7 +5303,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteSpotDatafeedSubscription
 - W[x] S[ ] M[x] F[ ] K[x] DeleteSubnet
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteSubnetCidrReservation
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteTags
+- W[x] S[ ] M[x] F[ ] K[x] DeleteTags
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTrafficMirrorFilter
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTrafficMirrorFilterRule
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTrafficMirrorSession
@@ -5449,7 +5449,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeNetworkInsightsPaths
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeNetworkInterfaceAttribute
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeNetworkInterfacePermissions
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeNetworkInterfaces
+- W[x] S[ ] M[x] F[ ] K[x] DescribeNetworkInterfaces
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeOutpostLags
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribePlacementGroups
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribePrefixLists
@@ -5473,7 +5473,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeSecurityGroupReferences
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeSecurityGroupRules
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeSecurityGroupVpcAssociations
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeSecurityGroups
+- W[x] S[ ] M[x] F[ ] K[x] DescribeSecurityGroups
 - W[ ] S[x] M[ ] F[ ] K[ ] DescribeServiceLinkVirtualInterfaces
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeSnapshotAttribute
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeSnapshotTierStatus
@@ -5487,7 +5487,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[ ] S[x] M[ ] F[ ] K[ ] DescribeStaleSecurityGroups
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeStoreImageTasks
 - W[x] S[ ] M[x] F[ ] K[x] DescribeSubnets
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeTags
+- W[x] S[ ] M[x] F[ ] K[x] DescribeTags
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeTrafficMirrorFilterRules
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeTrafficMirrorFilters
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeTrafficMirrorSessions
@@ -5513,7 +5513,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeVolumeStatus
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeVolumes
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeVolumesModifications
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeVpcAttribute
+- W[x] S[ ] M[x] F[ ] K[x] DescribeVpcAttribute
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeVpcBlockPublicAccessExclusions
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeVpcBlockPublicAccessOptions
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeVpcClassicLink
@@ -5532,7 +5532,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeVpnConnections
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeVpnGateways
 - W[x] S[ ] M[ ] F[ ] K[ ] DetachClassicLinkVpc
-- W[x] S[ ] M[x] F[ ] K[ ] DetachInternetGateway
+- W[x] S[ ] M[x] F[ ] K[x] DetachInternetGateway
 - W[x] S[ ] M[x] F[ ] K[ ] DetachNetworkInterface
 - W[x] S[ ] M[ ] F[ ] K[ ] DetachVerifiedAccessTrustProvider
 - W[x] S[ ] M[x] F[ ] K[ ] DetachVolume
@@ -5730,7 +5730,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifySnapshotAttribute
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifySnapshotTier
 - W[x] S[ ] M[x] F[ ] K[ ] ModifySpotFleetRequest
-- W[x] S[ ] M[x] F[ ] K[ ] ModifySubnetAttribute
+- W[x] S[ ] M[x] F[ ] K[x] ModifySubnetAttribute
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyTrafficMirrorFilterNetworkServices
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyTrafficMirrorFilterRule
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyTrafficMirrorSession
@@ -5747,7 +5747,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyVerifiedAccessTrustProvider
 - W[x] S[ ] M[x] F[ ] K[ ] ModifyVolume
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyVolumeAttribute
-- W[x] S[ ] M[x] F[ ] K[ ] ModifyVpcAttribute
+- W[x] S[ ] M[x] F[ ] K[x] ModifyVpcAttribute
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyVpcBlockPublicAccessExclusion
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyVpcBlockPublicAccessOptions
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyVpcEncryptionControl
@@ -5815,8 +5815,8 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] RestoreSnapshotTier
 - W[x] S[ ] M[ ] F[ ] K[ ] RestoreVolumeFromRecycleBin
 - W[x] S[ ] M[ ] F[ ] K[ ] RevokeClientVpnIngress
-- W[x] S[ ] M[x] F[ ] K[ ] RevokeSecurityGroupEgress
-- W[x] S[ ] M[x] F[ ] K[ ] RevokeSecurityGroupIngress
+- W[x] S[ ] M[x] F[ ] K[x] RevokeSecurityGroupEgress
+- W[x] S[ ] M[x] F[ ] K[x] RevokeSecurityGroupIngress
 - W[x] S[ ] M[x] F[ ] K[x] RunInstances
 - W[x] S[ ] M[ ] F[ ] K[ ] RunScheduledInstances
 - W[x] S[ ] M[ ] F[ ] K[ ] SearchLocalGatewayRoutes
@@ -5853,7 +5853,7 @@ Untested implemented operations: 44
 
 Integration tests: 2/2 implemented operations tested (100.0%)
 
-### winterbaume-ecr (ecr) - W: 58/58, S: 0/58, M: 29/58, F: 0/58, K: 8/58
+### winterbaume-ecr (ecr) - W: 58/58, S: 0/58, M: 29/58, F: 0/58, K: 11/58
 
 Terraform E2E: 8 tests across 6 terraform resource types
 
@@ -5867,7 +5867,7 @@ Resource types: aws_ecr_lifecycle_policy, aws_ecr_pull_through_cache_rule, aws_e
 - W[x] S[ ] M[ ] F[ ] K[ ] CreatePullThroughCacheRule
 - W[x] S[ ] M[x] F[ ] K[x] CreateRepository
 - W[x] S[ ] M[ ] F[ ] K[ ] CreateRepositoryCreationTemplate
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteLifecyclePolicy
+- W[x] S[ ] M[x] F[ ] K[x] DeleteLifecyclePolicy
 - W[x] S[ ] M[ ] F[ ] K[ ] DeletePullThroughCacheRule
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteRegistryPolicy
 - W[x] S[ ] M[x] F[ ] K[x] DeleteRepository
@@ -5886,7 +5886,7 @@ Resource types: aws_ecr_lifecycle_policy, aws_ecr_pull_through_cache_rule, aws_e
 - W[x] S[ ] M[ ] F[ ] K[ ] GetAccountSetting
 - W[x] S[ ] M[ ] F[ ] K[x] GetAuthorizationToken
 - W[x] S[ ] M[ ] F[ ] K[ ] GetDownloadUrlForLayer
-- W[x] S[ ] M[x] F[ ] K[ ] GetLifecyclePolicy
+- W[x] S[ ] M[x] F[ ] K[x] GetLifecyclePolicy
 - W[x] S[ ] M[ ] F[ ] K[ ] GetLifecyclePolicyPreview
 - W[x] S[ ] M[x] F[ ] K[ ] GetRegistryPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] GetRegistryScanningConfiguration
@@ -5901,7 +5901,7 @@ Resource types: aws_ecr_lifecycle_policy, aws_ecr_pull_through_cache_rule, aws_e
 - W[x] S[ ] M[x] F[ ] K[x] PutImage
 - W[x] S[ ] M[x] F[ ] K[ ] PutImageScanningConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] PutImageTagMutability
-- W[x] S[ ] M[x] F[ ] K[ ] PutLifecyclePolicy
+- W[x] S[ ] M[x] F[ ] K[x] PutLifecyclePolicy
 - W[x] S[ ] M[x] F[ ] K[ ] PutRegistryPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] PutRegistryScanningConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] PutReplicationConfiguration
@@ -6288,7 +6288,7 @@ Integration tests: 7/7 implemented operations tested (100.0%)
 Integration tests: 21/29 implemented operations tested (72.4%)
 Untested implemented operations: 8
 
-### winterbaume-elasticloadbalancingv2 (elastic-load-balancing-v2) - W: 50/51, S: 1/51, M: 33/51, F: 0/51, K: 10/51
+### winterbaume-elasticloadbalancingv2 (elastic-load-balancing-v2) - W: 50/51, S: 1/51, M: 33/51, F: 0/51, K: 22/51
 
 Terraform E2E: 12 tests across 6 terraform resource types
 
@@ -6299,12 +6299,12 @@ Resource types: aws_lb, aws_lb_listener, aws_lb_listener_rule, aws_lb_target_gro
 - W[x] S[ ] M[ ] F[ ] K[ ] AddTrustStoreRevocations
 - W[x] S[ ] M[x] F[ ] K[x] CreateListener
 - W[x] S[ ] M[x] F[ ] K[x] CreateLoadBalancer
-- W[x] S[ ] M[x] F[ ] K[ ] CreateRule
+- W[x] S[ ] M[x] F[ ] K[x] CreateRule
 - W[x] S[ ] M[x] F[ ] K[x] CreateTargetGroup
 - W[x] S[ ] M[ ] F[ ] K[ ] CreateTrustStore
 - W[x] S[ ] M[x] F[ ] K[x] DeleteListener
 - W[x] S[ ] M[x] F[ ] K[x] DeleteLoadBalancer
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteRule
+- W[x] S[ ] M[x] F[ ] K[x] DeleteRule
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteSharedTrustStoreAssociation
 - W[x] S[ ] M[x] F[ ] K[x] DeleteTargetGroup
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTrustStore
@@ -6313,15 +6313,15 @@ Resource types: aws_lb, aws_lb_listener, aws_lb_listener_rule, aws_lb_target_gro
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeCapacityReservation
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeListenerAttributes
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeListenerCertificates
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeListeners
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeLoadBalancerAttributes
+- W[x] S[ ] M[x] F[ ] K[x] DescribeListeners
+- W[x] S[ ] M[x] F[ ] K[x] DescribeLoadBalancerAttributes
 - W[x] S[ ] M[x] F[ ] K[x] DescribeLoadBalancers
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeRules
+- W[x] S[ ] M[x] F[ ] K[x] DescribeRules
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeSSLPolicies
 - W[x] S[ ] M[x] F[ ] K[ ] DescribeTags
-- W[x] S[ ] M[ ] F[ ] K[ ] DescribeTargetGroupAttributes
+- W[x] S[ ] M[ ] F[ ] K[x] DescribeTargetGroupAttributes
 - W[x] S[ ] M[x] F[ ] K[x] DescribeTargetGroups
-- W[x] S[ ] M[x] F[ ] K[ ] DescribeTargetHealth
+- W[x] S[ ] M[x] F[ ] K[x] DescribeTargetHealth
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeTrustStoreAssociations
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeTrustStoreRevocations
 - W[x] S[ ] M[ ] F[ ] K[ ] DescribeTrustStores
@@ -6330,19 +6330,19 @@ Resource types: aws_lb, aws_lb_listener, aws_lb_listener_rule, aws_lb_target_gro
 - W[x] S[ ] M[ ] F[ ] K[ ] GetTrustStoreRevocationContent
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyCapacityReservation
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyIpPools
-- W[x] S[ ] M[x] F[ ] K[ ] ModifyListener
+- W[x] S[ ] M[x] F[ ] K[x] ModifyListener
 - W[x] S[ ] M[x] F[ ] K[ ] ModifyListenerAttributes
-- W[x] S[ ] M[x] F[ ] K[ ] ModifyLoadBalancerAttributes
-- W[x] S[ ] M[x] F[ ] K[ ] ModifyRule
+- W[x] S[ ] M[x] F[ ] K[x] ModifyLoadBalancerAttributes
+- W[x] S[ ] M[x] F[ ] K[x] ModifyRule
 - W[x] S[ ] M[x] F[ ] K[ ] ModifyTargetGroup
-- W[x] S[ ] M[x] F[ ] K[ ] ModifyTargetGroupAttributes
+- W[x] S[ ] M[x] F[ ] K[x] ModifyTargetGroupAttributes
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyTrustStore
 - W[x] S[ ] M[x] F[ ] K[x] RegisterTargets
 - W[x] S[ ] M[x] F[ ] K[ ] RemoveListenerCertificates
 - W[x] S[ ] M[x] F[ ] K[ ] RemoveTags
 - W[x] S[ ] M[ ] F[ ] K[ ] RemoveTrustStoreRevocations
 - W[x] S[ ] M[x] F[ ] K[ ] SetIpAddressType
-- W[x] S[ ] M[x] F[ ] K[ ] SetRulePriorities
+- W[x] S[ ] M[x] F[ ] K[x] SetRulePriorities
 - W[x] S[ ] M[x] F[ ] K[ ] SetSecurityGroups
 - W[x] S[ ] M[x] F[ ] K[ ] SetSubnets
 
@@ -6760,7 +6760,7 @@ Integration tests: 9/9 implemented operations tested (100.0%)
 Integration tests: 30/33 implemented operations tested (90.9%)
 Untested implemented operations: 3
 
-### winterbaume-glue (glue) - W: 132/265, S: 0/265, M: 96/265, F: 0/265, K: 11/265
+### winterbaume-glue (glue) - W: 132/265, S: 0/265, M: 96/265, F: 0/265, K: 14/265
 
 - W[x] S[ ] M[x] F[ ] K[ ] BatchCreatePartition
 - W[x] S[ ] M[ ] F[ ] K[ ] BatchDeleteConnection
@@ -6918,7 +6918,7 @@ Untested implemented operations: 3
 - W[x] S[ ] M[x] F[ ] K[ ] GetTableVersion
 - W[x] S[ ] M[x] F[ ] K[ ] GetTableVersions
 - W[x] S[ ] M[x] F[ ] K[x] GetTables
-- W[x] S[ ] M[x] F[ ] K[ ] GetTags
+- W[x] S[ ] M[x] F[ ] K[x] GetTags
 - W[x] S[ ] M[x] F[ ] K[ ] GetTrigger
 - W[x] S[ ] M[x] F[ ] K[ ] GetTriggers
 - W[ ] S[ ] M[ ] F[ ] K[ ] GetUnfilteredPartitionMetadata
@@ -6996,9 +6996,9 @@ Untested implemented operations: 3
 - W[x] S[ ] M[x] F[ ] K[ ] StopSession
 - W[x] S[ ] M[x] F[ ] K[ ] StopTrigger
 - W[x] S[ ] M[x] F[ ] K[ ] StopWorkflowRun
-- W[x] S[ ] M[x] F[ ] K[ ] TagResource
+- W[x] S[ ] M[x] F[ ] K[x] TagResource
 - W[ ] S[ ] M[ ] F[ ] K[ ] TestConnection
-- W[x] S[ ] M[x] F[ ] K[ ] UntagResource
+- W[x] S[ ] M[x] F[ ] K[x] UntagResource
 - W[ ] S[ ] M[ ] F[ ] K[ ] UpdateBlueprint
 - W[ ] S[ ] M[ ] F[ ] K[ ] UpdateCatalog
 - W[ ] S[ ] M[ ] F[ ] K[ ] UpdateClassifier
@@ -7221,7 +7221,7 @@ Integration tests: 71/71 implemented operations tested (100.0%)
 Integration tests: 78/85 implemented operations tested (91.8%)
 Untested implemented operations: 7
 
-### winterbaume-iam (iam) - W: 154/176, S: 22/176, M: 119/176, F: 0/176, K: 19/176
+### winterbaume-iam (iam) - W: 154/176, S: 22/176, M: 119/176, F: 0/176, K: 39/176
 
 Terraform E2E: 30 tests across 11 terraform resource types
 
@@ -7229,7 +7229,7 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 
 - W[ ] S[x] M[ ] F[ ] K[ ] AcceptDelegationRequest
 - W[x] S[ ] M[ ] F[ ] K[ ] AddClientIDToOpenIDConnectProvider
-- W[x] S[ ] M[x] F[ ] K[ ] AddRoleToInstanceProfile
+- W[x] S[ ] M[x] F[ ] K[x] AddRoleToInstanceProfile
 - W[x] S[ ] M[x] F[ ] K[ ] AddUserToGroup
 - W[ ] S[x] M[ ] F[ ] K[ ] AssociateDelegationRequest
 - W[x] S[ ] M[x] F[ ] K[ ] AttachGroupPolicy
@@ -7240,9 +7240,9 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 - W[x] S[ ] M[x] F[ ] K[ ] CreateAccountAlias
 - W[ ] S[x] M[ ] F[ ] K[ ] CreateDelegationRequest
 - W[x] S[ ] M[x] F[ ] K[ ] CreateGroup
-- W[x] S[ ] M[x] F[ ] K[ ] CreateInstanceProfile
+- W[x] S[ ] M[x] F[ ] K[x] CreateInstanceProfile
 - W[x] S[ ] M[x] F[ ] K[ ] CreateLoginProfile
-- W[x] S[ ] M[x] F[ ] K[ ] CreateOpenIDConnectProvider
+- W[x] S[ ] M[x] F[ ] K[x] CreateOpenIDConnectProvider
 - W[x] S[ ] M[x] F[ ] K[x] CreatePolicy
 - W[x] S[ ] M[x] F[ ] K[ ] CreatePolicyVersion
 - W[x] S[ ] M[x] F[ ] K[x] CreateRole
@@ -7257,14 +7257,14 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteAccountPasswordPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteGroup
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteGroupPolicy
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteInstanceProfile
+- W[x] S[ ] M[x] F[ ] K[x] DeleteInstanceProfile
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteLoginProfile
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteOpenIDConnectProvider
+- W[x] S[ ] M[x] F[ ] K[x] DeleteOpenIDConnectProvider
 - W[x] S[ ] M[x] F[ ] K[x] DeletePolicy
 - W[x] S[ ] M[x] F[ ] K[ ] DeletePolicyVersion
 - W[x] S[ ] M[x] F[ ] K[x] DeleteRole
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteRolePermissionsBoundary
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteRolePolicy
+- W[x] S[ ] M[x] F[ ] K[x] DeleteRolePolicy
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteSAMLProvider
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteSSHPublicKey
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteServerCertificate
@@ -7299,16 +7299,16 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 - W[x] S[ ] M[x] F[ ] K[ ] GetGroup
 - W[x] S[ ] M[x] F[ ] K[ ] GetGroupPolicy
 - W[ ] S[x] M[ ] F[ ] K[ ] GetHumanReadableSummary
-- W[x] S[ ] M[x] F[ ] K[ ] GetInstanceProfile
+- W[x] S[ ] M[x] F[ ] K[x] GetInstanceProfile
 - W[x] S[ ] M[x] F[ ] K[ ] GetLoginProfile
 - W[x] S[ ] M[ ] F[ ] K[ ] GetMFADevice
-- W[x] S[ ] M[x] F[ ] K[ ] GetOpenIDConnectProvider
+- W[x] S[ ] M[x] F[ ] K[x] GetOpenIDConnectProvider
 - W[ ] S[x] M[ ] F[ ] K[ ] GetOrganizationsAccessReport
 - W[ ] S[x] M[ ] F[ ] K[ ] GetOutboundWebIdentityFederationInfo
 - W[x] S[ ] M[x] F[ ] K[x] GetPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] GetPolicyVersion
 - W[x] S[ ] M[x] F[ ] K[x] GetRole
-- W[x] S[ ] M[x] F[ ] K[ ] GetRolePolicy
+- W[x] S[ ] M[x] F[ ] K[x] GetRolePolicy
 - W[x] S[ ] M[x] F[ ] K[ ] GetSAMLProvider
 - W[x] S[ ] M[x] F[ ] K[ ] GetSSHPublicKey
 - W[x] S[ ] M[x] F[ ] K[ ] GetServerCertificate
@@ -7320,7 +7320,7 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 - W[x] S[ ] M[x] F[ ] K[x] ListAccessKeys
 - W[x] S[ ] M[x] F[ ] K[ ] ListAccountAliases
 - W[x] S[ ] M[x] F[ ] K[ ] ListAttachedGroupPolicies
-- W[x] S[ ] M[x] F[ ] K[ ] ListAttachedRolePolicies
+- W[x] S[ ] M[x] F[ ] K[x] ListAttachedRolePolicies
 - W[x] S[ ] M[x] F[ ] K[ ] ListAttachedUserPolicies
 - W[ ] S[x] M[ ] F[ ] K[ ] ListDelegationRequests
 - W[x] S[ ] M[ ] F[ ] K[ ] ListEntitiesForPolicy
@@ -7328,18 +7328,18 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 - W[x] S[ ] M[x] F[ ] K[ ] ListGroups
 - W[x] S[ ] M[ ] F[ ] K[ ] ListGroupsForUser
 - W[x] S[ ] M[ ] F[ ] K[ ] ListInstanceProfileTags
-- W[x] S[ ] M[ ] F[ ] K[ ] ListInstanceProfiles
-- W[x] S[ ] M[ ] F[ ] K[ ] ListInstanceProfilesForRole
+- W[x] S[ ] M[ ] F[ ] K[x] ListInstanceProfiles
+- W[x] S[ ] M[ ] F[ ] K[x] ListInstanceProfilesForRole
 - W[x] S[ ] M[ ] F[ ] K[ ] ListMFADeviceTags
 - W[x] S[ ] M[x] F[ ] K[ ] ListMFADevices
 - W[x] S[ ] M[x] F[ ] K[ ] ListOpenIDConnectProviderTags
-- W[x] S[ ] M[x] F[ ] K[ ] ListOpenIDConnectProviders
+- W[x] S[ ] M[x] F[ ] K[x] ListOpenIDConnectProviders
 - W[ ] S[x] M[ ] F[ ] K[ ] ListOrganizationsFeatures
 - W[x] S[ ] M[x] F[ ] K[x] ListPolicies
 - W[ ] S[x] M[ ] F[ ] K[ ] ListPoliciesGrantingServiceAccess
 - W[x] S[ ] M[x] F[ ] K[ ] ListPolicyTags
 - W[x] S[ ] M[x] F[ ] K[ ] ListPolicyVersions
-- W[x] S[ ] M[x] F[ ] K[ ] ListRolePolicies
+- W[x] S[ ] M[x] F[ ] K[x] ListRolePolicies
 - W[x] S[ ] M[x] F[ ] K[ ] ListRoleTags
 - W[x] S[ ] M[x] F[ ] K[x] ListRoles
 - W[x] S[ ] M[ ] F[ ] K[ ] ListSAMLProviderTags
@@ -7355,12 +7355,12 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 - W[x] S[ ] M[x] F[ ] K[ ] ListVirtualMFADevices
 - W[x] S[ ] M[x] F[ ] K[ ] PutGroupPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] PutRolePermissionsBoundary
-- W[x] S[ ] M[x] F[ ] K[ ] PutRolePolicy
+- W[x] S[ ] M[x] F[ ] K[x] PutRolePolicy
 - W[x] S[ ] M[ ] F[ ] K[ ] PutUserPermissionsBoundary
 - W[x] S[ ] M[x] F[ ] K[ ] PutUserPolicy
 - W[ ] S[x] M[ ] F[ ] K[ ] RejectDelegationRequest
 - W[x] S[ ] M[ ] F[ ] K[ ] RemoveClientIDFromOpenIDConnectProvider
-- W[x] S[ ] M[x] F[ ] K[ ] RemoveRoleFromInstanceProfile
+- W[x] S[ ] M[x] F[ ] K[x] RemoveRoleFromInstanceProfile
 - W[x] S[ ] M[x] F[ ] K[ ] RemoveUserFromGroup
 - W[x] S[ ] M[ ] F[ ] K[ ] ResetServiceSpecificCredential
 - W[x] S[ ] M[ ] F[ ] K[ ] ResyncMFADevice
@@ -7373,7 +7373,7 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 - W[x] S[ ] M[ ] F[ ] K[ ] TagMFADevice
 - W[x] S[ ] M[x] F[ ] K[ ] TagOpenIDConnectProvider
 - W[x] S[ ] M[x] F[ ] K[ ] TagPolicy
-- W[x] S[ ] M[x] F[ ] K[ ] TagRole
+- W[x] S[ ] M[x] F[ ] K[x] TagRole
 - W[x] S[ ] M[ ] F[ ] K[ ] TagSAMLProvider
 - W[x] S[ ] M[ ] F[ ] K[ ] TagServerCertificate
 - W[x] S[ ] M[x] F[ ] K[ ] TagUser
@@ -7387,12 +7387,12 @@ Resource types: aws_iam_access_key, aws_iam_group, aws_iam_group_membership, aws
 - W[x] S[ ] M[x] F[ ] K[ ] UntagUser
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateAccessKey
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateAccountPasswordPolicy
-- W[x] S[ ] M[x] F[ ] K[ ] UpdateAssumeRolePolicy
+- W[x] S[ ] M[x] F[ ] K[x] UpdateAssumeRolePolicy
 - W[ ] S[x] M[ ] F[ ] K[ ] UpdateDelegationRequest
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateGroup
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateLoginProfile
-- W[x] S[ ] M[x] F[ ] K[ ] UpdateOpenIDConnectProviderThumbprint
-- W[x] S[ ] M[x] F[ ] K[ ] UpdateRole
+- W[x] S[ ] M[x] F[ ] K[x] UpdateOpenIDConnectProviderThumbprint
+- W[x] S[ ] M[x] F[ ] K[x] UpdateRole
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateRoleDescription
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateSAMLProvider
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateSSHPublicKey
@@ -8075,7 +8075,7 @@ Integration tests: 32/32 implemented operations tested (100.0%)
 
 Integration tests: 6/6 implemented operations tested (100.0%)
 
-### winterbaume-kms (kms) - W: 53/54, S: 0/54, M: 40/54, F: 0/54, K: 12/54
+### winterbaume-kms (kms) - W: 53/54, S: 0/54, M: 40/54, F: 0/54, K: 19/54
 
 Terraform E2E: 3 tests across 2 terraform resource types
 
@@ -8107,19 +8107,19 @@ Resource types: aws_kms_alias, aws_kms_key
 - W[x] S[ ] M[x] F[ ] K[ ] GenerateMac
 - W[x] S[ ] M[x] F[ ] K[ ] GenerateRandom
 - W[ ] S[ ] M[ ] F[ ] K[ ] GetKeyLastUsage
-- W[x] S[ ] M[x] F[ ] K[ ] GetKeyPolicy
-- W[x] S[ ] M[x] F[ ] K[ ] GetKeyRotationStatus
+- W[x] S[ ] M[x] F[ ] K[x] GetKeyPolicy
+- W[x] S[ ] M[x] F[ ] K[x] GetKeyRotationStatus
 - W[x] S[ ] M[ ] F[ ] K[ ] GetParametersForImport
 - W[x] S[ ] M[x] F[ ] K[ ] GetPublicKey
 - W[x] S[ ] M[ ] F[ ] K[ ] ImportKeyMaterial
 - W[x] S[ ] M[x] F[ ] K[x] ListAliases
 - W[x] S[ ] M[x] F[ ] K[ ] ListGrants
-- W[x] S[ ] M[x] F[ ] K[ ] ListKeyPolicies
+- W[x] S[ ] M[x] F[ ] K[x] ListKeyPolicies
 - W[x] S[ ] M[x] F[ ] K[ ] ListKeyRotations
 - W[x] S[ ] M[x] F[ ] K[x] ListKeys
-- W[x] S[ ] M[x] F[ ] K[ ] ListResourceTags
+- W[x] S[ ] M[x] F[ ] K[x] ListResourceTags
 - W[x] S[ ] M[x] F[ ] K[ ] ListRetirableGrants
-- W[x] S[ ] M[x] F[ ] K[ ] PutKeyPolicy
+- W[x] S[ ] M[x] F[ ] K[x] PutKeyPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] ReEncrypt
 - W[x] S[ ] M[x] F[ ] K[ ] ReplicateKey
 - W[x] S[ ] M[x] F[ ] K[ ] RetireGrant
@@ -8127,8 +8127,8 @@ Resource types: aws_kms_alias, aws_kms_key
 - W[x] S[ ] M[x] F[ ] K[ ] RotateKeyOnDemand
 - W[x] S[ ] M[x] F[ ] K[x] ScheduleKeyDeletion
 - W[x] S[ ] M[x] F[ ] K[ ] Sign
-- W[x] S[ ] M[x] F[ ] K[ ] TagResource
-- W[x] S[ ] M[x] F[ ] K[ ] UntagResource
+- W[x] S[ ] M[x] F[ ] K[x] TagResource
+- W[x] S[ ] M[x] F[ ] K[x] UntagResource
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateAlias
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateCustomKeyStore
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateKeyDescription
@@ -8206,7 +8206,7 @@ Untested implemented operations: 13
 Integration tests: 17/19 implemented operations tested (89.5%)
 Untested implemented operations: 2
 
-### winterbaume-lambda (lambda) - W: 85/85, S: 0/85, M: 46/85, F: 0/85, K: 12/85
+### winterbaume-lambda (lambda) - W: 85/85, S: 0/85, M: 46/85, F: 0/85, K: 17/85
 
 Terraform E2E: 9 tests across 7 terraform resource types
 
@@ -8241,7 +8241,7 @@ Resource types: aws_lambda_alias, aws_lambda_code_signing_config, aws_lambda_eve
 - W[x] S[ ] M[ ] F[ ] K[ ] GetDurableExecutionState
 - W[x] S[ ] M[x] F[ ] K[x] GetEventSourceMapping
 - W[x] S[ ] M[x] F[ ] K[x] GetFunction
-- W[x] S[ ] M[x] F[ ] K[ ] GetFunctionCodeSigningConfig
+- W[x] S[ ] M[x] F[ ] K[x] GetFunctionCodeSigningConfig
 - W[x] S[ ] M[x] F[ ] K[ ] GetFunctionConcurrency
 - W[x] S[ ] M[ ] F[ ] K[ ] GetFunctionConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] GetFunctionEventInvokeConfig
@@ -8251,18 +8251,18 @@ Resource types: aws_lambda_alias, aws_lambda_code_signing_config, aws_lambda_eve
 - W[x] S[ ] M[x] F[ ] K[ ] GetLayerVersion
 - W[x] S[ ] M[ ] F[ ] K[ ] GetLayerVersionByArn
 - W[x] S[ ] M[x] F[ ] K[ ] GetLayerVersionPolicy
-- W[x] S[ ] M[x] F[ ] K[ ] GetPolicy
+- W[x] S[ ] M[x] F[ ] K[x] GetPolicy
 - W[x] S[ ] M[ ] F[ ] K[ ] GetProvisionedConcurrencyConfig
 - W[x] S[ ] M[ ] F[ ] K[ ] GetRuntimeManagementConfig
 - W[x] S[ ] M[x] F[ ] K[x] Invoke
 - W[x] S[ ] M[ ] F[ ] K[ ] InvokeAsync
 - W[x] S[ ] M[ ] F[ ] K[ ] InvokeWithResponseStream
-- W[x] S[ ] M[x] F[ ] K[ ] ListAliases
+- W[x] S[ ] M[x] F[ ] K[x] ListAliases
 - W[x] S[ ] M[ ] F[ ] K[ ] ListCapacityProviders
 - W[x] S[ ] M[ ] F[ ] K[ ] ListCodeSigningConfigs
 - W[x] S[ ] M[ ] F[ ] K[ ] ListDurableExecutionsByFunction
 - W[x] S[ ] M[x] F[ ] K[x] ListEventSourceMappings
-- W[x] S[ ] M[x] F[ ] K[ ] ListFunctionEventInvokeConfigs
+- W[x] S[ ] M[x] F[ ] K[x] ListFunctionEventInvokeConfigs
 - W[x] S[ ] M[ ] F[ ] K[ ] ListFunctionUrlConfigs
 - W[x] S[ ] M[ ] F[ ] K[ ] ListFunctionVersionsByCapacityProvider
 - W[x] S[ ] M[x] F[ ] K[x] ListFunctions
@@ -8271,7 +8271,7 @@ Resource types: aws_lambda_alias, aws_lambda_code_signing_config, aws_lambda_eve
 - W[x] S[ ] M[x] F[ ] K[ ] ListLayers
 - W[x] S[ ] M[ ] F[ ] K[ ] ListProvisionedConcurrencyConfigs
 - W[x] S[ ] M[x] F[ ] K[ ] ListTags
-- W[x] S[ ] M[x] F[ ] K[ ] ListVersionsByFunction
+- W[x] S[ ] M[x] F[ ] K[x] ListVersionsByFunction
 - W[x] S[ ] M[x] F[ ] K[ ] PublishLayerVersion
 - W[x] S[ ] M[x] F[ ] K[ ] PublishVersion
 - W[x] S[ ] M[ ] F[ ] K[ ] PutFunctionCodeSigningConfig
@@ -10708,7 +10708,7 @@ Integration tests: 5/5 implemented operations tested (100.0%)
 Integration tests: 22/28 implemented operations tested (78.6%)
 Untested implemented operations: 6
 
-### winterbaume-route53 (route-53) - W: 71/71, S: 0/71, M: 30/71, F: 0/71, K: 7/71
+### winterbaume-route53 (route-53) - W: 71/71, S: 0/71, M: 30/71, F: 0/71, K: 10/71
 
 Terraform E2E: 6 tests across 2 terraform resource types
 
@@ -10718,7 +10718,7 @@ Resource types: aws_route53_record, aws_route53_zone
 - W[x] S[ ] M[x] F[ ] K[ ] AssociateVPCWithHostedZone
 - W[x] S[ ] M[ ] F[ ] K[ ] ChangeCidrCollection
 - W[x] S[ ] M[x] F[ ] K[x] ChangeResourceRecordSets
-- W[x] S[ ] M[x] F[ ] K[ ] ChangeTagsForResource
+- W[x] S[ ] M[x] F[ ] K[x] ChangeTagsForResource
 - W[x] S[ ] M[ ] F[ ] K[ ] CreateCidrCollection
 - W[x] S[ ] M[x] F[ ] K[ ] CreateHealthCheck
 - W[x] S[ ] M[x] F[ ] K[x] CreateHostedZone
@@ -10766,12 +10766,12 @@ Resource types: aws_route53_record, aws_route53_zone
 - W[x] S[ ] M[ ] F[ ] K[ ] ListGeoLocations
 - W[x] S[ ] M[x] F[ ] K[ ] ListHealthChecks
 - W[x] S[ ] M[x] F[ ] K[x] ListHostedZones
-- W[x] S[ ] M[x] F[ ] K[ ] ListHostedZonesByName
+- W[x] S[ ] M[x] F[ ] K[x] ListHostedZonesByName
 - W[x] S[ ] M[x] F[ ] K[ ] ListHostedZonesByVPC
 - W[x] S[ ] M[x] F[ ] K[ ] ListQueryLoggingConfigs
 - W[x] S[ ] M[x] F[ ] K[x] ListResourceRecordSets
 - W[x] S[ ] M[x] F[ ] K[ ] ListReusableDelegationSets
-- W[x] S[ ] M[x] F[ ] K[ ] ListTagsForResource
+- W[x] S[ ] M[x] F[ ] K[x] ListTagsForResource
 - W[x] S[ ] M[x] F[ ] K[ ] ListTagsForResources
 - W[x] S[ ] M[ ] F[ ] K[ ] ListTrafficPolicies
 - W[x] S[ ] M[ ] F[ ] K[ ] ListTrafficPolicyInstances
@@ -10910,7 +10910,7 @@ Integration tests: 4/4 implemented operations tested (100.0%)
 
 Integration tests: 28/28 implemented operations tested (100.0%)
 
-### winterbaume-s3 (s3) - W: 103/107, S: 4/107, M: 73/107, F: 51/107, K: 22/107
+### winterbaume-s3 (s3) - W: 103/107, S: 4/107, M: 73/107, F: 51/107, K: 36/107
 
 Terraform E2E: 13 tests across 6 terraform resource types
 
@@ -10927,7 +10927,7 @@ Resource types: aws_s3_bucket, aws_s3_bucket_ownership_controls, aws_s3_bucket_p
 - W[x] S[ ] M[x] F[x] K[x] DeleteBucket
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteBucketAnalyticsConfiguration
 - W[x] S[ ] M[x] F[x] K[ ] DeleteBucketCors
-- W[x] S[ ] M[x] F[x] K[ ] DeleteBucketEncryption
+- W[x] S[ ] M[x] F[x] K[x] DeleteBucketEncryption
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteBucketIntelligentTieringConfiguration
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteBucketInventoryConfiguration
 - W[x] S[ ] M[x] F[x] K[ ] DeleteBucketLifecycle
@@ -10935,31 +10935,31 @@ Resource types: aws_s3_bucket, aws_s3_bucket_ownership_controls, aws_s3_bucket_p
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteBucketMetadataTableConfiguration
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteBucketMetricsConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteBucketOwnershipControls
-- W[x] S[ ] M[x] F[x] K[ ] DeleteBucketPolicy
+- W[x] S[ ] M[x] F[x] K[x] DeleteBucketPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteBucketReplication
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteBucketTagging
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteBucketWebsite
 - W[x] S[ ] M[x] F[x] K[x] DeleteObject
 - W[x] S[ ] M[x] F[x] K[ ] DeleteObjectTagging
 - W[x] S[ ] M[x] F[x] K[x] DeleteObjects
-- W[x] S[ ] M[x] F[x] K[ ] DeletePublicAccessBlock
+- W[x] S[ ] M[x] F[x] K[x] DeletePublicAccessBlock
 - W[x] S[ ] M[ ] F[ ] K[ ] GetBucketAbac
 - W[x] S[ ] M[x] F[ ] K[ ] GetBucketAccelerateConfiguration
 - W[x] S[ ] M[x] F[x] K[ ] GetBucketAcl
 - W[x] S[ ] M[ ] F[ ] K[ ] GetBucketAnalyticsConfiguration
 - W[x] S[ ] M[x] F[x] K[ ] GetBucketCors
-- W[x] S[ ] M[x] F[x] K[ ] GetBucketEncryption
+- W[x] S[ ] M[x] F[x] K[x] GetBucketEncryption
 - W[x] S[ ] M[ ] F[ ] K[ ] GetBucketIntelligentTieringConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] GetBucketInventoryConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] GetBucketLifecycleConfiguration
 - W[x] S[ ] M[x] F[x] K[ ] GetBucketLocation
-- W[x] S[ ] M[x] F[ ] K[ ] GetBucketLogging
+- W[x] S[ ] M[x] F[ ] K[x] GetBucketLogging
 - W[x] S[ ] M[ ] F[ ] K[ ] GetBucketMetadataConfiguration
 - W[x] S[ ] M[ ] F[ ] K[ ] GetBucketMetadataTableConfiguration
 - W[x] S[ ] M[ ] F[ ] K[ ] GetBucketMetricsConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] GetBucketNotificationConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] GetBucketOwnershipControls
-- W[x] S[ ] M[x] F[x] K[ ] GetBucketPolicy
+- W[x] S[ ] M[x] F[x] K[x] GetBucketPolicy
 - W[ ] S[x] M[ ] F[ ] K[ ] GetBucketPolicyStatus
 - W[x] S[ ] M[x] F[ ] K[ ] GetBucketReplication
 - W[x] S[ ] M[ ] F[ ] K[ ] GetBucketRequestPayment
@@ -10972,9 +10972,9 @@ Resource types: aws_s3_bucket, aws_s3_bucket_ownership_controls, aws_s3_bucket_p
 - W[x] S[ ] M[x] F[x] K[ ] GetObjectLegalHold
 - W[x] S[ ] M[x] F[x] K[ ] GetObjectLockConfiguration
 - W[x] S[ ] M[ ] F[x] K[ ] GetObjectRetention
-- W[x] S[ ] M[x] F[x] K[ ] GetObjectTagging
+- W[x] S[ ] M[x] F[x] K[x] GetObjectTagging
 - W[ ] S[x] M[ ] F[ ] K[ ] GetObjectTorrent
-- W[x] S[ ] M[x] F[x] K[ ] GetPublicAccessBlock
+- W[x] S[ ] M[x] F[x] K[x] GetPublicAccessBlock
 - W[x] S[ ] M[x] F[x] K[x] HeadBucket
 - W[x] S[ ] M[x] F[x] K[x] HeadObject
 - W[x] S[ ] M[ ] F[ ] K[ ] ListBucketAnalyticsConfigurations
@@ -10993,15 +10993,15 @@ Resource types: aws_s3_bucket, aws_s3_bucket_ownership_controls, aws_s3_bucket_p
 - W[x] S[ ] M[x] F[x] K[ ] PutBucketAcl
 - W[x] S[ ] M[ ] F[ ] K[ ] PutBucketAnalyticsConfiguration
 - W[x] S[ ] M[x] F[x] K[x] PutBucketCors
-- W[x] S[ ] M[x] F[x] K[ ] PutBucketEncryption
+- W[x] S[ ] M[x] F[x] K[x] PutBucketEncryption
 - W[x] S[ ] M[ ] F[ ] K[ ] PutBucketIntelligentTieringConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] PutBucketInventoryConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] PutBucketLifecycleConfiguration
-- W[x] S[ ] M[x] F[ ] K[ ] PutBucketLogging
+- W[x] S[ ] M[x] F[ ] K[x] PutBucketLogging
 - W[x] S[ ] M[ ] F[ ] K[ ] PutBucketMetricsConfiguration
 - W[x] S[ ] M[x] F[ ] K[x] PutBucketNotificationConfiguration
 - W[x] S[ ] M[x] F[ ] K[ ] PutBucketOwnershipControls
-- W[x] S[ ] M[x] F[x] K[ ] PutBucketPolicy
+- W[x] S[ ] M[x] F[x] K[x] PutBucketPolicy
 - W[x] S[ ] M[x] F[ ] K[ ] PutBucketReplication
 - W[x] S[ ] M[ ] F[ ] K[ ] PutBucketRequestPayment
 - W[x] S[ ] M[x] F[x] K[ ] PutBucketTagging
@@ -11012,8 +11012,8 @@ Resource types: aws_s3_bucket, aws_s3_bucket_ownership_controls, aws_s3_bucket_p
 - W[x] S[ ] M[x] F[x] K[ ] PutObjectLegalHold
 - W[x] S[ ] M[x] F[x] K[ ] PutObjectLockConfiguration
 - W[x] S[ ] M[x] F[x] K[ ] PutObjectRetention
-- W[x] S[ ] M[x] F[x] K[ ] PutObjectTagging
-- W[x] S[ ] M[x] F[x] K[ ] PutPublicAccessBlock
+- W[x] S[ ] M[x] F[x] K[x] PutObjectTagging
+- W[x] S[ ] M[x] F[x] K[x] PutPublicAccessBlock
 - W[x] S[ ] M[ ] F[ ] K[ ] RenameObject
 - W[ ] S[x] M[x] F[ ] K[ ] RestoreObject
 - W[x] S[ ] M[x] F[x] K[ ] SelectObjectContent
@@ -11021,7 +11021,7 @@ Resource types: aws_s3_bucket, aws_s3_bucket_ownership_controls, aws_s3_bucket_p
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateBucketMetadataJournalTableConfiguration
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateObjectEncryption
 - W[x] S[ ] M[x] F[x] K[x] UploadPart
-- W[x] S[ ] M[x] F[ ] K[ ] UploadPartCopy
+- W[x] S[ ] M[x] F[ ] K[x] UploadPartCopy
 - W[x] S[ ] M[ ] F[ ] K[ ] WriteGetObjectResponse
 
 Integration tests: 70/103 implemented operations tested (68.0%)
@@ -11698,7 +11698,7 @@ Resource types: aws_scheduler_schedule, aws_scheduler_schedule_group
 
 Integration tests: 12/12 implemented operations tested (100.0%)
 
-### winterbaume-secretsmanager (secrets-manager) - W: 22/23, S: 1/23, M: 21/23, F: 0/23, K: 8/23
+### winterbaume-secretsmanager (secrets-manager) - W: 22/23, S: 1/23, M: 21/23, F: 0/23, K: 11/23
 
 Terraform E2E: 3 tests across 2 terraform resource types
 
@@ -11707,15 +11707,15 @@ Resource types: aws_secretsmanager_secret, aws_secretsmanager_secret_version
 - W[x] S[ ] M[x] F[ ] K[ ] BatchGetSecretValue
 - W[x] S[ ] M[x] F[ ] K[ ] CancelRotateSecret
 - W[x] S[ ] M[x] F[ ] K[x] CreateSecret
-- W[x] S[ ] M[x] F[ ] K[ ] DeleteResourcePolicy
+- W[x] S[ ] M[x] F[ ] K[x] DeleteResourcePolicy
 - W[x] S[ ] M[x] F[ ] K[x] DeleteSecret
 - W[x] S[ ] M[x] F[ ] K[x] DescribeSecret
 - W[x] S[ ] M[x] F[ ] K[x] GetRandomPassword
-- W[x] S[ ] M[x] F[ ] K[ ] GetResourcePolicy
+- W[x] S[ ] M[x] F[ ] K[x] GetResourcePolicy
 - W[x] S[ ] M[x] F[ ] K[x] GetSecretValue
 - W[x] S[ ] M[x] F[ ] K[ ] ListSecretVersionIds
 - W[x] S[ ] M[x] F[ ] K[x] ListSecrets
-- W[x] S[ ] M[x] F[ ] K[ ] PutResourcePolicy
+- W[x] S[ ] M[x] F[ ] K[x] PutResourcePolicy
 - W[x] S[ ] M[x] F[ ] K[x] PutSecretValue
 - W[x] S[ ] M[x] F[ ] K[ ] RemoveRegionsFromReplication
 - W[x] S[ ] M[x] F[ ] K[ ] ReplicateSecretToRegions
@@ -12227,7 +12227,7 @@ Untested implemented operations: 10
 Integration tests: 91/106 implemented operations tested (85.8%)
 Untested implemented operations: 15
 
-### winterbaume-sfn (sfn) - W: 35/37, S: 2/37, M: 29/37, F: 0/37, K: 9/37
+### winterbaume-sfn (sfn) - W: 35/37, S: 2/37, M: 29/37, F: 0/37, K: 18/37
 
 Terraform E2E: 10 tests across 3 terraform resource types
 
@@ -12251,25 +12251,25 @@ Resource types: aws_sfn_activity, aws_sfn_alias, aws_sfn_state_machine
 - W[x] S[ ] M[x] F[ ] K[ ] ListActivities
 - W[x] S[ ] M[x] F[ ] K[x] ListExecutions
 - W[x] S[ ] M[x] F[ ] K[ ] ListMapRuns
-- W[x] S[ ] M[x] F[ ] K[ ] ListStateMachineAliases
-- W[x] S[ ] M[ ] F[ ] K[ ] ListStateMachineVersions
+- W[x] S[ ] M[x] F[ ] K[x] ListStateMachineAliases
+- W[x] S[ ] M[ ] F[ ] K[x] ListStateMachineVersions
 - W[x] S[ ] M[x] F[ ] K[x] ListStateMachines
-- W[x] S[ ] M[x] F[ ] K[ ] ListTagsForResource
+- W[x] S[ ] M[x] F[ ] K[x] ListTagsForResource
 - W[x] S[ ] M[ ] F[ ] K[ ] PublishStateMachineVersion
 - W[x] S[ ] M[ ] F[ ] K[ ] RedriveExecution
-- W[x] S[ ] M[x] F[ ] K[ ] SendTaskFailure
-- W[x] S[ ] M[x] F[ ] K[ ] SendTaskHeartbeat
-- W[x] S[ ] M[x] F[ ] K[ ] SendTaskSuccess
+- W[x] S[ ] M[x] F[ ] K[x] SendTaskFailure
+- W[x] S[ ] M[x] F[ ] K[x] SendTaskHeartbeat
+- W[x] S[ ] M[x] F[ ] K[x] SendTaskSuccess
 - W[x] S[ ] M[x] F[ ] K[x] StartExecution
 - W[ ] S[x] M[ ] F[ ] K[ ] StartSyncExecution
 - W[x] S[ ] M[x] F[ ] K[x] StopExecution
-- W[x] S[ ] M[x] F[ ] K[ ] TagResource
+- W[x] S[ ] M[x] F[ ] K[x] TagResource
 - W[ ] S[x] M[ ] F[ ] K[ ] TestState
-- W[x] S[ ] M[x] F[ ] K[ ] UntagResource
+- W[x] S[ ] M[x] F[ ] K[x] UntagResource
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateMapRun
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateStateMachine
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateStateMachineAlias
-- W[x] S[ ] M[ ] F[ ] K[ ] ValidateStateMachineDefinition
+- W[x] S[ ] M[ ] F[ ] K[x] ValidateStateMachineDefinition
 
 Integration tests: 35/35 implemented operations tested (100.0%)
 
@@ -12387,7 +12387,7 @@ Untested implemented operations: 4
 Integration tests: 7/11 implemented operations tested (63.6%)
 Untested implemented operations: 4
 
-### winterbaume-sns (sns) - W: 41/42, S: 1/42, M: 33/42, F: 0/42, K: 8/42
+### winterbaume-sns (sns) - W: 41/42, S: 1/42, M: 33/42, F: 0/42, K: 13/42
 
 Terraform E2E: 4 tests across 2 terraform resource types
 
@@ -12410,7 +12410,7 @@ Resource types: aws_sns_topic, aws_sns_topic_subscription
 - W[x] S[ ] M[x] F[ ] K[ ] GetSMSAttributes
 - W[x] S[ ] M[ ] F[ ] K[ ] GetSMSSandboxAccountStatus
 - W[x] S[ ] M[x] F[ ] K[ ] GetSubscriptionAttributes
-- W[x] S[ ] M[x] F[ ] K[ ] GetTopicAttributes
+- W[x] S[ ] M[x] F[ ] K[x] GetTopicAttributes
 - W[x] S[ ] M[x] F[ ] K[ ] ListEndpointsByPlatformApplication
 - W[ ] S[x] M[ ] F[ ] K[ ] ListOriginationNumbers
 - W[x] S[ ] M[x] F[ ] K[ ] ListPhoneNumbersOptedOut
@@ -12418,7 +12418,7 @@ Resource types: aws_sns_topic, aws_sns_topic_subscription
 - W[x] S[ ] M[ ] F[ ] K[ ] ListSMSSandboxPhoneNumbers
 - W[x] S[ ] M[x] F[ ] K[x] ListSubscriptions
 - W[x] S[ ] M[x] F[ ] K[x] ListSubscriptionsByTopic
-- W[x] S[ ] M[x] F[ ] K[ ] ListTagsForResource
+- W[x] S[ ] M[x] F[ ] K[x] ListTagsForResource
 - W[x] S[ ] M[x] F[ ] K[x] ListTopics
 - W[x] S[ ] M[x] F[ ] K[ ] OptInPhoneNumber
 - W[x] S[ ] M[x] F[ ] K[x] Publish
@@ -12429,11 +12429,11 @@ Resource types: aws_sns_topic, aws_sns_topic_subscription
 - W[x] S[ ] M[x] F[ ] K[ ] SetPlatformApplicationAttributes
 - W[x] S[ ] M[x] F[ ] K[ ] SetSMSAttributes
 - W[x] S[ ] M[x] F[ ] K[ ] SetSubscriptionAttributes
-- W[x] S[ ] M[ ] F[ ] K[ ] SetTopicAttributes
+- W[x] S[ ] M[ ] F[ ] K[x] SetTopicAttributes
 - W[x] S[ ] M[x] F[ ] K[x] Subscribe
-- W[x] S[ ] M[x] F[ ] K[ ] TagResource
+- W[x] S[ ] M[x] F[ ] K[x] TagResource
 - W[x] S[ ] M[x] F[ ] K[x] Unsubscribe
-- W[x] S[ ] M[x] F[ ] K[ ] UntagResource
+- W[x] S[ ] M[x] F[ ] K[x] UntagResource
 - W[x] S[ ] M[ ] F[ ] K[ ] VerifySMSSandboxPhoneNumber
 
 Integration tests: 36/41 implemented operations tested (87.8%)

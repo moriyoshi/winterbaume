@@ -14,7 +14,7 @@ Amazon WorkSpaces Web service implementation for winterbaume.
 | moto coverage | 27/75 operations (36.0%) |
 | floci coverage | 0/75 operations (0.0%) |
 | kumo coverage | 0/75 operations (0.0%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

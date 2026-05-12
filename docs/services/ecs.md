@@ -14,7 +14,7 @@ ECS service implementation for winterbaume.
 | moto coverage | 45/76 operations (59.2%) |
 | floci coverage | 0/76 operations (0.0%) |
 | kumo coverage | 12/76 operations (15.8%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

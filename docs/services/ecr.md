@@ -13,8 +13,8 @@ ECR service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/58 operations (0.0%) |
 | moto coverage | 29/58 operations (50.0%) |
 | floci coverage | 0/58 operations (0.0%) |
-| kumo coverage | 8/58 operations (13.8%) |
-| Coverage report date | 2026-05-06 |
+| kumo coverage | 11/58 operations (19.0%) |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

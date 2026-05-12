@@ -14,7 +14,7 @@ Firehose service implementation for winterbaume.
 | moto coverage | 12/12 operations (100.0%) |
 | floci coverage | 0/12 operations (0.0%) |
 | kumo coverage | 7/12 operations (58.3%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

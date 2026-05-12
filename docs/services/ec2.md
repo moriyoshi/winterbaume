@@ -13,8 +13,8 @@ EC2/VPC service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 43/763 operations (5.6%) |
 | moto coverage | 223/763 operations (29.2%) |
 | floci coverage | 0/763 operations (0.0%) |
-| kumo coverage | 27/763 operations (3.5%) |
-| Coverage report date | 2026-05-06 |
+| kumo coverage | 39/763 operations (5.1%) |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

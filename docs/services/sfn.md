@@ -13,8 +13,8 @@ Step Functions service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 2/37 operations (5.4%) |
 | moto coverage | 29/37 operations (78.4%) |
 | floci coverage | 0/37 operations (0.0%) |
-| kumo coverage | 9/37 operations (24.3%) |
-| Coverage report date | 2026-05-06 |
+| kumo coverage | 18/37 operations (48.6%) |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

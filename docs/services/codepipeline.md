@@ -14,7 +14,7 @@ CodePipeline service implementation for winterbaume.
 | moto coverage | 8/44 operations (18.2%) |
 | floci coverage | 0/44 operations (0.0%) |
 | kumo coverage | 0/44 operations (0.0%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

@@ -13,8 +13,8 @@ Route 53 service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 0/71 operations (0.0%) |
 | moto coverage | 30/71 operations (42.3%) |
 | floci coverage | 0/71 operations (0.0%) |
-| kumo coverage | 7/71 operations (9.9%) |
-| Coverage report date | 2026-05-06 |
+| kumo coverage | 10/71 operations (14.1%) |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

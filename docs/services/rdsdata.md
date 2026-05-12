@@ -14,7 +14,7 @@ RDS Data Service implementation for winterbaume.
 | moto coverage | 1/6 operations (16.7%) |
 | floci coverage | 0/6 operations (0.0%) |
 | kumo coverage | 0/6 operations (0.0%) |
-| Coverage report date | 2026-05-06 |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 

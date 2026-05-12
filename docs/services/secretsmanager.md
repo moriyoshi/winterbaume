@@ -13,8 +13,8 @@ Secrets Manager service implementation for winterbaume.
 | stubs (routed, returns empty/default) | 1/23 operations (4.3%) |
 | moto coverage | 21/23 operations (91.3%) |
 | floci coverage | 0/23 operations (0.0%) |
-| kumo coverage | 8/23 operations (34.8%) |
-| Coverage report date | 2026-05-06 |
+| kumo coverage | 11/23 operations (47.8%) |
+| Coverage report date | 2026-05-12 |
 
 ## Server-mode usage
 
