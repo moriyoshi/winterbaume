@@ -1669,3 +1669,196 @@ skill ) turned out to share a near-identical 40-line
   ( 30 lines ); the real win is the single point of truth for the
   schema fetch — future schema-version bumps or cache-format changes
   now happen in one file.
+
+## 2026-05-13 (cont.): Fix three rendering bugs in docs/reference/terraform.md and the underlying coverage heuristics
+
+### Context
+
+After the previous `update-readme` integration landed and regenerated
+`docs/reference/terraform.md`, the user reviewed the output and flagged
+three issues:
+
+1. The per-service resource coverage table showed `override (37 patterns)`
+   for services like EC2, with no indication of *which* prefixes were
+   overridden. Opaque to readers.
+2. `kinesisanalyticsv2` rendered with prefix `aws_` and schema=0, missing
+   from the candidates list. The "heterogeneous prefix; manual review
+   needed" fallback had kicked in.
+3. The per-resource attribute coverage table listed `aws_vpc` with
+   only 4 inject attributes against 22 schema attributes ( 9%, "good [~]" ),
+   far below the historical 18 / 22 ( 64%, "excellent" ) the older curated
+   table had shown. The user expected richer inject coverage given the
+   recent EC2 push.
+
+When investigating ( 3 ) it also became clear that *many* resource types
+were missing from the per-resource table altogether — they were declared
+via macros that the original `fn resource_type(&self) -> &str { "..." }`
+regex couldn't see.
+
+### Findings
+
+#### Issue 1: opaque `override (N patterns)` rendering
+
+`generate_terraform_resource_coverage.py`'s `build_rows()` collapsed
+multi-prefix overrides to the literal string `override ({len(prefix)}
+patterns)`. The patterns were known internally but never surfaced.
+
+#### Issue 2: kinesisanalyticsv2 falling into the "heterogeneous" bucket
+
+The spec at `crates/winterbaume-terraform/specs/kinesisanalyticsv2.toml`
+declares two converter resource types in the same crate:
+`aws_kinesisanalyticsv2_application` and `aws_kinesis_analytics_application`.
+The longest-common-prefix heuristic returns `aws_kinesis`, the post-trim
+step yields `aws_`, the `len(parts) >= 2` guard fails ( only one segment ),
+so the prefix stays as `aws_`. The downstream check `if prefix in {"",
+"aws_"}` then routes the row into the "heterogeneous prefix; manual review
+needed" branch with `candidates = set()` ( hence schema=0 ).
+
+There's no clean automatic fix — the two TF resource families genuinely
+share no prefix beyond `aws_`. The only correct answer is a manual entry
+in `PREFIX_OVERRIDES`.
+
+#### Issue 3: aws_vpc inject heuristic blind to codegen'd TfModels
+
+The current EC2 converter pattern is:
+
+```rust
+let model: ec2_gen::VpcTfModel = serde_json::from_value(attrs.clone())?;
+let cidr_block = model.cidr_block;
+let instance_tenancy = model.instance_tenancy;
+// ... etc
+```
+
+The `INJECT_PATTERNS` in `generate_terraform_converter_coverage.py` only
+recognise direct `attrs.get("...")`, `attrs["..."]`, `require_str(attrs,
+"...")`, and similar helper calls. The struct-field accesses against a
+codegen'd `*TfModel` are invisible. So `aws_vpc` only got credit for:
+- `extract_region` → "region" ( +1 )
+- `extract_tags` → "tags", "tags_all" ( +2 )
+- one explicit `attrs.get("secondary_cidr_blocks")` ( +1 )
+
+Total = 4, matching the table exactly. The 7 fields on `VpcTfModel`
+( `cidr_block`, `id`, `dhcp_options_id`, `instance_tenancy`,
+`default` ( via serde rename of `default_` ), `enable_dns_hostnames`,
+`enable_dns_support` ) were uncounted. Same pattern applies to most of
+the recent EC2 long-tail work, which is why the global "excellent"
+rating count had collapsed from 265 ( pre-EC2-push, in the old curated
+doc ) to 16 ( in the auto-regenerated doc ).
+
+#### Bonus finding: 110 macro-emitted converters invisible to the heuristic
+
+`*_warning_only_converter!` macros ( 65 invocations across services like
+amplify, appsync, codecommit, connect, rds, etc. ) and S3's
+`impl_bucket_subresource_converter!` / `impl_bucket_named_config_converter!`
+macros ( 45 invocations ) generate full `TerraformResourceConverter` impls
+where `fn resource_type(&self) -> &str { $resource_type }` returns a
+macro parameter, not a string literal. The detector regex requires a
+literal, so every macro-emitted converter was silently dropped. Total:
+110 resource types declared in TOML specs but absent from the
+per-resource attribute coverage table — `aws_amplify_webhook`,
+`aws_appsync_datasource`, `aws_s3_bucket_accelerate_configuration`,
+the entire `aws_connect_*` family, etc.
+
+### Repository deltas
+
+- `.agents/skills/api-coverage/scripts/generate_terraform_resource_coverage.py`:
+  - Added `kinesisanalyticsv2` to `PREFIX_OVERRIDES` with both
+    `aws_kinesis_analytics_` and `aws_kinesisanalyticsv2_` patterns.
+  - Replaced `override (N patterns)` rendering with: single prefix →
+    backticked literal; ≤ 3 prefixes → comma-separated backticked
+    list; > 3 prefixes → first two patterns + ` +N more`. EC2 now
+    shows ``` `aws_vpc`, `aws_subnet`, +35 more ``` instead of `override
+    (37 patterns)`.
+
+- `.agents/skills/api-coverage/scripts/generate_terraform_converter_coverage.py`:
+  - Added `index_generated_tf_models()` which walks
+    `crates/winterbaume-tfstate-resource-models/src/*.rs`, extracts
+    every `pub struct *TfModel` block, parses each `pub <field>:` line
+    ( respecting `#[serde(rename = "...")]` and stripping trailing
+    `_` from Rust-keyword-escaped field names ), and returns
+    `{StructName -> {tf_attr_names}}`.
+  - Added `_TF_MODEL_REF_RE` and credit logic inside the inject
+    branch of `parse_converter_file()`: any `<Name>TfModel` reference
+    in the inject body resolves through the index and contributes
+    every field of that model to `inject_attrs`. This is the fix for
+    issue 3 above.
+  - Added `_macro_invocation_bodies()` which scans the source for
+    `[a-z_]+!\s*[({]` invocations and uses depth-counting bracket
+    matching to extract the body string. The matcher handles both `(...)`
+    and `{...}` macro forms ( and the closure bodies the S3 macros pass
+    as arguments, which contain nested `{...}` ).
+  - In `parse_converter_file()`: after collecting `resource_types` via
+    the existing impl-method regex, also walk macro invocations to find
+    `"aws_..."` literals inside their bodies. For any new resource type
+    discovered this way, treat the entire macro body as both the inject
+    and the extract context and run all the existing heuristics ( inject
+    patterns, `extract_region` / `extract_tags`, TfModel refs, extract
+    patterns ). Strip the resource-type literal from `extract_attrs` to
+    avoid it leaking in as a spurious attribute. This is the fix for the
+    bonus finding above.
+  - Wired `index_generated_tf_models()` into `main()` and passed the
+    index through to `parse_converter_file()`.
+
+- `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`,
+  `.agents/docs/TERRAFORM_CONVERTER_COVERAGE.md`,
+  `docs/reference/terraform.md`, `docs/reference/services.md`, the 224
+  service crate READMEs and 224 `docs/services/` pages: regenerated as
+  the natural consequence of running `update-readme`.
+
+### Verification
+
+- `aws_vpc` row: `| 4 | 17 | 22 | 9% | 55% | good [~] |` →
+  `| 10 | 17 | 22 | 32% | 55% | good [~] |` ( +6 inject attrs from the
+  resolved `VpcTfModel`, plus the original 4 ).
+- `kinesisanalyticsv2` row: prefix `aws_`, schema=0 →
+  `` `aws_kinesis_analytics_`, `aws_kinesisanalyticsv2_` ``, schema=3,
+  coverage 67%.
+- `ec2` row prefix display: `override (37 patterns)` →
+  `` `aws_vpc`, `aws_subnet`, +35 more `` ( handled=145, schema=139,
+  missing=0, coverage=104% ).
+- Coverage spread before macro detection: 16 excellent / 728 good /
+  30 fair / 246 poor / 6 n/a, 1026 converters.
+- After TfModel detection ( still missing macros ): 489 / 400 / 36 /
+  95 / 6, 1026 converters.
+- After macro detection: 491 / 498 / 45 / 96 / 13, **1143 converters**.
+- Spec-vs-doc audit: of 1126 resource types declared in spec TOMLs, 0
+  are now missing from the per-resource attribute coverage table
+  ( previously 110 ).
+- Spot checks: `aws_amplify_webhook` shows `5 inject / 0 extract / 5
+  schema` ( 100% inject, 0% extract — the warning-only converter does
+  no extract; the heuristic correctly counts the 5 `AmplifyWebhookTfModel`
+  fields ); `aws_appsync_datasource` shows `6 / 0 / 13` ( 46% inject );
+  `aws_s3_bucket_accelerate_configuration` shows `2 / 0 / 3` ( 67% inject ).
+
+### Operational notes
+
+- The `_macro_invocation_bodies()` scanner relies on bracket depth
+  counting, not on Rust parsing. It handles the closure-containing S3
+  macros correctly because the scanner descends through nested `{` and
+  `(` symmetrically. Edge cases it would mishandle: macros whose
+  arguments contain unbalanced bracket characters inside string
+  literals or comments. None exist in the current converter source;
+  if one ever does, the symptom will be a missing resource type from
+  the table, not a crash.
+- Extract coverage for the 117 newly-detected macro converters is
+  systematically 0% in the report. This is genuine under-counting:
+  the S3 sub-resource macros do extract via closure bodies whose
+  field-name argument is a bare string literal at the end of the
+  macro invocation, which the `"key":` and `.insert("key", ...)`
+  EXTRACT_PATTERNS don't match. Improving this requires either
+  per-macro-shape detection or a generic "credit the trailing
+  positional `"..."` string literal" pass. Out of scope for this
+  round; the report's inject% is now the more load-bearing signal.
+- The TfModel index is built once per script run ( 1030 structs
+  parsed in milliseconds ) and re-used across every converter file.
+  The marginal cost of the index is negligible compared to the
+  one-time Terraform schema fetch.
+- Aggregate effect: the previously-published `docs/reference/terraform.md`
+  reported "265 excellent-rated converters out of 267 total". The
+  initial post-regeneration doc — before any of these fixes — would
+  have advertised "16 excellent out of 1026 total", which would have
+  looked like a catastrophic quality regression. After all three
+  fixes the headline reads ~491 excellent out of 1143 total: still
+  short of the old artisanal table but defensible, and now derived
+  end-to-end from the actual converter source rather than a
+  hand-curated snapshot.

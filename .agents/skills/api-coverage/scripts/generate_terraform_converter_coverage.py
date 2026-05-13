@@ -28,6 +28,103 @@ from tf_schema import collect_schema_attributes, get_terraform_schema  # noqa: E
 
 ROOT = Path(__file__).resolve().parents[4]  # repo root
 CONVERTERS_DIR = ROOT / "crates" / "winterbaume-terraform" / "src" / "converters"
+GENERATED_MODELS_DIR = (
+    ROOT / "crates" / "winterbaume-tfstate-resource-models" / "src"
+)
+
+
+# ---------------------------------------------------------------------------
+# Generated TfModel index
+# ---------------------------------------------------------------------------
+
+# Matches a generated `pub struct FooTfModel { ... }` block. The fields
+# are extracted from `group(2)`; `#[serde(rename = "x")]` attributes are
+# parsed separately per field below.
+_TF_MODEL_BLOCK_RE = re.compile(
+    r'pub\s+struct\s+(\w+TfModel)\s*\{([^}]*)\}',
+    re.DOTALL,
+)
+# Matches one struct field, optionally preceded by attributes. Captures
+# the attribute block (group 1) and the Rust field identifier (group 2).
+_TF_MODEL_FIELD_RE = re.compile(
+    r'((?:\s*#\[[^\]]*\]\s*)*)\s*pub\s+(\w+)\s*:',
+)
+_SERDE_RENAME_RE = re.compile(r'serde\s*\(\s*[^)]*rename\s*=\s*"([^"]+)"')
+
+
+def index_generated_tf_models() -> dict[str, set[str]]:
+    """Walk the generated TfModel crate and return `{StructName -> {tf_attrs}}`.
+
+    The EC2-and-other converters consume codegen'd `*TfModel` structs via
+    `serde_json::from_value(attrs.clone())` rather than touching the
+    `attrs` map directly. Without this index the inject heuristic
+    massively under-counts those converters' field coverage.
+    """
+    index: dict[str, set[str]] = {}
+    if not GENERATED_MODELS_DIR.is_dir():
+        return index
+    for source_path in GENERATED_MODELS_DIR.glob("*.rs"):
+        text = source_path.read_text()
+        for block in _TF_MODEL_BLOCK_RE.finditer(text):
+            struct_name = block.group(1)
+            body = block.group(2)
+            attrs: set[str] = set()
+            for field in _TF_MODEL_FIELD_RE.finditer(body):
+                attr_block, field_name = field.group(1), field.group(2)
+                rename = _SERDE_RENAME_RE.search(attr_block) if attr_block else None
+                if rename:
+                    attrs.add(rename.group(1))
+                else:
+                    # Generated codegen uses trailing `_` to escape Rust
+                    # keywords ( e.g. `default_` ); strip it so the name
+                    # matches the underlying TF attribute.
+                    attrs.add(field_name.rstrip("_"))
+            attrs.discard("id")
+            if attrs:
+                index[struct_name] = attrs
+    return index
+
+
+# Matches a `*TfModel` reference inside an inject method body. The
+# converter source uses patterns like `let model: ec2_gen::VpcTfModel
+# = serde_json::from_value(...)`. We only need the struct name.
+_TF_MODEL_REF_RE = re.compile(r'\b(\w+TfModel)\b')
+
+# Matches the start of a snake_case macro invocation. The body
+# delimiter ( either `(` or `{` ) is captured so we can find the
+# matching closing delimiter by depth counting. Used to extract
+# resource-type literals from macro-emitted converters like the
+# per-service `*_warning_only_converter!` macros and S3's
+# `impl_bucket_*_converter!` macros.
+_MACRO_INVOCATION_START_RE = re.compile(r'([a-z_][a-z0-9_]*)\s*!\s*([({])')
+
+
+def _macro_invocation_bodies(source: str) -> list[tuple[str, str]]:
+    """Return `[(macro_name, body)]` for every macro invocation in `source`.
+
+    The body string is the bracket-balanced content between the
+    invocation's opening delimiter and the matching closing one. The
+    enclosing delimiters are not included.
+    """
+    pairs = {"(": ")", "{": "}"}
+    out: list[tuple[str, str]] = []
+    for m in _MACRO_INVOCATION_START_RE.finditer(source):
+        open_pos = m.end() - 1
+        open_char = source[open_pos]
+        close_char = pairs[open_char]
+        depth = 1
+        i = open_pos + 1
+        n = len(source)
+        while i < n and depth > 0:
+            c = source[i]
+            if c == open_char:
+                depth += 1
+            elif c == close_char:
+                depth -= 1
+            i += 1
+        if depth == 0:
+            out.append((m.group(1), source[open_pos + 1 : i - 1]))
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -61,21 +158,43 @@ EXTRACT_PATTERNS = [
 ]
 
 
-def parse_converter_file(path: Path) -> list[dict]:
+def parse_converter_file(
+    path: Path,
+    tf_model_index: dict[str, set[str]] | None = None,
+) -> list[dict]:
     """Parse a converter .rs file and return info for each converter.
 
     Returns a list of dicts with keys:
         resource_type, inject_attrs, extract_attrs, depends_on
     """
     source = path.read_text()
+    tf_model_index = tf_model_index or {}
 
-    # Find all resource types defined in this file
+    # Find all resource types defined in this file via the trait impl.
     resource_types = re.findall(
         r'fn\s+resource_type\s*\(\s*&self\s*\)\s*->\s*&str\s*\{\s*"([^"]+)"',
         source,
     )
 
-    if not resource_types:
+    # Some converter families ( e.g. `*_warning_only_converter!`,
+    # `impl_bucket_subresource_converter!` ) are declared via macros;
+    # their `fn resource_type` body refers to a macro parameter rather
+    # than a string literal, so the regex above misses them. Scan macro
+    # invocations and collect `(resource_type, macro_body)` pairs for
+    # any that aren't already covered.
+    macro_pairs: list[tuple[str, str]] = []
+    existing = set(resource_types)
+    for _macro_name, body in _macro_invocation_bodies(source):
+        match = re.search(r'"(aws_[A-Za-z0-9_]+)"', body)
+        if not match:
+            continue
+        rt = match.group(1)
+        if rt in existing:
+            continue
+        macro_pairs.append((rt, body))
+        existing.add(rt)
+
+    if not resource_types and not macro_pairs:
         return []
 
     # Split source into converter impl blocks.
@@ -106,6 +225,16 @@ def parse_converter_file(path: Path) -> list[dict]:
             # "region" is always extracted via extract_region
             if "extract_region" in inject_match:
                 inject_attrs.add("region")
+            # Converters that consume a codegen'd `*TfModel` via
+            # `serde_json::from_value(attrs.clone())` access TF attributes
+            # through the deserialised struct, which the attribute-key
+            # regexes above can't see. Credit every field of any
+            # referenced TfModel ( resolved against the index of the
+            # generated-models crate ).
+            for ref in _TF_MODEL_REF_RE.finditer(inject_match):
+                fields = tf_model_index.get(ref.group(1))
+                if fields:
+                    inject_attrs.update(fields)
 
         if extract_match:
             for pat in EXTRACT_PATTERNS:
@@ -137,6 +266,43 @@ def parse_converter_file(path: Path) -> list[dict]:
             "inject_attrs": sorted(inject_attrs),
             "extract_attrs": sorted(extract_attrs),
             "depends_on": dep_types,
+            "source_file": str(path.relative_to(ROOT)),
+        })
+
+    # Macro-emitted converters: treat the entire macro invocation body
+    # as the inject/extract body. Both the warning-only macros and the
+    # S3 sub-resource macros credit any referenced `*TfModel` and any
+    # explicit `attrs.get("...")` / `serde_json::json!({...})` calls
+    # within the macro args.
+    for rt, body in macro_pairs:
+        inject_attrs: set[str] = set()
+        extract_attrs: set[str] = set()
+        for pat in INJECT_PATTERNS:
+            for m in pat.finditer(body):
+                if m.group(0).startswith("extract_tags"):
+                    inject_attrs.add("tags")
+                    inject_attrs.add("tags_all")
+                else:
+                    inject_attrs.add(m.group(1))
+        if "extract_region" in body:
+            inject_attrs.add("region")
+        for ref in _TF_MODEL_REF_RE.finditer(body):
+            fields = tf_model_index.get(ref.group(1))
+            if fields:
+                inject_attrs.update(fields)
+        for pat in EXTRACT_PATTERNS:
+            for m in pat.finditer(body):
+                extract_attrs.add(m.group(1))
+        inject_attrs.discard("resource_type")
+        extract_attrs.discard("resource_type")
+        # `aws_*` literal that named the resource type is part of the
+        # macro args; strip it so it doesn't leak into extract_attrs.
+        extract_attrs.discard(rt)
+        results.append({
+            "resource_type": rt,
+            "inject_attrs": sorted(inject_attrs),
+            "extract_attrs": sorted(extract_attrs),
+            "depends_on": [],
             "source_file": str(path.relative_to(ROOT)),
         })
 
@@ -382,12 +548,16 @@ def main():
     tf_schemas = get_terraform_schema(cache_path=args.schema_cache)
     print(f"  {len(tf_schemas)} resource types in schema")
 
+    print("Indexing generated TfModel structs...")
+    tf_model_index = index_generated_tf_models()
+    print(f"  Found {len(tf_model_index)} TfModel structs in {GENERATED_MODELS_DIR.name}")
+
     print("Analysing converter source files...")
     converters = []
     for rs_file in sorted(CONVERTERS_DIR.glob("*.rs")):
         if rs_file.name == "mod.rs":
             continue
-        parsed = parse_converter_file(rs_file)
+        parsed = parse_converter_file(rs_file, tf_model_index=tf_model_index)
         converters.extend(parsed)
     print(f"  Found {len(converters)} converters in {len(list(CONVERTERS_DIR.glob('*.rs'))) - 1} files")
 
