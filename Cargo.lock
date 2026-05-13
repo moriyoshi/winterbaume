@@ -10289,7 +10289,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "winterbaume-accessanalyzer",
  "winterbaume-account",
@@ -11322,7 +11322,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-bedrock-flow-parser"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -12095,7 +12095,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13039,7 +13039,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-iam-rule-eval"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -13792,7 +13792,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-partiql"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde_json",
  "thiserror 2.0.18",

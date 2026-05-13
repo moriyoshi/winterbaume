@@ -1,6 +1,6 @@
 [package]
 name = "winterbaume"
-version = "0.1.0"
+version = "0.2.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -613,7 +613,7 @@ winterbaume-codegurureviewer = { version = "0.1.0", path = "crates/winterbaume-c
 winterbaume-connectcontactlens = { version = "0.1.0", path = "crates/winterbaume-connectcontactlens" }
 winterbaume-costoptimizationhub = { version = "0.1.0", path = "crates/winterbaume-costoptimizationhub" }
 winterbaume-billing = { version = "0.1.0", path = "crates/winterbaume-billing" }
-winterbaume-core = { version = "0.1.0", path = "crates/winterbaume-core" }
+winterbaume-core = { version = "0.2.0", path = "crates/winterbaume-core" }
 winterbaume-sts = { version = "0.1.0", path = "crates/winterbaume-sts" }
 winterbaume-iam = { version = "0.1.0", path = "crates/winterbaume-iam" }
 winterbaume-s3 = { version = "0.1.0", path = "crates/winterbaume-s3" }
@@ -788,11 +788,11 @@ winterbaume-s3control = { version = "0.1.0", path = "crates/winterbaume-s3contro
 winterbaume-s3vectors = { version = "0.1.0", path = "crates/winterbaume-s3vectors" }
 winterbaume-s3tables = { version = "0.1.0", path = "crates/winterbaume-s3tables" }
 winterbaume-panorama = { version = "0.1.0", path = "crates/winterbaume-panorama" }
-winterbaume-iam-rule-eval = { version = "0.1.0", path = "crates/winterbaume-iam-rule-eval" }
+winterbaume-iam-rule-eval = { version = "0.2.0", path = "crates/winterbaume-iam-rule-eval" }
 winterbaume-sfn-asl-eval = { version = "0.1.0", path = "crates/winterbaume-sfn-asl-eval" }
-winterbaume-bedrock-flow-parser = { version = "0.1.0", path = "crates/winterbaume-bedrock-flow-parser" }
+winterbaume-bedrock-flow-parser = { version = "0.2.0", path = "crates/winterbaume-bedrock-flow-parser" }
 winterbaume-bedrock-flow-validator = { version = "0.1.0", path = "crates/winterbaume-bedrock-flow-validator" }
-winterbaume-partiql = { version = "0.1.0", path = "crates/winterbaume-partiql" }
+winterbaume-partiql = { version = "0.2.0", path = "crates/winterbaume-partiql" }
 # `default-features = false` here so workspace inheritors decide whether to
 # enable the wrapper's `bundled` feature (compile DuckDB from source) or
 # link against a prebuilt libduckdb. Direct `cargo build -p
