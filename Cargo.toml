@@ -589,7 +589,7 @@ winterbaume-pi = { version = "0.1.0", path = "crates/winterbaume-pi" }
 winterbaume-trustedadvisor = { version = "0.1.0", path = "crates/winterbaume-trustedadvisor" }
 winterbaume-supportapp = { version = "0.1.0", path = "crates/winterbaume-supportapp" }
 winterbaume-pricing = { version = "0.1.0", path = "crates/winterbaume-pricing" }
-winterbaume-freetier = { version = "0.1.0", path = "crates/winterbaume-freetier" }
+winterbaume-freetier = { version = "0.2.0", path = "crates/winterbaume-freetier" }
 winterbaume-cloud9 = { version = "0.2.0", path = "crates/winterbaume-cloud9" }
 winterbaume-s3outposts = { version = "0.1.0", path = "crates/winterbaume-s3outposts" }
 winterbaume-route53recoverycluster = { version = "0.1.0", path = "crates/winterbaume-route53recoverycluster" }
@@ -628,7 +628,7 @@ winterbaume-cloudwatchlogs = { version = "0.2.0", path = "crates/winterbaume-clo
 winterbaume-sns = { version = "0.1.0", path = "crates/winterbaume-sns" }
 winterbaume-lambda = { version = "0.1.0", path = "crates/winterbaume-lambda" }
 winterbaume-ecr = { version = "0.2.0", path = "crates/winterbaume-ecr" }
-winterbaume-eventbridge = { version = "0.1.0", path = "crates/winterbaume-eventbridge" }
+winterbaume-eventbridge = { version = "0.2.0", path = "crates/winterbaume-eventbridge" }
 winterbaume-sfn = { version = "0.1.0", path = "crates/winterbaume-sfn" }
 winterbaume-route53 = { version = "0.1.0", path = "crates/winterbaume-route53" }
 winterbaume-cloudwatch = { version = "0.2.0", path = "crates/winterbaume-cloudwatch" }
@@ -640,7 +640,7 @@ winterbaume-eks = { version = "0.2.0", path = "crates/winterbaume-eks" }
 winterbaume-kinesis = { version = "0.1.0", path = "crates/winterbaume-kinesis" }
 winterbaume-cloudformation = { version = "0.2.0", path = "crates/winterbaume-cloudformation" }
 winterbaume-cloudfront = { version = "0.2.0", path = "crates/winterbaume-cloudfront" }
-winterbaume-firehose = { version = "0.1.0", path = "crates/winterbaume-firehose" }
+winterbaume-firehose = { version = "0.2.0", path = "crates/winterbaume-firehose" }
 winterbaume-organizations = { version = "0.1.0", path = "crates/winterbaume-organizations" }
 winterbaume-ecs = { version = "0.2.0", path = "crates/winterbaume-ecs" }
 winterbaume-elasticache = { version = "0.2.0", path = "crates/winterbaume-elasticache" }
@@ -692,7 +692,7 @@ winterbaume-macie2 = { version = "0.1.0", path = "crates/winterbaume-macie2" }
 winterbaume-comprehend = { version = "0.2.0", path = "crates/winterbaume-comprehend" }
 winterbaume-transcribe = { version = "0.1.0", path = "crates/winterbaume-transcribe" }
 winterbaume-textract = { version = "0.1.0", path = "crates/winterbaume-textract" }
-winterbaume-forecast = { version = "0.1.0", path = "crates/winterbaume-forecast" }
+winterbaume-forecast = { version = "0.2.0", path = "crates/winterbaume-forecast" }
 winterbaume-personalize = { version = "0.1.0", path = "crates/winterbaume-personalize" }
 winterbaume-route53resolver = { version = "0.1.0", path = "crates/winterbaume-route53resolver" }
 winterbaume-acmpca = { version = "0.2.0", path = "crates/winterbaume-acmpca" }
@@ -760,7 +760,7 @@ winterbaume-route53domains = { version = "0.1.0", path = "crates/winterbaume-rou
 winterbaume-mediapackagev2 = { version = "0.1.0", path = "crates/winterbaume-mediapackagev2" }
 winterbaume-osis = { version = "0.1.0", path = "crates/winterbaume-osis" }
 winterbaume-outposts = { version = "0.1.0", path = "crates/winterbaume-outposts" }
-winterbaume-fis = { version = "0.1.0", path = "crates/winterbaume-fis" }
+winterbaume-fis = { version = "0.2.0", path = "crates/winterbaume-fis" }
 winterbaume-cloudcontrol = { version = "0.2.0", path = "crates/winterbaume-cloudcontrol" }
 winterbaume-keyspaces = { version = "0.1.0", path = "crates/winterbaume-keyspaces" }
 winterbaume-rolesanywhere = { version = "0.1.0", path = "crates/winterbaume-rolesanywhere" }
