@@ -12904,7 +12904,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-fsx"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12926,7 +12926,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-glacier"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12951,7 +12951,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-glue"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12972,7 +12972,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-greengrass"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12993,7 +12993,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-guardduty"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
