@@ -15274,7 +15274,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ssoadmin"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15295,7 +15295,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sts"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15315,7 +15315,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-support"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15336,7 +15336,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-supportapp"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15356,7 +15356,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-swf"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
