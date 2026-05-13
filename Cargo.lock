@@ -11331,7 +11331,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-bedrock-flow-validator"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde_json",
  "winterbaume-bedrock-flow-parser",
@@ -15021,7 +15021,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sfn-asl-eval"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -15612,7 +15612,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-tfstate"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -15621,7 +15621,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-tfstate-resource-models"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
 ]
@@ -15805,7 +15805,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-wafv2-webacl-rule-parser"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",

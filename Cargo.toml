@@ -678,7 +678,7 @@ winterbaume-guardduty = { version = "0.1.0", path = "crates/winterbaume-guarddut
 winterbaume-backup = { version = "0.1.0", path = "crates/winterbaume-backup" }
 winterbaume-ivs = { version = "0.1.0", path = "crates/winterbaume-ivs" }
 winterbaume-wafv2 = { version = "0.1.0", path = "crates/winterbaume-wafv2" }
-winterbaume-wafv2-webacl-rule-parser = { version = "0.1.0", path = "crates/winterbaume-wafv2-webacl-rule-parser" }
+winterbaume-wafv2-webacl-rule-parser = { version = "0.2.0", path = "crates/winterbaume-wafv2-webacl-rule-parser" }
 winterbaume-wafv2-wcu-calculator = { version = "0.1.0", path = "crates/winterbaume-wafv2-wcu-calculator" }
 winterbaume-config = { version = "0.1.0", path = "crates/winterbaume-config" }
 winterbaume-securityhub = { version = "0.1.0", path = "crates/winterbaume-securityhub" }
@@ -789,9 +789,9 @@ winterbaume-s3vectors = { version = "0.1.0", path = "crates/winterbaume-s3vector
 winterbaume-s3tables = { version = "0.1.0", path = "crates/winterbaume-s3tables" }
 winterbaume-panorama = { version = "0.1.0", path = "crates/winterbaume-panorama" }
 winterbaume-iam-rule-eval = { version = "0.2.0", path = "crates/winterbaume-iam-rule-eval" }
-winterbaume-sfn-asl-eval = { version = "0.1.0", path = "crates/winterbaume-sfn-asl-eval" }
+winterbaume-sfn-asl-eval = { version = "0.2.0", path = "crates/winterbaume-sfn-asl-eval" }
 winterbaume-bedrock-flow-parser = { version = "0.2.0", path = "crates/winterbaume-bedrock-flow-parser" }
-winterbaume-bedrock-flow-validator = { version = "0.1.0", path = "crates/winterbaume-bedrock-flow-validator" }
+winterbaume-bedrock-flow-validator = { version = "0.2.0", path = "crates/winterbaume-bedrock-flow-validator" }
 winterbaume-partiql = { version = "0.2.0", path = "crates/winterbaume-partiql" }
 # `default-features = false` here so workspace inheritors decide whether to
 # enable the wrapper's `bundled` feature (compile DuckDB from source) or
@@ -800,8 +800,8 @@ winterbaume-partiql = { version = "0.2.0", path = "crates/winterbaume-partiql" }
 # `default = ["bundled"]` because that path doesn't go through this entry.
 winterbaume-sqlengine-duckdb = { version = "0.1.0", path = "crates/winterbaume-sqlengine-duckdb", default-features = false }
 winterbaume-sqs-redis = { version = "0.1.0", path = "crates/winterbaume-sqs-redis" }
-winterbaume-tfstate = { version = "0.1.0", path = "crates/winterbaume-tfstate" }
-winterbaume-tfstate-resource-models = { version = "0.1.0", path = "crates/winterbaume-tfstate-resource-models" }
+winterbaume-tfstate = { version = "0.2.0", path = "crates/winterbaume-tfstate" }
+winterbaume-tfstate-resource-models = { version = "0.2.0", path = "crates/winterbaume-tfstate-resource-models" }
 winterbaume-terraform = { version = "0.1.0", path = "crates/winterbaume-terraform" }
 
 # AWS SDK

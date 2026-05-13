@@ -9,7 +9,7 @@ readme = "README.md"
 description = "WAFv2 WCU (Web ACL Capacity Unit) calculator over a parsed Statement AST"
 
 [dependencies]
-winterbaume-wafv2-webacl-rule-parser = { version = "0.1.0", path = "../winterbaume-wafv2-webacl-rule-parser" }
+winterbaume-wafv2-webacl-rule-parser = { version = "0.2.0", path = "../winterbaume-wafv2-webacl-rule-parser" }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 
