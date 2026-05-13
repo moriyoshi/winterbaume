@@ -13800,7 +13800,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-pcaconnectorscep"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13821,7 +13821,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-personalize"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13842,7 +13842,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-personalizeevents"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13862,7 +13862,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-personalizeruntime"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13882,7 +13882,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-pi"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
