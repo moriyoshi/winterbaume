@@ -10925,7 +10925,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-applicationinsights"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10946,7 +10946,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-applicationsignals"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10967,7 +10967,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appmesh"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10988,7 +10988,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-apprunner"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11009,7 +11009,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appsync"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
