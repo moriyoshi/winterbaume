@@ -499,3 +499,63 @@ No new synthesis document was created. The existing synthesis layer was refreshe
 | `services/ec2.md` | Full distillation | `terraform-converter-codegen-and-resource-coverage.md`, `TODO.md` |
 
 The source LTM documents `terraform-converter-codegen-and-resource-coverage.md`, `ci-release-and-package-metadata.md`, and `runtime-account-identity-configuration.md` remain standalone drill-down notes for traceability.
+
+---
+
+## 2026-05-13 — Per-crate service-slug keyword in service-crate Cargo.toml
+
+### Motivation
+
+Workspace `Cargo.toml` defines `[workspace.package] keywords = ["aws", "mock", "testing"]` which every crate inherits via `keywords.workspace = true`. That made all 226 service crates discoverable on crates.io only by the generic `aws` / `mock` / `testing` tags; searching for, e.g., `cognito-idp` or `elbv2` would not surface the matching winterbaume crate. The fix is to override the inherited keyword list per service crate and append the crate's own service slug.
+
+### Approach
+
+Per-crate override of `keywords.workspace = true` with an explicit list `["aws", "mock", "testing", "<slug>"]` where `<slug>` is the crate name with the `winterbaume-` prefix stripped. The change is mechanical and was applied via a one-shot Python helper at `./.agents-workspace/tmp/add_slug_keywords.py`.
+
+### Scope
+
+Only AWS-service crates were touched. The following 15 utility / codegen / engine / evaluator / parser crates were explicitly excluded and continue to inherit the workspace keyword list:
+
+- `winterbaume-core`, `winterbaume-server`, `winterbaume-terraform`, `winterbaume-e2e-tests`
+- `winterbaume-bedrock-flow-parser`, `winterbaume-bedrock-flow-validator`
+- `winterbaume-ec2-generated`
+- `winterbaume-iam-rule-eval`, `winterbaume-sfn-asl-eval`
+- `winterbaume-wafv2-wcu-calculator`, `winterbaume-wafv2-webacl-rule-parser`
+- `winterbaume-tfstate`, `winterbaume-tfstate-resource-models`
+- `winterbaume-sqlengine-duckdb`, `winterbaume-partiql`
+
+226 service crates were updated. Hybrid backend variants kept their full distinguishing slug, so `winterbaume-dynamodb-redis` gets `dynamodb-redis` and `winterbaume-sqs-redis` gets `sqs-redis` rather than collapsing to the base service name.
+
+### Cargo keyword-length constraint and abbreviation table
+
+crates.io enforces a hard limit of 20 ASCII characters per keyword and a maximum of 5 keywords per crate. 12 service-crate slugs exceeded 20 characters and could not be used verbatim. The abbreviations applied are:
+
+| Crate suffix ( slug ) | Length | Abbreviation used as keyword |
+|-----------------------|-------:|------------------------------|
+| `applicationautoscaling` | 22 | `appautoscaling` |
+| `applicationcostprofiler` | 23 | `appcostprofiler` |
+| `applicationdiscoveryservice` | 27 | `appdiscovery` |
+| `bcmrecommendedactions` | 21 | `bcmrecactions` |
+| `cloudfrontkeyvaluestore` | 23 | `cloudfrontkvs` |
+| `codestarnotifications` | 21 | `codestarnotif` |
+| `cognitoidentityprovider` | 23 | `cognitoidp` |
+| `elasticloadbalancingv2` | 22 | `elbv2` |
+| `kinesisvideoarchivedmedia` | 25 | `kvarchivedmedia` |
+| `resourcegroupstagging` | 21 | `resourcegrouptag` |
+| `route53recoverycluster` | 22 | `r53recoverycluster` |
+| `servicecatalogappregistry` | 25 | `scappregistry` |
+
+Where possible the abbreviation matches AWS's own short forms ( e.g. `elbv2`, `cognitoidp` ) so users searching with the familiar AWS CLI service code still hit the crate. The crate name itself is unchanged; only the published `keywords` array carries the abbreviated form.
+
+The script asserts `len(slug) <= 20` after applying the abbreviation table, so any future crate whose slug exceeds 20 characters and is not in the table will hard-fail rather than silently produce an invalid manifest.
+
+### Validation
+
+- `cargo metadata --no-deps --format-version 1` over the whole workspace succeeded, confirming all 226 modified manifests parse cleanly and the keyword arrays satisfy Cargo's structural constraints. Full crates.io upload-time keyword validation ( regex / length / count ) is implicit in this success because Cargo applies the same rules at parse time.
+- Spot-checked `winterbaume-accessanalyzer`, `winterbaume-cognitoidentityprovider`, `winterbaume-elasticloadbalancingv2`, and `winterbaume-dynamodb-redis` to confirm the rewritten lines; `winterbaume-core` and `winterbaume-iam-rule-eval` still carry `keywords.workspace = true` as intended.
+
+### Follow-ups / things worth knowing later
+
+- The workspace default `keywords = ["aws", "mock", "testing"]` in the root `Cargo.toml` is now used **only** by the non-service utility crates listed above. If we ever want to push a different generic keyword set to all crates simultaneously, both the workspace default and the 226 per-crate overrides have to be updated.
+- The abbreviation table is canonical: any new service crate whose slug exceeds 20 characters must add an entry here and to the helper script before the next release; otherwise `cargo publish` for that crate would refuse the keyword.
+- This belongs in the `ci-release-and-package-metadata.md` LTM document next time `good-sleep` runs, since it is package-metadata policy that survives across releases and is non-obvious from the code alone.

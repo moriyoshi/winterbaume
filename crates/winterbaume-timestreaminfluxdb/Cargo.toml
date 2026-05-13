@@ -4,7 +4,7 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-keywords.workspace = true
+keywords = ["aws", "mock", "testing", "timestreaminfluxdb"]
 readme = "README.md"
 description = "Amazon Timestream for InfluxDB service implementation for winterbaume"
 
