@@ -11135,7 +11135,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-autoscalingplans"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11156,7 +11156,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-backup"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11176,7 +11176,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-backupgateway"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11197,7 +11197,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-backupsearch"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11218,7 +11218,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-batch"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
