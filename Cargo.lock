@@ -15030,7 +15030,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-shield"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15051,7 +15051,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-signer"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15073,7 +15073,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-simpledbv2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15094,7 +15094,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-simspaceweaver"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15115,7 +15115,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-snowdevicemanagement"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
