@@ -637,7 +637,7 @@ winterbaume-apigateway = { version = "0.2.0", path = "crates/winterbaume-apigate
 winterbaume-apigatewaymanagement = { version = "0.2.0", path = "crates/winterbaume-apigatewaymanagement" }
 winterbaume-apigatewayv2 = { version = "0.2.0", path = "crates/winterbaume-apigatewayv2" }
 winterbaume-eks = { version = "0.2.0", path = "crates/winterbaume-eks" }
-winterbaume-kinesis = { version = "0.1.0", path = "crates/winterbaume-kinesis" }
+winterbaume-kinesis = { version = "0.2.0", path = "crates/winterbaume-kinesis" }
 winterbaume-cloudformation = { version = "0.2.0", path = "crates/winterbaume-cloudformation" }
 winterbaume-cloudfront = { version = "0.2.0", path = "crates/winterbaume-cloudfront" }
 winterbaume-firehose = { version = "0.2.0", path = "crates/winterbaume-firehose" }
@@ -715,7 +715,7 @@ winterbaume-networkfirewall = { version = "0.1.0", path = "crates/winterbaume-ne
 winterbaume-sagemaker = { version = "0.1.0", path = "crates/winterbaume-sagemaker" }
 winterbaume-appsync = { version = "0.2.0", path = "crates/winterbaume-appsync" }
 winterbaume-iot = { version = "0.2.0", path = "crates/winterbaume-iot" }
-winterbaume-kafka = { version = "0.1.0", path = "crates/winterbaume-kafka" }
+winterbaume-kafka = { version = "0.2.0", path = "crates/winterbaume-kafka" }
 winterbaume-lexmodelsv2 = { version = "0.1.0", path = "crates/winterbaume-lexmodelsv2" }
 winterbaume-lakeformation = { version = "0.1.0", path = "crates/winterbaume-lakeformation" }
 winterbaume-amp = { version = "0.2.0", path = "crates/winterbaume-amp" }
@@ -740,7 +740,7 @@ winterbaume-workspaces = { version = "0.1.0", path = "crates/winterbaume-workspa
 winterbaume-emrcontainers = { version = "0.2.0", path = "crates/winterbaume-emrcontainers" }
 winterbaume-bedrockagent = { version = "0.1.0", path = "crates/winterbaume-bedrockagent" }
 winterbaume-connect = { version = "0.2.0", path = "crates/winterbaume-connect" }
-winterbaume-kinesisanalyticsv2 = { version = "0.1.0", path = "crates/winterbaume-kinesisanalyticsv2" }
+winterbaume-kinesisanalyticsv2 = { version = "0.2.0", path = "crates/winterbaume-kinesisanalyticsv2" }
 winterbaume-appmesh = { version = "0.2.0", path = "crates/winterbaume-appmesh" }
 winterbaume-greengrass = { version = "0.2.0", path = "crates/winterbaume-greengrass" }
 winterbaume-networkmanager = { version = "0.1.0", path = "crates/winterbaume-networkmanager" }
@@ -762,12 +762,12 @@ winterbaume-osis = { version = "0.1.0", path = "crates/winterbaume-osis" }
 winterbaume-outposts = { version = "0.1.0", path = "crates/winterbaume-outposts" }
 winterbaume-fis = { version = "0.2.0", path = "crates/winterbaume-fis" }
 winterbaume-cloudcontrol = { version = "0.2.0", path = "crates/winterbaume-cloudcontrol" }
-winterbaume-keyspaces = { version = "0.1.0", path = "crates/winterbaume-keyspaces" }
+winterbaume-keyspaces = { version = "0.2.0", path = "crates/winterbaume-keyspaces" }
 winterbaume-rolesanywhere = { version = "0.1.0", path = "crates/winterbaume-rolesanywhere" }
 winterbaume-servicecatalog = { version = "0.1.0", path = "crates/winterbaume-servicecatalog" }
 winterbaume-timestreamwrite = { version = "0.1.0", path = "crates/winterbaume-timestreamwrite" }
 winterbaume-connectcampaigns = { version = "0.2.0", path = "crates/winterbaume-connectcampaigns" }
-winterbaume-kinesisvideo = { version = "0.1.0", path = "crates/winterbaume-kinesisvideo" }
+winterbaume-kinesisvideo = { version = "0.2.0", path = "crates/winterbaume-kinesisvideo" }
 winterbaume-sso = { version = "0.1.0", path = "crates/winterbaume-sso" }
 winterbaume-ssoadmin = { version = "0.1.0", path = "crates/winterbaume-ssoadmin" }
 winterbaume-servicecatalogappregistry = { version = "0.1.0", path = "crates/winterbaume-servicecatalogappregistry" }

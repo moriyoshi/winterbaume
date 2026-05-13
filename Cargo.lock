@@ -13150,7 +13150,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kafka"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13170,7 +13170,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-keyspaces"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13191,7 +13191,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kinesis"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13215,7 +13215,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kinesisanalyticsv2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13236,7 +13236,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kinesisvideo"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
