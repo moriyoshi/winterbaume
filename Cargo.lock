@@ -13690,7 +13690,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-opensearchserverless"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13710,7 +13710,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-organizations"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13731,7 +13731,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-osis"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13753,7 +13753,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-outposts"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13771,7 +13771,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-panorama"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
