@@ -11240,7 +11240,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-bcmdashboards"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11261,7 +11261,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-bcmdataexports"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11282,7 +11282,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-bcmrecommendedactions"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11301,7 +11301,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-bedrock"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11362,7 +11362,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-billing"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
