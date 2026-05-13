@@ -12360,7 +12360,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-dynamodb"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14999,7 +14999,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sfn"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15814,7 +15814,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-workspaces"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15835,7 +15835,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-workspacesweb"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15857,7 +15857,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-xray"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
