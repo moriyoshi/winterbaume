@@ -14114,7 +14114,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-redshift"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14135,7 +14135,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-redshiftdata"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14156,7 +14156,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-rekognition"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14177,7 +14177,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-resiliencehub"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14199,7 +14199,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-resourcegroups"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
