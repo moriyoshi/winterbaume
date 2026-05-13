@@ -14894,7 +14894,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-servicecatalogappregistry"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14916,7 +14916,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-servicediscovery"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14937,7 +14937,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-servicequotas"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14956,7 +14956,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ses"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14977,7 +14977,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sesv2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
