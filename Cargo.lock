@@ -13372,7 +13372,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-macie2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13394,7 +13394,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-managedblockchain"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13416,7 +13416,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-marketplacemetering"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13437,7 +13437,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-mediaconnect"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13459,7 +13459,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-medialive"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

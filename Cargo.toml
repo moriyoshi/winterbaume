@@ -688,7 +688,7 @@ winterbaume-synthetics = { version = "0.1.0", path = "crates/winterbaume-synthet
 winterbaume-shield = { version = "0.1.0", path = "crates/winterbaume-shield" }
 winterbaume-servicequotas = { version = "0.1.0", path = "crates/winterbaume-servicequotas" }
 winterbaume-ram = { version = "0.1.0", path = "crates/winterbaume-ram" }
-winterbaume-macie2 = { version = "0.1.0", path = "crates/winterbaume-macie2" }
+winterbaume-macie2 = { version = "0.2.0", path = "crates/winterbaume-macie2" }
 winterbaume-comprehend = { version = "0.2.0", path = "crates/winterbaume-comprehend" }
 winterbaume-transcribe = { version = "0.1.0", path = "crates/winterbaume-transcribe" }
 winterbaume-textract = { version = "0.1.0", path = "crates/winterbaume-textract" }
@@ -747,10 +747,10 @@ winterbaume-networkmanager = { version = "0.1.0", path = "crates/winterbaume-net
 winterbaume-pinpoint = { version = "0.1.0", path = "crates/winterbaume-pinpoint" }
 winterbaume-swf = { version = "0.1.0", path = "crates/winterbaume-swf" }
 winterbaume-redshiftdata = { version = "0.1.0", path = "crates/winterbaume-redshiftdata" }
-winterbaume-mediaconnect = { version = "0.1.0", path = "crates/winterbaume-mediaconnect" }
-winterbaume-medialive = { version = "0.1.0", path = "crates/winterbaume-medialive" }
+winterbaume-mediaconnect = { version = "0.2.0", path = "crates/winterbaume-mediaconnect" }
+winterbaume-medialive = { version = "0.2.0", path = "crates/winterbaume-medialive" }
 winterbaume-mediapackage = { version = "0.1.0", path = "crates/winterbaume-mediapackage" }
-winterbaume-managedblockchain = { version = "0.1.0", path = "crates/winterbaume-managedblockchain" }
+winterbaume-managedblockchain = { version = "0.2.0", path = "crates/winterbaume-managedblockchain" }
 winterbaume-resiliencehub = { version = "0.1.0", path = "crates/winterbaume-resiliencehub" }
 winterbaume-quicksight = { version = "0.1.0", path = "crates/winterbaume-quicksight" }
 winterbaume-vpclattice = { version = "0.1.0", path = "crates/winterbaume-vpclattice" }
@@ -773,7 +773,7 @@ winterbaume-ssoadmin = { version = "0.1.0", path = "crates/winterbaume-ssoadmin"
 winterbaume-servicecatalogappregistry = { version = "0.1.0", path = "crates/winterbaume-servicecatalogappregistry" }
 winterbaume-timestreamquery = { version = "0.1.0", path = "crates/winterbaume-timestreamquery" }
 winterbaume-timestreaminfluxdb = { version = "0.1.0", path = "crates/winterbaume-timestreaminfluxdb" }
-winterbaume-marketplacemetering = { version = "0.1.0", path = "crates/winterbaume-marketplacemetering" }
+winterbaume-marketplacemetering = { version = "0.2.0", path = "crates/winterbaume-marketplacemetering" }
 winterbaume-sagemakermetrics = { version = "0.1.0", path = "crates/winterbaume-sagemakermetrics" }
 winterbaume-sagemakerruntime = { version = "0.1.0", path = "crates/winterbaume-sagemakerruntime" }
 winterbaume-iotdataplane = { version = "0.2.0", path = "crates/winterbaume-iotdataplane" }
