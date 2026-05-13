@@ -11802,7 +11802,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-codegurureviewer"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11823,7 +11823,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-codegurusecurity"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11844,7 +11844,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-codepipeline"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11865,7 +11865,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-codestarnotifications"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11886,7 +11886,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cognitoidentity"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
