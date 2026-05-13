@@ -11339,7 +11339,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-bedrockagent"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12511,7 +12511,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ec2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15159,7 +15159,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sqlengine-duckdb"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15197,7 +15197,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sqs-redis"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "md-5 0.10.6",
@@ -15796,7 +15796,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-wafv2-wcu-calculator"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde_json",
  "thiserror 2.0.18",
