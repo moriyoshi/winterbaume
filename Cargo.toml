@@ -591,7 +591,7 @@ winterbaume-supportapp = { version = "0.1.0", path = "crates/winterbaume-support
 winterbaume-pricing = { version = "0.2.0", path = "crates/winterbaume-pricing" }
 winterbaume-freetier = { version = "0.2.0", path = "crates/winterbaume-freetier" }
 winterbaume-cloud9 = { version = "0.2.0", path = "crates/winterbaume-cloud9" }
-winterbaume-s3outposts = { version = "0.1.0", path = "crates/winterbaume-s3outposts" }
+winterbaume-s3outposts = { version = "0.2.0", path = "crates/winterbaume-s3outposts" }
 winterbaume-route53recoverycluster = { version = "0.2.0", path = "crates/winterbaume-route53recoverycluster" }
 winterbaume-snowdevicemanagement = { version = "0.1.0", path = "crates/winterbaume-snowdevicemanagement" }
 winterbaume-simspaceweaver = { version = "0.1.0", path = "crates/winterbaume-simspaceweaver" }
@@ -616,8 +616,8 @@ winterbaume-billing = { version = "0.2.0", path = "crates/winterbaume-billing" }
 winterbaume-core = { version = "0.2.0", path = "crates/winterbaume-core" }
 winterbaume-sts = { version = "0.1.0", path = "crates/winterbaume-sts" }
 winterbaume-iam = { version = "0.1.0", path = "crates/winterbaume-iam" }
-winterbaume-s3 = { version = "0.1.0", path = "crates/winterbaume-s3" }
-winterbaume-s3files = { version = "0.1.0", path = "crates/winterbaume-s3files" }
+winterbaume-s3 = { version = "0.2.0", path = "crates/winterbaume-s3" }
+winterbaume-s3files = { version = "0.2.0", path = "crates/winterbaume-s3files" }
 winterbaume-sqs = { version = "0.1.0", path = "crates/winterbaume-sqs" }
 winterbaume-dynamodb = { version = "0.1.0", path = "crates/winterbaume-dynamodb" }
 winterbaume-dynamodb-redis = { version = "0.1.0", path = "crates/winterbaume-dynamodb-redis" }
@@ -694,7 +694,7 @@ winterbaume-transcribe = { version = "0.1.0", path = "crates/winterbaume-transcr
 winterbaume-textract = { version = "0.1.0", path = "crates/winterbaume-textract" }
 winterbaume-forecast = { version = "0.2.0", path = "crates/winterbaume-forecast" }
 winterbaume-personalize = { version = "0.2.0", path = "crates/winterbaume-personalize" }
-winterbaume-route53resolver = { version = "0.1.0", path = "crates/winterbaume-route53resolver" }
+winterbaume-route53resolver = { version = "0.2.0", path = "crates/winterbaume-route53resolver" }
 winterbaume-acmpca = { version = "0.2.0", path = "crates/winterbaume-acmpca" }
 winterbaume-directconnect = { version = "0.2.0", path = "crates/winterbaume-directconnect" }
 winterbaume-databasemigration = { version = "0.2.0", path = "crates/winterbaume-databasemigration" }
@@ -784,7 +784,7 @@ winterbaume-autoscaling = { version = "0.2.0", path = "crates/winterbaume-autosc
 winterbaume-mediastoredata = { version = "0.2.0", path = "crates/winterbaume-mediastoredata" }
 winterbaume-simpledbv2 = { version = "0.1.0", path = "crates/winterbaume-simpledbv2" }
 winterbaume-datapipeline = { version = "0.2.0", path = "crates/winterbaume-datapipeline" }
-winterbaume-s3control = { version = "0.1.0", path = "crates/winterbaume-s3control" }
+winterbaume-s3control = { version = "0.2.0", path = "crates/winterbaume-s3control" }
 winterbaume-s3vectors = { version = "0.1.0", path = "crates/winterbaume-s3vectors" }
 winterbaume-s3tables = { version = "0.1.0", path = "crates/winterbaume-s3tables" }
 winterbaume-panorama = { version = "0.2.0", path = "crates/winterbaume-panorama" }
