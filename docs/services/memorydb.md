@@ -14,7 +14,7 @@ Amazon MemoryDB service implementation for winterbaume.
 | moto coverage | 13/45 operations (28.9%) |
 | floci coverage | 0/45 operations (0.0%) |
 | kumo coverage | 10/45 operations (22.2%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

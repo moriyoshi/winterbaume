@@ -14,7 +14,7 @@ Rekognition service implementation for winterbaume.
 | moto coverage | 8/75 operations (10.7%) |
 | floci coverage | 0/75 operations (0.0%) |
 | kumo coverage | 13/75 operations (17.3%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

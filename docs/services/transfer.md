@@ -14,7 +14,7 @@ AWS Transfer Family service implementation for winterbaume.
 | moto coverage | 14/71 operations (19.7%) |
 | floci coverage | 0/71 operations (0.0%) |
 | kumo coverage | 0/71 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

@@ -14,7 +14,7 @@ Athena service implementation for winterbaume.
 | moto coverage | 27/70 operations (38.6%) |
 | floci coverage | 0/70 operations (0.0%) |
 | kumo coverage | 7/70 operations (10.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

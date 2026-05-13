@@ -14,7 +14,7 @@ CloudFormation service implementation for winterbaume.
 | moto coverage | 33/90 operations (36.7%) |
 | floci coverage | 0/90 operations (0.0%) |
 | kumo coverage | 8/90 operations (8.9%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

@@ -22,7 +22,7 @@ Update the "Supported Services" section in the workspace `README.md`, regenerate
    python3 .agents/skills/update-readme/scripts/update_readme.py
    ```
 
-   This parses `.agents/docs/API_COVERAGE.md`, rewrites the Supported Services table in the workspace `README.md` (merging fully-implemented services and stub-only services into one sorted table), regenerates `crates/winterbaume-*/README.md` files, and updates the `docs/` directory.
+   This parses `.agents/docs/API_COVERAGE.md`, rewrites the Supported Services table in the workspace `README.md` (merging fully-implemented services and stub-only services into one sorted table), regenerates `crates/winterbaume-*/README.md` files, regenerates the two Terraform coverage reports under `.agents/docs/TERRAFORM_*_COVERAGE.md` and the user-facing `docs/reference/terraform.md`, and updates the rest of the `docs/` directory.
 
 ### What the script does
 
@@ -36,7 +36,8 @@ Update the "Supported Services" section in the workspace `README.md`, regenerate
 - Adds an overall coverage summary line
 - Preserves the rest of the README unchanged
 - **docs/ updates** (unless `--no-docs` is passed):
-  - Rewrites `docs/reference/services.md` with the same merged services table (no crate links, plain display name)
+  - Invokes `generate_terraform_resource_coverage.py` and `generate_terraform_converter_coverage.py` from the `api-coverage` skill ( unless `--no-terraform` is passed ) so the two `.agents/docs/TERRAFORM_*_COVERAGE.md` reports are fresh, then rewrites `docs/reference/terraform.md` from those reports — including per-service resource-type coverage, per-resource attribute coverage, and the overall rating distribution
+  - Rewrites `docs/reference/services.md` with the same merged services table (no crate links, plain display name) and a footer linking to the Terraform coverage page with the live distinct-resource-type count
   - Updates the coverage percentage, operation count, and moto comparison in the `docs/index.md` hero feature block
   - Copies each `crates/winterbaume-*/README.md` (excluding infrastructure crates) into `docs/services/<slug>.md`, stripping crate-only guidance such as the package/workspace boilerplate, legal notice, and generated-source notes so the service docs stay focused on the service surface (no Node.js required)
 
@@ -53,3 +54,4 @@ The script maintains a mapping from crate names to human-readable service names 
 | `--crates-dir PATH` | `crates` | Path to the crates directory |
 | `--docs-dir PATH` | `docs` | Path to the docs directory |
 | `--no-docs` | off | Skip all docs/ updates |
+| `--no-terraform` | off | Skip regenerating Terraform coverage reports and `docs/reference/terraform.md` (still runs when `--no-docs` is not set, by default) |

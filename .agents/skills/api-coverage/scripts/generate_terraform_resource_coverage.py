@@ -34,12 +34,12 @@ Default cache:  .agents-workspace/tmp/tf-schema/aws_provider_schema.json
 from __future__ import annotations
 
 import argparse
-import json
 import re
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from tf_schema import get_terraform_schema  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[4]
 SPECS_DIR = ROOT / "crates" / "winterbaume-terraform" / "specs"
@@ -133,57 +133,6 @@ PREFIX_OVERRIDES: dict[str, list[str]] = {
         "aws_route53_zone",
     ],
 }
-
-
-# ---------------------------------------------------------------------------
-# Schema loading
-# ---------------------------------------------------------------------------
-
-
-def get_terraform_schema(cache_path: Path) -> dict:
-    """Return the AWS provider's flat `{resource_type: schema_dict}` mapping.
-
-    Tries `cache_path` first. The cache file may be in either of two
-    formats:
-      - the inner `resource_schemas` dict (preferred, smaller)
-      - the full `terraform providers schema -json` output
-
-    On a cache miss runs `terraform providers schema -json` in a temp dir
-    and writes the inner form to the cache.
-    """
-    if cache_path.exists():
-        with open(cache_path) as f:
-            data = json.load(f)
-        if "provider_schemas" in data:
-            return data["provider_schemas"]["registry.terraform.io/hashicorp/aws"]["resource_schemas"]
-        return data  # already the inner form
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        Path(tmpdir, "main.tf").write_text(
-            'terraform {\n'
-            '  required_providers {\n'
-            '    aws = {\n'
-            '      source  = "hashicorp/aws"\n'
-            '      version = "~> 5.0"\n'
-            '    }\n'
-            '  }\n'
-            '}\n'
-        )
-        subprocess.run(
-            ["terraform", "init", "-no-color"], cwd=tmpdir,
-            capture_output=True, check=True,
-        )
-        result = subprocess.run(
-            ["terraform", "providers", "schema", "-json"], cwd=tmpdir,
-            capture_output=True, check=True,
-        )
-        full = json.loads(result.stdout)
-        schemas = full["provider_schemas"]["registry.terraform.io/hashicorp/aws"]["resource_schemas"]
-
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_path, "w") as f:
-        json.dump(schemas, f)
-    return schemas
 
 
 # ---------------------------------------------------------------------------

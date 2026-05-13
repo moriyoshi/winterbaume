@@ -14,7 +14,7 @@ Transcribe service implementation for winterbaume.
 | moto coverage | 16/43 operations (37.2%) |
 | floci coverage | 0/43 operations (0.0%) |
 | kumo coverage | 0/43 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

@@ -14,7 +14,7 @@ OpenSearch Serverless service implementation for winterbaume.
 | moto coverage | 12/46 operations (26.1%) |
 | floci coverage | 0/46 operations (0.0%) |
 | kumo coverage | 0/46 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

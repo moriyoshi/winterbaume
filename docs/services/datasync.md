@@ -14,7 +14,7 @@ DataSync service implementation for winterbaume.
 | moto coverage | 6/53 operations (11.3%) |
 | floci coverage | 0/53 operations (0.0%) |
 | kumo coverage | 0/53 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

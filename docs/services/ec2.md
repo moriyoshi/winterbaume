@@ -14,7 +14,7 @@ EC2/VPC service implementation for winterbaume.
 | moto coverage | 223/763 operations (29.2%) |
 | floci coverage | 0/763 operations (0.0%) |
 | kumo coverage | 39/763 operations (5.1%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

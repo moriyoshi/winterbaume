@@ -14,7 +14,7 @@ AWS Network Firewall service implementation for winterbaume.
 | moto coverage | 5/79 operations (6.3%) |
 | floci coverage | 0/79 operations (0.0%) |
 | kumo coverage | 0/79 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

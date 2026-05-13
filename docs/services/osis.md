@@ -14,7 +14,7 @@ Amazon OpenSearch Ingestion (OSIS) service implementation for winterbaume.
 | moto coverage | 13/22 operations (59.1%) |
 | floci coverage | 0/22 operations (0.0%) |
 | kumo coverage | 0/22 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

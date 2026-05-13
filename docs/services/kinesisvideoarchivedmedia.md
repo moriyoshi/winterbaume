@@ -14,7 +14,7 @@ Kinesis Video Archived Media service implementation for winterbaume.
 | moto coverage | 3/6 operations (50.0%) |
 | floci coverage | 0/6 operations (0.0%) |
 | kumo coverage | 0/6 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 
