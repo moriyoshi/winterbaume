@@ -615,12 +615,12 @@ winterbaume-costoptimizationhub = { version = "0.2.0", path = "crates/winterbaum
 winterbaume-billing = { version = "0.2.0", path = "crates/winterbaume-billing" }
 winterbaume-core = { version = "0.2.0", path = "crates/winterbaume-core" }
 winterbaume-sts = { version = "0.2.0", path = "crates/winterbaume-sts" }
-winterbaume-iam = { version = "0.1.0", path = "crates/winterbaume-iam" }
+winterbaume-iam = { version = "0.2.0", path = "crates/winterbaume-iam" }
 winterbaume-s3 = { version = "0.2.0", path = "crates/winterbaume-s3" }
 winterbaume-s3files = { version = "0.2.0", path = "crates/winterbaume-s3files" }
 winterbaume-sqs = { version = "0.2.0", path = "crates/winterbaume-sqs" }
 winterbaume-dynamodb = { version = "0.2.0", path = "crates/winterbaume-dynamodb" }
-winterbaume-dynamodb-redis = { version = "0.1.0", path = "crates/winterbaume-dynamodb-redis" }
+winterbaume-dynamodb-redis = { version = "0.2.0", path = "crates/winterbaume-dynamodb-redis" }
 winterbaume-kms = { version = "0.2.0", path = "crates/winterbaume-kms" }
 winterbaume-ssm = { version = "0.2.0", path = "crates/winterbaume-ssm" }
 winterbaume-secretsmanager = { version = "0.2.0", path = "crates/winterbaume-secretsmanager" }
@@ -677,7 +677,7 @@ winterbaume-cognitoidentity = { version = "0.2.0", path = "crates/winterbaume-co
 winterbaume-guardduty = { version = "0.2.0", path = "crates/winterbaume-guardduty" }
 winterbaume-backup = { version = "0.2.0", path = "crates/winterbaume-backup" }
 winterbaume-ivs = { version = "0.2.0", path = "crates/winterbaume-ivs" }
-winterbaume-wafv2 = { version = "0.1.0", path = "crates/winterbaume-wafv2" }
+winterbaume-wafv2 = { version = "0.2.0", path = "crates/winterbaume-wafv2" }
 winterbaume-wafv2-webacl-rule-parser = { version = "0.2.0", path = "crates/winterbaume-wafv2-webacl-rule-parser" }
 winterbaume-wafv2-wcu-calculator = { version = "0.2.0", path = "crates/winterbaume-wafv2-wcu-calculator" }
 winterbaume-config = { version = "0.2.0", path = "crates/winterbaume-config" }
@@ -731,7 +731,7 @@ winterbaume-costexplorer = { version = "0.2.0", path = "crates/winterbaume-coste
 winterbaume-bedrock = { version = "0.2.0", path = "crates/winterbaume-bedrock" }
 winterbaume-clouddirectory = { version = "0.2.0", path = "crates/winterbaume-clouddirectory" }
 winterbaume-cloudhsmv2 = { version = "0.2.0", path = "crates/winterbaume-cloudhsmv2" }
-winterbaume-dynamodbstreams = { version = "0.1.0", path = "crates/winterbaume-dynamodbstreams" }
+winterbaume-dynamodbstreams = { version = "0.2.0", path = "crates/winterbaume-dynamodbstreams" }
 winterbaume-dsql = { version = "0.2.0", path = "crates/winterbaume-dsql" }
 winterbaume-databrew = { version = "0.2.0", path = "crates/winterbaume-databrew" }
 winterbaume-emr = { version = "0.2.0", path = "crates/winterbaume-emr" }
@@ -802,7 +802,7 @@ winterbaume-sqlengine-duckdb = { version = "0.2.0", path = "crates/winterbaume-s
 winterbaume-sqs-redis = { version = "0.2.0", path = "crates/winterbaume-sqs-redis" }
 winterbaume-tfstate = { version = "0.2.0", path = "crates/winterbaume-tfstate" }
 winterbaume-tfstate-resource-models = { version = "0.2.0", path = "crates/winterbaume-tfstate-resource-models" }
-winterbaume-terraform = { version = "0.1.0", path = "crates/winterbaume-terraform" }
+winterbaume-terraform = { version = "0.2.0", path = "crates/winterbaume-terraform" }
 
 # AWS SDK
 aws-sdk-accessanalyzer = "1"
