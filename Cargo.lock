@@ -11697,7 +11697,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudwatchlogs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11718,7 +11718,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-codeartifact"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11738,7 +11738,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-codebuild"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11760,7 +11760,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-codecommit"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11781,7 +11781,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-codedeploy"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

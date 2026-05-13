@@ -624,7 +624,7 @@ winterbaume-dynamodb-redis = { version = "0.1.0", path = "crates/winterbaume-dyn
 winterbaume-kms = { version = "0.1.0", path = "crates/winterbaume-kms" }
 winterbaume-ssm = { version = "0.1.0", path = "crates/winterbaume-ssm" }
 winterbaume-secretsmanager = { version = "0.1.0", path = "crates/winterbaume-secretsmanager" }
-winterbaume-cloudwatchlogs = { version = "0.1.0", path = "crates/winterbaume-cloudwatchlogs" }
+winterbaume-cloudwatchlogs = { version = "0.2.0", path = "crates/winterbaume-cloudwatchlogs" }
 winterbaume-sns = { version = "0.1.0", path = "crates/winterbaume-sns" }
 winterbaume-lambda = { version = "0.1.0", path = "crates/winterbaume-lambda" }
 winterbaume-ecr = { version = "0.1.0", path = "crates/winterbaume-ecr" }
@@ -653,7 +653,7 @@ winterbaume-ec2instanceconnect = { version = "0.1.0", path = "crates/winterbaume
 winterbaume-ec2-generated = { version = "0.1.0", path = "crates/winterbaume-ec2-generated" }
 winterbaume-ec2 = { version = "0.1.0", path = "crates/winterbaume-ec2" }
 winterbaume-account = { version = "0.2.0", path = "crates/winterbaume-account" }
-winterbaume-codecommit = { version = "0.1.0", path = "crates/winterbaume-codecommit" }
+winterbaume-codecommit = { version = "0.2.0", path = "crates/winterbaume-codecommit" }
 winterbaume-rds = { version = "0.1.0", path = "crates/winterbaume-rds" }
 winterbaume-rdsdata = { version = "0.1.0", path = "crates/winterbaume-rdsdata" }
 winterbaume-neptune = { version = "0.1.0", path = "crates/winterbaume-neptune" }
@@ -665,14 +665,14 @@ winterbaume-glacier = { version = "0.1.0", path = "crates/winterbaume-glacier" }
 winterbaume-resourcegroups = { version = "0.1.0", path = "crates/winterbaume-resourcegroups" }
 winterbaume-scheduler = { version = "0.1.0", path = "crates/winterbaume-scheduler" }
 winterbaume-appconfig = { version = "0.2.0", path = "crates/winterbaume-appconfig" }
-winterbaume-codebuild = { version = "0.1.0", path = "crates/winterbaume-codebuild" }
+winterbaume-codebuild = { version = "0.2.0", path = "crates/winterbaume-codebuild" }
 winterbaume-codepipeline = { version = "0.1.0", path = "crates/winterbaume-codepipeline" }
 winterbaume-athena = { version = "0.2.0", path = "crates/winterbaume-athena" }
 winterbaume-xray = { version = "0.1.0", path = "crates/winterbaume-xray" }
 winterbaume-signer = { version = "0.1.0", path = "crates/winterbaume-signer" }
 winterbaume-pipes = { version = "0.1.0", path = "crates/winterbaume-pipes" }
 winterbaume-dax = { version = "0.1.0", path = "crates/winterbaume-dax" }
-winterbaume-codedeploy = { version = "0.1.0", path = "crates/winterbaume-codedeploy" }
+winterbaume-codedeploy = { version = "0.2.0", path = "crates/winterbaume-codedeploy" }
 winterbaume-cognitoidentity = { version = "0.1.0", path = "crates/winterbaume-cognitoidentity" }
 winterbaume-guardduty = { version = "0.1.0", path = "crates/winterbaume-guardduty" }
 winterbaume-backup = { version = "0.2.0", path = "crates/winterbaume-backup" }
@@ -726,7 +726,7 @@ winterbaume-apprunner = { version = "0.2.0", path = "crates/winterbaume-apprunne
 winterbaume-amplify = { version = "0.2.0", path = "crates/winterbaume-amplify" }
 winterbaume-auditmanager = { version = "0.2.0", path = "crates/winterbaume-auditmanager" }
 winterbaume-chatbot = { version = "0.2.0", path = "crates/winterbaume-chatbot" }
-winterbaume-codeartifact = { version = "0.1.0", path = "crates/winterbaume-codeartifact" }
+winterbaume-codeartifact = { version = "0.2.0", path = "crates/winterbaume-codeartifact" }
 winterbaume-costexplorer = { version = "0.1.0", path = "crates/winterbaume-costexplorer" }
 winterbaume-bedrock = { version = "0.2.0", path = "crates/winterbaume-bedrock" }
 winterbaume-clouddirectory = { version = "0.2.0", path = "crates/winterbaume-clouddirectory" }
