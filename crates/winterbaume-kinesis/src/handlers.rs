@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
 };
 
 use crate::state::{KinesisError, KinesisState};
@@ -56,7 +56,7 @@ impl MockService for KinesisService {
 impl KinesisService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = extract_kinesis_region(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         // Extract action from X-Amz-Target header
         // Format: "Kinesis_20131202.CreateStream"

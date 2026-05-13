@@ -19,7 +19,7 @@ pub use protocol::{
     xml_escape,
 };
 pub use service::{MockRequest, MockResponse, MockService, StubService};
-pub use state::{BackendState, DEFAULT_ACCOUNT_ID};
+pub use state::{BackendState, DEFAULT_ACCOUNT_ID, default_account_id, set_default_account_id};
 pub use vfs::{FsVfs, MemVfs, Vfs, VfsEntry, VfsError, VfsStat};
 pub use views::{
     BlobBackedService, BlobExportEntry, BlobSource, BlobVisitor, DEFAULT_BLOB_BATCH_SIZE,

@@ -6,8 +6,8 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
     protocol::common::{extract_path, extract_query_string, percent_decode},
 };
 
@@ -68,7 +68,7 @@ fn from_value_or_default<T: serde::de::DeserializeOwned + Default>(v: Value) -> 
 impl CodeGuruReviewerService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         let path = extract_path(&request.uri);

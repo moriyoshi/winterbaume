@@ -5,8 +5,8 @@ use std::sync::Arc;
 use bytes::Bytes;
 use tokio::io::AsyncReadExt;
 use winterbaume_core::{
-    BackendState, BlobStore, BlobStoreMap, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse,
-    MockService, StateChangeNotifier, StatefulService, Vfs, VfsError,
+    BackendState, BlobStore, BlobStoreMap, MockRequest, MockResponse, MockService,
+    StateChangeNotifier, StatefulService, Vfs, VfsError, default_account_id,
 };
 
 use crate::state::{S3Error, S3State, compute_etag, compute_etag_raw, no_such_bucket};
@@ -348,7 +348,7 @@ impl S3Service {
         }
 
         let region = &target.region;
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, region);
         let blobs = self.blobs.get(account_id, region);
 
@@ -881,7 +881,7 @@ impl S3Service {
         let output = wire::ListBucketsOutput {
             buckets: Some(wire::Buckets::from(bucket_list)),
             owner: Some(wire::Owner {
-                i_d: Some(DEFAULT_ACCOUNT_ID.to_string()),
+                i_d: Some(default_account_id().to_string()),
                 display_name: Some("winterbaume".to_string()),
             }),
             ..Default::default()
@@ -4439,14 +4439,14 @@ fn to_list_object(object: &crate::types::Object) -> wire::Object {
 fn default_owner() -> wire::Owner {
     wire::Owner {
         display_name: Some("winterbaume".to_string()),
-        i_d: Some(DEFAULT_ACCOUNT_ID.to_string()),
+        i_d: Some(default_account_id().to_string()),
     }
 }
 
 fn default_initiator() -> wire::Initiator {
     wire::Initiator {
         display_name: Some("winterbaume".to_string()),
-        i_d: Some(DEFAULT_ACCOUNT_ID.to_string()),
+        i_d: Some(default_account_id().to_string()),
     }
 }
 
@@ -4455,7 +4455,7 @@ fn owner_full_control_grant() -> wire::Grant {
         grantee: Some(wire::Grantee {
             display_name: Some("winterbaume".to_string()),
             email_address: None,
-            i_d: Some(DEFAULT_ACCOUNT_ID.to_string()),
+            i_d: Some(default_account_id().to_string()),
             r#type: "CanonicalUser".to_string(),
             u_r_i: None,
         }),

@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::state::{GlueError, GlueState};
@@ -57,7 +57,7 @@ impl MockService for GlueService {
 impl GlueService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         let action = request
             .headers
@@ -1290,7 +1290,8 @@ impl GlueService {
                 if !tags.is_empty() {
                     let arn = format!(
                         "arn:aws:glue:us-east-1:{}:crawler/{}",
-                        DEFAULT_ACCOUNT_ID, name
+                        default_account_id(),
+                        name
                     );
                     state.tag_resource(&arn, tags);
                 }
@@ -1496,7 +1497,7 @@ impl GlueService {
         ) {
             Ok(n) => {
                 if !tags.is_empty() {
-                    let arn = format!("arn:aws:glue:us-east-1:{}:job/{}", DEFAULT_ACCOUNT_ID, n);
+                    let arn = format!("arn:aws:glue:us-east-1:{}:job/{}", default_account_id(), n);
                     state.tag_resource(&arn, tags);
                 }
                 wire::serialize_create_job_response(&crate::model::CreateJobResponse {

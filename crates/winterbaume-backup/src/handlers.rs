@@ -6,8 +6,8 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService, extract_path, extract_query_string, parse_query_string, percent_decode,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id, extract_path, extract_query_string, parse_query_string, percent_decode,
     rest_json_error,
 };
 
@@ -60,7 +60,7 @@ impl MockService for BackupService {
 impl BackupService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         let path = extract_path(&request.uri);

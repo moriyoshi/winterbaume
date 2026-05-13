@@ -4,8 +4,8 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService, extract_path, percent_decode, rest_json_error,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id, extract_path, percent_decode, rest_json_error,
 };
 
 use crate::state::{S3FilesError, S3FilesState};
@@ -55,7 +55,7 @@ impl MockService for S3FilesService {
 impl S3FilesService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         let path = extract_path(&request.uri);
@@ -221,7 +221,7 @@ impl S3FilesService {
             input.kms_key_id.clone(),
             input.client_token.clone(),
             tags,
-            DEFAULT_ACCOUNT_ID,
+            default_account_id(),
             region,
         ) {
             Ok(fs) => {
@@ -358,7 +358,7 @@ impl S3FilesService {
             input.ipv6_address.clone(),
             input.ip_address_type.clone(),
             security_groups,
-            DEFAULT_ACCOUNT_ID,
+            default_account_id(),
         ) {
             Ok(mt) => {
                 wire::serialize_create_mount_target_response(&wire::CreateMountTargetResponse {
@@ -532,7 +532,7 @@ impl S3FilesService {
             root_directory,
             input.client_token.clone(),
             tags,
-            DEFAULT_ACCOUNT_ID,
+            default_account_id(),
             region,
         ) {
             Ok(ap) => {

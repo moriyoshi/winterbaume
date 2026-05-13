@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use serde::Serialize;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::state::{S3ControlError, S3ControlState};
@@ -65,7 +65,7 @@ impl S3ControlService {
             .get("x-amz-account-id")
             .and_then(|v| v.to_str().ok())
             .map(|s| s.to_string())
-            .unwrap_or_else(|| DEFAULT_ACCOUNT_ID.to_string());
+            .unwrap_or_else(|| default_account_id().to_string());
 
         let state = self.state.get(&account_id, &region);
 

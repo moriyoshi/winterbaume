@@ -6,7 +6,7 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
     extract_path, percent_decode, rest_json_error,
 };
 
@@ -58,7 +58,7 @@ type SharedState = Arc<tokio::sync::RwLock<SsmQuickSetupState>>;
 impl SsmQuickSetupService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         let path = extract_path(&request.uri);
@@ -296,7 +296,7 @@ impl SsmQuickSetupService {
             Some((manager_arn, def)) => {
                 let cfg_type = def.get("Type").and_then(|v| v.as_str()).map(String::from);
                 wire::serialize_get_configuration_response(&wire::GetConfigurationOutput {
-                    account: Some(winterbaume_core::DEFAULT_ACCOUNT_ID.to_string()),
+                    account: Some(winterbaume_core::default_account_id().to_string()),
                     configuration_definition_id: Some(id.to_string()),
                     created_at: Some(chrono::Utc::now().to_rfc3339()),
                     id: Some(id.to_string()),
@@ -353,7 +353,7 @@ impl SsmQuickSetupService {
             .list_all_definitions()
             .into_iter()
             .map(|d| wire::ConfigurationSummary {
-                account: Some(winterbaume_core::DEFAULT_ACCOUNT_ID.to_string()),
+                account: Some(winterbaume_core::default_account_id().to_string()),
                 configuration_definition_id: d.get("Id").and_then(|v| v.as_str()).map(String::from),
                 created_at: Some(chrono::Utc::now().to_rfc3339()),
                 first_class_parameters: d

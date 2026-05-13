@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
     json_error_response,
 };
 
@@ -56,7 +56,7 @@ impl MockService for ConfigService {
 impl ConfigService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         let action = request
             .headers
@@ -1478,7 +1478,7 @@ impl ConfigService {
                 resource_id: r.resource_id.clone(),
                 resource_type: r.resource_type.clone(),
                 resource_name: r.resource_name.clone(),
-                source_account_id: DEFAULT_ACCOUNT_ID.to_string(),
+                source_account_id: default_account_id().to_string(),
                 source_region: "us-east-1".to_string(),
             })
             .collect();
@@ -1570,7 +1570,7 @@ impl ConfigService {
             .map(|(rt, rid)| wire::AggregateResourceIdentifier {
                 resource_type: rt.clone(),
                 resource_id: rid.clone(),
-                source_account_id: DEFAULT_ACCOUNT_ID.to_string(),
+                source_account_id: default_account_id().to_string(),
                 source_region: "us-east-1".to_string(),
                 ..Default::default()
             })

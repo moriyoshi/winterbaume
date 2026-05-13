@@ -9,8 +9,8 @@ use chrono::Utc;
 use serde_json::Value;
 use uuid::Uuid;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService, json_error_response,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id, json_error_response,
 };
 
 use crate::state::{EmrError, EmrState};
@@ -81,7 +81,7 @@ async fn emr_error_response(e: &EmrError) -> MockResponse {
 impl EmrService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         let action = request
             .headers

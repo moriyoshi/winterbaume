@@ -4,8 +4,8 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 // Bulk-import every model type. Partial-feature builds elide types that are
@@ -68,7 +68,7 @@ impl MockService for Ec2Service {
 impl Ec2Service {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         let body_str = std::str::from_utf8(&request.body).unwrap_or("");
         let params = parse_query_string(body_str);
@@ -9516,7 +9516,7 @@ impl Ec2Service {
             BundleInstanceResult, BundleTaskList, CancelBundleTaskResult, DescribeBundleTasksResult,
         };
         let _ = set_element;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
 
         match response_name {
             "BundleInstanceResponse" => {
@@ -14703,7 +14703,7 @@ impl Ec2Service {
     #[cfg(feature = "extras")]
     async fn handle_describe_id_format(&self, params: &HashMap<String, String>) -> MockResponse {
         use crate::model::{IdFormat, IdFormatList};
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let resource_filter = params.get("Resource").cloned();
         // Long IDs have been the AWS default since 2018; report `true` for
@@ -14828,7 +14828,7 @@ impl Ec2Service {
             .get("UseLongIds")
             .and_then(|s| s.parse::<bool>().ok())
             .unwrap_or(true);
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let mut guard = st.write().await;
         guard.set_id_format(&resource, use_long_ids);
         wire::serialize_modify_id_format_response()
@@ -14842,7 +14842,7 @@ impl Ec2Service {
     #[cfg(feature = "extras")]
     async fn handle_describe_conversion_tasks(&self) -> MockResponse {
         use crate::model::{ConversionTask as ModelCT, DescribeConversionTaskList};
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let mut items: Vec<ModelCT> = Vec::new();
         for t in st.import_volume_tasks.values() {
@@ -14858,7 +14858,7 @@ impl Ec2Service {
     async fn handle_describe_instance_event_notification_attributes(&self) -> MockResponse {
         use crate::model::{InstanceTagKeySet, InstanceTagNotificationAttribute};
         let attrs = {
-            let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+            let st = self.state.get(default_account_id(), "us-east-1");
             let st = st.read().await;
             st.instance_event_notification_attributes.clone()
         };
@@ -14877,7 +14877,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_describe_instance_event_windows(&self) -> MockResponse {
         use crate::model::InstanceEventWindowSet;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::InstanceEventWindow> = st
             .instance_event_windows
@@ -14904,7 +14904,7 @@ impl Ec2Service {
         params: &HashMap<String, String>,
     ) -> MockResponse {
         use crate::model::ExportImageTaskList;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let ids = parse_member_list(params, "ExportImageTaskId");
         let items: Vec<crate::model::ExportImageTask> = st
@@ -14922,7 +14922,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_describe_import_image_tasks(&self) -> MockResponse {
         use crate::model::ImportImageTaskList;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::ImportImageTask> = st
             .import_image_tasks
@@ -14946,7 +14946,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_describe_host_reservations(&self) -> MockResponse {
         use crate::model::HostReservationSet;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::HostReservation> = st
             .host_reservations
@@ -14983,7 +14983,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_describe_reserved_instances_listings(&self) -> MockResponse {
         use crate::model::ReservedInstancesListingList;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::ReservedInstancesListing> = st
             .reserved_instances_listings
@@ -15000,7 +15000,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_describe_reserved_instances_modifications(&self) -> MockResponse {
         use crate::model::ReservedInstancesModificationList;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::ReservedInstancesModification> = st
             .reserved_instances_modifications
@@ -15214,7 +15214,7 @@ impl Ec2Service {
         params: &HashMap<String, String>,
     ) -> MockResponse {
         use crate::model::{ImageReference, ImageReferenceList};
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let image_ids = parse_member_list(params, "ImageId");
         // Walk instances, emitting a reference for each instance that boots
@@ -15241,7 +15241,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_describe_image_usage_reports(&self) -> MockResponse {
         use crate::model::ImageUsageReportList;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::ImageUsageReport> = st
             .image_usage_reports
@@ -15372,7 +15372,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_describe_scheduled_instances(&self) -> MockResponse {
         use crate::model::ScheduledInstanceSet;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::ScheduledInstance> = st
             .scheduled_instances
@@ -15388,7 +15388,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_describe_store_image_tasks(&self) -> MockResponse {
         use crate::model::StoreImageTaskResultSet;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::StoreImageTaskResult> = st
             .store_image_tasks
@@ -15851,7 +15851,7 @@ impl Ec2Service {
     #[cfg(feature = "storage")]
     async fn handle_describe_fpga_images(&self) -> MockResponse {
         use crate::model::FpgaImageList;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let items: Vec<crate::model::FpgaImage> =
             st.fpga_images.values().map(fpga_image_to_model).collect();
@@ -16730,7 +16730,7 @@ impl Ec2Service {
 
     #[cfg(feature = "compute")]
     async fn handle_get_allowed_images_settings(&self) -> MockResponse {
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let state_str = if st.allowed_image_criteria.is_empty() {
             "disabled"
@@ -17375,7 +17375,7 @@ impl Ec2Service {
     #[cfg(feature = "compute")]
     async fn handle_get_instance_metadata_defaults(&self) -> MockResponse {
         use crate::model::InstanceMetadataDefaultsResponse;
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let resp =
             st.instance_metadata_defaults
@@ -17657,7 +17657,7 @@ impl Ec2Service {
     ) -> MockResponse {
         use crate::model::InstanceFamilyCreditSpecification;
         let family = params.get("InstanceFamily").cloned().unwrap_or_default();
-        let st = self.state.get(DEFAULT_ACCOUNT_ID, "us-east-1");
+        let st = self.state.get(default_account_id(), "us-east-1");
         let st = st.read().await;
         let cpu_credits = st
             .default_credit_specifications
@@ -19812,7 +19812,7 @@ impl Ec2Service {
             launch_template_id,
             launch_template_name,
             version,
-            DEFAULT_ACCOUNT_ID.to_string(),
+            default_account_id().to_string(),
         ) {
             Ok(fl) => {
                 let result = EnableFastLaunchResult {

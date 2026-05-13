@@ -4,6 +4,7 @@ use chrono::Utc;
 use serde_json::Value;
 use thiserror::Error;
 use uuid::Uuid;
+use winterbaume_core::default_account_id;
 
 use crate::types::*;
 
@@ -109,7 +110,7 @@ impl CodePipelineState {
             .get(name)
             .ok_or_else(|| CodePipelineError::PipelineNotFound {
                 name: name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             })
     }
 
@@ -392,7 +393,7 @@ impl CodePipelineState {
         let pipeline = self.pipelines.get_mut(pipeline_name).ok_or_else(|| {
             CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             }
         })?;
         pipeline.disabled_transitions.insert(
@@ -414,7 +415,7 @@ impl CodePipelineState {
         let pipeline = self.pipelines.get_mut(pipeline_name).ok_or_else(|| {
             CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             }
         })?;
         pipeline
@@ -436,7 +437,7 @@ impl CodePipelineState {
         let pipeline = self.pipelines.get(pipeline_name).ok_or_else(|| {
             CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             }
         })?;
         let execution_id = Uuid::new_v4().to_string();
@@ -470,7 +471,7 @@ impl CodePipelineState {
         if !self.pipelines.contains_key(pipeline_name) {
             return Err(CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             });
         }
         let exec = self
@@ -495,7 +496,7 @@ impl CodePipelineState {
         if !self.pipelines.contains_key(pipeline_name) {
             return Err(CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             });
         }
         self.pipeline_executions
@@ -513,7 +514,7 @@ impl CodePipelineState {
         if !self.pipelines.contains_key(pipeline_name) {
             return Err(CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             });
         }
         Ok(self
@@ -533,7 +534,7 @@ impl CodePipelineState {
         if !self.pipelines.contains_key(pipeline_name) {
             return Err(CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             });
         }
         let _exec = self
@@ -556,7 +557,7 @@ impl CodePipelineState {
         if !self.pipelines.contains_key(pipeline_name) {
             return Err(CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             });
         }
         let _exec = self
@@ -582,7 +583,7 @@ impl CodePipelineState {
         if !self.pipelines.contains_key(pipeline_name) {
             return Err(CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             });
         }
         let _exec = self
@@ -663,7 +664,7 @@ impl CodePipelineState {
         if !self.pipelines.contains_key(pipeline_name) {
             return Err(CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             });
         }
         // In a real engine this triggers a new execution; we return a generated
@@ -681,12 +682,9 @@ impl CodePipelineState {
         if !self.pipelines.contains_key(pipeline_name) {
             return Err(CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: default_account_id().to_string(),
             });
         }
         Ok(())
     }
 }
-
-// For use in state.rs itself
-pub(crate) const DEFAULT_ACCOUNT_ID_STR: &str = "123456789012";

@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use serde_json::Value;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService, json_error_response,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id, json_error_response,
 };
 
 use crate::model::{
@@ -90,7 +90,7 @@ fn wire_tags_to_map(tags: Option<&[Tag]>) -> HashMap<String, String> {
 impl DatabaseMigrationService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         let action = request
             .headers

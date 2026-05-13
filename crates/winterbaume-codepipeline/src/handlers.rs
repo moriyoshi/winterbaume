@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, default_account_id,
     json_error_response,
 };
 
@@ -57,7 +57,7 @@ impl MockService for CodePipelineService {
 impl CodePipelineService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         let action = request
             .headers
@@ -993,7 +993,7 @@ impl CodePipelineService {
         if state.get_pipeline(pipeline_name).is_err() {
             return codepipeline_error_response(&CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: crate::state::DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: winterbaume_core::default_account_id().to_string(),
             });
         }
 
@@ -1021,7 +1021,7 @@ impl CodePipelineService {
             if state.get_pipeline(name).is_err() {
                 return codepipeline_error_response(&CodePipelineError::PipelineNotFound {
                     name: name.to_string(),
-                    account_id: crate::state::DEFAULT_ACCOUNT_ID_STR.to_string(),
+                    account_id: winterbaume_core::default_account_id().to_string(),
                 });
             }
         }
@@ -1091,7 +1091,7 @@ impl CodePipelineService {
         if state.get_pipeline(pipeline_name).is_err() {
             return codepipeline_error_response(&CodePipelineError::PipelineNotFound {
                 name: pipeline_name.to_string(),
-                account_id: crate::state::DEFAULT_ACCOUNT_ID_STR.to_string(),
+                account_id: winterbaume_core::default_account_id().to_string(),
             });
         }
 

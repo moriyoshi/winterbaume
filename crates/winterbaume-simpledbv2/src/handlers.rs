@@ -6,8 +6,8 @@ use std::sync::Arc;
 use http::header::HeaderName;
 use serde_json::json;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::state::{SdbError, SdbState};
@@ -32,7 +32,7 @@ impl SimpleDbV2Service {
     /// Pre-register a domain as existing in the mock state.
     /// This is useful for tests that need domains to exist before starting exports.
     pub async fn with_domain(self, region: &str, domain_name: &str) -> Self {
-        let state = self.state.get(DEFAULT_ACCOUNT_ID, region);
+        let state = self.state.get(default_account_id(), region);
         state.write().await.add_domain(domain_name);
         self
     }
@@ -67,7 +67,7 @@ impl MockService for SimpleDbV2Service {
 impl SimpleDbV2Service {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let state = self.state.get(account_id, &region);
 
         // Parse URL path for restJson1 routing

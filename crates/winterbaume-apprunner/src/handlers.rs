@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use serde_json::Value;
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::model;
@@ -141,7 +141,7 @@ async fn asc_to_summary(
 
 impl AppRunnerService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
         let region = winterbaume_core::auth::extract_region_from_uri(&request.uri);
 
         let target = match request

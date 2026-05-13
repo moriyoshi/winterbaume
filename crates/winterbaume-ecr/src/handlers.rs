@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use winterbaume_core::{
-    BackendState, DEFAULT_ACCOUNT_ID, MockRequest, MockResponse, MockService, StateChangeNotifier,
-    StatefulService,
+    BackendState, MockRequest, MockResponse, MockService, StateChangeNotifier, StatefulService,
+    default_account_id,
 };
 
 use crate::model;
@@ -64,7 +64,7 @@ impl EcrService {
     async fn dispatch(&self, request: MockRequest) -> MockResponse {
         let region = winterbaume_core::auth::extract_region_from_headers(&request.headers)
             .unwrap_or_else(|| winterbaume_core::auth::extract_region_from_uri(&request.uri));
-        let account_id = DEFAULT_ACCOUNT_ID;
+        let account_id = default_account_id();
 
         // Extract action from X-Amz-Target header
         // Format: "AmazonEC2ContainerRegistry_V20150921.CreateRepository"
@@ -505,7 +505,7 @@ impl EcrService {
                                 .repositories
                                 .get(input.repository_name.as_str())
                                 .map(|r| r.registry_id.as_str())
-                                .unwrap_or(DEFAULT_ACCOUNT_ID)
+                                .unwrap_or(default_account_id())
                                 .to_string(),
                         ),
                         repository_name: Some(input.repository_name.clone()),
