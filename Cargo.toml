@@ -586,7 +586,7 @@ winterbaume-personalizeevents = { version = "0.2.0", path = "crates/winterbaume-
 winterbaume-personalizeruntime = { version = "0.2.0", path = "crates/winterbaume-personalizeruntime" }
 winterbaume-pinpointsmsvoice = { version = "0.2.0", path = "crates/winterbaume-pinpointsmsvoice" }
 winterbaume-pi = { version = "0.2.0", path = "crates/winterbaume-pi" }
-winterbaume-trustedadvisor = { version = "0.1.0", path = "crates/winterbaume-trustedadvisor" }
+winterbaume-trustedadvisor = { version = "0.2.0", path = "crates/winterbaume-trustedadvisor" }
 winterbaume-supportapp = { version = "0.2.0", path = "crates/winterbaume-supportapp" }
 winterbaume-pricing = { version = "0.2.0", path = "crates/winterbaume-pricing" }
 winterbaume-freetier = { version = "0.2.0", path = "crates/winterbaume-freetier" }
@@ -690,7 +690,7 @@ winterbaume-servicequotas = { version = "0.2.0", path = "crates/winterbaume-serv
 winterbaume-ram = { version = "0.2.0", path = "crates/winterbaume-ram" }
 winterbaume-macie2 = { version = "0.2.0", path = "crates/winterbaume-macie2" }
 winterbaume-comprehend = { version = "0.2.0", path = "crates/winterbaume-comprehend" }
-winterbaume-transcribe = { version = "0.1.0", path = "crates/winterbaume-transcribe" }
+winterbaume-transcribe = { version = "0.2.0", path = "crates/winterbaume-transcribe" }
 winterbaume-textract = { version = "0.2.0", path = "crates/winterbaume-textract" }
 winterbaume-forecast = { version = "0.2.0", path = "crates/winterbaume-forecast" }
 winterbaume-personalize = { version = "0.2.0", path = "crates/winterbaume-personalize" }
@@ -700,7 +700,7 @@ winterbaume-directconnect = { version = "0.2.0", path = "crates/winterbaume-dire
 winterbaume-databasemigration = { version = "0.2.0", path = "crates/winterbaume-databasemigration" }
 winterbaume-directory = { version = "0.2.0", path = "crates/winterbaume-directory" }
 winterbaume-mq = { version = "0.2.0", path = "crates/winterbaume-mq" }
-winterbaume-transfer = { version = "0.1.0", path = "crates/winterbaume-transfer" }
+winterbaume-transfer = { version = "0.2.0", path = "crates/winterbaume-transfer" }
 winterbaume-datasync = { version = "0.2.0", path = "crates/winterbaume-datasync" }
 winterbaume-servicediscovery = { version = "0.2.0", path = "crates/winterbaume-servicediscovery" }
 winterbaume-identitystore = { version = "0.2.0", path = "crates/winterbaume-identitystore" }
@@ -753,7 +753,7 @@ winterbaume-mediapackage = { version = "0.2.0", path = "crates/winterbaume-media
 winterbaume-managedblockchain = { version = "0.2.0", path = "crates/winterbaume-managedblockchain" }
 winterbaume-resiliencehub = { version = "0.2.0", path = "crates/winterbaume-resiliencehub" }
 winterbaume-quicksight = { version = "0.2.0", path = "crates/winterbaume-quicksight" }
-winterbaume-vpclattice = { version = "0.1.0", path = "crates/winterbaume-vpclattice" }
+winterbaume-vpclattice = { version = "0.2.0", path = "crates/winterbaume-vpclattice" }
 winterbaume-workspacesweb = { version = "0.1.0", path = "crates/winterbaume-workspacesweb" }
 winterbaume-mediastore = { version = "0.2.0", path = "crates/winterbaume-mediastore" }
 winterbaume-route53domains = { version = "0.2.0", path = "crates/winterbaume-route53domains" }
@@ -765,7 +765,7 @@ winterbaume-cloudcontrol = { version = "0.2.0", path = "crates/winterbaume-cloud
 winterbaume-keyspaces = { version = "0.2.0", path = "crates/winterbaume-keyspaces" }
 winterbaume-rolesanywhere = { version = "0.2.0", path = "crates/winterbaume-rolesanywhere" }
 winterbaume-servicecatalog = { version = "0.2.0", path = "crates/winterbaume-servicecatalog" }
-winterbaume-timestreamwrite = { version = "0.1.0", path = "crates/winterbaume-timestreamwrite" }
+winterbaume-timestreamwrite = { version = "0.2.0", path = "crates/winterbaume-timestreamwrite" }
 winterbaume-connectcampaigns = { version = "0.2.0", path = "crates/winterbaume-connectcampaigns" }
 winterbaume-kinesisvideo = { version = "0.2.0", path = "crates/winterbaume-kinesisvideo" }
 winterbaume-sso = { version = "0.2.0", path = "crates/winterbaume-sso" }

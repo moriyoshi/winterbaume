@@ -15670,7 +15670,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-timestreamwrite"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15690,7 +15690,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-transcribe"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15710,7 +15710,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-transfer"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15731,7 +15731,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-trustedadvisor"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15752,7 +15752,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-vpclattice"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
