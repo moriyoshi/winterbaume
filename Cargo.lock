@@ -11592,7 +11592,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudhsmv2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11612,7 +11612,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudsearchdomain"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11632,7 +11632,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudtrail"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11653,7 +11653,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudtraildata"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11673,7 +11673,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cloudwatch"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
