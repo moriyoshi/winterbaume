@@ -15377,7 +15377,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-synthetics"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15398,7 +15398,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-taxsettings"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15592,7 +15592,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-textract"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15628,7 +15628,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-timestreaminfluxdb"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15649,7 +15649,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-timestreamquery"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
