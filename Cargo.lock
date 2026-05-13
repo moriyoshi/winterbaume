@@ -13482,7 +13482,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-mediapackage"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13503,7 +13503,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-mediapackagev2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13524,7 +13524,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-mediastore"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13546,7 +13546,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-mediastoredata"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13566,7 +13566,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-memorydb"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
