@@ -644,8 +644,8 @@ winterbaume-firehose = { version = "0.1.0", path = "crates/winterbaume-firehose"
 winterbaume-organizations = { version = "0.1.0", path = "crates/winterbaume-organizations" }
 winterbaume-ecs = { version = "0.2.0", path = "crates/winterbaume-ecs" }
 winterbaume-elasticache = { version = "0.2.0", path = "crates/winterbaume-elasticache" }
-winterbaume-elasticloadbalancing = { version = "0.1.0", path = "crates/winterbaume-elasticloadbalancing" }
-winterbaume-elasticloadbalancingv2 = { version = "0.1.0", path = "crates/winterbaume-elasticloadbalancingv2" }
+winterbaume-elasticloadbalancing = { version = "0.2.0", path = "crates/winterbaume-elasticloadbalancing" }
+winterbaume-elasticloadbalancingv2 = { version = "0.2.0", path = "crates/winterbaume-elasticloadbalancingv2" }
 winterbaume-cognitoidentityprovider = { version = "0.2.0", path = "crates/winterbaume-cognitoidentityprovider" }
 winterbaume-sesv2 = { version = "0.1.0", path = "crates/winterbaume-sesv2" }
 winterbaume-ses = { version = "0.1.0", path = "crates/winterbaume-ses" }
@@ -734,10 +734,10 @@ winterbaume-cloudhsmv2 = { version = "0.2.0", path = "crates/winterbaume-cloudhs
 winterbaume-dynamodbstreams = { version = "0.1.0", path = "crates/winterbaume-dynamodbstreams" }
 winterbaume-dsql = { version = "0.2.0", path = "crates/winterbaume-dsql" }
 winterbaume-databrew = { version = "0.2.0", path = "crates/winterbaume-databrew" }
-winterbaume-emr = { version = "0.1.0", path = "crates/winterbaume-emr" }
-winterbaume-emrserverless = { version = "0.1.0", path = "crates/winterbaume-emrserverless" }
+winterbaume-emr = { version = "0.2.0", path = "crates/winterbaume-emr" }
+winterbaume-emrserverless = { version = "0.2.0", path = "crates/winterbaume-emrserverless" }
 winterbaume-workspaces = { version = "0.1.0", path = "crates/winterbaume-workspaces" }
-winterbaume-emrcontainers = { version = "0.1.0", path = "crates/winterbaume-emrcontainers" }
+winterbaume-emrcontainers = { version = "0.2.0", path = "crates/winterbaume-emrcontainers" }
 winterbaume-bedrockagent = { version = "0.1.0", path = "crates/winterbaume-bedrockagent" }
 winterbaume-connect = { version = "0.2.0", path = "crates/winterbaume-connect" }
 winterbaume-kinesisanalyticsv2 = { version = "0.1.0", path = "crates/winterbaume-kinesisanalyticsv2" }

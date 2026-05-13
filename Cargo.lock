@@ -12690,7 +12690,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-elasticloadbalancing"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12711,7 +12711,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-elasticloadbalancingv2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12734,7 +12734,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-emr"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12755,7 +12755,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-emrcontainers"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12777,7 +12777,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-emrserverless"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
