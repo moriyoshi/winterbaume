@@ -584,11 +584,11 @@ winterbaume-rbin = { version = "0.1.0", path = "crates/winterbaume-rbin" }
 winterbaume-savingsplans = { version = "0.1.0", path = "crates/winterbaume-savingsplans" }
 winterbaume-personalizeevents = { version = "0.2.0", path = "crates/winterbaume-personalizeevents" }
 winterbaume-personalizeruntime = { version = "0.2.0", path = "crates/winterbaume-personalizeruntime" }
-winterbaume-pinpointsmsvoice = { version = "0.1.0", path = "crates/winterbaume-pinpointsmsvoice" }
+winterbaume-pinpointsmsvoice = { version = "0.2.0", path = "crates/winterbaume-pinpointsmsvoice" }
 winterbaume-pi = { version = "0.2.0", path = "crates/winterbaume-pi" }
 winterbaume-trustedadvisor = { version = "0.1.0", path = "crates/winterbaume-trustedadvisor" }
 winterbaume-supportapp = { version = "0.1.0", path = "crates/winterbaume-supportapp" }
-winterbaume-pricing = { version = "0.1.0", path = "crates/winterbaume-pricing" }
+winterbaume-pricing = { version = "0.2.0", path = "crates/winterbaume-pricing" }
 winterbaume-freetier = { version = "0.2.0", path = "crates/winterbaume-freetier" }
 winterbaume-cloud9 = { version = "0.2.0", path = "crates/winterbaume-cloud9" }
 winterbaume-s3outposts = { version = "0.1.0", path = "crates/winterbaume-s3outposts" }
@@ -658,7 +658,7 @@ winterbaume-rds = { version = "0.1.0", path = "crates/winterbaume-rds" }
 winterbaume-rdsdata = { version = "0.1.0", path = "crates/winterbaume-rdsdata" }
 winterbaume-neptune = { version = "0.2.0", path = "crates/winterbaume-neptune" }
 winterbaume-redshift = { version = "0.1.0", path = "crates/winterbaume-redshift" }
-winterbaume-polly = { version = "0.1.0", path = "crates/winterbaume-polly" }
+winterbaume-polly = { version = "0.2.0", path = "crates/winterbaume-polly" }
 winterbaume-cloudtrail = { version = "0.2.0", path = "crates/winterbaume-cloudtrail" }
 winterbaume-budgets = { version = "0.2.0", path = "crates/winterbaume-budgets" }
 winterbaume-glacier = { version = "0.2.0", path = "crates/winterbaume-glacier" }
@@ -670,7 +670,7 @@ winterbaume-codepipeline = { version = "0.2.0", path = "crates/winterbaume-codep
 winterbaume-athena = { version = "0.2.0", path = "crates/winterbaume-athena" }
 winterbaume-xray = { version = "0.1.0", path = "crates/winterbaume-xray" }
 winterbaume-signer = { version = "0.1.0", path = "crates/winterbaume-signer" }
-winterbaume-pipes = { version = "0.1.0", path = "crates/winterbaume-pipes" }
+winterbaume-pipes = { version = "0.2.0", path = "crates/winterbaume-pipes" }
 winterbaume-dax = { version = "0.2.0", path = "crates/winterbaume-dax" }
 winterbaume-codedeploy = { version = "0.2.0", path = "crates/winterbaume-codedeploy" }
 winterbaume-cognitoidentity = { version = "0.2.0", path = "crates/winterbaume-cognitoidentity" }
@@ -744,7 +744,7 @@ winterbaume-kinesisanalyticsv2 = { version = "0.2.0", path = "crates/winterbaume
 winterbaume-appmesh = { version = "0.2.0", path = "crates/winterbaume-appmesh" }
 winterbaume-greengrass = { version = "0.2.0", path = "crates/winterbaume-greengrass" }
 winterbaume-networkmanager = { version = "0.2.0", path = "crates/winterbaume-networkmanager" }
-winterbaume-pinpoint = { version = "0.1.0", path = "crates/winterbaume-pinpoint" }
+winterbaume-pinpoint = { version = "0.2.0", path = "crates/winterbaume-pinpoint" }
 winterbaume-swf = { version = "0.1.0", path = "crates/winterbaume-swf" }
 winterbaume-redshiftdata = { version = "0.1.0", path = "crates/winterbaume-redshiftdata" }
 winterbaume-mediaconnect = { version = "0.2.0", path = "crates/winterbaume-mediaconnect" }

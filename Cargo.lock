@@ -13903,7 +13903,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-pinpoint"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13926,7 +13926,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-pinpointsmsvoice"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13946,7 +13946,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-pipes"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13967,7 +13967,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-polly"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13988,7 +13988,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-pricing"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
