@@ -11908,7 +11908,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cognitoidentityprovider"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11929,7 +11929,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-cognitosync"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11950,7 +11950,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-comprehend"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11971,7 +11971,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-config"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11992,7 +11992,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-connect"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

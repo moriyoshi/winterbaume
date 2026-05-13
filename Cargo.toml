@@ -606,7 +606,7 @@ winterbaume-controlcatalog = { version = "0.1.0", path = "crates/winterbaume-con
 winterbaume-costandusagereport = { version = "0.1.0", path = "crates/winterbaume-costandusagereport" }
 winterbaume-braket = { version = "0.2.0", path = "crates/winterbaume-braket" }
 winterbaume-chimesdkmeetings = { version = "0.2.0", path = "crates/winterbaume-chimesdkmeetings" }
-winterbaume-cognitosync = { version = "0.1.0", path = "crates/winterbaume-cognitosync" }
+winterbaume-cognitosync = { version = "0.2.0", path = "crates/winterbaume-cognitosync" }
 winterbaume-codestarnotifications = { version = "0.2.0", path = "crates/winterbaume-codestarnotifications" }
 winterbaume-codegurusecurity = { version = "0.2.0", path = "crates/winterbaume-codegurusecurity" }
 winterbaume-codegurureviewer = { version = "0.2.0", path = "crates/winterbaume-codegurureviewer" }
@@ -646,7 +646,7 @@ winterbaume-ecs = { version = "0.1.0", path = "crates/winterbaume-ecs" }
 winterbaume-elasticache = { version = "0.1.0", path = "crates/winterbaume-elasticache" }
 winterbaume-elasticloadbalancing = { version = "0.1.0", path = "crates/winterbaume-elasticloadbalancing" }
 winterbaume-elasticloadbalancingv2 = { version = "0.1.0", path = "crates/winterbaume-elasticloadbalancingv2" }
-winterbaume-cognitoidentityprovider = { version = "0.1.0", path = "crates/winterbaume-cognitoidentityprovider" }
+winterbaume-cognitoidentityprovider = { version = "0.2.0", path = "crates/winterbaume-cognitoidentityprovider" }
 winterbaume-sesv2 = { version = "0.1.0", path = "crates/winterbaume-sesv2" }
 winterbaume-ses = { version = "0.1.0", path = "crates/winterbaume-ses" }
 winterbaume-ec2instanceconnect = { version = "0.1.0", path = "crates/winterbaume-ec2instanceconnect" }
@@ -680,7 +680,7 @@ winterbaume-ivs = { version = "0.1.0", path = "crates/winterbaume-ivs" }
 winterbaume-wafv2 = { version = "0.1.0", path = "crates/winterbaume-wafv2" }
 winterbaume-wafv2-webacl-rule-parser = { version = "0.2.0", path = "crates/winterbaume-wafv2-webacl-rule-parser" }
 winterbaume-wafv2-wcu-calculator = { version = "0.1.0", path = "crates/winterbaume-wafv2-wcu-calculator" }
-winterbaume-config = { version = "0.1.0", path = "crates/winterbaume-config" }
+winterbaume-config = { version = "0.2.0", path = "crates/winterbaume-config" }
 winterbaume-securityhub = { version = "0.1.0", path = "crates/winterbaume-securityhub" }
 winterbaume-inspector2 = { version = "0.1.0", path = "crates/winterbaume-inspector2" }
 winterbaume-rekognition = { version = "0.1.0", path = "crates/winterbaume-rekognition" }
@@ -689,7 +689,7 @@ winterbaume-shield = { version = "0.1.0", path = "crates/winterbaume-shield" }
 winterbaume-servicequotas = { version = "0.1.0", path = "crates/winterbaume-servicequotas" }
 winterbaume-ram = { version = "0.1.0", path = "crates/winterbaume-ram" }
 winterbaume-macie2 = { version = "0.1.0", path = "crates/winterbaume-macie2" }
-winterbaume-comprehend = { version = "0.1.0", path = "crates/winterbaume-comprehend" }
+winterbaume-comprehend = { version = "0.2.0", path = "crates/winterbaume-comprehend" }
 winterbaume-transcribe = { version = "0.1.0", path = "crates/winterbaume-transcribe" }
 winterbaume-textract = { version = "0.1.0", path = "crates/winterbaume-textract" }
 winterbaume-forecast = { version = "0.1.0", path = "crates/winterbaume-forecast" }
@@ -739,7 +739,7 @@ winterbaume-emrserverless = { version = "0.1.0", path = "crates/winterbaume-emrs
 winterbaume-workspaces = { version = "0.1.0", path = "crates/winterbaume-workspaces" }
 winterbaume-emrcontainers = { version = "0.1.0", path = "crates/winterbaume-emrcontainers" }
 winterbaume-bedrockagent = { version = "0.1.0", path = "crates/winterbaume-bedrockagent" }
-winterbaume-connect = { version = "0.1.0", path = "crates/winterbaume-connect" }
+winterbaume-connect = { version = "0.2.0", path = "crates/winterbaume-connect" }
 winterbaume-kinesisanalyticsv2 = { version = "0.1.0", path = "crates/winterbaume-kinesisanalyticsv2" }
 winterbaume-appmesh = { version = "0.2.0", path = "crates/winterbaume-appmesh" }
 winterbaume-greengrass = { version = "0.1.0", path = "crates/winterbaume-greengrass" }
