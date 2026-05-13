@@ -12014,7 +12014,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-connectcampaigns"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12035,7 +12035,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-connectcontactlens"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12054,7 +12054,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-connectparticipant"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12075,7 +12075,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-controlcatalog"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12115,7 +12115,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-costandusagereport"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
