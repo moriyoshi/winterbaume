@@ -15136,7 +15136,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sns"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15176,7 +15176,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sqs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15210,7 +15210,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ssm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15231,7 +15231,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ssmquicksetup"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15252,7 +15252,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sso"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
