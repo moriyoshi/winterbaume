@@ -559,8 +559,8 @@ tag-message = "chore: release {{crate_name}} v{{version}}"
 verify = false
 
 [workspace.dependencies]
-winterbaume-accessanalyzer = { version = "0.1.0", path = "crates/winterbaume-accessanalyzer" }
-winterbaume-aiops = { version = "0.1.0", path = "crates/winterbaume-aiops" }
+winterbaume-accessanalyzer = { version = "0.2.0", path = "crates/winterbaume-accessanalyzer" }
+winterbaume-aiops = { version = "0.2.0", path = "crates/winterbaume-aiops" }
 winterbaume-amplifybackend = { version = "0.1.0", path = "crates/winterbaume-amplifybackend" }
 winterbaume-amplifyuibuilder = { version = "0.1.0", path = "crates/winterbaume-amplifyuibuilder" }
 winterbaume-appconfigdata = { version = "0.1.0", path = "crates/winterbaume-appconfigdata" }
@@ -632,7 +632,7 @@ winterbaume-eventbridge = { version = "0.1.0", path = "crates/winterbaume-eventb
 winterbaume-sfn = { version = "0.1.0", path = "crates/winterbaume-sfn" }
 winterbaume-route53 = { version = "0.1.0", path = "crates/winterbaume-route53" }
 winterbaume-cloudwatch = { version = "0.1.0", path = "crates/winterbaume-cloudwatch" }
-winterbaume-acm = { version = "0.1.0", path = "crates/winterbaume-acm" }
+winterbaume-acm = { version = "0.2.0", path = "crates/winterbaume-acm" }
 winterbaume-apigateway = { version = "0.1.0", path = "crates/winterbaume-apigateway" }
 winterbaume-apigatewaymanagement = { version = "0.1.0", path = "crates/winterbaume-apigatewaymanagement" }
 winterbaume-apigatewayv2 = { version = "0.1.0", path = "crates/winterbaume-apigatewayv2" }
@@ -652,7 +652,7 @@ winterbaume-ses = { version = "0.1.0", path = "crates/winterbaume-ses" }
 winterbaume-ec2instanceconnect = { version = "0.1.0", path = "crates/winterbaume-ec2instanceconnect" }
 winterbaume-ec2-generated = { version = "0.1.0", path = "crates/winterbaume-ec2-generated" }
 winterbaume-ec2 = { version = "0.1.0", path = "crates/winterbaume-ec2" }
-winterbaume-account = { version = "0.1.0", path = "crates/winterbaume-account" }
+winterbaume-account = { version = "0.2.0", path = "crates/winterbaume-account" }
 winterbaume-codecommit = { version = "0.1.0", path = "crates/winterbaume-codecommit" }
 winterbaume-rds = { version = "0.1.0", path = "crates/winterbaume-rds" }
 winterbaume-rdsdata = { version = "0.1.0", path = "crates/winterbaume-rdsdata" }
@@ -695,7 +695,7 @@ winterbaume-textract = { version = "0.1.0", path = "crates/winterbaume-textract"
 winterbaume-forecast = { version = "0.1.0", path = "crates/winterbaume-forecast" }
 winterbaume-personalize = { version = "0.1.0", path = "crates/winterbaume-personalize" }
 winterbaume-route53resolver = { version = "0.1.0", path = "crates/winterbaume-route53resolver" }
-winterbaume-acmpca = { version = "0.1.0", path = "crates/winterbaume-acmpca" }
+winterbaume-acmpca = { version = "0.2.0", path = "crates/winterbaume-acmpca" }
 winterbaume-directconnect = { version = "0.1.0", path = "crates/winterbaume-directconnect" }
 winterbaume-databasemigration = { version = "0.1.0", path = "crates/winterbaume-databasemigration" }
 winterbaume-directory = { version = "0.1.0", path = "crates/winterbaume-directory" }

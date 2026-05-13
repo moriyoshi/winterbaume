@@ -10509,7 +10509,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-accessanalyzer"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10528,7 +10528,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-account"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10547,7 +10547,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-acm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10570,7 +10570,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-acmpca"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10594,7 +10594,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-aiops"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
