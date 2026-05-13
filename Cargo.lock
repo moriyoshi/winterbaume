@@ -14008,7 +14008,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-quicksight"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14030,7 +14030,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ram"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14051,7 +14051,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-rbin"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14072,7 +14072,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-rds"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14094,7 +14094,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-rdsdata"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
