@@ -14535,7 +14535,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-savingsplans"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14556,7 +14556,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-scheduler"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14579,7 +14579,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-secretsmanager"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14600,7 +14600,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-securityhub"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14873,7 +14873,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-servicecatalog"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

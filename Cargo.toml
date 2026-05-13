@@ -581,7 +581,7 @@ winterbaume-bcmdataexports = { version = "0.2.0", path = "crates/winterbaume-bcm
 winterbaume-bcmrecommendedactions = { version = "0.2.0", path = "crates/winterbaume-bcmrecommendedactions" }
 winterbaume-dlm = { version = "0.2.0", path = "crates/winterbaume-dlm" }
 winterbaume-rbin = { version = "0.2.0", path = "crates/winterbaume-rbin" }
-winterbaume-savingsplans = { version = "0.1.0", path = "crates/winterbaume-savingsplans" }
+winterbaume-savingsplans = { version = "0.2.0", path = "crates/winterbaume-savingsplans" }
 winterbaume-personalizeevents = { version = "0.2.0", path = "crates/winterbaume-personalizeevents" }
 winterbaume-personalizeruntime = { version = "0.2.0", path = "crates/winterbaume-personalizeruntime" }
 winterbaume-pinpointsmsvoice = { version = "0.2.0", path = "crates/winterbaume-pinpointsmsvoice" }
@@ -623,7 +623,7 @@ winterbaume-dynamodb = { version = "0.1.0", path = "crates/winterbaume-dynamodb"
 winterbaume-dynamodb-redis = { version = "0.1.0", path = "crates/winterbaume-dynamodb-redis" }
 winterbaume-kms = { version = "0.2.0", path = "crates/winterbaume-kms" }
 winterbaume-ssm = { version = "0.1.0", path = "crates/winterbaume-ssm" }
-winterbaume-secretsmanager = { version = "0.1.0", path = "crates/winterbaume-secretsmanager" }
+winterbaume-secretsmanager = { version = "0.2.0", path = "crates/winterbaume-secretsmanager" }
 winterbaume-cloudwatchlogs = { version = "0.2.0", path = "crates/winterbaume-cloudwatchlogs" }
 winterbaume-sns = { version = "0.1.0", path = "crates/winterbaume-sns" }
 winterbaume-lambda = { version = "0.2.0", path = "crates/winterbaume-lambda" }
@@ -663,7 +663,7 @@ winterbaume-cloudtrail = { version = "0.2.0", path = "crates/winterbaume-cloudtr
 winterbaume-budgets = { version = "0.2.0", path = "crates/winterbaume-budgets" }
 winterbaume-glacier = { version = "0.2.0", path = "crates/winterbaume-glacier" }
 winterbaume-resourcegroups = { version = "0.2.0", path = "crates/winterbaume-resourcegroups" }
-winterbaume-scheduler = { version = "0.1.0", path = "crates/winterbaume-scheduler" }
+winterbaume-scheduler = { version = "0.2.0", path = "crates/winterbaume-scheduler" }
 winterbaume-appconfig = { version = "0.2.0", path = "crates/winterbaume-appconfig" }
 winterbaume-codebuild = { version = "0.2.0", path = "crates/winterbaume-codebuild" }
 winterbaume-codepipeline = { version = "0.2.0", path = "crates/winterbaume-codepipeline" }
@@ -681,7 +681,7 @@ winterbaume-wafv2 = { version = "0.1.0", path = "crates/winterbaume-wafv2" }
 winterbaume-wafv2-webacl-rule-parser = { version = "0.2.0", path = "crates/winterbaume-wafv2-webacl-rule-parser" }
 winterbaume-wafv2-wcu-calculator = { version = "0.1.0", path = "crates/winterbaume-wafv2-wcu-calculator" }
 winterbaume-config = { version = "0.2.0", path = "crates/winterbaume-config" }
-winterbaume-securityhub = { version = "0.1.0", path = "crates/winterbaume-securityhub" }
+winterbaume-securityhub = { version = "0.2.0", path = "crates/winterbaume-securityhub" }
 winterbaume-inspector2 = { version = "0.2.0", path = "crates/winterbaume-inspector2" }
 winterbaume-rekognition = { version = "0.2.0", path = "crates/winterbaume-rekognition" }
 winterbaume-synthetics = { version = "0.1.0", path = "crates/winterbaume-synthetics" }
@@ -764,7 +764,7 @@ winterbaume-fis = { version = "0.2.0", path = "crates/winterbaume-fis" }
 winterbaume-cloudcontrol = { version = "0.2.0", path = "crates/winterbaume-cloudcontrol" }
 winterbaume-keyspaces = { version = "0.2.0", path = "crates/winterbaume-keyspaces" }
 winterbaume-rolesanywhere = { version = "0.2.0", path = "crates/winterbaume-rolesanywhere" }
-winterbaume-servicecatalog = { version = "0.1.0", path = "crates/winterbaume-servicecatalog" }
+winterbaume-servicecatalog = { version = "0.2.0", path = "crates/winterbaume-servicecatalog" }
 winterbaume-timestreamwrite = { version = "0.1.0", path = "crates/winterbaume-timestreamwrite" }
 winterbaume-connectcampaigns = { version = "0.2.0", path = "crates/winterbaume-connectcampaigns" }
 winterbaume-kinesisvideo = { version = "0.2.0", path = "crates/winterbaume-kinesisvideo" }
