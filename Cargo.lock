@@ -12583,7 +12583,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ecs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12604,7 +12604,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-efs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12625,7 +12625,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-eks"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12647,7 +12647,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-elasticache"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12668,7 +12668,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-elasticbeanstalk"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
