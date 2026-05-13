@@ -14,7 +14,7 @@ IAM Access Analyzer service implementation for winterbaume.
 | moto coverage | 0/37 operations (0.0%) |
 | floci coverage | 0/37 operations (0.0%) |
 | kumo coverage | 0/37 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

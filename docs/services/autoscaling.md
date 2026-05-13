@@ -14,7 +14,7 @@ Auto Scaling service implementation for winterbaume.
 | moto coverage | 39/66 operations (59.1%) |
 | floci coverage | 0/66 operations (0.0%) |
 | kumo coverage | 0/66 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

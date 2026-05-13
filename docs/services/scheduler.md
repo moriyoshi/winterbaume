@@ -14,7 +14,7 @@ EventBridge Scheduler service implementation for winterbaume.
 | moto coverage | 12/12 operations (100.0%) |
 | floci coverage | 0/12 operations (0.0%) |
 | kumo coverage | 9/12 operations (75.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

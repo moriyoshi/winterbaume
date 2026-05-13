@@ -1,10 +1,10 @@
 # API Coverage Report
 
-Generated: 2026-05-12
+Generated: 2026-05-13
 
 | Project | Version |
 |---------|---------|
-| winterbaume | winterbaume-server-v0.1.0-25-g535016a3 |
+| winterbaume | winterbaume-server-v0.1.0-26-ge1d78c18 |
 | moto | 5.2.1.dev |
 | floci | 1.5.14 |
 | kumo | v0.19.0 |
@@ -240,7 +240,7 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-workspacesweb | workspaces-web | 68 | 0 | 27 | 0 | 0 | 75 | 90.7% | 0.0% | 36.0% | 0.0% | 0.0% |
 | winterbaume-xray | xray | 34 | 4 | 0 | 0 | 6 | 38 | 89.5% | 10.5% | 0.0% | 0.0% | 15.8% |
 
-**winterbaume winterbaume-server-v0.1.0-25-g535016a3: 7210 / 11367 operations across 224 services (63.4%)**
+**winterbaume winterbaume-server-v0.1.0-26-ge1d78c18: 7210 / 11367 operations across 224 services (63.4%)**
 
 **winterbaume stubs: 326 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
 

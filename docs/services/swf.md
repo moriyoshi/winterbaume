@@ -14,7 +14,7 @@ Amazon SWF service implementation for winterbaume.
 | moto coverage | 19/39 operations (48.7%) |
 | floci coverage | 0/39 operations (0.0%) |
 | kumo coverage | 0/39 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

@@ -14,7 +14,7 @@ Kinesis service implementation for winterbaume.
 | moto coverage | 31/39 operations (79.5%) |
 | floci coverage | 0/39 operations (0.0%) |
 | kumo coverage | 9/39 operations (23.1%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

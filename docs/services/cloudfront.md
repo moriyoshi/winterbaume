@@ -14,7 +14,7 @@ CloudFront service implementation for winterbaume.
 | moto coverage | 25/167 operations (15.0%) |
 | floci coverage | 0/167 operations (0.0%) |
 | kumo coverage | 8/167 operations (4.8%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

@@ -14,6 +14,7 @@ Usage:
 import argparse
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -1097,6 +1098,280 @@ def update_readme(
     print(f"  {len(rows)} services, winterbaume: {wb_summary}")
 
 
+def regenerate_terraform_reports(
+    root: Path,
+    resource_report: Path,
+    converter_report: Path,
+) -> None:
+    """Regenerate the two Terraform coverage reports in `.agents/docs/`.
+
+    Invokes the per-service resource-type and per-resource attribute scripts
+    from the `api-coverage` skill so the downstream `docs/reference/terraform.md`
+    rebuild has fresh inputs.
+    """
+    scripts_dir = root / ".agents" / "skills" / "api-coverage" / "scripts"
+    resource_script = scripts_dir / "generate_terraform_resource_coverage.py"
+    converter_script = scripts_dir / "generate_terraform_converter_coverage.py"
+    for script, output in (
+        (resource_script, resource_report),
+        (converter_script, converter_report),
+    ):
+        if not script.exists():
+            print(f"Warning: {script} not found; skipping terraform regen", file=sys.stderr)
+            return
+        output.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["python3", str(script), "--output", str(output)],
+            check=True,
+            cwd=root,
+        )
+
+
+def parse_terraform_resource_report(path: Path) -> dict[str, object] | None:
+    """Extract per-service table and headline stats from the resource-coverage report.
+
+    Returns a dict with keys: total_schema, classified, handled, missing,
+    table_lines, ec2_coverage. Returns None when the file is unreadable.
+    """
+    if not path.exists():
+        return None
+    text = path.read_text()
+    def _num(label: str) -> str:
+        m = re.search(rf"{label}.*?\*\*([\d,]+)\*\*", text)
+        return m.group(1) if m else "?"
+
+    total_schema = _num("Schema resources total")
+    classified = _num("Resources classified")
+    handled = _num("Currently handled")
+    missing = _num("Missing within")
+
+    lines = text.splitlines()
+    table_lines: list[str] = []
+    in_table = False
+    for line in lines:
+        if line.startswith("| Service "):
+            in_table = True
+            table_lines.append(line)
+            continue
+        if in_table:
+            if not line.strip() or line.startswith("## "):
+                break
+            table_lines.append(line)
+
+    ec2_coverage = ""
+    for line in table_lines:
+        if line.startswith("| ec2 "):
+            ec2_coverage = line
+            break
+
+    return {
+        "total_schema": total_schema,
+        "classified": classified,
+        "handled": handled,
+        "missing": missing,
+        "table_lines": table_lines,
+        "ec2_coverage": ec2_coverage,
+    }
+
+
+def parse_terraform_converter_report(path: Path) -> dict[str, object] | None:
+    """Extract the summary table and headline stats from the converter report."""
+    if not path.exists():
+        return None
+    text = path.read_text()
+
+    def _stat(label: str, pattern: str = r"(.+)") -> str:
+        m = re.search(rf"\*\*{label}:\*\*\s*{pattern}", text)
+        return m.group(1).strip() if m else "?"
+
+    total_converters = _stat("Total converters")
+    distinct_types = _stat("Distinct resource types")
+    inject_coverage = _stat("Overall inject coverage")
+    extract_coverage = _stat("Overall extract coverage")
+
+    ratings: dict[str, str] = {}
+    for label in ("excellent", "good", "fair", "poor", "n/a"):
+        m = re.search(rf"\*\*{re.escape(label)}:\*\*\s*(\d+)", text)
+        if m:
+            ratings[label] = m.group(1)
+
+    summary_section = re.search(r"## Summary\n+(.*?)\n## ", text, re.DOTALL)
+    summary_table_lines: list[str] = []
+    if summary_section:
+        for line in summary_section.group(1).splitlines():
+            if line.startswith("|"):
+                summary_table_lines.append(line)
+
+    return {
+        "total_converters": total_converters,
+        "distinct_types": distinct_types,
+        "inject_coverage": inject_coverage,
+        "extract_coverage": extract_coverage,
+        "ratings": ratings,
+        "summary_table_lines": summary_table_lines,
+    }
+
+
+def generate_terraform_doc_content(
+    resource_data: dict[str, object],
+    converter_data: dict[str, object],
+) -> str:
+    """Produce the polished docs/reference/terraform.md content."""
+    inject_pct = re.search(r"\(([\d.]+)%\)", str(converter_data["inject_coverage"]))
+    extract_pct = re.search(r"\(([\d.]+)%\)", str(converter_data["extract_coverage"]))
+    inject_pct_s = inject_pct.group(1) + "%" if inject_pct else "?"
+    extract_pct_s = extract_pct.group(1) + "%" if extract_pct else "?"
+
+    ratings = converter_data.get("ratings", {})
+    rating_summary = ", ".join(
+        f"{ratings.get(k, '0')} {k}" for k in ("excellent", "good", "fair", "poor", "n/a")
+    )
+
+    lines: list[str] = [
+        "# Terraform Converter Coverage",
+        "",
+        (
+            "Winterbaume includes a Terraform state converter layer "
+            "(`winterbaume-terraform`) that can inject Terraform state into the "
+            "emulator and extract it back out. This enables:"
+        ),
+        "",
+        "- **Seeding mock environments** from existing Terraform state files",
+        "- **Round-trip validation** — inject state, exercise the mock, then extract and compare",
+        "- **Test data generation** — programmatically build Terraform state from converter output",
+        "",
+        "## Overview",
+        "",
+        (
+            f"- **{converter_data['total_converters']} converters** covering "
+            f"**{converter_data['distinct_types']} distinct Terraform resource types**"
+        ),
+        f"- **{inject_pct_s} overall inject coverage** (reading TF state attributes into winterbaume)",
+        f"- **{extract_pct_s} overall extract coverage** (emitting winterbaume state back to TF attributes)",
+        f"- Rating distribution: {rating_summary}",
+        "",
+        (
+            "Coverage is measured against the official Terraform AWS provider "
+            "schema (~5.x). \"Inject\" means reading attributes from a "
+            "`terraform.tfstate` JSON file into winterbaume's in-memory state. "
+            "\"Extract\" means producing Terraform-compatible attribute JSON "
+            "from winterbaume's state."
+        ),
+        "",
+        "### Rating criteria",
+        "",
+        "| Rating | Threshold |",
+        "|--------|-----------|",
+        "| Excellent | inject >= 60% AND extract >= 50% |",
+        "| Good | inject >= 40% OR extract >= 30% |",
+        "| Fair | inject >= 20% OR extract >= 15% |",
+        "| Poor | below fair thresholds |",
+        "| n/a | resource type not present in TF provider schema |",
+        "",
+        "## Per-Service Resource Coverage",
+        "",
+        (
+            "How many of the AWS Terraform provider's `aws_*` resource types "
+            "each winterbaume service handles. Of "
+            f"{resource_data['classified']} schema resources classified to a "
+            f"winterbaume service, {resource_data['handled']} are handled "
+            f"({resource_data['missing']} still missing — see the per-service "
+            "missing list in `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`)."
+        ),
+        "",
+    ]
+    lines.extend(resource_data["table_lines"])
+    lines.extend([
+        "",
+        "## Per-Resource Attribute Coverage",
+        "",
+    ])
+    lines.extend(converter_data["summary_table_lines"])
+    lines.extend([
+        "",
+        "## Usage",
+        "",
+        "### Injecting Terraform state",
+        "",
+        "```rust",
+        "use winterbaume_terraform::{TerraformInjector, ConversionContext};",
+        "use winterbaume_terraform::converters::s3::AwsS3BucketConverter;",
+        "use winterbaume_s3::S3Service;",
+        "use std::sync::Arc;",
+        "",
+        "let s3 = Arc::new(S3Service::new());",
+        "let mut injector = TerraformInjector::new();",
+        "injector.register(AwsS3BucketConverter::new(Arc::clone(&s3)));",
+        "",
+        "let ctx = ConversionContext {",
+        "    default_account_id: \"123456789012\".to_string(),",
+        "    default_region: \"us-east-1\".to_string(),",
+        "};",
+        "",
+        "// Parse a terraform.tfstate file",
+        "let tfstate: winterbaume_tfstate::TerraformState = serde_json::from_str(&state_json)?;",
+        "let report = injector.inject_all(&tfstate, &ctx).await;",
+        "assert!(report.is_success());",
+        "```",
+        "",
+        "### Extracting state back to Terraform format",
+        "",
+        "```rust",
+        "let converter = AwsS3BucketConverter::new(Arc::clone(&s3));",
+        "let extracted = converter.extract(&ctx).await?;",
+        "for resource in &extracted {",
+        "    println!(\"{}: {}\", resource.name, resource.attributes);",
+        "}",
+        "```",
+        "",
+        "## Regenerating This Report",
+        "",
+        "This page is rewritten by the `update-readme` skill, which invokes:",
+        "",
+        "```bash",
+        "python3 .agents/skills/api-coverage/scripts/generate_terraform_resource_coverage.py",
+        "python3 .agents/skills/api-coverage/scripts/generate_terraform_converter_coverage.py",
+        "```",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def update_docs_terraform(
+    docs_dir: Path,
+    resource_report: Path,
+    converter_report: Path,
+) -> int | None:
+    """Rewrite docs/reference/terraform.md from the two terraform coverage reports.
+
+    Returns the parsed distinct-resource-type count (for use in the services.md
+    footer), or None when the reports are missing.
+    """
+    resource_data = parse_terraform_resource_report(resource_report)
+    converter_data = parse_terraform_converter_report(converter_report)
+    if resource_data is None or converter_data is None:
+        print(
+            "Warning: terraform coverage reports missing; skipping docs/reference/terraform.md update",
+            file=sys.stderr,
+        )
+        return None
+
+    content = generate_terraform_doc_content(resource_data, converter_data)
+    target = docs_dir / "reference" / "terraform.md"
+    if not target.parent.exists():
+        print(
+            f"Warning: {target.parent} does not exist; skipping terraform doc update",
+            file=sys.stderr,
+        )
+        return None
+    target.write_text(content)
+    print(f"Updated {target}")
+    try:
+        return int(str(converter_data["distinct_types"]).replace(",", ""))
+    except (TypeError, ValueError):
+        return None
+
+
 def _parse_summary_parts(
     wb_summary: str,
     moto_summary: str,
@@ -1122,6 +1397,7 @@ def generate_docs_reference_content(
     floci_summary: str = "",
     kumo_summary: str = "",
     stub_summary: str = "",
+    terraform_resource_count: int | None = None,
 ) -> str:
     """Generate the complete docs/reference/services.md content."""
     wb_impl, total, service_count, wb_pct, moto_pct = _parse_summary_parts(wb_summary, moto_summary)
@@ -1184,12 +1460,15 @@ def generate_docs_reference_content(
     if kumo_summary:
         lines.extend([f"**kumo: {kumo_summary}**", ""])
 
+    tf_count_str = (
+        f"{terraform_resource_count:,}" if terraform_resource_count else "many"
+    )
     lines.extend([
         "---",
         "",
         "See also: [Terraform Converter Coverage](/reference/terraform)"
-        " \u2014 267 Terraform resource types with inject/extract field coverage"
-        " against the official AWS provider schema.",
+        f" \u2014 {tf_count_str} Terraform resource types with inject/extract field"
+        " coverage against the official AWS provider schema.",
     ])
 
     return "\n".join(lines)
@@ -1203,6 +1482,7 @@ def update_docs_reference(
     floci_summary: str = "",
     kumo_summary: str = "",
     stub_summary: str = "",
+    terraform_resource_count: int | None = None,
 ) -> None:
     """Rewrite docs/reference/services.md with current coverage data."""
     services_path = docs_dir / "reference" / "services.md"
@@ -1216,6 +1496,7 @@ def update_docs_reference(
         floci_summary,
         kumo_summary,
         stub_summary=stub_summary,
+        terraform_resource_count=terraform_resource_count,
     )
     services_path.write_text(content, encoding="utf-8")
     print(f"Updated {services_path}")
@@ -1378,6 +1659,11 @@ def main() -> None:
         action="store_true",
         help="Skip updating the docs/ directory",
     )
+    parser.add_argument(
+        "--no-terraform",
+        action="store_true",
+        help="Skip regenerating Terraform coverage reports and docs/reference/terraform.md",
+    )
     args = parser.parse_args()
 
     root = find_project_root()
@@ -1411,6 +1697,22 @@ def main() -> None:
     print(f"Updated {updated_service_readmes} service crate README files")
 
     if not args.no_docs and docs_dir.exists():
+        terraform_resource_count: int | None = None
+        if not args.no_terraform:
+            resource_report = root / ".agents" / "docs" / "TERRAFORM_RESOURCE_COVERAGE.md"
+            converter_report = root / ".agents" / "docs" / "TERRAFORM_CONVERTER_COVERAGE.md"
+            try:
+                regenerate_terraform_reports(root, resource_report, converter_report)
+            except subprocess.CalledProcessError as e:
+                print(
+                    f"Warning: terraform coverage regeneration failed ({e}); "
+                    "falling back to existing reports if present",
+                    file=sys.stderr,
+                )
+            terraform_resource_count = update_docs_terraform(
+                docs_dir, resource_report, converter_report
+            )
+
         update_docs_reference(
             docs_dir,
             rows,
@@ -1419,6 +1721,7 @@ def main() -> None:
             floci_summary,
             kumo_summary,
             stub_summary=stub_summary,
+            terraform_resource_count=terraform_resource_count,
         )
         update_docs_index(docs_dir, wb_summary, moto_summary, stub_summary)
         n_pages = generate_docs_service_pages(crates_dir, docs_dir)

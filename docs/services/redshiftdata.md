@@ -14,7 +14,7 @@ Amazon Redshift Data API service implementation for winterbaume.
 | moto coverage | 4/11 operations (36.4%) |
 | floci coverage | 0/11 operations (0.0%) |
 | kumo coverage | 0/11 operations (0.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

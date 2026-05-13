@@ -14,7 +14,7 @@ AWS Backup service implementation for winterbaume.
 | moto coverage | 17/108 operations (15.7%) |
 | floci coverage | 0/108 operations (0.0%) |
 | kumo coverage | 12/108 operations (11.1%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 

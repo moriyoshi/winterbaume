@@ -17,79 +17,17 @@ Requirements:
 """
 
 import argparse
-import json
-import os
 import re
-import subprocess
 import sys
-import tempfile
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from tf_schema import collect_schema_attributes, get_terraform_schema  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[4]  # repo root
 CONVERTERS_DIR = ROOT / "crates" / "winterbaume-terraform" / "src" / "converters"
-
-# ---------------------------------------------------------------------------
-# Schema extraction
-# ---------------------------------------------------------------------------
-
-def get_terraform_schema(cache_path: Path | None = None) -> dict:
-    """Get the Terraform AWS provider resource schemas.
-
-    Tries cache_path first, then runs `terraform providers schema -json`
-    in a temporary directory with a minimal AWS provider config.
-    """
-    if cache_path and cache_path.exists():
-        with open(cache_path) as f:
-            return json.load(f)
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        main_tf = Path(tmpdir) / "main.tf"
-        main_tf.write_text(
-            'terraform {\n'
-            '  required_providers {\n'
-            '    aws = {\n'
-            '      source  = "hashicorp/aws"\n'
-            '      version = "~> 5.0"\n'
-            '    }\n'
-            '  }\n'
-            '}\n'
-        )
-        subprocess.run(
-            ["terraform", "init", "-no-color"],
-            cwd=tmpdir, capture_output=True, check=True,
-        )
-        result = subprocess.run(
-            ["terraform", "providers", "schema", "-json"],
-            cwd=tmpdir, capture_output=True, check=True,
-        )
-        full = json.loads(result.stdout)
-        schemas = full["provider_schemas"]["registry.terraform.io/hashicorp/aws"]["resource_schemas"]
-
-    if cache_path:
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(cache_path, "w") as f:
-            json.dump(schemas, f)
-
-    return schemas
-
-
-def collect_schema_attributes(schema_block: dict) -> set[str]:
-    """Recursively collect attribute names from a Terraform schema block.
-
-    Returns top-level attribute names. For block_types (nested blocks),
-    returns the block name itself (since converters reference them as
-    single keys in Terraform state JSON).
-    """
-    attrs = set()
-    if "attributes" in schema_block:
-        attrs.update(schema_block["attributes"].keys())
-    if "block_types" in schema_block:
-        attrs.update(schema_block["block_types"].keys())
-    # Always present in state but not in schema definition
-    attrs.discard("id")
-    return attrs
 
 
 # ---------------------------------------------------------------------------

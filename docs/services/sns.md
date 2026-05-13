@@ -14,7 +14,7 @@ SNS service implementation for winterbaume.
 | moto coverage | 33/42 operations (78.6%) |
 | floci coverage | 0/42 operations (0.0%) |
 | kumo coverage | 13/42 operations (31.0%) |
-| Coverage report date | 2026-05-12 |
+| Coverage report date | 2026-05-13 |
 
 ## Server-mode usage
 
