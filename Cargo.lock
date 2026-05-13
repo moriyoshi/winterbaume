@@ -13258,7 +13258,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kinesisvideoarchivedmedia"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13280,7 +13280,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kms"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aes-gcm",
  "aws-config",
@@ -13307,7 +13307,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-lakeformation"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13326,7 +13326,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-lambda"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13350,7 +13350,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-lexmodelsv2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

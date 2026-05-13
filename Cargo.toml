@@ -621,12 +621,12 @@ winterbaume-s3files = { version = "0.1.0", path = "crates/winterbaume-s3files" }
 winterbaume-sqs = { version = "0.1.0", path = "crates/winterbaume-sqs" }
 winterbaume-dynamodb = { version = "0.1.0", path = "crates/winterbaume-dynamodb" }
 winterbaume-dynamodb-redis = { version = "0.1.0", path = "crates/winterbaume-dynamodb-redis" }
-winterbaume-kms = { version = "0.1.0", path = "crates/winterbaume-kms" }
+winterbaume-kms = { version = "0.2.0", path = "crates/winterbaume-kms" }
 winterbaume-ssm = { version = "0.1.0", path = "crates/winterbaume-ssm" }
 winterbaume-secretsmanager = { version = "0.1.0", path = "crates/winterbaume-secretsmanager" }
 winterbaume-cloudwatchlogs = { version = "0.2.0", path = "crates/winterbaume-cloudwatchlogs" }
 winterbaume-sns = { version = "0.1.0", path = "crates/winterbaume-sns" }
-winterbaume-lambda = { version = "0.1.0", path = "crates/winterbaume-lambda" }
+winterbaume-lambda = { version = "0.2.0", path = "crates/winterbaume-lambda" }
 winterbaume-ecr = { version = "0.2.0", path = "crates/winterbaume-ecr" }
 winterbaume-eventbridge = { version = "0.2.0", path = "crates/winterbaume-eventbridge" }
 winterbaume-sfn = { version = "0.1.0", path = "crates/winterbaume-sfn" }
@@ -716,8 +716,8 @@ winterbaume-sagemaker = { version = "0.1.0", path = "crates/winterbaume-sagemake
 winterbaume-appsync = { version = "0.2.0", path = "crates/winterbaume-appsync" }
 winterbaume-iot = { version = "0.2.0", path = "crates/winterbaume-iot" }
 winterbaume-kafka = { version = "0.2.0", path = "crates/winterbaume-kafka" }
-winterbaume-lexmodelsv2 = { version = "0.1.0", path = "crates/winterbaume-lexmodelsv2" }
-winterbaume-lakeformation = { version = "0.1.0", path = "crates/winterbaume-lakeformation" }
+winterbaume-lexmodelsv2 = { version = "0.2.0", path = "crates/winterbaume-lexmodelsv2" }
+winterbaume-lakeformation = { version = "0.2.0", path = "crates/winterbaume-lakeformation" }
 winterbaume-amp = { version = "0.2.0", path = "crates/winterbaume-amp" }
 winterbaume-opensearch = { version = "0.1.0", path = "crates/winterbaume-opensearch" }
 winterbaume-opensearchserverless = { version = "0.1.0", path = "crates/winterbaume-opensearchserverless" }
@@ -777,7 +777,7 @@ winterbaume-marketplacemetering = { version = "0.1.0", path = "crates/winterbaum
 winterbaume-sagemakermetrics = { version = "0.1.0", path = "crates/winterbaume-sagemakermetrics" }
 winterbaume-sagemakerruntime = { version = "0.1.0", path = "crates/winterbaume-sagemakerruntime" }
 winterbaume-iotdataplane = { version = "0.2.0", path = "crates/winterbaume-iotdataplane" }
-winterbaume-kinesisvideoarchivedmedia = { version = "0.1.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
+winterbaume-kinesisvideoarchivedmedia = { version = "0.2.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
 winterbaume-resourcegroupstagging = { version = "0.1.0", path = "crates/winterbaume-resourcegroupstagging" }
 winterbaume-applicationautoscaling = { version = "0.2.0", path = "crates/winterbaume-applicationautoscaling" }
 winterbaume-autoscaling = { version = "0.2.0", path = "crates/winterbaume-autoscaling" }
