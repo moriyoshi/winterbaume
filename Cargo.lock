@@ -13048,7 +13048,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-identitystore"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13068,7 +13068,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-inspector2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13089,7 +13089,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-iot"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13110,7 +13110,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-iotdataplane"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13132,7 +13132,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ivs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
