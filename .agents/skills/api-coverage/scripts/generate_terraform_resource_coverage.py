@@ -87,6 +87,13 @@ PREFIX_OVERRIDES: dict[str, list[str]] = {
     "events": ["aws_cloudwatch_event_"],
     "firehose": ["aws_kinesis_firehose_"],
     "kinesisvideo": ["aws_kinesis_video_"],
+    # `kinesisanalyticsv2` ships both v1 (`aws_kinesis_analytics_*`) and v2
+    # (`aws_kinesisanalyticsv2_*`) resource types, which share no useful
+    # common prefix beyond `aws_`. List both explicitly.
+    "kinesisanalyticsv2": [
+        "aws_kinesis_analytics_",
+        "aws_kinesisanalyticsv2_",
+    ],
     "stepfunctions": ["aws_sfn_"],
     "kafka": ["aws_msk_"],
     "directconnect": ["aws_dx_"],
@@ -226,10 +233,13 @@ def build_rows(schema_resources: set[str]) -> list[dict]:
         note = ""
         if isinstance(prefix, list):
             candidates = {r for r in schema_resources if matches_any(r, prefix)}
-            prefix_display = (
-                f"override ({len(prefix)} patterns)" if len(prefix) > 1
-                else f"`{prefix[0]}`"
-            )
+            if len(prefix) == 1:
+                prefix_display = f"`{prefix[0]}`"
+            elif len(prefix) <= 3:
+                prefix_display = ", ".join(f"`{p}`" for p in prefix)
+            else:
+                head = ", ".join(f"`{p}`" for p in prefix[:2])
+                prefix_display = f"{head}, +{len(prefix) - 2} more"
         elif prefix in {"", "aws_"}:
             candidates = set()
             prefix_display = prefix

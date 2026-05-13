@@ -241,4 +241,4 @@ Winterbaume implements **? of ? operations across ? AWS services (?%)** with rea
 
 ---
 
-See also: [Terraform Converter Coverage](/reference/terraform) — 1,025 Terraform resource types with inject/extract field coverage against the official AWS provider schema.
+See also: [Terraform Converter Coverage](/reference/terraform) — 1,140 Terraform resource types with inject/extract field coverage against the official AWS provider schema.

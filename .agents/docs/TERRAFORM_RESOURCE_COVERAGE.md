@@ -1,16 +1,16 @@
 # Per-service Terraform resource coverage
 
 Schema resources total: **1526**
-Resources classified to a service via prefix: **1191**
+Resources classified to a service via prefix: **1194**
 Currently handled by winterbaume: **1127** (1122 verified against schema)
-Missing within classified prefixes: **77**
+Missing within classified prefixes: **78**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
 | ebs | `aws_ebs_` | 2 | 8 | 6 | 25% |  |
-| elbv2 | override (2 patterns) | 10 | 16 | 6 | 62% |  |
+| elbv2 | `aws_lb`, `aws_alb` | 10 | 16 | 6 | 62% |  |
 | kinesis | `aws_kinesis_` | 3 | 6 | 3 | 50% |  |
 | account | `aws_account_` | 1 | 3 | 2 | 33% |  |
 | apigateway | `aws_api_gateway_` | 24 | 26 | 2 | 92% |  |
@@ -21,7 +21,7 @@ Sorted by missing-count desc.
 | elasticbeanstalk | `aws_elastic_beanstalk_` | 2 | 4 | 2 | 50% |  |
 | iam | `aws_iam_` | 32 | 34 | 2 | 94% |  |
 | ivs | `aws_ivs_` | 1 | 3 | 2 | 33% |  |
-| rds | override (2 patterns) | 27 | 29 | 2 | 93% |  |
+| rds | `aws_db_`, `aws_rds_` | 27 | 29 | 2 | 93% |  |
 | rekognition | `aws_rekognition_` | 1 | 3 | 2 | 33% |  |
 | route53domains | `aws_route53domains_` | 1 | 3 | 2 | 33% |  |
 | secretsmanager | `aws_secretsmanager_` | 2 | 4 | 2 | 50% |  |
@@ -37,7 +37,7 @@ Sorted by missing-count desc.
 | acm | `aws_acm_` | 1 | 2 | 1 | 50% |  |
 | appflow | `aws_appflow_` | 1 | 2 | 1 | 50% |  |
 | applicationautoscaling | `aws_appautoscaling_` | 2 | 3 | 1 | 67% |  |
-| autoscaling | override (3 patterns) | 9 | 10 | 1 | 90% |  |
+| autoscaling | `aws_autoscaling_`, `aws_launch_configuration`, `aws_launch_template` | 9 | 10 | 1 | 90% |  |
 | bedrock | `aws_bedrock_` | 5 | 6 | 1 | 83% |  |
 | budgets | `aws_budgets_` | 1 | 2 | 1 | 50% |  |
 | chatbot | `aws_chatbot_` | 2 | 2 | 1 | 50% |  |
@@ -51,7 +51,8 @@ Sorted by missing-count desc.
 | emrcontainers | `aws_emrcontainers_` | 1 | 2 | 1 | 50% |  |
 | glacier | `aws_glacier_` | 1 | 2 | 1 | 50% |  |
 | identitystore | `aws_identitystore_` | 2 | 3 | 1 | 67% |  |
-| mediastore | override (2 patterns) | 1 | 2 | 1 | 50% |  |
+| kinesisanalyticsv2 | `aws_kinesis_analytics_`, `aws_kinesisanalyticsv2_` | 2 | 3 | 1 | 67% |  |
+| mediastore | `aws_media_store_`, `aws_mediastore_` | 1 | 2 | 1 | 50% |  |
 | resourcegroups | `aws_resourcegroups_` | 1 | 2 | 1 | 50% |  |
 | acmpca | `aws_acmpca_` | 5 | 5 | 0 | 100% |  |
 | amp | `aws_prometheus_` | 5 | 5 | 0 | 100% |  |
@@ -70,10 +71,10 @@ Sorted by missing-count desc.
 | bedrockagent | `aws_bedrockagent_` | 8 | 8 | 0 | 100% |  |
 | cloudformation | `aws_cloudformation_` | 5 | 5 | 0 | 100% |  |
 | cloudfront | `aws_cloudfront_` | 16 | 16 | 0 | 100% |  |
-| cloudwatch | override (3 patterns) | 4 | 4 | 0 | 100% |  |
+| cloudwatch | `aws_cloudwatch_metric_`, `aws_cloudwatch_dashboard`, `aws_cloudwatch_composite_alarm` | 4 | 4 | 0 | 100% |  |
 | codebuild | `aws_codebuild_` | 6 | 6 | 0 | 100% |  |
 | codecommit | `aws_codecommit_` | 4 | 4 | 0 | 100% |  |
-| cognitoidp | override (5 patterns) | 9 | 9 | 0 | 100% |  |
+| cognitoidp | `aws_cognito_user_`, `aws_cognito_managed_user_pool_client`, +3 more | 9 | 9 | 0 | 100% |  |
 | config | `aws_config_` | 13 | 13 | 0 | 100% |  |
 | connect | `aws_connect_` | 16 | 16 | 0 | 100% |  |
 | datasync | `aws_datasync_` | 13 | 13 | 0 | 100% |  |
@@ -82,7 +83,7 @@ Sorted by missing-count desc.
 | directory | `aws_directory_service_` | 8 | 8 | 0 | 100% |  |
 | dms | `aws_dms_` | 8 | 8 | 0 | 100% |  |
 | dynamodb | `aws_dynamodb_` | 9 | 9 | 0 | 100% |  |
-| ec2 | override (37 patterns) | 145 | 139 | 0 | 104% |  |
+| ec2 | `aws_vpc`, `aws_subnet`, +35 more | 145 | 139 | 0 | 104% |  |
 | ec2instanceconnect | `aws_ec2_instance_connect_` | 1 | 1 | 0 | 100% |  |
 | ecr | `aws_ecr_` | 9 | 9 | 0 | 100% |  |
 | ecs | `aws_ecs_` | 8 | 8 | 0 | 100% |  |
@@ -101,7 +102,6 @@ Sorted by missing-count desc.
 | iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
 | kafka | `aws_msk_` | 8 | 8 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
-| kinesisanalyticsv2 | aws_ | 2 | 0 | 0 | — | heterogeneous prefix; manual review needed |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
 | kms | `aws_kms_` | 9 | 9 | 0 | 100% |  |
 | lakeformation | `aws_lakeformation_` | 8 | 8 | 0 | 100% |  |
@@ -129,7 +129,7 @@ Sorted by missing-count desc.
 | redshift | `aws_redshift_` | 23 | 23 | 0 | 100% |  |
 | resiliencehub | `aws_resiliencehub_` | 1 | 1 | 0 | 100% |  |
 | rolesanywhere | `aws_rolesanywhere_` | 2 | 2 | 0 | 100% |  |
-| route53 | override (11 patterns) | 13 | 13 | 0 | 100% |  |
+| route53 | `aws_route53_cidr_`, `aws_route53_delegation_set`, +9 more | 13 | 13 | 0 | 100% |  |
 | route53resolver | `aws_route53_resolver_` | 12 | 12 | 0 | 100% |  |
 | s3 | `aws_s3_` | 26 | 26 | 0 | 100% |  |
 | s3control | `aws_s3control_` | 15 | 14 | 0 | 100% |  |
@@ -357,6 +357,10 @@ Sorted by missing-count desc.
 ### identitystore — 1 missing
 
 - `aws_identitystore_group_membership`
+
+### kinesisanalyticsv2 — 1 missing
+
+- `aws_kinesisanalyticsv2_application_snapshot`
 
 ### mediastore — 1 missing
 
