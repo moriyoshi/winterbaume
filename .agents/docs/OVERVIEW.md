@@ -14,9 +14,10 @@ The project aims to be useful for realistic local workflows, not to be a bit-for
 - Protocol coverage spans awsQuery, ec2Query, awsJson1.0, awsJson1.1, restJson1, restXml, and rpc-v2-cbor.
 - Many service crates are fully or substantially implemented, but coverage is intentionally reported as two numbers: state-backed operations and routed stubs. `README.md` and `.agents/docs/API_COVERAGE.md` are the source of truth for current counts.
 - Every service crate exposes a typed `StatefulService` view for snapshot, restore, and merge. Terraform converters, state injection, and generated documentation all rely on that stable view contract.
+- Terraform support is now partly spec-driven: Terraform state resource models are generated from TOML specs into `winterbaume-tfstate-resource-models`, while hand-written converters keep ownership of state projection, nested blocks, and registration.
 - Large payloads use the shared `Vfs` / `BlobStore` layer instead of living inside service state. Optional Redis and DuckDB integrations stay in separate crates so the default path remains lightweight.
 - Generated Smithy `model.rs` and `wire.rs` modules are standard across mapped services. Generator fixes belong in `tools/smithy-codegen`, not in hand-edited generated files.
-- Release tooling is part of the project surface: cargo-dist builds the server artefacts, while `tools/release-batch/` preserves dependency order and chunks first-launch crates.io publishing around new-crate quota limits.
+- Release and CI tooling are part of the project surface: cargo-dist builds the server artefacts, CI skips docs-only or source-identical work where safe, and `tools/release-batch/` preserves dependency order and chunks first-launch crates.io publishing around new-crate quota limits.
 
 ## Boundaries
 

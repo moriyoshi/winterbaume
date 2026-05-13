@@ -1147,7 +1147,7 @@ EC2 is the only crate that currently owns in-service VPC/network maps, but that 
 
 ## Winterbaume LTM Notes
 
-Sources: .agents/docs/LTM/ec2-crate-split-and-feature-gating.md, .agents/docs/LTM/ec2-operation-expansion-and-invariants.md, .agents/docs/LTM/terraform-e2e-harness-and-fix-coverage.md, .agents/docs/LTM/smithy-codegen-and-wire-serialization.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md.
+Sources: .agents/docs/LTM/ec2-crate-split-and-feature-gating.md, .agents/docs/LTM/ec2-operation-expansion-and-invariants.md, .agents/docs/LTM/terraform-e2e-harness-and-fix-coverage.md, .agents/docs/LTM/smithy-codegen-and-wire-serialization.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md, .agents/docs/LTM/terraform-converter-codegen-and-resource-coverage.md.
 
 Mode: full distillation.
 
@@ -1172,6 +1172,15 @@ Mode: full distillation.
 - Scenario coverage should exercise more than one operation and then read the resulting state. EC2 has durable bug classes around launch-template default-version propagation, snapshot-derived volume defaults, fresh association IDs for repeated `AssociateAddress` calls, EBS encryption-by-default propagation, and ENI attachment ID uniqueness.
 - Counter helpers need ID-family review. Reusing an EC2 resource counter for a distinct association or attachment namespace can mint duplicate AWS-visible IDs; `AssociateAddress` and `AttachNetworkInterface` are the reference cases.
 - Terraform converter work for EC2 should follow view support. High-impact converter families include IPAM, Verified Access, Traffic Mirror, transit-gateway extensions, and Network Insights; Client VPN, Local Gateway, Route Server, and some Capacity Reservation extensions are known deferred areas.
+
+### Terraform State/View Gaps
+
+- The 100-resource Terraform converter wave found EC2 view gaps that should be closed before treating the corresponding resource families as full-fidelity. `RouteTableAssociationView` needs a `gateway_id` field so gateway-side `aws_route_table_association` resources round-trip correctly.
+- `RouteTableView` needs a `propagating_vgws` slot. Until then, `aws_vpn_gateway_route_propagation` can only be warning-only or lossy because the parent route-table view has nowhere to preserve propagated gateway state.
+- `VpcEndpointView` needs `private_dns_enabled`; otherwise the `aws_vpc_endpoint_private_dns` toggle cannot survive inject -> snapshot -> extract.
+- `ImageView` is missing AMI metadata needed by Terraform-backed flows: `kernel_id`, `ramdisk_id`, `ena_support`, `sriov_net_support`, `tpm_support`, `boot_mode`, `imds_support`, `image_location`, and source-AMI metadata for `aws_ami_copy`.
+- `Ec2StateView` has no singleton spot datafeed subscription slot. Add one before modelling `aws_spot_datafeed_subscription` as durable state.
+- The VPC route-server family was added through converter-injected state. Revisit the service model when EC2 route-server handlers mature so converter state and AWS-facing behaviour share the same source of truth.
 
 ### Terraform Provider Compatibility
 

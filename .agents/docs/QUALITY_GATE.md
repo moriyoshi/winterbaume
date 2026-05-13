@@ -72,6 +72,7 @@ Gate checks:
 - [ ] The top-level `*StateView` represents one account and region worth of state. It does not carry `account_id`, `region`, `accounts`, `regions`, or account/region-keyed wrapper maps unless the AWS service is genuinely global and that exception is documented.
 - [ ] Resource-level account, region, owner, ARN, peer-account, bucket-location, or replication metadata is present only when it is part of the AWS resource identity or wire contract.
 - [ ] `snapshot(account_id, region)`, `restore(account_id, region, view)`, and `merge(account_id, region, view)` use the supplied scope and do not silently substitute `DEFAULT_ACCOUNT_ID`, `ctx.default_region`, `"123456789012"`, `"us-east-1"`, or a shared global bucket.
+- [ ] Runtime handler code uses `winterbaume_core::default_account_id()` rather than direct `DEFAULT_ACCOUNT_ID` references for AWS-visible account identity. `MockAws::builder().account_id(...)` is not a per-instance handler identity mechanism unless a future change explicitly installs the process-wide override.
 - [ ] `restore()` is a full replacement; `merge()` is additive and must not delete resources absent from the incoming view.
 - [ ] Collection fields and newly added view fields use `#[serde(default)]` so older snapshots continue to deserialise.
 - [ ] Top-level `*StateView` types that external callers construct derive `Default`; injector and test fixtures prefer small builder helpers plus `..Default::default()` over exhaustive field literals.
@@ -228,11 +229,16 @@ Gate checks:
 
 - [ ] Services with Terraform provider resources have E2E modules under `tests/e2e/terraform/`.
 - [ ] Terraform resource-to-crate mapping tables in `.agents/skills/api-coverage/scripts/generate_coverage.py` are current.
+- [ ] Spec-driven converter models are updated through `crates/winterbaume-terraform/specs/*.toml` and regenerated with `./.agents/bin/cargo.sh run -p tf-converter-codegen -- gen <service>`.
+- [ ] `./.agents/bin/cargo.sh run -p tf-converter-codegen -- check` passes after any Terraform spec or generated-model change.
+- [ ] Generated files in `crates/winterbaume-tfstate-resource-models/src/*.rs` are not hand-edited.
+- [ ] Generated `*TfModel` structs cover only the flat Terraform state model; nested blocks, vectors, maps, discriminated shapes, ARN templates, warning-only semantics, and state mutation stay in reviewed converter code.
 - [ ] Converters inject and extract through `StatefulService` views and `merge()`, not by mutating private runtime state.
 - [ ] `do_inject()` and `do_extract()` preserve account and region symmetry. Default-scope extraction limitations are explicit and tested.
 - [ ] Multi-scope extraction uses `ConversionContext`, scoped `ExtractedResource` metadata, `TerraformInjector::register_with_scopes()`, and `TerraformInjector::extract_all()`.
 - [ ] Scope providers are read-only, deterministic, and do not create empty backend buckets.
 - [ ] New converter structs are registered in the injector build path used by server and E2E harnesses.
+- [ ] Warning-only converters are documented as parser/ownership placeholders and backed by concrete TODO rows when service-state fidelity remains open.
 - [ ] Converter tests cover JSON-shape mismatch: Terraform provider-shaped JSON must be translated into AWS-shaped JSON before entering a `*StateView`.
 - [ ] Converter tests cover identifier id/name swaps: injected and extracted IDs must preserve provider names and AWS identifiers distinctly.
 - [ ] The conversion error variant is `ConversionError::MissingAttribute`.
@@ -261,6 +267,8 @@ Gate checks:
 - [ ] Dossier-derived README sections are regenerated from `.agents/docs/services/<model-slug>.md`, not hand-copied into crate READMEs.
 - [ ] Source dossier-section counts match generated README-section counts for transcribed sections such as `## Current Network Resource Stub Semantics`.
 - [ ] Coverage report false negatives from stale heuristics, stale caches, or resource-to-crate mappings are fixed in the reporting scripts rather than hidden with misleading wrapper tests.
+- [ ] Terraform coverage reports are regenerated after converter/resource changes: `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`, `.agents/docs/TERRAFORM_CONVERTER_COVERAGE.md`, and `docs/reference/terraform.md`.
+- [ ] Terraform coverage parser gaps involving prefix overrides, generated `*TfModel` field access, or macro-generated converters are fixed in `.agents/skills/api-coverage/scripts/`, not papered over in docs.
 - [ ] `README.md`, service dossiers, and coverage tables agree on crate names, Smithy model slugs, protocol names, implemented operations, stubs, and Terraform support.
 
 ## 12. Server, Examples, and Workspace Wiring
@@ -284,6 +292,9 @@ GitHub Actions, cargo-dist, cargo-release, and crates.io publication tooling are
 
 Gate checks:
 
+- [ ] `.github/workflows/ci.yml` path filters still run full CI for code, workflow, tool, examples, vendored model, lockfile, and Cargo metadata changes.
+- [ ] Prior-pass cache markers are keyed by the code-relevant tree and are saved only after successful jobs.
+- [ ] Jobs that should flow through skipped upstream cache hits use `!failure() && !cancelled()` rather than relying on implicit `success()`.
 - [ ] Every `uses:` reference in `.github/workflows/` is pinned to a commit SHA with the version tag in an inline comment.
 - [ ] SHA and version-tag comments move together during action bumps.
 - [ ] `release.yml` carries a current `CARGO_DIST_INSTALLER_SHA256` matching `CARGO_DIST_INSTALLER_URL`, and the installer is verified before execution.
@@ -294,12 +305,14 @@ Gate checks:
 - [ ] `triage-bug.yml` runs the prompt-injection guardrail before AI triage. The hostile issue body must not reach the triage assistant.
 - [ ] The guardrail exposes `safe`, `abuse`, and `inconclusive`; labels `possible-abuse` only on `abuse`; and downstream steps gate on `verdict == 'safe'`.
 - [ ] The `Install Rust non-interactively` step in `release.yml` is left as the documented rust-lang.org installer exception unless upstream guidance changes.
+- [ ] cargo-dist targets match the currently shippable matrix in `dist-workspace.toml`; do not re-add musl Linux or Windows ARM without fresh hosted-CI proof of the cross toolchain.
 - [ ] First public crates.io publication uses either a crates.io `publish_new` quota raise or `tools/release-batch/` with chunks no larger than the current quota. Do not rely on cargo-release hooks to sleep around this limit; crates.io rejects oversized new-crate batches before per-crate hooks run.
 - [ ] Release-batch plan output is reviewed before `--execute`: publishable crates are topologically ordered, helper crates such as `winterbaume-core` appear before services, and umbrella / server / Terraform meta-crates appear last.
 - [ ] When agents invoke `tools/release-batch/`, pass `--cargo ./.agents/bin/cargo.sh` or set `WB_CARGO=./.agents/bin/cargo.sh` so release subprocesses use the same wrapper environment as other cargo work.
 - [ ] Root `winterbaume` package `include` entries are anchored ( for example `/Cargo.toml`, `/README.md`, `/src/**/*.rs` ) so cargo packaging does not include nested docs, vendored Smithy models, examples, or agent memory.
 - [ ] Root package `autoexamples = false` remains set while `examples/` is intentionally excluded from the package whitelist.
 - [ ] Publishable crates carry `description`, `license`, `repository`, and `readme` metadata. Per-crate metadata exceptions are deliberate and documented.
+- [ ] Publishable crates inherit or explicitly set crates.io keywords that remain within crates.io limits.
 
 ## 14. Known Non-Blocking Issues
 

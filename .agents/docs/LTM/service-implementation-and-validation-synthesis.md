@@ -14,6 +14,7 @@ Winterbaume's durable implementation workflow is now one service-hardening lifec
 | [aws-doc-test-plan-catalog.md](./aws-doc-test-plan-catalog.md) | Docs-driven fallback planning, scenario catalogs, and one-off post-batch plan patterns |
 | [terraform-e2e-harness-and-fix-coverage.md](./terraform-e2e-harness-and-fix-coverage.md) | Terraform-provider compatibility, E2E harness behaviour, and `FIX(terraform-e2e)` regression coverage |
 | [terraform-resource-converters.md](./terraform-resource-converters.md) | Terraform inject and extract coverage, converter contract, and `StateView`-gated resource support |
+| [terraform-converter-codegen-and-resource-coverage.md](./terraform-converter-codegen-and-resource-coverage.md) | Spec-driven Terraform converter models, generated `tfstate` model crate, resource-coverage expansion waves, and coverage-report heuristics |
 | [state-error-shaping-and-handler-boundaries.md](./state-error-shaping-and-handler-boundaries.md) | Domain-error enums in `state.rs` and AWS-facing error shaping in `handlers.rs` |
 | [stub-handler-audit-and-promotion.md](./stub-handler-audit-and-promotion.md) | Stub taxonomy, state-backed promotion patterns, and what should still stay deferred |
 | [quality-gate-workflow-and-recurring-findings.md](./quality-gate-workflow-and-recurring-findings.md) | Repeatable crate-hardening workflow, recurring failure classes, and TODO triage rules |
@@ -32,8 +33,11 @@ Winterbaume's durable implementation workflow is now one service-hardening lifec
 - Terraform provider reads often require stricter filtering than SDK smoke tests. EC2 is the reference: Describe handlers that return all rows can pass while only one resource exists, then fail provider refresh once two resources share a family. Parse explicit `<Id>.N` lists and standard `Filter.N` entries, and make generic Describe handlers iterate every subtype sharing the same id namespace.
 - Some Terraform failures are upstream provider bugs rather than mock bugs. EC2 capacity block reservation in provider v6.43.0 uses AutoFlex without mapping SDK field names `CapacityReservationArn`, `CreateDate`, and `TotalInstanceCount` to framework fields `ARN`, `CreatedDate`, and `InstanceCount`; emitting non-Smithy XML names from Winterbaume is not the right fix.
 - Terraform resource converters are part of the same lifecycle, not a separate integration toy. They rely on `StateView` fidelity and `merge()` semantics, so converter support should follow view support rather than bypass it.
+- Terraform converter maintenance is now spec-driven for flat Terraform state models. `tools/tf-converter-codegen/` emits serde `*TfModel` structs from `crates/winterbaume-terraform/specs/*.toml`, generated models live in the leaf crate `winterbaume-tfstate-resource-models`, and hand-written converters keep ownership of state mutation, nested-block reshaping, ARN/URL templates, warning-only semantics, and registration.
+- Most Terraform converter specs should stay in `mode = "model_only"`. The deliberately small spec vocabulary ( `string`, `string?`, `u32`, `i64`, `bool`, `tags` ) keeps complicated mappings visible in hand-written converter code instead of hiding them in generated output.
+- Warning-only Terraform converters are legitimate when Terraform must parse a resource type but the backing service state does not model that resource family yet. They are not full fidelity and should leave concrete state-layer follow-up work in `TODO.md` when the gap matters.
 - Nested Terraform-block work is a full vertical slice, not a converter-only clean-up. When a resource needs nested blocks such as `logging_configuration`, `encryption_configuration`, `vpc_config`, or `snapshot_copy`, the durable fix usually spans service types, handlers, `views.rs`, converter inject or extract logic, and Terraform E2E no-drift checks.
-- Coverage reporting itself is part of the workflow, not just a report artefact. False negatives from handler-shape heuristics or Terraform resource-to-crate mappings are normal maintenance work at repo scale.
+- Coverage reporting itself is part of the workflow, not just a report artefact. False negatives from handler-shape heuristics, Terraform resource-to-crate mappings, generated `*TfModel` field access, or macro-generated converter bodies are normal maintenance work at repo scale.
 - XML, awsQuery, and ec2Query services need extra care around response wrappers, list serialization, and protocol-specific request or response structure.
 - Coverage reporting can undercount implemented operations when handlers use generic or non-standard dispatch patterns; treat coverage mismatches as hypotheses to investigate, not as proof.
 - Local verification should match CI scope. If generated code, tests, or examples changed, `cargo clippy --workspace --all-targets` is the reliable check; library-only clippy runs miss example and test warnings.
@@ -68,6 +72,7 @@ Winterbaume's durable implementation workflow is now one service-hardening lifec
 - Path identifiers that can be either bare IDs or ARNs should use one helper that strips the trailing slash component for ARN inputs and returns bare IDs unchanged.
 - Terraform converter work is not complete when the file compiles. Registration in the injector build path is part of the definition of done.
 - Terraform extraction now has a multi-scope path for opted-in regional services: `ConversionContext`, scoped `ExtractedResource` metadata, `BackendState::scopes_with_state()`, and `TerraformInjector::extract_all()` with post-collection collision handling.
+- Terraform converter coverage now has two complementary reports: `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md` for service/resource-type coverage and `.agents/docs/TERRAFORM_CONVERTER_COVERAGE.md` for per-resource attribute coverage. `update-readme` regenerates both reports and `docs/reference/terraform.md`; use `--no-terraform` only when the Terraform CLI is unavailable.
 - Parallel worktree batches can overstate what landed. Journal or agent summaries must be checked against the main working tree before promoting a claimed converter or nested-block completion into durable guidance.
 - The quality-gate pass is not an afterthought. It is the final check that the crate adopted generated wire helpers where possible, preserved state-view fidelity, annotated intentional stubs clearly, and recorded only the real deferred work in `TODO.md`.
 - Docs-driven planning in this repository follows a stable structure: source URLs, a short service summary, implemented operations, candidate scenarios, and explicit expected outcomes.
@@ -110,13 +115,15 @@ When adding or expanding a service, use this order:
 13. If Terraform resource converters are relevant, extend `views.rs` first, then add inject or extract coverage against the converter contract rather than mutating private state directly.
 14. If provider traces show a protocol or URL style different from SDK tests, implement the provider-facing path rather than assuming SDK compatibility covers it.
 15. For nested Terraform blocks, treat the work as full-stack. Update service types and handlers where needed, then `views.rs`, then the converter, then add a no-drift Terraform E2E assertion rather than stopping at converter integration tests.
-16. Register new converters where the injector is constructed. Converter code that exists only on disk is not finished.
-17. For scoped Terraform extraction, prefer service-level `scopes_with_state()` plus injector `register_with_scopes()` over converter access to private service fields.
-18. All `STUB[no-state]` handlers have been promoted. For any new handlers, ensure they are state-backed from the start rather than returning empty/default responses. Defer only operations that truly need a separate engine or external integration.
-19. Finish with a quality-gate pass and sort findings into: fix now in the crate, fix in `smithy-codegen`, or defer into `TODO.md` because the remaining work is concrete and still open.
-20. Re-check `API_COVERAGE.md`, but treat mismatches as a prompt for local inspection of handler-detection heuristics, integration-test parsing, and Terraform resource-to-crate mappings.
-21. If examples or test-only helpers changed, run the same `--all-targets` clippy path CI uses before considering the work clean.
-22. If the work was done through parallel agents or worktrees, verify the claimed landing state in the main checkout before writing the result up as durable project knowledge.
+16. For spec-driven converter work, edit `crates/winterbaume-terraform/specs/<service>.toml`, regenerate with `./.agents/bin/cargo.sh run -p tf-converter-codegen -- gen <service>`, then run `./.agents/bin/cargo.sh run -p tf-converter-codegen -- check`.
+17. Register new converters where the injector is constructed. Converter code that exists only on disk is not finished.
+18. For broad converter waves, let sub-agents own independent service spec/generated/converter files and merge `winterbaume-server/src/main.rs` registrations centrally to avoid write conflicts.
+19. For scoped Terraform extraction, prefer service-level `scopes_with_state()` plus injector `register_with_scopes()` over converter access to private service fields.
+20. All `STUB[no-state]` handlers have been promoted. For any new handlers, ensure they are state-backed from the start rather than returning empty/default responses. Defer only operations that truly need a separate engine or external integration.
+21. Finish with a quality-gate pass and sort findings into: fix now in the crate, fix in `smithy-codegen`, or defer into `TODO.md` because the remaining work is concrete and still open.
+22. Re-check `API_COVERAGE.md` and the Terraform coverage reports, but treat mismatches as prompts for local inspection of handler-detection heuristics, integration-test parsing, resource-to-crate mappings, generated-model parsing, and macro converter detection.
+23. If examples or test-only helpers changed, run the same `--all-targets` clippy path CI uses before considering the work clean.
+24. If the work was done through parallel agents or worktrees, verify the claimed landing state in the main checkout before writing the result up as durable project knowledge.
 
 Use the strongest available spec source:
 
@@ -149,7 +156,10 @@ When the work is architectural rather than service-specific:
 - `crates/winterbaume-*/tests/scenario_test.rs`: chained scenario layer for cross-call invariants.
 - `tests/e2e/terraform/harness.rs`: Terraform E2E harness and smoke-test helpers.
 - `crates/winterbaume-terraform/src/converters/*.rs`: Terraform inject and extract support built on `StateView`
+- `crates/winterbaume-terraform/specs/*.toml`: spec-driven Terraform `*TfModel` definitions
 - `crates/winterbaume-terraform/src/injector.rs`: converter registration, scope providers, and `extract_all()`
+- `crates/winterbaume-tfstate-resource-models/src/*.rs`: generated Terraform state resource model structs
+- `tools/tf-converter-codegen/`: Terraform converter model generator and stale-generated-code checker
 - `tools/smithy-codegen/src/model.rs`: service-model parsing, timestamp logic, and resource-operation discovery.
 - `tools/smithy-codegen/src/gen_serializers.rs`: serialiser generation and XML, awsQuery, and ec2Query behaviour.
 - `.agents/docs/API_COVERAGE.md`: coverage report, useful but imperfect.
@@ -166,6 +176,7 @@ Regression layers should be chosen deliberately:
 - docs-driven tests when moto is absent or incomplete
 - Terraform E2E tests for provider compatibility and sub-resource read behaviour
 - Terraform converter integration tests for inject or extract fidelity against `StateView`
+- `tf-converter-codegen -- check` for spec/model freshness after any Terraform spec edit
 - quality-gate checks for crate-local build, clippy, fmt, state-view fidelity, and stub annotation hygiene
 - focused per-crate build or test runs for architectural refactors such as error-shaping changes
 
@@ -195,7 +206,10 @@ For generated-code regressions, compile and rerun the affected service suite aft
 - Do not assume Terraform provider traffic uses the same protocol or URL shape as SDK clients.
 - Do not treat "too many results" provider refresh failures as flaky E2E noise. They often mean a Describe handler ignored id or filter params.
 - Do not write Terraform converters against private runtime state when `views.rs` is the real durable contract.
+- Do not hand-edit generated `winterbaume-tfstate-resource-models` files; edit the TOML spec and regenerate.
+- Do not expand the Terraform converter spec vocabulary casually. Complex nested blocks, vectors, maps, and discriminated shapes belong in reviewed hand-written converter code.
 - Do not treat top-level Terraform converter coverage as proof that nested blocks round-trip correctly.
+- Do not treat warning-only converters as completed service support.
 - Do not trust `API_COVERAGE.md` blindly when generic dispatch or stale detection may be involved.
 - Do not let state modules grow HTTP or AWS wire concerns just because the first handler mapping feels repetitive.
 - Do not introduce new `STUB[no-state]` handlers — the codebase has zero remaining and new handlers should be state-backed from the start.

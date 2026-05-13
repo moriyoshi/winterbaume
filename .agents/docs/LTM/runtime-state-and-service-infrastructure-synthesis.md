@@ -11,6 +11,7 @@ Winterbaume's durable service architecture is the combination of the service-har
 | [service-implementation-and-validation-synthesis.md](./service-implementation-and-validation-synthesis.md) | High-level workflow for service growth, Smithy-backed wire support, and layered validation |
 | [stateful-service-and-blob-store.md](./stateful-service-and-blob-store.md) | Async state-view contract, VFS and BlobStore architecture, snapshot-fidelity guidance, and derived-service rules |
 | [terraform-resource-converters.md](./terraform-resource-converters.md) | Converter contract, inject or extract semantics, and `StateView`-gated Terraform support |
+| [runtime-account-identity-configuration.md](./runtime-account-identity-configuration.md) | Runtime account ID configuration, handler migration off `DEFAULT_ACCOUNT_ID`, and process-wide override limitations |
 
 ## Stable Knowledge
 
@@ -18,6 +19,8 @@ Winterbaume's durable service architecture is the combination of the service-har
 - `StatefulService` is a repo-wide async contract. `snapshot`, `restore`, `merge`, and `notify_state_changed` are part of the normal service architecture, not optional extras.
 - Typed `views.rs` modules are the stable serde-facing contract for durable state. Runtime-only fields belong in `state.rs`, not in serialized views.
 - The `(account_id, region)` passed to `snapshot`, `restore`, and `merge` is the durable scope selector. Top-level `*StateView` structs must not carry their own account or region selectors.
+- Runtime handlers should resolve the default account through `winterbaume_core::default_account_id()`, not by directly reading `DEFAULT_ACCOUNT_ID`. `winterbaume-server` installs the configured account ID at startup from CLI/env/config precedence.
+- The runtime account override is process-wide and first-writer-wins through `OnceLock`. It matches the existing single-global-account architecture; it is not a multi-tenant per-`MockAws` design.
 - `merge()` is additive. Missing entries in an incoming view must not delete existing resources.
 - New view fields should prefer `#[serde(default)]` so older snapshots remain readable after schema expansion.
 - If external callers construct `*StateView` values directly, derive `Default` and prefer `..Default::default()` at call sites so view growth does not break Terraform converters or other injectors.
@@ -63,6 +66,8 @@ When evolving existing state views:
 - `crates/winterbaume-core/src/vfs.rs`: async `Vfs`, `MemVfs`, `FsVfs`, prefix semantics, and path validation
 - `crates/winterbaume-core/src/blob_store.rs`: namespaced blob storage, versioning, composite blob support, and `BlobStoreMap` scoped child stores
 - `crates/winterbaume-core/src/mock_aws.rs`: shared VFS injection used by blob-backed services
+- `crates/winterbaume-core/src/state.rs`: `DEFAULT_ACCOUNT_ID`, `default_account_id()`, and `set_default_account_id()`
+- `crates/winterbaume-server/src/main.rs`: startup installation of the configured runtime account ID
 - `crates/winterbaume-*/src/handlers.rs`: protocol routing, response shaping, and mutation-triggered notifications
 - `crates/winterbaume-*/src/state.rs`: runtime state and validation rules
 - `crates/winterbaume-*/src/views.rs`: durable state-view contract and restore or merge conversions
@@ -100,6 +105,9 @@ Choose the smallest suite that exercises the changed contract:
 - Do not serialize transient runtime state into `StateView` just because it is easy.
 - Do not bypass incomplete views with converter-local state mutation. Extend `views.rs` first.
 - Do not serialize scope selectors into top-level state views. Use the `StatefulService` method arguments.
+- Do not introduce new handler-side uses of `DEFAULT_ACCOUNT_ID`; use `default_account_id()` for runtime account identity.
+- Do not assume `MockAws::builder().account_id(...)` changes handler runtime account ID. It still affects only the builder/getter path unless a future change installs the process-wide override.
+- Do not interpolate `default_account_id()` directly inside Rust format-string braces. Move it to a positional or named format argument.
 - Do not let blob-store namespaces ignore account and region when the corresponding service state is scoped.
 - Do not treat passing SDK smoke tests as proof that snapshot fidelity or Terraform compatibility is correct.
 - Do not treat `terraform apply` success as enough when the contract really depends on apply followed by a no-drift plan.

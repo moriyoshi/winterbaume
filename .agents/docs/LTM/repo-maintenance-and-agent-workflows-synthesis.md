@@ -12,6 +12,7 @@ Winterbaume's repo-level operational knowledge spans several areas that future a
 | [sccache-wrapper-cross-worktree-cache.md](./sccache-wrapper-cross-worktree-cache.md) | Custom Rust cache wrapper, cross-worktree cache keys, singleflight locking, diagnostics, and stale-server recovery |
 | [workspace-readmes-and-service-examples.md](./workspace-readmes-and-service-examples.md) | Coverage and README regeneration, examples layout, and crate-name mapping pitfalls |
 | [crate-publishing-and-release.md](./crate-publishing-and-release.md) | Crate publishing order, cargo-dist binary releases, per-crate READMEs, and metadata corrections |
+| [ci-release-and-package-metadata.md](./ci-release-and-package-metadata.md) | CI path filtering, prior-pass cache markers, cargo-dist target-matrix constraints, and workspace crates.io keyword metadata |
 | [winterbaume-skill-maintenance.md](./winterbaume-skill-maintenance.md) | Self-contained Winterbaume skills, embedded issue-template contracts, slug snapshots, drift CI, and Markdown template hygiene |
 | [github-issue-triage-and-automation.md](./github-issue-triage-and-automation.md) | Service labels, issue forms, AI triage, stale feedback handling, and GitHub-native triage memory |
 | [repo-security-and-supply-chain.md](./repo-security-and-supply-chain.md) | GHA action SHA pinning, cargo-dist installer SHA-256 verification, `GITHUB_TOKEN` scoping, and `workflow_run` chain documentation |
@@ -42,6 +43,8 @@ Winterbaume's repo-level operational knowledge spans several areas that future a
 - Crate renames are never "done" after Cargo builds. They also require updates to scripts, examples, server wiring, and any hardcoded name-mapping tables. The 2026-04-28 `winterbaume-databasemigrationservice` → `winterbaume-databasemigration` rename ( driven by the `aws-sdk-databasemigrationservice` v0.0.0 placeholder mistakenly being chosen over the published `aws-sdk-databasemigration` ) is the reference checklist: directory `git mv`, package name in the crate's `Cargo.toml`, workspace `Cargo.toml` ( members list appears twice, `workspace.dependencies`, root dev-deps on both winterbaume crate and SDK crate ), every consumer crate, the crate's own README and tests, top-level `README.md` + `docs/services/<slug>.md` + `docs/reference/services.md`, `.agents/docs/API_COVERAGE.md`, both active and historical `TODO.md` entries with cross-references back to the old name, skill scripts ( `generate_coverage.py` crate-to-model map, `update_readme.py` crate-to-name map + example-slug alias + server-mode CLI map + `_CRATE_NOTES` placeholder ), and any LTM documents that propagated the old slug. When picking a new `winterbaume-<service>` crate name, cross-check the published `aws-sdk-<slug>` on crates.io and verify version > 0.0.0 — v0.0.0 placeholder crates are misleading.
 - The README "Protocol" column is driven by a hand-maintained `CRATE_DISPLAY_INFO` dict in `.agents/skills/update-readme/scripts/update_readme.py:22`. Crates missing from the dict get the lowercase short name and a literal `?`. Resolve missing entries by reading the `aws.protocols#...` trait directly from each service's Smithy model under `vendor/api-models-aws/models/<slug>/service.json`. Mind that the model directory name is not always the `winterbaume-<x>` suffix ( e.g. `applicationdiscoveryservice` → `application-discovery-service`, `arczonalshift` → `arc-zonal-shift`, `pcaconnectorscep` → `pca-connector-scep`, `route53recoverycluster` → `route53-recovery-cluster`, `autoscalingplans` → `auto-scaling-plans` ). Long-term, derive `(display_name, protocol)` from the Smithy model at generation time rather than hand-curating.
 - Local verification must match CI invocations. `cargo clippy --workspace --all-targets` catches warnings in examples and tests that library-only runs miss.
+- The hosted CI pipeline now has two short-circuit layers. Docs-only pushes to `main` run only the leading `changes` job, and source-identical reruns can skip individual jobs through `ci-pass-<job>-Linux-<hash>` marker caches.
+- CI jobs that should flow through skipped upstream jobs use `!failure() && !cancelled()` rather than the implicit `success()`, because `success()` treats skipped `needs` as non-success.
 - CI Clippy often aborts on the first crate error, so each fix cycle should be followed by another full local `--all-targets` run to expose the next hidden layer rather than assuming the previous failure was the only one.
 - Examples that call handlers directly or bypass the AWS SDK may need root-package `[dev-dependencies]` updates for crates such as `bytes`, `http`, or `serde_json`.
 - Terraform E2E tests in `crates/winterbaume-e2e-tests` should carry `#[ignore]` so the normal CI test job can compile them without requiring Terraform; the dedicated E2E job is the place that runs ignored tests.
@@ -62,9 +65,11 @@ Winterbaume's repo-level operational knowledge spans several areas that future a
 - The crates.io HTTP API can lag cargo's registry-index view after a publish. Prefer cargo's `is already published to crates.io` output as the authoritative immediate retry signal, with HTTP probes as best-effort support.
 - Plan-only `release-batch` runs do not need a version. Execute runs require a version argument, but it may be a concrete semver or a cargo-release level such as `patch`, `minor`, `major`, `release`, `alpha`, `beta`, or `rc`. Crates.io resumability checks only run for concrete semver values.
 - Binary releases for `winterbaume-server` use cargo-dist, triggered by version tags. The release workflow gates on CI via a reusable workflow call — no artefacts build unless CI passes.
+- The current cargo-dist target set is intentionally five platforms: `aarch64-apple-darwin`, `aarch64-unknown-linux-gnu`, `x86_64-apple-darwin`, `x86_64-unknown-linux-gnu`, and `x86_64-pc-windows-msvc`. Musl Linux and Windows ARM were dropped after toolchain failures; do not re-add them without retesting DuckDB, cargo-xwin, clang, AWS SDK MSRV, and runner availability.
 - The umbrella `winterbaume` root package must keep anchored `include` patterns ( for example `/Cargo.toml`, `/README.md`, `/src/**/*.rs` ) because bare patterns match nested files and can package `.agents/`, vendored Smithy models, docs, examples, and other repository content. Keep `autoexamples = false` while root `examples/` is intentionally excluded from the package whitelist.
 - The umbrella package should not carry unused root dev-dependencies. crates.io counts dev-dependencies in the published manifest dependency limit; the May 2026 release removed 455 unused dev-dependencies because root examples were not packaged or auto-discovered.
 - Each crate has its own `README.md` (no workspace-level `readme` inheritance). Service crate READMEs are generated by `update_readme.py` and include an umbrella crate reference and inline code examples.
+- Publishable crates inherit workspace keywords `["aws", "mock", "testing"]`. Keep keyword changes centralised in `[workspace.package]`; `tools/*` crates stay excluded while `publish = false`.
 - Public documentation should now show registry dependencies and `cargo install winterbaume-server` where appropriate. Local `path = "..."` placeholders are contributor-only guidance.
 - `docs/services/*.md` is generated from per-crate READMEs. Fix generated service docs by changing README generation inputs, not by editing the generated VitePress pages.
 - Winterbaume-specific skills should be self-contained when advertised that way. Embed issue-body templates, labeller regexes, and slug snapshots in the skill directory, then enforce drift with CI instead of reading `.github` files at skill runtime.
@@ -99,11 +104,13 @@ When doing repo-maintenance work:
 11. Keep Terraform E2E tests ignored by default unless the normal unit-test job can satisfy their runtime dependencies; use the dedicated ignored-test job for real Terraform execution.
 12. After touching examples, generated code, or test-only helpers, rerun the same CI-shaped checks locally, especially `cargo clippy --workspace --all-targets`.
 13. Keep examples under `examples/` and verify that any crate-name or SDK-name mappings are still correct.
-14. Always run `cargo` through `.agents/bin/cargo.sh` ( or `.ps1` on Windows ). Never invoke bare `cargo` from an agent shell, even with a custom `CARGO_TARGET_DIR`; that bypasses the workspace `RUSTC_WRAPPER` / `WB_*` exports, prevents cross-session cache sharing, and leaves zero `.cachekey` sidecars for `.agents/bin/check-build-cache.sh` to find. Never reuse a sticky `CARGO_TARGET_DIR` name across unrelated tasks; the wrapper's session-derived suffix is precisely the contention fix.
-15. When a build looks stuck and you suspect cross-agent contention, inspect `.agents-workspace/tmp/sccache-wrapper-scoreboard/` directly or run `.agents-workspace/tmp/sccache-wrapper --show-scoreboard`. Live `building` entries with non-empty `contenders` indicate queueing on a singleflight lock; stale `building` entries past 30 s without a heartbeat indicate an abandoned session.
-16. For triage-bug workflow changes, treat the prompt-injection guardrail as the security boundary. The hostile body must never reach the triage assistant; the classifier runs as a separate `actions/ai-inference@v2` step. Do not move detection into the triage system prompt, and do not pair the AI guardrail with a regex heuristic without a specific named attack family the model is known to miss.
-17. For workflow-security work, treat action SHA pinning, cargo-dist installer SHA-256 verification, and `GITHUB_TOKEN` scoping as one bundle. Bump SHAs and tag comments together, recompute installer digests when the URL moves, and revisit branch protection on `main` whenever a recorder workflow's permission scope widens. Document `workflow_run` consumer edges inline so the trust boundary stays visible to future maintainers.
-18. For memory maintenance:
+14. For CI workflow edits, keep docs-only path filtering at the root of the job graph where possible, and use job-level pass markers only for deterministic work where stale success is an accepted trade-off.
+15. For cargo-dist target changes, prefer a shippable matrix over aspirational targets. Reintroducing musl or Windows ARM needs a fresh hosted-CI proof, not only local reasoning.
+16. Always run `cargo` through `.agents/bin/cargo.sh` ( or `.ps1` on Windows ). Never invoke bare `cargo` from an agent shell, even with a custom `CARGO_TARGET_DIR`; that bypasses the workspace `RUSTC_WRAPPER` / `WB_*` exports, prevents cross-session cache sharing, and leaves zero `.cachekey` sidecars for `.agents/bin/check-build-cache.sh` to find. Never reuse a sticky `CARGO_TARGET_DIR` name across unrelated tasks; the wrapper's session-derived suffix is precisely the contention fix.
+17. When a build looks stuck and you suspect cross-agent contention, inspect `.agents-workspace/tmp/sccache-wrapper-scoreboard/` directly or run `.agents-workspace/tmp/sccache-wrapper --show-scoreboard`. Live `building` entries with non-empty `contenders` indicate queueing on a singleflight lock; stale `building` entries past 30 s without a heartbeat indicate an abandoned session.
+18. For triage-bug workflow changes, treat the prompt-injection guardrail as the security boundary. The hostile body must never reach the triage assistant; the classifier runs as a separate `actions/ai-inference@v2` step. Do not move detection into the triage system prompt, and do not pair the AI guardrail with a regex heuristic without a specific named attack family the model is known to miss.
+19. For workflow-security work, treat action SHA pinning, cargo-dist installer SHA-256 verification, and `GITHUB_TOKEN` scoping as one bundle. Bump SHAs and tag comments together, recompute installer digests when the URL moves, and revisit branch protection on `main` whenever a recorder workflow's permission scope widens. Document `workflow_run` consumer edges inline so the trust boundary stays visible to future maintainers.
+20. For memory maintenance:
    - use `good-sleep` when durable journal content is missing from LTM
    - use `deep-sleep` when many LTM docs overlap and need synthesis
    - when running `deep-sleep`, update the current synthesis layer first and only add a new synthesis tier if it materially reduces overlap
@@ -132,6 +139,7 @@ When doing repo-maintenance work:
 - `RELEASE.md`: release checklist and first-launch release-batch operator guidance
 - `dist-workspace.toml`: cargo-dist configuration for binary releases
 - `.github/workflows/release.yml`: cargo-dist release workflow
+- `.github/workflows/ci.yml`: docs-only path filtering and prior-pass marker cache logic
 - `.github/workflows/triage-bug.yml`, `record-triage.yml`, `record-outcome.yml`, `stale-feedback.yml`, and `clear-feedback-label.yml`: GitHub-native triage automation
 - `.github/workflows/*.yml`: every `uses:` reference is SHA-pinned with an inline tag comment; `release.yml` carries the cargo-dist installer SHA-256 pin; `record-outcome.yml` and `record-triage.yml` carry the accepted-risk `contents: write` comments; `deploy-docs.yml` carries the `cloudflare/wrangler-action` scope justification
 - `.github/ISSUE_TEMPLATE/bug_report.yml`, `feature_request.yml`, and `kb-entry.yml`: issue intake and knowledge-base forms
@@ -146,6 +154,7 @@ This area is mostly operational, but useful verification points include:
 ```bash
 cargo build --examples -p winterbaume
 cargo clippy --workspace --all-targets
+./.agents/bin/cargo.sh metadata --no-deps --format-version 1
 rg '^## LTM Consolidation Record' .agents/docs/JOURNAL.md
 ```
 
@@ -171,6 +180,8 @@ Success criteria are mostly document- and workflow-level:
 - Do not treat a stale shared sccache server as a crate-local compile problem.
 - Do not look for `winterbaume-stubs` when debugging supported-services reporting; that crate and its stub-row path were retired.
 - Do not rely on the first CI Clippy failure as the whole problem set; later crates may still fail once the first error is removed.
+- Do not use `success()` when skipped upstream jobs should allow downstream cache-hit skips to continue; use `!failure() && !cancelled()`.
+- Do not assume CI pass markers capture rustc version or runner-image drift.
 - Do not leave Terraform E2E tests unignored in the normal test job unless that job also installs Terraform.
 - Do not use hard-coded lower bounds for dynamic registry sizes when the real structural invariant can be asserted directly.
 - Do not assume examples compile just because the service crate builds; `--all-targets` is what exposes example and test drift.
@@ -199,3 +210,5 @@ Success criteria are mostly document- and workflow-level:
 - Do not widen `GITHUB_TOKEN` permissions casually. Branch protection is the only structural mitigation for `contents: write` on the recorder workflows; widening the scope without revisiting branch protection is a regression.
 - Do not assume the LLM-audit panel's `binary_change` notes are actionable; they are an artefact of patch-size truncation. Treat only multi-reviewer-confirmed findings as real defects.
 - Do not "fix" the rustup curl-pipe in `release.yml`; it is the documented install path for rust-lang.org and only runs in container matrix entries.
+- Do not rely on `musl.cc` availability from GitHub-hosted runners without a mirror or fallback.
+- Do not leave a future cargo-xwin container target on an unpinned `latest` image.

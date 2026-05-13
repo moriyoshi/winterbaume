@@ -12,6 +12,8 @@ winterbaume/
     winterbaume-*-redis/          # optional Redis-backed storage adapters
     winterbaume-sqlengine-duckdb/ # optional DuckDB-backed SQL execution
     winterbaume-terraform/        # Terraform state inject/extract layer
+    winterbaume-tfstate-resource-models/
+                                  # generated Terraform state resource models
     winterbaume-partiql/          # DynamoDB PartiQL parser and validator
     winterbaume-iam-rule-eval/    # IAM policy evaluator
     winterbaume-sfn-asl-eval/     # Step Functions ASL validator
@@ -20,6 +22,7 @@ winterbaume/
     winterbaume-server/           # standalone HTTP endpoint
   tools/
     smithy-codegen/               # generated model.rs and wire.rs
+    tf-converter-codegen/         # generated Terraform state model structs
     release-batch/                # dependency-ordered chunked cargo-release driver
     sccache-wrapper/              # cross-session Rust build cache wrapper
   tests/e2e/terraform/            # Terraform provider compatibility harness
@@ -128,6 +131,8 @@ Key methods:
 - `sdk_config(region)` - convenience method that creates a fully-configured `aws_config::SdkConfig` (wraps `http_client()` + `credentials_provider()` + region into an `aws_config::defaults().load()` call)
 - `mock_interceptor(rule_mode, rules)` - (requires `smithy-mocks` feature) creates an `aws_smithy_mocks::MockResponseInterceptor` with `allow_passthrough()` enabled, for combining winterbaume backends with per-operation `aws_smithy_mocks` rule overrides
 
+Runtime handlers resolve the default account through `winterbaume_core::default_account_id()`. `winterbaume-server` installs this process-wide value from CLI/env/config precedence before service registration. The override preserves the existing single-global-account architecture; `MockAws::builder().account_id(...)` still affects the builder/getter path rather than creating per-instance handler identity.
+
 ## Per-Service Crate Pattern
 
 Most service crates follow the same internal split:
@@ -177,6 +182,8 @@ Request parsing has the same ownership boundary as response serialisation. Gener
 - `do_inject()` parses Terraform attributes into service `StateView` fragments and calls `merge()`
 - `do_extract()` snapshots service state and renders Terraform-facing resource attributes from the view
 - `depends_on_types()` encodes resource graph ordering for inject flows
+
+Flat Terraform state models are generated from `crates/winterbaume-terraform/specs/*.toml` by `tools/tf-converter-codegen`. The generated serde `*TfModel` structs live in `crates/winterbaume-tfstate-resource-models/src/`, and `winterbaume-terraform` re-exports that crate as `crate::generated` for stable converter imports. Most specs stay in `mode = "model_only"`: generated models decode provider-shaped attributes, while hand-written converters remain responsible for state projection, nested-block reshaping, warning-only semantics, ARN/URL templates, resource ordering, and registration.
 
 The architectural rule is that converter coverage follows view coverage. If `views.rs` does not expose a durable resource family, the missing work is in the service view first and the converter second. `aws_route` is the reference asymmetry case: inject mutates route-table state, while extract is intentionally owned by the parent `aws_route_table` converter. The same rule applies to converter-authored view construction: use top-level `StateView` defaults rather than exhaustive field literals so schema growth stays backward-compatible for inject paths.
 
@@ -231,6 +238,7 @@ Workspace-scale reporting is part of the repo architecture, not just a release a
 
 - `.agents/skills/api-coverage/scripts/generate_coverage.py` generates `.agents/docs/API_COVERAGE.md`
 - `.agents/skills/update-readme/scripts/update_readme.py` uses that report to refresh the root `README.md` and per-crate `README.md` files
+- `.agents/skills/api-coverage/scripts/generate_terraform_resource_coverage.py` and `generate_terraform_converter_coverage.py` generate Terraform resource and attribute coverage reports
 - `.agents/skills/test-coverage/scripts/test_coverage.py` remains a narrower integration-test inspection tool rather than the source of truth for workspace reporting
 
 `API_COVERAGE.md` now combines two reporting layers:
@@ -240,11 +248,15 @@ Workspace-scale reporting is part of the repo architecture, not just a release a
 
 That split matters architecturally because operation counts, emulator comparison, SDK compatibility, and provider compatibility drift in different ways. The reporting layer also contains repo-specific heuristics and mappings, so missing coverage rows can mean stale detection logic rather than missing handlers or tests. Local verification needs to match CI here: `./.agents/bin/cargo.sh clippy --workspace --all-targets` is the important workspace-wide lint surface because it catches example and test drift that library-only runs miss. Coverage maintenance is partly parser maintenance as well, because some services expose their operation surface through public HTTP handler methods rather than only `handle_*` helpers, cached operation maps can drift alongside the source tree, and supported-service reporting now derives from real workspace crates rather than from a fallback stub registry.
 
+Terraform coverage has the same parser-maintenance property. Resource-prefix overrides, generated `*TfModel` field detection, and macro-generated converter detection are all part of keeping `docs/reference/terraform.md`, `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`, and `.agents/docs/TERRAFORM_CONVERTER_COVERAGE.md` trustworthy.
+
 ## Release and Publishing Architecture
 
 Publishing is dependency-ordered rather than workspace-flat. `winterbaume-core` and standalone helper crates must publish before service crates, and the umbrella `winterbaume`, `winterbaume-server`, and Terraform meta-crates publish last because they depend on many internal packages.
 
 `tools/release-batch/` is the first-public-release driver. It reads `cargo metadata`, removes `publish = false` packages, topologically sorts publishable crates, and emits or executes chunked `cargo release <version|level> -p ...` commands. This is necessary because crates.io checks the `publish_new` quota before cargo-release reaches any per-crate hook; a hook-based throttler cannot make an oversized first-launch batch pass the upfront quota check. The cargo executable is injectable with `--cargo <path>` or `WB_CARGO`, which lets operators route subprocesses through `.agents/bin/cargo.sh` while keeping displayed chunk commands in canonical `$ cargo ...` form.
+
+The hosted CI workflow has deliberate short-circuiting: docs-only pushes to `main` stop after the path-filter job, and source-identical runs can skip deterministic jobs through prior-pass marker caches. Binary release targets are intentionally limited to currently shippable cargo-dist targets; musl Linux and Windows ARM are excluded until their cross-compilation toolchains are reliable again.
 
 The root umbrella crate has a separate packaging constraint: its manifest is the workspace root `Cargo.toml`, so default cargo packaging would walk the whole repository. The root package therefore needs anchored `include` patterns such as `/Cargo.toml`, `/README.md`, and `/src/**/*.rs`; bare entries such as `README.md` match nested files and can pull in vendored models, generated docs, examples, and agent memory. `autoexamples = false` belongs with that whitelist while root `examples/` stays excluded from the published crate.
 
