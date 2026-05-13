@@ -561,8 +561,8 @@ verify = false
 [workspace.dependencies]
 winterbaume-accessanalyzer = { version = "0.2.0", path = "crates/winterbaume-accessanalyzer" }
 winterbaume-aiops = { version = "0.2.0", path = "crates/winterbaume-aiops" }
-winterbaume-amplifybackend = { version = "0.1.0", path = "crates/winterbaume-amplifybackend" }
-winterbaume-amplifyuibuilder = { version = "0.1.0", path = "crates/winterbaume-amplifyuibuilder" }
+winterbaume-amplifybackend = { version = "0.2.0", path = "crates/winterbaume-amplifybackend" }
+winterbaume-amplifyuibuilder = { version = "0.2.0", path = "crates/winterbaume-amplifyuibuilder" }
 winterbaume-appconfigdata = { version = "0.1.0", path = "crates/winterbaume-appconfigdata" }
 winterbaume-appfabric = { version = "0.1.0", path = "crates/winterbaume-appfabric" }
 winterbaume-appflow = { version = "0.1.0", path = "crates/winterbaume-appflow" }
@@ -633,7 +633,7 @@ winterbaume-sfn = { version = "0.1.0", path = "crates/winterbaume-sfn" }
 winterbaume-route53 = { version = "0.1.0", path = "crates/winterbaume-route53" }
 winterbaume-cloudwatch = { version = "0.1.0", path = "crates/winterbaume-cloudwatch" }
 winterbaume-acm = { version = "0.2.0", path = "crates/winterbaume-acm" }
-winterbaume-apigateway = { version = "0.1.0", path = "crates/winterbaume-apigateway" }
+winterbaume-apigateway = { version = "0.2.0", path = "crates/winterbaume-apigateway" }
 winterbaume-apigatewaymanagement = { version = "0.1.0", path = "crates/winterbaume-apigatewaymanagement" }
 winterbaume-apigatewayv2 = { version = "0.1.0", path = "crates/winterbaume-apigatewayv2" }
 winterbaume-eks = { version = "0.1.0", path = "crates/winterbaume-eks" }
@@ -718,12 +718,12 @@ winterbaume-iot = { version = "0.1.0", path = "crates/winterbaume-iot" }
 winterbaume-kafka = { version = "0.1.0", path = "crates/winterbaume-kafka" }
 winterbaume-lexmodelsv2 = { version = "0.1.0", path = "crates/winterbaume-lexmodelsv2" }
 winterbaume-lakeformation = { version = "0.1.0", path = "crates/winterbaume-lakeformation" }
-winterbaume-amp = { version = "0.1.0", path = "crates/winterbaume-amp" }
+winterbaume-amp = { version = "0.2.0", path = "crates/winterbaume-amp" }
 winterbaume-opensearch = { version = "0.1.0", path = "crates/winterbaume-opensearch" }
 winterbaume-opensearchserverless = { version = "0.1.0", path = "crates/winterbaume-opensearchserverless" }
 winterbaume-elasticbeanstalk = { version = "0.1.0", path = "crates/winterbaume-elasticbeanstalk" }
 winterbaume-apprunner = { version = "0.1.0", path = "crates/winterbaume-apprunner" }
-winterbaume-amplify = { version = "0.1.0", path = "crates/winterbaume-amplify" }
+winterbaume-amplify = { version = "0.2.0", path = "crates/winterbaume-amplify" }
 winterbaume-auditmanager = { version = "0.1.0", path = "crates/winterbaume-auditmanager" }
 winterbaume-chatbot = { version = "0.1.0", path = "crates/winterbaume-chatbot" }
 winterbaume-codeartifact = { version = "0.1.0", path = "crates/winterbaume-codeartifact" }
