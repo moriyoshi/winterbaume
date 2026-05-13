@@ -656,7 +656,7 @@ winterbaume-account = { version = "0.2.0", path = "crates/winterbaume-account" }
 winterbaume-codecommit = { version = "0.2.0", path = "crates/winterbaume-codecommit" }
 winterbaume-rds = { version = "0.1.0", path = "crates/winterbaume-rds" }
 winterbaume-rdsdata = { version = "0.1.0", path = "crates/winterbaume-rdsdata" }
-winterbaume-neptune = { version = "0.1.0", path = "crates/winterbaume-neptune" }
+winterbaume-neptune = { version = "0.2.0", path = "crates/winterbaume-neptune" }
 winterbaume-redshift = { version = "0.1.0", path = "crates/winterbaume-redshift" }
 winterbaume-polly = { version = "0.1.0", path = "crates/winterbaume-polly" }
 winterbaume-cloudtrail = { version = "0.2.0", path = "crates/winterbaume-cloudtrail" }
@@ -699,7 +699,7 @@ winterbaume-acmpca = { version = "0.2.0", path = "crates/winterbaume-acmpca" }
 winterbaume-directconnect = { version = "0.2.0", path = "crates/winterbaume-directconnect" }
 winterbaume-databasemigration = { version = "0.2.0", path = "crates/winterbaume-databasemigration" }
 winterbaume-directory = { version = "0.2.0", path = "crates/winterbaume-directory" }
-winterbaume-mq = { version = "0.1.0", path = "crates/winterbaume-mq" }
+winterbaume-mq = { version = "0.2.0", path = "crates/winterbaume-mq" }
 winterbaume-transfer = { version = "0.1.0", path = "crates/winterbaume-transfer" }
 winterbaume-datasync = { version = "0.2.0", path = "crates/winterbaume-datasync" }
 winterbaume-servicediscovery = { version = "0.1.0", path = "crates/winterbaume-servicediscovery" }
@@ -711,7 +711,7 @@ winterbaume-glue = { version = "0.2.0", path = "crates/winterbaume-glue" }
 winterbaume-fsx = { version = "0.2.0", path = "crates/winterbaume-fsx" }
 winterbaume-memorydb = { version = "0.2.0", path = "crates/winterbaume-memorydb" }
 winterbaume-ebs = { version = "0.2.0", path = "crates/winterbaume-ebs" }
-winterbaume-networkfirewall = { version = "0.1.0", path = "crates/winterbaume-networkfirewall" }
+winterbaume-networkfirewall = { version = "0.2.0", path = "crates/winterbaume-networkfirewall" }
 winterbaume-sagemaker = { version = "0.1.0", path = "crates/winterbaume-sagemaker" }
 winterbaume-appsync = { version = "0.2.0", path = "crates/winterbaume-appsync" }
 winterbaume-iot = { version = "0.2.0", path = "crates/winterbaume-iot" }
@@ -719,7 +719,7 @@ winterbaume-kafka = { version = "0.2.0", path = "crates/winterbaume-kafka" }
 winterbaume-lexmodelsv2 = { version = "0.2.0", path = "crates/winterbaume-lexmodelsv2" }
 winterbaume-lakeformation = { version = "0.2.0", path = "crates/winterbaume-lakeformation" }
 winterbaume-amp = { version = "0.2.0", path = "crates/winterbaume-amp" }
-winterbaume-opensearch = { version = "0.1.0", path = "crates/winterbaume-opensearch" }
+winterbaume-opensearch = { version = "0.2.0", path = "crates/winterbaume-opensearch" }
 winterbaume-opensearchserverless = { version = "0.1.0", path = "crates/winterbaume-opensearchserverless" }
 winterbaume-elasticbeanstalk = { version = "0.2.0", path = "crates/winterbaume-elasticbeanstalk" }
 winterbaume-apprunner = { version = "0.2.0", path = "crates/winterbaume-apprunner" }
@@ -743,7 +743,7 @@ winterbaume-connect = { version = "0.2.0", path = "crates/winterbaume-connect" }
 winterbaume-kinesisanalyticsv2 = { version = "0.2.0", path = "crates/winterbaume-kinesisanalyticsv2" }
 winterbaume-appmesh = { version = "0.2.0", path = "crates/winterbaume-appmesh" }
 winterbaume-greengrass = { version = "0.2.0", path = "crates/winterbaume-greengrass" }
-winterbaume-networkmanager = { version = "0.1.0", path = "crates/winterbaume-networkmanager" }
+winterbaume-networkmanager = { version = "0.2.0", path = "crates/winterbaume-networkmanager" }
 winterbaume-pinpoint = { version = "0.1.0", path = "crates/winterbaume-pinpoint" }
 winterbaume-swf = { version = "0.1.0", path = "crates/winterbaume-swf" }
 winterbaume-redshiftdata = { version = "0.1.0", path = "crates/winterbaume-redshiftdata" }

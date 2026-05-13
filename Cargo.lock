@@ -13587,7 +13587,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-mq"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13608,7 +13608,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-neptune"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13630,7 +13630,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-networkfirewall"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13651,7 +13651,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-networkmanager"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13671,7 +13671,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-opensearch"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
