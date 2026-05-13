@@ -592,7 +592,7 @@ winterbaume-pricing = { version = "0.2.0", path = "crates/winterbaume-pricing" }
 winterbaume-freetier = { version = "0.2.0", path = "crates/winterbaume-freetier" }
 winterbaume-cloud9 = { version = "0.2.0", path = "crates/winterbaume-cloud9" }
 winterbaume-s3outposts = { version = "0.1.0", path = "crates/winterbaume-s3outposts" }
-winterbaume-route53recoverycluster = { version = "0.1.0", path = "crates/winterbaume-route53recoverycluster" }
+winterbaume-route53recoverycluster = { version = "0.2.0", path = "crates/winterbaume-route53recoverycluster" }
 winterbaume-snowdevicemanagement = { version = "0.1.0", path = "crates/winterbaume-snowdevicemanagement" }
 winterbaume-simspaceweaver = { version = "0.1.0", path = "crates/winterbaume-simspaceweaver" }
 winterbaume-taxsettings = { version = "0.1.0", path = "crates/winterbaume-taxsettings" }
@@ -630,7 +630,7 @@ winterbaume-lambda = { version = "0.2.0", path = "crates/winterbaume-lambda" }
 winterbaume-ecr = { version = "0.2.0", path = "crates/winterbaume-ecr" }
 winterbaume-eventbridge = { version = "0.2.0", path = "crates/winterbaume-eventbridge" }
 winterbaume-sfn = { version = "0.1.0", path = "crates/winterbaume-sfn" }
-winterbaume-route53 = { version = "0.1.0", path = "crates/winterbaume-route53" }
+winterbaume-route53 = { version = "0.2.0", path = "crates/winterbaume-route53" }
 winterbaume-cloudwatch = { version = "0.2.0", path = "crates/winterbaume-cloudwatch" }
 winterbaume-acm = { version = "0.2.0", path = "crates/winterbaume-acm" }
 winterbaume-apigateway = { version = "0.2.0", path = "crates/winterbaume-apigateway" }
@@ -756,14 +756,14 @@ winterbaume-quicksight = { version = "0.2.0", path = "crates/winterbaume-quicksi
 winterbaume-vpclattice = { version = "0.1.0", path = "crates/winterbaume-vpclattice" }
 winterbaume-workspacesweb = { version = "0.1.0", path = "crates/winterbaume-workspacesweb" }
 winterbaume-mediastore = { version = "0.2.0", path = "crates/winterbaume-mediastore" }
-winterbaume-route53domains = { version = "0.1.0", path = "crates/winterbaume-route53domains" }
+winterbaume-route53domains = { version = "0.2.0", path = "crates/winterbaume-route53domains" }
 winterbaume-mediapackagev2 = { version = "0.2.0", path = "crates/winterbaume-mediapackagev2" }
 winterbaume-osis = { version = "0.2.0", path = "crates/winterbaume-osis" }
 winterbaume-outposts = { version = "0.2.0", path = "crates/winterbaume-outposts" }
 winterbaume-fis = { version = "0.2.0", path = "crates/winterbaume-fis" }
 winterbaume-cloudcontrol = { version = "0.2.0", path = "crates/winterbaume-cloudcontrol" }
 winterbaume-keyspaces = { version = "0.2.0", path = "crates/winterbaume-keyspaces" }
-winterbaume-rolesanywhere = { version = "0.1.0", path = "crates/winterbaume-rolesanywhere" }
+winterbaume-rolesanywhere = { version = "0.2.0", path = "crates/winterbaume-rolesanywhere" }
 winterbaume-servicecatalog = { version = "0.1.0", path = "crates/winterbaume-servicecatalog" }
 winterbaume-timestreamwrite = { version = "0.1.0", path = "crates/winterbaume-timestreamwrite" }
 winterbaume-connectcampaigns = { version = "0.2.0", path = "crates/winterbaume-connectcampaigns" }
@@ -778,7 +778,7 @@ winterbaume-sagemakermetrics = { version = "0.1.0", path = "crates/winterbaume-s
 winterbaume-sagemakerruntime = { version = "0.1.0", path = "crates/winterbaume-sagemakerruntime" }
 winterbaume-iotdataplane = { version = "0.2.0", path = "crates/winterbaume-iotdataplane" }
 winterbaume-kinesisvideoarchivedmedia = { version = "0.2.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
-winterbaume-resourcegroupstagging = { version = "0.1.0", path = "crates/winterbaume-resourcegroupstagging" }
+winterbaume-resourcegroupstagging = { version = "0.2.0", path = "crates/winterbaume-resourcegroupstagging" }
 winterbaume-applicationautoscaling = { version = "0.2.0", path = "crates/winterbaume-applicationautoscaling" }
 winterbaume-autoscaling = { version = "0.2.0", path = "crates/winterbaume-autoscaling" }
 winterbaume-mediastoredata = { version = "0.2.0", path = "crates/winterbaume-mediastoredata" }

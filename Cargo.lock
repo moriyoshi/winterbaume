@@ -14219,7 +14219,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-resourcegroupstagging"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14238,7 +14238,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-rolesanywhere"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14260,7 +14260,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-route53"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14282,7 +14282,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-route53domains"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14303,7 +14303,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-route53recoverycluster"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
