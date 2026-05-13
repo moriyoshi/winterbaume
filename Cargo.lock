@@ -12134,7 +12134,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-costexplorer"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12153,7 +12153,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-costoptimizationhub"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12172,7 +12172,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-databasemigration"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12193,7 +12193,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-databrew"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12213,7 +12213,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-datapipeline"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
