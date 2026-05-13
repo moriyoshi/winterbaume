@@ -10719,7 +10719,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-apigatewaymanagement"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10740,7 +10740,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-apigatewayv2"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10760,7 +10760,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appconfig"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10779,7 +10779,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appconfigdata"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10799,7 +10799,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appfabric"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
