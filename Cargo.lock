@@ -12338,7 +12338,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-dsql"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12489,7 +12489,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ebs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12530,7 +12530,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ec2-generated"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "quick-xml",
  "serde",
@@ -12540,7 +12540,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ec2instanceconnect"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12560,7 +12560,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ecr"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

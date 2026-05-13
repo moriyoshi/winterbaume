@@ -627,7 +627,7 @@ winterbaume-secretsmanager = { version = "0.1.0", path = "crates/winterbaume-sec
 winterbaume-cloudwatchlogs = { version = "0.2.0", path = "crates/winterbaume-cloudwatchlogs" }
 winterbaume-sns = { version = "0.1.0", path = "crates/winterbaume-sns" }
 winterbaume-lambda = { version = "0.1.0", path = "crates/winterbaume-lambda" }
-winterbaume-ecr = { version = "0.1.0", path = "crates/winterbaume-ecr" }
+winterbaume-ecr = { version = "0.2.0", path = "crates/winterbaume-ecr" }
 winterbaume-eventbridge = { version = "0.1.0", path = "crates/winterbaume-eventbridge" }
 winterbaume-sfn = { version = "0.1.0", path = "crates/winterbaume-sfn" }
 winterbaume-route53 = { version = "0.1.0", path = "crates/winterbaume-route53" }
@@ -649,8 +649,8 @@ winterbaume-elasticloadbalancingv2 = { version = "0.1.0", path = "crates/winterb
 winterbaume-cognitoidentityprovider = { version = "0.2.0", path = "crates/winterbaume-cognitoidentityprovider" }
 winterbaume-sesv2 = { version = "0.1.0", path = "crates/winterbaume-sesv2" }
 winterbaume-ses = { version = "0.1.0", path = "crates/winterbaume-ses" }
-winterbaume-ec2instanceconnect = { version = "0.1.0", path = "crates/winterbaume-ec2instanceconnect" }
-winterbaume-ec2-generated = { version = "0.1.0", path = "crates/winterbaume-ec2-generated" }
+winterbaume-ec2instanceconnect = { version = "0.2.0", path = "crates/winterbaume-ec2instanceconnect" }
+winterbaume-ec2-generated = { version = "0.2.0", path = "crates/winterbaume-ec2-generated" }
 winterbaume-ec2 = { version = "0.1.0", path = "crates/winterbaume-ec2" }
 winterbaume-account = { version = "0.2.0", path = "crates/winterbaume-account" }
 winterbaume-codecommit = { version = "0.2.0", path = "crates/winterbaume-codecommit" }
@@ -710,7 +710,7 @@ winterbaume-batch = { version = "0.2.0", path = "crates/winterbaume-batch" }
 winterbaume-glue = { version = "0.1.0", path = "crates/winterbaume-glue" }
 winterbaume-fsx = { version = "0.1.0", path = "crates/winterbaume-fsx" }
 winterbaume-memorydb = { version = "0.1.0", path = "crates/winterbaume-memorydb" }
-winterbaume-ebs = { version = "0.1.0", path = "crates/winterbaume-ebs" }
+winterbaume-ebs = { version = "0.2.0", path = "crates/winterbaume-ebs" }
 winterbaume-networkfirewall = { version = "0.1.0", path = "crates/winterbaume-networkfirewall" }
 winterbaume-sagemaker = { version = "0.1.0", path = "crates/winterbaume-sagemaker" }
 winterbaume-appsync = { version = "0.2.0", path = "crates/winterbaume-appsync" }
@@ -732,7 +732,7 @@ winterbaume-bedrock = { version = "0.2.0", path = "crates/winterbaume-bedrock" }
 winterbaume-clouddirectory = { version = "0.2.0", path = "crates/winterbaume-clouddirectory" }
 winterbaume-cloudhsmv2 = { version = "0.2.0", path = "crates/winterbaume-cloudhsmv2" }
 winterbaume-dynamodbstreams = { version = "0.1.0", path = "crates/winterbaume-dynamodbstreams" }
-winterbaume-dsql = { version = "0.1.0", path = "crates/winterbaume-dsql" }
+winterbaume-dsql = { version = "0.2.0", path = "crates/winterbaume-dsql" }
 winterbaume-databrew = { version = "0.2.0", path = "crates/winterbaume-databrew" }
 winterbaume-emr = { version = "0.1.0", path = "crates/winterbaume-emr" }
 winterbaume-emrserverless = { version = "0.1.0", path = "crates/winterbaume-emrserverless" }

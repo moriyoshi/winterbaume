@@ -10,7 +10,7 @@ description = "EC2/VPC service implementation for winterbaume"
 
 [dependencies]
 winterbaume-core = { workspace = true }
-winterbaume-ec2-generated = { version = "0.1.0", path = "../winterbaume-ec2-generated", default-features = false }
+winterbaume-ec2-generated = { version = "0.2.0", path = "../winterbaume-ec2-generated", default-features = false }
 tokio = { workspace = true }
 http = { workspace = true }
 uuid = { workspace = true }
