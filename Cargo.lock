@@ -12234,7 +12234,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-datasync"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12255,7 +12255,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-dax"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12275,7 +12275,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-directconnect"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12296,7 +12296,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-directory"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -12317,7 +12317,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-dlm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

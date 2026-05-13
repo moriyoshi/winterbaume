@@ -579,7 +579,7 @@ winterbaume-backupsearch = { version = "0.2.0", path = "crates/winterbaume-backu
 winterbaume-bcmdashboards = { version = "0.2.0", path = "crates/winterbaume-bcmdashboards" }
 winterbaume-bcmdataexports = { version = "0.2.0", path = "crates/winterbaume-bcmdataexports" }
 winterbaume-bcmrecommendedactions = { version = "0.2.0", path = "crates/winterbaume-bcmrecommendedactions" }
-winterbaume-dlm = { version = "0.1.0", path = "crates/winterbaume-dlm" }
+winterbaume-dlm = { version = "0.2.0", path = "crates/winterbaume-dlm" }
 winterbaume-rbin = { version = "0.1.0", path = "crates/winterbaume-rbin" }
 winterbaume-savingsplans = { version = "0.1.0", path = "crates/winterbaume-savingsplans" }
 winterbaume-personalizeevents = { version = "0.1.0", path = "crates/winterbaume-personalizeevents" }
@@ -671,7 +671,7 @@ winterbaume-athena = { version = "0.2.0", path = "crates/winterbaume-athena" }
 winterbaume-xray = { version = "0.1.0", path = "crates/winterbaume-xray" }
 winterbaume-signer = { version = "0.1.0", path = "crates/winterbaume-signer" }
 winterbaume-pipes = { version = "0.1.0", path = "crates/winterbaume-pipes" }
-winterbaume-dax = { version = "0.1.0", path = "crates/winterbaume-dax" }
+winterbaume-dax = { version = "0.2.0", path = "crates/winterbaume-dax" }
 winterbaume-codedeploy = { version = "0.2.0", path = "crates/winterbaume-codedeploy" }
 winterbaume-cognitoidentity = { version = "0.2.0", path = "crates/winterbaume-cognitoidentity" }
 winterbaume-guardduty = { version = "0.1.0", path = "crates/winterbaume-guardduty" }
@@ -696,12 +696,12 @@ winterbaume-forecast = { version = "0.1.0", path = "crates/winterbaume-forecast"
 winterbaume-personalize = { version = "0.1.0", path = "crates/winterbaume-personalize" }
 winterbaume-route53resolver = { version = "0.1.0", path = "crates/winterbaume-route53resolver" }
 winterbaume-acmpca = { version = "0.2.0", path = "crates/winterbaume-acmpca" }
-winterbaume-directconnect = { version = "0.1.0", path = "crates/winterbaume-directconnect" }
+winterbaume-directconnect = { version = "0.2.0", path = "crates/winterbaume-directconnect" }
 winterbaume-databasemigration = { version = "0.2.0", path = "crates/winterbaume-databasemigration" }
-winterbaume-directory = { version = "0.1.0", path = "crates/winterbaume-directory" }
+winterbaume-directory = { version = "0.2.0", path = "crates/winterbaume-directory" }
 winterbaume-mq = { version = "0.1.0", path = "crates/winterbaume-mq" }
 winterbaume-transfer = { version = "0.1.0", path = "crates/winterbaume-transfer" }
-winterbaume-datasync = { version = "0.1.0", path = "crates/winterbaume-datasync" }
+winterbaume-datasync = { version = "0.2.0", path = "crates/winterbaume-datasync" }
 winterbaume-servicediscovery = { version = "0.1.0", path = "crates/winterbaume-servicediscovery" }
 winterbaume-identitystore = { version = "0.1.0", path = "crates/winterbaume-identitystore" }
 winterbaume-efs = { version = "0.1.0", path = "crates/winterbaume-efs" }
