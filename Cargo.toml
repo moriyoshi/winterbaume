@@ -571,8 +571,8 @@ winterbaume-applicationcostprofiler = { version = "0.2.0", path = "crates/winter
 winterbaume-applicationdiscoveryservice = { version = "0.2.0", path = "crates/winterbaume-applicationdiscoveryservice" }
 winterbaume-applicationinsights = { version = "0.2.0", path = "crates/winterbaume-applicationinsights" }
 winterbaume-applicationsignals = { version = "0.2.0", path = "crates/winterbaume-applicationsignals" }
-winterbaume-arczonalshift = { version = "0.1.0", path = "crates/winterbaume-arczonalshift" }
-winterbaume-artifact = { version = "0.1.0", path = "crates/winterbaume-artifact" }
+winterbaume-arczonalshift = { version = "0.2.0", path = "crates/winterbaume-arczonalshift" }
+winterbaume-artifact = { version = "0.2.0", path = "crates/winterbaume-artifact" }
 winterbaume-autoscalingplans = { version = "0.1.0", path = "crates/winterbaume-autoscalingplans" }
 winterbaume-backupgateway = { version = "0.1.0", path = "crates/winterbaume-backupgateway" }
 winterbaume-backupsearch = { version = "0.1.0", path = "crates/winterbaume-backupsearch" }
@@ -667,7 +667,7 @@ winterbaume-scheduler = { version = "0.1.0", path = "crates/winterbaume-schedule
 winterbaume-appconfig = { version = "0.2.0", path = "crates/winterbaume-appconfig" }
 winterbaume-codebuild = { version = "0.1.0", path = "crates/winterbaume-codebuild" }
 winterbaume-codepipeline = { version = "0.1.0", path = "crates/winterbaume-codepipeline" }
-winterbaume-athena = { version = "0.1.0", path = "crates/winterbaume-athena" }
+winterbaume-athena = { version = "0.2.0", path = "crates/winterbaume-athena" }
 winterbaume-xray = { version = "0.1.0", path = "crates/winterbaume-xray" }
 winterbaume-signer = { version = "0.1.0", path = "crates/winterbaume-signer" }
 winterbaume-pipes = { version = "0.1.0", path = "crates/winterbaume-pipes" }
@@ -724,7 +724,7 @@ winterbaume-opensearchserverless = { version = "0.1.0", path = "crates/winterbau
 winterbaume-elasticbeanstalk = { version = "0.1.0", path = "crates/winterbaume-elasticbeanstalk" }
 winterbaume-apprunner = { version = "0.2.0", path = "crates/winterbaume-apprunner" }
 winterbaume-amplify = { version = "0.2.0", path = "crates/winterbaume-amplify" }
-winterbaume-auditmanager = { version = "0.1.0", path = "crates/winterbaume-auditmanager" }
+winterbaume-auditmanager = { version = "0.2.0", path = "crates/winterbaume-auditmanager" }
 winterbaume-chatbot = { version = "0.1.0", path = "crates/winterbaume-chatbot" }
 winterbaume-codeartifact = { version = "0.1.0", path = "crates/winterbaume-codeartifact" }
 winterbaume-costexplorer = { version = "0.1.0", path = "crates/winterbaume-costexplorer" }
@@ -780,7 +780,7 @@ winterbaume-iotdataplane = { version = "0.1.0", path = "crates/winterbaume-iotda
 winterbaume-kinesisvideoarchivedmedia = { version = "0.1.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
 winterbaume-resourcegroupstagging = { version = "0.1.0", path = "crates/winterbaume-resourcegroupstagging" }
 winterbaume-applicationautoscaling = { version = "0.2.0", path = "crates/winterbaume-applicationautoscaling" }
-winterbaume-autoscaling = { version = "0.1.0", path = "crates/winterbaume-autoscaling" }
+winterbaume-autoscaling = { version = "0.2.0", path = "crates/winterbaume-autoscaling" }
 winterbaume-mediastoredata = { version = "0.1.0", path = "crates/winterbaume-mediastoredata" }
 winterbaume-simpledbv2 = { version = "0.1.0", path = "crates/winterbaume-simpledbv2" }
 winterbaume-datapipeline = { version = "0.1.0", path = "crates/winterbaume-datapipeline" }

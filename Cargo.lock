@@ -11029,7 +11029,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-arczonalshift"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11050,7 +11050,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-artifact"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11071,7 +11071,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-athena"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11092,7 +11092,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-auditmanager"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11112,7 +11112,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-autoscaling"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
