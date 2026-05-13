@@ -712,7 +712,7 @@ winterbaume-fsx = { version = "0.2.0", path = "crates/winterbaume-fsx" }
 winterbaume-memorydb = { version = "0.2.0", path = "crates/winterbaume-memorydb" }
 winterbaume-ebs = { version = "0.2.0", path = "crates/winterbaume-ebs" }
 winterbaume-networkfirewall = { version = "0.2.0", path = "crates/winterbaume-networkfirewall" }
-winterbaume-sagemaker = { version = "0.1.0", path = "crates/winterbaume-sagemaker" }
+winterbaume-sagemaker = { version = "0.2.0", path = "crates/winterbaume-sagemaker" }
 winterbaume-appsync = { version = "0.2.0", path = "crates/winterbaume-appsync" }
 winterbaume-iot = { version = "0.2.0", path = "crates/winterbaume-iot" }
 winterbaume-kafka = { version = "0.2.0", path = "crates/winterbaume-kafka" }
@@ -774,8 +774,8 @@ winterbaume-servicecatalogappregistry = { version = "0.1.0", path = "crates/wint
 winterbaume-timestreamquery = { version = "0.1.0", path = "crates/winterbaume-timestreamquery" }
 winterbaume-timestreaminfluxdb = { version = "0.1.0", path = "crates/winterbaume-timestreaminfluxdb" }
 winterbaume-marketplacemetering = { version = "0.2.0", path = "crates/winterbaume-marketplacemetering" }
-winterbaume-sagemakermetrics = { version = "0.1.0", path = "crates/winterbaume-sagemakermetrics" }
-winterbaume-sagemakerruntime = { version = "0.1.0", path = "crates/winterbaume-sagemakerruntime" }
+winterbaume-sagemakermetrics = { version = "0.2.0", path = "crates/winterbaume-sagemakermetrics" }
+winterbaume-sagemakerruntime = { version = "0.2.0", path = "crates/winterbaume-sagemakerruntime" }
 winterbaume-iotdataplane = { version = "0.2.0", path = "crates/winterbaume-iotdataplane" }
 winterbaume-kinesisvideoarchivedmedia = { version = "0.2.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
 winterbaume-resourcegroupstagging = { version = "0.2.0", path = "crates/winterbaume-resourcegroupstagging" }
@@ -785,8 +785,8 @@ winterbaume-mediastoredata = { version = "0.2.0", path = "crates/winterbaume-med
 winterbaume-simpledbv2 = { version = "0.1.0", path = "crates/winterbaume-simpledbv2" }
 winterbaume-datapipeline = { version = "0.2.0", path = "crates/winterbaume-datapipeline" }
 winterbaume-s3control = { version = "0.2.0", path = "crates/winterbaume-s3control" }
-winterbaume-s3vectors = { version = "0.1.0", path = "crates/winterbaume-s3vectors" }
-winterbaume-s3tables = { version = "0.1.0", path = "crates/winterbaume-s3tables" }
+winterbaume-s3vectors = { version = "0.2.0", path = "crates/winterbaume-s3vectors" }
+winterbaume-s3tables = { version = "0.2.0", path = "crates/winterbaume-s3tables" }
 winterbaume-panorama = { version = "0.2.0", path = "crates/winterbaume-panorama" }
 winterbaume-iam-rule-eval = { version = "0.2.0", path = "crates/winterbaume-iam-rule-eval" }
 winterbaume-sfn-asl-eval = { version = "0.2.0", path = "crates/winterbaume-sfn-asl-eval" }
