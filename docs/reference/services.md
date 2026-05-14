@@ -1,6 +1,6 @@
 # Service Coverage
 
-Winterbaume implements **? of ? operations across ? AWS services (?%)** with real, state-backed logic, compared to moto's 29.0% across the same service set. A further set of operations are routed but return an empty/default response without real behaviour ( see the `Stubs` column ).
+Winterbaume implements **7210 of 11367 operations across 224 AWS services (63.4%)** with real, state-backed logic, compared to moto's 29.0% across the same service set. A further set of operations are routed but return an empty/default response without real behaviour ( see the `Stubs` column ).
 
 | Service | Crate | Protocol | Operations | Stubs | moto | floci | kumo |
 |---|---|---|---|---|---|---|---|
@@ -229,7 +229,7 @@ Winterbaume implements **? of ? operations across ? AWS services (?%)** with rea
 | [WorkSpaces Web](/services/workspacesweb) | `winterbaume-workspacesweb` | restJson1 | 68/75 (90.7%) | 0/75 (0.0%) | 27/75 (36.0%) | 0/75 (0.0%) | 0/75 (0.0%) |
 | [X-Ray](/services/xray) | `winterbaume-xray` | restJson1 | 34/38 (89.5%) | 4/38 (10.5%) | 0/38 (0.0%) | 0/38 (0.0%) | 6/38 (15.8%) |
 
-**winterbaume: ? / ? operations across ? services (?%)**
+**winterbaume: 7210 / 11367 operations across 224 services (63.4%)**
 
 **winterbaume stubs: 326 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
 
@@ -241,4 +241,4 @@ Winterbaume implements **? of ? operations across ? AWS services (?%)** with rea
 
 ---
 
-See also: [Terraform Converter Coverage](/reference/terraform) — 1,140 Terraform resource types with inject/extract field coverage against the official AWS provider schema.
+See also: [Terraform Converter Coverage](/reference/terraform) — many Terraform resource types with inject/extract field coverage against the official AWS provider schema.

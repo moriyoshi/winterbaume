@@ -560,7 +560,7 @@ def parse_coverage_overview(
     floci_summary = ""
     kumo_summary = ""
     wb_match = re.search(
-        r'\*\*winterbaume [0-9a-f]\S+: (.+?)\*\*', content
+        r'\*\*winterbaume (?!stubs:)\S+: (.+?)\*\*', content
     ) or re.search(r'\*\*winterbaume: (.+?)\*\*', content)
     stub_match = re.search(
         r'\*\*winterbaume stubs: (.+?)\*\*', content, re.DOTALL
@@ -1524,7 +1524,7 @@ def update_docs_index(
         content = f.read()
 
     updated = re.sub(
-        r'(- title: )\d+% API Coverage',
+        r'(- title: )[\d?]+% API Coverage',
         f'\\g<1>{wb_pct_int}% API Coverage',
         content,
     )
@@ -1538,13 +1538,13 @@ def update_docs_index(
             " DynamoDB, SQS, Lambda, KMS, ECS, EKS, IAM, and many more."
         )
         updated = re.sub(
-            r"(    details: ).*operations across \d+ AWS services.*many more\.",
+            r"(    details: ).*operations across [\d?]+ AWS services.*many more\.",
             f"\\g<1>{details}",
             updated,
         )
     else:
         updated = re.sub(
-            r"(    details: )\d[\d, ]* of \d[\d, ]* operations across \d+ AWS services, surpassing moto's \d+\.\d+%\.",
+            r"(    details: )[\d?][\d?, ]* of [\d?][\d?, ]* operations across [\d?]+ AWS services, surpassing moto's [\d?.]+%\.",
             f"\\g<1>{wb_impl} of {total} operations across {service_count} AWS services, surpassing moto's {moto_pct}%.",
             updated,
         )

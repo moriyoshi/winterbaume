@@ -260,7 +260,7 @@ The `Operations` column shows real, state-backed implementations. The `Stubs` co
 | [WorkSpaces Web](crates/winterbaume-workspacesweb/README.md) | `winterbaume-workspacesweb` | restJson1 | 68/75 (90.7%) | 0/75 (0.0%) | 27/75 (36.0%) | 0/75 (0.0%) | 0/75 (0.0%) |
 | [X-Ray](crates/winterbaume-xray/README.md) | `winterbaume-xray` | restJson1 | 34/38 (89.5%) | 4/38 (10.5%) | 0/38 (0.0%) | 0/38 (0.0%) | 6/38 (15.8%) |
 
-**winterbaume: **
+**winterbaume: 7210 / 11367 operations across 224 services (63.4%)**
 
 **winterbaume stubs: 326 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
 
