@@ -559,3 +559,83 @@ The script asserts `len(slug) <= 20` after applying the abbreviation table, so a
 - The workspace default `keywords = ["aws", "mock", "testing"]` in the root `Cargo.toml` is now used **only** by the non-service utility crates listed above. If we ever want to push a different generic keyword set to all crates simultaneously, both the workspace default and the 226 per-crate overrides have to be updated.
 - The abbreviation table is canonical: any new service crate whose slug exceeds 20 characters must add an entry here and to the helper script before the next release; otherwise `cargo publish` for that crate would refuse the keyword.
 - This belongs in the `ci-release-and-package-metadata.md` LTM document next time `good-sleep` runs, since it is package-metadata policy that survives across releases and is non-obvious from the code alone.
+
+## 2026-05-14 — Initial CHANGELOG.md generation across the workspace
+
+### Motivation
+
+Following the v0.1.0 launch on 2026-05-09 ... 2026-05-11 and the v0.2.0 follow-up on 2026-05-13 ... 2026-05-14, the repository had 481 release tags but zero per-crate `CHANGELOG.md` files and only a placeholder root `CHANGELOG.md` saying "No tagged crate releases were found in the local checkout when this umbrella changelog was initialised." This entry records the bulk first-pass generation of changelogs for every published crate plus the umbrella `winterbaume` crate at the workspace root.
+
+### Inputs and release boundaries
+
+Tag distribution:
+
+| Bucket | Count | Notes |
+|---|---|---|
+| `winterbaume(-*)?-v0.1.0` on 2026-05-09 | 53 | First chunk of the public launch batch |
+| `winterbaume(-*)?-v0.1.0` on 2026-05-10 | 186 | Second chunk |
+| `winterbaume(-*)?-v0.1.0` on 2026-05-11 | 1 | `winterbaume-server-v0.1.0` lagged into the next day |
+| `winterbaume(-*)?-v0.2.0` on 2026-05-13 | 125 | First chunk of v0.2.0 batch ( includes `winterbaume-v0.2.0` umbrella ) |
+| `winterbaume(-*)?-v0.2.0` on 2026-05-14 | 116 | Second chunk |
+| **Total tags** | **481** | |
+
+Crate-to-tag map: 240 service / utility crates carry both `v0.1.0` and `v0.2.0`, 1 crate ( `winterbaume-tfstate-resource-models` ) carries only `v0.2.0` because it was extracted from `winterbaume-terraform` between the two batches, and the umbrella crate at workspace root carries `winterbaume-v0.1.0` + `winterbaume-v0.2.0`. That accounts for all 241 crates that need a `CHANGELOG.md`. `winterbaume-e2e-tests` is `publish = false` and intentionally has neither tags nor a changelog.
+
+The two cargo-release commits per crate ( `chore: release {{crate_name}} v{{version}}` ) are unrendered cargo-release template strings rather than per-crate concrete messages, so they are useless for changelog content and were treated as boilerplate to skip.
+
+### Tag-list regex pitfall ( `winterbaume-v*` matches every crate )
+
+First pass used two ref globs ( `refs/tags/winterbaume-*-v*` for service crates plus `refs/tags/winterbaume-v*` for the umbrella ) and concatenated the results. The second glob is **not** a literal `winterbaume-v…` match — `*` is greedy across hyphens, so `winterbaume-v*` matches `winterbaume-vpclattice-v0.1.0`, `winterbaume-vpclattice-v0.2.0`, and any other crate whose slug happens to start with `v`. Concatenating the two ref-lists therefore double-counts `vpclattice`. The fix is `sort -u` on the merged tsv, which is cheap and idempotent. Worth knowing for any future script that iterates winterbaume release tags.
+
+### Commit classification
+
+For each `(crate, version)` the substantive-vs-boilerplate decision used path-filtered `git log --first-parent <prev>..<tag> -- <crate paths>` and a small set of subject regexes. Boilerplate patterns matched 7 distinct subjects across 1,184 commit observations:
+
+- `chore: release {{crate_name}} v{{version}}` — unrendered cargo-release template ( 243 )
+- `chore: declare crates.io keywords across the workspace` — workspace-wide keyword refresh ( 240 )
+- `chore: enhance service crates' keywords with the service slugs` — see 2026-05-13 entry ( 226 )
+- `Merge remote-tracking branch 'origin/fix-account-id-flag'` ( 226 )
+- `chore: update API coverage` ( 225 )
+- `Merge branch 'skill-update-readme-terraform-coverage'` ( 224 )
+- `chore: add missing README.md and trademark notice.` ( 3 )
+
+Substantive commits aggregated to just 4 crates: `winterbaume` ( umbrella ), `winterbaume-server`, `winterbaume-terraform`, `winterbaume-tfstate-resource-models`. All other 237 service crates' `v0.1.0 → v0.2.0` ranges contained only boilerplate commits and were rendered with an honest `Internal` note: "Released alongside the wider workspace v0.2.0 batch. No user-facing behaviour changes for this crate; the release republishes the crate with refreshed crates.io keyword metadata and updated API coverage data."
+
+For `v0.1.0`, every crate's lower bound is the repo root, so the only safe summary is "Initial public release. <description from Cargo.toml>." This is the right default for a coordinated public launch and matches the actual behaviour at the v0.1.0 tag.
+
+### Substantive v0.2.0 content sources
+
+- `winterbaume` ( umbrella ): `tfstate-resource-models: extract generated TF projection code into its own crate` ( 64dabeff ) and `terraform-converters: spec-driven serde codegen for all 145 services` ( 8eb79ef3 ).
+- `winterbaume-terraform`: same two plus ~700 new Terraform resource converters across EC2 ( 100, 3a0c3514 ), S3 + Route 53 ( 22 + 11, 4ef085ca ), batched additions ( 12 / 121 / 36 / 45 / 54 / 65 / 71 / 86 / 113 in commits 535016a3 a1eaf16a c696a8e4 22e1f4cc 5026c76a 0635d55e 7699f618 46dd0e70 1ca574e5 ), apigateway/glue/rds/redshift/sagemaker extensions ( 3b42f93f ), and IAM coverage ( 73ecd94a + e2ac3ee9 + a12584f0 lifting IAM to 32/34, 94% ).
+- `winterbaume-server`: same converter batches as `winterbaume-terraform`, plus the S3/Route53 batch, since router registration changes touched the server crate.
+- `winterbaume-tfstate-resource-models`: v0.2.0 is its initial release; bullets reflect the extraction from `winterbaume-terraform` and the generated-model nature of the crate.
+
+### Workflow
+
+All data collection and rendering is captured under `.agents-workspace/tmp/changelog-data/`:
+
+- `all-tags.tsv` — `<tag>\t<creator-date>` for all 481 tags, deduplicated.
+- `crates.json` — per-crate sorted release list with `prev_tag`/`prev_version` fields for range queries.
+- `commits.json` — path-filtered `git log` output for every `(crate, version)` pair.
+- `classification.json` — same with each commit tagged boilerplate-or-substantive.
+- `descriptions.json` — `description = "..."` from each crate's `Cargo.toml`, used in the "Initial public release. <description>." sentence.
+- `build-crate-table.py`, `collect-commits.py`, `classify.py`, `gen-changelogs.py`, `collect-descriptions.py` — the scripts that produced the artifacts above.
+
+`gen-changelogs.py` is the renderer; it writes 240 files under `crates/<crate>/CHANGELOG.md` ( deliberately skipping the umbrella, which uses the root `CHANGELOG.md` ) and is idempotent — it can be re-run after editing the substantive overrides at the top of the script. The root `CHANGELOG.md` was hand-written rather than templated, because the umbrella narrative ( two dated batches, launch story, release-batch tooling shout-out ) does not fit the per-crate template.
+
+### Output
+
+- Root `CHANGELOG.md`: rewritten from the stub to a workspace-overview document with `Unreleased` empty-note, a 2026-05-13 ... 2026-05-14 v0.2.0 batch section, and a 2026-05-09 ... 2026-05-11 v0.1.0 launch section. The umbrella section explicitly names the 4 substantive crates and says 237 others were keyword-refresh republishes, rather than listing each crate.
+- 240 new files at `crates/<crate>/CHANGELOG.md` ( one per published crate other than the umbrella ).
+- `winterbaume-tfstate-resource-models/CHANGELOG.md` only has a `v0.2.0` section, since v0.1.0 was never published; it is treated as the initial release with an explanatory bullet about the extraction.
+
+### Pre-existing unrelated unstaged changes
+
+The initial `git status` output was truncated at 2 KB and showed only `M CHANGELOG.md` and `M docs/index.md` at first glance. Below the truncation a third pre-existing modification was lurking — `M docs/reference/services.md` — which replaces the `? of ? operations across ? AWS services (?%)` placeholder ( in two places ) with the real `7210 of 11367 operations across 224 AWS services (63.4%)` numbers and updates the Terraform converter trailer line. The pre-existing `M docs/index.md` is the matching landing-page edit ( `?% API Coverage` -> `63% API Coverage`, same numbers ). Neither doc change is in scope for the changelog skill, but both are ready to commit and would land cleanly alongside the new changelog files.
+
+### Follow-ups / things worth knowing later
+
+- Pure-chore `v0.2.0` releases will be the norm for service crates until each crate next gets a real behaviour change. The "Internal" wording in those changelogs is a stable template that can be reused for future workspace-wide keyword / metadata / coverage refresh batches.
+- `winterbaume-tfstate-resource-models` should normally start its own changelog at `v0.1.0` next time it is released, even though its first published version is `v0.2.0`. The current entry documents that explicitly so a future reader does not look for a missing `v0.1.0` section.
+- For any future tag-range scripts, normalise on `refs/tags/winterbaume-*` and split crate from version with a real parser rather than two overlapping globs.
+- The `chore: release {{crate_name}} v{{version}}` commits indicate cargo-release ran with template-string substitution disabled or misconfigured; this should be fixed before the next release batch so the commit history carries the actual crate name and version. Not a blocker for changelogs but it makes commit archaeology harder.
