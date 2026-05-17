@@ -14,7 +14,7 @@ Amazon Bedrock service implementation for winterbaume.
 | moto coverage | 13/101 operations (12.9%) |
 | floci coverage | 0/101 operations (0.0%) |
 | kumo coverage | 0/101 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

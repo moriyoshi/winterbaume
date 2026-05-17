@@ -20,7 +20,7 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 85/164 operations (51.8%) |
 | floci coverage | 0/164 operations (0.0%) |
 | kumo coverage | 12/164 operations (7.3%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 

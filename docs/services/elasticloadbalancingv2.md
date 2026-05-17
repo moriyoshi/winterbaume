@@ -14,7 +14,7 @@ Elastic Load Balancing v2 service implementation for winterbaume.
 | moto coverage | 33/51 operations (64.7%) |
 | floci coverage | 0/51 operations (0.0%) |
 | kumo coverage | 22/51 operations (43.1%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

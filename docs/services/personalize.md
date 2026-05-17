@@ -14,7 +14,7 @@ Amazon Personalize service implementation for winterbaume.
 | moto coverage | 4/71 operations (5.6%) |
 | floci coverage | 0/71 operations (0.0%) |
 | kumo coverage | 0/71 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

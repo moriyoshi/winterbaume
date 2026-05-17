@@ -24,6 +24,6 @@ features:
   - title: Smithy-Backed
     details: Per-service model.rs and wire.rs files are generated from AWS Smithy models, giving type-safe request parsing and response serialization across all implemented protocols.
   - title: 63% API Coverage
-    details: 7210 of 11367 operations across 224 AWS services have real, state-backed behaviour, surpassing moto's 29.1%. A further 326 operations (2.9%) are stubs that route the request and return an empty/default response &mdash; clearly broken out per service. Implemented surfaces include S3, DynamoDB, SQS, Lambda, KMS, ECS, EKS, IAM, and many more.
+    details: 7210 of 11367 operations across 224 AWS services have real, state-backed behaviour, surpassing moto's 29.1%. A further 333 operations (2.9%) are stubs that route the request and return an empty/default response &mdash; clearly broken out per service. Implemented surfaces include S3, DynamoDB, SQS, Lambda, KMS, ECS, EKS, IAM, and many more.
   - title: Pluggable Backends
     details: Swap the default in-memory store for Redis or DuckDB. Opt-in, dependency-free from the core service crates, injected through with_backend().

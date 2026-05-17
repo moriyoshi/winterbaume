@@ -14,7 +14,7 @@ EventBridge Pipes service implementation for winterbaume.
 | moto coverage | 9/10 operations (90.0%) |
 | floci coverage | 0/10 operations (0.0%) |
 | kumo coverage | 10/10 operations (100.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

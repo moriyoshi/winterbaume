@@ -14,7 +14,7 @@ SQS service implementation for winterbaume.
 | moto coverage | 20/23 operations (87.0%) |
 | floci coverage | 0/23 operations (0.0%) |
 | kumo coverage | 14/23 operations (60.9%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

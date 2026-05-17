@@ -14,7 +14,7 @@ AWS Glue service implementation for winterbaume.
 | moto coverage | 96/265 operations (36.2%) |
 | floci coverage | 0/265 operations (0.0%) |
 | kumo coverage | 14/265 operations (5.3%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

@@ -14,7 +14,7 @@ AWS Cloud Map (servicediscovery) service implementation for winterbaume.
 | moto coverage | 27/30 operations (90.0%) |
 | floci coverage | 0/30 operations (0.0%) |
 | kumo coverage | 0/30 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

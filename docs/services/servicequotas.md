@@ -14,7 +14,7 @@ Service Quotas service implementation for winterbaume.
 | moto coverage | 2/26 operations (7.7%) |
 | floci coverage | 0/26 operations (0.0%) |
 | kumo coverage | 8/26 operations (30.8%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

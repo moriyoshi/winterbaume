@@ -839,3 +839,23 @@ Per-crate gate clean: `cargo fmt -p winterbaume-ec2 -- --check` pass; `cargo cli
 
 The remaining two sub-items in this TODO ( singleton spot datafeed subscription slot, VPC route-server family review ) stay open as bigger surface changes that warrant their own pass.
 
+## 2026-05-17 — ec2-generated-wire-deferred-ops closed ( 7 unrouted ops, not 4 )
+
+The TODO's framing was stale. Investigation found:
+
+- The EC2 service-shape declares 763 operations in the 2016-11-15 Smithy model. `winterbaume-ec2-generated` emits 763 `serialize_<op>_response(...)` functions — codegen is fully caught up against the model.
+- 7 operations ( not "four" as the TODO claimed ) were unrouted in `winterbaume-ec2`'s dispatch: `AcceptTransitGatewayClientVpnAttachment`, `DeleteTransitGatewayClientVpnAttachment`, `RejectTransitGatewayClientVpnAttachment`, `GetCapacityManagerMonitoredTagKeys`, `UpdateCapacityManagerMonitoredTagKeys`, `GetManagedResourceVisibility`, `ModifyManagedResourceVisibility`.
+- All 7 `<Op>Result` structs already exist under `#[cfg(feature = "extras")]` in `winterbaume-ec2-generated::model`, and all 7 derive `Default`.
+
+Fix: added stub handlers ( `STUB[no-state]` ) that default-construct each `<Op>Result` and pass through to the generated serializer. Dispatch entries gated with `#[cfg(feature = "extras")]` to match the gating on the Result types. Three logical groups:
+
+- **Transit Gateway <-> Client VPN attachment handshake** ( 3 ops ): no observable state in the emulator's network model.
+- **EC2 Capacity Manager monitored tag keys** ( 2 ops ): cost-visibility surface with no representation in the compute model.
+- **Managed Resource Visibility toggle** ( 2 ops ): cross-account listing toggle with no representation in the account model.
+
+EC2 is now fully routed: 713 implemented + 50 stubs = 763 / 763 ops. Stub count went 326 -> 333 in the regenerated `API_COVERAGE.md`; root `README.md` intro paragraph manually patched ( the auto-regen only updates the table footer ); per-crate `winterbaume-ec2/README.md` and `docs/services/ec2.md` refreshed by `update_readme.py`.
+
+Per-crate gate clean: `cargo clippy --all-targets --all-features -- -D warnings` pass ( 1m27s warm ); `cargo fmt --check` pass; `cargo test --no-fail-fast` pass ( same 591 main + 13 scenario test count, same exit-0 ).
+
+Pattern reminder for future audits: when a TODO claims "no generated serializer", verify the snake_case name match before believing the count. The Smithy short-name to Rust snake_case mapping ( e.g. `AcceptTransitGatewayClientVpnAttachment` -> `accept_transit_gateway_client_vpn_attachment` ) is mechanical but easy to mis-grep.
+

@@ -14,7 +14,7 @@ QuickSight service implementation for winterbaume.
 | moto coverage | 31/232 operations (13.4%) |
 | floci coverage | 0/232 operations (0.0%) |
 | kumo coverage | 0/232 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

@@ -14,7 +14,7 @@ AWS Data Lifecycle Manager service implementation for winterbaume.
 | moto coverage | 0/8 operations (0.0%) |
 | floci coverage | 0/8 operations (0.0%) |
 | kumo coverage | 5/8 operations (62.5%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

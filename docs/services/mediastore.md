@@ -14,7 +14,7 @@ MediaStore service implementation for winterbaume.
 | moto coverage | 11/21 operations (52.4%) |
 | floci coverage | 0/21 operations (0.0%) |
 | kumo coverage | 0/21 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

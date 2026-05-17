@@ -3045,6 +3045,37 @@ impl Ec2Service {
             }
             #[cfg(feature = "network")]
             "MoveByoipCidrToIpam" => self.handle_move_byoip_cidr_to_ipam(&state, &params).await,
+            // --- Group N: Transit Gateway Client VPN attachment + Capacity Manager + Managed Resource Visibility stubs ---
+            #[cfg(feature = "extras")]
+            "AcceptTransitGatewayClientVpnAttachment" => {
+                self.handle_accept_transit_gateway_client_vpn_attachment()
+                    .await
+            }
+            #[cfg(feature = "extras")]
+            "DeleteTransitGatewayClientVpnAttachment" => {
+                self.handle_delete_transit_gateway_client_vpn_attachment()
+                    .await
+            }
+            #[cfg(feature = "extras")]
+            "RejectTransitGatewayClientVpnAttachment" => {
+                self.handle_reject_transit_gateway_client_vpn_attachment()
+                    .await
+            }
+            #[cfg(feature = "extras")]
+            "GetCapacityManagerMonitoredTagKeys" => {
+                self.handle_get_capacity_manager_monitored_tag_keys().await
+            }
+            #[cfg(feature = "extras")]
+            "UpdateCapacityManagerMonitoredTagKeys" => {
+                self.handle_update_capacity_manager_monitored_tag_keys()
+                    .await
+            }
+            #[cfg(feature = "extras")]
+            "GetManagedResourceVisibility" => self.handle_get_managed_resource_visibility().await,
+            #[cfg(feature = "extras")]
+            "ModifyManagedResourceVisibility" => {
+                self.handle_modify_managed_resource_visibility().await
+            }
             _ => MockResponse::error(
                 400,
                 "InvalidAction",
@@ -27016,6 +27047,82 @@ impl Ec2Service {
             }
             Err(e) => ec2_error_response(&e),
         }
+    }
+
+    // --- Stubs for response-only ops with no backing state ---
+    //
+    // These dispatch through to a default-constructed `<Op>Result` so the
+    // wire-level response shape is correct and the SDK call returns 200,
+    // but no state is consulted. They cover newer AWS operations
+    // ( Transit Gateway Client VPN handshake, EC2 Capacity Manager,
+    // Managed Resource Visibility ) that real workloads don't yet need
+    // emulated backing semantics for; if a real caller wants behaviour,
+    // these become natural follow-up TODOs.
+
+    // STUB[no-state]: TGW <-> Client VPN attachment handshake produces no
+    // observable state in the emulator's network model.
+    #[cfg(feature = "extras")]
+    async fn handle_accept_transit_gateway_client_vpn_attachment(&self) -> MockResponse {
+        use crate::model::AcceptTransitGatewayClientVpnAttachmentResult;
+        wire::serialize_accept_transit_gateway_client_vpn_attachment_response(
+            &AcceptTransitGatewayClientVpnAttachmentResult::default(),
+        )
+    }
+
+    // STUB[no-state]: paired with the Accept stub above.
+    #[cfg(feature = "extras")]
+    async fn handle_delete_transit_gateway_client_vpn_attachment(&self) -> MockResponse {
+        use crate::model::DeleteTransitGatewayClientVpnAttachmentResult;
+        wire::serialize_delete_transit_gateway_client_vpn_attachment_response(
+            &DeleteTransitGatewayClientVpnAttachmentResult::default(),
+        )
+    }
+
+    // STUB[no-state]: paired with the Accept stub above.
+    #[cfg(feature = "extras")]
+    async fn handle_reject_transit_gateway_client_vpn_attachment(&self) -> MockResponse {
+        use crate::model::RejectTransitGatewayClientVpnAttachmentResult;
+        wire::serialize_reject_transit_gateway_client_vpn_attachment_response(
+            &RejectTransitGatewayClientVpnAttachmentResult::default(),
+        )
+    }
+
+    // STUB[no-state]: EC2 Capacity Manager is an opt-in cost-visibility
+    // surface with no representation in the emulator's compute model.
+    #[cfg(feature = "extras")]
+    async fn handle_get_capacity_manager_monitored_tag_keys(&self) -> MockResponse {
+        use crate::model::GetCapacityManagerMonitoredTagKeysResult;
+        wire::serialize_get_capacity_manager_monitored_tag_keys_response(
+            &GetCapacityManagerMonitoredTagKeysResult::default(),
+        )
+    }
+
+    // STUB[no-state]: paired with the Get above.
+    #[cfg(feature = "extras")]
+    async fn handle_update_capacity_manager_monitored_tag_keys(&self) -> MockResponse {
+        use crate::model::UpdateCapacityManagerMonitoredTagKeysResult;
+        wire::serialize_update_capacity_manager_monitored_tag_keys_response(
+            &UpdateCapacityManagerMonitoredTagKeysResult::default(),
+        )
+    }
+
+    // STUB[no-state]: Managed Resource Visibility is an opt-in cross-account
+    // listing toggle with no representation in the emulator's account model.
+    #[cfg(feature = "extras")]
+    async fn handle_get_managed_resource_visibility(&self) -> MockResponse {
+        use crate::model::GetManagedResourceVisibilityResult;
+        wire::serialize_get_managed_resource_visibility_response(
+            &GetManagedResourceVisibilityResult::default(),
+        )
+    }
+
+    // STUB[no-state]: paired with the Get above.
+    #[cfg(feature = "extras")]
+    async fn handle_modify_managed_resource_visibility(&self) -> MockResponse {
+        use crate::model::ModifyManagedResourceVisibilityResult;
+        wire::serialize_modify_managed_resource_visibility_response(
+            &ModifyManagedResourceVisibilityResult::default(),
+        )
     }
 }
 

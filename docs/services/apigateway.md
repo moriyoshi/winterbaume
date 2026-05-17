@@ -14,7 +14,7 @@ API Gateway service implementation for winterbaume.
 | moto coverage | 78/124 operations (62.9%) |
 | floci coverage | 70/124 operations (56.5%) |
 | kumo coverage | 17/124 operations (13.7%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

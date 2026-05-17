@@ -14,7 +14,7 @@ AWS Batch service implementation for winterbaume.
 | moto coverage | 24/45 operations (53.3%) |
 | floci coverage | 0/45 operations (0.0%) |
 | kumo coverage | 10/45 operations (22.2%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

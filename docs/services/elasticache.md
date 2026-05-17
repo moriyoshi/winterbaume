@@ -14,7 +14,7 @@ ElastiCache service implementation for winterbaume.
 | moto coverage | 17/75 operations (22.7%) |
 | floci coverage | 0/75 operations (0.0%) |
 | kumo coverage | 7/75 operations (9.3%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

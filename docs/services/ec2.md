@@ -10,11 +10,11 @@ EC2/VPC service implementation for winterbaume.
 | AWS model | `ec2` |
 | Protocol | ec2Query |
 | winterbaume coverage | 713/763 operations (93.4%) |
-| stubs (routed, returns empty/default) | 43/763 operations (5.6%) |
+| stubs (routed, returns empty/default) | 50/763 operations (6.6%) |
 | moto coverage | 223/763 operations (29.2%) |
 | floci coverage | 0/763 operations (0.0%) |
 | kumo coverage | 39/763 operations (5.1%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 
@@ -815,8 +815,10 @@ async fn main() {
 - `UpdateSecurityGroupRuleDescriptionsIngress`
 - `WithdrawByoipCidr`
 
-<details><summary>Stubbed APIs (43) &mdash; routed but return an empty/default response</summary>
+<details><summary>Stubbed APIs (50) &mdash; routed but return an empty/default response</summary>
 
+- `AcceptTransitGatewayClientVpnAttachment`
+- `DeleteTransitGatewayClientVpnAttachment`
 - `DescribeAggregateIdFormat`
 - `DescribeCapacityReservationTopology`
 - `DescribeElasticGpus`
@@ -847,30 +849,23 @@ async fn main() {
 - `GetCapacityManagerAttributes`
 - `GetCapacityManagerMetricData`
 - `GetCapacityManagerMetricDimensions`
+- `GetCapacityManagerMonitoredTagKeys`
 - `GetConsoleScreenshot`
 - `GetImageAncestry`
 - `GetImageBlockPublicAccessState`
 - `GetInstanceTpmEkPub`
 - `GetInstanceUefiData`
 - `GetIpamPolicyOrganizationTargets`
+- `GetManagedResourceVisibility`
 - `GetPasswordData`
 - `GetRouteServerRoutingDatabase`
 - `GetSerialConsoleAccessStatus`
 - `GetSnapshotBlockPublicAccessState`
 - `GetSpotPlacementScores`
-- `MonitorInstances`
-- `UnmonitorInstances`
-
-</details>
-
-<details><summary>Not yet implemented APIs (7)</summary>
-
-- `AcceptTransitGatewayClientVpnAttachment`
-- `DeleteTransitGatewayClientVpnAttachment`
-- `GetCapacityManagerMonitoredTagKeys`
-- `GetManagedResourceVisibility`
 - `ModifyManagedResourceVisibility`
+- `MonitorInstances`
 - `RejectTransitGatewayClientVpnAttachment`
+- `UnmonitorInstances`
 - `UpdateCapacityManagerMonitoredTagKeys`
 
 </details>

@@ -14,7 +14,7 @@ Amazon Connect Campaigns service implementation for winterbaume.
 | moto coverage | 14/22 operations (63.6%) |
 | floci coverage | 0/22 operations (0.0%) |
 | kumo coverage | 0/22 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

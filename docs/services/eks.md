@@ -14,7 +14,7 @@ EKS service implementation for winterbaume.
 | moto coverage | 17/64 operations (26.6%) |
 | floci coverage | 0/64 operations (0.0%) |
 | kumo coverage | 8/64 operations (12.5%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

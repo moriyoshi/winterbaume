@@ -14,7 +14,7 @@ Security Hub service implementation for winterbaume.
 | moto coverage | 13/107 operations (12.1%) |
 | floci coverage | 0/107 operations (0.0%) |
 | kumo coverage | 0/107 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

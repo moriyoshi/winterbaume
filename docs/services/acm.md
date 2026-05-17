@@ -14,7 +14,7 @@ ACM service implementation for winterbaume.
 | moto coverage | 11/17 operations (64.7%) |
 | floci coverage | 0/17 operations (0.0%) |
 | kumo coverage | 6/17 operations (35.3%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

@@ -14,7 +14,7 @@ CloudWatch Logs service implementation for winterbaume.
 | moto coverage | 51/113 operations (45.1%) |
 | floci coverage | 0/113 operations (0.0%) |
 | kumo coverage | 11/113 operations (9.7%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

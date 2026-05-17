@@ -14,7 +14,7 @@ Step Functions service implementation for winterbaume.
 | moto coverage | 29/37 operations (78.4%) |
 | floci coverage | 0/37 operations (0.0%) |
 | kumo coverage | 18/37 operations (48.6%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

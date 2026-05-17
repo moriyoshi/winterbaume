@@ -14,7 +14,7 @@ Amazon Forecast service implementation for winterbaume.
 | moto coverage | 5/63 operations (7.9%) |
 | floci coverage | 0/63 operations (0.0%) |
 | kumo coverage | 17/63 operations (27.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

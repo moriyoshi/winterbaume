@@ -14,7 +14,7 @@ Timestream Query service implementation for winterbaume.
 | moto coverage | 6/15 operations (40.0%) |
 | floci coverage | 0/15 operations (0.0%) |
 | kumo coverage | 0/15 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

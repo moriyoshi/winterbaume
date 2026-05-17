@@ -1,10 +1,10 @@
 # API Coverage Report
 
-Generated: 2026-05-16
+Generated: 2026-05-17
 
 | Project | Version |
 |---------|---------|
-| winterbaume | winterbaume-server-v0.2.0-3-g1f8fc304 |
+| winterbaume | winterbaume-server-v0.2.0-12-gf99b0e67 |
 | moto | 5.2.2.dev |
 | floci | 1.5.14 |
 | kumo | v0.19.0 |
@@ -105,7 +105,7 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-dynamodb | dynamodb | 57 | 0 | 39 | 0 | 20 | 57 | 100.0% | 0.0% | 68.4% | 0.0% | 35.1% |
 | winterbaume-dynamodbstreams | dynamodb-streams | 4 | 0 | 0 | 0 | 0 | 4 | 100.0% | 0.0% | 0.0% | 0.0% | 0.0% |
 | winterbaume-ebs | ebs | 6 | 0 | 6 | 0 | 0 | 6 | 100.0% | 0.0% | 100.0% | 0.0% | 0.0% |
-| winterbaume-ec2 | ec2 | 713 | 43 | 223 | 0 | 39 | 763 | 93.4% | 5.6% | 29.2% | 0.0% | 5.1% |
+| winterbaume-ec2 | ec2 | 713 | 50 | 223 | 0 | 39 | 763 | 93.4% | 6.6% | 29.2% | 0.0% | 5.1% |
 | winterbaume-ec2instanceconnect | ec2-instance-connect | 2 | 0 | 1 | 0 | 0 | 2 | 100.0% | 0.0% | 50.0% | 0.0% | 0.0% |
 | winterbaume-ecr | ecr | 58 | 0 | 29 | 0 | 11 | 58 | 100.0% | 0.0% | 50.0% | 0.0% | 19.0% |
 | winterbaume-ecs | ecs | 63 | 1 | 45 | 0 | 12 | 76 | 82.9% | 1.3% | 59.2% | 0.0% | 15.8% |
@@ -240,9 +240,9 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-workspacesweb | workspaces-web | 68 | 0 | 27 | 0 | 0 | 75 | 90.7% | 0.0% | 36.0% | 0.0% | 0.0% |
 | winterbaume-xray | xray | 34 | 4 | 0 | 0 | 6 | 38 | 89.5% | 10.5% | 0.0% | 0.0% | 15.8% |
 
-**winterbaume winterbaume-server-v0.2.0-3-g1f8fc304: 7210 / 11367 operations across 224 services (63.4%)**
+**winterbaume winterbaume-server-v0.2.0-12-gf99b0e67: 7210 / 11367 operations across 224 services (63.4%)**
 
-**winterbaume stubs: 326 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
+**winterbaume stubs: 333 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
 
 **moto 5.2.2.dev: 3304 / 11367 operations across 224 services (29.1%)**
 
@@ -5073,7 +5073,7 @@ Integration tests: 4/4 implemented operations tested (100.0%)
 
 Integration tests: 6/6 implemented operations tested (100.0%)
 
-### winterbaume-ec2 (ec2) - W: 713/763, S: 43/763, M: 223/763, F: 0/763, K: 39/763
+### winterbaume-ec2 (ec2) - W: 713/763, S: 50/763, M: 223/763, F: 0/763, K: 39/763
 
 Terraform E2E: 20 tests across 7 terraform resource types
 
@@ -5082,7 +5082,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] AcceptAddressTransfer
 - W[x] S[ ] M[ ] F[ ] K[ ] AcceptCapacityReservationBillingOwnership
 - W[x] S[ ] M[ ] F[ ] K[ ] AcceptReservedInstancesExchangeQuote
-- W[ ] S[ ] M[ ] F[ ] K[ ] AcceptTransitGatewayClientVpnAttachment
+- W[ ] S[x] M[ ] F[ ] K[ ] AcceptTransitGatewayClientVpnAttachment
 - W[x] S[ ] M[ ] F[ ] K[ ] AcceptTransitGatewayMulticastDomainAssociations
 - W[x] S[ ] M[x] F[ ] K[ ] AcceptTransitGatewayPeeringAttachment
 - W[x] S[ ] M[ ] F[ ] K[ ] AcceptTransitGatewayVpcAttachment
@@ -5309,7 +5309,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTrafficMirrorSession
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTrafficMirrorTarget
 - W[x] S[ ] M[x] F[ ] K[ ] DeleteTransitGateway
-- W[ ] S[ ] M[ ] F[ ] K[ ] DeleteTransitGatewayClientVpnAttachment
+- W[ ] S[x] M[ ] F[ ] K[ ] DeleteTransitGatewayClientVpnAttachment
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTransitGatewayConnect
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTransitGatewayConnectPeer
 - W[x] S[ ] M[ ] F[ ] K[ ] DeleteTransitGatewayMeteringPolicy
@@ -5612,7 +5612,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[ ] S[x] M[ ] F[ ] K[ ] GetCapacityManagerAttributes
 - W[ ] S[x] M[ ] F[ ] K[ ] GetCapacityManagerMetricData
 - W[ ] S[x] M[ ] F[ ] K[ ] GetCapacityManagerMetricDimensions
-- W[ ] S[ ] M[ ] F[ ] K[ ] GetCapacityManagerMonitoredTagKeys
+- W[ ] S[x] M[ ] F[ ] K[ ] GetCapacityManagerMonitoredTagKeys
 - W[x] S[ ] M[ ] F[ ] K[ ] GetCapacityReservationUsage
 - W[x] S[ ] M[ ] F[ ] K[ ] GetCoipPoolUsage
 - W[x] S[ ] M[ ] F[ ] K[ ] GetConsoleOutput
@@ -5646,7 +5646,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[x] F[ ] K[ ] GetLaunchTemplateData
 - W[x] S[ ] M[ ] F[ ] K[ ] GetManagedPrefixListAssociations
 - W[x] S[ ] M[x] F[ ] K[ ] GetManagedPrefixListEntries
-- W[ ] S[ ] M[ ] F[ ] K[ ] GetManagedResourceVisibility
+- W[ ] S[x] M[ ] F[ ] K[ ] GetManagedResourceVisibility
 - W[x] S[ ] M[ ] F[ ] K[ ] GetNetworkInsightsAccessScopeAnalysisFindings
 - W[x] S[ ] M[ ] F[ ] K[ ] GetNetworkInsightsAccessScopeContent
 - W[ ] S[x] M[x] F[ ] K[ ] GetPasswordData
@@ -5720,7 +5720,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[x] F[ ] K[ ] ModifyLaunchTemplate
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyLocalGatewayRoute
 - W[x] S[ ] M[x] F[ ] K[ ] ModifyManagedPrefixList
-- W[ ] S[ ] M[ ] F[ ] K[ ] ModifyManagedResourceVisibility
+- W[ ] S[x] M[ ] F[ ] K[ ] ModifyManagedResourceVisibility
 - W[x] S[ ] M[x] F[ ] K[ ] ModifyNetworkInterfaceAttribute
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyPrivateDnsNameOptions
 - W[x] S[ ] M[ ] F[ ] K[ ] ModifyPublicIpDnsNameOptions
@@ -5781,7 +5781,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] RegisterTransitGatewayMulticastGroupMembers
 - W[x] S[ ] M[ ] F[ ] K[ ] RegisterTransitGatewayMulticastGroupSources
 - W[x] S[ ] M[ ] F[ ] K[ ] RejectCapacityReservationBillingOwnership
-- W[ ] S[ ] M[ ] F[ ] K[ ] RejectTransitGatewayClientVpnAttachment
+- W[ ] S[x] M[ ] F[ ] K[ ] RejectTransitGatewayClientVpnAttachment
 - W[x] S[ ] M[ ] F[ ] K[ ] RejectTransitGatewayMulticastDomainAssociations
 - W[x] S[ ] M[x] F[ ] K[ ] RejectTransitGatewayPeeringAttachment
 - W[x] S[ ] M[ ] F[ ] K[ ] RejectTransitGatewayVpcAttachment
@@ -5836,7 +5836,7 @@ Resource types: aws_internet_gateway, aws_key_pair, aws_route_table, aws_route_t
 - W[x] S[ ] M[ ] F[ ] K[ ] UnassignPrivateNatGatewayAddress
 - W[x] S[ ] M[ ] F[ ] K[ ] UnlockSnapshot
 - W[ ] S[x] M[ ] F[ ] K[ ] UnmonitorInstances
-- W[ ] S[ ] M[ ] F[ ] K[ ] UpdateCapacityManagerMonitoredTagKeys
+- W[ ] S[x] M[ ] F[ ] K[ ] UpdateCapacityManagerMonitoredTagKeys
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateCapacityManagerOrganizationsAccess
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateInterruptibleCapacityReservationAllocation
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateSecurityGroupRuleDescriptionsEgress

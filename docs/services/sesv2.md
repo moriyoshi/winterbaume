@@ -14,7 +14,7 @@ SES v2 service implementation for winterbaume.
 | moto coverage | 30/110 operations (27.3%) |
 | floci coverage | 0/110 operations (0.0%) |
 | kumo coverage | 9/110 operations (8.2%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

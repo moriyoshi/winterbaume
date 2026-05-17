@@ -14,7 +14,7 @@ KMS service implementation for winterbaume.
 | moto coverage | 40/54 operations (74.1%) |
 | floci coverage | 0/54 operations (0.0%) |
 | kumo coverage | 19/54 operations (35.2%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

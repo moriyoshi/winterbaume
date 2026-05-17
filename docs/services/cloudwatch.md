@@ -14,7 +14,7 @@ CloudWatch service implementation for winterbaume.
 | moto coverage | 20/46 operations (43.5%) |
 | floci coverage | 0/46 operations (0.0%) |
 | kumo coverage | 10/46 operations (21.7%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

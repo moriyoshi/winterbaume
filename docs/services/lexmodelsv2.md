@@ -14,7 +14,7 @@ Amazon Lex V2 Models service implementation for winterbaume.
 | moto coverage | 17/107 operations (15.9%) |
 | floci coverage | 0/107 operations (0.0%) |
 | kumo coverage | 0/107 operations (0.0%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

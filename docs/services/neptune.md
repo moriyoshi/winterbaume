@@ -14,7 +14,7 @@ Neptune service implementation for winterbaume.
 | moto coverage | 47/70 operations (67.1%) |
 | floci coverage | 0/70 operations (0.0%) |
 | kumo coverage | 6/70 operations (8.6%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

@@ -14,7 +14,7 @@ Organizations service implementation for winterbaume.
 | moto coverage | 41/63 operations (65.1%) |
 | floci coverage | 0/63 operations (0.0%) |
 | kumo coverage | 11/63 operations (17.5%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 

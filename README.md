@@ -25,7 +25,7 @@ Two usage modes are supported:
 - **Library mode** -- embed `MockAws` directly in Rust tests against `aws-sdk-rust`. The mock plugs in via `HttpClient` / `HttpConnector`, so there is no network I/O and no external process to manage.
 - **Standalone server** -- run `winterbaume-server` as an HTTP endpoint and point any AWS SDK, the AWS CLI, or Terraform at it via `AWS_ENDPOINT_URL`.
 
-The workspace currently routes **224 AWS services** spanning every major AWS protocol -- awsQuery, ec2Query, awsJson1.0 / 1.1, restJson1, restXml, and rpc-v2-cbor. Of the 11 367 operations defined in the official AWS API models, **7 210 ( 63.4% ) have real, state-backed implementations** in winterbaume, while a further **326 ( 2.9% ) are stubs that route the request and return an empty or default response without consulting state**. Stubs typically cover operations that depend on infrastructure that does not exist in the emulator ( instance telemetry, real-time delivery, multi-account organisation state ), and are clearly labelled in the per-service tables. Anything outside both columns is unrouted and returns a 501-style "not implemented" response. A companion Terraform state converter layer ( `winterbaume-terraform` ) can inject Terraform state into the emulator and extract it back, enabling seeding mock environments from existing `.tfstate` files and round-trip validation against the official AWS provider schema.
+The workspace currently routes **224 AWS services** spanning every major AWS protocol -- awsQuery, ec2Query, awsJson1.0 / 1.1, restJson1, restXml, and rpc-v2-cbor. Of the 11 367 operations defined in the official AWS API models, **7 210 ( 63.4% ) have real, state-backed implementations** in winterbaume, while a further **333 ( 2.9% ) are stubs that route the request and return an empty or default response without consulting state**. Stubs typically cover operations that depend on infrastructure that does not exist in the emulator ( instance telemetry, real-time delivery, multi-account organisation state ), and are clearly labelled in the per-service tables. Anything outside both columns is unrouted and returns a 501-style "not implemented" response. A companion Terraform state converter layer ( `winterbaume-terraform` ) can inject Terraform state into the emulator and extract it back, enabling seeding mock environments from existing `.tfstate` files and round-trip validation against the official AWS provider schema.
 
 Service backends are hand-written for behaviour and validation, while wire-level types and serialisers are generated from Smithy models via the in-tree `smithy-codegen` tool. Correctness is validated in layers: integration tests against real `aws-sdk-rust` clients, ports of moto's behavioural test suite where applicable, and end-to-end Terraform suites that drive `terraform apply` against an in-process server. Operation-count coverage is a prioritisation signal rather than a behavioural guarantee, so before relying on a particular operation, check the per-crate README for whether it is implemented, stubbed, or unrouted.
 
@@ -124,7 +124,7 @@ The `Operations` column shows real, state-backed implementations. The `Stubs` co
 | [DynamoDB](crates/winterbaume-dynamodb/README.md) | `winterbaume-dynamodb` | awsJson1.0 | 57/57 (100.0%) | 0/57 (0.0%) | 39/57 (68.4%) | 0/57 (0.0%) | 20/57 (35.1%) |
 | [DynamoDB Streams](crates/winterbaume-dynamodbstreams/README.md) | `winterbaume-dynamodbstreams` | awsJson1.0 | 4/4 (100.0%) | 0/4 (0.0%) | 0/4 (0.0%) | 0/4 (0.0%) | 0/4 (0.0%) |
 | [EBS](crates/winterbaume-ebs/README.md) | `winterbaume-ebs` | restJson1 | 6/6 (100.0%) | 0/6 (0.0%) | 6/6 (100.0%) | 0/6 (0.0%) | 0/6 (0.0%) |
-| [EC2](crates/winterbaume-ec2/README.md) | `winterbaume-ec2` | ec2Query | 713/763 (93.4%) | 43/763 (5.6%) | 223/763 (29.2%) | 0/763 (0.0%) | 39/763 (5.1%) |
+| [EC2](crates/winterbaume-ec2/README.md) | `winterbaume-ec2` | ec2Query | 713/763 (93.4%) | 50/763 (6.6%) | 223/763 (29.2%) | 0/763 (0.0%) | 39/763 (5.1%) |
 | [EC2 Instance Connect](crates/winterbaume-ec2instanceconnect/README.md) | `winterbaume-ec2instanceconnect` | awsJson1.1 | 2/2 (100.0%) | 0/2 (0.0%) | 1/2 (50.0%) | 0/2 (0.0%) | 0/2 (0.0%) |
 | [ECR](crates/winterbaume-ecr/README.md) | `winterbaume-ecr` | awsJson1.1 | 58/58 (100.0%) | 0/58 (0.0%) | 29/58 (50.0%) | 0/58 (0.0%) | 11/58 (19.0%) |
 | [ECS](crates/winterbaume-ecs/README.md) | `winterbaume-ecs` | awsJson1.1 | 63/76 (82.9%) | 1/76 (1.3%) | 45/76 (59.2%) | 0/76 (0.0%) | 12/76 (15.8%) |
@@ -262,7 +262,7 @@ The `Operations` column shows real, state-backed implementations. The `Stubs` co
 
 **winterbaume: 7210 / 11367 operations across 224 services (63.4%)**
 
-**winterbaume stubs: 326 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
+**winterbaume stubs: 333 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
 
 **moto: 3304 / 11367 operations across 224 services (29.1%)**
 

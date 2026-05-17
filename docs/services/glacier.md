@@ -14,7 +14,7 @@ Glacier service implementation for winterbaume.
 | moto coverage | 10/33 operations (30.3%) |
 | floci coverage | 0/33 operations (0.0%) |
 | kumo coverage | 4/33 operations (12.1%) |
-| Coverage report date | 2026-05-16 |
+| Coverage report date | 2026-05-17 |
 
 ## Server-mode usage
 
