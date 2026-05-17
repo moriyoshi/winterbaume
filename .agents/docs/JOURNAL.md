@@ -877,3 +877,42 @@ Per-crate gate `./.agents/bin/cargo.sh clippy -p winterbaume-terraform --all-tar
 
 Durable lesson: when a view struct gains a field, the breakage radiates to ( at minimum ) the matching converters in `winterbaume-terraform/src/converters/<service>.rs`. Until we add a non-exhaustive `..Default::default()` convention or builder API on these view structs, every field add is a coordinated multi-crate change. The CI clippy job is the canonical guard ( workspace-wide `--all-targets`, deny warnings ); a per-crate gate on only the modified service crate does not catch this. When adding a field to a view struct, search the workspace for `<StructName> {` construction sites before merging.
 
+## 2026-05-17 — ec2-terraform-state-layer-gaps fully closed: spot datafeed + route-server review
+
+The two remaining sub-items in `ec2-terraform-state-layer-gaps` are now resolved.
+
+### Singleton spot datafeed subscription slot
+
+Replaced `handle_spot_datafeed_noop` ( which returned a hand-rolled `<{response_name}><return>true</return>` XML payload for all three `*SpotDatafeedSubscription` ops -- semantically broken for `Describe`, which the SDK then parsed as a missing subscription ) with three real state-backed handlers:
+
+- `handle_create_spot_datafeed_subscription` — parses `Bucket` / `Prefix` from the request, calls `state.create_spot_datafeed_subscription(...)` ( returns `SpotDatafeedAlreadyExists` if one is already present ), returns the freshly-created `SpotDatafeedSubscription` element in the `CreateSpotDatafeedSubscriptionResult`.
+- `handle_delete_spot_datafeed_subscription` — clears the slot; the generated `serialize_delete_spot_datafeed_subscription_response()` takes no args because the Smithy `DeleteSpotDatafeedSubscription` operation has a void output shape ( learned the hard way -- first clippy run failed with `E0061: function takes 0 arguments but 1 was supplied` against the model-default `Result`-pattern from my plan-file draft ).
+- `handle_describe_spot_datafeed_subscription` — looks up the slot ; returns `InvalidSpotDatafeed.NotFound` ( `Ec2Error::SpotDatafeedNotFound` ) when the slot is `None`, otherwise returns the active subscription.
+
+State plumbing:
+
+- `types::SpotDatafeedSubscription { bucket: String, prefix: Option<String>, owner_id: String, state: String }` ( only `"Active"` is reachable from the emulator ; real AWS exposes `"Inactive"` while propagation to S3 fails, which we don't model ).
+- `Ec2State.spot_datafeed_subscription: Option<SpotDatafeedSubscription>` next to the existing spot-instance fields.
+- Two new `Ec2Error` variants — `SpotDatafeedAlreadyExists` -> `AlreadyExists` and `SpotDatafeedNotFound` -> `InvalidSpotDatafeed.NotFound` — wired into `ec2_error_response`.
+- `SpotDatafeedSubscriptionView` plus matching `Ec2StateView.spot_datafeed_subscription: Option<...>` and From conversions both directions for snapshot/restore round-trips.
+- `spot_datafeed_to_model` helper in the model-conversion section of `handlers.rs` to bridge `types::SpotDatafeedSubscription` -> wire `model::SpotDatafeedSubscription`.
+
+Regression test `test_spot_datafeed_subscription_singleton_lifecycle` in `tests/integration_test.rs` walks the full lifecycle and asserts the AWS-spec contract: Describe-before-Create returns `InvalidSpotDatafeed.NotFound`; Create returns the active subscription with the right bucket/prefix/state; Describe returns the active subscription; a second Create fails with `AlreadyExists`; Delete succeeds; Describe-after-Delete returns NotFound again.
+
+### VPC route-server family review
+
+No code change. Re-verified that the family is already comprehensively modelled in `Ec2State`:
+
+- Top-level `route_servers: HashMap<String, RouteServer>` plus distinct maps for endpoints, peers, associations, propagations.
+- 17 of 18 route-server ops are state-backed in dispatch ( CRUD for the route-server itself, the endpoint, and the peer; associate / disassociate; enable / disable / get propagations; get associations ).
+- The lone stub is `GetRouteServerRoutingDatabase`, which is by design — emitting BGP routing-table contents would require a real BGP simulator that the emulator can't provide.
+
+Closed as a documented review with the existing state model.
+
+### Verification
+
+- `cargo fmt -p winterbaume-ec2 -- --check`: pass.
+- `cargo clippy -p winterbaume-ec2 --all-targets --all-features -- -D warnings`: pass ( 1m33s warm ).
+- `cargo test -p winterbaume-ec2 --no-fail-fast`: **592 main tests + 13 scenario tests, 0 failures** ( +1 from the new singleton-lifecycle test compared with the prior 591 ).
+
+The parent `ec2-terraform-state-layer-gaps` TODO is now `- [x]` with strike-throughs covering all five original sub-items.

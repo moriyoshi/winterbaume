@@ -58,6 +58,11 @@ pub struct Ec2State {
     pub launch_templates: HashMap<String, LaunchTemplate>,
     pub launch_template_versions: HashMap<String, Vec<LaunchTemplateVersion>>,
     pub spot_requests: HashMap<String, SpotInstanceRequest>,
+    /// Singleton per-account spot-instance datafeed subscription. `None`
+    /// after `DeleteSpotDatafeedSubscription` or before any
+    /// `CreateSpotDatafeedSubscription`; `Describe` should return an
+    /// `InvalidSpotDatafeed.NotFound` error when this is `None`.
+    pub spot_datafeed_subscription: Option<SpotDatafeedSubscription>,
     pub iam_instance_profile_associations: HashMap<String, IamInstanceProfileAssociation>,
     pub dedicated_hosts: HashMap<String, DedicatedHost>,
     pub ec2_fleets: HashMap<String, Ec2Fleet>,
@@ -557,6 +562,12 @@ pub enum Ec2Error {
 
     #[error("The AMI '{0}' does not exist")]
     AmiNotFound(String),
+
+    #[error("A spot datafeed subscription already exists for this account")]
+    SpotDatafeedAlreadyExists,
+
+    #[error("The spot datafeed subscription for this account was not found")]
+    SpotDatafeedNotFound,
 
     #[error("A launch template with name '{0}' already exists")]
     LaunchTemplateAlreadyExists(String),
@@ -3981,6 +3992,42 @@ impl Ec2State {
                 req.state = "cancelled".to_string();
             }
         }
+    }
+
+    /// Create the singleton spot datafeed subscription. Returns
+    /// `AlreadyExists` if one is already present.
+    pub fn create_spot_datafeed_subscription(
+        &mut self,
+        bucket: String,
+        prefix: Option<String>,
+        owner_id: String,
+    ) -> Result<&SpotDatafeedSubscription, Ec2Error> {
+        if self.spot_datafeed_subscription.is_some() {
+            return Err(Ec2Error::SpotDatafeedAlreadyExists);
+        }
+        self.spot_datafeed_subscription = Some(SpotDatafeedSubscription {
+            bucket,
+            prefix,
+            owner_id,
+            state: "Active".to_string(),
+        });
+        Ok(self.spot_datafeed_subscription.as_ref().unwrap())
+    }
+
+    /// Delete the singleton spot datafeed subscription. No-op if none
+    /// exists ( real AWS also returns success in that case ).
+    pub fn delete_spot_datafeed_subscription(&mut self) {
+        self.spot_datafeed_subscription = None;
+    }
+
+    /// Describe the singleton spot datafeed subscription. Returns
+    /// `InvalidSpotDatafeedNotFound` when no subscription is set.
+    pub fn describe_spot_datafeed_subscription(
+        &self,
+    ) -> Result<&SpotDatafeedSubscription, Ec2Error> {
+        self.spot_datafeed_subscription
+            .as_ref()
+            .ok_or(Ec2Error::SpotDatafeedNotFound)
     }
 
     // --- IAM Instance Profile Association operations ---

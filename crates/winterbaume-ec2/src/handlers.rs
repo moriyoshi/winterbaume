@@ -743,17 +743,16 @@ impl Ec2Service {
             "DescribeSpotPriceHistory" => self.handle_describe_spot_price_history().await,
             #[cfg(feature = "extras")]
             "CreateSpotDatafeedSubscription" => {
-                self.handle_spot_datafeed_noop("CreateSpotDatafeedSubscription")
+                self.handle_create_spot_datafeed_subscription(&state, &params, account_id)
                     .await
             }
             #[cfg(feature = "extras")]
             "DeleteSpotDatafeedSubscription" => {
-                self.handle_spot_datafeed_noop("DeleteSpotDatafeedSubscription")
-                    .await
+                self.handle_delete_spot_datafeed_subscription(&state).await
             }
             #[cfg(feature = "extras")]
             "DescribeSpotDatafeedSubscription" => {
-                self.handle_spot_datafeed_noop("DescribeSpotDatafeedSubscription")
+                self.handle_describe_spot_datafeed_subscription(&state)
                     .await
             }
             #[cfg(feature = "compute")]
@@ -9227,14 +9226,65 @@ impl Ec2Service {
         )
     }
 
-    // Spot instance datafeed subscriptions deliver data to S3; not modelled.
+    /// Spot-instance datafeed subscriptions deliver data to S3; the
+    /// emulator does not actually push to S3 but does honour the
+    /// singleton-per-account contract: `Create` while one exists fails
+    /// with `AlreadyExists`, `Describe` without one fails with
+    /// `InvalidSpotDatafeed.NotFound`, `Delete` is idempotent.
     #[cfg(feature = "extras")]
-    async fn handle_spot_datafeed_noop(&self, response_name: &str) -> MockResponse {
-        let xml = format!(
-            r#"<?xml version="1.0"?><{response_name} xmlns="http://ec2.amazonaws.com/doc/2016-11-15/"><requestId>{}</requestId><return>true</return></{response_name}>"#,
-            uuid::Uuid::new_v4()
-        );
-        MockResponse::xml(200, xml)
+    async fn handle_create_spot_datafeed_subscription(
+        &self,
+        state: &Arc<tokio::sync::RwLock<Ec2State>>,
+        params: &HashMap<String, String>,
+        account_id: &str,
+    ) -> MockResponse {
+        use crate::model::CreateSpotDatafeedSubscriptionResult;
+        let bucket = params.get("Bucket").cloned().unwrap_or_default();
+        let prefix = params.get("Prefix").cloned().filter(|s| !s.is_empty());
+        let mut guard = state.write().await;
+        match guard.create_spot_datafeed_subscription(bucket, prefix, account_id.to_string()) {
+            Ok(sub) => {
+                let wire = spot_datafeed_to_model(sub);
+                wire::serialize_create_spot_datafeed_subscription_response(
+                    &CreateSpotDatafeedSubscriptionResult {
+                        spot_datafeed_subscription: Some(wire),
+                    },
+                )
+            }
+            Err(e) => ec2_error_response(&e),
+        }
+    }
+
+    #[cfg(feature = "extras")]
+    async fn handle_delete_spot_datafeed_subscription(
+        &self,
+        state: &Arc<tokio::sync::RwLock<Ec2State>>,
+    ) -> MockResponse {
+        let mut guard = state.write().await;
+        guard.delete_spot_datafeed_subscription();
+        // DeleteSpotDatafeedSubscription has a void output shape in the
+        // 2016-11-15 Smithy model; the generated serializer takes no args.
+        wire::serialize_delete_spot_datafeed_subscription_response()
+    }
+
+    #[cfg(feature = "extras")]
+    async fn handle_describe_spot_datafeed_subscription(
+        &self,
+        state: &Arc<tokio::sync::RwLock<Ec2State>>,
+    ) -> MockResponse {
+        use crate::model::DescribeSpotDatafeedSubscriptionResult;
+        let guard = state.read().await;
+        match guard.describe_spot_datafeed_subscription() {
+            Ok(sub) => {
+                let wire = spot_datafeed_to_model(sub);
+                wire::serialize_describe_spot_datafeed_subscription_response(
+                    &DescribeSpotDatafeedSubscriptionResult {
+                        spot_datafeed_subscription: Some(wire),
+                    },
+                )
+            }
+            Err(e) => ec2_error_response(&e),
+        }
     }
 
     // --- IAM instance profile association handlers ---
@@ -27128,6 +27178,19 @@ impl Ec2Service {
 
 // --- Model conversion helpers ---
 
+#[cfg(feature = "extras")]
+fn spot_datafeed_to_model(
+    sub: &crate::types::SpotDatafeedSubscription,
+) -> crate::model::SpotDatafeedSubscription {
+    crate::model::SpotDatafeedSubscription {
+        bucket: Some(sub.bucket.clone()),
+        fault: None,
+        owner_id: Some(sub.owner_id.clone()),
+        prefix: sub.prefix.clone(),
+        state: Some(sub.state.clone()),
+    }
+}
+
 #[cfg(feature = "advanced-network")]
 fn local_gateway_route_to_model(
     r: &crate::types::LocalGatewayRoute,
@@ -28647,6 +28710,8 @@ fn ec2_error_response(e: &Ec2Error) -> MockResponse {
         Ec2Error::VolumeNotAttached => (400, "IncorrectState"),
         Ec2Error::SnapshotNotFound(_) => (400, "InvalidSnapshot.NotFound"),
         Ec2Error::AmiNotFound(_) => (400, "InvalidAMIID.NotFound"),
+        Ec2Error::SpotDatafeedAlreadyExists => (400, "AlreadyExists"),
+        Ec2Error::SpotDatafeedNotFound => (400, "InvalidSpotDatafeed.NotFound"),
         Ec2Error::LaunchTemplateAlreadyExists(_) => {
             (400, "InvalidLaunchTemplateName.AlreadyExistsException")
         }

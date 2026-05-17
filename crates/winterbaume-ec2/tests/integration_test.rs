@@ -20318,3 +20318,85 @@ async fn test_wave4_get_vpc_resources_blocking_encryption_enforcement_lists_unpr
             .any(|r| r.id() == Some(vpc_id.as_str()))
     );
 }
+
+/// Spot-instance datafeed subscription is a singleton per account: at most
+/// one subscription exists at a time, Create fails with AlreadyExists when
+/// one is present, Describe returns the active subscription, Delete clears
+/// it, and Describe-after-Delete returns InvalidSpotDatafeed.NotFound.
+#[tokio::test]
+async fn test_spot_datafeed_subscription_singleton_lifecycle() {
+    let client = make_ec2_client().await;
+
+    // 1. Describe before Create -> NotFound.
+    let err = client
+        .describe_spot_datafeed_subscription()
+        .send()
+        .await
+        .expect_err("describe should fail before any subscription is created");
+    let s = format!("{err:?}");
+    assert!(
+        s.contains("InvalidSpotDatafeed.NotFound") || s.contains("NotFound"),
+        "expected InvalidSpotDatafeed.NotFound, got: {s}",
+    );
+
+    // 2. Create the singleton subscription.
+    let create = client
+        .create_spot_datafeed_subscription()
+        .bucket("my-spot-log-bucket")
+        .prefix("logs/")
+        .send()
+        .await
+        .expect("create_spot_datafeed_subscription should succeed");
+    let sub = create
+        .spot_datafeed_subscription()
+        .expect("Create response should include the new subscription");
+    assert_eq!(sub.bucket(), Some("my-spot-log-bucket"));
+    assert_eq!(sub.prefix(), Some("logs/"));
+    assert_eq!(
+        sub.state(),
+        Some(&aws_sdk_ec2::types::DatafeedSubscriptionState::Active)
+    );
+
+    // 3. Describe returns the subscription.
+    let desc = client
+        .describe_spot_datafeed_subscription()
+        .send()
+        .await
+        .expect("describe should succeed");
+    let sub = desc
+        .spot_datafeed_subscription()
+        .expect("Describe should return the active subscription");
+    assert_eq!(sub.bucket(), Some("my-spot-log-bucket"));
+
+    // 4. Second Create -> AlreadyExists.
+    let err = client
+        .create_spot_datafeed_subscription()
+        .bucket("another-bucket")
+        .send()
+        .await
+        .expect_err("create should fail when a subscription already exists");
+    let s = format!("{err:?}");
+    assert!(
+        s.contains("AlreadyExists"),
+        "expected AlreadyExists, got: {s}",
+    );
+
+    // 5. Delete clears it.
+    client
+        .delete_spot_datafeed_subscription()
+        .send()
+        .await
+        .expect("delete should succeed");
+
+    // 6. Describe-after-Delete -> NotFound again.
+    let err = client
+        .describe_spot_datafeed_subscription()
+        .send()
+        .await
+        .expect_err("describe should fail after Delete");
+    let s = format!("{err:?}");
+    assert!(
+        s.contains("InvalidSpotDatafeed.NotFound") || s.contains("NotFound"),
+        "expected InvalidSpotDatafeed.NotFound after Delete, got: {s}",
+    );
+}

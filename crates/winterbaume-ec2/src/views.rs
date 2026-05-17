@@ -132,6 +132,8 @@ pub struct Ec2StateView {
     #[serde(default)]
     pub spot_requests: HashMap<String, SpotInstanceRequestView>,
     #[serde(default)]
+    pub spot_datafeed_subscription: Option<SpotDatafeedSubscriptionView>,
+    #[serde(default)]
     pub iam_instance_profile_associations: HashMap<String, IamInstanceProfileAssociationView>,
     #[serde(default)]
     pub dedicated_hosts: HashMap<String, DedicatedHostView>,
@@ -1506,6 +1508,15 @@ pub struct SpotInstanceRequestView {
     pub status_code: String,
     pub instance_id: Option<String>,
     pub tags: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpotDatafeedSubscriptionView {
+    pub bucket: String,
+    #[serde(default)]
+    pub prefix: Option<String>,
+    pub owner_id: String,
+    pub state: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -3020,6 +3031,10 @@ impl From<&Ec2State> for Ec2StateView {
                 .iter()
                 .map(|(k, v)| (k.clone(), SpotInstanceRequestView::from(v)))
                 .collect(),
+            spot_datafeed_subscription: state
+                .spot_datafeed_subscription
+                .as_ref()
+                .map(SpotDatafeedSubscriptionView::from),
             iam_instance_profile_associations: state
                 .iam_instance_profile_associations
                 .iter()
@@ -5284,6 +5299,17 @@ impl From<&SpotInstanceRequest> for SpotInstanceRequestView {
     }
 }
 
+impl From<&crate::types::SpotDatafeedSubscription> for SpotDatafeedSubscriptionView {
+    fn from(s: &crate::types::SpotDatafeedSubscription) -> Self {
+        SpotDatafeedSubscriptionView {
+            bucket: s.bucket.clone(),
+            prefix: s.prefix.clone(),
+            owner_id: s.owner_id.clone(),
+            state: s.state.clone(),
+        }
+    }
+}
+
 impl From<&IamInstanceProfileAssociation> for IamInstanceProfileAssociationView {
     fn from(a: &IamInstanceProfileAssociation) -> Self {
         IamInstanceProfileAssociationView {
@@ -5926,6 +5952,9 @@ impl From<Ec2StateView> for Ec2State {
                 .into_iter()
                 .map(|(k, v)| (k, SpotInstanceRequest::from(v)))
                 .collect(),
+            spot_datafeed_subscription: view
+                .spot_datafeed_subscription
+                .map(crate::types::SpotDatafeedSubscription::from),
             iam_instance_profile_associations: view
                 .iam_instance_profile_associations
                 .into_iter()
@@ -7837,6 +7866,17 @@ impl From<SpotInstanceRequestView> for SpotInstanceRequest {
             status_code: s.status_code,
             instance_id: s.instance_id,
             tags: s.tags,
+        }
+    }
+}
+
+impl From<SpotDatafeedSubscriptionView> for crate::types::SpotDatafeedSubscription {
+    fn from(v: SpotDatafeedSubscriptionView) -> Self {
+        crate::types::SpotDatafeedSubscription {
+            bucket: v.bucket,
+            prefix: v.prefix,
+            owner_id: v.owner_id,
+            state: v.state,
         }
     }
 }

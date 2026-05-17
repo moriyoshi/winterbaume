@@ -875,6 +875,21 @@ pub struct SpotInstanceRequest {
     pub tags: Tags,
 }
 
+/// Singleton per-account spot-instance datafeed subscription. AWS allows
+/// at most one subscription per account; `CreateSpotDatafeedSubscription`
+/// fails with `AlreadyExists` if one is already present, and
+/// `DeleteSpotDatafeedSubscription` clears it.
+#[derive(Debug, Clone)]
+pub struct SpotDatafeedSubscription {
+    pub bucket: String,
+    pub prefix: Option<String>,
+    pub owner_id: String,
+    /// `"Active"` after `Create`, no other states are reachable in the
+    /// emulator. Real AWS also exposes `Inactive` while propagation to
+    /// S3 fails, which we don't model.
+    pub state: String,
+}
+
 // IAM Instance Profile Association
 
 #[derive(Debug, Clone)]
