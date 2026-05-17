@@ -20,6 +20,12 @@ pub struct Stream {
     pub stream_mode: String,
     pub account_id: String,
     pub max_record_size_in_ki_b: Option<i32>,
+    /// Sequence number counter per shard within this stream. Real AWS
+    /// Kinesis sequence numbers are monotonic per shard, not globally;
+    /// each `put_record*` call increments the counter for the resolved
+    /// target shard and uses the new value as the `SequenceNumber`.
+    /// Missing entries default to zero on first use.
+    pub next_sequence_per_shard: HashMap<String, u64>,
 }
 
 #[derive(Debug, Clone)]

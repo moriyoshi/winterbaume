@@ -8,7 +8,6 @@ use crate::types::*;
 #[derive(Debug, Default)]
 pub struct KinesisState {
     pub streams: HashMap<String, Stream>,
-    next_sequence: u64,
     /// Tags keyed by resource ARN (for TagResource / UntagResource / ListTagsForResource)
     pub resource_tags: HashMap<String, HashMap<String, String>>,
     /// Account-level minimum throughput billing commitment status (stub)
@@ -175,6 +174,7 @@ impl KinesisState {
             stream_mode: mode.to_string(),
             account_id: account_id.to_string(),
             max_record_size_in_ki_b: None,
+            next_sequence_per_shard: HashMap::new(),
         };
 
         self.streams.insert(name.to_string(), stream);
@@ -249,10 +249,14 @@ impl KinesisState {
                     account_id: account_id.to_string(),
                 })?;
 
-        self.next_sequence += 1;
-        let sequence_number = format!("{}", self.next_sequence);
         let active_shards: Vec<&ShardData> = stream.shards.iter().filter(|s| !s.closed).collect();
         let shard_id = compute_shard_id_from_shards(partition_key, &active_shards);
+        let counter = stream
+            .next_sequence_per_shard
+            .entry(shard_id.clone())
+            .or_insert(0);
+        *counter += 1;
+        let sequence_number = format!("{}", *counter);
 
         let record = Record {
             sequence_number: sequence_number.clone(),
@@ -280,10 +284,14 @@ impl KinesisState {
                 account_id: account_id.to_string(),
             })?;
 
-        self.next_sequence += 1;
-        let sequence_number = format!("{}", self.next_sequence);
         let active_shards: Vec<&ShardData> = stream.shards.iter().filter(|s| !s.closed).collect();
         let shard_id = compute_shard_id_from_shards(partition_key, &active_shards);
+        let counter = stream
+            .next_sequence_per_shard
+            .entry(shard_id.clone())
+            .or_insert(0);
+        *counter += 1;
+        let sequence_number = format!("{}", *counter);
 
         let record = Record {
             sequence_number: sequence_number.clone(),
@@ -319,9 +327,13 @@ impl KinesisState {
         let active_refs: Vec<&ShardData> = active_shards.iter().collect();
         let mut results = Vec::new();
         for partition_key in records {
-            self.next_sequence += 1;
-            let sequence_number = format!("{}", self.next_sequence);
             let shard_id = compute_shard_id_from_shards(&partition_key, &active_refs);
+            let counter = stream
+                .next_sequence_per_shard
+                .entry(shard_id.clone())
+                .or_insert(0);
+            *counter += 1;
+            let sequence_number = format!("{}", *counter);
 
             let record = Record {
                 sequence_number: sequence_number.clone(),

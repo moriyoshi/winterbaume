@@ -3257,3 +3257,65 @@ async fn test_describe_stream_returns_encryption_type() {
         "default encryption_type should be NONE"
     );
 }
+
+/// Real AWS Kinesis sequence numbers are monotonic *per shard*, not globally.
+/// Regression for the 2026-05-17 fleet-audit finding: a single global counter
+/// would make per-shard sequence numbers interleave with other shards' minted
+/// values, and a consumer that derives shard ownership from sequence-number
+/// ranges would misbehave.
+#[tokio::test]
+async fn test_put_record_sequence_numbers_are_per_shard() {
+    use std::collections::HashMap;
+
+    let client = make_kinesis_client().await;
+    client
+        .create_stream()
+        .stream_name("per-shard-seq")
+        .shard_count(3)
+        .send()
+        .await
+        .unwrap();
+
+    // Send 12 records with different partition keys. With 3 shards and
+    // hash-based distribution, at least two shards should be hit ( the
+    // shard hasher is deterministic so this isn't probabilistic in practice,
+    // but the assertion below tolerates any non-degenerate distribution ).
+    let mut puts: Vec<(String, u64)> = Vec::new();
+    for i in 0..12 {
+        let resp = client
+            .put_record()
+            .stream_name("per-shard-seq")
+            .data(Blob::new(format!("rec-{i}").into_bytes()))
+            .partition_key(format!("partition-key-{i}"))
+            .send()
+            .await
+            .unwrap();
+        let seq: u64 = resp
+            .sequence_number()
+            .parse()
+            .expect("sequence number is numeric");
+        puts.push((resp.shard_id().to_string(), seq));
+    }
+
+    let mut per_shard: HashMap<String, Vec<u64>> = HashMap::new();
+    for (sid, seq) in &puts {
+        per_shard.entry(sid.clone()).or_default().push(*seq);
+    }
+
+    assert!(
+        per_shard.len() >= 2,
+        "12 records across 3 shards must hit at least two shards; got {per_shard:?}"
+    );
+
+    // Each shard's per-shard sequence stream must start at 1 and increment
+    // by 1 in put order.
+    for (shard, seqs) in &per_shard {
+        for (i, seq) in seqs.iter().enumerate() {
+            assert_eq!(
+                *seq,
+                (i + 1) as u64,
+                "sequence numbers in shard {shard} must be 1, 2, 3, ... (got {seqs:?})"
+            );
+        }
+    }
+}

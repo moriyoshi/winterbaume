@@ -786,3 +786,26 @@ Per-crate gate ran the long way through:
 
 The three larger remaining sub-items ( `ImageView` expansion across kernel / ramdisk / ENA / SR-IOV / TPM / boot mode / IMDS / image location / AMI-copy source, singleton spot datafeed subscription slot, VPC route-server family review ) stay open and are bigger surface changes that warrant their own pass.
 
+## 2026-05-17 — Kinesis per-shard sequence numbers
+
+Closed the highest-confidence flag from the morning's `audit-state-fields.sh --all` fleet sweep.
+
+`KinesisState.next_sequence: u64` was a single global counter incremented by all three put-paths ( `put_record`, `put_record_by_arn`, `put_records` ). Real AWS Kinesis sequence numbers are monotonic *per shard* within a stream, not globally; the mock's global counter was monotonic-per-shard by accident but lost the per-shard reset behaviour and broke any consumer that derives shard ownership from sequence-number ranges.
+
+Fix:
+
+- `Stream` gains `pub next_sequence_per_shard: HashMap<String, u64>` ( `types.rs` ).
+- `KinesisState.next_sequence` is removed entirely ( private field, no external callers ).
+- All three put-paths now compute `shard_id` first via the existing `compute_shard_id_from_shards` helper, then `entry(shard_id.clone()).or_insert(0) + 1` to mint the next sequence number on that shard.
+- `StreamView` gains a matching `#[serde(default)] pub next_sequence_per_shard: HashMap<String, u64>` so snapshot/restore round-trips preserve the invariant.
+- New integration test `test_put_record_sequence_numbers_are_per_shard` in `crates/winterbaume-kinesis/tests/integration_test.rs`: creates a 3-shard stream, puts 12 records with varying partition keys, asserts that each shard's returned sequence numbers form the contiguous sequence `1, 2, 3, ...` in put order. Robust to the shard hasher's distribution as long as at least two shards are hit ( which the deterministic `DefaultHasher` + 12 distinct keys guarantees ).
+
+Per-crate gate ran cleanly after one cosmetic fix:
+
+- `cargo fmt -p winterbaume-kinesis`: clean.
+- `cargo clippy -p winterbaume-kinesis --all-targets --all-features -- -D warnings`: passed after switching `KinesisStateView -> KinesisState` from `let mut state = KinesisState::default(); state.streams = ...; ...` to a direct struct literal. The `field-reassign-with-default` lint had been quiet before only because `KinesisState` had four fields and one stayed at default; removing `next_sequence` left three fields all reassigned, which trips the lint.
+- `cargo fmt -p winterbaume-kinesis -- --check`: clean.
+- `cargo test -p winterbaume-kinesis --no-fail-fast`: **86 tests pass, 0 failures** ( includes the new regression test ).
+
+The `invariant-audit-existing-services` TODO entry has been updated in-place with a strike-through on the kinesis sub-item and a fixed-2026-05-17 note pointing at the commit. The other four fleet-sweep candidates ( costexplorer, guardduty, opensearch, servicediscovery ) stay as documented review candidates; none of them have the same per-shard-vs-global divergence and all are defensible mocks.
+

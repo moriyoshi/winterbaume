@@ -62,6 +62,12 @@ pub struct StreamView {
     /// Maximum record size in KiB (if set).
     #[serde(default)]
     pub max_record_size_in_ki_b: Option<i32>,
+    /// Sequence-number counter per shard. Mirrors
+    /// `Stream::next_sequence_per_shard` so that snapshot/restore round-trips
+    /// preserve the monotonic-per-shard invariant. Missing entries default to
+    /// zero on first use.
+    #[serde(default)]
+    pub next_sequence_per_shard: HashMap<String, u64>,
 }
 
 /// Serializable view of a Kinesis shard.
@@ -118,6 +124,7 @@ impl From<&Stream> for StreamView {
             enhanced_monitoring: s.enhanced_monitoring.clone(),
             resource_policy: s.resource_policy.clone(),
             max_record_size_in_ki_b: s.max_record_size_in_ki_b,
+            next_sequence_per_shard: s.next_sequence_per_shard.clone(),
         }
     }
 }
@@ -150,15 +157,15 @@ impl From<&StreamConsumer> for ConsumerView {
 
 impl From<KinesisStateView> for KinesisState {
     fn from(view: KinesisStateView) -> Self {
-        let mut state = KinesisState::default();
-        state.streams = view
-            .streams
-            .into_iter()
-            .map(|(k, v)| (k, Stream::from(v)))
-            .collect();
-        state.resource_tags = view.resource_tags;
-        state.account_settings_commitment_status = view.account_settings_commitment_status;
-        state
+        KinesisState {
+            streams: view
+                .streams
+                .into_iter()
+                .map(|(k, v)| (k, Stream::from(v)))
+                .collect(),
+            resource_tags: view.resource_tags,
+            account_settings_commitment_status: view.account_settings_commitment_status,
+        }
     }
 }
 
@@ -187,6 +194,7 @@ impl From<StreamView> for Stream {
             enhanced_monitoring: v.enhanced_monitoring,
             resource_policy: v.resource_policy,
             max_record_size_in_ki_b: v.max_record_size_in_ki_b,
+            next_sequence_per_shard: v.next_sequence_per_shard,
         }
     }
 }
