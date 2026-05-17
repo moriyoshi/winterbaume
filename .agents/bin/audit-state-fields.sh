@@ -341,8 +341,14 @@ audit_crate() {
                     fn_count=$(echo "$current_fns" | sort -u | grep -c .)
                     if [[ "$fn_count" -gt 1 ]]; then
                         found_dup=1
+                        local field_prefix
+                        if [[ "$used_fallback" -eq 1 ]]; then
+                            field_prefix="self.$current_counter"
+                        else
+                            field_prefix="self.counters.$current_counter"
+                        fi
                         {
-                            echo "### \`self.counters.$current_counter\`"
+                            echo "### \`$field_prefix\`"
                             echo
                             echo "Referenced from:"
                             echo
