@@ -7,223 +7,55 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListPlaybackRestrictionPoliciesResponse {
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-    #[serde(rename = "playbackRestrictionPolicies")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub playback_restriction_policies: Option<Vec<PlaybackRestrictionPolicySummary>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct PlaybackRestrictionPolicySummary {
-    #[serde(rename = "allowedCountries")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_countries: Option<Vec<String>>,
-    #[serde(rename = "allowedOrigins")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_origins: Option<Vec<String>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
-    #[serde(rename = "enableStrictOriginEnforcement")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub enable_strict_origin_enforcement: Option<bool>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetRecordingConfigurationResponse {
-    #[serde(rename = "recordingConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recording_configuration: Option<RecordingConfiguration>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct RecordingConfiguration {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
-    #[serde(rename = "destinationConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub destination_configuration: Option<DestinationConfiguration>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(rename = "recordingReconnectWindowSeconds")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recording_reconnect_window_seconds: Option<i32>,
-    #[serde(rename = "renditionConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rendition_configuration: Option<RenditionConfiguration>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "thumbnailConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_configuration: Option<ThumbnailConfiguration>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DestinationConfiguration {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub s3: Option<S3DestinationConfiguration>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct S3DestinationConfiguration {
-    #[serde(rename = "bucketName")]
-    #[serde(default)]
-    pub bucket_name: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct RenditionConfiguration {
-    #[serde(rename = "renditionSelection")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rendition_selection: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub renditions: Option<Vec<String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ThumbnailConfiguration {
-    #[serde(rename = "recordingMode")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recording_mode: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub resolution: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub storage: Option<Vec<String>>,
-    #[serde(rename = "targetIntervalSeconds")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub target_interval_seconds: Option<i64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct BatchGetChannelRequest {
     #[serde(default)]
     pub arns: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeletePlaybackKeyPairRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdatePlaybackRestrictionPolicyResponse {
-    #[serde(rename = "playbackRestrictionPolicy")]
+pub struct BatchGetChannelResponse {
+    #[serde(rename = "accessControlAllowOrigin")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub playback_restriction_policy: Option<PlaybackRestrictionPolicy>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct PlaybackRestrictionPolicy {
-    #[serde(rename = "allowedCountries")]
+    pub access_control_allow_origin: Option<String>,
+    #[serde(rename = "accessControlExposeHeaders")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_countries: Option<Vec<String>>,
-    #[serde(rename = "allowedOrigins")]
+    pub access_control_expose_headers: Option<String>,
+    #[serde(rename = "cacheControl")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_origins: Option<Vec<String>>,
+    pub cache_control: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
-    #[serde(rename = "enableStrictOriginEnforcement")]
+    pub channels: Option<Vec<Channel>>,
+    #[serde(rename = "contentSecurityPolicy")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub enable_strict_origin_enforcement: Option<bool>,
+    pub content_security_policy: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
+    pub errors: Option<Vec<BatchError>>,
+    #[serde(rename = "strictTransportSecurity")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UntagResourceResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListStreamsResponse {
-    #[serde(rename = "nextToken")]
+    pub strict_transport_security: Option<String>,
+    #[serde(rename = "xContentTypeOptions")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
+    pub x_content_type_options: Option<String>,
+    #[serde(rename = "xFrameOptions")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub streams: Option<Vec<StreamSummary>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct StreamSummary {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel_arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub health: Option<String>,
-    #[serde(rename = "startTime")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub start_time: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
-    #[serde(rename = "streamId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream_id: Option<String>,
-    #[serde(rename = "viewerCount")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer_count: Option<i64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateChannelResponse {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel: Option<Channel>,
-    #[serde(rename = "streamKey")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream_key: Option<StreamKey>,
+    pub x_frame_options: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct Channel {
+    #[serde(rename = "adConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ad_configuration_arn: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arn: Option<String>,
@@ -305,6 +137,64 @@ pub struct Srt {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct BatchError {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct BatchGetStreamKeyRequest {
+    #[serde(default)]
+    pub arns: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct BatchGetStreamKeyResponse {
+    #[serde(rename = "accessControlAllowOrigin")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub access_control_allow_origin: Option<String>,
+    #[serde(rename = "accessControlExposeHeaders")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub access_control_expose_headers: Option<String>,
+    #[serde(rename = "cacheControl")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<String>,
+    #[serde(rename = "contentSecurityPolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_security_policy: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub errors: Option<Vec<BatchError>>,
+    #[serde(rename = "streamKeys")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream_keys: Option<Vec<StreamKey>>,
+    #[serde(rename = "strictTransportSecurity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict_transport_security: Option<String>,
+    #[serde(rename = "xContentTypeOptions")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub x_content_type_options: Option<String>,
+    #[serde(rename = "xFrameOptions")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub x_frame_options: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct StreamKey {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -322,28 +212,305 @@ pub struct StreamKey {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListPlaybackKeyPairsResponse {
-    #[serde(rename = "keyPairs")]
+pub struct BatchStartViewerSessionRevocationRequest {
+    #[serde(rename = "viewerSessions")]
     #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub key_pairs: Option<Vec<PlaybackKeyPairSummary>>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
+    pub viewer_sessions: Vec<BatchStartViewerSessionRevocationViewerSession>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct PlaybackKeyPairSummary {
+pub struct BatchStartViewerSessionRevocationViewerSession {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    pub channel_arn: String,
+    #[serde(rename = "viewerId")]
+    #[serde(default)]
+    pub viewer_id: String,
+    #[serde(rename = "viewerSessionVersionsLessThanOrEqualTo")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
+    pub viewer_session_versions_less_than_or_equal_to: Option<i32>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct BatchStartViewerSessionRevocationResponse {
+    #[serde(rename = "accessControlAllowOrigin")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub access_control_allow_origin: Option<String>,
+    #[serde(rename = "accessControlExposeHeaders")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub access_control_expose_headers: Option<String>,
+    #[serde(rename = "cacheControl")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cache_control: Option<String>,
+    #[serde(rename = "contentSecurityPolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub content_security_policy: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub errors: Option<Vec<BatchStartViewerSessionRevocationError>>,
+    #[serde(rename = "strictTransportSecurity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub strict_transport_security: Option<String>,
+    #[serde(rename = "xContentTypeOptions")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub x_content_type_options: Option<String>,
+    #[serde(rename = "xFrameOptions")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub x_frame_options: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct BatchStartViewerSessionRevocationError {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel_arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+    #[serde(rename = "viewerId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub viewer_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateAdConfigurationRequest {
+    #[serde(rename = "mediaTailorPlaybackConfigurations")]
+    #[serde(default)]
+    pub media_tailor_playback_configurations: Vec<MediaTailorPlaybackConfiguration>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct MediaTailorPlaybackConfiguration {
+    #[serde(rename = "playbackConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub playback_configuration_arn: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateAdConfigurationResponse {
+    #[serde(rename = "adConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ad_configuration: Option<AdConfiguration>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct AdConfiguration {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(rename = "mediaTailorPlaybackConfigurations")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_tailor_playback_configurations: Option<Vec<MediaTailorPlaybackConfiguration>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateChannelRequest {
+    #[serde(rename = "adConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ad_configuration_arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub authorized: Option<bool>,
+    #[serde(rename = "containerFormat")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub container_format: Option<String>,
+    #[serde(rename = "insecureIngest")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub insecure_ingest: Option<bool>,
+    #[serde(rename = "latencyMode")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub latency_mode: Option<String>,
+    #[serde(rename = "multitrackInputConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub multitrack_input_configuration: Option<MultitrackInputConfiguration>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(rename = "playbackRestrictionPolicyArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub playback_restriction_policy_arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preset: Option<String>,
+    #[serde(rename = "recordingConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recording_configuration_arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "type")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateChannelResponse {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
+    #[serde(rename = "streamKey")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream_key: Option<StreamKey>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreatePlaybackRestrictionPolicyRequest {
+    #[serde(rename = "allowedCountries")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_countries: Option<Vec<String>>,
+    #[serde(rename = "allowedOrigins")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_origins: Option<Vec<String>>,
+    #[serde(rename = "enableStrictOriginEnforcement")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enable_strict_origin_enforcement: Option<bool>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreatePlaybackRestrictionPolicyResponse {
+    #[serde(rename = "playbackRestrictionPolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub playback_restriction_policy: Option<PlaybackRestrictionPolicy>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct PlaybackRestrictionPolicy {
+    #[serde(rename = "allowedCountries")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_countries: Option<Vec<String>>,
+    #[serde(rename = "allowedOrigins")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_origins: Option<Vec<String>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(rename = "enableStrictOriginEnforcement")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enable_strict_origin_enforcement: Option<bool>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateRecordingConfigurationRequest {
+    #[serde(rename = "destinationConfiguration")]
+    #[serde(default)]
+    pub destination_configuration: DestinationConfiguration,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(rename = "recordingReconnectWindowSeconds")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recording_reconnect_window_seconds: Option<i32>,
+    #[serde(rename = "renditionConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rendition_configuration: Option<RenditionConfiguration>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "thumbnailConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumbnail_configuration: Option<ThumbnailConfiguration>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DestinationConfiguration {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub s3: Option<S3DestinationConfiguration>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct S3DestinationConfiguration {
+    #[serde(rename = "bucketName")]
+    #[serde(default)]
+    pub bucket_name: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct RenditionConfiguration {
+    #[serde(rename = "renditionSelection")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rendition_selection: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub renditions: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ThumbnailConfiguration {
+    #[serde(rename = "recordingMode")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recording_mode: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resolution: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub storage: Option<Vec<String>>,
+    #[serde(rename = "targetIntervalSeconds")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_interval_seconds: Option<i64>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -355,32 +522,7 @@ pub struct CreateRecordingConfigurationResponse {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetStreamRequest {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    pub channel_arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct TagResourceRequest {
-    #[serde(default)]
-    pub tags: std::collections::HashMap<String, String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListRecordingConfigurationsResponse {
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-    #[serde(rename = "recordingConfigurations")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recording_configurations: Option<Vec<RecordingConfigurationSummary>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct RecordingConfigurationSummary {
+pub struct RecordingConfiguration {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arn: Option<String>,
@@ -391,12 +533,101 @@ pub struct RecordingConfigurationSummary {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(rename = "recordingReconnectWindowSeconds")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recording_reconnect_window_seconds: Option<i32>,
+    #[serde(rename = "renditionConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rendition_configuration: Option<RenditionConfiguration>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "thumbnailConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumbnail_configuration: Option<ThumbnailConfiguration>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateStreamKeyRequest {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    pub channel_arn: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateStreamKeyResponse {
+    #[serde(rename = "streamKey")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream_key: Option<StreamKey>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteAdConfigurationRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteChannelRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeletePlaybackKeyPairRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeletePlaybackKeyPairResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeletePlaybackRestrictionPolicyRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteRecordingConfigurationRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteStreamKeyRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetAdConfigurationRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetAdConfigurationResponse {
+    #[serde(rename = "adConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ad_configuration: Option<AdConfiguration>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetChannelRequest {
+    #[serde(default)]
+    pub arn: String,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -413,18 +644,76 @@ pub struct GetPlaybackKeyPairRequest {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListStreamKeysRequest {
+pub struct GetPlaybackKeyPairResponse {
+    #[serde(rename = "keyPair")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key_pair: Option<PlaybackKeyPair>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct PlaybackKeyPair {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fingerprint: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetPlaybackRestrictionPolicyRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetPlaybackRestrictionPolicyResponse {
+    #[serde(rename = "playbackRestrictionPolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub playback_restriction_policy: Option<PlaybackRestrictionPolicy>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetRecordingConfigurationRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetRecordingConfigurationResponse {
+    #[serde(rename = "recordingConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recording_configuration: Option<RecordingConfiguration>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetStreamKeyRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetStreamKeyResponse {
+    #[serde(rename = "streamKey")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream_key: Option<StreamKey>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetStreamRequest {
     #[serde(rename = "channelArn")]
     #[serde(default)]
     pub channel_arn: String,
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -465,494 +754,6 @@ pub struct Stream {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UntagResourceRequest {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetStreamKeyResponse {
-    #[serde(rename = "streamKey")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream_key: Option<StreamKey>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListRecordingConfigurationsRequest {
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListStreamsRequest {
-    #[serde(rename = "filterBy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filter_by: Option<StreamFilters>,
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct StreamFilters {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub health: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListTagsForResourceRequest {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateChannelRequest {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub authorized: Option<bool>,
-    #[serde(rename = "containerFormat")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub container_format: Option<String>,
-    #[serde(rename = "insecureIngest")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub insecure_ingest: Option<bool>,
-    #[serde(rename = "latencyMode")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub latency_mode: Option<String>,
-    #[serde(rename = "multitrackInputConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub multitrack_input_configuration: Option<MultitrackInputConfiguration>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(rename = "playbackRestrictionPolicyArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub playback_restriction_policy_arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub preset: Option<String>,
-    #[serde(rename = "recordingConfigurationArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recording_configuration_arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "type")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListPlaybackRestrictionPoliciesRequest {
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct PutMetadataRequest {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    pub channel_arn: String,
-    #[serde(default)]
-    pub metadata: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetStreamKeyRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct StartViewerSessionRevocationResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetPlaybackRestrictionPolicyResponse {
-    #[serde(rename = "playbackRestrictionPolicy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub playback_restriction_policy: Option<PlaybackRestrictionPolicy>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct StopStreamResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateRecordingConfigurationRequest {
-    #[serde(rename = "destinationConfiguration")]
-    #[serde(default)]
-    pub destination_configuration: DestinationConfiguration,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(rename = "recordingReconnectWindowSeconds")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recording_reconnect_window_seconds: Option<i32>,
-    #[serde(rename = "renditionConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rendition_configuration: Option<RenditionConfiguration>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "thumbnailConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_configuration: Option<ThumbnailConfiguration>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteChannelRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateStreamKeyRequest {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    pub channel_arn: String,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListStreamKeysResponse {
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-    #[serde(rename = "streamKeys")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream_keys: Option<Vec<StreamKeySummary>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct StreamKeySummary {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel_arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetPlaybackKeyPairResponse {
-    #[serde(rename = "keyPair")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub key_pair: Option<PlaybackKeyPair>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct PlaybackKeyPair {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fingerprint: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetPlaybackRestrictionPolicyRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct BatchStartViewerSessionRevocationResponse {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<BatchStartViewerSessionRevocationError>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct BatchStartViewerSessionRevocationError {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel_arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub code: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message: Option<String>,
-    #[serde(rename = "viewerId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer_id: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteStreamKeyRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdatePlaybackRestrictionPolicyRequest {
-    #[serde(rename = "allowedCountries")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_countries: Option<Vec<String>>,
-    #[serde(rename = "allowedOrigins")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_origins: Option<Vec<String>>,
-    #[serde(default)]
-    pub arn: String,
-    #[serde(rename = "enableStrictOriginEnforcement")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub enable_strict_origin_enforcement: Option<bool>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetRecordingConfigurationRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetChannelRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct StartViewerSessionRevocationRequest {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    pub channel_arn: String,
-    #[serde(rename = "viewerId")]
-    #[serde(default)]
-    pub viewer_id: String,
-    #[serde(rename = "viewerSessionVersionsLessThanOrEqualTo")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer_session_versions_less_than_or_equal_to: Option<i32>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListTagsForResourceResponse {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ImportPlaybackKeyPairResponse {
-    #[serde(rename = "keyPair")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub key_pair: Option<PlaybackKeyPair>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListChannelsRequest {
-    #[serde(rename = "filterByName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filter_by_name: Option<String>,
-    #[serde(rename = "filterByPlaybackRestrictionPolicyArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filter_by_playback_restriction_policy_arn: Option<String>,
-    #[serde(rename = "filterByRecordingConfigurationArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filter_by_recording_configuration_arn: Option<String>,
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateStreamKeyResponse {
-    #[serde(rename = "streamKey")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream_key: Option<StreamKey>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreatePlaybackRestrictionPolicyRequest {
-    #[serde(rename = "allowedCountries")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_countries: Option<Vec<String>>,
-    #[serde(rename = "allowedOrigins")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_origins: Option<Vec<String>>,
-    #[serde(rename = "enableStrictOriginEnforcement")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub enable_strict_origin_enforcement: Option<bool>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct BatchStartViewerSessionRevocationRequest {
-    #[serde(rename = "viewerSessions")]
-    #[serde(default)]
-    pub viewer_sessions: Vec<BatchStartViewerSessionRevocationViewerSession>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct BatchStartViewerSessionRevocationViewerSession {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    pub channel_arn: String,
-    #[serde(rename = "viewerId")]
-    #[serde(default)]
-    pub viewer_id: String,
-    #[serde(rename = "viewerSessionVersionsLessThanOrEqualTo")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer_session_versions_less_than_or_equal_to: Option<i32>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeletePlaybackRestrictionPolicyRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreatePlaybackRestrictionPolicyResponse {
-    #[serde(rename = "playbackRestrictionPolicy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub playback_restriction_policy: Option<PlaybackRestrictionPolicy>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct BatchGetChannelResponse {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub channels: Option<Vec<Channel>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<BatchError>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct BatchError {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub code: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeletePlaybackKeyPairResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateChannelRequest {
-    #[serde(default)]
-    pub arn: String,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub authorized: Option<bool>,
-    #[serde(rename = "containerFormat")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub container_format: Option<String>,
-    #[serde(rename = "insecureIngest")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub insecure_ingest: Option<bool>,
-    #[serde(rename = "latencyMode")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub latency_mode: Option<String>,
-    #[serde(rename = "multitrackInputConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub multitrack_input_configuration: Option<MultitrackInputConfiguration>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(rename = "playbackRestrictionPolicyArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub playback_restriction_policy_arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub preset: Option<String>,
-    #[serde(rename = "recordingConfigurationArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recording_configuration_arn: Option<String>,
-    #[serde(rename = "type")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteRecordingConfigurationRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct GetStreamSessionRequest {
     #[serde(rename = "channelArn")]
     #[serde(default)]
@@ -961,38 +762,6 @@ pub struct GetStreamSessionRequest {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stream_id: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct TagResourceResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct StopStreamRequest {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    pub channel_arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateChannelResponse {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub channel: Option<Channel>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListStreamSessionsRequest {
-    #[serde(rename = "channelArn")]
-    #[serde(default)]
-    pub channel_arn: String,
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -1143,7 +912,103 @@ pub struct StreamEvent {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListPlaybackKeyPairsRequest {
+pub struct ImportPlaybackKeyPairRequest {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(rename = "publicKeyMaterial")]
+    #[serde(default)]
+    pub public_key_material: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ImportPlaybackKeyPairResponse {
+    #[serde(rename = "keyPair")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key_pair: Option<PlaybackKeyPair>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct InsertAdBreakRequest {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    pub channel_arn: String,
+    #[serde(rename = "durationSeconds")]
+    #[serde(default)]
+    pub duration_seconds: i32,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct InsertAdBreakResponse {
+    #[serde(rename = "adBreakId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ad_break_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListAdConfigurationsRequest {
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListAdConfigurationsResponse {
+    #[serde(rename = "adConfigurations")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ad_configurations: Option<Vec<AdConfigurationSummary>>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct AdConfigurationSummary {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(rename = "mediaTailorPlaybackConfigurations")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub media_tailor_playback_configurations: Option<Vec<MediaTailorPlaybackConfiguration>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListChannelsRequest {
+    #[serde(rename = "filterByAdConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filter_by_ad_configuration_arn: Option<String>,
+    #[serde(rename = "filterByName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filter_by_name: Option<String>,
+    #[serde(rename = "filterByPlaybackRestrictionPolicyArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filter_by_playback_restriction_policy_arn: Option<String>,
+    #[serde(rename = "filterByRecordingConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filter_by_recording_configuration_arn: Option<String>,
     #[serde(rename = "maxResults")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1167,6 +1032,10 @@ pub struct ListChannelsResponse {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ChannelSummary {
+    #[serde(rename = "adConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ad_configuration_arn: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arn: Option<String>,
@@ -1205,20 +1074,189 @@ pub struct ChannelSummary {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct BatchGetStreamKeyResponse {
+pub struct ListPlaybackKeyPairsRequest {
+    #[serde(rename = "maxResults")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub errors: Option<Vec<BatchError>>,
-    #[serde(rename = "streamKeys")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub stream_keys: Option<Vec<StreamKey>>,
+    pub next_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct BatchGetStreamKeyRequest {
+pub struct ListPlaybackKeyPairsResponse {
+    #[serde(rename = "keyPairs")]
     #[serde(default)]
-    pub arns: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key_pairs: Option<Vec<PlaybackKeyPairSummary>>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct PlaybackKeyPairSummary {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListPlaybackRestrictionPoliciesRequest {
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListPlaybackRestrictionPoliciesResponse {
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "playbackRestrictionPolicies")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub playback_restriction_policies: Option<Vec<PlaybackRestrictionPolicySummary>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct PlaybackRestrictionPolicySummary {
+    #[serde(rename = "allowedCountries")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_countries: Option<Vec<String>>,
+    #[serde(rename = "allowedOrigins")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_origins: Option<Vec<String>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(rename = "enableStrictOriginEnforcement")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enable_strict_origin_enforcement: Option<bool>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListRecordingConfigurationsRequest {
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListRecordingConfigurationsResponse {
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "recordingConfigurations")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recording_configurations: Option<Vec<RecordingConfigurationSummary>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct RecordingConfigurationSummary {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(rename = "destinationConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub destination_configuration: Option<DestinationConfiguration>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListStreamKeysRequest {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    pub channel_arn: String,
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListStreamKeysResponse {
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "streamKeys")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream_keys: Option<Vec<StreamKeySummary>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct StreamKeySummary {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel_arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListStreamSessionsRequest {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    pub channel_arn: String,
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -1254,14 +1292,219 @@ pub struct StreamSessionSummary {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ImportPlaybackKeyPairRequest {
+pub struct ListStreamsRequest {
+    #[serde(rename = "filterBy")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(rename = "publicKeyMaterial")]
+    pub filter_by: Option<StreamFilters>,
+    #[serde(rename = "maxResults")]
     #[serde(default)]
-    pub public_key_material: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct StreamFilters {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub health: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListStreamsResponse {
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub streams: Option<Vec<StreamSummary>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct StreamSummary {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel_arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub health: Option<String>,
+    #[serde(rename = "startTime")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_time: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(rename = "streamId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stream_id: Option<String>,
+    #[serde(rename = "viewerCount")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub viewer_count: Option<i64>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListTagsForResourceRequest {
+    #[serde(rename = "resourceArn")]
+    #[serde(default)]
+    pub resource_arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListTagsForResourceResponse {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct PutMetadataRequest {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    pub channel_arn: String,
+    #[serde(default)]
+    pub metadata: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct StartViewerSessionRevocationRequest {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    pub channel_arn: String,
+    #[serde(rename = "viewerId")]
+    #[serde(default)]
+    pub viewer_id: String,
+    #[serde(rename = "viewerSessionVersionsLessThanOrEqualTo")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub viewer_session_versions_less_than_or_equal_to: Option<i32>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct StartViewerSessionRevocationResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct StopStreamRequest {
+    #[serde(rename = "channelArn")]
+    #[serde(default)]
+    pub channel_arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct StopStreamResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct TagResourceRequest {
+    #[serde(rename = "resourceArn")]
+    #[serde(default)]
+    pub resource_arn: String,
+    #[serde(default)]
+    pub tags: std::collections::HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct TagResourceResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UntagResourceRequest {
+    #[serde(rename = "resourceArn")]
+    #[serde(default)]
+    pub resource_arn: String,
+    #[serde(rename = "tagKeys")]
+    #[serde(default)]
+    pub tag_keys: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UntagResourceResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateChannelRequest {
+    #[serde(rename = "adConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ad_configuration_arn: Option<String>,
+    #[serde(default)]
+    pub arn: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub authorized: Option<bool>,
+    #[serde(rename = "containerFormat")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub container_format: Option<String>,
+    #[serde(rename = "insecureIngest")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub insecure_ingest: Option<bool>,
+    #[serde(rename = "latencyMode")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub latency_mode: Option<String>,
+    #[serde(rename = "multitrackInputConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub multitrack_input_configuration: Option<MultitrackInputConfiguration>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(rename = "playbackRestrictionPolicyArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub playback_restriction_policy_arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preset: Option<String>,
+    #[serde(rename = "recordingConfigurationArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recording_configuration_arn: Option<String>,
+    #[serde(rename = "type")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateChannelResponse {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub channel: Option<Channel>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdatePlaybackRestrictionPolicyRequest {
+    #[serde(rename = "allowedCountries")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_countries: Option<Vec<String>>,
+    #[serde(rename = "allowedOrigins")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_origins: Option<Vec<String>>,
+    #[serde(default)]
+    pub arn: String,
+    #[serde(rename = "enableStrictOriginEnforcement")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub enable_strict_origin_enforcement: Option<bool>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdatePlaybackRestrictionPolicyResponse {
+    #[serde(rename = "playbackRestrictionPolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub playback_restriction_policy: Option<PlaybackRestrictionPolicy>,
 }

@@ -1,11 +1,11 @@
 # API Coverage Report
 
-Generated: 2026-05-13
+Generated: 2026-05-16
 
 | Project | Version |
 |---------|---------|
-| winterbaume | winterbaume-server-v0.1.0-26-ge1d78c18 |
-| moto | 5.2.1.dev |
+| winterbaume | winterbaume-server-v0.2.0-3-g1f8fc304 |
+| moto | 5.2.2.dev |
 | floci | 1.5.14 |
 | kumo | v0.19.0 |
 
@@ -208,7 +208,7 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-servicediscovery | servicediscovery | 27 | 0 | 27 | 0 | 0 | 30 | 90.0% | 0.0% | 90.0% | 0.0% | 0.0% |
 | winterbaume-servicequotas | service-quotas | 5 | 0 | 2 | 0 | 8 | 26 | 19.2% | 0.0% | 7.7% | 0.0% | 30.8% |
 | winterbaume-ses | ses | 38 | 2 | 38 | 0 | 0 | 71 | 53.5% | 2.8% | 53.5% | 0.0% | 0.0% |
-| winterbaume-sesv2 | sesv2 | 106 | 4 | 28 | 0 | 9 | 110 | 96.4% | 3.6% | 25.5% | 0.0% | 8.2% |
+| winterbaume-sesv2 | sesv2 | 106 | 4 | 30 | 0 | 9 | 110 | 96.4% | 3.6% | 27.3% | 0.0% | 8.2% |
 | winterbaume-sfn | sfn | 35 | 2 | 29 | 0 | 18 | 37 | 94.6% | 5.4% | 78.4% | 0.0% | 48.6% |
 | winterbaume-shield | shield | 9 | 0 | 9 | 0 | 0 | 36 | 25.0% | 0.0% | 25.0% | 0.0% | 0.0% |
 | winterbaume-signer | signer | 19 | 0 | 7 | 0 | 0 | 19 | 100.0% | 0.0% | 36.8% | 0.0% | 0.0% |
@@ -240,11 +240,11 @@ Legend: `winterbaume` = operations with real, state-backed logic. `stubs` = oper
 | winterbaume-workspacesweb | workspaces-web | 68 | 0 | 27 | 0 | 0 | 75 | 90.7% | 0.0% | 36.0% | 0.0% | 0.0% |
 | winterbaume-xray | xray | 34 | 4 | 0 | 0 | 6 | 38 | 89.5% | 10.5% | 0.0% | 0.0% | 15.8% |
 
-**winterbaume winterbaume-server-v0.1.0-26-ge1d78c18: 7210 / 11367 operations across 224 services (63.4%)**
+**winterbaume winterbaume-server-v0.2.0-3-g1f8fc304: 7210 / 11367 operations across 224 services (63.4%)**
 
 **winterbaume stubs: 326 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
 
-**moto 5.2.1.dev: 3302 / 11367 operations across 224 services (29.0%)**
+**moto 5.2.2.dev: 3304 / 11367 operations across 224 services (29.1%)**
 
 **floci 1.5.14: 160 / 11367 operations across 224 services (1.4%)**
 
@@ -12111,7 +12111,7 @@ Integration tests: 5/5 implemented operations tested (100.0%)
 Integration tests: 28/38 implemented operations tested (73.7%)
 Untested implemented operations: 10
 
-### winterbaume-sesv2 (sesv2) - W: 106/110, S: 4/110, M: 28/110, F: 0/110, K: 9/110
+### winterbaume-sesv2 (sesv2) - W: 106/110, S: 4/110, M: 30/110, F: 0/110, K: 9/110
 
 - W[ ] S[x] M[ ] F[ ] K[ ] BatchGetMetricData
 - W[x] S[ ] M[ ] F[ ] K[ ] CancelExportJob
@@ -12216,8 +12216,8 @@ Untested implemented operations: 10
 - W[x] S[ ] M[ ] F[ ] K[ ] TestRenderEmailTemplate
 - W[x] S[ ] M[x] F[ ] K[ ] UntagResource
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateConfigurationSetEventDestination
-- W[x] S[ ] M[ ] F[ ] K[ ] UpdateContact
-- W[x] S[ ] M[ ] F[ ] K[ ] UpdateContactList
+- W[x] S[ ] M[x] F[ ] K[ ] UpdateContact
+- W[x] S[ ] M[x] F[ ] K[ ] UpdateContactList
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateCustomVerificationEmailTemplate
 - W[x] S[ ] M[x] F[ ] K[ ] UpdateEmailIdentityPolicy
 - W[x] S[ ] M[ ] F[ ] K[ ] UpdateEmailTemplate

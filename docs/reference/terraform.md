@@ -10,8 +10,8 @@ Winterbaume includes a Terraform state converter layer (`winterbaume-terraform`)
 
 - **1143 converters** covering **1140 distinct Terraform resource types**
 - **56.1% overall inject coverage** (reading TF state attributes into winterbaume)
-- **48.8% overall extract coverage** (emitting winterbaume state back to TF attributes)
-- Rating distribution: 491 excellent, 498 good, 45 fair, 96 poor, 13 n/a
+- **49.0% overall extract coverage** (emitting winterbaume state back to TF attributes)
+- Rating distribution: 499 excellent, 490 good, 45 fair, 96 poor, 13 n/a
 
 Coverage is measured against the official Terraform AWS provider schema (~5.x). "Inject" means reading attributes from a `terraform.tfstate` JSON file into winterbaume's in-memory state. "Extract" means producing Terraform-compatible attribute JSON from winterbaume's state.
 
@@ -27,13 +27,11 @@ Coverage is measured against the official Terraform AWS provider schema (~5.x). 
 
 ## Per-Service Resource Coverage
 
-How many of the AWS Terraform provider's `aws_*` resource types each winterbaume service handles. Of 1194 schema resources classified to a winterbaume service, 1127 are handled (78 still missing — see the per-service missing list in `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`).
+How many of the AWS Terraform provider's `aws_*` resource types each winterbaume service handles. Of 1191 schema resources classified to a winterbaume service, 1133 are handled (69 still missing — see the per-service missing list in `.agents/docs/TERRAFORM_RESOURCE_COVERAGE.md`).
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
 | ebs | `aws_ebs_` | 2 | 8 | 6 | 25% |  |
-| elbv2 | `aws_lb`, `aws_alb` | 10 | 16 | 6 | 62% |  |
-| kinesis | `aws_kinesis_` | 3 | 6 | 3 | 50% |  |
 | account | `aws_account_` | 1 | 3 | 2 | 33% |  |
 | apigateway | `aws_api_gateway_` | 24 | 26 | 2 | 92% |  |
 | cloudtrail | `aws_cloudtrail` | 1 | 3 | 2 | 33% |  |
@@ -112,6 +110,7 @@ How many of the AWS Terraform provider's `aws_*` resource types each winterbaume
 | efs | `aws_efs_` | 6 | 6 | 0 | 100% |  |
 | eks | `aws_eks_` | 8 | 8 | 0 | 100% |  |
 | elasticache | `aws_elasticache_` | 10 | 10 | 0 | 100% |  |
+| elbv2 | `aws_lb`, `aws_alb` | 16 | 16 | 0 | 100% |  |
 | emr | `aws_emr_` | 8 | 8 | 0 | 100% |  |
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
 | events | `aws_cloudwatch_event_` | 9 | 9 | 0 | 100% |  |
@@ -124,6 +123,7 @@ How many of the AWS Terraform provider's `aws_*` resource types each winterbaume
 | iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
 | kafka | `aws_msk_` | 8 | 8 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
+| kinesis | `aws_kinesis_stream`, `aws_kinesis_resource_policy` | 3 | 3 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
 | kms | `aws_kms_` | 9 | 9 | 0 | 100% |  |
 | lakeformation | `aws_lakeformation_` | 8 | 8 | 0 | 100% |  |
@@ -1099,26 +1099,26 @@ How many of the AWS Terraform provider's `aws_*` resource types each winterbaume
 | `aws_s3_access_point` | 0 | 0 | 13 | 0% | 0% | poor [!] |
 | `aws_s3_account_public_access_block` | 0 | 0 | 5 | 0% | 0% | poor [!] |
 | `aws_s3_bucket` | 21 | 21 | 27 | 63% | 70% | excellent [+] |
-| `aws_s3_bucket_accelerate_configuration` | 2 | 0 | 3 | 67% | 0% | good [~] |
-| `aws_s3_bucket_acl` | 3 | 0 | 4 | 75% | 0% | good [~] |
-| `aws_s3_bucket_analytics_configuration` | 2 | 0 | 4 | 50% | 0% | good [~] |
-| `aws_s3_bucket_cors_configuration` | 2 | 0 | 3 | 67% | 0% | good [~] |
-| `aws_s3_bucket_intelligent_tiering_configuration` | 3 | 0 | 5 | 60% | 0% | good [~] |
+| `aws_s3_bucket_accelerate_configuration` | 2 | 2 | 3 | 67% | 67% | excellent [+] |
+| `aws_s3_bucket_acl` | 3 | 2 | 4 | 75% | 50% | excellent [+] |
+| `aws_s3_bucket_analytics_configuration` | 2 | 2 | 4 | 50% | 50% | good [~] |
+| `aws_s3_bucket_cors_configuration` | 2 | 2 | 3 | 67% | 67% | excellent [+] |
+| `aws_s3_bucket_intelligent_tiering_configuration` | 3 | 2 | 5 | 60% | 40% | good [~] |
 | `aws_s3_bucket_inventory` | 0 | 0 | 8 | 0% | 0% | poor [!] |
-| `aws_s3_bucket_lifecycle_configuration` | 2 | 0 | 5 | 40% | 0% | good [~] |
-| `aws_s3_bucket_logging` | 3 | 2 | 6 | 50% | 33% | good [~] |
-| `aws_s3_bucket_metric` | 2 | 0 | 3 | 67% | 0% | good [~] |
-| `aws_s3_bucket_notification` | 4 | 3 | 5 | 80% | 60% | excellent [+] |
+| `aws_s3_bucket_lifecycle_configuration` | 2 | 2 | 5 | 40% | 40% | good [~] |
+| `aws_s3_bucket_logging` | 3 | 4 | 6 | 50% | 50% | good [~] |
+| `aws_s3_bucket_metric` | 2 | 2 | 3 | 67% | 67% | excellent [+] |
+| `aws_s3_bucket_notification` | 4 | 5 | 5 | 80% | 80% | excellent [+] |
 | `aws_s3_bucket_object` | 0 | 0 | 27 | 0% | 0% | poor [!] |
-| `aws_s3_bucket_object_lock_configuration` | 3 | 2 | 5 | 60% | 40% | good [~] |
-| `aws_s3_bucket_ownership_controls` | 2 | 0 | 2 | 100% | 0% | good [~] |
-| `aws_s3_bucket_policy` | 2 | 0 | 2 | 100% | 0% | good [~] |
+| `aws_s3_bucket_object_lock_configuration` | 3 | 4 | 5 | 60% | 60% | excellent [+] |
+| `aws_s3_bucket_ownership_controls` | 2 | 2 | 2 | 100% | 100% | excellent [+] |
+| `aws_s3_bucket_policy` | 2 | 2 | 2 | 100% | 100% | excellent [+] |
 | `aws_s3_bucket_public_access_block` | 0 | 0 | 5 | 0% | 0% | poor [!] |
-| `aws_s3_bucket_replication_configuration` | 3 | 2 | 4 | 75% | 50% | excellent [+] |
+| `aws_s3_bucket_replication_configuration` | 3 | 4 | 4 | 75% | 75% | excellent [+] |
 | `aws_s3_bucket_request_payment_configuration` | 0 | 0 | 3 | 0% | 0% | poor [!] |
-| `aws_s3_bucket_server_side_encryption_configuration` | 2 | 0 | 3 | 67% | 0% | good [~] |
-| `aws_s3_bucket_versioning` | 3 | 1 | 4 | 50% | 0% | good [~] |
-| `aws_s3_bucket_website_configuration` | 5 | 4 | 9 | 56% | 44% | good [~] |
+| `aws_s3_bucket_server_side_encryption_configuration` | 2 | 2 | 3 | 67% | 67% | excellent [+] |
+| `aws_s3_bucket_versioning` | 3 | 3 | 4 | 50% | 50% | good [~] |
+| `aws_s3_bucket_website_configuration` | 5 | 6 | 9 | 56% | 56% | good [~] |
 | `aws_s3_directory_bucket` | 0 | 0 | 6 | 0% | 0% | poor [!] |
 | `aws_s3_object` | 0 | 0 | 34 | 0% | 0% | poor [!] |
 | `aws_s3_object_copy` | 0 | 0 | 53 | 0% | 0% | poor [!] |

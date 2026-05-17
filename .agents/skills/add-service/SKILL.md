@@ -156,7 +156,7 @@ Create `crates/winterbaume-{name}/` with these files:
 ```toml
 [package]
 name = "winterbaume-{name}"
-version.workspace = true
+version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 description = "{ServiceName} service implementation for winterbaume"
@@ -183,6 +183,8 @@ tokio = { workspace = true }
 ```
 
 Only include dependencies you actually use.
+
+> **Why a literal `version = "0.1.0"` and not `version.workspace = true`?** The root `[workspace.package]` in this repository only inherits `edition`, `license`, `repository`, and `keywords`. There is no `version` key in `[workspace.package]`, so `version.workspace = true` fails to resolve. Each service crate carries its own version, managed independently by `cargo-release`. If `[workspace.package]` ever gains a `version` field, revisit this template.
 
 ### `src/lib.rs`
 
@@ -380,7 +382,7 @@ Reference implementations ( all include the `StateChangeNotifier` pattern ):
 
 Choose handler pattern based on protocol. Reference implementations:
 - **awsJson**: `crates/winterbaume-athena/src/handlers.rs`
-- **restJson1**: `crates/winterbaume-ses/src/handlers.rs`
+- **restJson1**: `crates/winterbaume-sesv2/src/handlers.rs` ( SES v1 is `awsQuery`, not restJson1 — make sure you reach for `sesv2` here )
 - **awsQuery**: `crates/winterbaume-sts/src/handlers.rs`
 
 The error-shaping helper must use an **exhaustive match** (no wildcard `_` arm) so that adding a new error variant in `state.rs` forces a compile error until the handler is updated:
@@ -564,6 +566,35 @@ In `tests/integration_test.rs`, add **basic per-operation tests** using the real
 5. **State views** (if implemented) — snapshot -> restore -> verify, and merge -> verify additive behaviour without removing pre-existing resources
 6. **State change notifications** (if StatefulService implemented) — register a listener, perform a mutating operation, assert the listener was called with the correct account_id/region and a snapshot that reflects the mutation
 
+### Rule: construct `*View` literals through small helper functions, not raw all-field struct literals
+
+When the service exposes state views, **never** open up a `FooView { field: ..., another_field: ..., yet_another: ..., /* every field */ }` literal in the body of a test. Add small helper functions at the top of `tests/integration_test.rs` that take only the load-bearing identifiers and return a fully-populated view with sensible defaults for everything else. Top-level container views ( e.g. `{ServiceName}StateView` ) should `#[derive(Default)]` so callers can write `..Default::default()`; nested resource views with required non-`Default` fields ( strings, timestamps ) use a `mk_foo_view(id, ...)` helper instead.
+
+This rule is load-bearing: `winterbaume-s3files` learned the hard way that adding policy, synchronisation configuration, mount targets, and access points to `FileSystemView` / `S3FilesStateView` broke every raw all-field literal in the test suite until each one was refactored around `fs_view(id, bucket)`. The same cascade hits any state-view-heavy service ( s3, sqs, iam, dynamodb, … ) the moment a new durable field lands. Helper functions absorb the diff in one place.
+
+Pattern, lifted from `crates/winterbaume-s3files/tests/integration_test.rs`:
+
+```rust
+use winterbaume_{name}::views::{ResourceView};
+
+fn mk_resource_view(id: &str, /* other load-bearing keys */) -> ResourceView {
+    ResourceView {
+        id: id.to_string(),
+        // every required field gets a sensible default literal here, in one place
+        // (note: this helper does *not* end in `..Default::default()` because
+        //  ResourceView usually has required non-`Default` fields)
+        ..
+    }
+}
+
+// Callers stay short and resilient to schema growth:
+let mut resources = HashMap::new();
+resources.insert("res-a".to_string(), mk_resource_view("res-a"));
+let view = {ServiceName}StateView { resources, ..Default::default() };
+```
+
+When a test needs a non-default value for one of the fields the helper hides, prefer mutating the returned view in-place ( `let mut v = mk_resource_view("res-a"); v.policy = Some(p);` ) over inventing a wider helper signature.
+
 Example notification test:
 
 ```rust
@@ -591,8 +622,11 @@ async fn test_state_change_listener_snapshot_reflects_mutation() {
     use winterbaume_core::StatefulService;
     let svc = {ServiceName}Service::new();
 
-    // Pre-seed state
-    let view = {ServiceName}StateView { /* resource present */ ..Default::default() };
+    // Pre-seed state — construct the view via helpers + ..Default::default(),
+    // not by spelling out every field of {ServiceName}StateView inline.
+    let mut resources = std::collections::HashMap::new();
+    resources.insert("expected-key".to_string(), mk_resource_view("expected-key"));
+    let view = {ServiceName}StateView { resources, ..Default::default() };
     svc.restore("123456789012", "us-east-1", view).await.unwrap(); // ignore first event
 
     // Re-register and capture snapshot
@@ -602,7 +636,9 @@ async fn test_state_change_listener_snapshot_reflects_mutation() {
         snapshots2.lock().unwrap().push(view.clone());
     });
 
-    let view2 = {ServiceName}StateView { /* resource present */ ..Default::default() };
+    let mut resources2 = std::collections::HashMap::new();
+    resources2.insert("expected-key".to_string(), mk_resource_view("expected-key"));
+    let view2 = {ServiceName}StateView { resources: resources2, ..Default::default() };
     svc.restore("123456789012", "us-east-1", view2).await.unwrap();
     let got = snapshots.lock().unwrap();
     assert_eq!(got.len(), 1);
@@ -635,6 +671,7 @@ async fn make_client() -> aws_sdk_{sdkname}::Client {
 ### Tips
 
 - Required SDK fields return `&str`; optional fields return `Option<&str>`
+- **Accessor optionality is per response type, not per service.** The same logical field ( e.g. `file_system_id`, `arn`, `name` ) can be a plain `&str` on one operation's response and `Option<&str>` on another's, because Smithy marks members `@required` or not independently on each output shape. `winterbaume-s3files` is the canonical example: file-system, policy, and mount-target responses mix `&str` and `Option<&str>` accessors for what looks like the same field. Read each response's accessor signature from the SDK source ( or rely on the compiler ) — do not extrapolate from a sibling operation.
 - Enum fields need `aws_sdk_xxx::types::EnumName::Variant`, not strings
 - For `assert_eq!` on enums, dereference: `&SomeEnum::Variant`
 

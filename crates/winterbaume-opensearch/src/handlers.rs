@@ -1124,6 +1124,7 @@ impl OpenSearchService {
                     authorized_principal: Some(model::AuthorizedPrincipal {
                         principal: Some(ap.principal),
                         principal_type: Some(ap.principal_type),
+                        service_options: None,
                     }),
                 },
             ),
@@ -1144,6 +1145,7 @@ impl OpenSearchService {
                     .map(|ap| model::AuthorizedPrincipal {
                         principal: Some(ap.principal.clone()),
                         principal_type: Some(ap.principal_type.clone()),
+                        service_options: None,
                     })
                     .collect();
                 wire::serialize_list_vpc_endpoint_access_response(
@@ -1980,12 +1982,14 @@ fn direct_query_data_source_type_to_model(
                 cloud_watch_log: Some(model::CloudWatchDirectQueryDataSource {
                     role_arn: role_arn.clone(),
                 }),
+                prometheus: None,
                 security_lake: None,
             }
         }
         DirectQueryDataSourceTypeKind::SecurityLake { role_arn } => {
             model::DirectQueryDataSourceType {
                 cloud_watch_log: None,
+                prometheus: None,
                 security_lake: Some(model::SecurityLakeDirectQueryDataSource {
                     role_arn: role_arn.clone(),
                 }),

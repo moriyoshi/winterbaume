@@ -1896,6 +1896,7 @@ fn ou_wire(ou: &crate::types::OrganizationalUnit) -> wire::OrganizationalUnit {
         id: Some(ou.id.clone()),
         arn: Some(ou.arn.clone()),
         name: Some(ou.name.clone()),
+        path: None,
     }
 }
 

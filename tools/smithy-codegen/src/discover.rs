@@ -43,6 +43,7 @@ const SERVICE_MAP: &[(&str, &str)] = &[
     ("events", "eventbridge"),
     ("firehose", "firehose"),
     ("glacier", "glacier"),
+    ("glue", "glue"),
     ("guardduty", "guardduty"),
     ("iam", "iam"),
     ("identitystore", "identitystore"),

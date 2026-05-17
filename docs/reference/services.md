@@ -1,6 +1,6 @@
 # Service Coverage
 
-Winterbaume implements **7210 of 11367 operations across 224 AWS services (63.4%)** with real, state-backed logic, compared to moto's 29.0% across the same service set. A further set of operations are routed but return an empty/default response without real behaviour ( see the `Stubs` column ).
+Winterbaume implements **7210 of 11367 operations across 224 AWS services (63.4%)** with real, state-backed logic, compared to moto's 29.1% across the same service set. A further set of operations are routed but return an empty/default response without real behaviour ( see the `Stubs` column ).
 
 | Service | Crate | Protocol | Operations | Stubs | moto | floci | kumo |
 |---|---|---|---|---|---|---|---|
@@ -197,7 +197,7 @@ Winterbaume implements **7210 of 11367 operations across 224 AWS services (63.4%
 | [Service Discovery](/services/servicediscovery) | `winterbaume-servicediscovery` | awsJson1.1 | 27/30 (90.0%) | 0/30 (0.0%) | 27/30 (90.0%) | 0/30 (0.0%) | 0/30 (0.0%) |
 | [Service Quotas](/services/servicequotas) | `winterbaume-servicequotas` | awsJson1.1 | 5/26 (19.2%) | 0/26 (0.0%) | 2/26 (7.7%) | 0/26 (0.0%) | 8/26 (30.8%) |
 | [SES v1](/services/ses) | `winterbaume-ses` | awsQuery | 38/71 (53.5%) | 2/71 (2.8%) | 38/71 (53.5%) | 0/71 (0.0%) | 0/71 (0.0%) |
-| [SES v2](/services/sesv2) | `winterbaume-sesv2` | restJson1 | 106/110 (96.4%) | 4/110 (3.6%) | 28/110 (25.5%) | 0/110 (0.0%) | 9/110 (8.2%) |
+| [SES v2](/services/sesv2) | `winterbaume-sesv2` | restJson1 | 106/110 (96.4%) | 4/110 (3.6%) | 30/110 (27.3%) | 0/110 (0.0%) | 9/110 (8.2%) |
 | [Shield](/services/shield) | `winterbaume-shield` | awsJson1.1 | 9/36 (25.0%) | 0/36 (0.0%) | 9/36 (25.0%) | 0/36 (0.0%) | 0/36 (0.0%) |
 | [Signer](/services/signer) | `winterbaume-signer` | restJson1 | 19/19 (100.0%) | 0/19 (0.0%) | 7/19 (36.8%) | 0/19 (0.0%) | 0/19 (0.0%) |
 | [SimpleDB v2](/services/simpledbv2) | `winterbaume-simpledbv2` | restJson1 | 3/3 (100.0%) | 0/3 (0.0%) | 0/3 (0.0%) | 0/3 (0.0%) | 0/3 (0.0%) |
@@ -233,7 +233,7 @@ Winterbaume implements **7210 of 11367 operations across 224 AWS services (63.4%
 
 **winterbaume stubs: 326 / 11367 operations across 224 services (2.9%) - routed but return empty/default responses**
 
-**moto: 3302 / 11367 operations across 224 services (29.0%)**
+**moto: 3304 / 11367 operations across 224 services (29.1%)**
 
 **floci: 160 / 11367 operations across 224 services (1.4%)**
 
@@ -241,4 +241,4 @@ Winterbaume implements **7210 of 11367 operations across 224 AWS services (63.4%
 
 ---
 
-See also: [Terraform Converter Coverage](/reference/terraform) — many Terraform resource types with inject/extract field coverage against the official AWS provider schema.
+See also: [Terraform Converter Coverage](/reference/terraform) — 1,140 Terraform resource types with inject/extract field coverage against the official AWS provider schema.

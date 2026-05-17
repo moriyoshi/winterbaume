@@ -14,13 +14,18 @@ Elastic Load Balancing v2 service implementation for winterbaume.
 | moto coverage | 33/51 operations (64.7%) |
 | floci coverage | 0/51 operations (0.0%) |
 | kumo coverage | 22/51 operations (43.1%) |
-| Coverage report date | 2026-05-13 |
+| Coverage report date | 2026-05-16 |
 
 ## Server-mode usage
 
-Start `winterbaume-server` and point the AWS CLI at it:
+Install `winterbaume-server` from crates.io or run it from a workspace checkout, then point the AWS CLI at it:
 
 ```sh
+# Installed binary ( from crates.io ):
+cargo install winterbaume-server
+winterbaume-server --host 127.0.0.1 --port 5555
+
+# Or, from a workspace checkout:
 cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
 ```
 

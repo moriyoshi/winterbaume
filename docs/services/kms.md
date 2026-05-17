@@ -14,13 +14,18 @@ KMS service implementation for winterbaume.
 | moto coverage | 40/54 operations (74.1%) |
 | floci coverage | 0/54 operations (0.0%) |
 | kumo coverage | 19/54 operations (35.2%) |
-| Coverage report date | 2026-05-13 |
+| Coverage report date | 2026-05-16 |
 
 ## Server-mode usage
 
-Start `winterbaume-server` and point the AWS CLI at it:
+Install `winterbaume-server` from crates.io or run it from a workspace checkout, then point the AWS CLI at it:
 
 ```sh
+# Installed binary ( from crates.io ):
+cargo install winterbaume-server
+winterbaume-server --host 127.0.0.1 --port 5555
+
+# Or, from a workspace checkout:
 cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
 ```
 

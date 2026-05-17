@@ -255,10 +255,12 @@ impl ApplicationSignalsService {
             .into_iter()
             .map(|s| wire::ServiceLevelObjectiveSummary {
                 arn: Some(s.arn.clone()),
+                composite_sli_config: None,
                 created_time: Some(s.created_time as f64),
                 dependency_config: None,
                 evaluation_type: Some(s.evaluation_type.clone()),
                 key_attributes: None,
+                metric_source: None,
                 metric_source_type: Some(s.metric_source_type.clone()),
                 name: Some(s.name.clone()),
                 operation_name: None,
@@ -685,6 +687,7 @@ impl ApplicationSignalsService {
 fn slo_to_wire(s: &ServiceLevelObjective) -> wire::ServiceLevelObjective {
     wire::ServiceLevelObjective {
         arn: Some(s.arn.clone()),
+        auto_investigation_enabled: None,
         burn_rate_configurations: parse_value_list_to_typed(&s.burn_rate_configurations),
         created_time: Some(s.created_time as f64),
         description: s.description.clone(),

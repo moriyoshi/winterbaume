@@ -94,6 +94,18 @@ PREFIX_OVERRIDES: dict[str, list[str]] = {
         "aws_kinesis_analytics_",
         "aws_kinesisanalyticsv2_",
     ],
+    # `kinesis` shares the `aws_kinesis_` namespace with firehose,
+    # kinesisvideo and kinesisanalyticsv2 in the AWS provider schema.
+    # Without an explicit override the longest-common-prefix heuristic
+    # picks `aws_kinesis_` and double-counts those other services'
+    # resources as "missing from kinesis". List the kinesis-core
+    # resource prefixes explicitly. `aws_kinesis_stream` (no trailing
+    # underscore) matches both `aws_kinesis_stream` and
+    # `aws_kinesis_stream_consumer` via `matches_any`.
+    "kinesis": [
+        "aws_kinesis_stream",
+        "aws_kinesis_resource_policy",
+    ],
     "stepfunctions": ["aws_sfn_"],
     "kafka": ["aws_msk_"],
     "directconnect": ["aws_dx_"],
@@ -123,6 +135,10 @@ PREFIX_OVERRIDES: dict[str, list[str]] = {
     "timestreaminfluxdb": ["aws_timestreaminfluxdb_"],
     "timestreamquery": ["aws_timestreamquery_"],
     "route53resolver": ["aws_route53_resolver_"],
+    # `elbv2` ships `aws_alb*` aliases that the Terraform AWS provider
+    # exposes as separate resource types but dispatches to the same
+    # implementation as the corresponding `aws_lb*` resource. See
+    # `HANDLED_ALIAS_RULES` below for how those are credited.
     # `route53` shares `aws_route53_*` with `route53resolver`. Keep the
     # natural prefix but list explicit exclusions so resolver resources
     # don't get double-counted.
@@ -140,6 +156,57 @@ PREFIX_OVERRIDES: dict[str, list[str]] = {
         "aws_route53_zone",
     ],
 }
+
+
+# Per-service "alias" rules. When the Terraform AWS provider exposes one
+# resource type as a thin alias of another (same underlying converter,
+# different name), the spec only declares the canonical name but
+# winterbaume's terraform layer transparently handles both. List
+# `(alias_prefix_or_exact, source_prefix_or_exact)` pairs so the script
+# can synthesise a "handled" entry for each alias whose source is already
+# in the spec's handled set.
+#
+# The prefix form (`aws_alb_`) matches every schema resource starting
+# with that prefix and substitutes the leading `aws_alb` → `aws_lb` to
+# locate the corresponding source. The exact form (`aws_alb`) matches
+# the literal resource and pairs with the literal source.
+HANDLED_ALIAS_RULES: dict[str, list[tuple[str, str]]] = {
+    "elbv2": [
+        ("aws_alb", "aws_lb"),
+        ("aws_alb_", "aws_lb_"),
+    ],
+}
+
+
+def synthesise_alias_handled(
+    spec_name: str,
+    handled: set[str],
+    schema_resources: set[str],
+) -> set[str]:
+    """Return the set of alias resource types to credit as handled.
+
+    For each rule `(alias, source)` registered for `spec_name`, find every
+    schema resource matching the `alias` pattern whose corresponding
+    `source`-prefixed name is in `handled`. Returns the set of aliases to
+    add to `handled`.
+    """
+    rules = HANDLED_ALIAS_RULES.get(spec_name)
+    if not rules:
+        return set()
+    out: set[str] = set()
+    for alias_pat, source_pat in rules:
+        if alias_pat.endswith("_"):
+            for r in schema_resources:
+                if not r.startswith(alias_pat):
+                    continue
+                source = source_pat + r[len(alias_pat):]
+                if source in handled:
+                    out.add(r)
+        else:
+            # Exact match: `aws_alb` aliases `aws_lb`.
+            if alias_pat in schema_resources and source_pat in handled:
+                out.add(alias_pat)
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -228,7 +295,9 @@ def build_rows(schema_resources: set[str]) -> list[dict]:
     rows = []
     for spec in sorted(SPECS_DIR.glob("*.toml")):
         name = spec.stem
-        handled = sorted(set(parse_spec_resource_types(spec)))
+        spec_handled = set(parse_spec_resource_types(spec))
+        aliases = synthesise_alias_handled(name, spec_handled, schema_resources)
+        handled = sorted(spec_handled | aliases)
         prefix = resource_prefix(name, handled)
         note = ""
         if isinstance(prefix, list):

@@ -259,6 +259,10 @@ impl StoredTask {
 // Returns an array of strings, each prefixed with "R:" for received messages
 // or "D:" for messages to be redriven to a DLQ. Redriven messages are also
 // removed from the main queue's hash and order list.
+// `recv_count` tracks only `R:` entries; `D:` entries are bookkeeping for the
+// Rust caller's DLQ-push step and must not consume the caller's `max_n` receive
+// budget. Receipt-handle indexing also uses `recv_count` so dead-lettered
+// iterations don't burn a handle slot in `ARGV`.
 const RECEIVE_SCRIPT: &str = r#"
 local msgs_key  = KEYS[1]
 local order_key = KEYS[2]
@@ -267,10 +271,11 @@ local vis_ms    = tonumber(ARGV[2])
 local max_n     = tonumber(ARGV[3])
 local max_recv  = tonumber(ARGV[4])
 local results   = {}
+local recv_count = 0
 
 local ids = redis.call('LRANGE', order_key, 0, -1)
 for _, id in ipairs(ids) do
-    if #results >= max_n then break end
+    if recv_count >= max_n then break end
     local raw = redis.call('HGET', msgs_key, id)
     if raw and raw ~= false then
         local msg = cjson.decode(raw)
@@ -280,12 +285,14 @@ for _, id in ipairs(ids) do
             if type(cnt) ~= 'number' then cnt = 0 end
             local new_cnt = cnt + 1
             if max_recv > 0 and new_cnt > max_recv then
-                -- Hand off to Rust caller to push into the DLQ.
+                -- Hand off to Rust caller to push into the DLQ. Does not
+                -- count against `recv_count` because the caller expected
+                -- visible messages, not redrive bookkeeping.
                 redis.call('HDEL', msgs_key, id)
                 redis.call('LREM', order_key, 0, id)
                 table.insert(results, 'D:' .. cjson.encode(msg))
             else
-                local handle = ARGV[4 + #results + 1]
+                local handle = ARGV[4 + recv_count + 1]
                 if handle and handle ~= false then
                     msg['receipt_handle'] = handle
                     local rhs = msg['all_receipt_handles']
@@ -300,6 +307,7 @@ for _, id in ipairs(ids) do
                     msg['visible_at'] = now_ms + vis_ms
                     redis.call('HSET', msgs_key, id, cjson.encode(msg))
                     table.insert(results, 'R:' .. cjson.encode(msg))
+                    recv_count = recv_count + 1
                 end
             end
         end

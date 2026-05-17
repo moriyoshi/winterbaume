@@ -383,6 +383,43 @@ fn parse_already_published(text: &str) -> BTreeSet<String> {
     out
 }
 
+/// Scan cargo output for `Uploaded <crate> v<version>` status lines emitted by
+/// cargo when it has finished pushing a crate's tarball to crates.io.
+///
+/// The match is intentionally narrow: line content (after trimming leading whitespace)
+/// must start with `Uploaded ` followed by a single token (the crate name), then
+/// ` v<version>` where `<version>` matches the chunk-wide release version. Anything
+/// after the version is allowed and ignored (cargo sometimes appends a registry hint).
+///
+/// Used by the chunk-failure recovery flow so a non-429, non-already-published
+/// cargo failure still backfills tags for crates that successfully landed before
+/// the failure (e.g. a hosted runner OOM mid-chunk, a transient git push error
+/// after the last upload). Without this, those crates exist on crates.io with
+/// no matching git tag.
+fn parse_uploaded(text: &str, version: &str) -> BTreeSet<String> {
+    const PREFIX: &str = "Uploaded ";
+    let suffix = format!(" v{version}");
+    let mut out = BTreeSet::new();
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        let Some(rest) = trimmed.strip_prefix(PREFIX) else {
+            continue;
+        };
+        let Some(name_end) = rest.find(' ') else {
+            continue;
+        };
+        let name = &rest[..name_end];
+        let tail = &rest[name_end..];
+        if !(tail == suffix || tail.starts_with(&format!("{suffix} "))) {
+            continue;
+        }
+        if !name.is_empty() {
+            out.insert(name.to_string());
+        }
+    }
+    out
+}
+
 /// Scan cargo output for the crates.io 429 "Please try again after <date> GMT"
 /// marker and return the parsed deadline. The phrase is embedded in the response
 /// body crates.io returns for rate-limit hits and mirrors the rate-limit reset
@@ -573,6 +610,27 @@ fn run() -> Result<ExitCode, Error> {
             // If neither appears, the failure is something we can't recover from.
             let already_published = parse_already_published(&captured);
             let rate_limit_deadline = parse_retry_after(&captured);
+            let version_for_uploaded = args.version.as_deref().unwrap_or_default();
+            let uploaded = if version_for_uploaded.is_empty() {
+                BTreeSet::new()
+            } else {
+                parse_uploaded(&captured, version_for_uploaded)
+            };
+
+            // Any chunk-failure path may have published crates before the failure
+            // hit. Backfill their tags before we either bail out or retry — the
+            // pruning loop below would otherwise miss crates that fall outside the
+            // 429 / already-published recovery branches.
+            if !uploaded.is_empty() {
+                for name in &uploaded {
+                    let tag = format!("{name}-v{version_for_uploaded}");
+                    match backfill_tag(&tag, args.sign, &root) {
+                        Ok(BackfillOutcome::AlreadyExists) => {}
+                        Ok(BackfillOutcome::Created) => eprintln!("backfilled tag: {tag}"),
+                        Err(e) => eprintln!("warn: failed to backfill tag {tag}: {e}"),
+                    }
+                }
+            }
 
             if rate_limit_deadline.is_none() && already_published.is_empty() {
                 eprintln!(
@@ -773,5 +831,62 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
         let no_prefix = "winterbaume-foo 0.1.0 is already published to crates.io\n";
         let names = parse_already_published(no_prefix);
         assert!(names.contains("winterbaume-foo"));
+    }
+
+    /// Verbatim cargo / cargo-release status lines for a successful upload.
+    /// Indentation is preserved exactly because the parser only trims leading
+    /// whitespace before looking for the `Uploaded ` prefix.
+    const REAL_UPLOAD_LOG: &str = "\
+    Finished `release` profile [optimized] target(s) in 1.50s
+   Packaging winterbaume-foo v0.2.0 (/path/to/crates/winterbaume-foo)
+   Verifying winterbaume-foo v0.2.0 (/path/to/crates/winterbaume-foo)
+   Uploading winterbaume-foo v0.2.0 (/path/to/crates/winterbaume-foo)
+    Uploaded winterbaume-foo v0.2.0
+   Packaging winterbaume-bar v0.2.0 (/path/to/crates/winterbaume-bar)
+    Uploaded winterbaume-bar v0.2.0 to crates.io
+   Published winterbaume-foo v0.2.0
+error: failed to publish to registry at https://crates.io/
+";
+
+    #[test]
+    fn parses_uploaded_crates_from_status_lines() {
+        let names = parse_uploaded(REAL_UPLOAD_LOG, "0.2.0");
+        assert!(names.contains("winterbaume-foo"));
+        assert!(names.contains("winterbaume-bar"));
+        assert_eq!(names.len(), 2);
+    }
+
+    #[test]
+    fn parse_uploaded_filters_by_version() {
+        let names = parse_uploaded(REAL_UPLOAD_LOG, "0.3.0");
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn parse_uploaded_ignores_uploading_progress_lines() {
+        let progress_only = "\
+   Uploading winterbaume-foo v0.2.0
+   Uploading winterbaume-bar v0.2.0
+";
+        let names = parse_uploaded(progress_only, "0.2.0");
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn parse_uploaded_rejects_version_mismatch() {
+        let mixed = "\
+    Uploaded winterbaume-foo v0.1.0
+    Uploaded winterbaume-bar v0.2.0
+";
+        let names = parse_uploaded(mixed, "0.2.0");
+        assert!(!names.contains("winterbaume-foo"));
+        assert!(names.contains("winterbaume-bar"));
+        assert_eq!(names.len(), 1);
+    }
+
+    #[test]
+    fn parse_uploaded_empty_when_no_match() {
+        let unrelated = "error: build failed\nwarning: deprecated\n";
+        assert!(parse_uploaded(unrelated, "0.2.0").is_empty());
     }
 }

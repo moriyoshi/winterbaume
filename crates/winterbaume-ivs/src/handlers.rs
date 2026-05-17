@@ -387,6 +387,13 @@ impl IvsService {
         wire::serialize_batch_get_channel_response(&wire::BatchGetChannelResponse {
             channels: Some(channels),
             errors: Some(errors),
+            access_control_allow_origin: None,
+            access_control_expose_headers: None,
+            cache_control: None,
+            content_security_policy: None,
+            strict_transport_security: None,
+            x_content_type_options: None,
+            x_frame_options: None,
         })
     }
 
@@ -584,6 +591,13 @@ impl IvsService {
                     })
                     .collect(),
             ),
+            access_control_allow_origin: None,
+            access_control_expose_headers: None,
+            cache_control: None,
+            content_security_policy: None,
+            strict_transport_security: None,
+            x_content_type_options: None,
+            x_frame_options: None,
         })
     }
 
@@ -1163,6 +1177,13 @@ impl IvsService {
         wire::serialize_batch_start_viewer_session_revocation_response(
             &wire::BatchStartViewerSessionRevocationResponse {
                 errors: Some(vec![]),
+                access_control_allow_origin: None,
+                access_control_expose_headers: None,
+                cache_control: None,
+                content_security_policy: None,
+                strict_transport_security: None,
+                x_content_type_options: None,
+                x_frame_options: None,
             },
         )
     }

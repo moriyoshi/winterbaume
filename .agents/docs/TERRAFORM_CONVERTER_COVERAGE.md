@@ -1,6 +1,6 @@
 # Terraform Converter Field Coverage Report
 
-Generated: 2026-05-13
+Generated: 2026-05-16
 
 ## Summary
 
@@ -924,26 +924,26 @@ Generated: 2026-05-13
 | `aws_s3_access_point` | 0 | 0 | 13 | 0% | 0% | poor [!] |
 | `aws_s3_account_public_access_block` | 0 | 0 | 5 | 0% | 0% | poor [!] |
 | `aws_s3_bucket` | 21 | 21 | 27 | 63% | 70% | excellent [+] |
-| `aws_s3_bucket_accelerate_configuration` | 2 | 0 | 3 | 67% | 0% | good [~] |
-| `aws_s3_bucket_acl` | 3 | 0 | 4 | 75% | 0% | good [~] |
-| `aws_s3_bucket_analytics_configuration` | 2 | 0 | 4 | 50% | 0% | good [~] |
-| `aws_s3_bucket_cors_configuration` | 2 | 0 | 3 | 67% | 0% | good [~] |
-| `aws_s3_bucket_intelligent_tiering_configuration` | 3 | 0 | 5 | 60% | 0% | good [~] |
+| `aws_s3_bucket_accelerate_configuration` | 2 | 2 | 3 | 67% | 67% | excellent [+] |
+| `aws_s3_bucket_acl` | 3 | 2 | 4 | 75% | 50% | excellent [+] |
+| `aws_s3_bucket_analytics_configuration` | 2 | 2 | 4 | 50% | 50% | good [~] |
+| `aws_s3_bucket_cors_configuration` | 2 | 2 | 3 | 67% | 67% | excellent [+] |
+| `aws_s3_bucket_intelligent_tiering_configuration` | 3 | 2 | 5 | 60% | 40% | good [~] |
 | `aws_s3_bucket_inventory` | 0 | 0 | 8 | 0% | 0% | poor [!] |
-| `aws_s3_bucket_lifecycle_configuration` | 2 | 0 | 5 | 40% | 0% | good [~] |
-| `aws_s3_bucket_logging` | 3 | 2 | 6 | 50% | 33% | good [~] |
-| `aws_s3_bucket_metric` | 2 | 0 | 3 | 67% | 0% | good [~] |
-| `aws_s3_bucket_notification` | 4 | 3 | 5 | 80% | 60% | excellent [+] |
+| `aws_s3_bucket_lifecycle_configuration` | 2 | 2 | 5 | 40% | 40% | good [~] |
+| `aws_s3_bucket_logging` | 3 | 4 | 6 | 50% | 50% | good [~] |
+| `aws_s3_bucket_metric` | 2 | 2 | 3 | 67% | 67% | excellent [+] |
+| `aws_s3_bucket_notification` | 4 | 5 | 5 | 80% | 80% | excellent [+] |
 | `aws_s3_bucket_object` | 0 | 0 | 27 | 0% | 0% | poor [!] |
-| `aws_s3_bucket_object_lock_configuration` | 3 | 2 | 5 | 60% | 40% | good [~] |
-| `aws_s3_bucket_ownership_controls` | 2 | 0 | 2 | 100% | 0% | good [~] |
-| `aws_s3_bucket_policy` | 2 | 0 | 2 | 100% | 0% | good [~] |
+| `aws_s3_bucket_object_lock_configuration` | 3 | 4 | 5 | 60% | 60% | excellent [+] |
+| `aws_s3_bucket_ownership_controls` | 2 | 2 | 2 | 100% | 100% | excellent [+] |
+| `aws_s3_bucket_policy` | 2 | 2 | 2 | 100% | 100% | excellent [+] |
 | `aws_s3_bucket_public_access_block` | 0 | 0 | 5 | 0% | 0% | poor [!] |
-| `aws_s3_bucket_replication_configuration` | 3 | 2 | 4 | 75% | 50% | excellent [+] |
+| `aws_s3_bucket_replication_configuration` | 3 | 4 | 4 | 75% | 75% | excellent [+] |
 | `aws_s3_bucket_request_payment_configuration` | 0 | 0 | 3 | 0% | 0% | poor [!] |
-| `aws_s3_bucket_server_side_encryption_configuration` | 2 | 0 | 3 | 67% | 0% | good [~] |
-| `aws_s3_bucket_versioning` | 3 | 1 | 4 | 50% | 0% | good [~] |
-| `aws_s3_bucket_website_configuration` | 5 | 4 | 9 | 56% | 44% | good [~] |
+| `aws_s3_bucket_server_side_encryption_configuration` | 2 | 2 | 3 | 67% | 67% | excellent [+] |
+| `aws_s3_bucket_versioning` | 3 | 3 | 4 | 50% | 50% | good [~] |
+| `aws_s3_bucket_website_configuration` | 5 | 6 | 9 | 56% | 56% | good [~] |
 | `aws_s3_directory_bucket` | 0 | 0 | 6 | 0% | 0% | poor [!] |
 | `aws_s3_object` | 0 | 0 | 34 | 0% | 0% | poor [!] |
 | `aws_s3_object_copy` | 0 | 0 | 53 | 0% | 0% | poor [!] |
@@ -1155,12 +1155,12 @@ Generated: 2026-05-13
 - **Total converters:** 1143
 - **Distinct resource types:** 1140
 - **Overall inject coverage:** 6036/10765 (56.1%)
-- **Overall extract coverage:** 5251/10765 (48.8%)
+- **Overall extract coverage:** 5278/10765 (49.0%)
 
 ### Rating distribution
 
-- **excellent:** 491
-- **good:** 498
+- **excellent:** 499
+- **good:** 490
 - **fair:** 45
 - **poor:** 96
 - **n/a:** 13
@@ -11586,11 +11586,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (2): `bucket`, `status`
 
-**Extract attributes** (0): (none)
+**Extract attributes** (2): `bucket`, `status`
 
 **Missing from inject** (1): `expected_bucket_owner`
 
-**Missing from extract** (3): `bucket`, `expected_bucket_owner`, `status`
+**Missing from extract** (1): `expected_bucket_owner`
 
 ### `aws_s3_bucket_acl`
 
@@ -11598,11 +11598,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (3): `access_control_policy`, `acl`, `bucket`
 
-**Extract attributes** (0): (none)
+**Extract attributes** (2): `acl`, `bucket`
 
 **Missing from inject** (1): `expected_bucket_owner`
 
-**Missing from extract** (4): `access_control_policy`, `acl`, `bucket`, `expected_bucket_owner`
+**Missing from extract** (2): `access_control_policy`, `expected_bucket_owner`
 
 ### `aws_s3_bucket_analytics_configuration`
 
@@ -11610,11 +11610,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (2): `bucket`, `name`
 
-**Extract attributes** (0): (none)
+**Extract attributes** (2): `bucket`, `name`
 
 **Missing from inject** (2): `filter`, `storage_class_analysis`
 
-**Missing from extract** (4): `bucket`, `filter`, `name`, `storage_class_analysis`
+**Missing from extract** (2): `filter`, `storage_class_analysis`
 
 ### `aws_s3_bucket_cors_configuration`
 
@@ -11622,11 +11622,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (2): `bucket`, `cors_rule`
 
-**Extract attributes** (0): (none)
+**Extract attributes** (2): `bucket`, `cors_rule`
 
 **Missing from inject** (1): `expected_bucket_owner`
 
-**Missing from extract** (3): `bucket`, `cors_rule`, `expected_bucket_owner`
+**Missing from extract** (1): `expected_bucket_owner`
 
 ### `aws_s3_bucket_intelligent_tiering_configuration`
 
@@ -11634,11 +11634,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (3): `bucket`, `name`, `status`
 
-**Extract attributes** (0): (none)
+**Extract attributes** (2): `bucket`, `name`
 
 **Missing from inject** (2): `filter`, `tiering`
 
-**Missing from extract** (5): `bucket`, `filter`, `name`, `status`, `tiering`
+**Missing from extract** (3): `filter`, `status`, `tiering`
 
 ### `aws_s3_bucket_inventory`
 
@@ -11658,11 +11658,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (2): `bucket`, `rule`
 
-**Extract attributes** (0): (none)
+**Extract attributes** (2): `bucket`, `rule`
 
 **Missing from inject** (3): `expected_bucket_owner`, `timeouts`, `transition_default_minimum_object_size`
 
-**Missing from extract** (5): `bucket`, `expected_bucket_owner`, `rule`, `timeouts`, `transition_default_minimum_object_size`
+**Missing from extract** (3): `expected_bucket_owner`, `timeouts`, `transition_default_minimum_object_size`
 
 ### `aws_s3_bucket_logging`
 
@@ -11670,11 +11670,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (3): `bucket`, `target_bucket`, `target_prefix`
 
-**Extract attributes** (2): `target_bucket`, `target_prefix`
+**Extract attributes** (4): `bucket`, `logging`, `target_bucket`, `target_prefix`
 
 **Missing from inject** (3): `expected_bucket_owner`, `target_grant`, `target_object_key_format`
 
-**Missing from extract** (4): `bucket`, `expected_bucket_owner`, `target_grant`, `target_object_key_format`
+**Missing from extract** (3): `expected_bucket_owner`, `target_grant`, `target_object_key_format`
 
 ### `aws_s3_bucket_metric`
 
@@ -11682,11 +11682,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (2): `bucket`, `name`
 
-**Extract attributes** (0): (none)
+**Extract attributes** (2): `bucket`, `name`
 
 **Missing from inject** (1): `filter`
 
-**Missing from extract** (3): `bucket`, `filter`, `name`
+**Missing from extract** (1): `filter`
 
 ### `aws_s3_bucket_notification`
 
@@ -11694,11 +11694,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (4): `bucket`, `lambda_function`, `queue`, `topic`
 
-**Extract attributes** (3): `lambda_function`, `queue`, `topic`
+**Extract attributes** (5): `bucket`, `lambda_function`, `notification_configuration`, `queue`, `topic`
 
 **Missing from inject** (1): `eventbridge`
 
-**Missing from extract** (2): `bucket`, `eventbridge`
+**Missing from extract** (1): `eventbridge`
 
 ### `aws_s3_bucket_object`
 
@@ -11718,11 +11718,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (3): `bucket`, `object_lock_enabled`, `rule`
 
-**Extract attributes** (2): `object_lock_enabled`, `rule`
+**Extract attributes** (4): `bucket`, `object_lock_configuration`, `object_lock_enabled`, `rule`
 
 **Missing from inject** (2): `expected_bucket_owner`, `token`
 
-**Missing from extract** (3): `bucket`, `expected_bucket_owner`, `token`
+**Missing from extract** (2): `expected_bucket_owner`, `token`
 
 ### `aws_s3_bucket_ownership_controls`
 
@@ -11730,9 +11730,7 @@ Generated: 2026-05-13
 
 **Inject attributes** (2): `bucket`, `rule`
 
-**Extract attributes** (0): (none)
-
-**Missing from extract** (2): `bucket`, `rule`
+**Extract attributes** (2): `bucket`, `rule`
 
 ### `aws_s3_bucket_policy`
 
@@ -11740,9 +11738,7 @@ Generated: 2026-05-13
 
 **Inject attributes** (2): `bucket`, `policy`
 
-**Extract attributes** (0): (none)
-
-**Missing from extract** (2): `bucket`, `policy`
+**Extract attributes** (2): `bucket`, `policy`
 
 ### `aws_s3_bucket_public_access_block`
 
@@ -11762,11 +11758,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (3): `bucket`, `role`, `rule`
 
-**Extract attributes** (2): `role`, `rule`
+**Extract attributes** (4): `bucket`, `replication_configuration`, `role`, `rule`
 
 **Missing from inject** (1): `token`
 
-**Missing from extract** (2): `bucket`, `token`
+**Missing from extract** (1): `token`
 
 ### `aws_s3_bucket_request_payment_configuration`
 
@@ -11786,11 +11782,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (2): `bucket`, `rule`
 
-**Extract attributes** (0): (none)
+**Extract attributes** (2): `bucket`, `rule`
 
 **Missing from inject** (1): `expected_bucket_owner`
 
-**Missing from extract** (3): `bucket`, `expected_bucket_owner`, `rule`
+**Missing from extract** (1): `expected_bucket_owner`
 
 ### `aws_s3_bucket_versioning`
 
@@ -11798,11 +11794,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (3): `bucket`, `status`, `versioning_configuration`
 
-**Extract attributes** (1): `status`
+**Extract attributes** (3): `bucket`, `status`, `versioning_configuration`
 
 **Missing from inject** (2): `expected_bucket_owner`, `mfa`
 
-**Missing from extract** (4): `bucket`, `expected_bucket_owner`, `mfa`, `versioning_configuration`
+**Missing from extract** (2): `expected_bucket_owner`, `mfa`
 
 ### `aws_s3_bucket_website_configuration`
 
@@ -11810,11 +11806,11 @@ Generated: 2026-05-13
 
 **Inject attributes** (5): `bucket`, `error_document`, `index_document`, `redirect_all_requests_to`, `routing_rule`
 
-**Extract attributes** (4): `error_document`, `index_document`, `redirect_all_requests_to`, `routing_rule`
+**Extract attributes** (6): `bucket`, `error_document`, `index_document`, `redirect_all_requests_to`, `routing_rule`, `website_configuration`
 
 **Missing from inject** (4): `expected_bucket_owner`, `routing_rules`, `website_domain`, `website_endpoint`
 
-**Missing from extract** (5): `bucket`, `expected_bucket_owner`, `routing_rules`, `website_domain`, `website_endpoint`
+**Missing from extract** (4): `expected_bucket_owner`, `routing_rules`, `website_domain`, `website_endpoint`
 
 ### `aws_s3_directory_bucket`
 

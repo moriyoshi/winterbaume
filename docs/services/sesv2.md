@@ -11,16 +11,21 @@ SES v2 service implementation for winterbaume.
 | Protocol | restJson1 |
 | winterbaume coverage | 106/110 operations (96.4%) |
 | stubs (routed, returns empty/default) | 4/110 operations (3.6%) |
-| moto coverage | 28/110 operations (25.5%) |
+| moto coverage | 30/110 operations (27.3%) |
 | floci coverage | 0/110 operations (0.0%) |
 | kumo coverage | 9/110 operations (8.2%) |
-| Coverage report date | 2026-05-13 |
+| Coverage report date | 2026-05-16 |
 
 ## Server-mode usage
 
-Start `winterbaume-server` and point the AWS CLI at it:
+Install `winterbaume-server` from crates.io or run it from a workspace checkout, then point the AWS CLI at it:
 
 ```sh
+# Installed binary ( from crates.io ):
+cargo install winterbaume-server
+winterbaume-server --host 127.0.0.1 --port 5555
+
+# Or, from a workspace checkout:
 cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
 ```
 

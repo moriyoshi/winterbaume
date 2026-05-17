@@ -639,3 +639,58 @@ The initial `git status` output was truncated at 2 KB and showed only `M CHANGEL
 - `winterbaume-tfstate-resource-models` should normally start its own changelog at `v0.1.0` next time it is released, even though its first published version is `v0.2.0`. The current entry documents that explicitly so a future reader does not look for a missing `v0.1.0` section.
 - For any future tag-range scripts, normalise on `refs/tags/winterbaume-*` and split crate from version with a real parser rather than two overlapping globs.
 - The `chore: release {{crate_name}} v{{version}}` commits indicate cargo-release ran with template-string substitution disabled or misconfigured; this should be fixed before the next release batch so the commit history carries the actual crate name and version. Not a blocker for changelogs but it makes commit archaeology harder.
+
+## 2026-05-16 — tackle-todos sweep: skill template + tooling + docs
+
+`/tackle-todos` dispatched three parallel agents to clear a batch of small, self-contained items from `.agents/docs/TODO.md`. The full source-code scan turned up only two `// TODO`/`// FIXME` hits across `crates/**/*.rs` and `tools/**/*.rs` ( one informational deprecated-service note, one literal in a codegen template ) — effectively zero actionable code comments, so the work all came from `TODO.md`.
+
+Closed in this sweep:
+
+- `add-service-cargo-version-template`, `add-service-restjson-reference`, `add-service-state-view-builder-template`, `add-service-sdk-accessor-shape-note` — `.agents/skills/add-service/SKILL.md` updated in four places: literal `version = "0.1.0"` scaffold ( with a note about the actual workspace-package inheritance set ), restJson1 reference switched to `winterbaume-sesv2/src/handlers.rs`, new "Rule: construct `*View` literals through small helper functions" subsection plus rewritten notification-test snippets that use `mk_resource_view(...) + ..Default::default()`, and a Step 5 Tips bullet on per-response-type accessor optionality.
+- `smithy-codegen-glue-service-map-entry` — added `("glue", "glue")` to `SERVICE_MAP` in `tools/smithy-codegen/src/discover.rs`; `list-services` now surfaces Glue. Per-crate clippy + fmt gate clean.
+- `readme-stub-count-refresh` — root `README.md` intro paragraph stub count 329 -> 326 to match the authoritative table footer. `docs/reference/services.md` already carried the correct figure.
+- `terraform-coverage-prefix-overrides-tail` — `generate_terraform_resource_coverage.py` now has an explicit `kinesis` `PREFIX_OVERRIDES` entry plus a new `HANDLED_ALIAS_RULES` mechanism for elbv2 `aws_alb_*` -> `aws_lb_*` aliases. elbv2 62% -> 100%, kinesis 50% ( spurious ) -> 100%. The remaining `aws_kinesisanalyticsv2_application_snapshot` miss is a real gap, not a classification artefact.
+- `terraform-macro-extract-coverage` — `generate_terraform_converter_coverage.py` now credits the trailing positional `"name"` literal of macro invocations plus per-macro-family always-credited attributes ( `impl_bucket_subresource_converter` -> `bucket`; `impl_bucket_named_config_converter` -> `bucket` + `name` ) on both inject and extract sides. Spot-check: `aws_s3_bucket_accelerate_configuration` extract 0% -> 67%. Overall extract coverage delta 5251/10765 -> 5278/10765 ( +27, +0.2 pp ).
+
+Deferred ( need user direction or larger-scope work ):
+
+- `core-url-query-parser-sweep` ( 59-crate refactor ), `ses-v1-v2-shared-backend`, `mediastoredata-container-model`, `appconfigdata-shared-state`, `codegen-field-drift-handler-updates`, all cross-service integration items ( eventbridge / lambda / sfn / appsync targets ), and the three medium-scope state-validation items ( `cloudtraildata-channel-validation`, `kinesisvideoarchivedmedia-stream-validation`, `sagemakerruntime-endpoint-validation` ). The last three need a backend-injection wiring pattern similar to `winterbaume-dynamodbstreams`'s shared `DynamoDbBackend` and were not safe to dispatch as a parallel batch.
+
+- `docs-vitepress-config-metadata` — TODO claims `transformPageData` references undefined symbols, but the current `docs/.vitepress/config.mts` reads correctly ( all four `siteTitle` / `siteDescription` / `siteUrl` / `ogImageUrl` symbols are defined and used ). Either the TODO is stale or it describes a different bug than what is in the file; leaving as-is pending clarification.
+
+No commits made. Consolidated worklist written to `.agents-workspace/tmp/consolidated-todos.md` for reference.
+
+### Follow-up batch ( same session, 2026-05-16 )
+
+Two more items cleared after the initial parallel-agent sweep:
+
+- `emrcontainers-state-view-job-runs` — audit only; `job_runs` is already fully wired in `crates/winterbaume-emrcontainers/src/views.rs` ( field declaration, `From<&EmrContainersState>` conversion, `From<EmrContainersStateView>` reconstruction, and `merge` integration ). The 2026-04-30 sweep's note about "writes in state.rs but missing from views" no longer matches the source.
+- `ec2-coverage-readme-refresh` — `.agents/skills/api-coverage/scripts/generate_coverage.py` then `.agents/skills/update-readme/scripts/update_readme.py` rerun in sequence. Refreshed `API_COVERAGE.md`, both `TERRAFORM_*_COVERAGE.md`, root `README.md`, 224 per-crate READMEs, `docs/reference/{services,terraform}.md`, `docs/index.md`, and 225 `docs/services/*.md`. The intro-paragraph `326` from the first batch survived end-to-end because `update_readme.py` only rewrites the supported-services table, not the intro prose ( and the regenerated table footer agrees, so the two numbers stay aligned ). Authoritative EC2 figure is 713/763 ( ec2Query 93.4% ) — the TODO's `752/756` was aspirational. Moto picked up SES v2 28 -> 30 ( total 3302 -> 3304 ).
+
+Cross-service validation items ( `cloudtraildata-channel-validation`, `kinesisvideoarchivedmedia-stream-validation`, `sagemakerruntime-endpoint-validation` ) remain deferred. The `winterbaume-dynamodbstreams::with_dynamodb_backend(Arc<dyn DynamoDbBackend>)` pattern in `crates/winterbaume-dynamodbstreams/src/handlers.rs:44` is a good template, but `winterbaume-server/src/main.rs:989` still constructs `DynamoDbStreamsService::new()` without wiring the shared backend, so even the existing pattern isn't auto-wired in standalone-server mode. Picking up these TODOs needs a design decision on whether `MockAws::builder()` and `winterbaume-server` should auto-wire `with_<parent>_backend()` constructors, not just a per-crate code change.
+
+### Third batch ( same session, 2026-05-16 )
+
+The `codegen-field-drift-handler-updates` TODO is cleared end-to-end. All 6 rolled-back crates from the 2026-05-02 mass-regen sweep were regenerated and their handler / state placeholders added in two waves of 3 parallel agents each. Pattern was identical across crates: re-run `cargo run -p smithy-codegen -- gen-serializers <crate>`, read the matching `.agents-workspace/tmp/regen-broken/<crate>-clippy.log` to enumerate `error[E0063]: missing field ...` sites, default each new field at every construction site ( `None` for `Option<T>`, `Default` for non-optional, etc., never inventing state ), then run the per-crate `fmt -> clippy -> fmt --check -> test --no-fail-fast` gate.
+
+Per-crate field tallies:
+
+| Crate | New fields | Tests | Notes |
+|---|---|---|---|
+| `account` | 1 ( `account_state` ) | 33 pass | single response struct |
+| `organizations` | 1 ( `path` ) | 107 pass | only `OrganizationalUnit` via `ou_wire()` helper |
+| `batch` | 1 ( `quota_share_policy` on `SchedulingPolicyDetail` ) + 4 unreferenced sibling additions | 50 pass | new `CreateQuotaShareResponse` / `UpdateQuotaShareResponse` shapes plus request-side `quota_share_policy` fields landed too, but no existing handler references them |
+| `applicationsignals` | 3 ( `composite_sli_config`, `metric_source`, `auto_investigation_enabled` ) | 13 pass | model-dir is hyphenated `application-signals`, resolved via SERVICE_MAP fallback |
+| `ivs` | 7 CORS headers × 3 batch-response structs = 21 placeholders | 54 pass | `access_control_allow_origin`, `access_control_expose_headers`, `cache_control`, `content_security_policy`, `strict_transport_security`, `x_content_type_options`, `x_frame_options` on `BatchGetChannelResponse`, `BatchGetStreamKeyResponse`, `BatchStartViewerSessionRevocationResponse` |
+| `opensearch` | 2 ( `service_options` on `AuthorizedPrincipal`, `prometheus` on `DirectQueryDataSourceType` ) | 54 pass | |
+
+No commits made. The `.agents-workspace/tmp/regen-broken/` artefacts are left in place for now ( they would be useful again if any future regen drops or renames one of these fields ), but they could be cleaned up as a follow-up housekeeping step once we have confidence the new `wire.rs` / `model.rs` are stable.
+
+### Fourth batch ( same session, 2026-05-16 )
+
+Two more items cleared:
+
+- `release-batch-general-uploaded-tag-backfill` — added a `parse_uploaded(text, version) -> BTreeSet<String>` scanner in `tools/release-batch/src/main.rs` that picks up cargo / cargo-release `Uploaded <crate> v<version>` status lines ( allowing leading whitespace and an optional trailing registry hint, rejecting "Uploading" progress lines and version mismatches ). Wired into the chunk-retry loop ahead of the early-break failure path so every uploaded crate gets its `<crate>-v<version>` tag backfilled regardless of whether the chunk hit 429, hit cargo's pre-flight `is already published` check, or failed for some other reason. Five new unit tests + the existing 8 = 13/13 pass; per-crate clippy + fmt gate clean.
+- `docs-service-readme-server-install-refresh` — `.agents/skills/update-readme/scripts/update_readme.py` `Server-mode usage` block now emits both the published-binary path ( `cargo install winterbaume-server` followed by `winterbaume-server --host ...` ) and the workspace-checkout path ( `cargo run -p winterbaume-server -- --host ...` ), with a short British-English lede explaining when each is appropriate. Regenerated 224 per-crate READMEs and 225 `docs/services/*.md` pages; no hand edits.
+
+I also looked at `core-url-query-parser-sweep` but the 59-crate plan in the TODO is more nuanced than the entry suggests: spot-checking `winterbaume-opensearch`, `winterbaume-iotdataplane`, `winterbaume-osis`, and `winterbaume-s3tables` shows three distinct signature shapes ( `(query_string, key)`, `(uri, key)`, plus minor URL-decode variants ), not byte-identical copies. The canonical `protocol::common` helpers should take a query string body ( consistent with the existing `extract_query_string(uri) -> &str`, also already in core ), but adopting that across the fleet means call-site refactors at the URI-passing sites, not just symbol swaps. Deferred pending the design decision on signature shape; the TODO entry needs a follow-up note recording this finding before anyone dispatches a sweep.

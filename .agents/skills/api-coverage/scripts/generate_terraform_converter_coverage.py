@@ -158,6 +158,60 @@ EXTRACT_PATTERNS = [
 ]
 
 
+# Matches the trailing positional string-literal argument of a macro
+# invocation. The S3 `impl_bucket_subresource_converter!` family emits
+# extracted attributes through a `$extract_attr` argument that appears
+# as the last positional `"name"` literal in the macro body. Standard
+# `"key":` and `.insert("key", ...)` patterns do not credit those
+# literals.
+#
+# A "trailing positional string literal" here is a `"name"` (lowercase
+# ASCII identifier shape) that appears at the very end of the macro
+# body, allowing only whitespace, an optional trailing comma, and
+# comments after it.
+_MACRO_TRAILING_STRING_LITERAL_RE = re.compile(
+    r'"([a-z][a-z0-9_]*)"\s*,?\s*\Z',
+)
+
+
+def _macro_trailing_extract_attrs(body: str) -> set[str]:
+    """Return the trailing positional `"name"` literal of a macro body, if any.
+
+    Stripping shell-style trailing whitespace and a trailing comma, the
+    last token of many converter-emitting macros is the
+    `$extract_attr:literal` argument naming the TF attribute the
+    converter writes back when extracting state. Crediting this token
+    as an extract attribute lets the heuristic reflect macro-emitted
+    coverage that the `"key":` and `.insert("key", ...)` patterns miss.
+    """
+    m = _MACRO_TRAILING_STRING_LITERAL_RE.search(body)
+    if not m:
+        return set()
+    return {m.group(1)}
+
+
+# Per-macro-family always-credited attributes. The S3 sub-resource
+# macros hard-code `"bucket"` (and a synthetic `"id"`, which the TF
+# schema strips anyway) into every emitted converter's extract body
+# regardless of the macro arguments, so any invocation of those macros
+# legitimately emits a `bucket` attribute the per-invocation arg
+# scanner can't see.
+_MACRO_ALWAYS_EXTRACT_ATTRS: dict[str, set[str]] = {
+    "impl_bucket_subresource_converter": {"bucket"},
+    "impl_bucket_named_config_converter": {"bucket", "name"},
+}
+# Inject side: the macros require `"bucket"` (and `"name"` for the
+# named-config variant) via `attrs.get("bucket")` / `attrs.get("name")`
+# in the macro template body, which the `attrs.get("key")` regex would
+# normally credit — but those calls live in the macro definition, not
+# the invocation arguments scanned by the heuristic. Always credit
+# them on the inject side too.
+_MACRO_ALWAYS_INJECT_ATTRS: dict[str, set[str]] = {
+    "impl_bucket_subresource_converter": {"bucket"},
+    "impl_bucket_named_config_converter": {"bucket", "name"},
+}
+
+
 def parse_converter_file(
     path: Path,
     tf_model_index: dict[str, set[str]] | None = None,
@@ -180,21 +234,21 @@ def parse_converter_file(
     # `impl_bucket_subresource_converter!` ) are declared via macros;
     # their `fn resource_type` body refers to a macro parameter rather
     # than a string literal, so the regex above misses them. Scan macro
-    # invocations and collect `(resource_type, macro_body)` pairs for
-    # any that aren't already covered.
-    macro_pairs: list[tuple[str, str]] = []
+    # invocations and collect `(macro_name, resource_type, macro_body)`
+    # triples for any that aren't already covered.
+    macro_triples: list[tuple[str, str, str]] = []
     existing = set(resource_types)
-    for _macro_name, body in _macro_invocation_bodies(source):
+    for macro_name, body in _macro_invocation_bodies(source):
         match = re.search(r'"(aws_[A-Za-z0-9_]+)"', body)
         if not match:
             continue
         rt = match.group(1)
         if rt in existing:
             continue
-        macro_pairs.append((rt, body))
+        macro_triples.append((macro_name, rt, body))
         existing.add(rt)
 
-    if not resource_types and not macro_pairs:
+    if not resource_types and not macro_triples:
         return []
 
     # Split source into converter impl blocks.
@@ -274,7 +328,7 @@ def parse_converter_file(
     # S3 sub-resource macros credit any referenced `*TfModel` and any
     # explicit `attrs.get("...")` / `serde_json::json!({...})` calls
     # within the macro args.
-    for rt, body in macro_pairs:
+    for macro_name, rt, body in macro_triples:
         inject_attrs: set[str] = set()
         extract_attrs: set[str] = set()
         for pat in INJECT_PATTERNS:
@@ -293,6 +347,18 @@ def parse_converter_file(
         for pat in EXTRACT_PATTERNS:
             for m in pat.finditer(body):
                 extract_attrs.add(m.group(1))
+        # The trailing positional string literal of macro args like
+        # `impl_bucket_subresource_converter!(..., "status")` names a
+        # TF attribute the converter emits during extract. The
+        # standard `"key":` / `.insert("key", ...)` patterns can't see
+        # it because the macro template ( not the call site ) is what
+        # actually inserts that key into the JSON map.
+        extract_attrs |= _macro_trailing_extract_attrs(body)
+        # Macro templates with hard-coded attributes ( `bucket`, `name` )
+        # that don't appear in the call-site args. The macro emits
+        # these on every invocation regardless of arguments.
+        extract_attrs |= _MACRO_ALWAYS_EXTRACT_ATTRS.get(macro_name, set())
+        inject_attrs |= _MACRO_ALWAYS_INJECT_ATTRS.get(macro_name, set())
         inject_attrs.discard("resource_type")
         extract_attrs.discard("resource_type")
         # `aws_*` literal that named the resource type is part of the

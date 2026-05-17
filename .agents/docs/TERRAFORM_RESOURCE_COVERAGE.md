@@ -1,17 +1,15 @@
 # Per-service Terraform resource coverage
 
 Schema resources total: **1526**
-Resources classified to a service via prefix: **1194**
-Currently handled by winterbaume: **1127** (1122 verified against schema)
-Missing within classified prefixes: **78**
+Resources classified to a service via prefix: **1191**
+Currently handled by winterbaume: **1133** (1128 verified against schema)
+Missing within classified prefixes: **69**
 
 Sorted by missing-count desc.
 
 | Service | Prefix | Handled | Schema | Missing | Coverage | Note |
 |---------|--------|---------|--------|---------|----------|------|
 | ebs | `aws_ebs_` | 2 | 8 | 6 | 25% |  |
-| elbv2 | `aws_lb`, `aws_alb` | 10 | 16 | 6 | 62% |  |
-| kinesis | `aws_kinesis_` | 3 | 6 | 3 | 50% |  |
 | account | `aws_account_` | 1 | 3 | 2 | 33% |  |
 | apigateway | `aws_api_gateway_` | 24 | 26 | 2 | 92% |  |
 | cloudtrail | `aws_cloudtrail` | 1 | 3 | 2 | 33% |  |
@@ -90,6 +88,7 @@ Sorted by missing-count desc.
 | efs | `aws_efs_` | 6 | 6 | 0 | 100% |  |
 | eks | `aws_eks_` | 8 | 8 | 0 | 100% |  |
 | elasticache | `aws_elasticache_` | 10 | 10 | 0 | 100% |  |
+| elbv2 | `aws_lb`, `aws_alb` | 16 | 16 | 0 | 100% |  |
 | emr | `aws_emr_` | 8 | 8 | 0 | 100% |  |
 | emrserverless | `aws_emrserverless_` | 1 | 1 | 0 | 100% |  |
 | events | `aws_cloudwatch_event_` | 9 | 9 | 0 | 100% |  |
@@ -102,6 +101,7 @@ Sorted by missing-count desc.
 | iot | `aws_iot_` | 19 | 19 | 0 | 100% |  |
 | kafka | `aws_msk_` | 8 | 8 | 0 | 100% |  |
 | keyspaces | `aws_keyspaces_` | 2 | 2 | 0 | 100% |  |
+| kinesis | `aws_kinesis_stream`, `aws_kinesis_resource_policy` | 3 | 3 | 0 | 100% |  |
 | kinesisvideo | `aws_kinesis_video_` | 1 | 1 | 0 | 100% |  |
 | kms | `aws_kms_` | 9 | 9 | 0 | 100% |  |
 | lakeformation | `aws_lakeformation_` | 8 | 8 | 0 | 100% |  |
@@ -165,21 +165,6 @@ Sorted by missing-count desc.
 - `aws_ebs_snapshot_block_public_access`
 - `aws_ebs_snapshot_copy`
 - `aws_ebs_snapshot_import`
-
-### elbv2 — 6 missing
-
-- `aws_alb`
-- `aws_alb_listener`
-- `aws_alb_listener_certificate`
-- `aws_alb_listener_rule`
-- `aws_alb_target_group`
-- `aws_alb_target_group_attachment`
-
-### kinesis — 3 missing
-
-- `aws_kinesis_analytics_application`
-- `aws_kinesis_firehose_delivery_stream`
-- `aws_kinesis_video_stream`
 
 ### account — 2 missing
 

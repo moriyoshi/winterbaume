@@ -727,6 +727,7 @@ impl BatchService {
                 } else {
                     Some(sp.tags.clone())
                 },
+                quota_share_policy: None,
             })
             .collect();
 

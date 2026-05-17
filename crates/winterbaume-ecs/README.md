@@ -20,7 +20,7 @@ Winterbäume is not affiliated with, endorsed by, or sponsored by Amazon Web Ser
 | moto coverage | 45/76 operations (59.2%) |
 | floci coverage | 0/76 operations (0.0%) |
 | kumo coverage | 12/76 operations (15.8%) |
-| Coverage report date | 2026-05-13 |
+| Coverage report date | 2026-05-16 |
 
 Coverage is generated from [`.agents/docs/API_COVERAGE.md`](../../.agents/docs/API_COVERAGE.md) by [`update_readme.py`](../../.agents/skills/update-readme/scripts/update_readme.py). The `winterbaume` row counts only operations with real, state-backed logic; `stubs` counts handlers that route the request and return an empty/default response without real behaviour. Operation-count coverage is a prioritisation signal, not a behavioural guarantee.
 
@@ -28,9 +28,14 @@ See the workspace [`README.md`](../../README.md) for setup, usage, and the full 
 
 ## Server-mode usage
 
-Start `winterbaume-server` and point the AWS CLI at it:
+Install `winterbaume-server` from crates.io or run it from a workspace checkout, then point the AWS CLI at it:
 
 ```sh
+# Installed binary ( from crates.io ):
+cargo install winterbaume-server
+winterbaume-server --host 127.0.0.1 --port 5555
+
+# Or, from a workspace checkout:
 cargo run -p winterbaume-server -- --host 127.0.0.1 --port 5555
 ```
 

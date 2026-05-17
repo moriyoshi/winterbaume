@@ -7,6 +7,731 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CancelJobRequest {
+    #[serde(rename = "jobId")]
+    #[serde(default)]
+    pub job_id: String,
+    #[serde(default)]
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CancelJobResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateComputeEnvironmentRequest {
+    #[serde(rename = "computeEnvironmentName")]
+    #[serde(default)]
+    pub compute_environment_name: String,
+    #[serde(rename = "computeResources")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_resources: Option<ComputeResource>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
+    #[serde(rename = "eksConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eks_configuration: Option<EksConfiguration>,
+    #[serde(rename = "serviceRole")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_role: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "type")]
+    #[serde(default)]
+    pub r#type: String,
+    #[serde(rename = "unmanagedvCpus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unmanagedv_cpus: Option<i32>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ComputeResource {
+    #[serde(rename = "allocationStrategy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allocation_strategy: Option<String>,
+    #[serde(rename = "bidPercentage")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bid_percentage: Option<i32>,
+    #[serde(rename = "desiredvCpus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub desiredv_cpus: Option<i32>,
+    #[serde(rename = "ec2Configuration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ec2_configuration: Option<Vec<Ec2Configuration>>,
+    #[serde(rename = "ec2KeyPair")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ec2_key_pair: Option<String>,
+    #[serde(rename = "imageId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_id: Option<String>,
+    #[serde(rename = "instanceRole")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub instance_role: Option<String>,
+    #[serde(rename = "instanceTypes")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub instance_types: Option<Vec<String>>,
+    #[serde(rename = "launchTemplate")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub launch_template: Option<LaunchTemplateSpecification>,
+    #[serde(rename = "maxvCpus")]
+    #[serde(default)]
+    pub maxv_cpus: i32,
+    #[serde(rename = "minvCpus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub minv_cpus: Option<i32>,
+    #[serde(rename = "placementGroup")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub placement_group: Option<String>,
+    #[serde(rename = "scalingPolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scaling_policy: Option<ComputeScalingPolicy>,
+    #[serde(rename = "securityGroupIds")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub security_group_ids: Option<Vec<String>>,
+    #[serde(rename = "spotIamFleetRole")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spot_iam_fleet_role: Option<String>,
+    #[serde(default)]
+    pub subnets: Vec<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "type")]
+    #[serde(default)]
+    pub r#type: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct Ec2Configuration {
+    #[serde(rename = "batchImageStatus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub batch_image_status: Option<String>,
+    #[serde(rename = "imageIdOverride")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_id_override: Option<String>,
+    #[serde(rename = "imageKubernetesVersion")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_kubernetes_version: Option<String>,
+    #[serde(rename = "imageType")]
+    #[serde(default)]
+    pub image_type: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct LaunchTemplateSpecification {
+    #[serde(rename = "launchTemplateId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub launch_template_id: Option<String>,
+    #[serde(rename = "launchTemplateName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub launch_template_name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub overrides: Option<Vec<LaunchTemplateSpecificationOverride>>,
+    #[serde(rename = "userdataType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub userdata_type: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct LaunchTemplateSpecificationOverride {
+    #[serde(rename = "launchTemplateId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub launch_template_id: Option<String>,
+    #[serde(rename = "launchTemplateName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub launch_template_name: Option<String>,
+    #[serde(rename = "targetInstanceTypes")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_instance_types: Option<Vec<String>>,
+    #[serde(rename = "userdataType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub userdata_type: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ComputeScalingPolicy {
+    #[serde(rename = "minScaleDownDelayMinutes")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_scale_down_delay_minutes: Option<i32>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct EksConfiguration {
+    #[serde(rename = "eksClusterArn")]
+    #[serde(default)]
+    pub eks_cluster_arn: String,
+    #[serde(rename = "kubernetesNamespace")]
+    #[serde(default)]
+    pub kubernetes_namespace: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateComputeEnvironmentResponse {
+    #[serde(rename = "computeEnvironmentArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_environment_arn: Option<String>,
+    #[serde(rename = "computeEnvironmentName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_environment_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateConsumableResourceRequest {
+    #[serde(rename = "consumableResourceName")]
+    #[serde(default)]
+    pub consumable_resource_name: String,
+    #[serde(rename = "resourceType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resource_type: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "totalQuantity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_quantity: Option<i64>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateConsumableResourceResponse {
+    #[serde(rename = "consumableResourceArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub consumable_resource_arn: Option<String>,
+    #[serde(rename = "consumableResourceName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub consumable_resource_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateJobQueueRequest {
+    #[serde(rename = "computeEnvironmentOrder")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_environment_order: Option<Vec<ComputeEnvironmentOrder>>,
+    #[serde(rename = "jobQueueName")]
+    #[serde(default)]
+    pub job_queue_name: String,
+    #[serde(rename = "jobQueueType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_queue_type: Option<String>,
+    #[serde(rename = "jobStateTimeLimitActions")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_state_time_limit_actions: Option<Vec<JobStateTimeLimitAction>>,
+    #[serde(default)]
+    pub priority: i32,
+    #[serde(rename = "schedulingPolicyArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scheduling_policy_arn: Option<String>,
+    #[serde(rename = "serviceEnvironmentOrder")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_order: Option<Vec<ServiceEnvironmentOrder>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ComputeEnvironmentOrder {
+    #[serde(rename = "computeEnvironment")]
+    #[serde(default)]
+    pub compute_environment: String,
+    #[serde(default)]
+    pub order: i32,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct JobStateTimeLimitAction {
+    #[serde(default)]
+    pub action: String,
+    #[serde(rename = "maxTimeSeconds")]
+    #[serde(default)]
+    pub max_time_seconds: i32,
+    #[serde(default)]
+    pub reason: String,
+    #[serde(default)]
+    pub state: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ServiceEnvironmentOrder {
+    #[serde(default)]
+    pub order: i32,
+    #[serde(rename = "serviceEnvironment")]
+    #[serde(default)]
+    pub service_environment: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateJobQueueResponse {
+    #[serde(rename = "jobQueueArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_queue_arn: Option<String>,
+    #[serde(rename = "jobQueueName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_queue_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateQuotaShareRequest {
+    #[serde(rename = "capacityLimits")]
+    #[serde(default)]
+    pub capacity_limits: Vec<QuotaShareCapacityLimit>,
+    #[serde(rename = "jobQueue")]
+    #[serde(default)]
+    pub job_queue: String,
+    #[serde(rename = "preemptionConfiguration")]
+    #[serde(default)]
+    pub preemption_configuration: QuotaSharePreemptionConfiguration,
+    #[serde(rename = "quotaShareName")]
+    #[serde(default)]
+    pub quota_share_name: String,
+    #[serde(rename = "resourceSharingConfiguration")]
+    #[serde(default)]
+    pub resource_sharing_configuration: QuotaShareResourceSharingConfiguration,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct QuotaShareCapacityLimit {
+    #[serde(rename = "capacityUnit")]
+    #[serde(default)]
+    pub capacity_unit: String,
+    #[serde(rename = "maxCapacity")]
+    #[serde(default)]
+    pub max_capacity: i32,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct QuotaSharePreemptionConfiguration {
+    #[serde(rename = "inSharePreemption")]
+    #[serde(default)]
+    pub in_share_preemption: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct QuotaShareResourceSharingConfiguration {
+    #[serde(rename = "borrowLimit")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub borrow_limit: Option<i32>,
+    #[serde(default)]
+    pub strategy: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateQuotaShareResponse {
+    #[serde(rename = "quotaShareArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_arn: Option<String>,
+    #[serde(rename = "quotaShareName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateSchedulingPolicyRequest {
+    #[serde(rename = "fairsharePolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fairshare_policy: Option<FairsharePolicy>,
+    #[serde(default)]
+    pub name: String,
+    #[serde(rename = "quotaSharePolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_policy: Option<QuotaSharePolicy>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct FairsharePolicy {
+    #[serde(rename = "computeReservation")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_reservation: Option<i32>,
+    #[serde(rename = "shareDecaySeconds")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub share_decay_seconds: Option<i32>,
+    #[serde(rename = "shareDistribution")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub share_distribution: Option<Vec<ShareAttributes>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ShareAttributes {
+    #[serde(rename = "shareIdentifier")]
+    #[serde(default)]
+    pub share_identifier: String,
+    #[serde(rename = "weightFactor")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub weight_factor: Option<f32>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct QuotaSharePolicy {
+    #[serde(rename = "idleResourceAssignmentStrategy")]
+    #[serde(default)]
+    pub idle_resource_assignment_strategy: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateSchedulingPolicyResponse {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateServiceEnvironmentRequest {
+    #[serde(rename = "capacityLimits")]
+    #[serde(default)]
+    pub capacity_limits: Vec<CapacityLimit>,
+    #[serde(rename = "serviceEnvironmentName")]
+    #[serde(default)]
+    pub service_environment_name: String,
+    #[serde(rename = "serviceEnvironmentType")]
+    #[serde(default)]
+    pub service_environment_type: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CapacityLimit {
+    #[serde(rename = "capacityUnit")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capacity_unit: Option<String>,
+    #[serde(rename = "maxCapacity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_capacity: Option<i32>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CreateServiceEnvironmentResponse {
+    #[serde(rename = "serviceEnvironmentArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_arn: Option<String>,
+    #[serde(rename = "serviceEnvironmentName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteComputeEnvironmentRequest {
+    #[serde(rename = "computeEnvironment")]
+    #[serde(default)]
+    pub compute_environment: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteComputeEnvironmentResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteConsumableResourceRequest {
+    #[serde(rename = "consumableResource")]
+    #[serde(default)]
+    pub consumable_resource: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteConsumableResourceResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteJobQueueRequest {
+    #[serde(rename = "jobQueue")]
+    #[serde(default)]
+    pub job_queue: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteJobQueueResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteQuotaShareRequest {
+    #[serde(rename = "quotaShareArn")]
+    #[serde(default)]
+    pub quota_share_arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteQuotaShareResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteSchedulingPolicyRequest {
+    #[serde(default)]
+    pub arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteSchedulingPolicyResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteServiceEnvironmentRequest {
+    #[serde(rename = "serviceEnvironment")]
+    #[serde(default)]
+    pub service_environment: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeleteServiceEnvironmentResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeregisterJobDefinitionRequest {
+    #[serde(rename = "jobDefinition")]
+    #[serde(default)]
+    pub job_definition: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DeregisterJobDefinitionResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DescribeComputeEnvironmentsRequest {
+    #[serde(rename = "computeEnvironments")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_environments: Option<Vec<String>>,
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DescribeComputeEnvironmentsResponse {
+    #[serde(rename = "computeEnvironments")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_environments: Option<Vec<ComputeEnvironmentDetail>>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ComputeEnvironmentDetail {
+    #[serde(rename = "computeEnvironmentArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_environment_arn: Option<String>,
+    #[serde(rename = "computeEnvironmentName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_environment_name: Option<String>,
+    #[serde(rename = "computeResources")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_resources: Option<ComputeResource>,
+    #[serde(rename = "containerOrchestrationType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub container_orchestration_type: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
+    #[serde(rename = "ecsClusterArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ecs_cluster_arn: Option<String>,
+    #[serde(rename = "eksConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eks_configuration: Option<EksConfiguration>,
+    #[serde(rename = "serviceRole")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_role: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(rename = "statusReason")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_reason: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "type")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
+    #[serde(rename = "unmanagedvCpus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unmanagedv_cpus: Option<i32>,
+    #[serde(rename = "updatePolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub update_policy: Option<UpdatePolicy>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uuid: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdatePolicy {
+    #[serde(rename = "jobExecutionTimeoutMinutes")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_execution_timeout_minutes: Option<i64>,
+    #[serde(rename = "terminateJobsOnUpdate")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub terminate_jobs_on_update: Option<bool>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DescribeConsumableResourceRequest {
+    #[serde(rename = "consumableResource")]
+    #[serde(default)]
+    pub consumable_resource: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DescribeConsumableResourceResponse {
+    #[serde(rename = "availableQuantity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub available_quantity: Option<i64>,
+    #[serde(rename = "consumableResourceArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub consumable_resource_arn: Option<String>,
+    #[serde(rename = "consumableResourceName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub consumable_resource_name: Option<String>,
+    #[serde(rename = "createdAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<i64>,
+    #[serde(rename = "inUseQuantity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub in_use_quantity: Option<i64>,
+    #[serde(rename = "resourceType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resource_type: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "totalQuantity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_quantity: Option<i64>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DescribeJobDefinitionsRequest {
+    #[serde(rename = "jobDefinitionName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_definition_name: Option<String>,
+    #[serde(rename = "jobDefinitions")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_definitions: Option<Vec<String>>,
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct DescribeJobDefinitionsResponse {
     #[serde(rename = "jobDefinitions")]
     #[serde(default)]
@@ -374,6 +1099,10 @@ pub struct Volume {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(rename = "s3filesVolumeConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub s3files_volume_configuration: Option<S3FilesVolumeConfiguration>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -416,6 +1145,25 @@ pub struct Host {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct S3FilesVolumeConfiguration {
+    #[serde(rename = "accessPointArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub access_point_arn: Option<String>,
+    #[serde(rename = "fileSystemArn")]
+    #[serde(default)]
+    pub file_system_arn: String,
+    #[serde(rename = "rootDirectory")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub root_directory: Option<String>,
+    #[serde(rename = "transitEncryptionPort")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transit_encryption_port: Option<i32>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -524,6 +1272,14 @@ pub struct TaskContainerProperties {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secrets: Option<Vec<Secret>>,
+    #[serde(rename = "startTimeout")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_timeout: Option<i32>,
+    #[serde(rename = "stopTimeout")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stop_timeout: Option<i32>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ulimits: Option<Vec<Ulimit>>,
@@ -852,190 +1608,6 @@ pub struct JobTimeout {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateComputeEnvironmentRequest {
-    #[serde(rename = "computeEnvironmentName")]
-    #[serde(default)]
-    pub compute_environment_name: String,
-    #[serde(rename = "computeResources")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_resources: Option<ComputeResource>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub context: Option<String>,
-    #[serde(rename = "eksConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub eks_configuration: Option<EksConfiguration>,
-    #[serde(rename = "serviceRole")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_role: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "type")]
-    #[serde(default)]
-    pub r#type: String,
-    #[serde(rename = "unmanagedvCpus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub unmanagedv_cpus: Option<i32>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ComputeResource {
-    #[serde(rename = "allocationStrategy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allocation_strategy: Option<String>,
-    #[serde(rename = "bidPercentage")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bid_percentage: Option<i32>,
-    #[serde(rename = "desiredvCpus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub desiredv_cpus: Option<i32>,
-    #[serde(rename = "ec2Configuration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ec2_configuration: Option<Vec<Ec2Configuration>>,
-    #[serde(rename = "ec2KeyPair")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ec2_key_pair: Option<String>,
-    #[serde(rename = "imageId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub image_id: Option<String>,
-    #[serde(rename = "instanceRole")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub instance_role: Option<String>,
-    #[serde(rename = "instanceTypes")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub instance_types: Option<Vec<String>>,
-    #[serde(rename = "launchTemplate")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub launch_template: Option<LaunchTemplateSpecification>,
-    #[serde(rename = "maxvCpus")]
-    #[serde(default)]
-    pub maxv_cpus: i32,
-    #[serde(rename = "minvCpus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub minv_cpus: Option<i32>,
-    #[serde(rename = "placementGroup")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub placement_group: Option<String>,
-    #[serde(rename = "scalingPolicy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub scaling_policy: Option<ComputeScalingPolicy>,
-    #[serde(rename = "securityGroupIds")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub security_group_ids: Option<Vec<String>>,
-    #[serde(rename = "spotIamFleetRole")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub spot_iam_fleet_role: Option<String>,
-    #[serde(default)]
-    pub subnets: Vec<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "type")]
-    #[serde(default)]
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct Ec2Configuration {
-    #[serde(rename = "imageIdOverride")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub image_id_override: Option<String>,
-    #[serde(rename = "imageKubernetesVersion")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub image_kubernetes_version: Option<String>,
-    #[serde(rename = "imageType")]
-    #[serde(default)]
-    pub image_type: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct LaunchTemplateSpecification {
-    #[serde(rename = "launchTemplateId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub launch_template_id: Option<String>,
-    #[serde(rename = "launchTemplateName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub launch_template_name: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub overrides: Option<Vec<LaunchTemplateSpecificationOverride>>,
-    #[serde(rename = "userdataType")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub userdata_type: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub version: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct LaunchTemplateSpecificationOverride {
-    #[serde(rename = "launchTemplateId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub launch_template_id: Option<String>,
-    #[serde(rename = "launchTemplateName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub launch_template_name: Option<String>,
-    #[serde(rename = "targetInstanceTypes")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub target_instance_types: Option<Vec<String>>,
-    #[serde(rename = "userdataType")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub userdata_type: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub version: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ComputeScalingPolicy {
-    #[serde(rename = "minScaleDownDelayMinutes")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub min_scale_down_delay_minutes: Option<i32>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct EksConfiguration {
-    #[serde(rename = "eksClusterArn")]
-    #[serde(default)]
-    pub eks_cluster_arn: String,
-    #[serde(rename = "kubernetesNamespace")]
-    #[serde(default)]
-    pub kubernetes_namespace: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct DescribeJobQueuesRequest {
     #[serde(rename = "jobQueues")]
     #[serde(default)]
@@ -1052,90 +1624,11 @@ pub struct DescribeJobQueuesRequest {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteJobQueueRequest {
-    #[serde(rename = "jobQueue")]
-    #[serde(default)]
-    pub job_queue: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateSchedulingPolicyRequest {
-    #[serde(default)]
-    pub arn: String,
-    #[serde(rename = "fairsharePolicy")]
+pub struct DescribeJobQueuesResponse {
+    #[serde(rename = "jobQueues")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub fairshare_policy: Option<FairsharePolicy>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct FairsharePolicy {
-    #[serde(rename = "computeReservation")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_reservation: Option<i32>,
-    #[serde(rename = "shareDecaySeconds")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub share_decay_seconds: Option<i32>,
-    #[serde(rename = "shareDistribution")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub share_distribution: Option<Vec<ShareAttributes>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ShareAttributes {
-    #[serde(rename = "shareIdentifier")]
-    #[serde(default)]
-    pub share_identifier: String,
-    #[serde(rename = "weightFactor")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub weight_factor: Option<f32>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeServiceEnvironmentsRequest {
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-    #[serde(rename = "serviceEnvironments")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environments: Option<Vec<String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListJobsRequest {
-    #[serde(rename = "arrayJobId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub array_job_id: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filters: Option<Vec<KeyValuesPair>>,
-    #[serde(rename = "jobQueue")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queue: Option<String>,
-    #[serde(rename = "jobStatus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_status: Option<String>,
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "multiNodeJobId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub multi_node_job_id: Option<String>,
+    pub job_queues: Option<Vec<JobQueueDetail>>,
     #[serde(rename = "nextToken")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1143,57 +1636,11 @@ pub struct ListJobsRequest {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct KeyValuesPair {
+pub struct JobQueueDetail {
+    #[serde(rename = "computeEnvironmentOrder")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub values: Option<Vec<String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeComputeEnvironmentsRequest {
-    #[serde(rename = "computeEnvironments")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_environments: Option<Vec<String>>,
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListSchedulingPoliciesRequest {
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CancelJobRequest {
-    #[serde(rename = "jobId")]
-    #[serde(default)]
-    pub job_id: String,
-    #[serde(default)]
-    pub reason: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteServiceEnvironmentResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateJobQueueResponse {
+    pub compute_environment_order: Option<Vec<ComputeEnvironmentOrder>>,
     #[serde(rename = "jobQueueArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1202,87 +1649,44 @@ pub struct UpdateJobQueueResponse {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub job_queue_name: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct SubmitServiceJobRequest {
-    #[serde(rename = "clientToken")]
+    #[serde(rename = "jobQueueType")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub client_token: Option<String>,
-    #[serde(rename = "jobName")]
-    #[serde(default)]
-    pub job_name: String,
-    #[serde(rename = "jobQueue")]
-    #[serde(default)]
-    pub job_queue: String,
-    #[serde(rename = "retryStrategy")]
+    pub job_queue_type: Option<String>,
+    #[serde(rename = "jobStateTimeLimitActions")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub retry_strategy: Option<ServiceJobRetryStrategy>,
-    #[serde(rename = "schedulingPriority")]
+    pub job_state_time_limit_actions: Option<Vec<JobStateTimeLimitAction>>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub scheduling_priority: Option<i32>,
-    #[serde(rename = "serviceJobType")]
-    #[serde(default)]
-    pub service_job_type: String,
-    #[serde(rename = "serviceRequestPayload")]
-    #[serde(default)]
-    pub service_request_payload: String,
-    #[serde(rename = "shareIdentifier")]
+    pub priority: Option<i32>,
+    #[serde(rename = "schedulingPolicyArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub share_identifier: Option<String>,
+    pub scheduling_policy_arn: Option<String>,
+    #[serde(rename = "serviceEnvironmentOrder")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_order: Option<Vec<ServiceEnvironmentOrder>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(rename = "statusReason")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_reason: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "timeoutConfig")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timeout_config: Option<ServiceJobTimeout>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ServiceJobRetryStrategy {
+pub struct DescribeJobsRequest {
     #[serde(default)]
-    pub attempts: i32,
-    #[serde(rename = "evaluateOnExit")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub evaluate_on_exit: Option<Vec<ServiceJobEvaluateOnExit>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ServiceJobEvaluateOnExit {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub action: Option<String>,
-    #[serde(rename = "onStatusReason")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub on_status_reason: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ServiceJobTimeout {
-    #[serde(rename = "attemptDurationSeconds")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub attempt_duration_seconds: Option<i32>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateSchedulingPolicyRequest {
-    #[serde(rename = "fairsharePolicy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fairshare_policy: Option<FairsharePolicy>,
-    #[serde(default)]
-    pub name: String,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
+    pub jobs: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -1788,6 +2192,14 @@ pub struct TaskContainerDetails {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secrets: Option<Vec<Secret>>,
+    #[serde(rename = "startTimeout")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_timeout: Option<i32>,
+    #[serde(rename = "stopTimeout")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stop_timeout: Option<i32>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ulimits: Option<Vec<Ulimit>>,
@@ -1960,126 +2372,53 @@ pub struct NodeDetails {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeConsumableResourceRequest {
-    #[serde(rename = "consumableResource")]
+pub struct DescribeQuotaShareRequest {
+    #[serde(rename = "quotaShareArn")]
     #[serde(default)]
-    pub consumable_resource: String,
+    pub quota_share_arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DescribeQuotaShareResponse {
+    #[serde(rename = "capacityLimits")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capacity_limits: Option<Vec<QuotaShareCapacityLimit>>,
+    #[serde(rename = "jobQueueArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_queue_arn: Option<String>,
+    #[serde(rename = "preemptionConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preemption_configuration: Option<QuotaSharePreemptionConfiguration>,
+    #[serde(rename = "quotaShareArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_arn: Option<String>,
+    #[serde(rename = "quotaShareName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_name: Option<String>,
+    #[serde(rename = "resourceSharingConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resource_sharing_configuration: Option<QuotaShareResourceSharingConfiguration>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct DescribeSchedulingPoliciesRequest {
     #[serde(default)]
     pub arns: Vec<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetJobQueueSnapshotRequest {
-    #[serde(rename = "jobQueue")]
-    #[serde(default)]
-    pub job_queue: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListConsumableResourcesRequest {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filters: Option<Vec<KeyValuesPair>>,
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct RegisterJobDefinitionResponse {
-    #[serde(rename = "jobDefinitionArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_definition_arn: Option<String>,
-    #[serde(rename = "jobDefinitionName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_definition_name: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub revision: Option<i32>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct TerminateServiceJobRequest {
-    #[serde(rename = "jobId")]
-    #[serde(default)]
-    pub job_id: String,
-    #[serde(default)]
-    pub reason: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct TagResourceRequest {
-    #[serde(default)]
-    pub tags: std::collections::HashMap<String, String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateConsumableResourceRequest {
-    #[serde(rename = "clientToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub client_token: Option<String>,
-    #[serde(rename = "consumableResource")]
-    #[serde(default)]
-    pub consumable_resource: String,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub operation: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub quantity: Option<i64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateServiceEnvironmentRequest {
-    #[serde(rename = "capacityLimits")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub capacity_limits: Option<Vec<CapacityLimit>>,
-    #[serde(rename = "serviceEnvironment")]
-    #[serde(default)]
-    pub service_environment: String,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CapacityLimit {
-    #[serde(rename = "capacityUnit")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub capacity_unit: Option<String>,
-    #[serde(rename = "maxCapacity")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_capacity: Option<i32>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CancelJobResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateServiceEnvironmentResponse {
-    #[serde(rename = "serviceEnvironmentArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_arn: Option<String>,
-    #[serde(rename = "serviceEnvironmentName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -2102,16 +2441,77 @@ pub struct SchedulingPolicyDetail {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
+    #[serde(rename = "quotaSharePolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_policy: Option<QuotaSharePolicy>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<std::collections::HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteConsumableResourceRequest {
-    #[serde(rename = "consumableResource")]
+pub struct DescribeServiceEnvironmentsRequest {
+    #[serde(rename = "maxResults")]
     #[serde(default)]
-    pub consumable_resource: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "serviceEnvironments")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environments: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DescribeServiceEnvironmentsResponse {
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "serviceEnvironments")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environments: Option<Vec<ServiceEnvironmentDetail>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ServiceEnvironmentDetail {
+    #[serde(rename = "capacityLimits")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capacity_limits: Option<Vec<CapacityLimit>>,
+    #[serde(rename = "serviceEnvironmentArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_arn: Option<String>,
+    #[serde(rename = "serviceEnvironmentName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_name: Option<String>,
+    #[serde(rename = "serviceEnvironmentType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_type: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct DescribeServiceJobRequest {
+    #[serde(rename = "jobId")]
+    #[serde(default)]
+    pub job_id: String,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -2151,6 +2551,18 @@ pub struct DescribeServiceJobResponse {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub latest_attempt: Option<LatestServiceJobAttempt>,
+    #[serde(rename = "preemptionConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preemption_configuration: Option<ServiceJobPreemptionConfiguration>,
+    #[serde(rename = "preemptionSummary")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preemption_summary: Option<ServiceJobPreemptionSummary>,
+    #[serde(rename = "quotaShareName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_name: Option<String>,
     #[serde(rename = "retryStrategy")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2249,62 +2661,35 @@ pub struct LatestServiceJobAttempt {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListServiceJobsResponse {
-    #[serde(rename = "jobSummaryList")]
+pub struct ServiceJobPreemptionConfiguration {
+    #[serde(rename = "preemptionRetriesBeforeTermination")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_summary_list: Option<Vec<ServiceJobSummary>>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
+    pub preemption_retries_before_termination: Option<i32>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ServiceJobSummary {
-    #[serde(rename = "capacityUsage")]
+pub struct ServiceJobPreemptionSummary {
+    #[serde(rename = "preemptedAttemptCount")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub capacity_usage: Option<Vec<ServiceJobCapacityUsageSummary>>,
-    #[serde(rename = "createdAt")]
+    pub preempted_attempt_count: Option<i32>,
+    #[serde(rename = "recentPreemptedAttempts")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_at: Option<i64>,
-    #[serde(rename = "jobArn")]
+    pub recent_preempted_attempts: Option<Vec<ServiceJobPreemptedAttempt>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ServiceJobPreemptedAttempt {
+    #[serde(rename = "serviceResourceId")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_arn: Option<String>,
-    #[serde(rename = "jobId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_id: Option<String>,
-    #[serde(rename = "jobName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_name: Option<String>,
-    #[serde(rename = "latestAttempt")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub latest_attempt: Option<LatestServiceJobAttempt>,
-    #[serde(rename = "scheduledAt")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub scheduled_at: Option<i64>,
-    #[serde(rename = "serviceJobType")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_job_type: Option<String>,
-    #[serde(rename = "shareIdentifier")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub share_identifier: Option<String>,
+    pub service_resource_id: Option<ServiceResourceId>,
     #[serde(rename = "startedAt")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub started_at: Option<i64>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
     #[serde(rename = "statusReason")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2316,7 +2701,150 @@ pub struct ServiceJobSummary {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ServiceJobCapacityUsageSummary {
+pub struct ServiceJobRetryStrategy {
+    #[serde(default)]
+    pub attempts: i32,
+    #[serde(rename = "evaluateOnExit")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub evaluate_on_exit: Option<Vec<ServiceJobEvaluateOnExit>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ServiceJobEvaluateOnExit {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub action: Option<String>,
+    #[serde(rename = "onStatusReason")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub on_status_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ServiceJobTimeout {
+    #[serde(rename = "attemptDurationSeconds")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attempt_duration_seconds: Option<i32>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetJobQueueSnapshotRequest {
+    #[serde(rename = "jobQueue")]
+    #[serde(default)]
+    pub job_queue: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct GetJobQueueSnapshotResponse {
+    #[serde(rename = "frontOfQueue")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub front_of_queue: Option<FrontOfQueueDetail>,
+    #[serde(rename = "frontOfQuotaShares")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub front_of_quota_shares: Option<FrontOfQuotaSharesDetail>,
+    #[serde(rename = "queueUtilization")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub queue_utilization: Option<QueueSnapshotUtilizationDetail>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct FrontOfQueueDetail {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub jobs: Option<Vec<FrontOfQueueJobSummary>>,
+    #[serde(rename = "lastUpdatedAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_updated_at: Option<i64>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct FrontOfQueueJobSummary {
+    #[serde(rename = "earliestTimeAtPosition")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub earliest_time_at_position: Option<i64>,
+    #[serde(rename = "jobArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_arn: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct FrontOfQuotaSharesDetail {
+    #[serde(rename = "lastUpdatedAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_updated_at: Option<i64>,
+    #[serde(rename = "quotaShares")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_shares: Option<std::collections::HashMap<String, Vec<FrontOfQuotaShareJobSummary>>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct FrontOfQuotaShareJobSummary {
+    #[serde(rename = "earliestTimeAtPosition")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub earliest_time_at_position: Option<i64>,
+    #[serde(rename = "jobArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_arn: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct QueueSnapshotUtilizationDetail {
+    #[serde(rename = "fairshareUtilization")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fairshare_utilization: Option<FairshareUtilizationDetail>,
+    #[serde(rename = "lastUpdatedAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_updated_at: Option<i64>,
+    #[serde(rename = "quotaShareUtilization")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_utilization: Option<QuotaShareUtilizationDetail>,
+    #[serde(rename = "totalCapacityUsage")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_capacity_usage: Option<Vec<QueueSnapshotCapacityUsage>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct FairshareUtilizationDetail {
+    #[serde(rename = "activeShareCount")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active_share_count: Option<i64>,
+    #[serde(rename = "topCapacityUtilization")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_capacity_utilization: Option<Vec<FairshareCapacityUtilization>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct FairshareCapacityUtilization {
+    #[serde(rename = "capacityUsage")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capacity_usage: Option<Vec<FairshareCapacityUsage>>,
+    #[serde(rename = "shareIdentifier")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub share_identifier: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct FairshareCapacityUsage {
     #[serde(rename = "capacityUnit")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2327,340 +2855,52 @@ pub struct ServiceJobCapacityUsageSummary {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct RegisterJobDefinitionRequest {
-    #[serde(rename = "consumableResourceProperties")]
+pub struct QuotaShareUtilizationDetail {
+    #[serde(rename = "topCapacityUtilization")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_properties: Option<ConsumableResourceProperties>,
-    #[serde(rename = "containerProperties")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub container_properties: Option<ContainerProperties>,
-    #[serde(rename = "ecsProperties")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ecs_properties: Option<EcsProperties>,
-    #[serde(rename = "eksProperties")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub eks_properties: Option<EksProperties>,
-    #[serde(rename = "jobDefinitionName")]
-    #[serde(default)]
-    pub job_definition_name: String,
-    #[serde(rename = "nodeProperties")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub node_properties: Option<NodeProperties>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub parameters: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "platformCapabilities")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub platform_capabilities: Option<Vec<String>>,
-    #[serde(rename = "propagateTags")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub propagate_tags: Option<bool>,
-    #[serde(rename = "retryStrategy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub retry_strategy: Option<RetryStrategy>,
-    #[serde(rename = "schedulingPriority")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub scheduling_priority: Option<i32>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timeout: Option<JobTimeout>,
-    #[serde(rename = "type")]
-    #[serde(default)]
-    pub r#type: String,
+    pub top_capacity_utilization: Option<Vec<QuotaShareCapacityUtilization>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct SubmitJobResponse {
-    #[serde(rename = "jobArn")]
+pub struct QuotaShareCapacityUtilization {
+    #[serde(rename = "capacityUsage")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_arn: Option<String>,
-    #[serde(rename = "jobId")]
+    pub capacity_usage: Option<Vec<QuotaShareCapacityUsage>>,
+    #[serde(rename = "quotaShareName")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_id: Option<String>,
-    #[serde(rename = "jobName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_name: Option<String>,
+    pub quota_share_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateComputeEnvironmentRequest {
-    #[serde(rename = "computeEnvironment")]
-    #[serde(default)]
-    pub compute_environment: String,
-    #[serde(rename = "computeResources")]
+pub struct QuotaShareCapacityUsage {
+    #[serde(rename = "capacityUnit")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_resources: Option<ComputeResourceUpdate>,
+    pub capacity_unit: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub context: Option<String>,
-    #[serde(rename = "serviceRole")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_role: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
-    #[serde(rename = "unmanagedvCpus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub unmanagedv_cpus: Option<i32>,
-    #[serde(rename = "updatePolicy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub update_policy: Option<UpdatePolicy>,
+    pub quantity: Option<f64>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ComputeResourceUpdate {
-    #[serde(rename = "allocationStrategy")]
+pub struct QueueSnapshotCapacityUsage {
+    #[serde(rename = "capacityUnit")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub allocation_strategy: Option<String>,
-    #[serde(rename = "bidPercentage")]
+    pub capacity_unit: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub bid_percentage: Option<i32>,
-    #[serde(rename = "desiredvCpus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub desiredv_cpus: Option<i32>,
-    #[serde(rename = "ec2Configuration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ec2_configuration: Option<Vec<Ec2Configuration>>,
-    #[serde(rename = "ec2KeyPair")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ec2_key_pair: Option<String>,
-    #[serde(rename = "imageId")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub image_id: Option<String>,
-    #[serde(rename = "instanceRole")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub instance_role: Option<String>,
-    #[serde(rename = "instanceTypes")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub instance_types: Option<Vec<String>>,
-    #[serde(rename = "launchTemplate")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub launch_template: Option<LaunchTemplateSpecification>,
-    #[serde(rename = "maxvCpus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub maxv_cpus: Option<i32>,
-    #[serde(rename = "minvCpus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub minv_cpus: Option<i32>,
-    #[serde(rename = "placementGroup")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub placement_group: Option<String>,
-    #[serde(rename = "scalingPolicy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub scaling_policy: Option<ComputeScalingPolicy>,
-    #[serde(rename = "securityGroupIds")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub security_group_ids: Option<Vec<String>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subnets: Option<Vec<String>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "type")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
-    #[serde(rename = "updateToLatestImageVersion")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub update_to_latest_image_version: Option<bool>,
+    pub quantity: Option<f64>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdatePolicy {
-    #[serde(rename = "jobExecutionTimeoutMinutes")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_execution_timeout_minutes: Option<i64>,
-    #[serde(rename = "terminateJobsOnUpdate")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub terminate_jobs_on_update: Option<bool>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListSchedulingPoliciesResponse {
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-    #[serde(rename = "schedulingPolicies")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub scheduling_policies: Option<Vec<SchedulingPolicyListingDetail>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct SchedulingPolicyListingDetail {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeJobDefinitionsRequest {
-    #[serde(rename = "jobDefinitionName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_definition_name: Option<String>,
-    #[serde(rename = "jobDefinitions")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_definitions: Option<Vec<String>>,
-    #[serde(rename = "maxResults")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_results: Option<i32>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeJobQueuesResponse {
-    #[serde(rename = "jobQueues")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queues: Option<Vec<JobQueueDetail>>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct JobQueueDetail {
-    #[serde(rename = "computeEnvironmentOrder")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_environment_order: Option<Vec<ComputeEnvironmentOrder>>,
-    #[serde(rename = "jobQueueArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queue_arn: Option<String>,
-    #[serde(rename = "jobQueueName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queue_name: Option<String>,
-    #[serde(rename = "jobQueueType")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queue_type: Option<String>,
-    #[serde(rename = "jobStateTimeLimitActions")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_state_time_limit_actions: Option<Vec<JobStateTimeLimitAction>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub priority: Option<i32>,
-    #[serde(rename = "schedulingPolicyArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub scheduling_policy_arn: Option<String>,
-    #[serde(rename = "serviceEnvironmentOrder")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_order: Option<Vec<ServiceEnvironmentOrder>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
-    #[serde(rename = "statusReason")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status_reason: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ComputeEnvironmentOrder {
-    #[serde(rename = "computeEnvironment")]
-    #[serde(default)]
-    pub compute_environment: String,
-    #[serde(default)]
-    pub order: i32,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct JobStateTimeLimitAction {
-    #[serde(default)]
-    pub action: String,
-    #[serde(rename = "maxTimeSeconds")]
-    #[serde(default)]
-    pub max_time_seconds: i32,
-    #[serde(default)]
-    pub reason: String,
-    #[serde(default)]
-    pub state: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ServiceEnvironmentOrder {
-    #[serde(default)]
-    pub order: i32,
-    #[serde(rename = "serviceEnvironment")]
-    #[serde(default)]
-    pub service_environment: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListTagsForResourceRequest {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListServiceJobsRequest {
+pub struct ListConsumableResourcesRequest {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<Vec<KeyValuesPair>>,
-    #[serde(rename = "jobQueue")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queue: Option<String>,
-    #[serde(rename = "jobStatus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_status: Option<String>,
     #[serde(rename = "maxResults")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2672,41 +2912,49 @@ pub struct ListServiceJobsRequest {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeregisterJobDefinitionRequest {
-    #[serde(rename = "jobDefinition")]
+pub struct KeyValuesPair {
     #[serde(default)]
-    pub job_definition: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub values: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateJobQueueResponse {
-    #[serde(rename = "jobQueueArn")]
+pub struct ListConsumableResourcesResponse {
+    #[serde(rename = "consumableResources")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queue_arn: Option<String>,
-    #[serde(rename = "jobQueueName")]
+    pub consumable_resources: Option<Vec<ConsumableResourceSummary>>,
+    #[serde(rename = "nextToken")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queue_name: Option<String>,
+    pub next_token: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateServiceEnvironmentRequest {
-    #[serde(rename = "capacityLimits")]
-    #[serde(default)]
-    pub capacity_limits: Vec<CapacityLimit>,
-    #[serde(rename = "serviceEnvironmentName")]
-    #[serde(default)]
-    pub service_environment_name: String,
-    #[serde(rename = "serviceEnvironmentType")]
-    #[serde(default)]
-    pub service_environment_type: String,
+pub struct ConsumableResourceSummary {
+    #[serde(rename = "consumableResourceArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
+    pub consumable_resource_arn: Option<String>,
+    #[serde(rename = "consumableResourceName")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
+    pub consumable_resource_name: Option<String>,
+    #[serde(rename = "inUseQuantity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub in_use_quantity: Option<i64>,
+    #[serde(rename = "resourceType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resource_type: Option<String>,
+    #[serde(rename = "totalQuantity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_quantity: Option<i64>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -2728,87 +2976,93 @@ pub struct ListJobsByConsumableResourceRequest {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateSchedulingPolicyResponse {}
+pub struct ListJobsByConsumableResourceResponse {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub jobs: Option<Vec<ListJobsByConsumableResourceSummary>>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeConsumableResourceResponse {
-    #[serde(rename = "availableQuantity")]
+pub struct ListJobsByConsumableResourceSummary {
+    #[serde(rename = "consumableResourceProperties")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub available_quantity: Option<i64>,
-    #[serde(rename = "consumableResourceArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_arn: Option<String>,
-    #[serde(rename = "consumableResourceName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_name: Option<String>,
+    pub consumable_resource_properties: Option<ConsumableResourceProperties>,
     #[serde(rename = "createdAt")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_at: Option<i64>,
-    #[serde(rename = "inUseQuantity")]
+    #[serde(rename = "jobArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub in_use_quantity: Option<i64>,
-    #[serde(rename = "resourceType")]
+    pub job_arn: Option<String>,
+    #[serde(rename = "jobDefinitionArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub resource_type: Option<String>,
+    pub job_definition_arn: Option<String>,
+    #[serde(rename = "jobName")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "totalQuantity")]
+    pub job_name: Option<String>,
+    #[serde(rename = "jobQueueArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_quantity: Option<i64>,
+    pub job_queue_arn: Option<String>,
+    #[serde(rename = "jobStatus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_status: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quantity: Option<i64>,
+    #[serde(rename = "shareIdentifier")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub share_identifier: Option<String>,
+    #[serde(rename = "startedAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub started_at: Option<i64>,
+    #[serde(rename = "statusReason")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListTagsForResourceResponse {
+pub struct ListJobsRequest {
+    #[serde(rename = "arrayJobId")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
+    pub array_job_id: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filters: Option<Vec<KeyValuesPair>>,
+    #[serde(rename = "jobQueue")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_queue: Option<String>,
+    #[serde(rename = "jobStatus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_status: Option<String>,
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "multiNodeJobId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub multi_node_job_id: Option<String>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
 }
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateSchedulingPolicyResponse {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arn: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteComputeEnvironmentRequest {
-    #[serde(rename = "computeEnvironment")]
-    #[serde(default)]
-    pub compute_environment: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UntagResourceRequest {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct TerminateJobResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateComputeEnvironmentResponse {
-    #[serde(rename = "computeEnvironmentArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_environment_arn: Option<String>,
-    #[serde(rename = "computeEnvironmentName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_environment_name: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct TerminateServiceJobResponse {}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ListJobsResponse {
@@ -2941,11 +3195,14 @@ pub struct NodePropertiesSummary {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeComputeEnvironmentsResponse {
-    #[serde(rename = "computeEnvironments")]
+pub struct ListQuotaSharesRequest {
+    #[serde(rename = "jobQueue")]
+    #[serde(default)]
+    pub job_queue: String,
+    #[serde(rename = "maxResults")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_environments: Option<Vec<ComputeEnvironmentDetail>>,
+    pub max_results: Option<i32>,
     #[serde(rename = "nextToken")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -2953,193 +3210,127 @@ pub struct DescribeComputeEnvironmentsResponse {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ComputeEnvironmentDetail {
-    #[serde(rename = "computeEnvironmentArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_environment_arn: Option<String>,
-    #[serde(rename = "computeEnvironmentName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_environment_name: Option<String>,
-    #[serde(rename = "computeResources")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_resources: Option<ComputeResource>,
-    #[serde(rename = "containerOrchestrationType")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub container_orchestration_type: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub context: Option<String>,
-    #[serde(rename = "ecsClusterArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ecs_cluster_arn: Option<String>,
-    #[serde(rename = "eksConfiguration")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub eks_configuration: Option<EksConfiguration>,
-    #[serde(rename = "serviceRole")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_role: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
-    #[serde(rename = "statusReason")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status_reason: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "type")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
-    #[serde(rename = "unmanagedvCpus")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub unmanagedv_cpus: Option<i32>,
-    #[serde(rename = "updatePolicy")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub update_policy: Option<UpdatePolicy>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub uuid: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeJobsRequest {
-    #[serde(default)]
-    pub jobs: Vec<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListJobsByConsumableResourceResponse {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub jobs: Option<Vec<ListJobsByConsumableResourceSummary>>,
+pub struct ListQuotaSharesResponse {
     #[serde(rename = "nextToken")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_token: Option<String>,
+    #[serde(rename = "quotaShares")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_shares: Option<Vec<QuotaShareDetail>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListJobsByConsumableResourceSummary {
-    #[serde(rename = "consumableResourceProperties")]
+pub struct QuotaShareDetail {
+    #[serde(rename = "capacityLimits")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_properties: Option<ConsumableResourceProperties>,
-    #[serde(rename = "createdAt")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_at: Option<i64>,
-    #[serde(rename = "jobArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_arn: Option<String>,
-    #[serde(rename = "jobDefinitionArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_definition_arn: Option<String>,
-    #[serde(rename = "jobName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_name: Option<String>,
+    pub capacity_limits: Option<Vec<QuotaShareCapacityLimit>>,
     #[serde(rename = "jobQueueArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub job_queue_arn: Option<String>,
-    #[serde(rename = "jobStatus")]
+    #[serde(rename = "preemptionConfiguration")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_status: Option<String>,
+    pub preemption_configuration: Option<QuotaSharePreemptionConfiguration>,
+    #[serde(rename = "quotaShareArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub quantity: Option<i64>,
-    #[serde(rename = "shareIdentifier")]
+    pub quota_share_arn: Option<String>,
+    #[serde(rename = "quotaShareName")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub share_identifier: Option<String>,
-    #[serde(rename = "startedAt")]
+    pub quota_share_name: Option<String>,
+    #[serde(rename = "resourceSharingConfiguration")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub started_at: Option<i64>,
-    #[serde(rename = "statusReason")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status_reason: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateServiceEnvironmentResponse {
-    #[serde(rename = "serviceEnvironmentArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_arn: Option<String>,
-    #[serde(rename = "serviceEnvironmentName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_name: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteSchedulingPolicyResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteConsumableResourceResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeServiceEnvironmentsResponse {
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-    #[serde(rename = "serviceEnvironments")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environments: Option<Vec<ServiceEnvironmentDetail>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ServiceEnvironmentDetail {
-    #[serde(rename = "capacityLimits")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub capacity_limits: Option<Vec<CapacityLimit>>,
-    #[serde(rename = "serviceEnvironmentArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_arn: Option<String>,
-    #[serde(rename = "serviceEnvironmentName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_name: Option<String>,
-    #[serde(rename = "serviceEnvironmentType")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_type: Option<String>,
+    pub resource_sharing_configuration: Option<QuotaShareResourceSharingConfiguration>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct SubmitServiceJobResponse {
+pub struct ListSchedulingPoliciesRequest {
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListSchedulingPoliciesResponse {
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "schedulingPolicies")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scheduling_policies: Option<Vec<SchedulingPolicyListingDetail>>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct SchedulingPolicyListingDetail {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arn: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListServiceJobsRequest {
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filters: Option<Vec<KeyValuesPair>>,
+    #[serde(rename = "jobQueue")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_queue: Option<String>,
+    #[serde(rename = "jobStatus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_status: Option<String>,
+    #[serde(rename = "maxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListServiceJobsResponse {
+    #[serde(rename = "jobSummaryList")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_summary_list: Option<Vec<ServiceJobSummary>>,
+    #[serde(rename = "nextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ServiceJobSummary {
+    #[serde(rename = "capacityUsage")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capacity_usage: Option<Vec<ServiceJobCapacityUsageSummary>>,
+    #[serde(rename = "createdAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<i64>,
     #[serde(rename = "jobArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -3152,85 +3343,137 @@ pub struct SubmitServiceJobResponse {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub job_name: Option<String>,
+    #[serde(rename = "latestAttempt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub latest_attempt: Option<LatestServiceJobAttempt>,
+    #[serde(rename = "quotaShareName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_name: Option<String>,
+    #[serde(rename = "scheduledAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scheduled_at: Option<i64>,
+    #[serde(rename = "serviceJobType")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_job_type: Option<String>,
+    #[serde(rename = "shareIdentifier")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub share_identifier: Option<String>,
+    #[serde(rename = "startedAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub started_at: Option<i64>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(rename = "statusReason")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_reason: Option<String>,
+    #[serde(rename = "stoppedAt")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stopped_at: Option<i64>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateJobQueueRequest {
-    #[serde(rename = "computeEnvironmentOrder")]
+pub struct ServiceJobCapacityUsageSummary {
+    #[serde(rename = "capacityUnit")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub compute_environment_order: Option<Vec<ComputeEnvironmentOrder>>,
-    #[serde(rename = "jobQueueName")]
-    #[serde(default)]
-    pub job_queue_name: String,
-    #[serde(rename = "jobQueueType")]
+    pub capacity_unit: Option<String>,
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_queue_type: Option<String>,
-    #[serde(rename = "jobStateTimeLimitActions")]
+    pub quantity: Option<f64>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListTagsForResourceRequest {
+    #[serde(rename = "resourceArn")]
     #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub job_state_time_limit_actions: Option<Vec<JobStateTimeLimitAction>>,
-    #[serde(default)]
-    pub priority: i32,
-    #[serde(rename = "schedulingPolicyArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub scheduling_policy_arn: Option<String>,
-    #[serde(rename = "serviceEnvironmentOrder")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_environment_order: Option<Vec<ServiceEnvironmentOrder>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<String>,
+    pub resource_arn: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ListTagsForResourceResponse {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<std::collections::HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct TagResourceResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct TerminateJobRequest {
-    #[serde(rename = "jobId")]
-    #[serde(default)]
-    pub job_id: String,
-    #[serde(default)]
-    pub reason: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteComputeEnvironmentResponse {}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteSchedulingPolicyRequest {
-    #[serde(default)]
-    pub arn: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteServiceEnvironmentRequest {
-    #[serde(rename = "serviceEnvironment")]
-    #[serde(default)]
-    pub service_environment: String,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateConsumableResourceResponse {
-    #[serde(rename = "consumableResourceArn")]
+pub struct RegisterJobDefinitionRequest {
+    #[serde(rename = "consumableResourceProperties")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_arn: Option<String>,
-    #[serde(rename = "consumableResourceName")]
+    pub consumable_resource_properties: Option<ConsumableResourceProperties>,
+    #[serde(rename = "containerProperties")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_name: Option<String>,
+    pub container_properties: Option<ContainerProperties>,
+    #[serde(rename = "ecsProperties")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ecs_properties: Option<EcsProperties>,
+    #[serde(rename = "eksProperties")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eks_properties: Option<EksProperties>,
+    #[serde(rename = "jobDefinitionName")]
+    #[serde(default)]
+    pub job_definition_name: String,
+    #[serde(rename = "nodeProperties")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub node_properties: Option<NodeProperties>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parameters: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "platformCapabilities")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub platform_capabilities: Option<Vec<String>>,
+    #[serde(rename = "propagateTags")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub propagate_tags: Option<bool>,
+    #[serde(rename = "retryStrategy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retry_strategy: Option<RetryStrategy>,
+    #[serde(rename = "schedulingPriority")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scheduling_priority: Option<i32>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout: Option<JobTimeout>,
+    #[serde(rename = "type")]
+    #[serde(default)]
+    pub r#type: String,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeregisterJobDefinitionResponse {}
+pub struct RegisterJobDefinitionResponse {
+    #[serde(rename = "jobDefinitionArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_definition_arn: Option<String>,
+    #[serde(rename = "jobDefinitionName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_definition_name: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub revision: Option<i32>,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct SubmitJobRequest {
@@ -3445,7 +3688,235 @@ pub struct NodePropertyOverride {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct SubmitJobResponse {
+    #[serde(rename = "jobArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_arn: Option<String>,
+    #[serde(rename = "jobId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<String>,
+    #[serde(rename = "jobName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct SubmitServiceJobRequest {
+    #[serde(rename = "clientToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_token: Option<String>,
+    #[serde(rename = "jobName")]
+    #[serde(default)]
+    pub job_name: String,
+    #[serde(rename = "jobQueue")]
+    #[serde(default)]
+    pub job_queue: String,
+    #[serde(rename = "preemptionConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preemption_configuration: Option<ServiceJobPreemptionConfiguration>,
+    #[serde(rename = "quotaShareName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_name: Option<String>,
+    #[serde(rename = "retryStrategy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retry_strategy: Option<ServiceJobRetryStrategy>,
+    #[serde(rename = "schedulingPriority")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scheduling_priority: Option<i32>,
+    #[serde(rename = "serviceJobType")]
+    #[serde(default)]
+    pub service_job_type: String,
+    #[serde(rename = "serviceRequestPayload")]
+    #[serde(default)]
+    pub service_request_payload: String,
+    #[serde(rename = "shareIdentifier")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub share_identifier: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "timeoutConfig")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timeout_config: Option<ServiceJobTimeout>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct SubmitServiceJobResponse {
+    #[serde(rename = "jobArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_arn: Option<String>,
+    #[serde(rename = "jobId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<String>,
+    #[serde(rename = "jobName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct TagResourceRequest {
+    #[serde(rename = "resourceArn")]
+    #[serde(default)]
+    pub resource_arn: String,
+    #[serde(default)]
+    pub tags: std::collections::HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct TagResourceResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct TerminateJobRequest {
+    #[serde(rename = "jobId")]
+    #[serde(default)]
+    pub job_id: String,
+    #[serde(default)]
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct TerminateJobResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct TerminateServiceJobRequest {
+    #[serde(rename = "jobId")]
+    #[serde(default)]
+    pub job_id: String,
+    #[serde(default)]
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct TerminateServiceJobResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UntagResourceRequest {
+    #[serde(rename = "resourceArn")]
+    #[serde(default)]
+    pub resource_arn: String,
+    #[serde(rename = "tagKeys")]
+    #[serde(default)]
+    pub tag_keys: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct UntagResourceResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateComputeEnvironmentRequest {
+    #[serde(rename = "computeEnvironment")]
+    #[serde(default)]
+    pub compute_environment: String,
+    #[serde(rename = "computeResources")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compute_resources: Option<ComputeResourceUpdate>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<String>,
+    #[serde(rename = "serviceRole")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_role: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+    #[serde(rename = "unmanagedvCpus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unmanagedv_cpus: Option<i32>,
+    #[serde(rename = "updatePolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub update_policy: Option<UpdatePolicy>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ComputeResourceUpdate {
+    #[serde(rename = "allocationStrategy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allocation_strategy: Option<String>,
+    #[serde(rename = "bidPercentage")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bid_percentage: Option<i32>,
+    #[serde(rename = "desiredvCpus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub desiredv_cpus: Option<i32>,
+    #[serde(rename = "ec2Configuration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ec2_configuration: Option<Vec<Ec2Configuration>>,
+    #[serde(rename = "ec2KeyPair")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ec2_key_pair: Option<String>,
+    #[serde(rename = "imageId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub image_id: Option<String>,
+    #[serde(rename = "instanceRole")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub instance_role: Option<String>,
+    #[serde(rename = "instanceTypes")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub instance_types: Option<Vec<String>>,
+    #[serde(rename = "launchTemplate")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub launch_template: Option<LaunchTemplateSpecification>,
+    #[serde(rename = "maxvCpus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub maxv_cpus: Option<i32>,
+    #[serde(rename = "minvCpus")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub minv_cpus: Option<i32>,
+    #[serde(rename = "placementGroup")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub placement_group: Option<String>,
+    #[serde(rename = "scalingPolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scaling_policy: Option<ComputeScalingPolicy>,
+    #[serde(rename = "securityGroupIds")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub security_group_ids: Option<Vec<String>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subnets: Option<Vec<String>>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "type")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub r#type: Option<String>,
+    #[serde(rename = "updateToLatestImageVersion")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub update_to_latest_image_version: Option<bool>,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct UpdateComputeEnvironmentResponse {
@@ -3460,10 +3931,36 @@ pub struct UpdateComputeEnvironmentResponse {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DescribeServiceJobRequest {
-    #[serde(rename = "jobId")]
+pub struct UpdateConsumableResourceRequest {
+    #[serde(rename = "clientToken")]
     #[serde(default)]
-    pub job_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_token: Option<String>,
+    #[serde(rename = "consumableResource")]
+    #[serde(default)]
+    pub consumable_resource: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quantity: Option<i64>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateConsumableResourceResponse {
+    #[serde(rename = "consumableResourceArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub consumable_resource_arn: Option<String>,
+    #[serde(rename = "consumableResourceName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub consumable_resource_name: Option<String>,
+    #[serde(rename = "totalQuantity")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_quantity: Option<i64>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -3496,171 +3993,116 @@ pub struct UpdateJobQueueRequest {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetJobQueueSnapshotResponse {
-    #[serde(rename = "frontOfQueue")]
+pub struct UpdateJobQueueResponse {
+    #[serde(rename = "jobQueueArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub front_of_queue: Option<FrontOfQueueDetail>,
-    #[serde(rename = "queueUtilization")]
+    pub job_queue_arn: Option<String>,
+    #[serde(rename = "jobQueueName")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub queue_utilization: Option<QueueSnapshotUtilizationDetail>,
+    pub job_queue_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct FrontOfQueueDetail {
+pub struct UpdateQuotaShareRequest {
+    #[serde(rename = "capacityLimits")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub jobs: Option<Vec<FrontOfQueueJobSummary>>,
-    #[serde(rename = "lastUpdatedAt")]
+    pub capacity_limits: Option<Vec<QuotaShareCapacityLimit>>,
+    #[serde(rename = "preemptionConfiguration")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated_at: Option<i64>,
+    pub preemption_configuration: Option<QuotaSharePreemptionConfiguration>,
+    #[serde(rename = "quotaShareArn")]
+    #[serde(default)]
+    pub quota_share_arn: String,
+    #[serde(rename = "resourceSharingConfiguration")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resource_sharing_configuration: Option<QuotaShareResourceSharingConfiguration>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct FrontOfQueueJobSummary {
-    #[serde(rename = "earliestTimeAtPosition")]
+pub struct UpdateQuotaShareResponse {
+    #[serde(rename = "quotaShareArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub earliest_time_at_position: Option<i64>,
+    pub quota_share_arn: Option<String>,
+    #[serde(rename = "quotaShareName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateSchedulingPolicyRequest {
+    #[serde(default)]
+    pub arn: String,
+    #[serde(rename = "fairsharePolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fairshare_policy: Option<FairsharePolicy>,
+    #[serde(rename = "quotaSharePolicy")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quota_share_policy: Option<QuotaSharePolicy>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateSchedulingPolicyResponse {}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateServiceEnvironmentRequest {
+    #[serde(rename = "capacityLimits")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capacity_limits: Option<Vec<CapacityLimit>>,
+    #[serde(rename = "serviceEnvironment")]
+    #[serde(default)]
+    pub service_environment: String,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateServiceEnvironmentResponse {
+    #[serde(rename = "serviceEnvironmentArn")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_arn: Option<String>,
+    #[serde(rename = "serviceEnvironmentName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_environment_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateServiceJobRequest {
+    #[serde(rename = "jobId")]
+    #[serde(default)]
+    pub job_id: String,
+    #[serde(rename = "schedulingPriority")]
+    #[serde(default)]
+    pub scheduling_priority: i32,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UpdateServiceJobResponse {
     #[serde(rename = "jobArn")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub job_arn: Option<String>,
+    #[serde(rename = "jobId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_id: Option<String>,
+    #[serde(rename = "jobName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub job_name: Option<String>,
 }
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct QueueSnapshotUtilizationDetail {
-    #[serde(rename = "fairshareUtilization")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fairshare_utilization: Option<FairshareUtilizationDetail>,
-    #[serde(rename = "lastUpdatedAt")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated_at: Option<i64>,
-    #[serde(rename = "totalCapacityUsage")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_capacity_usage: Option<Vec<QueueSnapshotCapacityUsage>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct FairshareUtilizationDetail {
-    #[serde(rename = "activeShareCount")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub active_share_count: Option<i64>,
-    #[serde(rename = "topCapacityUtilization")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub top_capacity_utilization: Option<Vec<FairshareCapacityUtilization>>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct FairshareCapacityUtilization {
-    #[serde(rename = "capacityUsage")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub capacity_usage: Option<Vec<FairshareCapacityUsage>>,
-    #[serde(rename = "shareIdentifier")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub share_identifier: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct FairshareCapacityUsage {
-    #[serde(rename = "capacityUnit")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub capacity_unit: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub quantity: Option<f64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct QueueSnapshotCapacityUsage {
-    #[serde(rename = "capacityUnit")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub capacity_unit: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub quantity: Option<f64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct CreateConsumableResourceRequest {
-    #[serde(rename = "consumableResourceName")]
-    #[serde(default)]
-    pub consumable_resource_name: String,
-    #[serde(rename = "resourceType")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub resource_type: Option<String>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<std::collections::HashMap<String, String>>,
-    #[serde(rename = "totalQuantity")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_quantity: Option<i64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListConsumableResourcesResponse {
-    #[serde(rename = "consumableResources")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resources: Option<Vec<ConsumableResourceSummary>>,
-    #[serde(rename = "nextToken")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub next_token: Option<String>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ConsumableResourceSummary {
-    #[serde(rename = "consumableResourceArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_arn: Option<String>,
-    #[serde(rename = "consumableResourceName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_name: Option<String>,
-    #[serde(rename = "inUseQuantity")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub in_use_quantity: Option<i64>,
-    #[serde(rename = "resourceType")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub resource_type: Option<String>,
-    #[serde(rename = "totalQuantity")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_quantity: Option<i64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct UpdateConsumableResourceResponse {
-    #[serde(rename = "consumableResourceArn")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_arn: Option<String>,
-    #[serde(rename = "consumableResourceName")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub consumable_resource_name: Option<String>,
-    #[serde(rename = "totalQuantity")]
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub total_quantity: Option<i64>,
-}
-
-#[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteJobQueueResponse {}

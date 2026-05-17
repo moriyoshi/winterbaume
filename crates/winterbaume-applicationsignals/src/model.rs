@@ -173,6 +173,10 @@ pub struct RequestBasedServiceLevelIndicator {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct RequestBasedServiceLevelIndicatorMetric {
+    #[serde(rename = "CompositeSliConfig")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub composite_sli_config: Option<CompositeSliConfig>,
     #[serde(rename = "DependencyConfig")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -181,6 +185,10 @@ pub struct RequestBasedServiceLevelIndicatorMetric {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub key_attributes: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "MetricSource")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_source: Option<MetricSource>,
     #[serde(rename = "MetricType")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -200,6 +208,36 @@ pub struct RequestBasedServiceLevelIndicatorMetric {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CompositeSliConfig {
+    #[serde(rename = "Components")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub components: Option<Vec<CompositeSliComponent>>,
+    #[serde(rename = "SelectionConfig")]
+    #[serde(default)]
+    pub selection_config: SelectionConfig,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct CompositeSliComponent {
+    #[serde(rename = "OperationName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct SelectionConfig {
+    #[serde(rename = "Pattern")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pattern: Option<String>,
+    #[serde(rename = "Type")]
+    #[serde(default)]
+    pub r#type: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct DependencyConfig {
     #[serde(rename = "DependencyKeyAttributes")]
     #[serde(default)]
@@ -207,6 +245,17 @@ pub struct DependencyConfig {
     #[serde(rename = "DependencyOperationName")]
     #[serde(default)]
     pub dependency_operation_name: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct MetricSource {
+    #[serde(rename = "MetricSourceAttributes")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_source_attributes: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "MetricSourceKeyAttributes")]
+    #[serde(default)]
+    pub metric_source_key_attributes: std::collections::HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -313,6 +362,10 @@ pub struct ServiceLevelIndicator {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ServiceLevelIndicatorMetric {
+    #[serde(rename = "CompositeSliConfig")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub composite_sli_config: Option<CompositeSliConfig>,
     #[serde(rename = "DependencyConfig")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -325,6 +378,10 @@ pub struct ServiceLevelIndicatorMetric {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metric_data_queries: Option<Vec<MetricDataQuery>>,
+    #[serde(rename = "MetricSource")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_source: Option<MetricSource>,
     #[serde(rename = "MetricType")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -416,10 +473,18 @@ pub struct BatchUpdateExclusionWindowsError {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct CreateServiceLevelObjectiveInput {
+    #[serde(rename = "AutoInvestigationEnabled")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_investigation_enabled: Option<bool>,
     #[serde(rename = "BurnRateConfigurations")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub burn_rate_configurations: Option<Vec<BurnRateConfiguration>>,
+    #[serde(rename = "CreateRecommendedSlo")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub create_recommended_slo: Option<bool>,
     #[serde(rename = "Description")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -469,6 +534,10 @@ pub struct RequestBasedServiceLevelIndicatorConfig {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct RequestBasedServiceLevelIndicatorMetricConfig {
+    #[serde(rename = "CompositeSliConfig")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub composite_sli_config: Option<CompositeSliConfig>,
     #[serde(rename = "DependencyConfig")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -477,6 +546,14 @@ pub struct RequestBasedServiceLevelIndicatorMetricConfig {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub key_attributes: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "MetricName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_name: Option<String>,
+    #[serde(rename = "MetricSource")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_source: Option<MetricSource>,
     #[serde(rename = "MetricType")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -499,10 +576,12 @@ pub struct RequestBasedServiceLevelIndicatorMetricConfig {
 pub struct ServiceLevelIndicatorConfig {
     #[serde(rename = "ComparisonOperator")]
     #[serde(default)]
-    pub comparison_operator: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comparison_operator: Option<String>,
     #[serde(rename = "MetricThreshold")]
     #[serde(default)]
-    pub metric_threshold: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_threshold: Option<f64>,
     #[serde(rename = "SliMetricConfig")]
     #[serde(default)]
     pub sli_metric_config: ServiceLevelIndicatorMetricConfig,
@@ -510,6 +589,10 @@ pub struct ServiceLevelIndicatorConfig {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ServiceLevelIndicatorMetricConfig {
+    #[serde(rename = "CompositeSliConfig")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub composite_sli_config: Option<CompositeSliConfig>,
     #[serde(rename = "DependencyConfig")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -526,6 +609,10 @@ pub struct ServiceLevelIndicatorMetricConfig {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metric_name: Option<String>,
+    #[serde(rename = "MetricSource")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_source: Option<MetricSource>,
     #[serde(rename = "MetricType")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -568,6 +655,10 @@ pub struct ServiceLevelObjective {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arn: Option<String>,
+    #[serde(rename = "AutoInvestigationEnabled")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_investigation_enabled: Option<bool>,
     #[serde(rename = "BurnRateConfigurations")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -614,20 +705,34 @@ pub struct ServiceLevelObjective {
 pub struct DeleteGroupingConfigurationOutput {}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct DeleteServiceLevelObjectiveInput {}
+pub struct DeleteServiceLevelObjectiveInput {
+    #[serde(rename = "Id")]
+    #[serde(default)]
+    pub id: String,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct DeleteServiceLevelObjectiveOutput {}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct GetServiceInput {
+    #[serde(rename = "EndTime")]
+    #[serde(default)]
+    pub end_time: f64,
     #[serde(rename = "KeyAttributes")]
     #[serde(default)]
     pub key_attributes: std::collections::HashMap<String, String>,
+    #[serde(rename = "StartTime")]
+    #[serde(default)]
+    pub start_time: f64,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct GetServiceLevelObjectiveInput {}
+pub struct GetServiceLevelObjectiveInput {
+    #[serde(rename = "Id")]
+    #[serde(default)]
+    pub id: String,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct GetServiceLevelObjectiveOutput {
@@ -738,6 +843,9 @@ pub struct ListAuditFindingsInput {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail_level: Option<String>,
+    #[serde(rename = "EndTime")]
+    #[serde(default)]
+    pub end_time: f64,
     #[serde(rename = "MaxResults")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -746,6 +854,9 @@ pub struct ListAuditFindingsInput {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_token: Option<String>,
+    #[serde(rename = "StartTime")]
+    #[serde(default)]
+    pub start_time: f64,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -989,6 +1100,14 @@ pub struct ListEntityEventsInput {
     #[serde(rename = "Entity")]
     #[serde(default)]
     pub entity: std::collections::HashMap<String, String>,
+    #[serde(rename = "MaxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "NextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
     #[serde(rename = "StartTime")]
     #[serde(default)]
     pub start_time: f64,
@@ -1051,7 +1170,20 @@ pub struct ChangeEvent {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListGroupingAttributeDefinitionsInput {}
+pub struct ListGroupingAttributeDefinitionsInput {
+    #[serde(rename = "AwsAccountId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(rename = "IncludeLinkedAccounts")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_linked_accounts: Option<bool>,
+    #[serde(rename = "NextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ListGroupingAttributeDefinitionsOutput {
@@ -1086,9 +1218,23 @@ pub struct GroupingAttributeDefinition {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ListServiceDependenciesInput {
+    #[serde(rename = "EndTime")]
+    #[serde(default)]
+    pub end_time: f64,
     #[serde(rename = "KeyAttributes")]
     #[serde(default)]
     pub key_attributes: std::collections::HashMap<String, String>,
+    #[serde(rename = "MaxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "NextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "StartTime")]
+    #[serde(default)]
+    pub start_time: f64,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -1133,9 +1279,23 @@ pub struct ServiceDependency {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ListServiceDependentsInput {
+    #[serde(rename = "EndTime")]
+    #[serde(default)]
+    pub end_time: f64,
     #[serde(rename = "KeyAttributes")]
     #[serde(default)]
     pub key_attributes: std::collections::HashMap<String, String>,
+    #[serde(rename = "MaxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "NextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "StartTime")]
+    #[serde(default)]
+    pub start_time: f64,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -1179,7 +1339,19 @@ pub struct ServiceDependent {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListServiceLevelObjectiveExclusionWindowsInput {}
+pub struct ListServiceLevelObjectiveExclusionWindowsInput {
+    #[serde(rename = "Id")]
+    #[serde(default)]
+    pub id: String,
+    #[serde(rename = "MaxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "NextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ListServiceLevelObjectiveExclusionWindowsOutput {
@@ -1199,14 +1371,38 @@ pub struct ListServiceLevelObjectivesInput {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dependency_config: Option<DependencyConfig>,
+    #[serde(rename = "IncludeLinkedAccounts")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_linked_accounts: Option<bool>,
     #[serde(rename = "KeyAttributes")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub key_attributes: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "MaxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "MetricSource")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_source: Option<MetricSource>,
     #[serde(rename = "MetricSourceTypes")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metric_source_types: Option<Vec<String>>,
+    #[serde(rename = "NextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "OperationName")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation_name: Option<String>,
+    #[serde(rename = "SloOwnerAwsAccountId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slo_owner_aws_account_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -1227,6 +1423,10 @@ pub struct ServiceLevelObjectiveSummary {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arn: Option<String>,
+    #[serde(rename = "CompositeSliConfig")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub composite_sli_config: Option<CompositeSliConfig>,
     #[serde(rename = "CreatedTime")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1243,6 +1443,10 @@ pub struct ServiceLevelObjectiveSummary {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub key_attributes: Option<std::collections::HashMap<String, String>>,
+    #[serde(rename = "MetricSource")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metric_source: Option<MetricSource>,
     #[serde(rename = "MetricSourceType")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1259,9 +1463,23 @@ pub struct ServiceLevelObjectiveSummary {
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ListServiceOperationsInput {
+    #[serde(rename = "EndTime")]
+    #[serde(default)]
+    pub end_time: f64,
     #[serde(rename = "KeyAttributes")]
     #[serde(default)]
     pub key_attributes: std::collections::HashMap<String, String>,
+    #[serde(rename = "MaxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "NextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "StartTime")]
+    #[serde(default)]
+    pub start_time: f64,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -1373,7 +1591,30 @@ pub struct ServiceState {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListServicesInput {}
+pub struct ListServicesInput {
+    #[serde(rename = "AwsAccountId")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub aws_account_id: Option<String>,
+    #[serde(rename = "EndTime")]
+    #[serde(default)]
+    pub end_time: f64,
+    #[serde(rename = "IncludeLinkedAccounts")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_linked_accounts: Option<bool>,
+    #[serde(rename = "MaxResults")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_results: Option<i32>,
+    #[serde(rename = "NextToken")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_token: Option<String>,
+    #[serde(rename = "StartTime")]
+    #[serde(default)]
+    pub start_time: f64,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ListServicesOutput {
@@ -1416,7 +1657,11 @@ pub struct ServiceSummary {
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
-pub struct ListTagsForResourceRequest {}
+pub struct ListTagsForResourceRequest {
+    #[serde(rename = "ResourceArn")]
+    #[serde(default)]
+    pub resource_arn: String,
+}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct ListTagsForResourceResponse {
@@ -1487,6 +1732,10 @@ pub struct UntagResourceResponse {}
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct UpdateServiceLevelObjectiveInput {
+    #[serde(rename = "AutoInvestigationEnabled")]
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub auto_investigation_enabled: Option<bool>,
     #[serde(rename = "BurnRateConfigurations")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1499,6 +1748,9 @@ pub struct UpdateServiceLevelObjectiveInput {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub goal: Option<Goal>,
+    #[serde(rename = "Id")]
+    #[serde(default)]
+    pub id: String,
     #[serde(rename = "RequestBasedSliConfig")]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -338,6 +338,7 @@ impl AccountService {
             account_id: Some(acc_id),
             account_name: acc_name,
             account_created_date: None,
+            account_state: None,
         };
         wire::serialize_get_account_information_response(&response)
     }
