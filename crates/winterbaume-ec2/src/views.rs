@@ -517,6 +517,8 @@ pub struct RouteTableView {
     pub vpc_id: String,
     pub routes: Vec<RouteView>,
     pub associations: Vec<RouteTableAssociationView>,
+    #[serde(default)]
+    pub propagating_vgws: Vec<String>,
     pub tags: HashMap<String, String>,
 }
 
@@ -533,6 +535,8 @@ pub struct RouteView {
 pub struct RouteTableAssociationView {
     pub association_id: String,
     pub subnet_id: Option<String>,
+    #[serde(default)]
+    pub gateway_id: Option<String>,
     pub main: bool,
     pub state: String,
 }
@@ -777,6 +781,8 @@ pub struct VpcEndpointView {
     pub route_table_ids: Vec<String>,
     pub subnet_ids: Vec<String>,
     pub security_group_ids: Vec<String>,
+    #[serde(default)]
+    pub private_dns_enabled: Option<bool>,
     pub tags: HashMap<String, String>,
 }
 
@@ -4045,6 +4051,7 @@ impl From<&RouteTable> for RouteTableView {
                 .iter()
                 .map(RouteTableAssociationView::from)
                 .collect(),
+            propagating_vgws: rtb.propagating_vgws.clone(),
             tags: rtb.tags.clone(),
         }
     }
@@ -4067,6 +4074,7 @@ impl From<&RouteTableAssociation> for RouteTableAssociationView {
         RouteTableAssociationView {
             association_id: a.association_id.clone(),
             subnet_id: a.subnet_id.clone(),
+            gateway_id: a.gateway_id.clone(),
             main: a.main,
             state: a.state.clone(),
         }
@@ -4462,6 +4470,7 @@ impl From<&VpcEndpoint> for VpcEndpointView {
             route_table_ids: e.route_table_ids.clone(),
             subnet_ids: e.subnet_ids.clone(),
             security_group_ids: e.security_group_ids.clone(),
+            private_dns_enabled: e.private_dns_enabled,
             tags: e.tags.clone(),
         }
     }
@@ -6767,6 +6776,7 @@ impl From<RouteTableView> for RouteTable {
                 .into_iter()
                 .map(RouteTableAssociation::from)
                 .collect(),
+            propagating_vgws: rtb.propagating_vgws,
             tags: rtb.tags,
         }
     }
@@ -6789,6 +6799,7 @@ impl From<RouteTableAssociationView> for RouteTableAssociation {
         RouteTableAssociation {
             association_id: a.association_id,
             subnet_id: a.subnet_id,
+            gateway_id: a.gateway_id,
             main: a.main,
             state: a.state,
         }
@@ -7009,6 +7020,7 @@ impl From<VpcEndpointView> for VpcEndpoint {
             route_table_ids: e.route_table_ids,
             subnet_ids: e.subnet_ids,
             security_group_ids: e.security_group_ids,
+            private_dns_enabled: e.private_dns_enabled,
             tags: e.tags,
         }
     }

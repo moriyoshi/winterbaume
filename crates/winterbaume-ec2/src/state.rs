@@ -1898,6 +1898,7 @@ impl Ec2State {
                 origin: "CreateRouteTable".to_string(),
             }],
             associations: Vec::new(),
+            propagating_vgws: Vec::new(),
             tags,
         };
         self.route_tables.insert(rtb_id.clone(), rtb);
@@ -1920,6 +1921,7 @@ impl Ec2State {
         rtb.associations.push(RouteTableAssociation {
             association_id: assoc_id.clone(),
             subnet_id: Some(subnet_id.to_string()),
+            gateway_id: None,
             main: false,
             state: "associated".to_string(),
         });
@@ -2115,6 +2117,7 @@ impl Ec2State {
         rtb.associations.push(RouteTableAssociation {
             association_id: new_assoc_id.clone(),
             subnet_id: old_assoc.subnet_id,
+            gateway_id: old_assoc.gateway_id,
             main: old_assoc.main,
             state: "associated".to_string(),
         });
@@ -2304,6 +2307,7 @@ impl Ec2State {
             route_table_ids,
             subnet_ids,
             security_group_ids,
+            private_dns_enabled: None,
             tags,
         };
         self.vpc_endpoints.insert(endpoint_id.clone(), ep);

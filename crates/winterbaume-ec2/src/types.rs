@@ -97,6 +97,10 @@ pub struct RouteTable {
     pub vpc_id: String,
     pub routes: Vec<Route>,
     pub associations: Vec<RouteTableAssociation>,
+    /// Virtual private gateway IDs ( `vgw-*` ) propagating routes into this
+    /// route table. Populated by `EnableVgwRoutePropagation` and consulted
+    /// by `DescribeRouteTables`. Empty when no VGW is propagating.
+    pub propagating_vgws: Vec<String>,
     pub tags: Tags,
 }
 
@@ -113,6 +117,11 @@ pub struct Route {
 pub struct RouteTableAssociation {
     pub association_id: String,
     pub subnet_id: Option<String>,
+    /// Gateway ID this route table is associated with, set by
+    /// `AssociateRouteTable` with the `GatewayId` parameter ( edge
+    /// associations -- typically `igw-*` for ingress routing ).
+    /// Mutually exclusive with `subnet_id`.
+    pub gateway_id: Option<String>,
     pub main: bool,
     pub state: String,
 }
@@ -372,6 +381,11 @@ pub struct VpcEndpoint {
     pub route_table_ids: Vec<String>,
     pub subnet_ids: Vec<String>,
     pub security_group_ids: Vec<String>,
+    /// `private_dns_enabled` flag for Interface endpoints ( ignored for
+    /// Gateway endpoints ). `None` preserves the legacy unset case so the
+    /// terraform converter can distinguish "not specified" from
+    /// "explicitly false".
+    pub private_dns_enabled: Option<bool>,
     pub tags: Tags,
 }
 

@@ -765,3 +765,24 @@ Caching the proc-macro itself means the **first** session compiles it with the n
 
 Pre-fix wrapper cache entries for crates that consume proc-macros ( `arc_swap`, `serde`, `serde_json`, `redis`, … ) were keyed by the proc-macro's filename only. After the wrapper rebuild, the new key includes the proc-macro's sidecar-derived dep key, so old entries are unreachable and get superseded by fresh stores on the next compile. The existing `dump_cache --gc` path will reclaim them as duplicates accumulate. No manual cache wipe required; the transition is self-healing.
 
+## 2026-05-17 — EC2 state-view gaps: first three sub-items
+
+Closed half of `ec2-terraform-state-layer-gaps` ( the small surgical additions ). Three new state fields cleanly threaded through every layer:
+
+- `types::RouteTable.propagating_vgws: Vec<String>` — for `EnableVgwRoutePropagation` consumers; defaults to empty on `create_route_table`.
+- `types::RouteTableAssociation.gateway_id: Option<String>` — for edge associations ( `AssociateRouteTable.GatewayId` ); `None` on subnet-association paths. Carried through `replace_route_table_association` so reassociations preserve the gateway binding.
+- `types::VpcEndpoint.private_dns_enabled: Option<bool>` — for Interface endpoints; `None` preserves the legacy "unset" semantics so the terraform converter can distinguish that from explicit `false`.
+
+Each got a matching `*View` field ( serde `#[serde(default)]` ), an updated `From<&Foo>` ( internal -> view ), an updated `From<FooView>` ( view -> internal ), and the relevant constructor sites in `state.rs` ( `create_route_table` line ~1890, `associate_route_table` line ~1920, `replace_route_table_association` line ~2115, `create_vpc_endpoint` line ~2297 ).
+
+Handlers were intentionally not touched — the wire-level `DescribeRouteTables` / `DescribeVpcEndpoints` responses are byte-identical to before because all three fields default to "unset" on every code path. Populating from the matching request inputs is the natural follow-up but is deferred until a terraform converter or test exercises it.
+
+Per-crate gate ran the long way through:
+
+- `cargo fmt -p winterbaume-ec2`: clean.
+- `cargo fmt -p winterbaume-ec2 -- --check`: pass.
+- `cargo clippy -p winterbaume-ec2 --all-targets --all-features -- -D warnings`: pass ( 22m51s, cold; the `sccache: warning: The server looks like it shut down unexpectedly, compiling locally instead` line is harmless and is an sccache-pass-through artefact, not the wrapper itself ).
+- `cargo test -p winterbaume-ec2 --no-fail-fast`: **591 main tests + 13 scenario tests, 0 failures**.
+
+The three larger remaining sub-items ( `ImageView` expansion across kernel / ramdisk / ENA / SR-IOV / TPM / boot mode / IMDS / image location / AMI-copy source, singleton spot datafeed subscription slot, VPC route-server family review ) stay open and are bigger surface changes that warrant their own pass.
+
