@@ -18,6 +18,15 @@ const X_AMZN_ERRORTYPE: HeaderName = HeaderName::from_static("x-amzn-errortype")
 pub struct SageMakerRuntimeService {
     pub(crate) state: Arc<BackendState<SageMakerRuntimeState>>,
     pub(crate) notifier: StateChangeNotifier<SageMakerRuntimeStateView>,
+    /// Optional shared `winterbaume-sagemaker` state. When wired,
+    /// `InvokeEndpoint*` calls resolve the request's `EndpointName`
+    /// against the parent crate's `endpoints` map and reject unknown
+    /// names with a `ValidationError` ( "Endpoint X of account Y not
+    /// found" ), matching real AWS behaviour. When `None` ( the default
+    /// for `Self::new()` ), the legacy auto-create-on-first-invocation
+    /// behaviour is preserved so unit tests that exercise only the
+    /// runtime crate still work without standing up the control plane.
+    pub(crate) sagemaker_state: Option<Arc<BackendState<winterbaume_sagemaker::SageMakerState>>>,
 }
 
 impl SageMakerRuntimeService {
@@ -25,6 +34,42 @@ impl SageMakerRuntimeService {
         Self {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
+            sagemaker_state: None,
+        }
+    }
+
+    /// Construct a `SageMakerRuntimeService` that validates
+    /// `InvokeEndpoint*` calls against the parent
+    /// `winterbaume-sagemaker` state.
+    ///
+    /// Pass the same `Arc` returned by
+    /// [`winterbaume_sagemaker::SageMakerService::shared_state`] so the
+    /// control plane ( `winterbaume-sagemaker`'s `CreateModel` +
+    /// `CreateEndpointConfig` + `CreateEndpoint` ) and the data plane
+    /// ( `winterbaume-sagemakerruntime`'s `InvokeEndpoint*` ) agree on
+    /// which endpoints exist:
+    ///
+    /// ```no_run
+    /// use winterbaume_core::MockAws;
+    /// use winterbaume_sagemaker::SageMakerService;
+    /// use winterbaume_sagemakerruntime::SageMakerRuntimeService;
+    ///
+    /// let sagemaker = SageMakerService::new();
+    /// let runtime = SageMakerRuntimeService::with_sagemaker_state(
+    ///     sagemaker.shared_state(),
+    /// );
+    /// let _mock = MockAws::builder()
+    ///     .with_service(sagemaker)
+    ///     .with_service(runtime)
+    ///     .build();
+    /// ```
+    pub fn with_sagemaker_state(
+        sagemaker_state: Arc<BackendState<winterbaume_sagemaker::SageMakerState>>,
+    ) -> Self {
+        Self {
+            state: Arc::new(BackendState::new()),
+            notifier: StateChangeNotifier::new(),
+            sagemaker_state: Some(sagemaker_state),
         }
     }
 }
@@ -73,6 +118,26 @@ impl SageMakerRuntimeService {
         }
 
         let endpoint_name = percent_decode(segments[1]);
+
+        // When the parent `winterbaume-sagemaker` state is wired, every
+        // invocation must reference an endpoint that exists on the
+        // control plane; real AWS rejects unknown endpoints with
+        // `ValidationError` ( "Endpoint X of account Y not found" ).
+        // When `sagemaker_state` is `None`, the legacy
+        // auto-create-on-first-invocation path is preserved for
+        // backward compatibility with unit tests that exercise only the
+        // runtime crate.
+        if let Some(sagemaker_state) = self.sagemaker_state.as_ref() {
+            let sm_state_arc = sagemaker_state.get(account_id, &region);
+            let sm_state = sm_state_arc.read().await;
+            if !sm_state.endpoints.contains_key(&endpoint_name) {
+                return rest_json_error(
+                    400,
+                    "ValidationError",
+                    &format!("Endpoint {endpoint_name} of account {account_id} not found"),
+                );
+            }
+        }
 
         let response = match (method, segments[2]) {
             // POST /endpoints/{EndpointName}/invocations

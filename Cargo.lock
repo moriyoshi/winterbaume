@@ -13264,6 +13264,7 @@ version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
+ "aws-sdk-kinesisvideo",
  "aws-sdk-kinesisvideoarchivedmedia",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
@@ -13278,6 +13279,7 @@ dependencies = [
  "tracing",
  "uuid",
  "winterbaume-core",
+ "winterbaume-kinesisvideo",
 ]
 
 [[package]]
@@ -14520,6 +14522,7 @@ version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
+ "aws-sdk-sagemaker",
  "aws-sdk-sagemakerruntime",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
@@ -14533,6 +14536,7 @@ dependencies = [
  "tracing",
  "uuid",
  "winterbaume-core",
+ "winterbaume-sagemaker",
 ]
 
 [[package]]

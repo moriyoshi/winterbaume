@@ -26,6 +26,17 @@ impl SageMakerService {
             notifier: StateChangeNotifier::new(),
         }
     }
+
+    /// Returns an `Arc` clone of the underlying per-account/region state
+    /// holder. Used by `winterbaume-sagemakerruntime::SageMakerRuntimeService::with_sagemaker_state`
+    /// so the data-plane crate can validate `EndpointName` on
+    /// `InvokeEndpoint*` calls against the same `endpoints` map this
+    /// service exposes via `CreateEndpoint`; pass the same `Arc` to both
+    /// services from the test harness and they will agree on which
+    /// endpoints exist.
+    pub fn shared_state(&self) -> Arc<BackendState<SageMakerState>> {
+        Arc::clone(&self.state)
+    }
 }
 
 impl Default for SageMakerService {

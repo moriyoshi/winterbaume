@@ -948,3 +948,73 @@ First build attempt failed with `E0382: borrow of partially moved value: resp` i
 ### Limitations
 
 Only hosted configuration sources are resolved. AppConfig profiles can also reference S3 paths, SSM Parameter Store parameters, and Secrets Manager secrets ; those would need cross-service look-ups ( s3 -> bytes, ssm -> string, secretsmanager -> string ). Add when a real workflow needs them.
+
+## 2026-05-18 — kinesisvideoarchivedmedia-stream-validation
+
+Closed the **kinesisvideoarchivedmedia-stream-validation** entry from the 2026-05-01 control-plane / data-plane audit: `winterbaume-kinesisvideoarchivedmedia` archived-media operations now validate stream names / ARNs against `winterbaume-kinesisvideo` state when the two crates are wired together, returning `ResourceNotFoundException` for unknown streams instead of silently auto-creating them. Mirrors the `appconfigdata-shared-state` pattern landed earlier the same day.
+
+### Parent crate ( winterbaume-kinesisvideo ) changes
+
+- New `KinesisVideoService::shared_state() -> Arc<BackendState<KinesisVideoState>>` exposes the per-account/region state holder. One-line wrapper around `Arc::clone(&self.state)` ; same shape as the appconfig accessor.
+
+### Child crate ( winterbaume-kinesisvideoarchivedmedia ) changes
+
+- Workspace dep `winterbaume-kinesisvideo = { workspace = true }` added in `Cargo.toml` ; dev-dep `aws-sdk-kinesisvideo` added for the new cross-crate integration tests.
+- `KinesisVideoArchivedMediaService` gains `pub(crate) kinesisvideo_state: Option<Arc<BackendState<KinesisVideoState>>>` field. `Self::new()` leaves it `None` ( legacy auto-create behaviour preserved ; useful for unit-test isolation ). New constructor `Self::with_kinesisvideo_state(state)` takes the `Arc` returned by `KinesisVideoService::shared_state()` and wires it up.
+- New helper `async fn validate_stream_in_parent(&self, account_id, region, stream_name, stream_arn) -> Option<MockResponse>` resolves the stream against the parent state: lookup by name first ( `streams.contains_key` ), else linear scan over `streams.values()` for a matching `stream_arn` field. When the stream is missing it returns `Some(rest_json_error(404, "ResourceNotFoundException", ...))` ; when unwired or both identifiers are absent it returns `None` and the existing handler logic ( including the `MissingStreamIdentifier -> InvalidArgumentException` 400 ) keeps running.
+- All six routed archived-media handlers ( `GetMediaForFragmentList`, `ListFragments`, `GetHLSStreamingSessionURL`, `GetDASHStreamingSessionURL`, `GetClip`, `GetImages` ) take `account_id` and `region` arguments now and call `validate_stream_in_parent` right after wire-deserialise. Fragment payload storage stays in this crate ; only stream existence is delegated upstream.
+
+### URL routing collision
+
+First test run had two new tests fail with `UnknownOperationException: Not found` from `winterbaume-kinesisvideo`. Root cause: both `aws-sdk-kinesisvideo` and `aws-sdk-kinesisvideoarchivedmedia` default to `https://kinesisvideo.<region>.amazonaws.com` ; the archived-media crate's old URL pattern `https?://.*\.kinesisvideo\.(.+)\.amazonaws\.com` requires a subdomain dot before `kinesisvideo`, so it did not match the default endpoint. With only archived-media registered, the `service_name()`-based fallback in `MockAwsClient::find_service_by_url` ( both services return `"kinesisvideo"` ) kicked in and routed correctly ; with both services registered, the kinesisvideo URL pattern won the first-match race and the dispatch returned 404 for archived-media paths.
+
+Fix: add a second path-anchored pattern to the archived-media `url_patterns()` -- `https?://kinesisvideo\.(.+)\.amazonaws\.com/(?:getMediaForFragmentList|listFragments|getHLSStreamingSessionURL|getDASHStreamingSessionURL|getClip|getImages)`. Combined with registering the archived-media service **before** `winterbaume-kinesisvideo` in `MockAws::builder`, this makes the dispatcher pick archived-media for archived-media paths and `winterbaume-kinesisvideo` for everything else. The `with_kinesisvideo_state` doc example shows the correct ordering, and the cross-crate test helper sets it up that way.
+
+### Verification
+
+Three new integration tests in `crates/winterbaume-kinesisvideoarchivedmedia/tests/integration_test.rs`:
+- `test_archived_media_accepts_existing_stream_via_parent_state` -- create a stream through `aws-sdk-kinesisvideo::CreateStream`, then assert `aws-sdk-kinesisvideoarchivedmedia::ListFragments` against the same name succeeds and returns mock fragments.
+- `test_archived_media_rejects_unknown_stream_when_wired` -- the wired service rejects calls against an uncreated stream name with `ResourceNotFoundException` ; no auto-create.
+- `test_archived_media_legacy_auto_create_unchanged_when_unwired` -- `Self::new()` ( unwired ) keeps the original auto-create-on-first-request path so existing unit tests continue to pass.
+
+Per-crate gate clean on both crates: clippy + fmt --check + test --no-fail-fast all pass. `winterbaume-kinesisvideo` 62 tests ; `winterbaume-kinesisvideoarchivedmedia` 31 integration tests + 1 doctest ( +3 vs prior 28 ).
+
+### Limitations
+
+Only the six archived-media operations currently routed by the crate validate against the parent state. When `kinesisvideomedia`, `kinesisvideosignaling`, or `kinesisvideowebrtcstorage` crates are added later they will need the same `with_kinesisvideo_state` constructor and `validate_stream_in_parent` helper applied per-operation. The routing-collision workaround ( path-anchored URL pattern + register-first ordering ) generalises to those crates too as long as they share the default `kinesisvideo.<region>.amazonaws.com` endpoint.
+
+## 2026-05-18 — sagemakerruntime-endpoint-validation
+
+Third instance of the cross-crate state-coherence pattern this session, after `appconfigdata-shared-state` and `kinesisvideoarchivedmedia-stream-validation`. Pattern is now stable: parent service exposes `pub fn shared_state(&self) -> Arc<BackendState<<Parent>State>>`, child service gains an optional `pub(crate) <parent>_state: Option<...>` field, new `with_<parent>_state(...)` constructor wires the parent, handlers consult the parent when wired and fall back to legacy behaviour when not.
+
+### Parent crate ( winterbaume-sagemaker ) changes
+
+One addition: `SageMakerService::shared_state()` over the existing `pub(crate) state: Arc<BackendState<SageMakerState>>`. The parent already had `pub endpoints: HashMap<String, Endpoint>` on `SageMakerState` and `pub fn describe_endpoint(&self, name: &str)` accessors — no new state shape needed.
+
+### Child crate ( winterbaume-sagemakerruntime ) changes
+
+- Workspace dep on `winterbaume-sagemaker` added in `Cargo.toml` ; dev-dep on `aws-sdk-sagemaker` added for the new end-to-end test.
+- `SageMakerRuntimeService` gains `pub(crate) sagemaker_state: Option<Arc<BackendState<winterbaume_sagemaker::SageMakerState>>>`.
+- New `with_sagemaker_state(state)` constructor with a `no_run` doc example mirroring the appconfigdata pattern.
+- In the URL-routed dispatch for `POST /endpoints/{name}/invocations` ( and async / streaming variants that share the URL-prefix routing path ), after extracting `endpoint_name` via `percent_decode(segments[1])`, the handler now gates: if `sagemaker_state` is `Some`, acquire the parent state for the current `(account_id, region)`, check membership in `endpoints`, and short-circuit with HTTP 400 `ValidationError` + body `"Endpoint <name> of account <account_id> not found"` when missing. When `sagemaker_state` is `None`, the legacy auto-create-on-first-invocation path stays untouched.
+
+### Scope-narrowing
+
+The original TODO included "route the targeted variant through the endpoint-config / model graph so invocation records can capture it" as a sub-task. That part is **not** implemented here — `SageMakerRuntimeState`'s invocation record does not currently carry a variant identifier, and adding one would require a bigger refactor of the runtime crate's state shape. Left as a sub-followup ; the closure note in `TODO.md` makes this explicit.
+
+### Verification
+
+Three new tests cover the behaviour cells: wired-and-valid, wired-and-unknown, unwired-legacy. The wired-and-unknown test asserts the exact ValidationError body shape ; the unwired-legacy test confirms the auto-create path is unaffected. Test count went from 20 -> 23 in `crates/winterbaume-sagemakerruntime/tests/integration_test.rs`.
+
+Per-crate gate clean on both: `winterbaume-sagemaker` clippy + fmt --check + tests pass ( 20s warm check ) ; `winterbaume-sagemakerruntime` 23 tests + 1 doctest pass ( 2m37s clippy cold ).
+
+### Pattern reusability ( three concrete instances now )
+
+The pattern is now repeated three times across three independent parent/child pairs ( appconfig/appconfigdata, kinesisvideo/kinesisvideoarchivedmedia, sagemaker/sagemakerruntime ). Each adds ~ 50-150 lines of code plus an end-to-end test. The shape stabilises to:
+
+1. parent service: `pub fn shared_state(&self) -> Arc<BackendState<ParentState>>` ( ~ 10 lines incl. doc-comment ).
+2. child service: optional state field + `with_<parent>_state(...)` constructor with a `no_run` doc-example ( ~ 35 lines ).
+3. child handlers: `if let Some(parent_state) = self.parent_state.as_ref() { ... validate ... }` at every relevant op ; legacy fallback preserved.
+4. integration test: build `MockAws` with both services sharing the parent `Arc`, drive real `aws-sdk-<parent>` calls to set up state, drive `aws-sdk-<child>` to exercise validation, assert both the happy path and the unknown-resource error path.
+
+Remaining instances of the same pattern in the State Coherence Backlog: `cloudtraildata-channel-validation` ( blocked — cloudtrail has no channel state yet ), `mediastoredata-container-model` ( different shape — requires re-keying the data plane's `objects` map by `(container, path)` rather than just gating existence ), `rdsdata-cluster-validation` and `redshiftdata-cluster-validation` ( both flagged as low-priority pending a real workflow that needs them ).

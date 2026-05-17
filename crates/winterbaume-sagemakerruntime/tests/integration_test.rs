@@ -1,6 +1,7 @@
 use aws_sdk_sagemakerruntime::config::BehaviorVersion;
 use aws_sdk_sagemakerruntime::primitives::Blob;
 use winterbaume_core::MockAws;
+use winterbaume_sagemaker::SageMakerService;
 use winterbaume_sagemakerruntime::SageMakerRuntimeService;
 
 async fn make_client() -> aws_sdk_sagemakerruntime::Client {
@@ -420,4 +421,138 @@ async fn test_invoke_endpoint_with_response_stream_content_type() {
         Some("text/plain"),
         "content_type should be echoed back"
     );
+}
+
+// ============================================================================
+// Cross-crate state coherence: validate endpoint names against the parent
+// `winterbaume-sagemaker` `endpoints` map when the runtime service is
+// constructed via `with_sagemaker_state`. Mirrors the appconfigdata
+// shared-state pattern.
+// ============================================================================
+
+/// End-to-end happy path: register an endpoint via the SageMaker control
+/// plane, then invoke it via SageMaker Runtime through a `MockAws` that
+/// shares state between both services. The invocation should succeed.
+#[tokio::test]
+async fn test_invoke_endpoint_resolves_through_sagemaker_state() {
+    let sagemaker = SageMakerService::new();
+    let runtime = SageMakerRuntimeService::with_sagemaker_state(sagemaker.shared_state());
+
+    let mock = MockAws::builder()
+        .with_service(sagemaker)
+        .with_service(runtime)
+        .build();
+
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_sagemakerruntime::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    let sagemaker_client = aws_sdk_sagemaker::Client::new(&config);
+    let runtime_client = aws_sdk_sagemakerruntime::Client::new(&config);
+
+    // Minimal control-plane setup: model + endpoint-config + endpoint.
+    sagemaker_client
+        .create_model()
+        .model_name("my-model")
+        .execution_role_arn("arn:aws:iam::123456789012:role/SageMakerRole")
+        .send()
+        .await
+        .expect("create_model");
+
+    sagemaker_client
+        .create_endpoint_config()
+        .endpoint_config_name("my-config")
+        .send()
+        .await
+        .expect("create_endpoint_config");
+
+    sagemaker_client
+        .create_endpoint()
+        .endpoint_name("my-endpoint")
+        .endpoint_config_name("my-config")
+        .send()
+        .await
+        .expect("create_endpoint");
+
+    // Data plane: invoke the registered endpoint — should succeed.
+    let resp = runtime_client
+        .invoke_endpoint()
+        .endpoint_name("my-endpoint")
+        .content_type("application/json")
+        .body(Blob::new(b"{\"input\": \"hello\"}"))
+        .send()
+        .await
+        .expect("invoke_endpoint should succeed for a registered endpoint");
+    assert_eq!(resp.invoked_production_variant(), Some("AllTraffic"));
+}
+
+/// Unknown-endpoint path: with the parent state wired, invoking an
+/// endpoint that was never created via the control plane must fail
+/// with `ValidationError` whose message includes "not found" and the
+/// endpoint name, matching real AWS behaviour.
+#[tokio::test]
+async fn test_invoke_endpoint_unknown_endpoint_validation_error() {
+    let sagemaker = SageMakerService::new();
+    let runtime = SageMakerRuntimeService::with_sagemaker_state(sagemaker.shared_state());
+
+    let mock = MockAws::builder()
+        .with_service(sagemaker)
+        .with_service(runtime)
+        .build();
+
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_sagemakerruntime::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    let runtime_client = aws_sdk_sagemakerruntime::Client::new(&config);
+
+    let err = runtime_client
+        .invoke_endpoint()
+        .endpoint_name("does-not-exist")
+        .content_type("application/json")
+        .body(Blob::new(b"{}"))
+        .send()
+        .await
+        .expect_err("invoke_endpoint should fail for an unknown endpoint");
+
+    let msg = format!("{err:?}");
+    assert!(
+        msg.contains("not found"),
+        "error should mention 'not found', got: {msg}"
+    );
+    assert!(
+        msg.contains("does-not-exist"),
+        "error should mention the unknown endpoint name, got: {msg}"
+    );
+    assert!(
+        msg.contains("ValidationError"),
+        "error should be of type ValidationError, got: {msg}"
+    );
+}
+
+/// Backward-compatibility path: `SageMakerRuntimeService::new()` ( the
+/// unwired default ) must keep the legacy
+/// auto-create-on-first-invocation behaviour so unit tests that only
+/// exercise the runtime crate continue to work without standing up the
+/// control plane.
+#[tokio::test]
+async fn test_invoke_endpoint_legacy_auto_create_when_unwired() {
+    let client = make_client().await;
+
+    // Endpoint has never been registered on the control plane — the
+    // unwired runtime service should auto-create it and the call
+    // should succeed.
+    let resp = client
+        .invoke_endpoint()
+        .endpoint_name("never-registered-endpoint")
+        .content_type("application/json")
+        .body(Blob::new(b"{\"x\": 1}"))
+        .send()
+        .await
+        .expect("legacy auto-create path should still succeed when sagemaker_state is None");
+    assert_eq!(resp.invoked_production_variant(), Some("AllTraffic"));
 }

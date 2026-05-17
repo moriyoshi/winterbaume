@@ -18,6 +18,13 @@ const X_AMZN_ERRORTYPE: HeaderName = HeaderName::from_static("x-amzn-errortype")
 pub struct KinesisVideoArchivedMediaService {
     pub(crate) state: Arc<BackendState<KinesisVideoArchivedMediaState>>,
     pub(crate) notifier: StateChangeNotifier<KinesisVideoArchivedMediaStateView>,
+    /// Optional shared `winterbaume-kinesisvideo` state. When wired,
+    /// archived-media operations reject unknown stream names / ARNs with
+    /// `ResourceNotFoundException` ( matching real AWS ). When `None`
+    /// ( the default for `Self::new()` ), the legacy auto-create behaviour
+    /// is preserved so unit tests don't need to seed the parent state.
+    pub(crate) kinesisvideo_state:
+        Option<Arc<BackendState<winterbaume_kinesisvideo::KinesisVideoState>>>,
 }
 
 impl KinesisVideoArchivedMediaService {
@@ -25,6 +32,86 @@ impl KinesisVideoArchivedMediaService {
         Self {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
+            kinesisvideo_state: None,
+        }
+    }
+
+    /// Construct a `KinesisVideoArchivedMediaService` that validates
+    /// stream names / ARNs against the parent `winterbaume-kinesisvideo`
+    /// state. Unknown streams are rejected with `ResourceNotFoundException`
+    /// ( HTTP 404 ), matching real AWS behaviour.
+    ///
+    /// Pass the same `Arc` returned by
+    /// [`winterbaume_kinesisvideo::KinesisVideoService::shared_state`] so
+    /// the control plane ( `winterbaume-kinesisvideo`'s `CreateStream` )
+    /// and the data plane ( `winterbaume-kinesisvideoarchivedmedia`'s
+    /// `GetMediaForFragmentList`, `ListFragments`, `GetClip`, etc. ) agree
+    /// on which streams exist:
+    ///
+    /// ```no_run
+    /// use winterbaume_kinesisvideo::KinesisVideoService;
+    /// use winterbaume_kinesisvideoarchivedmedia::KinesisVideoArchivedMediaService;
+    /// use winterbaume_core::MockAws;
+    ///
+    /// let kinesisvideo = KinesisVideoService::new();
+    /// let archived_media = KinesisVideoArchivedMediaService::with_kinesisvideo_state(
+    ///     kinesisvideo.shared_state(),
+    /// );
+    /// let _mock = MockAws::builder()
+    ///     .with_service(kinesisvideo)
+    ///     .with_service(archived_media)
+    ///     .build();
+    /// ```
+    pub fn with_kinesisvideo_state(
+        kinesisvideo_state: Arc<BackendState<winterbaume_kinesisvideo::KinesisVideoState>>,
+    ) -> Self {
+        Self {
+            state: Arc::new(BackendState::new()),
+            notifier: StateChangeNotifier::new(),
+            kinesisvideo_state: Some(kinesisvideo_state),
+        }
+    }
+
+    /// When `kinesisvideo_state` is wired, verify that the requested
+    /// stream ( by name or ARN ) exists in the parent state. Returns
+    /// `Some(MockResponse)` with a `ResourceNotFoundException` when the
+    /// stream is unknown, or `None` when the stream exists or validation
+    /// is bypassed ( unwired or both identifiers absent — the latter is
+    /// caught later by the per-handler validation that yields
+    /// `InvalidArgumentException` ).
+    async fn validate_stream_in_parent(
+        &self,
+        account_id: &str,
+        region: &str,
+        stream_name: Option<&str>,
+        stream_arn: Option<&str>,
+    ) -> Option<MockResponse> {
+        let parent_state = self.kinesisvideo_state.as_ref()?;
+        if stream_name.is_none() && stream_arn.is_none() {
+            return None;
+        }
+        let state_holder = parent_state.get(account_id, region);
+        let state = state_holder.read().await;
+        // Resolve by stream-name first, then by stream-ARN ( scan values for
+        // a matching `stream_arn` field ).
+        let found = if let Some(name) = stream_name {
+            state.streams.contains_key(name)
+        } else if let Some(arn) = stream_arn {
+            state.streams.values().any(|s| s.stream_arn == arn)
+        } else {
+            false
+        };
+        if found {
+            None
+        } else {
+            let message = if let Some(name) = stream_name {
+                format!("The stream {name} was not found.")
+            } else if let Some(arn) = stream_arn {
+                format!("The stream with ARN {arn} was not found.")
+            } else {
+                "Stream not found.".to_string()
+            };
+            Some(rest_json_error(404, "ResourceNotFoundException", &message))
         }
     }
 }
@@ -41,7 +128,21 @@ impl MockService for KinesisVideoArchivedMediaService {
     }
 
     fn url_patterns(&self) -> Vec<&str> {
-        vec![r"https?://.*\.kinesisvideo\.(.+)\.amazonaws\.com"]
+        // Two patterns are needed:
+        // 1. `<data-endpoint>.kinesisvideo.<region>.amazonaws.com` -- the
+        //    URL form a real client would use after calling
+        //    `GetDataEndpoint` on the control plane.
+        // 2. `kinesisvideo.<region>.amazonaws.com/<archived-media-op>` --
+        //    the default endpoint the aws-sdk-kinesisvideoarchivedmedia
+        //    SDK resolves to when no override is supplied. Without
+        //    matching specific archived-media paths, this would collide
+        //    with `winterbaume-kinesisvideo`'s URL pattern when both
+        //    services are registered together; pinning the path keeps
+        //    each service routed to its own dispatch.
+        vec![
+            r"https?://.*\.kinesisvideo\.(.+)\.amazonaws\.com",
+            r"https?://kinesisvideo\.(.+)\.amazonaws\.com/(?:getMediaForFragmentList|listFragments|getHLSStreamingSessionURL|getDASHStreamingSessionURL|getClip|getImages)",
+        ]
     }
 
     fn handle(
@@ -80,24 +181,33 @@ impl KinesisVideoArchivedMediaService {
 
         match path.as_str() {
             "/getMediaForFragmentList" => {
-                self.handle_get_media_for_fragment_list(&state, &request, labels, &query)
-                    .await
+                self.handle_get_media_for_fragment_list(
+                    &state, &request, labels, &query, account_id, &region,
+                )
+                .await
             }
             "/listFragments" => {
-                self.handle_list_fragments(&state, &request, labels, &query)
+                self.handle_list_fragments(&state, &request, labels, &query, account_id, &region)
                     .await
             }
             "/getHLSStreamingSessionURL" => {
-                self.handle_get_hls_streaming_session_url(&state, &request, labels, &query)
-                    .await
+                self.handle_get_hls_streaming_session_url(
+                    &state, &request, labels, &query, account_id, &region,
+                )
+                .await
             }
             "/getDASHStreamingSessionURL" => {
-                self.handle_get_dash_streaming_session_url(&state, &request, labels, &query)
+                self.handle_get_dash_streaming_session_url(
+                    &state, &request, labels, &query, account_id, &region,
+                )
+                .await
+            }
+            "/getClip" => {
+                self.handle_get_clip(&state, &request, labels, &query, account_id, &region)
                     .await
             }
-            "/getClip" => self.handle_get_clip(&state, &request, labels, &query).await,
             "/getImages" => {
-                self.handle_get_images(&state, &request, labels, &query)
+                self.handle_get_images(&state, &request, labels, &query, account_id, &region)
                     .await
             }
             _ => rest_json_error(404, "UnknownOperationException", "Not found"),
@@ -110,6 +220,8 @@ impl KinesisVideoArchivedMediaService {
         request: &MockRequest,
         labels: &[(&str, &str)],
         query: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input =
             match wire::deserialize_get_media_for_fragment_list_request(request, labels, query) {
@@ -119,6 +231,13 @@ impl KinesisVideoArchivedMediaService {
         let stream_name = input.stream_name.as_deref();
         let stream_arn = input.stream_a_r_n.as_deref();
         let fragments: Vec<String> = input.fragments.clone();
+
+        if let Some(resp) = self
+            .validate_stream_in_parent(account_id, region, stream_name, stream_arn)
+            .await
+        {
+            return resp;
+        }
 
         let mut state = state.write().await;
         match state.get_media_for_fragment_list(stream_name, stream_arn, &fragments) {
@@ -143,6 +262,8 @@ impl KinesisVideoArchivedMediaService {
         request: &MockRequest,
         labels: &[(&str, &str)],
         query: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_list_fragments_request(request, labels, query) {
             Ok(v) => v,
@@ -151,6 +272,13 @@ impl KinesisVideoArchivedMediaService {
         let stream_name = input.stream_name.as_deref();
         let stream_arn = input.stream_a_r_n.as_deref();
         let max_results = input.max_results.unwrap_or(100) as usize;
+
+        if let Some(resp) = self
+            .validate_stream_in_parent(account_id, region, stream_name, stream_arn)
+            .await
+        {
+            return resp;
+        }
 
         let mut state = state.write().await;
         match state.list_fragments(stream_name, stream_arn) {
@@ -176,6 +304,8 @@ impl KinesisVideoArchivedMediaService {
         request: &MockRequest,
         labels: &[(&str, &str)],
         query: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_get_h_l_s_streaming_session_u_r_l_request(
             request, labels, query,
@@ -185,6 +315,13 @@ impl KinesisVideoArchivedMediaService {
         };
         let stream_name = input.stream_name.as_deref();
         let stream_arn = input.stream_a_r_n.as_deref();
+
+        if let Some(resp) = self
+            .validate_stream_in_parent(account_id, region, stream_name, stream_arn)
+            .await
+        {
+            return resp;
+        }
 
         let mut state = state.write().await;
         match state.get_hls_streaming_session_url(stream_name, stream_arn) {
@@ -203,6 +340,8 @@ impl KinesisVideoArchivedMediaService {
         request: &MockRequest,
         labels: &[(&str, &str)],
         query: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_get_d_a_s_h_streaming_session_u_r_l_request(
             request, labels, query,
@@ -212,6 +351,13 @@ impl KinesisVideoArchivedMediaService {
         };
         let stream_name = input.stream_name.as_deref();
         let stream_arn = input.stream_a_r_n.as_deref();
+
+        if let Some(resp) = self
+            .validate_stream_in_parent(account_id, region, stream_name, stream_arn)
+            .await
+        {
+            return resp;
+        }
 
         let mut state = state.write().await;
         match state.get_dash_streaming_session_url(stream_name, stream_arn) {
@@ -230,6 +376,8 @@ impl KinesisVideoArchivedMediaService {
         request: &MockRequest,
         labels: &[(&str, &str)],
         query: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         // ClipFragmentSelector is a default-equipped non-Option struct in the
         // wire model, so detect "absent" by checking the raw body directly.
@@ -247,6 +395,13 @@ impl KinesisVideoArchivedMediaService {
         };
         let stream_name = input.stream_name.as_deref();
         let stream_arn = input.stream_a_r_n.as_deref();
+
+        if let Some(resp) = self
+            .validate_stream_in_parent(account_id, region, stream_name, stream_arn)
+            .await
+        {
+            return resp;
+        }
 
         let mut state = state.write().await;
         match state.get_clip(stream_name, stream_arn) {
@@ -271,6 +426,8 @@ impl KinesisVideoArchivedMediaService {
         request: &MockRequest,
         labels: &[(&str, &str)],
         query: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_get_images_request(request, labels, query) {
             Ok(v) => v,
@@ -293,6 +450,13 @@ impl KinesisVideoArchivedMediaService {
         }
 
         let max_results = input.max_results.unwrap_or(3) as usize;
+
+        if let Some(resp) = self
+            .validate_stream_in_parent(account_id, region, stream_name, stream_arn)
+            .await
+        {
+            return resp;
+        }
 
         let mut state = state.write().await;
         match state.get_images(stream_name, stream_arn, format, max_results) {

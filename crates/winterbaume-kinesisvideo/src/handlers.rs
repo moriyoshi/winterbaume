@@ -31,6 +31,16 @@ impl KinesisVideoService {
             notifier: StateChangeNotifier::new(),
         }
     }
+
+    /// Returns an `Arc` clone of the underlying per-account/region state
+    /// holder. Used by `winterbaume-kinesisvideoarchivedmedia::KinesisVideoArchivedMediaService::with_kinesisvideo_state`
+    /// so the archived-media data plane can reject unknown stream names /
+    /// ARNs ( `ResourceNotFoundException` ) instead of auto-creating them;
+    /// pass the same `Arc` to both services from the test harness and they
+    /// will agree on which streams exist.
+    pub fn shared_state(&self) -> Arc<BackendState<KinesisVideoState>> {
+        Arc::clone(&self.state)
+    }
 }
 
 impl Default for KinesisVideoService {
