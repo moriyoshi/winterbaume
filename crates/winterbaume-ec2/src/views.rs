@@ -1419,6 +1419,26 @@ pub struct ImageView {
     pub fast_launch_state: Option<FastLaunchStateView>,
     #[serde(default)]
     pub deregistration_protection: Option<String>,
+    #[serde(default)]
+    pub kernel_id: Option<String>,
+    #[serde(default)]
+    pub ramdisk_id: Option<String>,
+    #[serde(default)]
+    pub ena_support: Option<bool>,
+    #[serde(default)]
+    pub sriov_net_support: Option<String>,
+    #[serde(default)]
+    pub tpm_support: Option<String>,
+    #[serde(default)]
+    pub boot_mode: Option<String>,
+    #[serde(default)]
+    pub imds_support: Option<String>,
+    #[serde(default)]
+    pub image_location: Option<String>,
+    #[serde(default)]
+    pub source_image_id: Option<String>,
+    #[serde(default)]
+    pub source_region: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -5159,6 +5179,16 @@ impl From<&Image> for ImageView {
             product_codes: i.product_codes.clone(),
             fast_launch_state: i.fast_launch_state.as_ref().map(FastLaunchStateView::from),
             deregistration_protection: i.deregistration_protection.clone(),
+            kernel_id: i.kernel_id.clone(),
+            ramdisk_id: i.ramdisk_id.clone(),
+            ena_support: i.ena_support,
+            sriov_net_support: i.sriov_net_support.clone(),
+            tpm_support: i.tpm_support.clone(),
+            boot_mode: i.boot_mode.clone(),
+            imds_support: i.imds_support.clone(),
+            image_location: i.image_location.clone(),
+            source_image_id: i.source_image_id.clone(),
+            source_region: i.source_region.clone(),
         }
     }
 }
@@ -7748,6 +7778,16 @@ impl From<ImageView> for Image {
             product_codes: i.product_codes,
             fast_launch_state: i.fast_launch_state.map(crate::types::FastLaunchState::from),
             deregistration_protection: i.deregistration_protection,
+            kernel_id: i.kernel_id,
+            ramdisk_id: i.ramdisk_id,
+            ena_support: i.ena_support,
+            sriov_net_support: i.sriov_net_support,
+            tpm_support: i.tpm_support,
+            boot_mode: i.boot_mode,
+            imds_support: i.imds_support,
+            image_location: i.image_location,
+            source_image_id: i.source_image_id,
+            source_region: i.source_region,
         }
     }
 }

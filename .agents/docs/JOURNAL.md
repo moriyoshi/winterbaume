@@ -809,3 +809,33 @@ Per-crate gate ran cleanly after one cosmetic fix:
 
 The `invariant-audit-existing-services` TODO entry has been updated in-place with a strike-through on the kinesis sub-item and a fixed-2026-05-17 note pointing at the commit. The other four fleet-sweep candidates ( costexplorer, guardduty, opensearch, servicediscovery ) stay as documented review candidates; none of them have the same per-shard-vs-global divergence and all are defensible mocks.
 
+## 2026-05-17 — EC2 ImageView expansion ( ec2-terraform-state-layer-gaps sub-item 2 )
+
+Closed the second of three remaining sub-items in `ec2-terraform-state-layer-gaps`. `types::Image` and `views::ImageView` both gained ten new optional fields:
+
+| Field | Type | AWS-SDK counterpart |
+|---|---|---|
+| `kernel_id` | `Option<String>` | `KernelId` |
+| `ramdisk_id` | `Option<String>` | `RamdiskId` |
+| `ena_support` | `Option<bool>` | `EnaSupport` |
+| `sriov_net_support` | `Option<String>` | `SriovNetSupport` |
+| `tpm_support` | `Option<String>` | `TpmSupport` |
+| `boot_mode` | `Option<String>` | `BootMode` |
+| `imds_support` | `Option<String>` | `ImdsSupport` |
+| `image_location` | `Option<String>` | `ImageLocation` |
+| `source_image_id` | `Option<String>` | `SourceImageId` ( for `CopyImage` ) |
+| `source_region` | `Option<String>` | `SourceRegion` ( for `CopyImage` ) |
+
+Each got a matching `#[serde(default)]` field on `ImageView`, and both `From<&Image> for ImageView` and `From<ImageView> for Image` were extended to carry them through. State-side updates:
+
+- `create_image` ( instance-derived AMI ): all new fields default to `None`.
+- `register_image` ( fresh AMI ): same default-to-`None` pattern.
+- The inline restore-image-from-s3 path in `state.rs` ( around line 6830 ) now records `image_location: Some(format!("s3://{bucket}/{object_key}"))` so the original restore path is recoverable via the state view.
+- `copy_image` now sets `source_image_id: Some(<source AMI id>)` on the copy so AMI-copy lineage survives snapshot/restore. `source_region` is left at whatever the source clone inherited ( typically `None` ) because the current `copy_image` signature does not carry a region parameter; populating it requires a real cross-region test path and is deferred.
+
+Discovery: the third constructor site at line 6830 was caught only by the clippy gate ( `error[E0063]: Image { ... } missing 'boot_mode', 'ena_support', 'image_location' and 7 other fields` ) on the first compile, not by the initial Grep sweep — the Grep pattern `Image \{$` didn't pick up the trailing-`,` form used in `self.images.insert(image_id.clone(), Image { ... },)`. Good reminder that compiler errors are the authoritative enumeration of struct construction sites.
+
+Per-crate gate clean: `cargo fmt -p winterbaume-ec2 -- --check` pass; `cargo clippy -p winterbaume-ec2 --all-targets --all-features -- -D warnings` pass ( 2m32s warm, vs 22m51s cold earlier in this session ); `cargo test -p winterbaume-ec2 --no-fail-fast` passes ( exit 0; same 591 main + 13 scenario tests as the prior commit ).
+
+The remaining two sub-items in this TODO ( singleton spot datafeed subscription slot, VPC route-server family review ) stay open as bigger surface changes that warrant their own pass.
+

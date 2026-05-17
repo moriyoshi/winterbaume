@@ -783,6 +783,29 @@ pub struct Image {
     /// Image deregistration protection state. One of `enabled`,
     /// `enabled-with-cooldown`, `disabled`. `None` when never configured.
     pub deregistration_protection: Option<String>,
+    /// Kernel AMI ID ( for older paravirtual / HVM-with-kernel AMIs ).
+    pub kernel_id: Option<String>,
+    /// Ramdisk AMI ID.
+    pub ramdisk_id: Option<String>,
+    /// `EnaSupport`: whether the AMI is configured for ENA networking.
+    pub ena_support: Option<bool>,
+    /// `SriovNetSupport`: typically `"simple"` when SR-IOV is enabled.
+    pub sriov_net_support: Option<String>,
+    /// `TpmSupport`: e.g. `"v2.0"`.
+    pub tpm_support: Option<String>,
+    /// `BootMode`: `"legacy-bios"`, `"uefi"`, `"uefi-preferred"`.
+    pub boot_mode: Option<String>,
+    /// `ImdsSupport`: e.g. `"v2.0"` to require IMDSv2.
+    pub imds_support: Option<String>,
+    /// `ImageLocation`: S3-style path, set by `RegisterImage` flows that
+    /// reference an existing manifest.
+    pub image_location: Option<String>,
+    /// `SourceImageId`: for AMIs created via `CopyImage`, the source AMI's
+    /// ID. `None` for natively created AMIs.
+    pub source_image_id: Option<String>,
+    /// `SourceRegion`: for AMIs created via `CopyImage`, the region the
+    /// source AMI lived in. `None` for natively created AMIs.
+    pub source_region: Option<String>,
 }
 
 #[derive(Debug, Clone, Default)]

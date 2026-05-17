@@ -3505,6 +3505,16 @@ impl Ec2State {
             product_codes: Vec::new(),
             fast_launch_state: None,
             deregistration_protection: None,
+            kernel_id: None,
+            ramdisk_id: None,
+            ena_support: None,
+            sriov_net_support: None,
+            tpm_support: None,
+            boot_mode: None,
+            imds_support: None,
+            image_location: None,
+            source_image_id: None,
+            source_region: None,
         };
         self.images.insert(image_id.clone(), img);
         Ok(image_id)
@@ -4066,6 +4076,16 @@ impl Ec2State {
             product_codes: Vec::new(),
             fast_launch_state: None,
             deregistration_protection: None,
+            kernel_id: None,
+            ramdisk_id: None,
+            ena_support: None,
+            sriov_net_support: None,
+            tpm_support: None,
+            boot_mode: None,
+            imds_support: None,
+            image_location: None,
+            source_image_id: None,
+            source_region: None,
         };
         self.images.insert(image_id.clone(), img);
         image_id
@@ -4086,6 +4106,7 @@ impl Ec2State {
         new_img.image_id = new_id.clone();
         new_img.name = name.to_string();
         new_img.owner_id = owner_id.to_string();
+        new_img.source_image_id = Some(source_image_id.to_string());
         self.images.insert(new_id.clone(), new_img);
         Ok(new_id)
     }
@@ -6829,6 +6850,16 @@ impl Ec2State {
                 product_codes: Vec::new(),
                 fast_launch_state: None,
                 deregistration_protection: None,
+                kernel_id: None,
+                ramdisk_id: None,
+                ena_support: None,
+                sriov_net_support: None,
+                tpm_support: None,
+                boot_mode: None,
+                imds_support: None,
+                image_location: Some(format!("s3://{bucket}/{object_key}")),
+                source_image_id: None,
+                source_region: None,
             },
         );
         self.restore_image_tasks.insert(
