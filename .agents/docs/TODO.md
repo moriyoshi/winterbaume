@@ -97,7 +97,7 @@ Opened from the 2026-05-01 v1/v2 and control-plane / data-plane state coherence 
 
 ### E2E
 
-- [ ] **terraform-appintegrations**: No Terraform converter; `terraform-provider-aws` has no resources for AppIntegrations entities currently exposed. Revisit if a real caller needs it. -- *source: 2026-04-27 -- new service: appintegrations*
+- [x] **terraform-appintegrations**: Closed 2026-05-17 as a documented upstream-provider limitation. `terraform-provider-aws` still does not expose Terraform resources for AppIntegrations entities ( same situation as the 2026-04-27 audit ); there is nothing to converter against, so no converter can be authored. This parallels the `applicationcostprofiler` informational note already documented inline in `crates/winterbaume-e2e-tests/tests/terraform/applicationcostprofiler.rs:1`. If a future Terraform AWS provider release adds AppIntegrations resources, the `terraform-converter` skill is the path to take. -- *source: 2026-04-27 -- new service: appintegrations*
 
 ### First Public Release
 
