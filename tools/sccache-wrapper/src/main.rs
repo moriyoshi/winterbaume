@@ -245,13 +245,24 @@ fn parse_rustc_args(args: &[String]) -> Option<ParsedArgs> {
         return None;
     }
 
-    // Only cache lib/rlib crate types — except when `--test` is present, in
-    // which case rustc overrides the crate-type and produces a test-harness
-    // binary, and we cache that binary directly.
+    // Cache lib / rlib / proc-macro crate types, plus `--test` harnesses.
+    //
+    // Proc-macros are cached deliberately even though rustc treats them as a
+    // dynamic library output. Their dylib byte content is non-deterministic
+    // across rustc invocations (hash-table iteration order, etc.), and the
+    // SVH of the resulting dylib gets baked into the rmeta of every crate
+    // that depends on the proc-macro. If two sessions build the same
+    // proc-macro independently, downstream rmetas reference different SVHs
+    // even though cargo's `--extern foo=…librustversion-<hash>.dylib`
+    // filename is identical. Restoring such a downstream rmeta into a
+    // session whose freshly-built proc-macro has a different SVH then
+    // surfaces as `E0463: can't find crate for X` when rustc walks the dep
+    // chain. Caching the proc-macro stabilises its dylib content across
+    // sessions and keeps the SVH chain consistent.
     if !is_test
         && crate_types
             .iter()
-            .any(|t| matches!(t.as_str(), "proc-macro" | "bin" | "cdylib" | "staticlib"))
+            .any(|t| matches!(t.as_str(), "bin" | "cdylib" | "staticlib"))
     {
         return None;
     }
@@ -274,6 +285,7 @@ fn parse_rustc_args(args: &[String]) -> Option<ParsedArgs> {
 fn expected_output_files(parsed: &ParsedArgs) -> Vec<String> {
     let is_lib = parsed.crate_types.is_empty()
         || parsed.crate_types.iter().any(|t| t == "lib" || t == "rlib");
+    let is_proc_macro = parsed.crate_types.iter().any(|t| t == "proc-macro");
     let stem_lib = format!("lib{}{}", parsed.crate_name, parsed.extra_filename);
     let stem_bare = format!("{}{}", parsed.crate_name, parsed.extra_filename);
     // Test-harness binaries have no `lib` prefix and, on Windows, an `.exe`
@@ -282,12 +294,24 @@ fn expected_output_files(parsed: &ParsedArgs) -> Vec<String> {
     // tolerates its absence and the binary itself is what matters for `cargo
     // test`).
     let bin_suffix = if cfg!(windows) { ".exe" } else { "" };
+    // Proc-macros build a host dynamic library. On macOS it's
+    // `lib<crate>-<ef>.dylib`, on Linux `lib<crate>-<ef>.so`, and on Windows
+    // `<crate>-<ef>.dll` (no `lib` prefix). Pick the right stem+suffix pair.
+    let proc_macro_stem = if cfg!(windows) { &stem_bare } else { &stem_lib };
+    let proc_macro_suffix = if cfg!(target_os = "macos") {
+        ".dylib"
+    } else if cfg!(windows) {
+        ".dll"
+    } else {
+        ".so"
+    };
 
     let mut files = Vec::new();
     for e in &parsed.emit {
         match e.as_str() {
             "metadata" => files.push(format!("{stem_lib}.rmeta")),
             "link" if parsed.is_test => files.push(format!("{stem_bare}{bin_suffix}")),
+            "link" if is_proc_macro => files.push(format!("{proc_macro_stem}{proc_macro_suffix}")),
             "link" if is_lib => files.push(format!("{stem_lib}.rlib")),
             "dep-info" => files.push(format!("{stem_bare}.d")),
             _ => {}

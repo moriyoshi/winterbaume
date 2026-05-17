@@ -724,3 +724,44 @@ Audited the open First-Public-Release operational items against the live reposit
 - `cargo-dist-dropped-targets-revisit` — recorded the current `dist-workspace.toml` target list ( 5 targets: `aarch64-apple-darwin`, `aarch64-unknown-linux-gnu`, `x86_64-apple-darwin`, `x86_64-unknown-linux-gnu`, `x86_64-pc-windows-msvc` ); the musl and aarch64-windows targets remain dropped and the 2026-05-13 release cut succeeded with this matrix. Stays open as an upstream-tooling watch item ( re-adding either dropped target needs the underlying `musl-tools` C++ shipping bug or the cargo-xwin / clang `/imsvc` interop bug to be fixed upstream and re-tested in CI ).
 
 No code change beyond TODO.md and JOURNAL.md. The verification used `gh api repos/.../rulesets`, `gh api repos/.../rulesets/{id}`, `gh run list`, `git tag -l '*-v0.1.0'`, `git tag -l '*-v0.2.0'`, and reads of `CONTRIBUTING.md`, `SECURITY.md`, `.github/workflows/release.yml`, `.github/workflows/deploy-docs.yml`, and `dist-workspace.toml`.
+
+## 2026-05-17 — sccache-wrapper proc-macro caching fix ( `arc-swap-check-vs-build` resolved )
+
+### Symptom
+
+`./.agents/bin/cargo.sh check -p winterbaume-sqs-redis` ( and the per-crate clippy gate ) failed against the transitive `redis 0.27.6` dep with `error[E0463]: can't find crate for arc_swap`. Same crate built fine with `cargo build` and with the wrapper kill-switch ( `WB_RUSTC_CACHE=0` ).
+
+### Root cause
+
+The earlier TODO hypothesis — that the wrapper drops `--extern arc_swap=…` on the `cargo check` rustc invocation — was wrong. The actual chain is:
+
+1. **Proc-macro dylibs are non-deterministic across rustc invocations.** Four `librustversion-aab3bba6f82eb66b.dylib` files under `.agents-workspace/tmp/target-*/debug/deps/` produced four distinct sha1 sums even though their cargo extra-filename hash is identical. The non-determinism comes from rustc itself ( hash-table iteration order in proc-macro output ), not the wrapper.
+2. **The wrapper excluded proc-macros from caching** ( `parse_rustc_args` rejected `crate-type = "proc-macro"` ). So `rustversion` was rebuilt fresh per session and ended up with a different content + SVH each time.
+3. **`arc_swap` depends on `rustversion` at build time.** `arc_swap`'s rmeta records the SVH of the specific `rustversion` dylib it was compiled against. Comparing the cached and a freshly-built `libarc_swap-58d0e1aab43533e1.rmeta` showed they differ at byte 986, the first byte after the `rustversion` dep marker.
+4. **The wrapper cached `arc_swap` keyed by the proc-macro's `--extern` filename only** ( cargo's stable extra-filename hash ), not by the actual file content. So a cache HIT in a fresh session served an `arc_swap` rmeta whose embedded `rustversion` SVH did not match the freshly-built `rustversion` present in the new session's `deps/` dir.
+5. **The mismatch propagates downstream.** `redis`'s rmeta in turn records the SVH of `arc_swap`. When rustc compiles `winterbaume-sqs-redis`, it walks the chain `redis -> arc_swap -> rustversion` and fails the SVH check, surfacing as `E0463: can't find crate for redis` ( the lookup that triggers the dep walk ).
+
+`cargo build` worked because the build path runs through to completion within one session's artefact set, so the chain stays internally consistent. `cargo check` exposed the misalignment when the wrapper served cross-session proc-macro-affected rmetas.
+
+Reproduction recipe: `CLAUDE_CODE_SSE_PORT=test1 ./.agents/bin/cargo.sh check -p winterbaume-sqs-redis` against an existing wrapper cache populated by a different session.
+
+### Fix
+
+`tools/sccache-wrapper/src/main.rs`:
+
+1. Removed `proc-macro` from the crate-type exclusion list in `parse_rustc_args`, with a comment explaining the SVH chain so a future maintainer does not regress this.
+2. Added a `proc-macro` branch to `expected_output_files` that emits the host dynamic library — `lib<crate>-<ef>.dylib` on macOS, `lib<crate>-<ef>.so` on Linux, `<crate>-<ef>.dll` ( no `lib` prefix ) on Windows.
+
+Caching the proc-macro itself means the **first** session compiles it with the new wrapper, stores the dylib and writes a `.cachekey` sidecar; **every** later session restores byte-identical content via hardlink and the sidecar resolves to a stable dep-key. Downstream crates ( `arc_swap`, `serde`, … ) now key their own cache entries on the proc-macro's sidecar-derived cache key rather than on its file basename, so the SVH chain stays consistent across sessions by construction.
+
+### Verification
+
+- Failing reproduction now succeeds: `CLAUDE_CODE_SSE_PORT=… ./.agents/bin/cargo.sh check -p winterbaume-sqs-redis` exits 0 in a fresh target dir.
+- Per-crate clippy gate clean for both blocked crates: `cargo clippy -p winterbaume-sqs-redis --all-targets --all-features -- -D warnings` and same for `winterbaume-dynamodb-redis`; `cargo fmt -p <crate> -- --check` also clean.
+- Wrapper's own gate clean: `cargo clippy -p sccache-wrapper --all-targets --all-features -- -D warnings`, `cargo fmt -p sccache-wrapper -- --check`, and `cargo test -p sccache-wrapper` ( 24 passed ).
+- Smoke-tested an unrelated crate stack ( `winterbaume-core` ) in a fresh session to confirm no regression on the broader graph.
+
+### Cache-transition note
+
+Pre-fix wrapper cache entries for crates that consume proc-macros ( `arc_swap`, `serde`, `serde_json`, `redis`, … ) were keyed by the proc-macro's filename only. After the wrapper rebuild, the new key includes the proc-macro's sidecar-derived dep key, so old entries are unreachable and get superseded by fresh stores on the next compile. The existing `dump_cache --gc` path will reclaim them as duplicates accumulate. No manual cache wipe required; the transition is self-healing.
+
