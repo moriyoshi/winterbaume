@@ -6,6 +6,7 @@
 //! `encryption_type` default, and the `created_timestamp` constant are
 //! wired up here.
 
+use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -130,6 +131,7 @@ impl AwsKinesisStreamConverter {
             enhanced_monitoring: vec![],
             resource_policy: None,
             max_record_size_in_ki_b: None,
+            next_sequence_per_shard: HashMap::new(),
         };
 
         let mut state_view = KinesisStateView::default();

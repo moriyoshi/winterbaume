@@ -612,6 +612,7 @@ impl AwsRouteTableConverter {
             vpc_id,
             routes,
             associations,
+            propagating_vgws: vec![],
             tags,
         };
 
@@ -829,6 +830,7 @@ impl AwsRouteConverter {
                 vpc_id: String::new(),
                 routes: vec![route_view],
                 associations: vec![],
+                propagating_vgws: vec![],
                 tags: HashMap::new(),
             };
             state_view.route_tables.insert(route_table_id, rtb_view);
@@ -7481,6 +7483,7 @@ impl AwsMainRouteTableAssociationConverter {
                 rt.associations.push(RouteTableAssociationView {
                     association_id: assoc_id,
                     subnet_id: None,
+                    gateway_id: None,
                     main: true,
                     state: "associated".to_string(),
                 });
@@ -7591,16 +7594,14 @@ impl AwsRouteTableAssociationConverter {
             .clone()
             .unwrap_or_else(|| random_short_id("rtbassoc"));
         if let Some(rt) = view.route_tables.get_mut(&model.route_table_id) {
-            // The view doesn't track gateway_id on RouteTableAssociationView, so
-            // gateway-side associations are recorded as a subnet-less entry.
-            let already = rt
-                .associations
-                .iter()
-                .any(|a| a.subnet_id == model.subnet_id && !a.main);
+            let already = rt.associations.iter().any(|a| {
+                a.subnet_id == model.subnet_id && a.gateway_id == model.gateway_id && !a.main
+            });
             if !already {
                 rt.associations.push(RouteTableAssociationView {
                     association_id: assoc_id,
                     subnet_id: model.subnet_id.clone(),
+                    gateway_id: model.gateway_id.clone(),
                     main: false,
                     state: "associated".to_string(),
                 });
@@ -7950,6 +7951,16 @@ impl AwsAmiConverter {
             product_codes: vec![],
             fast_launch_state: None,
             deregistration_protection: None,
+            kernel_id: model.kernel_id,
+            ramdisk_id: model.ramdisk_id,
+            ena_support: Some(model.ena_support),
+            sriov_net_support: model.sriov_net_support,
+            tpm_support: model.tpm_support,
+            boot_mode: model.boot_mode,
+            imds_support: model.imds_support,
+            image_location: model.image_location,
+            source_image_id: None,
+            source_region: None,
         };
 
         let mut state_view = minimal_ec2_state_view();
@@ -8086,6 +8097,16 @@ impl AwsAmiCopyConverter {
             product_codes: vec![],
             fast_launch_state: None,
             deregistration_protection: None,
+            kernel_id: None,
+            ramdisk_id: None,
+            ena_support: None,
+            sriov_net_support: None,
+            tpm_support: None,
+            boot_mode: None,
+            imds_support: None,
+            image_location: None,
+            source_image_id: Some(model.source_ami_id),
+            source_region: Some(model.source_ami_region),
         };
 
         let mut state_view = minimal_ec2_state_view();
@@ -8187,6 +8208,16 @@ impl AwsAmiFromInstanceConverter {
             product_codes: vec![],
             fast_launch_state: None,
             deregistration_protection: None,
+            kernel_id: None,
+            ramdisk_id: None,
+            ena_support: None,
+            sriov_net_support: None,
+            tpm_support: None,
+            boot_mode: None,
+            imds_support: None,
+            image_location: None,
+            source_image_id: None,
+            source_region: None,
         };
 
         let mut state_view = minimal_ec2_state_view();
@@ -8427,19 +8458,13 @@ impl AwsVpcEndpointConverter {
             route_table_ids,
             subnet_ids,
             security_group_ids,
+            private_dns_enabled: Some(model.private_dns_enabled),
             tags,
         };
 
         let mut state_view = minimal_ec2_state_view();
         state_view.vpc_endpoints.insert(endpoint_id, endpoint);
-        let mut warnings = vec![];
-        if model.private_dns_enabled {
-            warnings.push(
-                "aws_vpc_endpoint: private_dns_enabled not modelled in VpcEndpointView state; \
-                 field ignored"
-                    .to_string(),
-            );
-        }
+        let warnings = vec![];
         self.service
             .merge(&ctx.default_account_id, &region, state_view)
             .await?;
@@ -16281,6 +16306,10 @@ fn parse_route_table_associations(attrs: &serde_json::Value) -> Vec<RouteTableAs
                         .to_string(),
                     subnet_id: a
                         .get("subnet_id")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string()),
+                    gateway_id: a
+                        .get("gateway_id")
                         .and_then(|v| v.as_str())
                         .map(|s| s.to_string()),
                     main: a.get("main").and_then(|v| v.as_bool()).unwrap_or(false),
