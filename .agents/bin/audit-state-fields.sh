@@ -126,6 +126,71 @@ counter_uses_with_fn() {
     ' "$file" | sort -u
 }
 
+# direct_counter_uses_with_fn <state.rs>
+# Heuristic B fallback for crates that do not use the EC2-style `self.counters`
+# substruct. Emits "<field>\t<fn-name>" pairs for every line that
+#
+#   - contains a `format!(` invocation ( typical for client-visible ID minting )
+#     AND a `self.<field>` reference, where `<field>` is NOT one of the
+#     well-known non-counter shapes ( see `is_known_noncounter` ).
+#
+# OR
+#
+#   - increments a `self.<field>` via `+= 1` / `= self.<field> + 1`. Counters
+#     are almost always incremented as part of the ID-minting step, so the
+#     intersection of "appears in format!" and "is incremented" is a strong
+#     candidate even when the surface field-name pattern differs from EC2's
+#     `counters.X` substruct.
+#
+# False positives are expected ( e.g. a `format!()` that interpolates a
+# `self.name` rather than a counter ); the report is a worklist for
+# /write-tests, not a compile gate.
+direct_counter_uses_with_fn() {
+    local file="$1"
+    awk '
+        function is_known_noncounter(name) {
+            return (name == "counters" || name == "notifier" || \
+                    name == "next_token" || name == "tags" || \
+                    name == "state" || name == "config" || \
+                    name == "metadata" || name == "items" || \
+                    name == "name" || name == "arn" || name == "id")
+        }
+        /^[[:space:]]*(pub )?(async )?fn [a-z_][a-z_0-9]*\(/ {
+            line = $0
+            sub(/.*fn /, "", line)
+            sub(/\(.*/, "", line)
+            current = line
+        }
+        {
+            # Emit on lines that look like ID-minting: a format! invocation
+            # combined with at least one self.<field> reference.
+            if (index($0, "format!(") > 0) {
+                tmp = $0
+                while (match(tmp, /self\.[a-z_][a-z0-9_]*/)) {
+                    token = substr(tmp, RSTART, RLENGTH)
+                    sub(/^self\./, "", token)
+                    if (!is_known_noncounter(token) && token != "") {
+                        print token "\t" current
+                    }
+                    tmp = substr(tmp, RSTART + RLENGTH)
+                }
+            }
+            # Also emit on lines that increment a self.<field>; counters
+            # almost always grow this way.
+            if (match($0, /self\.[a-z_][a-z0-9_]*[[:space:]]*\+=[[:space:]]*1/) || \
+                match($0, /self\.[a-z_][a-z0-9_]*[[:space:]]*=[[:space:]]*self\.[a-z_][a-z0-9_]*[[:space:]]*\+[[:space:]]*1/)) {
+                if (match($0, /self\.[a-z_][a-z0-9_]*/)) {
+                    token = substr($0, RSTART, RLENGTH)
+                    sub(/^self\./, "", token)
+                    if (!is_known_noncounter(token) && token != "") {
+                        print token "\t" current
+                    }
+                }
+            }
+        }
+    ' "$file" | sort -u
+}
+
 audit_crate() {
     local svc="$1"
     local crate_dir="$REPO_ROOT/crates/winterbaume-$svc"
@@ -240,11 +305,26 @@ audit_crate() {
 
     local counter_uses
     counter_uses=$(counter_uses_with_fn "$state_rs")
+    local used_fallback=0
 
     if [[ -z "$counter_uses" ]]; then
-        echo "_No \`self.counters.*\` references found in state.rs._" >> "$report"
+        # No EC2-style `self.counters.*` substruct — fall back to the direct
+        # `self.<field>` heuristic so non-EC2 crates that mint IDs through
+        # ad-hoc counter fields (e.g. `self.next_user_id`) still get audited.
+        counter_uses=$(direct_counter_uses_with_fn "$state_rs")
+        used_fallback=1
+    fi
+
+    if [[ -z "$counter_uses" ]]; then
+        echo "_No \`self.counters.*\` or direct ID-minting \`self.<counter>\` references found in state.rs._" >> "$report"
         echo >> "$report"
     else
+        if [[ "$used_fallback" -eq 1 ]]; then
+            {
+                echo "_Note: no \`self.counters\` substruct in this crate. Using the direct \`self.<field>\` fallback heuristic — fields that appear in a \`format!()\` ID-minting expression or are incremented via \`+= 1\`. Higher false-positive rate than the EC2 path._"
+                echo
+            } >> "$report"
+        fi
         # Group by counter name; flag groups with more than one distinct fn.
         local found_dup=0
         local current_counter=""
