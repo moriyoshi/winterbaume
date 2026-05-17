@@ -10783,6 +10783,7 @@ version = "0.2.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
+ "aws-sdk-appconfig",
  "aws-sdk-appconfigdata",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
@@ -10794,6 +10795,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "winterbaume-appconfig",
  "winterbaume-core",
 ]
 

@@ -916,3 +916,35 @@ Closed as a documented review with the existing state model.
 - `cargo test -p winterbaume-ec2 --no-fail-fast`: **592 main tests + 13 scenario tests, 0 failures** ( +1 from the new singleton-lifecycle test compared with the prior 591 ).
 
 The parent `ec2-terraform-state-layer-gaps` TODO is now `- [x]` with strike-throughs covering all five original sub-items.
+
+## 2026-05-18 — appconfigdata-shared-state ( high-severity state-coherence fix )
+
+Closed the **High severity** flag from the 2026-05-01 control-plane / data-plane audit: `winterbaume-appconfigdata::GetLatestConfiguration` now resolves the session's `(application_id, environment_id, configuration_profile_id)` through `winterbaume-appconfig`'s deployment state and returns the actual configuration bytes, not an empty payload.
+
+### Parent crate ( winterbaume-appconfig ) changes
+
+- `types::HostedConfigurationVersionData` gains `pub content: Vec<u8>` — the raw configuration bytes. Previously dropped on the floor by `handle_create_hosted_configuration_version`, which received the wire `Content` string and passed only the content-type + description to `state`.
+- `state::create_hosted_configuration_version` signature extended with `content: Vec<u8>`. The wire deserialiser hands a `String` over because the codegen maps blob -> String; the handler converts via `content.into_bytes()` and stores the raw bytes ( correct for text-based configs ; binary configs would be base64-decoded on the wire by the SDK before reaching the handler ).
+- New `AppConfigState::get_deployed_configuration(app_id, env_id, profile_id) -> Option<(&str, &[u8])>` walks `deployments`, picks the highest-numbered `COMPLETE` deployment for the target, parses its `configuration_version` as i32, and returns the matching hosted-version's content_type + content.
+- New `AppConfigService::shared_state() -> Arc<BackendState<AppConfigState>>` exposes the per-account/region state holder. Mirrors the `with_dynamodb_backend` pattern but uses `Arc<BackendState<...>>` directly instead of a `Backend` trait — AppConfig doesn't expose a trait abstraction and the state struct itself is the public API.
+- `views::HostedConfigurationVersionView` keeps its existing "Configuration content is excluded from snapshots" contract; the `From<HostedConfigurationVersionView> for HostedConfigurationVersionData` impl now initialises `content: Vec::new()` on the restore side.
+
+### Child crate ( winterbaume-appconfigdata ) changes
+
+- Workspace dep `winterbaume-appconfig = { workspace = true }` added in `Cargo.toml` ; dev-dep `aws-sdk-appconfig` added for the new end-to-end test.
+- `AppConfigDataService` gains `pub(crate) appconfig_state: Option<Arc<BackendState<AppConfigState>>>` field. `Self::new()` leaves it `None` ( legacy behaviour ; empty body, no resolution ). New constructor `Self::with_appconfig_state(state)` takes the `Arc` returned by `AppConfigService::shared_state()` and wires it up.
+- `handle_get_latest_configuration` re-shaped: validates token + captures the session's `(app, env, profile)` ; rotates the token ; drops the data-plane state lock ; then when `appconfig_state` is `Some`, acquires the parent state and calls `get_deployed_configuration` to resolve the bytes. Falls back to the legacy empty body when the parent state isn't wired or no deployment matches. Content-Type header now reflects the deployed configuration ( previously always `application/octet-stream` ).
+
+### Verification
+
+End-to-end integration test `test_get_latest_configuration_resolves_through_appconfig_state` covers the full path: build a `MockAws` with both services sharing one `Arc<BackendState<AppConfigState>>`, drive the AppConfig control plane via real `aws-sdk-appconfig` calls ( CreateApplication -> CreateEnvironment -> CreateConfigurationProfile with `location_uri = "hosted"` -> CreateHostedConfigurationVersion with an actual JSON payload -> CreateDeploymentStrategy ( immediate, 0-minute ) -> StartDeployment ( auto-completes in the mock ) ), drive the data plane via `aws-sdk-appconfigdata` ( StartConfigurationSession -> GetLatestConfiguration ), and assert the returned blob matches the uploaded JSON byte-for-byte and the Content-Type header is `application/json`.
+
+Per-crate gate clean on both: `winterbaume-appconfig` 47 tests + 3 doctests pass ; `winterbaume-appconfigdata` 7 tests ( +1 vs prior 6 ) + 1 doctest pass. clippy + fmt --check clean on both.
+
+### Compile-error caught mid-flight
+
+First build attempt failed with `E0382: borrow of partially moved value: resp` in the integration test — `resp.configuration.expect(...)` moves the field out, after which `resp.content_type()` can't borrow `resp`. Fixed by reading the content-type into a `String` before consuming the body. Worth remembering for future SDK-response tests: read scalar / borrowed accessors before `.expect()`-ing on the body field.
+
+### Limitations
+
+Only hosted configuration sources are resolved. AppConfig profiles can also reference S3 paths, SSM Parameter Store parameters, and Secrets Manager secrets ; those would need cross-service look-ups ( s3 -> bytes, ssm -> string, secretsmanager -> string ). Add when a real workflow needs them.

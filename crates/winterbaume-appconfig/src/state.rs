@@ -225,6 +225,7 @@ impl AppConfigState {
         configuration_profile_id: &str,
         content_type: &str,
         description: &str,
+        content: Vec<u8>,
     ) -> Result<&HostedConfigurationVersionData, AppConfigError> {
         // Verify the configuration profile exists
         let profile_key = (
@@ -256,10 +257,48 @@ impl AppConfigState {
             version_number: vn,
             content_type: content_type.to_string(),
             description: description.to_string(),
+            content,
         };
         self.hosted_configuration_versions
             .insert(key.clone(), version);
         Ok(self.hosted_configuration_versions.get(&key).unwrap())
+    }
+
+    /// Look up the configuration content currently deployed to
+    /// `(application_id, environment_id, configuration_profile_id)`.
+    ///
+    /// Returns the `(content_type, content)` of the hosted configuration
+    /// version referenced by the highest-numbered `COMPLETE` deployment
+    /// for that target, or `None` if no completed deployment exists or
+    /// the referenced hosted version is missing / un-parseable.
+    ///
+    /// Used by `winterbaume-appconfigdata::GetLatestConfiguration` to
+    /// resolve the actual deployed payload rather than returning an empty
+    /// body.
+    pub fn get_deployed_configuration(
+        &self,
+        application_id: &str,
+        environment_id: &str,
+        configuration_profile_id: &str,
+    ) -> Option<(&str, &[u8])> {
+        let deployment = self
+            .deployments
+            .values()
+            .filter(|d| {
+                d.application_id == application_id
+                    && d.environment_id == environment_id
+                    && d.configuration_profile_id == configuration_profile_id
+                    && d.state == "COMPLETE"
+            })
+            .max_by_key(|d| d.deployment_number)?;
+        let version_number: i32 = deployment.configuration_version.parse().ok()?;
+        let key = (
+            application_id.to_string(),
+            configuration_profile_id.to_string(),
+            version_number,
+        );
+        let version = self.hosted_configuration_versions.get(&key)?;
+        Some((version.content_type.as_str(), version.content.as_slice()))
     }
 
     pub fn get_hosted_configuration_version(

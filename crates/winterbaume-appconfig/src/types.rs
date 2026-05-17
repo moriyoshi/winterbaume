@@ -23,6 +23,13 @@ pub struct HostedConfigurationVersionData {
     pub version_number: i32,
     pub content_type: String,
     pub description: String,
+    /// Raw configuration content bytes. The AppConfig HTTP API exposes this
+    /// as a blob ( base64-encoded on the wire when carried in JSON request
+    /// bodies ); the mock stores the decoded bytes here, and emits them
+    /// unmodified from `appconfigdata::GetLatestConfiguration`. Excluded
+    /// from `HostedConfigurationVersionView` snapshots -- restored versions
+    /// re-materialise with empty content.
+    pub content: Vec<u8>,
 }
 
 #[derive(Debug, Clone)]

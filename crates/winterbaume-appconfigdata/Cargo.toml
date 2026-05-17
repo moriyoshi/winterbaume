@@ -10,6 +10,7 @@ description = "AWS AppConfig Data runtime service implementation for winterbaume
 
 [dependencies]
 winterbaume-core = { workspace = true }
+winterbaume-appconfig = { workspace = true }
 tokio = { workspace = true }
 bytes = { workspace = true }
 http = { workspace = true }
@@ -22,6 +23,7 @@ thiserror = { workspace = true }
 [dev-dependencies]
 aws-config = { workspace = true }
 aws-credential-types = { workspace = true, features = ["test-util"] }
+aws-sdk-appconfig = { workspace = true }
 aws-sdk-appconfigdata = { workspace = true }
 aws-smithy-runtime-api = { workspace = true }
 aws-smithy-types = { workspace = true }

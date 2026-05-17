@@ -28,6 +28,16 @@ impl AppConfigService {
             notifier: StateChangeNotifier::new(),
         }
     }
+
+    /// Returns an `Arc` clone of the underlying per-account/region state
+    /// holder. Used by `winterbaume-appconfigdata::AppConfigDataService::with_appconfig_state`
+    /// so the data-plane crate can resolve `GetLatestConfiguration` calls
+    /// against the same state this service exposes via the control-plane
+    /// API; pass the same `Arc` to both services from the test harness
+    /// and they will agree on what is deployed.
+    pub fn shared_state(&self) -> Arc<BackendState<AppConfigState>> {
+        Arc::clone(&self.state)
+    }
 }
 
 impl Default for AppConfigService {
@@ -880,12 +890,20 @@ impl AppConfigService {
             input.content_type.clone()
         };
         let description = input.description.unwrap_or_default();
+        // The Smithy `Content` member is a blob; the wire deserialiser
+        // delivers it as a `String` because the model uses
+        // `Vec<u8> -> String` for blob fields. Treat the string bytes as
+        // the raw content payload -- correct for text-based configs
+        // ( JSON, YAML, TEXT ) and for base64-decoded binary that callers
+        // pass through unchanged.
+        let content = input.content.clone().into_bytes();
         let mut state = state.write().await;
         match state.create_hosted_configuration_version(
             &input.application_id,
             &input.configuration_profile_id,
             &content_type,
             &description,
+            content,
         ) {
             Ok(version) => {
                 let mut resp = wire::serialize_create_hosted_configuration_version_response(

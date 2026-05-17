@@ -480,6 +480,9 @@ impl From<HostedConfigurationVersionView> for HostedConfigurationVersionData {
             version_number: v.version_number,
             content_type: v.content_type,
             description: v.description,
+            // Content is excluded from snapshots ( see `HostedConfigurationVersionView`
+            // doc comment ); restored versions re-materialise with empty bytes.
+            content: Vec::new(),
         }
     }
 }

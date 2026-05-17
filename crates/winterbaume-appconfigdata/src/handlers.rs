@@ -18,6 +18,13 @@ const X_AMZN_ERRORTYPE: HeaderName = HeaderName::from_static("x-amzn-errortype")
 pub struct AppConfigDataService {
     pub(crate) state: Arc<BackendState<AppConfigDataState>>,
     pub(crate) notifier: StateChangeNotifier<AppConfigDataStateView>,
+    /// Optional shared `winterbaume-appconfig` state. When wired,
+    /// `GetLatestConfiguration` resolves the session's
+    /// `( application_id, environment_id, configuration_profile_id )`
+    /// against the parent crate's deployed-configuration state and
+    /// returns the actual content. When `None` ( the default for
+    /// `Self::new()` ), the legacy empty-body behaviour is preserved.
+    pub(crate) appconfig_state: Option<Arc<BackendState<winterbaume_appconfig::AppConfigState>>>,
 }
 
 impl AppConfigDataService {
@@ -25,6 +32,42 @@ impl AppConfigDataService {
         Self {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
+            appconfig_state: None,
+        }
+    }
+
+    /// Construct an `AppConfigDataService` that resolves
+    /// `GetLatestConfiguration` against the parent `winterbaume-appconfig`
+    /// state.
+    ///
+    /// Pass the same `Arc` returned by
+    /// [`winterbaume_appconfig::AppConfigService::shared_state`] so the
+    /// control plane ( `winterbaume-appconfig`'s
+    /// `CreateHostedConfigurationVersion` + `StartDeployment` ) and the
+    /// data plane ( `winterbaume-appconfigdata`'s `GetLatestConfiguration` )
+    /// agree on what is deployed:
+    ///
+    /// ```no_run
+    /// use winterbaume_appconfig::AppConfigService;
+    /// use winterbaume_appconfigdata::AppConfigDataService;
+    /// use winterbaume_core::MockAws;
+    ///
+    /// let appconfig = AppConfigService::new();
+    /// let appconfig_data = AppConfigDataService::with_appconfig_state(
+    ///     appconfig.shared_state(),
+    /// );
+    /// let _mock = MockAws::builder()
+    ///     .with_service(appconfig)
+    ///     .with_service(appconfig_data)
+    ///     .build();
+    /// ```
+    pub fn with_appconfig_state(
+        appconfig_state: Arc<BackendState<winterbaume_appconfig::AppConfigState>>,
+    ) -> Self {
+        Self {
+            state: Arc::new(BackendState::new()),
+            notifier: StateChangeNotifier::new(),
+            appconfig_state: Some(appconfig_state),
         }
     }
 }
@@ -75,7 +118,7 @@ impl AppConfigDataService {
                 self.handle_start_configuration_session(&state, &body).await
             }
             ("GET", "/configuration") => {
-                self.handle_get_latest_configuration(&state, &request.uri)
+                self.handle_get_latest_configuration(&state, &request.uri, account_id, &region)
                     .await
             }
             _ => rest_json_error(404, "UnknownOperationException", "Not found"),
@@ -145,6 +188,8 @@ impl AppConfigDataService {
         &self,
         state: &Arc<tokio::sync::RwLock<AppConfigDataState>>,
         uri: &str,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let qs = parse_query_string(extract_query_string(uri));
         let token = match qs.get("configuration_token") {
@@ -158,24 +203,47 @@ impl AppConfigDataService {
             }
         };
 
-        // Validate the token, then rotate it for the next poll.
+        // Validate the token, capture the session's resolution keys, then
+        // rotate the token for the next poll.
         let mut state = state.write().await;
-        if state.get_session(&token).is_err() {
-            return appconfigdata_error_response(&AppConfigDataError::BadConfigurationToken {
-                token,
-            });
-        }
+        let session = match state.get_session(&token) {
+            Ok(s) => s.clone(),
+            Err(_) => {
+                return appconfigdata_error_response(&AppConfigDataError::BadConfigurationToken {
+                    token,
+                });
+            }
+        };
         let next_token = match state.rotate_token(&token) {
             Ok(t) => t,
             Err(e) => return appconfigdata_error_response(&e),
         };
+        drop(state);
 
-        // Empty configuration body. Real AppConfig integration would source this
-        // from the appconfig crate's hosted-configuration-version state.
+        // Resolve the deployed configuration through the parent
+        // `winterbaume-appconfig` state when wired. Without it, fall back
+        // to the legacy empty body so callers that only ever use the data
+        // plane keep working.
+        let (content_type, body): (String, bytes::Bytes) =
+            if let Some(appconfig_state) = self.appconfig_state.as_ref() {
+                let parent = appconfig_state.get(account_id, region);
+                let parent = parent.read().await;
+                match parent.get_deployed_configuration(
+                    &session.application_id,
+                    &session.environment_id,
+                    &session.configuration_profile_id,
+                ) {
+                    Some((ct, content)) => (ct.to_string(), bytes::Bytes::copy_from_slice(content)),
+                    None => ("application/octet-stream".to_string(), bytes::Bytes::new()),
+                }
+            } else {
+                ("application/octet-stream".to_string(), bytes::Bytes::new())
+            };
+
         let mut resp = MockResponse {
             status: 200,
             headers: http::HeaderMap::new(),
-            body: bytes::Bytes::new(),
+            body,
         };
         resp.headers.insert(
             HeaderName::from_static("next-poll-configuration-token"),
@@ -187,7 +255,9 @@ impl AppConfigDataService {
         );
         resp.headers.insert(
             http::header::CONTENT_TYPE,
-            "application/octet-stream".parse().unwrap(),
+            content_type
+                .parse()
+                .unwrap_or_else(|_| "application/octet-stream".parse().unwrap()),
         );
         resp
     }
