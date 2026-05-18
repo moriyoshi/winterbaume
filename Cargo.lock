@@ -10782,7 +10782,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appconfigdata"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13241,7 +13241,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kinesisvideo"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13263,7 +13263,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kinesisvideoarchivedmedia"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14479,7 +14479,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sagemaker"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14988,7 +14988,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sesv2"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

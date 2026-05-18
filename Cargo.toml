@@ -563,7 +563,7 @@ winterbaume-accessanalyzer = { version = "0.2.0", path = "crates/winterbaume-acc
 winterbaume-aiops = { version = "0.2.0", path = "crates/winterbaume-aiops" }
 winterbaume-amplifybackend = { version = "0.2.0", path = "crates/winterbaume-amplifybackend" }
 winterbaume-amplifyuibuilder = { version = "0.2.0", path = "crates/winterbaume-amplifyuibuilder" }
-winterbaume-appconfigdata = { version = "0.2.0", path = "crates/winterbaume-appconfigdata" }
+winterbaume-appconfigdata = { version = "0.3.0", path = "crates/winterbaume-appconfigdata" }
 winterbaume-appfabric = { version = "0.2.0", path = "crates/winterbaume-appfabric" }
 winterbaume-appflow = { version = "0.2.0", path = "crates/winterbaume-appflow" }
 winterbaume-appintegrations = { version = "0.2.0", path = "crates/winterbaume-appintegrations" }
@@ -647,7 +647,7 @@ winterbaume-elasticache = { version = "0.2.0", path = "crates/winterbaume-elasti
 winterbaume-elasticloadbalancing = { version = "0.2.0", path = "crates/winterbaume-elasticloadbalancing" }
 winterbaume-elasticloadbalancingv2 = { version = "0.2.0", path = "crates/winterbaume-elasticloadbalancingv2" }
 winterbaume-cognitoidentityprovider = { version = "0.2.0", path = "crates/winterbaume-cognitoidentityprovider" }
-winterbaume-sesv2 = { version = "0.2.0", path = "crates/winterbaume-sesv2" }
+winterbaume-sesv2 = { version = "0.3.0", path = "crates/winterbaume-sesv2" }
 winterbaume-ses = { version = "0.2.0", path = "crates/winterbaume-ses" }
 winterbaume-ec2instanceconnect = { version = "0.2.0", path = "crates/winterbaume-ec2instanceconnect" }
 winterbaume-ec2-generated = { version = "0.2.0", path = "crates/winterbaume-ec2-generated" }
@@ -712,7 +712,7 @@ winterbaume-fsx = { version = "0.2.0", path = "crates/winterbaume-fsx" }
 winterbaume-memorydb = { version = "0.2.0", path = "crates/winterbaume-memorydb" }
 winterbaume-ebs = { version = "0.2.0", path = "crates/winterbaume-ebs" }
 winterbaume-networkfirewall = { version = "0.2.0", path = "crates/winterbaume-networkfirewall" }
-winterbaume-sagemaker = { version = "0.2.0", path = "crates/winterbaume-sagemaker" }
+winterbaume-sagemaker = { version = "0.3.0", path = "crates/winterbaume-sagemaker" }
 winterbaume-appsync = { version = "0.2.0", path = "crates/winterbaume-appsync" }
 winterbaume-iot = { version = "0.2.0", path = "crates/winterbaume-iot" }
 winterbaume-kafka = { version = "0.2.0", path = "crates/winterbaume-kafka" }
@@ -767,7 +767,7 @@ winterbaume-rolesanywhere = { version = "0.2.0", path = "crates/winterbaume-role
 winterbaume-servicecatalog = { version = "0.2.0", path = "crates/winterbaume-servicecatalog" }
 winterbaume-timestreamwrite = { version = "0.2.0", path = "crates/winterbaume-timestreamwrite" }
 winterbaume-connectcampaigns = { version = "0.2.0", path = "crates/winterbaume-connectcampaigns" }
-winterbaume-kinesisvideo = { version = "0.2.0", path = "crates/winterbaume-kinesisvideo" }
+winterbaume-kinesisvideo = { version = "0.3.0", path = "crates/winterbaume-kinesisvideo" }
 winterbaume-sso = { version = "0.2.0", path = "crates/winterbaume-sso" }
 winterbaume-ssoadmin = { version = "0.2.0", path = "crates/winterbaume-ssoadmin" }
 winterbaume-servicecatalogappregistry = { version = "0.2.0", path = "crates/winterbaume-servicecatalogappregistry" }
@@ -777,7 +777,7 @@ winterbaume-marketplacemetering = { version = "0.2.0", path = "crates/winterbaum
 winterbaume-sagemakermetrics = { version = "0.2.0", path = "crates/winterbaume-sagemakermetrics" }
 winterbaume-sagemakerruntime = { version = "0.2.0", path = "crates/winterbaume-sagemakerruntime" }
 winterbaume-iotdataplane = { version = "0.2.0", path = "crates/winterbaume-iotdataplane" }
-winterbaume-kinesisvideoarchivedmedia = { version = "0.2.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
+winterbaume-kinesisvideoarchivedmedia = { version = "0.3.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
 winterbaume-resourcegroupstagging = { version = "0.2.0", path = "crates/winterbaume-resourcegroupstagging" }
 winterbaume-applicationautoscaling = { version = "0.2.0", path = "crates/winterbaume-applicationautoscaling" }
 winterbaume-autoscaling = { version = "0.2.0", path = "crates/winterbaume-autoscaling" }
