@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Internal
+
+- Model and wire definitions regenerated from updated Smithy models during cross-crate maintenance sweep.
+
 ## v0.2.0 - 2026-05-13
 
 ### Internal

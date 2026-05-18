@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Added
+
+- Shared-backend support for SES identities, enabling unified state management across v1 and v2 API families.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

@@ -8,6 +8,27 @@ Each crate is versioned independently via `cargo-release`. Release tags use the
 `<crate-name>-v<version>` convention (e.g. `winterbaume-s3-v0.2.0`); the umbrella
 `winterbaume` crate uses `winterbaume-v<version>`.
 
+## 2026-05-18
+
+- `winterbaume-account` v0.3.0: see [`crates/winterbaume-account/CHANGELOG.md`](crates/winterbaume-account/CHANGELOG.md).
+- `winterbaume-appconfig` v0.3.0: see [`crates/winterbaume-appconfig/CHANGELOG.md`](crates/winterbaume-appconfig/CHANGELOG.md).
+- `winterbaume-appconfigdata` v0.3.0: see [`crates/winterbaume-appconfigdata/CHANGELOG.md`](crates/winterbaume-appconfigdata/CHANGELOG.md).
+- `winterbaume-applicationsignals` v0.3.0: see [`crates/winterbaume-applicationsignals/CHANGELOG.md`](crates/winterbaume-applicationsignals/CHANGELOG.md).
+- `winterbaume-batch` v0.3.0: see [`crates/winterbaume-batch/CHANGELOG.md`](crates/winterbaume-batch/CHANGELOG.md).
+- `winterbaume-ec2` v0.3.0: see [`crates/winterbaume-ec2/CHANGELOG.md`](crates/winterbaume-ec2/CHANGELOG.md).
+- `winterbaume-ivs` v0.3.0: see [`crates/winterbaume-ivs/CHANGELOG.md`](crates/winterbaume-ivs/CHANGELOG.md).
+- `winterbaume-kinesis` v0.2.1: see [`crates/winterbaume-kinesis/CHANGELOG.md`](crates/winterbaume-kinesis/CHANGELOG.md).
+- `winterbaume-kinesisvideo` v0.3.0: see [`crates/winterbaume-kinesisvideo/CHANGELOG.md`](crates/winterbaume-kinesisvideo/CHANGELOG.md).
+- `winterbaume-kinesisvideoarchivedmedia` v0.3.0: see [`crates/winterbaume-kinesisvideoarchivedmedia/CHANGELOG.md`](crates/winterbaume-kinesisvideoarchivedmedia/CHANGELOG.md).
+- `winterbaume-opensearch` v0.3.0: see [`crates/winterbaume-opensearch/CHANGELOG.md`](crates/winterbaume-opensearch/CHANGELOG.md).
+- `winterbaume-organizations` v0.3.0: see [`crates/winterbaume-organizations/CHANGELOG.md`](crates/winterbaume-organizations/CHANGELOG.md).
+- `winterbaume-sagemaker` v0.3.0: see [`crates/winterbaume-sagemaker/CHANGELOG.md`](crates/winterbaume-sagemaker/CHANGELOG.md).
+- `winterbaume-sagemakerruntime` v0.3.0: see [`crates/winterbaume-sagemakerruntime/CHANGELOG.md`](crates/winterbaume-sagemakerruntime/CHANGELOG.md).
+- `winterbaume-ses` v0.3.0: see [`crates/winterbaume-ses/CHANGELOG.md`](crates/winterbaume-ses/CHANGELOG.md).
+- `winterbaume-sesv2` v0.3.0: see [`crates/winterbaume-sesv2/CHANGELOG.md`](crates/winterbaume-sesv2/CHANGELOG.md).
+- `winterbaume-sqs-redis` v0.2.1: see [`crates/winterbaume-sqs-redis/CHANGELOG.md`](crates/winterbaume-sqs-redis/CHANGELOG.md).
+- `winterbaume-terraform` v0.2.1: see [`crates/winterbaume-terraform/CHANGELOG.md`](crates/winterbaume-terraform/CHANGELOG.md).
+
 ## Unreleased
 
 - No changes since the v0.2.0 batch.

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Added
+- `GetLatestConfiguration` now resolves through shared AppConfig state, enabling proper configuration token tracking across requests.
+
+### Documentation
+- Updated README to reflect current API coverage.
+
+### Tests
+- Added integration tests for `GetLatestConfiguration` behaviour.
+
 ## v0.2.0 - 2026-05-13
 
 ### Internal

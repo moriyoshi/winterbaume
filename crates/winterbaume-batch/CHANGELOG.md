@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Internal
+
+- Regenerated wire and model code from updated Smithy specifications; no user-visible behaviour changes.
+
 ## v0.2.0 - 2026-05-13
 
 ### Internal

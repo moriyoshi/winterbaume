@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.1 - 2026-05-18
+
+### Fixed
+- Resolved issue in SQS-Redis backend implementation
+
+### Documentation
+- Updated documentation
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

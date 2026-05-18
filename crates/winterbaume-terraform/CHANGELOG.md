@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.1 - 2026-05-18
+
+### Fixed
+
+- Updated EC2 and Kinesis converters to handle newly added view struct fields, maintaining serialisation compatibility with current service implementations.
+
 ## v0.2.0 - 2026-05-14
 
 ### Changed

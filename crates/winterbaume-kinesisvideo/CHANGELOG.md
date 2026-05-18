@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Internal
+
+- Maintenance release with internal validation improvements and documentation updates.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

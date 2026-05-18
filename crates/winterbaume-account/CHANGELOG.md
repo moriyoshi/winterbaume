@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Internal
+- Regenerated wire and model code as part of cross-crate codegen maintenance; introduces breaking API changes detected by semver analysis (major version bump).
+
 ## v0.2.0 - 2026-05-13
 
 ### Internal

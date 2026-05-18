@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Internal
+- Identity operations now share backend implementation with SES v1 for improved consistency across service versions.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

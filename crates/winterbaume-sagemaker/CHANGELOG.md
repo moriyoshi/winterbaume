@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Added
+- Parent-state validation for SageMaker Runtime operations to ensure consistent state handling.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal

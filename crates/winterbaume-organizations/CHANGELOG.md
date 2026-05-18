@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0 - 2026-05-18
+
+### Internal
+
+- Regenerated wire and model modules from updated Smithy specifications, adding 184 new public API model items and introducing breaking changes to existing model types.
+
 ## v0.2.0 - 2026-05-14
 
 ### Internal
