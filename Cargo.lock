@@ -10531,7 +10531,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-account"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10763,7 +10763,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-appconfig"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -10951,7 +10951,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-applicationsignals"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -11223,7 +11223,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-batch"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13137,7 +13137,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ivs"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
