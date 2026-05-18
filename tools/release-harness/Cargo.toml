@@ -1,22 +1,25 @@
 [package]
-name = "release-batch"
+name = "release-harness"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 publish = false
-description = "Chunked cargo-release driver for the crates.io publish_new rate limit"
+description = "Per-crate semver bump planner and selective-publish driver"
 
 [dependencies]
+chrono = { workspace = true }
 clap = { version = "4", features = ["derive"] }
 httpdate = "1"
+regex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+toml = "0.8"
 ureq = { version = "2", default-features = false, features = ["tls"] }
 
 [lints]
 workspace = true
 
 [[bin]]
-name = "release-batch"
+name = "release-harness"
 path = "src/main.rs"

@@ -1073,3 +1073,103 @@ The cross-crate state-sharing pattern is now repeated four times ( appconfig/app
 - Translation happens at the bridge layer ( deterministic derivation of v1-only fields ) rather than direct passthrough — neither side is a strict subset of the other.
 
 The basic pattern shape ( `shared_state()` + `with_<parent>_state()` + per-handler branch + legacy fallback ) still applies cleanly.
+## 2026-05-18 — Per-crate release harness ( `tools/release-harness/` )
+
+### Motivation
+
+Since the 2026-05-13/14 v0.2.0 batch ( all 241 publishable crates flat-bumped via `release-batch` ), crate evolution has been uneven. A `git diff winterbaume-server-v0.2.0..HEAD -- crates/` showed:
+
+- 18 crates with substantive `src/**` changes ( ec2, kinesis, ses, sesv2, appconfig, appconfigdata, kinesisvideoarchivedmedia, sagemakerruntime, opensearch, ivs, batch, applicationsignals, organizations, account, sagemaker, kinesisvideo, sqs-redis, terraform ).
+- 223 crates whose only diff was a regenerated `README.md` ( + back-filled `CHANGELOG.md` v0.2.0 entry ) from the bulk regen commit `4760384f`.
+- The umbrella `winterbaume` crate at the workspace root.
+
+The next cycle's two options without tooling were both bad: ( a ) flat workspace-wide bump → 240 noisy releases of mostly-unchanged crates, or ( b ) hand-pick per-crate bumps → error-prone across 241 crates. The harness exists to compute the smallest semantically correct delta automatically.
+
+### Design
+
+New Rust binary at `tools/release-harness/`, sibling to `tools/release-batch/`. Three idempotent stages, each invocation safe to re-run:
+
+1. `plan` — discover and classify. For each publishable crate, resolve the latest `<crate>-v<X.Y.Z>` tag, `git diff` since, subtract a cosmetic-paths filter ( `README.md`, `CHANGELOG.md`, `NOTICE`, `LICENSE`, images, `**/docs/**` ), then:
+   - If the remainder is empty → `skip` ( doc-only ).
+   - If any added line under `src/**` starts with `+pub fn|struct|enum|trait|mod|const|static|type|use ` ( excluding `pub(...)` ) → candidate `minor`.
+   - Otherwise → candidate `patch`.
+   - For candidates ≥ patch, run `cargo semver-checks check-release -p <name> --release-type <candidate>` against the latest crates.io version; any breaking lint escalates to `major`. If the tool isn't installed, the plan warns and falls back to heuristic-only — never silently downgrades.
+   - An optional `release-plan-overrides.toml` at the repo root always wins, with values `"skip" | "patch" | "minor" | "major" | "<literal-semver>"`.
+   - Output: `release-plan.toml` ( gitignored ) plus a stdout summary grouped by bump level.
+2. `changelog` — read the plan, run `git log <last-tag>..HEAD --first-parent -- <crate-dir>/` per non-skip crate, bucket commits by conventional-commit-style prefix ( `feat:` → Added, `fix:` → Fixed, `chore:` → Internal, etc. ), prepend a fresh `## v<next> - <date>` section to each `crates/<name>/CHANGELOG.md`, refresh the root umbrella `CHANGELOG.md`. Mechanical draft — the operator ( or the `generate-changelog` skill ) polishes the wording before committing.
+3. `publish` — group plan entries by bump level ( `patch`, `minor`, `major`, plus each pinned literal version as its own one-crate group ) and dispatch `tools/release-batch/ --version <level-or-version> --crates <list>` once per group. `--execute` runs it; without it, the planned commands are printed.
+
+The umbrella `winterbaume` crate ( whose `manifest_path` parent equals the workspace root ) has no single directory to diff, so the harness skips it by default and requires an explicit pin in `release-plan-overrides.toml` to publish.
+
+Errors are per-module enums ( `plan::Error`, `changelog::Error`, `publish::Error` ); `main()` unifies via `Box<dyn std::error::Error>` for the top-level dispatch. The version representation is a hand-rolled 3-tuple ( no `semver` crate dep ) just rich enough to parse, render, and bump-by-level; the bump table matches cargo-release's pre-1.0 semantics ( `Minor` and `Major` both step the minor axis when `major == 0` ).
+
+### Extension to `release-batch`
+
+Added `--crates <name>...` and `--crates-file <path>` ( mutually exclusive ) to `tools/release-batch/`. Without either, behaviour is unchanged ( every publishable workspace member is in scope ). With either, the topology sort still runs across the supplied subset and the chunking / 429-retry / crates.io resumability logic operates on that subset. The harness's stage 3 is the only caller today.
+
+### Smoke test against current HEAD
+
+`release-harness plan --skip-semver-checks` against the live workspace classified 241 crates as:
+
+- 18 changed: 15 `minor` ( the SES shared-backend reorg, EC2 ImageView expansion, state-coherence work, ... ) and 3 `patch` ( `winterbaume-kinesis` fix, `winterbaume-sqs-redis` fix, `winterbaume-terraform` converter catch-up ).
+- 223 `skip` doc-only ( matching the bulk README regen commit's blast radius ).
+- 0 `unchanged` ( because every crate did receive at least a README touch ).
+- 0 `initial` ( all 241 crates already tagged at v0.2.0 ).
+
+`release-harness publish --plan ...` dry-run produced two `release-batch` invocations: one `--version minor --crates ...` for the 15 minor crates and one `--version patch --crates ...` for the 3 patch crates. Matches the manual analysis exactly.
+
+### Pitfalls hit
+
+- TOML round-trip: fields marked `#[serde(skip_serializing_if = "...")]` need `#[serde(default)]` too, otherwise the deserialiser rejects the file the serialiser wrote ( the optional fields are absent on disk but required when reading back ). `publish` failed on its first run with `missing field "files_changed"` because `Vec` defaults to non-default-on-deserialize unless the attribute is explicit.
+- The umbrella crate at the workspace root: stripping `pkg.dir()` against `root` yields an empty path, which becomes `"/"` as a pathspec and `git diff` rejects it with `fatal: '/' is outside repository`. The fix is to short-circuit umbrella detection ( `pkg.dir() == root` ) before constructing the pathspec, after the override check so an explicit pin still works.
+- `cargo-semver-checks` exit codes don't cleanly distinguish "tool errored" from "breaking lint fired". The harness disambiguates by scanning combined stdout+stderr for `FAIL` / `semver requires` / `breaking change` / `required bump` markers, returning `Outcome::Unavailable` ( with a warning ) if no verdict marker is present. Operators are expected to install the tool ( `cargo install cargo-semver-checks` ) when they want real breaking-change detection.
+
+### Gate
+
+Per-crate gate clean on both crates: fmt --check, clippy --all-targets --all-features -D warnings, 4 unit tests on `release-harness` ( version parsing + bump table ), 13 unit tests on `release-batch` ( unchanged from prior, all still passing after the `--crates` extension ). `RELEASE.md` gained a "Per-Crate Semver Harness ( steady-state releases )" section and the execution checklist now references the harness path before the existing cargo-release dry-run step. `.gitignore` excludes `release-plan.toml` but intentionally not `release-plan-overrides.toml` — when overrides are used, they should land in the same commit as the changelog draft so reviewers can see the decision.
+
+### Not done
+
+- The `changelog` stage was not exercised against the live tree: it would write 18 per-crate CHANGELOG drafts and modify the root CHANGELOG.md, which is appropriate to do at the start of an actual release cycle, not during harness validation. The string-templating path is type-checked and the `version` module's bump table is unit-tested; first real-run feedback will come when the next steady-state release cycle begins.
+- Cross-crate bump propagation ( bumping `winterbaume-core` forcing all dependants to bump ) is out of scope; the operator handles this via `release-plan-overrides.toml` for now. Worth revisiting once a real case forces the question.
+
+## 2026-05-18 — release-batch consolidated into release-harness
+
+Followed up the morning's `release-harness` introduction by absorbing `tools/release-batch/` into it as a sibling `batch` module + subcommand, so the workspace has one release binary instead of two.
+
+### Why
+
+The original split was incidental, not principled: `release-batch` predated the harness and was used directly for first-launch on 2026-05-13/14. With the harness landing this morning, two cracks appeared:
+
+1. The harness's `publish` stage shelled out to `release-batch` as a subprocess, even though both lived in the same workspace and were always built together. The path-resolution dance ( prefer `$CARGO_TARGET_DIR/release/release-batch`, then `target/release/release-batch`, then `release-batch` on PATH ) failed under agent runs where `cargo.sh` mints per-session target dirs and the operator never had to build release-batch separately.
+2. Two binaries meant two `cargo metadata` calls per invocation, two copies of `topo_sort` / `publishable_members`, two `Cargo.toml`s in `[workspace.metadata.release]`'s `publish = false` list, two clippy/fmt gates to keep green.
+
+### Shape after consolidation
+
+`tools/release-harness/src/` now contains a `batch` module ( renamed from the old `release-batch/src/main.rs`, ~430 lines plus 13 unit tests ) and a `publish::run_batch` entry point. The CLI grew one subcommand:
+
+```
+release-harness plan         # discover + classify (unchanged)
+release-harness changelog    # draft changelogs   (unchanged)
+release-harness publish      # plan-driven chunked publish (now in-process)
+release-harness batch        # direct chunked publish, no plan (new — replaces the old binary)
+```
+
+`publish` now calls `batch::run_chunked(BatchOptions {...})` directly instead of spawning a subprocess. Both subcommands feed into the same `BatchOptions` struct, so the chunking / 429 retry / crates.io resumability / `parse_already_published` / `parse_uploaded` / `parse_retry_after` / `backfill_tag` machinery has exactly one implementation. The 13 batch-related unit tests round-tripped unchanged.
+
+### One real improvement, two cosmetic ones
+
+- Real: `publish` now sorts each bump-level group by the workspace-wide topology ( computed once via `topo_sort` over every publishable member ) before passing the subset to `batch::run_chunked`. Previously, ordering inside a group came from the harness's `BTreeMap` iteration order, which is alphabetical by crate name — fine when no in-group dependencies exist, wrong when they do. The smoke test caught it: the `minor` group now publishes `sesv2` before `ses` ( ses depends on sesv2 via the shared-backend reorg ), where the unmerged design would have published them in alphabetical order.
+- Cosmetic 1: `parse_uploaded` early-returns an empty set when the version argument is a level keyword ( `patch` / `minor` / `major` ). Previously the binary did this check at the call site via `args.version.as_deref().unwrap_or_default()`; now it lives inside the helper itself, with a unit test ( `parse_uploaded_skipped_for_level_keywords` ) pinning the behaviour. The tag-backfill loop is unconditional in `batch::run_chunked` and depends on this being correct.
+- Cosmetic 2: `BatchOptions` carries `sleep_between_chunks: Duration` and `retry_buffer: Duration` instead of raw `u64` seconds, so the math at the call site is `+= opts.retry_buffer` instead of `+= Duration::from_secs(args.retry_buffer)`. Saves a layer of `Duration::from_secs` on every retry path.
+
+### Migration
+
+- Deleted `tools/release-batch/` entirely ( `Cargo.toml`, `src/main.rs`, and the dependency on it from the workspace `members` list ).
+- `httpdate = "1"` and `ureq = { version = "2", default-features = false, features = ["tls"] }` migrated from the deleted crate's `Cargo.toml` into the harness's. They're the only deps that weren't already there.
+- `RELEASE.md` lost the "Publish Rate Limit and the `release-batch` Driver" section and its dedicated "Per-Crate Semver Harness" section; both folded into one "Release Harness ( `tools/release-harness/` )" section that describes all four subcommands. The execution checklist's two release-batch references collapsed to one harness reference.
+- The `release-batch: publish = false` line in RELEASE.md's exclusion list is gone too — there's no such crate any more.
+
+### Gate
+
+Per-crate gate clean: clippy --all-targets --all-features -D warnings, fmt --check, 18 unit tests ( 4 `version::tests`, 13 `batch::tests`, 1 each from the others ). End-to-end smoke test against current HEAD reproduces the morning's plan output ( 18 changed, 223 doc-only skip, 15 minor + 3 patch ) and the `publish` dry-run now shows topology-sorted crate lists per group. `batch --version patch --crates winterbaume-s3 winterbaume-sqs` dry-run renders the same `$ cargo release patch ...` chunk preview the old binary produced.

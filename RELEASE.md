@@ -55,45 +55,89 @@ Configured in `[workspace.metadata.release]` in the root `Cargo.toml`:
 | `tag-name` | `{{crate_name}}-v{{version}}` | Per-crate tags compatible with cargo-dist |
 | `verify` | `false` | Skip build verification during publish because cross-crate dependencies may not be on crates.io yet |
 
-### Publish Rate Limit and the `release-batch` Driver
-
-crates.io enforces a `publish_new` rate limit (default: 5 new crates per 10 minutes). cargo (not cargo-release) checks this upfront before a multi-crate batch run and rejects the entire run when the planned new-crate count exceeds the quota, so a single `cargo release --workspace --execute` cannot publish 240 new crates in one go.
-
-The `release-batch` tool at `tools/release-batch/` drives cargo-release in chunks of at most `--chunk-size` crates per invocation, sleeping `--sleep` seconds between invocations so the rate window slides. Each invocation passes cargo's upfront check because its batch size stays under the limit.
-
-```sh
-# Build once.
-./.agents/bin/cargo.sh build -p release-batch --release
-
-# Plan-only — prints the topologically ordered chunks without invoking cargo-release.
-./target/release/release-batch --version 0.1.0
-
-# Real run, unattended.
-./target/release/release-batch --version 0.1.0 --execute --no-confirm
-
-# Real run with GPG-signed commits and tags.
-./target/release/release-batch --version 0.1.0 --execute --sign --no-confirm
-```
-
-Behaviour:
-
-- Reads workspace members via `cargo metadata`, drops `publish = false` crates, topologically sorts the rest so dependencies publish before dependants.
-- Skips crates that are already at the target version on crates.io (queried over the public crates.io API), making mid-launch retries idempotent. Pass `--skip-version-check` to opt out.
-- Per chunk, runs `cargo release <version> -p crate1 -p crate2 ...` with optional `--sign`, `--no-confirm`, `--execute`. Sleeps `--sleep` seconds between chunks (default: 660 = 600s rate window + 60s buffer).
-- A chunk that fails with crates.io HTTP 429 ("publish_new" rate limit) is retried automatically. The driver tees cargo's output, parses the embedded `Please try again after <date> GMT` deadline from the 429 body, sleeps until then plus `--retry-buffer` seconds (default: 30), and re-runs the same chunk. Up to `--max-retries` retries per chunk (default: 3); other failure modes still abort immediately.
-- A failing chunk that is not a recoverable rate-limit hit aborts the run with a non-zero exit code. Re-running the same command resumes from the first crate that has not yet been published at the target version.
-- The cargo executable used for `metadata`, `locate-project`, and `release` is configurable via `--cargo <path>` or the `WB_CARGO` environment variable, so the driver can be pointed at the project's wrapper script (e.g. `WB_CARGO=./.agents/bin/cargo.sh ./target/release/release-batch ...`).
-
-Operational notes:
-
-- **First launch wall time.** 240 new crates ÷ 5 per chunk × 660 s/chunk ≈ 8.5 hours unattended. Plan accordingly, or request a higher `publish_new` rate from crates.io support before launch and raise `--chunk-size` to match.
-- **Subsequent releases.** After the first launch every crate already exists on crates.io, so the much higher `publish_existing` rate applies. You can switch back to a single `cargo release patch --workspace --execute` for steady-state releases, or keep using `release-batch` (it remains correct — just slower than needed).
-
 ### Excluded From Publishing
 
 - `winterbaume-e2e-tests`: `publish = false`
 - `smithy-codegen`: `publish = false`
 - `sccache-wrapper`: `publish = false`
+- `release-harness`: `publish = false`
+
+### Release Harness (`tools/release-harness/`)
+
+A single Rust binary owns the release lifecycle: it both classifies per-crate semver bumps from `git diff` since each crate's last `<crate>-v<ver>` tag and drives the chunked `cargo release` invocations that respect the crates.io `publish_new` rate limit (default: 5 new crates per 10 minutes, which would otherwise reject a workspace-wide release upfront).
+
+Four subcommands. The first three are the steady-state per-crate flow; `batch` is the bypass mode for first-launch or targeted retries.
+
+```sh
+# Steady-state: per-crate semver bumps + selective publish
+./.agents/bin/cargo.sh run -p release-harness -- plan
+./.agents/bin/cargo.sh run -p release-harness -- changelog
+./.agents/bin/cargo.sh run -p release-harness -- publish                              # dry-run
+./.agents/bin/cargo.sh run -p release-harness -- publish --execute --sign --no-confirm
+
+# Bypass mode: chunked publish at one version across every (or a listed) crate
+./.agents/bin/cargo.sh run -p release-harness -- batch --version 0.1.0                # dry-run
+./.agents/bin/cargo.sh run -p release-harness -- batch --version 0.1.0 --execute --sign --no-confirm
+./.agents/bin/cargo.sh run -p release-harness -- batch --version 0.1.0 --crates winterbaume-s3 winterbaume-sqs --execute
+```
+
+#### `plan` — discovery + per-crate semver classification
+
+For each publishable crate, resolve the latest `<crate>-v<X.Y.Z>` tag, `git diff` since, classify:
+
+| Outcome | Trigger |
+|---------|---------|
+| `unchanged` | No files changed since the tag. |
+| `skip` | Only cosmetic files changed: `README.md`, `CHANGELOG.md`, `NOTICE`, `LICENSE`, images, or anything under a `docs/` subdirectory. Not published. |
+| `patch` | At least one substantive file changed (`src/**`, `tests/**`, `Cargo.toml`, ...) and no new public symbols added. |
+| `minor` | A new `pub fn` / `pub struct` / `pub enum` / `pub trait` / `pub mod` / `pub const` / `pub static` / `pub type` / `pub use` line was added under `src/**` since the last tag. |
+| `major` | `cargo-semver-checks check-release` reports at least one breaking lint at the candidate level. Under 0.y.z this resolves to `0.y → 0.(y+1)`. |
+| `pinned` | Operator forced a literal version in `release-plan-overrides.toml`. |
+| `initial` | No prior `<crate>-v<ver>` tag — publish at the current `Cargo.toml` version with no bump. |
+
+For the `major` escalation to fire, install the tool: `cargo install cargo-semver-checks`. Without it, the harness falls back to the heuristic alone and warns. It never silently downgrades.
+
+Per-crate overrides go in `release-plan-overrides.toml` at the repo root (checked in when used). Override entries always win over the heuristic + semver-checks classification:
+
+```toml
+[bumps]
+winterbaume-ec2 = "minor"     # force a level
+winterbaume-foo = "skip"      # exclude
+winterbaume-bar = "0.3.1"     # pin a literal version
+```
+
+Output: `release-plan.toml` at the repo root (gitignored) plus a stdout summary grouped by bump level.
+
+#### `changelog` — per-crate CHANGELOG drafts
+
+Reads `release-plan.toml`. For each non-skip crate, runs `git log <last-tag>..HEAD -- <crate-dir>/`, buckets commits by conventional-commit-style prefix (`feat:` → Added, `fix:` → Fixed, etc.), and prepends a fresh `## v<next> - <date>` section to that crate's `CHANGELOG.md`. The root umbrella `CHANGELOG.md` gets a matching dated rollup. Drafts are mechanical — polish the wording (or invoke the `generate-changelog` skill) before committing.
+
+#### `publish` — chunked publish grouped by bump level
+
+Groups plan entries by bump level (`patch`, `minor`, `major`, plus each pinned literal version as its own one-crate group) and runs one chunked `cargo release` per group, in-process. Without `--execute`, prints the planned invocations and exits. With `--execute`, drives the actual publish.
+
+#### `batch` — direct chunked publish, no plan file
+
+The bypass mode. Takes `--version <level-or-semver>` and an optional `--crates <names>...` / `--crates-file <path>` subset, runs the same chunked-publish logic without going through a plan. Used for:
+
+- **First launch.** No prior tags exist, every crate ships at the same fresh version. Drive the entire workspace in one `batch` run.
+- **Targeted retries.** A specific crate fails mid-cycle; re-run just that one without re-classifying the whole workspace.
+
+Chunked-publish behaviour (shared by `publish` and `batch`):
+
+- Reads workspace members via `cargo metadata`, drops `publish = false` crates, topologically sorts the in-scope subset so dependencies publish before dependants.
+- Skips crates that are already at the target version on crates.io, making mid-launch retries idempotent. Pass `--skip-version-check` to opt out.
+- Per chunk, runs `cargo release <version> -p crate1 -p crate2 ...` with optional `--sign`, `--no-confirm`. Sleeps `--sleep` seconds between chunks (default: 660 = 600s rate window + 60s buffer).
+- A chunk that fails with crates.io HTTP 429 ("publish_new" rate limit) is retried automatically: tees cargo's output, parses the embedded `Please try again after <date> GMT` deadline, sleeps until then plus `--retry-buffer` seconds (default: 30), and re-runs the same chunk. Up to `--max-retries` retries per chunk (default: 3); other failure modes still abort immediately.
+- A failing chunk that is not a recoverable rate-limit hit aborts with a non-zero exit code. Re-running resumes from the first crate not yet at the target version on crates.io.
+- The cargo executable is configurable via `--cargo <path>` or the `WB_CARGO` environment variable, so the harness can be pointed at the project's wrapper script.
+
+Operational notes:
+
+- **First-launch wall time.** 240 new crates ÷ 5 per chunk × 660 s/chunk ≈ 8.5 hours unattended. Plan accordingly, or request a higher `publish_new` rate from crates.io support before launch and raise `--chunk-size` to match.
+- **Subsequent releases.** After the first launch every crate already exists on crates.io, so the much higher `publish_existing` rate applies and `publish` (or a `batch --chunk-size <large>`) finishes in minutes.
+
+`release-plan.toml` is gitignored. `release-plan-overrides.toml` is not — when overrides are used, they should be visible in the same commit that lands the changelog draft.
 
 ## Binary Release
 
@@ -142,9 +186,9 @@ git push origin winterbaume-server-v0.1.1
 - [ ] Run local verification or confirm the same checks pass in CI: fmt, clippy, workspace tests, examples, Terraform E2E, docs build, and cargo-dist release plan.
 - [ ] Regenerate API coverage and README if any service, Terraform converter, or generated service page changed before release.
 - [ ] Generate or refresh `CHANGELOG.md` with the `generate-changelog` skill, including relevant per-crate changelogs for the release set.
-- [ ] Dry-run the planned crate release with cargo-release, for example `./.agents/bin/cargo.sh release patch -p winterbaume-s3`.
-- [ ] For the first public launch (or any batch above the `publish_new` rate limit), build and use the `release-batch` driver: `./.agents/bin/cargo.sh build -p release-batch --release` then plan-only run `./target/release/release-batch --version <ver>`. Budget the wall time accordingly (~8.5 hours for 240 new crates at the default rate, less if a higher rate is granted).
-- [ ] Publish crates with cargo-release: for steady-state releases, repeat the planned command with `--execute`. For the first public launch (240 new crates), drive cargo-release through `./target/release/release-batch --version <ver> --execute --no-confirm` (add `--sign` if signing).
+- [ ] For steady-state releases, run the release harness: `./.agents/bin/cargo.sh run -p release-harness -- plan`, inspect `release-plan.toml`, then `./.agents/bin/cargo.sh run -p release-harness -- changelog` and review the per-crate CHANGELOG diffs.
+- [ ] Dry-run the publish: `./.agents/bin/cargo.sh run -p release-harness -- publish` for the plan-driven case, or `./.agents/bin/cargo.sh run -p release-harness -- batch --version <ver>` for first-launch / single-version mode. Budget the wall time accordingly for first launch (~8.5 hours for 240 new crates at the default rate, less if a higher rate is granted).
+- [ ] Publish: re-run the same harness command with `--execute --sign --no-confirm` for unattended GPG-signed runs.
 - [ ] Push the `winterbaume-server-vX.Y.Z` tag after crate publish succeeds.
 - [ ] Verify GitHub Release artefacts, checksums, bundled `LICENSE`, bundled `README.md`, and platform archive contents.
 - [ ] Verify docs deploy after release.

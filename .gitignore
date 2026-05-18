@@ -8,3 +8,8 @@ Thumbs.db
 *.rej
 *.swo
 *.swp
+# Output of `release-harness plan`. Override file is intentionally NOT
+# ignored — when the operator needs explicit per-crate bump overrides, the
+# `release-plan-overrides.toml` is checked in alongside the rest of the
+# release process so reviewers can see the decision.
+release-plan.toml

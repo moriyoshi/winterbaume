@@ -270,7 +270,7 @@ members = [
     "crates/winterbaume-wafv2-wcu-calculator",
     "crates/winterbaume-wafv2-webacl-rule-parser",
     # Tools
-    "tools/release-batch",
+    "tools/release-harness",
     "tools/sccache-wrapper",
     "tools/smithy-codegen",
     "tools/tf-converter-codegen",
