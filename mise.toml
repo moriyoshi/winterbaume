@@ -1,6 +1,6 @@
 [env]
 SCCACHE_WRAPPER = { value = "{{config_root}}/target/debug/sccache-wrapper{% if os() == 'windows' %}.exe{% endif %}" }
-RELEASE_BATCH = { value = "{{config_root}}/target/debug/release-batch{% if os() == 'windows' %}.exe{% endif %}" }
+RELEASE_HARNESS = { value = "{{config_root}}/target/debug/release-harness{% if os() == 'windows' %}.exe{% endif %}" }
 WB_WORKSPACE_ROOT = { value = "{{config_root}}" }
 WB_RUSTC_CACHE_DIR = { value = "{{config_root}}/.agents-workspace/tmp/winterbaume-rustc-cache" }
 WB_SCCACHE_WRAPPER_SCOREBOARD = { value = "{{config_root}}/.agents-workspace/tmp/sccache-wrapper-scoreboard" }
@@ -24,20 +24,20 @@ outputs = [
   "{{config_root}}/target/debug/sccache-wrapper{% if os() == 'windows' %}.exe{% endif %}",
 ]
 
-[tasks.build-release-batch]
+[tasks.build-release-harness]
 env = {
   CARGO_TARGET_DIR = "{{config_root}}/target"
 }
 run = '''
-if [ ! -e "{{config_root}}/target/debug/release-batch" ]; then RUSTC_WRAPPER= cargo build -p release-batch; fi'''
+if [ ! -e "{{config_root}}/target/debug/release-harness" ]; then RUSTC_WRAPPER= cargo build -p release-harness; fi'''
 run_windows = '''
-if (Test-Path "{{config_root}}/target/debug/release-batch.exe") { $env:RUSTC_WRAPPER = ""; cargo build -p release-batch }
+if (Test-Path "{{config_root}}/target/debug/release-harness.exe") { $env:RUSTC_WRAPPER = ""; cargo build -p release-harness }
 '''
 sources = [
-  "{{config_root}}/tools/release-batch/src/*.rs",
+  "{{config_root}}/tools/release-harness/src/*.rs",
 ]
 outputs = [
-  "{{config_root}}/target/debug/release-batch{% if os() == 'windows' %}.exe{% endif %}",
+  "{{config_root}}/target/debug/release-harness{% if os() == 'windows' %}.exe{% endif %}",
 ]
 
 [tasks.download-duckdb-binary]
@@ -111,10 +111,40 @@ depends = ["build-sccache-wrapper"]
 run = "${SCCACHE_WRAPPER} --show-scoreboard"
 run_windows = "& $env:SCCACHE_WRAPPER --show-scoreboard"
 
+# Release harness entry points. The four tasks below mirror the four
+# subcommands of `tools/release-harness/`. The steady-state per-crate flow is
+# `release-plan` → `release-changelog` → `release-publish`. The `release` task
+# stays as the direct chunked-publish bypass for first-launch or targeted
+# retries (former `release-batch` UX).
+
 [tasks.release]
 usage = '''
 arg "[options]" var=#true
 '''
-depends = ["build-release-batch"]
-run = "${RELEASE_BATCH} --sign ${usage_options[@]}"
-run_windows = "& $env:RELEASE_BATCH --sign ${usage_options[@]}"
+depends = ["build-release-harness"]
+run = "${RELEASE_HARNESS} batch --sign ${usage_options[@]}"
+run_windows = "& $env:RELEASE_HARNESS batch --sign ${usage_options[@]}"
+
+[tasks.release-plan]
+usage = '''
+arg "[options]" var=#true
+'''
+depends = ["build-release-harness"]
+run = "${RELEASE_HARNESS} plan ${usage_options[@]}"
+run_windows = "& $env:RELEASE_HARNESS plan ${usage_options[@]}"
+
+[tasks.release-changelog]
+usage = '''
+arg "[options]" var=#true
+'''
+depends = ["build-release-harness"]
+run = "${RELEASE_HARNESS} changelog ${usage_options[@]}"
+run_windows = "& $env:RELEASE_HARNESS changelog ${usage_options[@]}"
+
+[tasks.release-publish]
+usage = '''
+arg "[options]" var=#true
+'''
+depends = ["build-release-harness"]
+run = "${RELEASE_HARNESS} publish --sign ${usage_options[@]}"
+run_windows = "& $env:RELEASE_HARNESS publish --sign ${usage_options[@]}"
