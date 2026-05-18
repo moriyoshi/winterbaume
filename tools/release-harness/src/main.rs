@@ -16,6 +16,7 @@ mod changelog;
 mod git;
 mod metadata;
 mod plan;
+mod polisher;
 mod publish;
 mod semver_checks;
 mod version;
@@ -94,6 +95,13 @@ struct ChangelogArgs {
     /// Defaults to today's date in UTC.
     #[arg(long)]
     date: Option<String>,
+
+    /// Which AI CLI to use for editorial polish. Choices: claude, codex,
+    /// copilot, cursor, auto (default). With `auto`, the harness tries each
+    /// in that order and uses the first one on PATH. The `WB_RELEASE_POLISHER`
+    /// environment variable provides a default when this flag is omitted.
+    #[arg(long, default_value = "auto")]
+    polisher: String,
 }
 
 #[derive(Parser, Debug)]

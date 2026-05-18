@@ -7,24 +7,26 @@
 //! entry, this module:
 //!
 //! 1. shells out to `draft_section.py` to get a mechanical draft;
-//! 2. feeds that draft + the skill's editorial rules to `claude -p` for the
-//!    editorial polish;
+//! 2. feeds that draft + the skill's editorial rules to an AI coding CLI for
+//!    the editorial polish — see `polisher` module for the supported
+//!    backends (claude, codex, copilot, cursor);
 //! 3. prepends the polished section to the crate's `CHANGELOG.md`.
 //!
-//! `claude` on PATH is a hard requirement — the polished output is what the
-//! release expects to ship. Operators who want the raw mechanical draft can
-//! invoke `draft_section.py` directly. The harness owns all file IO so the
-//! model only ever generates text.
+//! At least one supported AI CLI on PATH is a hard requirement — the polished
+//! output is what the release expects to ship. Operators who want the raw
+//! mechanical draft can invoke `draft_section.py` directly. The harness owns
+//! all file IO so the model only ever generates text.
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, ExitCode};
 
 use chrono::Utc;
 
 use crate::ChangelogArgs;
 use crate::metadata::{CargoExe, cargo_metadata, publishable_members, workspace_root};
 use crate::plan::{BumpDecision, Plan};
+use crate::polisher;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -48,12 +50,8 @@ pub enum Error {
     },
     #[error(transparent)]
     Utf8(#[from] std::string::FromUtf8Error),
-    #[error(
-        "claude CLI not on PATH. Install it (e.g. `npm i -g @anthropic-ai/claude-code`) \
-         and re-run, or invoke `draft_section.py` directly from the \
-         generate-changelog skill if you only need the raw mechanical draft."
-    )]
-    ClaudeMissing,
+    #[error(transparent)]
+    Polisher(#[from] polisher::Error),
 }
 
 /// Resolve the absolute path to a skill script. We prefer
@@ -135,25 +133,23 @@ fn draft_umbrella(
     run_python(&script, args)
 }
 
-fn polish_with_claude(
+fn polish_prompt(
     root: &Path,
     crate_name: &str,
     next_version: Option<&str>,
     mechanical_draft: &str,
 ) -> Result<String, Error> {
-    // Skill instructions are the editorial source of truth.
     let skill_md = fs::read_to_string(
         root.join(".agents")
             .join("skills")
             .join("generate-changelog")
             .join("SKILL.md"),
     )?;
-
     let heading_form = match next_version {
         Some(v) => format!("`## v{v} - <YYYY-MM-DD>`"),
         None => "`## Unreleased`".to_string(),
     };
-    let prompt = format!(
+    Ok(format!(
         "You are polishing a CHANGELOG.md section for the crate `{crate_name}`.\n\
          \n\
          A mechanical draft is provided below. Your job is to rewrite it per the \
@@ -179,40 +175,7 @@ fn polish_with_claude(
          --- BEGIN MECHANICAL DRAFT ---\n\
          {mechanical_draft}\
          --- END MECHANICAL DRAFT ---\n",
-    );
-
-    // Probe for the CLI before invoking — gives a cleaner error than the
-    // subprocess failure.
-    if Command::new("claude")
-        .arg("--version")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .map(|s| !s.success())
-        .unwrap_or(true)
-    {
-        return Err(Error::ClaudeMissing);
-    }
-
-    let out = Command::new("claude")
-        .args([
-            "-p",
-            &prompt,
-            "--model",
-            "claude-sonnet-4-6",
-            "--output-format",
-            "text",
-        ])
-        .current_dir(root)
-        .output()?;
-    if !out.status.success() {
-        return Err(Error::Script {
-            script: "claude -p".to_string(),
-            status: out.status.to_string(),
-            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
-        });
-    }
-    Ok(String::from_utf8(out.stdout)?)
+    ))
 }
 
 fn upsert_crate_changelog(path: &Path, section: &str) -> Result<(), Error> {
@@ -270,6 +233,10 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
     let pkg_by_name: std::collections::BTreeMap<&str, &crate::metadata::Package> =
         members.iter().map(|p| (p.name.as_str(), *p)).collect();
 
+    let env_override = std::env::var("WB_RELEASE_POLISHER").ok();
+    let backend = polisher::resolve(Some(args.polisher.as_str()), env_override.as_deref())?;
+    eprintln!("polisher: {} ({})", backend.label(), backend.binary());
+
     let date = args
         .date
         .clone()
@@ -296,12 +263,8 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
         let next = entry.next.as_deref().unwrap_or(entry.current.as_str());
 
         let mechanical = draft_section(&root, &entry.name, Some(next), &date, Some(pkg.dir()))?;
-        let section = ensure_trailing_newline(polish_with_claude(
-            &root,
-            &entry.name,
-            Some(next),
-            &mechanical,
-        )?);
+        let prompt = polish_prompt(&root, &entry.name, Some(next), &mechanical)?;
+        let section = ensure_trailing_newline(polisher::polish(backend, &root, &prompt)?);
 
         let cl_path = pkg.dir().join("CHANGELOG.md");
         upsert_crate_changelog(&cl_path, &section)?;
@@ -322,8 +285,9 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
     }
 
     println!(
-        "wrote {touched} polished per-crate CHANGELOG section(s) for date {date}; \
-         root CHANGELOG.md updated."
+        "wrote {touched} polished per-crate CHANGELOG section(s) for date {date} \
+         via {}; root CHANGELOG.md updated.",
+        backend.label(),
     );
     Ok(ExitCode::SUCCESS)
 }
