@@ -3,16 +3,18 @@
 //! plan.
 //!
 //! The mechanical bullet-extraction lives in the skill at
-//! `.agents/skills/generate-changelog/scripts/`, so this module is just an
-//! orchestrator: it picks plan entries that need a changelog section, shells
-//! out to the right script, captures stdout, and prepends the result to the
-//! correct file. The skill stays the single source of truth for the bullet
-//! shape, category labels, and umbrella link format.
+//! `.agents/skills/generate-changelog/scripts/`. For every non-skip plan
+//! entry, this module:
 //!
-//! With `--polish`, the captured raw draft is fed to `claude -p` along with
-//! the skill's editorial rules, and the polished output is prepended instead.
-//! When `claude` isn't on PATH, the raw draft is used and a warning is
-//! emitted — we never silently downgrade.
+//! 1. shells out to `draft_section.py` to get a mechanical draft;
+//! 2. feeds that draft + the skill's editorial rules to `claude -p` for the
+//!    editorial polish;
+//! 3. prepends the polished section to the crate's `CHANGELOG.md`.
+//!
+//! `claude` on PATH is a hard requirement — the polished output is what the
+//! release expects to ship. Operators who want the raw mechanical draft can
+//! invoke `draft_section.py` directly. The harness owns all file IO so the
+//! model only ever generates text.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -47,8 +49,9 @@ pub enum Error {
     #[error(transparent)]
     Utf8(#[from] std::string::FromUtf8Error),
     #[error(
-        "claude CLI not on PATH; pass --no-polish to use the mechanical draft, \
-             or install `claude` and re-run"
+        "claude CLI not on PATH. Install it (e.g. `npm i -g @anthropic-ai/claude-code`) \
+         and re-run, or invoke `draft_section.py` directly from the \
+         generate-changelog skill if you only need the raw mechanical draft."
     )]
     ClaudeMissing,
 }
@@ -293,24 +296,12 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
         let next = entry.next.as_deref().unwrap_or(entry.current.as_str());
 
         let mechanical = draft_section(&root, &entry.name, Some(next), &date, Some(pkg.dir()))?;
-
-        let section = if args.polish {
-            match polish_with_claude(&root, &entry.name, Some(next), &mechanical) {
-                Ok(p) => ensure_trailing_newline(p),
-                Err(Error::ClaudeMissing) => {
-                    eprintln!(
-                        "warn: claude CLI not on PATH for {}; falling back to \
-                         mechanical draft. Install `claude` or pass --no-polish \
-                         to silence.",
-                        entry.name,
-                    );
-                    mechanical
-                }
-                Err(e) => return Err(e),
-            }
-        } else {
-            mechanical
-        };
+        let section = ensure_trailing_newline(polish_with_claude(
+            &root,
+            &entry.name,
+            Some(next),
+            &mechanical,
+        )?);
 
         let cl_path = pkg.dir().join("CHANGELOG.md");
         upsert_crate_changelog(&cl_path, &section)?;
@@ -331,9 +322,8 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
     }
 
     println!(
-        "drafted {touched} per-crate CHANGELOG section(s) for date {date}{}; \
-         root CHANGELOG.md updated.",
-        if args.polish { " ( polished )" } else { "" },
+        "wrote {touched} polished per-crate CHANGELOG section(s) for date {date}; \
+         root CHANGELOG.md updated."
     );
     Ok(ExitCode::SUCCESS)
 }
