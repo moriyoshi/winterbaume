@@ -23,10 +23,107 @@ use crate::types::{EventDestination, ReceiptRule, Template};
 use crate::views::SesV1StateView;
 use crate::wire;
 
+/// Shared-state bridge helpers for the v1/v2 identity-family unit of
+/// work ( `ses-v1-v2-shared-backend` TODO ). All shared-mode identity
+/// reads/writes go through `winterbaume_sesv2::SesState.identities` ;
+/// these helpers translate between v1's wire-level semantics and v2's
+/// `EmailIdentity` shape.
+mod sesv2_identity {
+    use std::collections::HashMap;
+    use std::hash::{DefaultHasher, Hash, Hasher};
+
+    use chrono::Utc;
+    use winterbaume_sesv2::types::EmailIdentity;
+
+    /// Build a newly-verified `EmailIdentity` for an email or domain
+    /// identity created via the v1 `VerifyEmail*` / `VerifyDomain*`
+    /// APIs. Mirrors `winterbaume_sesv2::SesState::create_email_identity`
+    /// for the auto-verify behaviour the mock uses.
+    pub fn make_verified_identity(name: &str) -> EmailIdentity {
+        let identity_type = if name.contains('@') {
+            "EMAIL_ADDRESS"
+        } else {
+            "DOMAIN"
+        };
+        EmailIdentity {
+            name: name.to_string(),
+            identity_type: identity_type.to_string(),
+            verified: true,
+            created_timestamp: Utc::now(),
+            policies: HashMap::new(),
+            tags: HashMap::new(),
+            configuration_set_name: None,
+            dkim_signing_enabled: identity_type == "DOMAIN",
+            dkim_signing_key_type: None,
+            dkim_domain: None,
+            feedback_forwarding_enabled: true,
+            mail_from_domain: None,
+            behavior_on_mx_failure: None,
+        }
+    }
+
+    /// Domain verification token derived deterministically from the
+    /// domain name. Matches the algorithm in
+    /// `SesV1State::verify_domain_identity` so wired and unwired paths
+    /// produce the same token for the same input.
+    pub fn derive_verification_token(domain: &str) -> String {
+        let mut hasher = DefaultHasher::new();
+        domain.hash(&mut hasher);
+        let token = format!("{:x}", hasher.finish());
+        format!("{token}{token}")
+    }
+
+    /// SES domain DKIM tokens. Real AWS returns 3 selector tokens that
+    /// callers add to DNS ; the mock returns the same deterministic
+    /// `dkimN.<domain>` triple `SesV1State::verify_domain_identity` uses.
+    pub fn derive_dkim_tokens(domain: &str) -> Vec<String> {
+        vec![
+            format!("dkim1.{domain}"),
+            format!("dkim2.{domain}"),
+            format!("dkim3.{domain}"),
+        ]
+    }
+
+    /// True if `identity_type` from v2's `EmailIdentity` matches the
+    /// optional v1 `IdentityType` filter ( `"EmailAddress"` or
+    /// `"Domain"`, case as defined by the legacy v1 wire model ).
+    pub fn matches_v1_filter(v2_identity_type: &str, v1_filter: Option<&str>) -> bool {
+        match v1_filter {
+            None => true,
+            Some("") => true,
+            Some("EmailAddress") => v2_identity_type == "EMAIL_ADDRESS",
+            Some("Domain") => v2_identity_type == "DOMAIN",
+            // Unknown filter values match nothing ; matches v1 behaviour.
+            _ => false,
+        }
+    }
+}
+
 /// SES v1 service handler.
 pub struct SesService {
     pub(crate) state: Arc<BackendState<SesV1State>>,
     pub(crate) notifier: StateChangeNotifier<SesV1StateView>,
+    /// Optional shared `winterbaume-sesv2` state. When wired, the
+    /// identity-related v1 handlers ( `VerifyEmailAddress`,
+    /// `VerifyEmailIdentity`, `VerifyDomainIdentity`, `DeleteIdentity`,
+    /// `ListIdentities`, `ListVerifiedEmailAddresses`,
+    /// `GetIdentityVerificationAttributes`, `GetIdentityDkimAttributes` )
+    /// read and write `SesState.identities` instead of the local
+    /// `SesV1State.identities` map, so identities created via either
+    /// API are visible to the other.
+    ///
+    /// When `None` ( the default for `Self::new()` ), the legacy
+    /// v1-local behaviour is preserved so unit tests that exercise
+    /// only the SES v1 surface keep working without standing up the
+    /// v2 service.
+    ///
+    /// First family of the per-family unit of work documented in
+    /// `.agents/docs/TODO.md` `ses-v1-v2-shared-backend` — only
+    /// identities are shared in this commit ; configuration sets,
+    /// templates, suppression list, dedicated IP pools, and
+    /// account-level settings will follow the same pattern as
+    /// per-family sub-followups.
+    pub(crate) sesv2_state: Option<Arc<BackendState<winterbaume_sesv2::SesState>>>,
 }
 
 impl SesService {
@@ -34,6 +131,36 @@ impl SesService {
         Self {
             state: Arc::new(BackendState::new()),
             notifier: StateChangeNotifier::new(),
+            sesv2_state: None,
+        }
+    }
+
+    /// Construct a `SesService` whose identity-related operations read
+    /// and write the shared `winterbaume-sesv2` state instead of the
+    /// crate-local `SesV1State.identities` map.
+    ///
+    /// Pass the same `Arc` returned by
+    /// [`winterbaume_sesv2::SesV2Service::shared_state`] so the legacy
+    /// v1 API and the modern v2 API agree on which email identities
+    /// exist regardless of which API created or deleted them:
+    ///
+    /// ```no_run
+    /// use winterbaume_core::MockAws;
+    /// use winterbaume_ses::SesService;
+    /// use winterbaume_sesv2::SesV2Service;
+    ///
+    /// let sesv2 = SesV2Service::new();
+    /// let ses = SesService::with_sesv2_state(sesv2.shared_state());
+    /// let _mock = MockAws::builder()
+    ///     .with_service(ses)
+    ///     .with_service(sesv2)
+    ///     .build();
+    /// ```
+    pub fn with_sesv2_state(sesv2_state: Arc<BackendState<winterbaume_sesv2::SesState>>) -> Self {
+        Self {
+            state: Arc::new(BackendState::new()),
+            notifier: StateChangeNotifier::new(),
+            sesv2_state: Some(sesv2_state),
         }
     }
 }
@@ -114,18 +241,38 @@ impl SesService {
         ];
 
         let response = match action {
-            "VerifyEmailAddress" => self.handle_verify_email_address(&state, &params).await,
-            "VerifyEmailIdentity" => self.handle_verify_email_identity(&state, &params).await,
-            "VerifyDomainIdentity" => self.handle_verify_domain_identity(&state, &params).await,
-            "DeleteIdentity" => self.handle_delete_identity(&state, &params).await,
-            "ListIdentities" => self.handle_list_identities(&state, &params).await,
-            "ListVerifiedEmailAddresses" => self.handle_list_verified_email_addresses(&state).await,
-            "GetIdentityVerificationAttributes" => {
-                self.handle_get_identity_verification_attributes(&state, &params)
+            "VerifyEmailAddress" => {
+                self.handle_verify_email_address(&state, &params, account_id, &region)
                     .await
             }
+            "VerifyEmailIdentity" => {
+                self.handle_verify_email_identity(&state, &params, account_id, &region)
+                    .await
+            }
+            "VerifyDomainIdentity" => {
+                self.handle_verify_domain_identity(&state, &params, account_id, &region)
+                    .await
+            }
+            "DeleteIdentity" => {
+                self.handle_delete_identity(&state, &params, account_id, &region)
+                    .await
+            }
+            "ListIdentities" => {
+                self.handle_list_identities(&state, &params, account_id, &region)
+                    .await
+            }
+            "ListVerifiedEmailAddresses" => {
+                self.handle_list_verified_email_addresses(&state, account_id, &region)
+                    .await
+            }
+            "GetIdentityVerificationAttributes" => {
+                self.handle_get_identity_verification_attributes(
+                    &state, &params, account_id, &region,
+                )
+                .await
+            }
             "GetIdentityDkimAttributes" => {
-                self.handle_get_identity_dkim_attributes(&state, &params)
+                self.handle_get_identity_dkim_attributes(&state, &params, account_id, &region)
                     .await
             }
             "GetIdentityMailFromDomainAttributes" => {
@@ -211,6 +358,8 @@ impl SesService {
         &self,
         state: &Arc<tokio::sync::RwLock<SesV1State>>,
         params: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_verify_email_address_request(params) {
             Ok(v) => v,
@@ -218,6 +367,16 @@ impl SesService {
         };
         if input.email_address.is_empty() {
             return ses_error(400, "InvalidParameter", "Missing EmailAddress");
+        }
+        if let Some(sesv2_state) = self.sesv2_state.as_ref() {
+            let shared = sesv2_state.get(account_id, region);
+            let mut shared = shared.write().await;
+            shared
+                .identities
+                .entry(input.email_address.clone())
+                .and_modify(|id| id.verified = true)
+                .or_insert_with(|| sesv2_identity::make_verified_identity(&input.email_address));
+            return wire::serialize_verify_email_address_response();
         }
         let mut state = state.write().await;
         state.verify_email_address(&input.email_address);
@@ -228,6 +387,8 @@ impl SesService {
         &self,
         state: &Arc<tokio::sync::RwLock<SesV1State>>,
         params: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_verify_email_identity_request(params) {
             Ok(v) => v,
@@ -235,6 +396,18 @@ impl SesService {
         };
         if input.email_address.is_empty() {
             return ses_error(400, "InvalidParameter", "Missing EmailAddress");
+        }
+        if let Some(sesv2_state) = self.sesv2_state.as_ref() {
+            let shared = sesv2_state.get(account_id, region);
+            let mut shared = shared.write().await;
+            shared
+                .identities
+                .entry(input.email_address.clone())
+                .and_modify(|id| id.verified = true)
+                .or_insert_with(|| sesv2_identity::make_verified_identity(&input.email_address));
+            return wire::serialize_verify_email_identity_response(
+                &wire::VerifyEmailIdentityResponse {},
+            );
         }
         let mut state = state.write().await;
         state.verify_email_identity(&input.email_address);
@@ -245,6 +418,8 @@ impl SesService {
         &self,
         state: &Arc<tokio::sync::RwLock<SesV1State>>,
         params: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_verify_domain_identity_request(params) {
             Ok(v) => v,
@@ -252,6 +427,21 @@ impl SesService {
         };
         if input.domain.is_empty() {
             return ses_error(400, "InvalidParameter", "Missing Domain");
+        }
+        if let Some(sesv2_state) = self.sesv2_state.as_ref() {
+            let shared = sesv2_state.get(account_id, region);
+            let mut shared = shared.write().await;
+            shared
+                .identities
+                .entry(input.domain.clone())
+                .and_modify(|id| id.verified = true)
+                .or_insert_with(|| sesv2_identity::make_verified_identity(&input.domain));
+            let token = sesv2_identity::derive_verification_token(&input.domain);
+            return wire::serialize_verify_domain_identity_response(
+                &wire::VerifyDomainIdentityResponse {
+                    verification_token: Some(token),
+                },
+            );
         }
         let mut state = state.write().await;
         let token = state.verify_domain_identity(&input.domain);
@@ -264,6 +454,8 @@ impl SesService {
         &self,
         state: &Arc<tokio::sync::RwLock<SesV1State>>,
         params: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_delete_identity_request(params) {
             Ok(v) => v,
@@ -271,6 +463,15 @@ impl SesService {
         };
         if input.identity.is_empty() {
             return ses_error(400, "InvalidParameter", "Missing Identity");
+        }
+        if let Some(sesv2_state) = self.sesv2_state.as_ref() {
+            let shared = sesv2_state.get(account_id, region);
+            let mut shared = shared.write().await;
+            // v1 DeleteIdentity is idempotent ( succeeds when the
+            // identity is absent ), matching the legacy local-state
+            // behaviour at `SesV1State::delete_identity`.
+            shared.identities.remove(&input.identity);
+            return wire::serialize_delete_identity_response(&wire::DeleteIdentityResponse {});
         }
         let mut state = state.write().await;
         match state.delete_identity(&input.identity) {
@@ -283,13 +484,31 @@ impl SesService {
         &self,
         state: &Arc<tokio::sync::RwLock<SesV1State>>,
         params: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_list_identities_request(params) {
             Ok(v) => v,
             Err(e) => return ses_error(400, "InvalidParameterValue", &e),
         };
-        let state = state.read().await;
-        let identities = state.list_identities(input.identity_type.as_deref());
+        let identities: Vec<String> = if let Some(sesv2_state) = self.sesv2_state.as_ref() {
+            let shared = sesv2_state.get(account_id, region);
+            let shared = shared.read().await;
+            shared
+                .identities
+                .values()
+                .filter(|id| {
+                    sesv2_identity::matches_v1_filter(
+                        &id.identity_type,
+                        input.identity_type.as_deref(),
+                    )
+                })
+                .map(|id| id.name.clone())
+                .collect()
+        } else {
+            let state = state.read().await;
+            state.list_identities(input.identity_type.as_deref())
+        };
         wire::serialize_list_identities_response(&wire::ListIdentitiesResponse {
             identities: Some(wire::IdentityList::from(identities)),
             next_token: None,
@@ -299,9 +518,22 @@ impl SesService {
     async fn handle_list_verified_email_addresses(
         &self,
         state: &Arc<tokio::sync::RwLock<SesV1State>>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
-        let state = state.read().await;
-        let emails = state.list_verified_email_addresses();
+        let emails: Vec<String> = if let Some(sesv2_state) = self.sesv2_state.as_ref() {
+            let shared = sesv2_state.get(account_id, region);
+            let shared = shared.read().await;
+            shared
+                .identities
+                .values()
+                .filter(|id| id.identity_type == "EMAIL_ADDRESS" && id.verified)
+                .map(|id| id.name.clone())
+                .collect()
+        } else {
+            let state = state.read().await;
+            state.list_verified_email_addresses()
+        };
         wire::serialize_list_verified_email_addresses_response(
             &wire::ListVerifiedEmailAddressesResponse {
                 verified_email_addresses: Some(wire::AddressList::from(emails)),
@@ -313,14 +545,40 @@ impl SesService {
         &self,
         state: &Arc<tokio::sync::RwLock<SesV1State>>,
         params: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_get_identity_verification_attributes_request(params) {
             Ok(v) => v,
             Err(e) => return ses_error(400, "InvalidParameterValue", &e),
         };
         let identities = input.identities.items;
-        let state = state.read().await;
-        let attrs = state.get_identity_verification_attributes(&identities);
+        let attrs: HashMap<String, (String, Option<String>)> =
+            if let Some(sesv2_state) = self.sesv2_state.as_ref() {
+                let shared = sesv2_state.get(account_id, region);
+                let shared = shared.read().await;
+                let mut out = HashMap::new();
+                for name in &identities {
+                    match shared.identities.get(name) {
+                        Some(id) => {
+                            let status = if id.verified { "Success" } else { "Pending" };
+                            let token = if id.identity_type == "DOMAIN" {
+                                Some(sesv2_identity::derive_verification_token(&id.name))
+                            } else {
+                                None
+                            };
+                            out.insert(name.clone(), (status.to_string(), token));
+                        }
+                        None => {
+                            out.insert(name.clone(), ("NotStarted".to_string(), None));
+                        }
+                    }
+                }
+                out
+            } else {
+                let state = state.read().await;
+                state.get_identity_verification_attributes(&identities)
+            };
         // awsQuery maps use <entry><key>K</key><value>V</value></entry> pairs.
         // quick_xml::se cannot serialise HashMap<String, T> into that format,
         // so we build the XML directly.
@@ -350,25 +608,55 @@ impl SesService {
         &self,
         state: &Arc<tokio::sync::RwLock<SesV1State>>,
         params: &HashMap<String, String>,
+        account_id: &str,
+        region: &str,
     ) -> MockResponse {
         let input = match wire::deserialize_get_identity_dkim_attributes_request(params) {
             Ok(v) => v,
             Err(e) => return ses_error(400, "InvalidParameterValue", &e),
         };
         let identities = input.identities.items;
-        let state = state.read().await;
+        // Collect ( dkim_enabled, status, tokens ) per identity. When the
+        // shared `winterbaume-sesv2` state is wired, derive DKIM details
+        // deterministically from each identity's name -- v2's
+        // `EmailIdentity` does not carry the legacy 3-token DKIM list,
+        // but the `dkim1.<domain>` / `dkim2.<domain>` / `dkim3.<domain>`
+        // triple matches `SesV1State::verify_domain_identity`.
+        let attrs: Vec<(String, bool, String, Vec<String>)> =
+            if let Some(sesv2_state) = self.sesv2_state.as_ref() {
+                let shared = sesv2_state.get(account_id, region);
+                let shared = shared.read().await;
+                identities
+                    .iter()
+                    .map(|name| match shared.identities.get(name) {
+                        Some(id) if id.identity_type == "DOMAIN" => (
+                            name.clone(),
+                            true,
+                            "Success".to_string(),
+                            sesv2_identity::derive_dkim_tokens(&id.name),
+                        ),
+                        Some(_id) => (name.clone(), false, "Success".to_string(), Vec::new()),
+                        None => (name.clone(), false, "NotStarted".to_string(), Vec::new()),
+                    })
+                    .collect()
+            } else {
+                let state = state.read().await;
+                identities
+                    .iter()
+                    .map(|name| match state.identities.get(name) {
+                        Some(id) => (
+                            name.clone(),
+                            id.dkim_enabled,
+                            "Success".to_string(),
+                            id.dkim_tokens.clone(),
+                        ),
+                        None => (name.clone(), false, "NotStarted".to_string(), Vec::new()),
+                    })
+                    .collect()
+            };
         // awsQuery maps use <entry><key>K</key><value>V</value></entry> pairs.
         let mut entries = String::new();
-        for name in &identities {
-            let (enabled, status, tokens) = if let Some(id) = state.identities.get(name) {
-                (
-                    id.dkim_enabled,
-                    "Success".to_string(),
-                    id.dkim_tokens.clone(),
-                )
-            } else {
-                (false, "NotStarted".to_string(), vec![])
-            };
+        for (name, enabled, status, tokens) in &attrs {
             let key_xml = xml_escape(name);
             let tokens_xml: String = tokens
                 .iter()

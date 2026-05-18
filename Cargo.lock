@@ -14967,6 +14967,7 @@ dependencies = [
  "aws-config",
  "aws-credential-types",
  "aws-sdk-ses",
+ "aws-sdk-sesv2",
  "aws-smithy-runtime-api",
  "aws-smithy-types",
  "bytes",
@@ -14979,6 +14980,7 @@ dependencies = [
  "tracing",
  "uuid",
  "winterbaume-core",
+ "winterbaume-sesv2",
 ]
 
 [[package]]

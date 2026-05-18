@@ -1018,3 +1018,58 @@ The pattern is now repeated three times across three independent parent/child pa
 4. integration test: build `MockAws` with both services sharing the parent `Arc`, drive real `aws-sdk-<parent>` calls to set up state, drive `aws-sdk-<child>` to exercise validation, assert both the happy path and the unknown-resource error path.
 
 Remaining instances of the same pattern in the State Coherence Backlog: `cloudtraildata-channel-validation` ( blocked — cloudtrail has no channel state yet ), `mediastoredata-container-model` ( different shape — requires re-keying the data plane's `objects` map by `(container, path)` rather than just gating existence ), `rdsdata-cluster-validation` and `redshiftdata-cluster-validation` ( both flagged as low-priority pending a real workflow that needs them ).
+
+## 2026-05-18 — ses-v1-v2-shared-backend: first family ( identities )
+
+Started the per-family unit of work for the largest remaining state-coherence TODO. Identities is the first of five families ( identities -> configuration sets -> templates -> suppression list -> dedicated IP pools / account-level settings ).
+
+### Design choice: v2 as canonical store
+
+`winterbaume-sesv2`'s `SesState` is the canonical store for the shared families. `winterbaume-ses` ( v1 ) reads and writes through `Arc<BackendState<SesState>>` when wired and falls back to its own `SesV1State` map when not. This direction was chosen because v2's `EmailIdentity` carries the richer field set ( policies, tags, configuration_set_name, DKIM signing key type, mail-from MX behaviour ) and v1's narrower projection is easy to derive from it. The reverse direction ( v1 canonical ) would lose v2 fields on every v1 round-trip.
+
+### Implementation shape
+
+Mirrors the established cross-crate pattern ( fourth concrete instance in this session, after appconfigdata / kinesisvideoarchivedmedia / sagemakerruntime ):
+
+- **Parent ( sesv2 )**: new `SesV2Service::shared_state() -> Arc<BackendState<SesState>>` accessor over the existing `pub(crate) state` field.
+- **Child ( ses )**: workspace dep on `winterbaume-sesv2` ; dev-dep on `aws-sdk-sesv2` for the new integration test ; `SesService` gains `pub(crate) sesv2_state: Option<Arc<BackendState<SesState>>>` ; new `with_sesv2_state(arc)` constructor with a `no_run` doc-example.
+- **Bridge module** ( `sesv2_identity` ) inside `winterbaume-ses::handlers` translates v1↔v2 semantics:
+  - `make_verified_identity(name)` constructs an `EmailIdentity` for a v1 `Verify*` call ( picks `EMAIL_ADDRESS` vs `DOMAIN` based on `@` in the name, sets `verified: true`, `dkim_signing_enabled: true` for domains ).
+  - `derive_verification_token(domain)` reproduces `SesV1State::verify_domain_identity`'s deterministic hash-based token so the wired path returns the same token as the legacy path for the same input.
+  - `derive_dkim_tokens(domain)` returns the `dkim1.<domain>` / `dkim2.<domain>` / `dkim3.<domain>` triple that v1 exposes via `GetIdentityDkimAttributes`. v2's `EmailIdentity` does not carry this list — deterministic derivation is the bridge.
+  - `matches_v1_filter(v2_type, v1_filter)` maps v1's `IdentityType` enum filter ( `"EmailAddress"`, `"Domain"` ) to v2's string `identity_type` ( `"EMAIL_ADDRESS"`, `"DOMAIN"` ).
+- **8 v1 handlers refactored** to take `account_id` + `region` and branch: `VerifyEmailAddress`, `VerifyEmailIdentity`, `VerifyDomainIdentity`, `DeleteIdentity`, `ListIdentities`, `ListVerifiedEmailAddresses`, `GetIdentityVerificationAttributes`, `GetIdentityDkimAttributes`. When `sesv2_state` is `Some`, each consults `SesState.identities` ( read / write as appropriate ) and uses the bridge helpers to translate to v1 wire shapes. When `None`, the existing local-state path runs unchanged.
+
+### Verification
+
+End-to-end test `test_v1_v2_shared_identities_round_trip` in `crates/winterbaume-ses/tests/integration_test.rs` builds a `MockAws` with both services sharing the v2 state and exercises:
+
+1. v1 `VerifyEmailIdentity("alice@example.com")` -> v2 `ListEmailIdentities` sees `alice`.
+2. v2 `CreateEmailIdentity("bob@example.com")` -> v1 `ListIdentities` sees both `alice` and `bob`.
+3. v1 `VerifyDomainIdentity("example.org")` returns a token -> v1 `GetIdentityVerificationAttributes` returns the deterministic same token with status `Success` -> v1 `ListIdentities(IdentityType::Domain)` filter returns only the domain.
+4. v1 `DeleteIdentity("bob@example.com")` -> v2 `ListEmailIdentities` no longer sees `bob`, still sees `alice`.
+
+Sibling test `test_v1_legacy_identities_isolated_when_unwired` confirms `SesService::new()` ( no wiring ) keeps the legacy local-state behaviour for unit-test isolation.
+
+Per-crate gate clean on both: `winterbaume-ses` clippy + fmt --check + tests pass ( 32 tests +1 doctest, +2 vs prior 30 ) ; `winterbaume-sesv2` 88 tests pass with no regression.
+
+### What's left in the parent TODO
+
+Four more families to migrate, each following the same shape ( bridge helpers + per-family v1 handler refactor ):
+
+- **Configuration sets** — both crates have a `ConfigurationSet` struct ; v2's is richer ( archiving / delivery / reputation / sending / suppression / tracking / VDM options ). v1's handlers: `CreateConfigurationSet`, `DeleteConfigurationSet`, `DescribeConfigurationSet`, `ListConfigurationSets`, `CreateConfigurationSetEventDestination`, etc.
+- **Templates** — v1's `Template` vs v2's `EmailTemplate`. v1's handlers: `CreateTemplate`, `DeleteTemplate`, `GetTemplate`, `UpdateTemplate`, `ListTemplates`.
+- **Suppression list** — v1's `*SuppressedDestination*` family. Field shape is closer between v1 and v2 here.
+- **Dedicated IP pools** — v1 has weaker support for this family ; mostly v2 territory but v1's `ListReceiptFilters` etc. mention dedicated IPs.
+- **Account-level settings** — v1's `GetAccountSendingEnabled` etc. vs v2's `GetAccountSettings`. Smallest family.
+
+The pattern is now established ( bridge module + handler branching + integration test ). Each family is ~ 100-200 lines of code plus its own cross-API regression test.
+
+### Pattern reusability ( four concrete instances now )
+
+The cross-crate state-sharing pattern is now repeated four times ( appconfig/appconfigdata, kinesisvideo/kinesisvideoarchivedmedia, sagemaker/sagemakerruntime, sesv2/ses ). The v1/v2 SES variant differs from the first three in that:
+
+- Both sides are first-class APIs ( not control-plane / data-plane ) — the wired side still has its own state for unrelated families ( receipt rule sets in v1, contact lists in v2 ).
+- Translation happens at the bridge layer ( deterministic derivation of v1-only fields ) rather than direct passthrough — neither side is a strict subset of the other.
+
+The basic pattern shape ( `shared_state()` + `with_<parent>_state()` + per-handler branch + legacy fallback ) still applies cleanly.

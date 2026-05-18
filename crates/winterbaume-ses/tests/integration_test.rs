@@ -779,3 +779,172 @@ async fn test_state_merge_is_additive() {
         "b should be present after merge"
     );
 }
+
+// ---------------------------------------------------------------------------
+// v1/v2 shared identity backend ( first family of `ses-v1-v2-shared-backend` )
+// ---------------------------------------------------------------------------
+
+/// When `SesService::with_sesv2_state` wires the v2 identity map into the
+/// v1 service, identities created via either API are visible to the other
+/// and deletion via either API removes the identity from both views.
+#[tokio::test]
+async fn test_v1_v2_shared_identities_round_trip() {
+    use aws_sdk_sesv2::config::BehaviorVersion as V2BehaviorVersion;
+    use winterbaume_sesv2::SesV2Service;
+
+    let sesv2 = SesV2Service::new();
+    let ses = SesService::with_sesv2_state(sesv2.shared_state());
+
+    let mock = MockAws::builder()
+        .with_service(ses)
+        .with_service(sesv2)
+        .build();
+
+    let v1_config = aws_config::defaults(BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_ses::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    let v1_client = aws_sdk_ses::Client::from_conf(
+        aws_sdk_ses::config::Builder::from(&v1_config)
+            .endpoint_url("https://ses.us-east-1.amazonaws.com")
+            .build(),
+    );
+    let v2_config = aws_config::defaults(V2BehaviorVersion::latest())
+        .http_client(mock.http_client())
+        .credentials_provider(mock.credentials_provider())
+        .region(aws_sdk_sesv2::config::Region::new("us-east-1"))
+        .load()
+        .await;
+    let v2_client = aws_sdk_sesv2::Client::new(&v2_config);
+
+    // 1. Verify an email via v1 -> visible via v2 ListEmailIdentities.
+    v1_client
+        .verify_email_identity()
+        .email_address("alice@example.com")
+        .send()
+        .await
+        .expect("v1 VerifyEmailIdentity");
+
+    let v2_list = v2_client
+        .list_email_identities()
+        .send()
+        .await
+        .expect("v2 ListEmailIdentities after v1 verify");
+    let v2_names: Vec<&str> = v2_list
+        .email_identities()
+        .iter()
+        .filter_map(|i| i.identity_name())
+        .collect();
+    assert!(
+        v2_names.contains(&"alice@example.com"),
+        "v2 should see the v1-verified identity (got: {v2_names:?})",
+    );
+
+    // 2. Create a different identity via v2 -> visible via v1 ListIdentities.
+    v2_client
+        .create_email_identity()
+        .email_identity("bob@example.com")
+        .send()
+        .await
+        .expect("v2 CreateEmailIdentity");
+
+    let v1_list = v1_client
+        .list_identities()
+        .send()
+        .await
+        .expect("v1 ListIdentities after v2 create");
+    let v1_identities = v1_list.identities();
+    assert!(
+        v1_identities.iter().any(|s| s == "bob@example.com"),
+        "v1 should see the v2-created identity (got: {v1_identities:?})",
+    );
+    assert!(
+        v1_identities.iter().any(|s| s == "alice@example.com"),
+        "v1 should see the v1-verified identity (got: {v1_identities:?})",
+    );
+
+    // 3. v1 VerifyDomainIdentity sets DOMAIN type and returns a token.
+    let domain_resp = v1_client
+        .verify_domain_identity()
+        .domain("example.org")
+        .send()
+        .await
+        .expect("v1 VerifyDomainIdentity");
+    let token = domain_resp.verification_token().to_string();
+    assert!(!token.is_empty());
+
+    // The same domain queried by v1 GetIdentityVerificationAttributes
+    // returns the deterministic same token.
+    let attrs = v1_client
+        .get_identity_verification_attributes()
+        .identities("example.org")
+        .send()
+        .await
+        .expect("v1 GetIdentityVerificationAttributes");
+    let attrs_map = attrs.verification_attributes();
+    let domain_attrs = attrs_map.get("example.org").expect("domain attrs");
+    assert_eq!(domain_attrs.verification_status().as_str(), "Success");
+    assert_eq!(domain_attrs.verification_token(), Some(token.as_str()));
+
+    // v1 filter by Domain only returns the domain.
+    let only_domains = v1_client
+        .list_identities()
+        .identity_type(aws_sdk_ses::types::IdentityType::Domain)
+        .send()
+        .await
+        .expect("v1 ListIdentities domain filter");
+    let domain_list = only_domains.identities();
+    assert!(domain_list.iter().any(|s| s == "example.org"));
+    assert!(
+        !domain_list.iter().any(|s| s == "alice@example.com"),
+        "Domain filter should exclude email-address identities",
+    );
+
+    // 4. Delete via v1 -> v2 no longer sees it.
+    v1_client
+        .delete_identity()
+        .identity("bob@example.com")
+        .send()
+        .await
+        .expect("v1 DeleteIdentity");
+
+    let v2_after_delete = v2_client
+        .list_email_identities()
+        .send()
+        .await
+        .expect("v2 ListEmailIdentities after v1 delete");
+    let names_after_delete: Vec<&str> = v2_after_delete
+        .email_identities()
+        .iter()
+        .filter_map(|i| i.identity_name())
+        .collect();
+    assert!(
+        !names_after_delete.contains(&"bob@example.com"),
+        "v2 should not see the deleted identity (got: {names_after_delete:?})",
+    );
+    assert!(
+        names_after_delete.contains(&"alice@example.com"),
+        "alice should still be present",
+    );
+}
+
+/// `SesService::new()` ( unwired ) keeps the legacy local-state behaviour
+/// so existing tests that only exercise the v1 surface continue to work.
+#[tokio::test]
+async fn test_v1_legacy_identities_isolated_when_unwired() {
+    let client = make_client().await;
+    client
+        .verify_email_identity()
+        .email_address("legacy@example.com")
+        .send()
+        .await
+        .expect("v1 VerifyEmailIdentity unwired");
+    let resp = client
+        .list_identities()
+        .send()
+        .await
+        .expect("v1 ListIdentities unwired");
+    assert!(resp.identities().iter().any(|s| s == "legacy@example.com"));
+}

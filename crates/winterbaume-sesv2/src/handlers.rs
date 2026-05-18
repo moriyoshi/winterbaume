@@ -29,6 +29,25 @@ impl SesV2Service {
             notifier: StateChangeNotifier::new(),
         }
     }
+
+    /// Returns an `Arc` clone of the underlying per-account/region state
+    /// holder. Used by `winterbaume_ses::SesService::with_sesv2_state` so
+    /// the legacy v1 API can read and write the same `identities` map
+    /// that the v2 API uses ; pass the same `Arc` to both services from
+    /// the test harness and they will agree on which email identities
+    /// exist regardless of which API created or deleted them.
+    ///
+    /// This is the canonical-store half of the v1/v2 state-coherence
+    /// pattern: v2 owns the canonical state ( `SesState.identities` ),
+    /// v1 reads / writes through this `Arc` when wired and falls back
+    /// to its own `SesV1State.identities` map when not wired. See
+    /// `.agents/docs/TODO.md` `ses-v1-v2-shared-backend` for the
+    /// remaining families ( configuration sets, templates, suppression
+    /// list, dedicated IP pools, account-level settings ) that will
+    /// follow the same pattern.
+    pub fn shared_state(&self) -> Arc<BackendState<SesState>> {
+        Arc::clone(&self.state)
+    }
 }
 
 impl Default for SesV2Service {
