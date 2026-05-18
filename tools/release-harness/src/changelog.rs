@@ -152,21 +152,27 @@ fn polish_prompt(
     Ok(format!(
         "You are polishing a CHANGELOG.md section for the crate `{crate_name}`.\n\
          \n\
-         A mechanical draft is provided below. Your job is to rewrite it per the \
-         editorial rules in the attached skill. Critically:\n\
-         - Summarise behaviour, not implementation trivia.\n\
+         CRITICAL OUTPUT FORMAT:\n\
+         - Your entire response is ONE markdown section.\n\
+         - Start with the heading {heading_form}.\n\
+         - End after the last bullet of the last category.\n\
+         - DO NOT echo the mechanical draft back.\n\
+         - DO NOT append a comparison, before/after dump, or explanation.\n\
+         - DO NOT wrap the response in a fenced code block.\n\
+         - Your output is SHORTER than the input — polishing removes noise.\n\
+         \n\
+         A mechanical draft is provided below. Rewrite it per the editorial \
+         rules in the attached skill. Critically:\n\
+         - Summarise behaviour, not implementation trivia. Drop commit hashes.\n\
          - Collapse repeated or related bullets into one clear entry.\n\
          - Drop noise that obviously doesn't matter to release consumers \
            ( bulk README regenerations, generated wire churn that doesn't change \
-           user-visible behaviour, etc. ).\n\
-         - Keep the same top-level heading ({heading_form}) and the same \
-           Added / Changed / Fixed / Terraform / Documentation / Tests / Internal \
-           category set; omit any category that has no entries after polishing.\n\
+           user-visible behaviour, commits from other crates that only touched \
+           a shared file, etc. ).\n\
+         - Keep the canonical category set: \
+           Added / Changed / Fixed / Terraform / Documentation / Tests / Internal. \
+           Omit any category that has no entries after polishing.\n\
          - Use British English in prose ( see the skill ).\n\
-         \n\
-         Output ONLY the polished markdown section, starting with the `## ` \
-         heading and ending with a single trailing blank line. No commentary, \
-         no fenced code block around it, no explanation.\n\
          \n\
          --- BEGIN SKILL (`.agents/skills/generate-changelog/SKILL.md`) ---\n\
          {skill_md}\n\
@@ -264,7 +270,9 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
 
         let mechanical = draft_section(&root, &entry.name, Some(next), &date, Some(pkg.dir()))?;
         let prompt = polish_prompt(&root, &entry.name, Some(next), &mechanical)?;
-        let section = ensure_trailing_newline(polisher::polish(backend, &root, &prompt)?);
+        // polisher::polish already truncates at the second `## ` heading and
+        // ensures a single trailing blank line, so the prepend is clean.
+        let section = polisher::polish(backend, &root, &prompt)?;
 
         let cl_path = pkg.dir().join("CHANGELOG.md");
         upsert_crate_changelog(&cl_path, &section)?;
@@ -290,11 +298,4 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
         backend.label(),
     );
     Ok(ExitCode::SUCCESS)
-}
-
-fn ensure_trailing_newline(mut s: String) -> String {
-    if !s.ends_with('\n') {
-        s.push('\n');
-    }
-    s
 }

@@ -185,12 +185,23 @@ pub fn polish(backend: Backend, root: &Path, prompt: &str) -> Result<String, Err
     Ok(extract_markdown_section(&raw))
 }
 
-/// Strip any preamble before the first `## ` heading. Some CLIs print
-/// metadata (token counts, model labels) before the response body; relying
-/// on the prompt alone to suppress that is fragile.
+/// Extract the first `## `-headed markdown section from `raw`, dropping any
+/// preamble before it and any subsequent `## `-headed sections after it.
 ///
-/// Falls back to the trimmed raw output when no `## ` heading is found,
-/// so the operator still gets *something* to inspect rather than an empty
+/// Both ends matter:
+///
+/// - Some CLIs print metadata (token counts, model labels, "Thinking…"
+///   frames) *before* the response body; those land before the first `## `.
+/// - Models sometimes echo the input back or append a comparison section
+///   *after* the polished output. Empirically, polish backends do this even
+///   when the prompt forbids it, so we stop at the second top-level heading.
+///
+/// Fences are not tracked: a CHANGELOG section with `## ` inside a fenced
+/// code block would be incorrectly truncated, but that's not a shape this
+/// project's changelogs use.
+///
+/// Falls back to the trimmed raw output when no `## ` heading is found, so
+/// the operator still gets *something* to inspect rather than an empty
 /// section.
 pub(crate) fn extract_markdown_section(raw: &str) -> String {
     let mut out = String::new();
@@ -202,6 +213,12 @@ pub(crate) fn extract_markdown_section(raw: &str) -> String {
             } else {
                 continue;
             }
+        } else if line.starts_with("## ") {
+            // Second top-level heading: the polished output ended at the
+            // previous line. Anything after is preamble of an echoed
+            // mechanical draft, a comparison block, or a "before/after"
+            // dump — none of which belong in CHANGELOG.md.
+            break;
         }
         out.push_str(line);
         out.push('\n');
@@ -212,7 +229,16 @@ pub(crate) fn extract_markdown_section(raw: &str) -> String {
             out.push_str(trimmed);
             out.push('\n');
         }
+        return out;
     }
+    // Normalise the trailing whitespace to exactly one blank line so the
+    // caller's prepend doesn't visually collide with the next existing
+    // `## v...` heading.
+    while out.ends_with('\n') {
+        out.pop();
+    }
+    out.push('\n');
+    out.push('\n');
     out
 }
 
@@ -234,14 +260,46 @@ mod tests {
     fn extract_strips_preamble() {
         let raw = "[token usage: 1234]\nThinking...\n## v0.3.0 - 2026-05-18\n\n- ok\n";
         let extracted = extract_markdown_section(raw);
-        assert_eq!(extracted, "## v0.3.0 - 2026-05-18\n\n- ok\n");
+        assert_eq!(extracted, "## v0.3.0 - 2026-05-18\n\n- ok\n\n");
     }
 
     #[test]
-    fn extract_keeps_everything_after_heading() {
+    fn extract_stops_at_second_heading() {
+        // Reproduces the bug where polish backends echoed the mechanical
+        // draft after the polished section. We must keep only the first
+        // section so the echoed `## v...` block doesn't land in CHANGELOG.md.
+        let raw = "\
+## v0.2.1 - 2026-05-18
+
+### Fixed
+
+- Corrected per-shard sequence number tracking.
+## v0.2.1 - 2026-05-18
+
+### Changed
+
+- ec2: noise that should not appear (4760384f)
+";
+        let extracted = extract_markdown_section(raw);
+        let expected = "\
+## v0.2.1 - 2026-05-18
+
+### Fixed
+
+- Corrected per-shard sequence number tracking.
+
+";
+        assert_eq!(extracted, expected);
+    }
+
+    #[test]
+    fn extract_keeps_body_inside_single_section() {
         let raw = "## Unreleased\n\n### Added\n- foo\n\n### Fixed\n- bar\n\nTrailing text.\n";
         let extracted = extract_markdown_section(raw);
-        assert_eq!(extracted, raw);
+        // Trailing whitespace is normalised to one blank line.
+        let expected =
+            "## Unreleased\n\n### Added\n- foo\n\n### Fixed\n- bar\n\nTrailing text.\n\n";
+        assert_eq!(extracted, expected);
     }
 
     #[test]
