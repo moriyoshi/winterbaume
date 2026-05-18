@@ -641,7 +641,7 @@ winterbaume-kinesis = { version = "0.2.0", path = "crates/winterbaume-kinesis" }
 winterbaume-cloudformation = { version = "0.2.0", path = "crates/winterbaume-cloudformation" }
 winterbaume-cloudfront = { version = "0.2.0", path = "crates/winterbaume-cloudfront" }
 winterbaume-firehose = { version = "0.2.0", path = "crates/winterbaume-firehose" }
-winterbaume-organizations = { version = "0.2.0", path = "crates/winterbaume-organizations" }
+winterbaume-organizations = { version = "1.0.0", path = "crates/winterbaume-organizations" }
 winterbaume-ecs = { version = "0.2.0", path = "crates/winterbaume-ecs" }
 winterbaume-elasticache = { version = "0.2.0", path = "crates/winterbaume-elasticache" }
 winterbaume-elasticloadbalancing = { version = "0.2.0", path = "crates/winterbaume-elasticloadbalancing" }
@@ -651,7 +651,7 @@ winterbaume-sesv2 = { version = "0.2.0", path = "crates/winterbaume-sesv2" }
 winterbaume-ses = { version = "0.2.0", path = "crates/winterbaume-ses" }
 winterbaume-ec2instanceconnect = { version = "0.2.0", path = "crates/winterbaume-ec2instanceconnect" }
 winterbaume-ec2-generated = { version = "0.2.0", path = "crates/winterbaume-ec2-generated" }
-winterbaume-ec2 = { version = "0.2.0", path = "crates/winterbaume-ec2" }
+winterbaume-ec2 = { version = "1.0.0", path = "crates/winterbaume-ec2" }
 winterbaume-account = { version = "1.0.0", path = "crates/winterbaume-account" }
 winterbaume-codecommit = { version = "0.2.0", path = "crates/winterbaume-codecommit" }
 winterbaume-rds = { version = "0.2.0", path = "crates/winterbaume-rds" }
@@ -719,7 +719,7 @@ winterbaume-kafka = { version = "0.2.0", path = "crates/winterbaume-kafka" }
 winterbaume-lexmodelsv2 = { version = "0.2.0", path = "crates/winterbaume-lexmodelsv2" }
 winterbaume-lakeformation = { version = "0.2.0", path = "crates/winterbaume-lakeformation" }
 winterbaume-amp = { version = "0.2.0", path = "crates/winterbaume-amp" }
-winterbaume-opensearch = { version = "0.2.0", path = "crates/winterbaume-opensearch" }
+winterbaume-opensearch = { version = "1.0.0", path = "crates/winterbaume-opensearch" }
 winterbaume-opensearchserverless = { version = "0.2.0", path = "crates/winterbaume-opensearchserverless" }
 winterbaume-elasticbeanstalk = { version = "0.2.0", path = "crates/winterbaume-elasticbeanstalk" }
 winterbaume-apprunner = { version = "0.2.0", path = "crates/winterbaume-apprunner" }

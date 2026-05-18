@@ -12516,7 +12516,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ec2"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13678,7 +13678,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-opensearch"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -13717,7 +13717,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-organizations"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
