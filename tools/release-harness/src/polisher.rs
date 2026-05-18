@@ -143,17 +143,15 @@ impl Backend {
 /// Resolve which backend to use from an explicit choice + env override +
 /// auto-detect.
 pub fn resolve(explicit: Option<&str>, env_override: Option<&str>) -> Result<Backend, Error> {
-    if let Some(raw) = explicit.or(env_override) {
-        let trimmed = raw.trim();
-        if !trimmed.is_empty() && !trimmed.eq_ignore_ascii_case("auto") {
-            let backend = Backend::parse(trimmed).ok_or(Error::NoneAvailable {
-                tried: trimmed.to_string(),
-            })?;
-            if !backend.is_installed() {
-                return Err(Error::NotInstalled(backend));
-            }
-            return Ok(backend);
+    let raw = explicit.or(env_override).unwrap_or("auto").trim();
+    if !raw.is_empty() && !raw.eq_ignore_ascii_case("auto") {
+        let backend = Backend::parse(raw).ok_or(Error::NoneAvailable {
+            tried: raw.to_string(),
+        })?;
+        if !backend.is_installed() {
+            return Err(Error::NotInstalled(backend));
         }
+        return Ok(backend);
     }
     for &candidate in Backend::ALL {
         if candidate.is_installed() {

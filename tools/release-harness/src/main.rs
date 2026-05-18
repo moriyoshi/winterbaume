@@ -100,8 +100,8 @@ struct ChangelogArgs {
     /// copilot, cursor, auto (default). With `auto`, the harness tries each
     /// in that order and uses the first one on PATH. The `WB_RELEASE_POLISHER`
     /// environment variable provides a default when this flag is omitted.
-    #[arg(long, default_value = "auto")]
-    polisher: String,
+    #[arg(long)]
+    polisher: Option<String>,
 }
 
 #[derive(Parser, Debug)]

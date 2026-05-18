@@ -1,21 +1,27 @@
-//! Stage 2 — invoke the `generate-changelog` skill's helper scripts to draft
-//! per-crate CHANGELOG.md entries and the root umbrella CHANGELOG.md from the
-//! plan.
+//! Stage 2 — generate per-crate CHANGELOG.md entries and the root umbrella
+//! CHANGELOG.md from the plan, via an AI coding CLI for editorial polish.
 //!
-//! The mechanical bullet-extraction lives in the skill at
-//! `.agents/skills/generate-changelog/scripts/`. For every non-skip plan
-//! entry, this module:
+//! For every non-skip plan entry, this module:
 //!
-//! 1. shells out to `draft_section.py` to get a mechanical draft;
-//! 2. feeds that draft + the skill's editorial rules to an AI coding CLI for
-//!    the editorial polish — see `polisher` module for the supported
-//!    backends (claude, codex, copilot, cursor);
+//! 1. assembles a prompt that contains the plan entry verbatim (crate name,
+//!    current/next version, bump kind, reason, files changed) plus the raw
+//!    `git log` between the crate's last tag and HEAD, restricted to the
+//!    crate's directory;
+//! 2. sends the prompt to an AI coding CLI for editorial polish — see
+//!    `polisher` module for the supported backends (claude, codex, copilot,
+//!    cursor);
 //! 3. prepends the polished section to the crate's `CHANGELOG.md`.
 //!
-//! At least one supported AI CLI on PATH is a hard requirement — the polished
-//! output is what the release expects to ship. Operators who want the raw
-//! mechanical draft can invoke `draft_section.py` directly. The harness owns
-//! all file IO so the model only ever generates text.
+//! The skill at `.agents/skills/generate-changelog/` still ships
+//! `scripts/draft_section.py` for the case where a human or an agent
+//! wants the mechanical bucketed bullets directly without the polish pass.
+//! The harness deliberately skips that step — feeding the polisher
+//! pre-bucketed bullets baked a noisy categorisation in that the polisher
+//! then had to undo. The plan entry's `files_changed` list is the
+//! authoritative scope; the polisher uses it to drop cross-crate noise.
+//!
+//! At least one supported AI CLI on PATH is a hard requirement. The harness
+//! owns all file IO so the model only ever generates text.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -24,14 +30,17 @@ use std::process::{Command, ExitCode};
 use chrono::Utc;
 
 use crate::ChangelogArgs;
+use crate::git;
 use crate::metadata::{CargoExe, cargo_metadata, publishable_members, workspace_root};
-use crate::plan::{BumpDecision, Plan};
+use crate::plan::{BumpDecision, CrateEntry, Plan};
 use crate::polisher;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error(transparent)]
     Metadata(#[from] crate::metadata::Error),
+    #[error(transparent)]
+    Git(#[from] git::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error("cannot read plan {path}: {source}")]
@@ -80,35 +89,6 @@ where
     Ok(String::from_utf8(out.stdout)?)
 }
 
-fn draft_section(
-    root: &Path,
-    crate_name: &str,
-    next_version: Option<&str>,
-    date: &str,
-    crate_dir: Option<&Path>,
-) -> Result<String, Error> {
-    let script = skill_script(root, "draft_section.py");
-    let mut args: Vec<String> = vec![
-        "--crate".into(),
-        crate_name.into(),
-        "--repo-root".into(),
-        root.display().to_string(),
-        "--date".into(),
-        date.into(),
-    ];
-    if let Some(v) = next_version {
-        args.push("--next-version".into());
-        args.push(v.into());
-    }
-    if let Some(d) = crate_dir {
-        // Relative-to-root pathspec to match the script's expectation.
-        let rel = d.strip_prefix(root).unwrap_or(d);
-        args.push("--crate-dir".into());
-        args.push(rel.display().to_string());
-    }
-    run_python(&script, args)
-}
-
 /// Build a single dated umbrella section covering every published crate in
 /// the plan. `note` lets us tag `initial release` / `pinned` qualifiers.
 fn draft_umbrella(
@@ -133,11 +113,15 @@ fn draft_umbrella(
     run_python(&script, args)
 }
 
+/// Assemble the polish prompt for one crate. The polisher receives the plan
+/// entry verbatim plus the raw git log between `entry.last_tag` and HEAD —
+/// structured "what bumped, why" facts, no pre-bucketed bullets to argue with.
 fn polish_prompt(
     root: &Path,
-    crate_name: &str,
-    next_version: Option<&str>,
-    mechanical_draft: &str,
+    entry: &CrateEntry,
+    crate_dir: &Path,
+    next_version: &str,
+    date: &str,
 ) -> Result<String, Error> {
     let skill_md = fs::read_to_string(
         root.join(".agents")
@@ -145,42 +129,105 @@ fn polish_prompt(
             .join("generate-changelog")
             .join("SKILL.md"),
     )?;
-    let heading_form = match next_version {
-        Some(v) => format!("`## v{v} - <YYYY-MM-DD>`"),
-        None => "`## Unreleased`".to_string(),
+
+    let pathspec = {
+        let rel = crate_dir.strip_prefix(root).unwrap_or(crate_dir);
+        format!("{}/", rel.display())
     };
+    let from_ref = entry.last_tag.clone().unwrap_or_else(|| "HEAD".to_string());
+    let commits = if entry.last_tag.is_some() {
+        git::commits(root, &from_ref, "HEAD", &pathspec)?
+    } else {
+        Vec::new()
+    };
+
+    let bump_label = match entry.bump {
+        BumpDecision::Patch => "patch",
+        BumpDecision::Minor => "minor",
+        BumpDecision::Major => "major",
+        BumpDecision::Pinned => "pinned",
+        BumpDecision::Initial => "initial",
+        BumpDecision::Skip | BumpDecision::Unchanged => "skip",
+    };
+
+    let last_tag_line = entry
+        .last_tag
+        .as_deref()
+        .map(|t| format!("last_tag: {t}"))
+        .unwrap_or_else(|| "last_tag: (none — first release of this crate)".to_string());
+
+    let files_block = if entry.files_changed.is_empty() {
+        "(none recorded — see commit log below)".to_string()
+    } else {
+        entry
+            .files_changed
+            .iter()
+            .map(|p| format!("- {p}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+
+    let commits_block = if commits.is_empty() {
+        "(no commits in range — likely the initial release)".to_string()
+    } else {
+        commits
+            .iter()
+            .map(|c| format!("- {} {} {}", c.hash_short, c.date, c.subject))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+
     Ok(format!(
-        "You are polishing a CHANGELOG.md section for the crate `{crate_name}`.\n\
+        "You are writing a CHANGELOG.md section for the crate `{name}`.\n\
          \n\
          CRITICAL OUTPUT FORMAT:\n\
          - Your entire response is ONE markdown section.\n\
-         - Start with the heading {heading_form}.\n\
+         - Start with the heading `## v{next_version} - {date}`.\n\
          - End after the last bullet of the last category.\n\
-         - DO NOT echo the mechanical draft back.\n\
-         - DO NOT append a comparison, before/after dump, or explanation.\n\
+         - DO NOT echo the inputs back, append a comparison, or explain.\n\
          - DO NOT wrap the response in a fenced code block.\n\
-         - Your output is SHORTER than the input — polishing removes noise.\n\
+         - DO NOT include commit hashes in bullets.\n\
          \n\
-         A mechanical draft is provided below. Rewrite it per the editorial \
-         rules in the attached skill. Critically:\n\
-         - Summarise behaviour, not implementation trivia. Drop commit hashes.\n\
-         - Collapse repeated or related bullets into one clear entry.\n\
-         - Drop noise that obviously doesn't matter to release consumers \
-           ( bulk README regenerations, generated wire churn that doesn't change \
-           user-visible behaviour, commits from other crates that only touched \
-           a shared file, etc. ).\n\
-         - Keep the canonical category set: \
+         Use the structured plan entry and raw git log below to write the \
+         section. The editorial rules in the attached skill apply:\n\
+         - Summarise behaviour, not implementation trivia.\n\
+         - Collapse repeated or related commits into one clear bullet.\n\
+         - Drop noise that doesn't matter to release consumers \
+           ( bulk README regenerations, generated wire churn that doesn't \
+           change user-visible behaviour, commits from other crates that \
+           only touched a shared file, etc. ). The `files_changed` list is \
+           the authoritative scope — if a commit's subject mentions another \
+           crate but only the shared file appears in `files_changed`, it \
+           probably doesn't belong in this crate's changelog.\n\
+         - Bucket bullets into the canonical category set: \
            Added / Changed / Fixed / Terraform / Documentation / Tests / Internal. \
-           Omit any category that has no entries after polishing.\n\
+           Omit any category that has no entries.\n\
          - Use British English in prose ( see the skill ).\n\
+         - If nothing user-visible changed for this crate ( e.g. only \
+           cross-crate noise touched its README ), emit a single `### Internal` \
+           bullet acknowledging the maintenance release.\n\
          \n\
          --- BEGIN SKILL (`.agents/skills/generate-changelog/SKILL.md`) ---\n\
          {skill_md}\n\
          --- END SKILL ---\n\
          \n\
-         --- BEGIN MECHANICAL DRAFT ---\n\
-         {mechanical_draft}\
-         --- END MECHANICAL DRAFT ---\n",
+         --- BEGIN PLAN ENTRY ---\n\
+         crate: {name}\n\
+         current_version: {current}\n\
+         next_version: {next_version}\n\
+         bump: {bump_label}\n\
+         {last_tag_line}\n\
+         reason: {reason}\n\
+         files_changed:\n\
+         {files_block}\n\
+         --- END PLAN ENTRY ---\n\
+         \n\
+         --- BEGIN GIT LOG ({from_ref}..HEAD, restricted to {pathspec}) ---\n\
+         {commits_block}\n\
+         --- END GIT LOG ---\n",
+        name = entry.name,
+        current = entry.current,
+        reason = entry.reason,
     ))
 }
 
@@ -240,7 +287,10 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
         members.iter().map(|p| (p.name.as_str(), *p)).collect();
 
     let env_override = std::env::var("WB_RELEASE_POLISHER").ok();
-    let backend = polisher::resolve(Some(args.polisher.as_str()), env_override.as_deref())?;
+    let backend = polisher::resolve(
+        args.polisher.as_ref().map(|v| v.as_ref()),
+        env_override.as_deref(),
+    )?;
     eprintln!("polisher: {} ({})", backend.label(), backend.binary());
 
     let date = args
@@ -268,8 +318,7 @@ pub fn run(cargo: &CargoExe, args: &ChangelogArgs) -> Result<ExitCode, Error> {
             .ok_or_else(|| Error::MissingPackage(entry.name.clone()))?;
         let next = entry.next.as_deref().unwrap_or(entry.current.as_str());
 
-        let mechanical = draft_section(&root, &entry.name, Some(next), &date, Some(pkg.dir()))?;
-        let prompt = polish_prompt(&root, &entry.name, Some(next), &mechanical)?;
+        let prompt = polish_prompt(&root, entry, pkg.dir(), next, &date)?;
         // polisher::polish already truncates at the second `## ` heading and
         // ensures a single trailing blank line, so the prepend is clean.
         let section = polisher::polish(backend, &root, &prompt)?;
