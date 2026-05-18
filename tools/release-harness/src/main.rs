@@ -94,6 +94,12 @@ struct ChangelogArgs {
     /// Defaults to today's date in UTC.
     #[arg(long)]
     date: Option<String>,
+
+    /// Polish each mechanical draft through the `claude` CLI before writing.
+    /// Requires `claude` on PATH; falls back to the mechanical draft per
+    /// crate (with a warning) when it isn't available.
+    #[arg(long)]
+    polish: bool,
 }
 
 #[derive(Parser, Debug)]

@@ -9,6 +9,13 @@ description: Generate or update the root umbrella CHANGELOG.md and per-crate CHA
 
 Create concise, human-edited changelogs for winterbaume's independently released crates. Per-crate changelogs at `crates/<crate>/CHANGELOG.md` are the authoritative detailed record; the root `CHANGELOG.md` is an umbrella summary and index across crate releases. Each release is bounded by cargo-dist style tags named `<crate-name>-v<version>` such as `winterbaume-s3-v0.1.1`.
 
+The skill ships two helper scripts under `scripts/` that do the mechanical bullet-extraction work, so the model's job is the editorial pass — summarising behaviour, collapsing repeated updates, dropping implementation trivia per the rules below.
+
+- `scripts/draft_section.py --crate <name> [--next-version <ver>] [--date <YYYY-MM-DD>] [--from-ref <ref>]` — emits a draft per-crate section to stdout. Resolves the latest `<crate>-v<X.Y.Z>` tag, walks `git log --first-parent <tag>..HEAD -- crates/<crate>/`, buckets commits by conventional-commit prefix into the canonical `Added / Changed / Fixed / Terraform / Documentation / Tests / Internal` sections, skips `chore: release …` noise. Omit `--next-version` for an `## Unreleased` heading.
+- `scripts/draft_umbrella_entry.py --entry <name>:<version>[:<note>] ... [--date <YYYY-MM-DD>]` — emits a dated root-CHANGELOG section linking to each crate's own changelog. `<note>` is optional and renders as a parenthesised qualifier ( `initial release`, `pinned`, etc. ).
+
+Both scripts write only to stdout; the caller decides where the markdown lands.
+
 ## Workflow
 
 1. **Establish the release model.**
@@ -42,14 +49,26 @@ Create concise, human-edited changelogs for winterbaume's independently released
    - For root `CHANGELOG.md`, collect all release tags, then group releases by tag date. Keep the individual crate tag identity inside each dated section.
 
 4. **Collect changes for each range.**
-   - For each crate release tag, compare the previous release tag for the same crate to the current tag:
+   - **Preferred path:** run `scripts/draft_section.py` for the target crate. It already does the `git log --first-parent`, the conventional-commit bucketing, and the heading rendering described in the rest of this step. Take its stdout as the mechanical draft, then polish per the editorial rules in §7.
+
+     ```bash
+     # Releasable section (dated heading):
+     python3 .agents/skills/generate-changelog/scripts/draft_section.py \
+         --crate winterbaume-s3 --next-version 0.1.2 --date 2026-05-18
+
+     # Unreleased section (no version yet):
+     python3 .agents/skills/generate-changelog/scripts/draft_section.py \
+         --crate winterbaume-s3
+     ```
+
+   - **When the script doesn't fit** ( e.g. you need a historical range between two specific tags rather than `tag..HEAD` ), fall back to `git log` directly. Compare the previous release tag for the same crate to the current tag:
 
      ```bash
      git log --first-parent --date=short --format='%H%x09%ad%x09%s' <previous-crate-tag>..<current-crate-tag>
      ```
 
-   - For the first tagged release of a crate, use the repository root or the earliest relevant commit as the lower boundary.
-   - For `Unreleased`, compare the newest release tag for that crate to `HEAD`.
+   - For the first tagged release of a crate, use the repository root or the earliest relevant commit as the lower boundary ( pass it via `--from-ref` to the script ).
+   - For `Unreleased`, compare the newest release tag for that crate to `HEAD` — the script does this by default when `--next-version` is omitted.
    - Filter each range to changes relevant to the target crate and shared files that affect it. Inspect:
      - The crate directory, usually `crates/<crate-dir>/`.
      - Shared workspace files that affect package contents or behaviour, such as `Cargo.toml`, `Cargo.lock`, `tools/`, `.github/workflows/`, `README.md`, `docs/`, and `.agents/docs/`, when the commit meaningfully changes that crate's release.
@@ -82,6 +101,15 @@ Create concise, human-edited changelogs for winterbaume's independently released
 6. **Write the umbrella changelog when requested.**
    - Write the root changelog to `CHANGELOG.md`.
    - Keep it shorter than the per-crate files. It should help readers find what changed across the project without duplicating every detail.
+   - Use `scripts/draft_umbrella_entry.py` to render a dated section from a list of `name:version[:note]` entries — it owns the link format and bullet shape.
+
+     ```bash
+     python3 .agents/skills/generate-changelog/scripts/draft_umbrella_entry.py \
+         --entry winterbaume-s3:0.1.2 \
+         --entry winterbaume-sqs:0.1.2:pinned \
+         --date 2026-05-18
+     ```
+
    - Prefer this section shape:
 
      ```markdown
