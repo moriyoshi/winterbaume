@@ -14521,7 +14521,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sagemakerruntime"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -14965,7 +14965,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-ses"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "aws-config",
  "aws-credential-types",

@@ -648,7 +648,7 @@ winterbaume-elasticloadbalancing = { version = "0.2.0", path = "crates/winterbau
 winterbaume-elasticloadbalancingv2 = { version = "0.2.0", path = "crates/winterbaume-elasticloadbalancingv2" }
 winterbaume-cognitoidentityprovider = { version = "0.2.0", path = "crates/winterbaume-cognitoidentityprovider" }
 winterbaume-sesv2 = { version = "0.3.0", path = "crates/winterbaume-sesv2" }
-winterbaume-ses = { version = "0.2.0", path = "crates/winterbaume-ses" }
+winterbaume-ses = { version = "0.3.0", path = "crates/winterbaume-ses" }
 winterbaume-ec2instanceconnect = { version = "0.2.0", path = "crates/winterbaume-ec2instanceconnect" }
 winterbaume-ec2-generated = { version = "0.2.0", path = "crates/winterbaume-ec2-generated" }
 winterbaume-ec2 = { version = "1.0.0", path = "crates/winterbaume-ec2" }
@@ -775,7 +775,7 @@ winterbaume-timestreamquery = { version = "0.2.0", path = "crates/winterbaume-ti
 winterbaume-timestreaminfluxdb = { version = "0.2.0", path = "crates/winterbaume-timestreaminfluxdb" }
 winterbaume-marketplacemetering = { version = "0.2.0", path = "crates/winterbaume-marketplacemetering" }
 winterbaume-sagemakermetrics = { version = "0.2.0", path = "crates/winterbaume-sagemakermetrics" }
-winterbaume-sagemakerruntime = { version = "0.2.0", path = "crates/winterbaume-sagemakerruntime" }
+winterbaume-sagemakerruntime = { version = "0.3.0", path = "crates/winterbaume-sagemakerruntime" }
 winterbaume-iotdataplane = { version = "0.2.0", path = "crates/winterbaume-iotdataplane" }
 winterbaume-kinesisvideoarchivedmedia = { version = "0.3.0", path = "crates/winterbaume-kinesisvideoarchivedmedia" }
 winterbaume-resourcegroupstagging = { version = "0.2.0", path = "crates/winterbaume-resourcegroupstagging" }
