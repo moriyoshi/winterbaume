@@ -449,7 +449,12 @@ fn classify_head_message(
     target_versions: &BTreeMap<String, String>,
 ) -> HeadState {
     let subject = msg.lines().next().unwrap_or("").to_string();
-    if subject.trim() != "chore: release" {
+    // Lenient: accept any subject starting with "chore: release" — covers the
+    // intended clean template ("chore: release"), the placeholder-littered
+    // default template ("chore: release {{crate_name}} v{{version}}"), and
+    // the rendered single-crate form ("chore: release winterbaume-foo v0.3.0").
+    // The body (our amend marker) is what actually pins identity.
+    if !subject.trim_start().starts_with("chore: release") {
         return HeadState::Unrelated { subject };
     }
     let parsed: BTreeMap<String, String> = parse_amend_body(msg).into_iter().collect();
@@ -1012,6 +1017,33 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
     #[test]
     fn classify_head_placeholder_when_body_empty() {
         let msg = "chore: release\n";
+        let chunk = vec!["winterbaume-foo".into()];
+        let targets = versions(&[("winterbaume-foo", "0.3.0")]);
+        assert_eq!(
+            classify_head_message(msg, &chunk, &targets),
+            HeadState::CargoReleasePlaceholder
+        );
+    }
+
+    #[test]
+    fn classify_head_placeholder_with_template_literals() {
+        // cargo-release's default template leaves placeholders unrendered for
+        // consolidated commits; the body is still empty, so we treat it as a
+        // placeholder commit that just needs amending.
+        let msg = "chore: release {{crate_name}} v{{version}}\n";
+        let chunk = vec!["winterbaume-foo".into()];
+        let targets = versions(&[("winterbaume-foo", "0.3.0")]);
+        assert_eq!(
+            classify_head_message(msg, &chunk, &targets),
+            HeadState::CargoReleasePlaceholder
+        );
+    }
+
+    #[test]
+    fn classify_head_placeholder_with_rendered_single_crate() {
+        // Non-consolidated path (or single-crate run) renders the placeholders
+        // — still a release commit awaiting our amend body.
+        let msg = "chore: release winterbaume-foo v0.3.0\n";
         let chunk = vec!["winterbaume-foo".into()];
         let targets = versions(&[("winterbaume-foo", "0.3.0")]);
         assert_eq!(
