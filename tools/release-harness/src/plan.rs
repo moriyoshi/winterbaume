@@ -1,6 +1,14 @@
 //! Stage 1 — discovery + per-crate semver bump classification.
+//!
+//! After classifying each crate from its own file diff, the plan runs a
+//! reverse-dep propagation pass: any workspace member that depends
+//! (directly or transitively) on a crate that is going to bump gets upgraded
+//! from `Unchanged` / auto-`Skip` (cosmetic-only) to `Patch`, so its
+//! published manifest picks up the new dep version specifier. Crates with an
+//! explicit `Skip` override are left alone but reported, and the umbrella
+//! workspace-root crate is never auto-upgraded — the operator must pin it.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -9,7 +17,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::PlanArgs;
 use crate::git;
-use crate::metadata::{CargoExe, Package, cargo_metadata, publishable_members, workspace_root};
+use crate::metadata::{
+    CargoExe, Metadata, Package, cargo_metadata, publishable_members, workspace_root,
+};
 use crate::semver_checks;
 use crate::version::{Level, Version};
 
@@ -56,6 +66,11 @@ pub struct Meta {
     pub crates_skipped_doc_only: usize,
     pub crates_unchanged: usize,
     pub crates_initial: usize,
+    /// Crates upgraded to `Patch` by the reverse-dep propagation pass because
+    /// they depend (directly or transitively) on a bumping crate. Always a
+    /// subset of `crates_changed`.
+    #[serde(default)]
+    pub crates_transitively_bumped: usize,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -364,6 +379,163 @@ fn classify_one(
     })
 }
 
+/// Map from each publishable member's name to the set of publishable members
+/// that depend on it (one hop). Transitive reach is achieved by iterating the
+/// propagation pass to a fixed point.
+fn build_reverse_deps(meta: &Metadata, members: &[&Package]) -> BTreeMap<String, BTreeSet<String>> {
+    let member_ids: BTreeSet<&str> = members.iter().map(|p| p.id.as_str()).collect();
+    let id_to_name: BTreeMap<&str, &str> = meta
+        .packages
+        .iter()
+        .map(|p| (p.id.as_str(), p.name.as_str()))
+        .collect();
+
+    let mut rdeps: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for node in &meta.resolve.nodes {
+        if !member_ids.contains(node.id.as_str()) {
+            continue;
+        }
+        let Some(src) = id_to_name.get(node.id.as_str()) else {
+            continue;
+        };
+        for d in &node.deps {
+            if !member_ids.contains(d.pkg.as_str()) {
+                continue;
+            }
+            let Some(dep) = id_to_name.get(d.pkg.as_str()) else {
+                continue;
+            };
+            if dep == src {
+                continue;
+            }
+            rdeps
+                .entry((*dep).to_string())
+                .or_default()
+                .insert((*src).to_string());
+        }
+    }
+    rdeps
+}
+
+fn is_bumping(b: BumpDecision) -> bool {
+    matches!(
+        b,
+        BumpDecision::Patch
+            | BumpDecision::Minor
+            | BumpDecision::Major
+            | BumpDecision::Pinned
+            | BumpDecision::Initial
+    )
+}
+
+#[derive(Debug, Default)]
+struct PropagationResult {
+    /// Names of crates whose `BumpDecision` was upgraded by this pass.
+    transitively_bumped: BTreeSet<String>,
+    /// Dependant → the bumping deps that would have triggered an upgrade,
+    /// for crates left at `Skip` by an explicit override.
+    blocked_by_override: BTreeMap<String, BTreeSet<String>>,
+    /// Umbrella crate name → the bumping deps it depends on. The umbrella
+    /// is never auto-upgraded; the operator must pin it explicitly.
+    umbrellas_with_moving_deps: BTreeMap<String, BTreeSet<String>>,
+}
+
+/// Iterate the propagation pass to a fixed point. Returns the names that were
+/// upgraded plus the cases worth surfacing to the operator (overridden skips
+/// and umbrella crates with moving deps).
+fn propagate_bumps(
+    entries: &mut [CrateEntry],
+    rdeps: &BTreeMap<String, BTreeSet<String>>,
+    umbrella_names: &BTreeSet<String>,
+    overrides: &BTreeMap<String, Override>,
+) -> PropagationResult {
+    let mut result = PropagationResult::default();
+    let index: BTreeMap<String, usize> = entries
+        .iter()
+        .enumerate()
+        .map(|(i, e)| (e.name.clone(), i))
+        .collect();
+
+    loop {
+        let bumping: BTreeSet<String> = entries
+            .iter()
+            .filter(|e| is_bumping(e.bump))
+            .map(|e| e.name.clone())
+            .collect();
+
+        let mut to_upgrade: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        for bumper in &bumping {
+            if let Some(dependants) = rdeps.get(bumper) {
+                for d in dependants {
+                    to_upgrade
+                        .entry(d.clone())
+                        .or_default()
+                        .insert(bumper.clone());
+                }
+            }
+        }
+
+        let mut changed = false;
+        for (dependant, causes) in &to_upgrade {
+            if umbrella_names.contains(dependant) {
+                result
+                    .umbrellas_with_moving_deps
+                    .entry(dependant.clone())
+                    .or_default()
+                    .extend(causes.iter().cloned());
+                continue;
+            }
+            let Some(&idx) = index.get(dependant) else {
+                continue;
+            };
+            let entry = &mut entries[idx];
+            if is_bumping(entry.bump) {
+                continue;
+            }
+            // Explicit override (Skip or otherwise) reflects the operator's
+            // deliberate choice; never silently override it.
+            if overrides.contains_key(dependant) {
+                if matches!(entry.bump, BumpDecision::Skip) {
+                    result
+                        .blocked_by_override
+                        .entry(dependant.clone())
+                        .or_default()
+                        .extend(causes.iter().cloned());
+                }
+                continue;
+            }
+            // Eligible to upgrade: Unchanged, or auto-Skip (cosmetic-only).
+            match entry.bump {
+                BumpDecision::Unchanged | BumpDecision::Skip => {
+                    let Ok(current_v) = entry.current.parse::<Version>() else {
+                        continue;
+                    };
+                    let next = current_v.bumped(Level::Patch);
+                    let prev_reason = entry.reason.clone();
+                    entry.bump = BumpDecision::Patch;
+                    entry.next = Some(next.to_string());
+                    let mut sorted: Vec<&str> = causes.iter().map(|s| s.as_str()).collect();
+                    sorted.sort_unstable();
+                    entry.reason = format!(
+                        "transitive patch: depends on bumping crate(s) [{}] (previously: {})",
+                        sorted.join(", "),
+                        prev_reason,
+                    );
+                    result.transitively_bumped.insert(dependant.clone());
+                    changed = true;
+                }
+                _ => continue,
+            }
+        }
+
+        if !changed {
+            break;
+        }
+    }
+
+    result
+}
+
 pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
     let root = workspace_root(cargo)?;
     let meta = cargo_metadata(cargo, &root)?;
@@ -402,6 +574,44 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
         entries.push(entry);
     }
 
+    // Reverse-dep propagation: any crate that depends on a bumping crate gets
+    // patched so its published manifest references the new dep version.
+    let rdeps = build_reverse_deps(&meta, &members);
+    let umbrella_names: BTreeSet<String> = members
+        .iter()
+        .filter(|p| p.dir() == root.as_path())
+        .map(|p| p.name.clone())
+        .collect();
+    let prop = propagate_bumps(&mut entries, &rdeps, &umbrella_names, &overrides);
+
+    if !prop.transitively_bumped.is_empty() {
+        eprintln!(
+            "propagated patch bump to {} dependant crate(s): {}",
+            prop.transitively_bumped.len(),
+            prop.transitively_bumped
+                .iter()
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(" ")
+        );
+    }
+    for (name, causes) in &prop.blocked_by_override {
+        eprintln!(
+            "warn: {name} has an explicit skip override but depends on bumping crate(s) \
+             [{}] — its published manifest will continue to reference the previous \
+             dep version(s). Remove the override if you want to propagate the bump.",
+            causes.iter().cloned().collect::<Vec<_>>().join(", "),
+        );
+    }
+    for (name, causes) in &prop.umbrellas_with_moving_deps {
+        eprintln!(
+            "note: umbrella crate {name} is not auto-upgraded; pin it in \
+             release-plan-overrides.toml to publish a new umbrella version that \
+             references the bumped dep(s) [{}].",
+            causes.iter().cloned().collect::<Vec<_>>().join(", "),
+        );
+    }
+
     // Summary counters.
     let mut crates_changed = 0;
     let mut crates_skipped_doc_only = 0;
@@ -418,6 +628,7 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
             | BumpDecision::Pinned => crates_changed += 1,
         }
     }
+    let crates_transitively_bumped = prop.transitively_bumped.len();
 
     let plan = Plan {
         meta: Meta {
@@ -427,6 +638,7 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
             crates_skipped_doc_only,
             crates_unchanged,
             crates_initial,
+            crates_transitively_bumped,
         },
         crates: entries,
     };
@@ -444,6 +656,7 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
     println!("=== release plan summary ===");
     println!("written to: {}", out_path.display());
     println!("crates_changed:           {crates_changed}");
+    println!("  of which transitive:    {crates_transitively_bumped}");
     println!("crates_skipped_doc_only:  {crates_skipped_doc_only}");
     println!("crates_unchanged:         {crates_unchanged}");
     println!("crates_initial:           {crates_initial}");
@@ -478,4 +691,197 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
     }
 
     Ok(ExitCode::SUCCESS)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entry(name: &str, current: &str, bump: BumpDecision, reason: &str) -> CrateEntry {
+        let next = match bump {
+            BumpDecision::Patch | BumpDecision::Minor | BumpDecision::Major => {
+                let v: Version = current.parse().unwrap();
+                let lvl = match bump {
+                    BumpDecision::Patch => Level::Patch,
+                    BumpDecision::Minor => Level::Minor,
+                    BumpDecision::Major => Level::Major,
+                    _ => unreachable!(),
+                };
+                Some(v.bumped(lvl).to_string())
+            }
+            BumpDecision::Initial => Some(current.to_string()),
+            _ => None,
+        };
+        CrateEntry {
+            name: name.to_string(),
+            current: current.to_string(),
+            next,
+            bump,
+            last_tag: None,
+            reason: reason.to_string(),
+            files_changed: Vec::new(),
+        }
+    }
+
+    fn rdeps_from(pairs: &[(&str, &[&str])]) -> BTreeMap<String, BTreeSet<String>> {
+        pairs
+            .iter()
+            .map(|(dep, dependants)| {
+                (
+                    dep.to_string(),
+                    dependants.iter().map(|s| s.to_string()).collect(),
+                )
+            })
+            .collect()
+    }
+
+    #[test]
+    fn propagates_direct_dependant_unchanged_to_patch() {
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Patch, "files changed"),
+            entry("bar", "0.5.0", BumpDecision::Unchanged, "no files changed"),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"])]);
+        let res = propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &BTreeMap::new());
+        assert!(res.transitively_bumped.contains("bar"));
+        let bar = entries.iter().find(|e| e.name == "bar").unwrap();
+        assert_eq!(bar.bump, BumpDecision::Patch);
+        assert_eq!(bar.next.as_deref(), Some("0.5.1"));
+        assert!(bar.reason.starts_with("transitive patch"));
+    }
+
+    #[test]
+    fn propagates_transitively_through_chain() {
+        // foo (patch) <- bar <- baz; both bar and baz should become Patch.
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Patch, "files changed"),
+            entry("bar", "0.3.0", BumpDecision::Unchanged, "no files"),
+            entry("baz", "0.4.0", BumpDecision::Unchanged, "no files"),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"]), ("bar", &["baz"])]);
+        let res = propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &BTreeMap::new());
+        assert_eq!(res.transitively_bumped.len(), 2);
+        assert!(res.transitively_bumped.contains("bar"));
+        assert!(res.transitively_bumped.contains("baz"));
+    }
+
+    #[test]
+    fn does_not_clobber_already_bumping_dependant() {
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Patch, "files changed"),
+            entry("bar", "0.5.0", BumpDecision::Minor, "files changed"),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"])]);
+        propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &BTreeMap::new());
+        let bar = entries.iter().find(|e| e.name == "bar").unwrap();
+        assert_eq!(bar.bump, BumpDecision::Minor);
+        assert_eq!(bar.next.as_deref(), Some("0.6.0"));
+    }
+
+    #[test]
+    fn override_skip_blocks_propagation_and_is_reported() {
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Patch, "files changed"),
+            entry("bar", "0.5.0", BumpDecision::Skip, "override: skip"),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"])]);
+        let mut overrides = BTreeMap::new();
+        overrides.insert("bar".to_string(), Override::Skip);
+        let res = propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &overrides);
+        assert!(res.transitively_bumped.is_empty());
+        assert!(res.blocked_by_override.contains_key("bar"));
+        let bar = entries.iter().find(|e| e.name == "bar").unwrap();
+        assert_eq!(bar.bump, BumpDecision::Skip);
+    }
+
+    #[test]
+    fn auto_skip_cosmetic_gets_upgraded() {
+        // Cosmetic-only changes left `bar` as Skip without an override entry;
+        // a bumping dep should still pull it in.
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Patch, "files changed"),
+            entry(
+                "bar",
+                "0.5.0",
+                BumpDecision::Skip,
+                "only cosmetic files changed",
+            ),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"])]);
+        let res = propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &BTreeMap::new());
+        assert!(res.transitively_bumped.contains("bar"));
+        let bar = entries.iter().find(|e| e.name == "bar").unwrap();
+        assert_eq!(bar.bump, BumpDecision::Patch);
+    }
+
+    #[test]
+    fn umbrella_is_never_auto_upgraded_and_is_reported() {
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Patch, "files changed"),
+            entry("umbrella", "1.0.0", BumpDecision::Skip, "umbrella crate"),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["umbrella"])]);
+        let umbrellas: BTreeSet<String> = ["umbrella".to_string()].into_iter().collect();
+        let res = propagate_bumps(&mut entries, &rdeps, &umbrellas, &BTreeMap::new());
+        assert!(res.transitively_bumped.is_empty());
+        assert!(res.umbrellas_with_moving_deps.contains_key("umbrella"));
+        let u = entries.iter().find(|e| e.name == "umbrella").unwrap();
+        assert_eq!(u.bump, BumpDecision::Skip);
+    }
+
+    #[test]
+    fn pinned_and_initial_count_as_bumping() {
+        // Pinned propagates to dependants.
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Pinned, "pinned"),
+            entry("bar", "0.5.0", BumpDecision::Unchanged, "no files"),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"])]);
+        let res = propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &BTreeMap::new());
+        assert!(res.transitively_bumped.contains("bar"));
+
+        // Initial propagates too.
+        let mut entries = vec![
+            entry("foo", "0.1.0", BumpDecision::Initial, "first release"),
+            entry("bar", "0.5.0", BumpDecision::Unchanged, "no files"),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"])]);
+        let res = propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &BTreeMap::new());
+        assert!(res.transitively_bumped.contains("bar"));
+    }
+
+    #[test]
+    fn no_propagation_when_no_one_is_bumping() {
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Unchanged, "no files"),
+            entry("bar", "0.5.0", BumpDecision::Unchanged, "no files"),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"])]);
+        let res = propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &BTreeMap::new());
+        assert!(res.transitively_bumped.is_empty());
+        for e in &entries {
+            assert_eq!(e.bump, BumpDecision::Unchanged);
+        }
+    }
+
+    #[test]
+    fn reason_preserves_previous_context() {
+        let mut entries = vec![
+            entry("foo", "0.2.0", BumpDecision::Patch, "files changed"),
+            entry(
+                "bar",
+                "0.5.0",
+                BumpDecision::Skip,
+                "only cosmetic files changed since bar-v0.4.0",
+            ),
+        ];
+        let rdeps = rdeps_from(&[("foo", &["bar"])]);
+        propagate_bumps(&mut entries, &rdeps, &BTreeSet::new(), &BTreeMap::new());
+        let bar = entries.iter().find(|e| e.name == "bar").unwrap();
+        assert!(bar.reason.contains("transitive patch"));
+        assert!(
+            bar.reason
+                .contains("only cosmetic files changed since bar-v0.4.0")
+        );
+    }
 }
