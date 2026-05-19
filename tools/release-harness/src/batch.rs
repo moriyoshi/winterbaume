@@ -526,7 +526,8 @@ fn print_dry_run(version_or_level: &str, chunk: &[String], sign: bool, no_confir
     eprintln!("$ cargo release version {version_or_level}{p_args}{nc} --execute");
     eprintln!("$ cargo release replace{p_args}{nc} --execute");
     eprintln!("$ cargo release hook{p_args}{nc} --execute");
-    eprintln!("$ cargo release commit{p_args}{sign_flag}{nc} --execute");
+    // `cargo release commit` rejects -p; it commits the whole working tree.
+    eprintln!("$ cargo release commit{sign_flag}{nc} --execute");
     eprintln!(
         "$ git commit --amend{} -m \"chore: release ... per-crate body\"",
         if sign { " -S" } else { "" }
@@ -547,13 +548,19 @@ fn run_release_step(
     sign: bool,
     no_confirm: bool,
 ) -> Result<(ExitStatus, String), Error> {
+    // cargo-release's `commit` subcommand operates on the whole working tree
+    // and rejects `-p` outright ("error: unexpected argument '-p' found"). All
+    // other steps we drive (version / replace / hook / publish) do accept it.
+    let pass_packages = step_args.first().copied() != Some("commit");
     let mut cmd = Command::new(cargo.path());
     cmd.arg("release");
     for a in step_args {
         cmd.arg(a);
     }
-    for c in crates {
-        cmd.arg("-p").arg(c);
+    if pass_packages {
+        for c in crates {
+            cmd.arg("-p").arg(c);
+        }
     }
     if sign {
         cmd.arg("--sign");
@@ -563,13 +570,15 @@ fn run_release_step(
     }
     cmd.arg("--execute");
     cmd.current_dir(root);
+    let p_args: String = if pass_packages {
+        crates.iter().map(|c| format!(" -p {c}")).collect()
+    } else {
+        String::new()
+    };
     eprintln!(
         "$ cargo release {}{}{}{}",
         step_args.join(" "),
-        crates
-            .iter()
-            .map(|c| format!(" -p {c}"))
-            .collect::<String>(),
+        p_args,
         if sign { " --sign" } else { "" },
         if no_confirm { " --no-confirm" } else { "" },
     );

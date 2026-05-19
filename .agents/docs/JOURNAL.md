@@ -1293,3 +1293,28 @@ Per-crate clippy + fmt clean for `release-harness`; 48 unit tests passing ( 21 `
 - `release-harness changelog` polisher pass deferred; the two manually-written entries will need a polish if the steady-state workflow re-runs the harness.
 - Level-keyword resume on first-publish crates ( `cargo release version patch -p new-unpublished-crate` ) still has an edge case where the heuristic "any chunk crate's current manifest version is on crates.io → bump needed" returns false for a brand-new crate, so version step is skipped and the publish lands at the unbumped version. The plan-based path uses literal versions for `Initial` / `Pinned` decisions, so this only bites direct `release-harness batch --version patch` against an unpublished crate. Documented in code; revisit when it actually fires.
 - The 214-stale-deps umbrella warning is a bit of a wall of text; if future runs hit similar sizes, the message should probably be truncated to the first ~5 deps with a "+N more" tail.
+
+## 2026-05-19 — release-harness: `cargo release commit` rejects `-p`
+
+First real exercise of the new per-step pipeline ( yesterday's `ab54a1ed` ) blew up at the commit step:
+
+```
+$ cargo release commit -p winterbaume --sign --no-confirm
+error: unexpected argument '-p' found
+```
+
+`cargo release` exposes `-p, --package <SPEC>` on `version`, `replace`, `hook`, and `publish`, but **not** on `commit` — `commit` operates on the whole working tree by design ( cargo's help: "Commit the specified packages. Will automatically skip published versions" — the "specified packages" turn out to be whatever the prior step staged ). `run_release_step` in `batch.rs` was unconditionally appending `-p <crate>` to every step.
+
+### Fix
+
+`tools/release-harness/src/batch.rs::run_release_step` now gates the `-p` loop on `step_args.first() != Some("commit")` and adjusts the eprintln preview to match. The dry-run printer in `print_dry_run` was updated in lockstep so the operator-facing preview no longer lies about the commit invocation.
+
+The resume path is unaffected: `classify_head` already handles the `Unrelated + dirty` branch ( manifests bumped, no commit yet, HEAD on an unrelated subject ), which is exactly the state the failure left behind. Re-running `release-harness publish` after the fix lands picks up at the commit step without re-bumping.
+
+### Gate
+
+`cargo fmt -p release-harness`, `cargo clippy -p release-harness --all-targets --all-features -- -D warnings`, `cargo test -p release-harness` — 48/48 unit tests still pass. No new tests added: the bug was a missing conditional on a `Command` argument list, exercised only by the live `cargo release` binary, and the unit-test layer here doesn't shell out.
+
+### Pitfall noted
+
+This is the second time a `cargo release` per-subcommand quirk has bitten the harness ( first was the `consolidate-commits` template-placeholder issue, fixed by the manual amend step ). Worth keeping in mind whenever we add a new step: each `cargo release <subcommand>` has its own argument schema, and the umbrella `cargo release --help` doesn't list them — `cargo release <sub> --help` is the only authority.
