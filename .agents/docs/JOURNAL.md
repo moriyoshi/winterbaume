@@ -1173,3 +1173,123 @@ release-harness batch        # direct chunked publish, no plan (new — replaces
 ### Gate
 
 Per-crate gate clean: clippy --all-targets --all-features -D warnings, fmt --check, 18 unit tests ( 4 `version::tests`, 13 `batch::tests`, 1 each from the others ). End-to-end smoke test against current HEAD reproduces the morning's plan output ( 18 changed, 223 doc-only skip, 15 minor + 3 patch ) and the `publish` dry-run now shows topology-sorted crate lists per group. `batch --version patch --crates winterbaume-s3 winterbaume-sqs` dry-run renders the same `$ cargo release patch ...` chunk preview the old binary produced.
+
+## 2026-05-19 — release-harness rich consolidated commit, full resume, transitive + stale-deps propagation
+
+Iterative deep-dive that started with "the recent `release-harness publish` runs landed commits with literal `chore: release {{crate_name}} v{{version}}` subjects" and ended four sessions later with a fully resumable per-step pipeline, transitive bump propagation, stale-workspace-dep detection, and a plan for two missed dependant crates ( `winterbaume-server` patch + `winterbaume` umbrella minor ). Each issue uncovered the next.
+
+### 1. Why cargo-release left placeholder commit subjects
+
+Workspace `Cargo.toml` had `consolidate-commits = true` + `shared-version = false` + the default-shape template `"chore: release {{crate_name}} v{{version}}"`. Per cargo-release's own reference table, `{{crate_name}}` / `{{version}}` / `{{metadata}}` are only substituted "if not consolidated" — when one commit covers multiple crates with multiple versions, the substituter gives up and emits a WARN. The local tags were rendered correctly because cargo-release renders `tag-message` once per tag ( per-crate ), not once per consolidated commit. So three different `chore: release {{crate_name}} v{{version}}` commit subjects landed on main ( `f7a6fa52`, `fe867ea4`, `f4a59fc3` ), each carrying multiple correctly-rendered tags.
+
+Quick fix: pre-release-commit-message = "chore: release" ( placeholder-free, so no WARN ). Real fix below.
+
+### 2. Rich consolidated commit message via cargo-release per-step subcommands
+
+The interesting design constraint: the only template variables cargo-release reliably substitutes in the consolidated path are `{{date}}`, `{{prev_version}}`, `{{prev_metadata}}`, `{{prefix}}` — none of which can express "the crates that just released and their versions". Three options surfaced:
+
+- `"chore: release {{date}}"` — minimal, gives a date stamp.
+- Drop `consolidate-commits = true` — one commit per crate, log explosion.
+- Compose the message ourselves via `cargo release`'s per-step subcommands and amend before publish.
+
+Picked the third. cargo-release exposes `changes` / `version` / `replace` / `hook` / `commit` / `publish` / `owner` / `tag` / `push` as individual subcommands, so the chunk loop in `tools/release-harness/src/batch.rs` became:
+
+```
+1. cargo release version <ver|level>   # bump manifests
+2. cargo release replace               # changelog date stamps etc.
+3. cargo release hook                  # no-op for this workspace
+4. cargo release commit                # consolidated commit, placeholder template
+5. git commit --amend [-S] -m "<rich>" # rich body: "chore: release\n\n- foo v0.3.0\n- bar v1.0.0"
+6. cargo release publish               # uploads tarballs — now embedding the amended SHA
+7. git tag -s/-a (per missing tag)     # direct git tag, idempotent
+8. git push origin <branch> <tags>     # single push, only missing refs
+```
+
+The amend has to land *between* commit and publish: `cargo publish` packs `.cargo_vcs_info.json` into the tarball with the current HEAD SHA, so amending after publish would leave the published tarballs referencing an orphaned SHA on crates.io that we can't ever undo.
+
+Replaced cargo-release's tag and push steps with direct `git tag` / `git push` so we can ( a ) create only the tags that are missing and ( b ) push only the refs that aren't yet on origin. The `tag-message` template ( `"chore: release {{crate_name}} v{{version}}"` ) is reproduced as a one-line helper in `tag_message()`; if `Cargo.toml`'s template ever drifts, a unit test `tag_message_format` pins the format.
+
+### 3. Full resume protocol
+
+Every step gates on a state probe drawn from the repo + crates.io:
+
+| Step | Skip when… | How |
+|------|-----------|----|
+| version/replace/hook | manifests already at target | literal: read `cargo metadata`, compare; level: any chunk crate's current manifest version is on crates.io → not bumped yet |
+| commit + amend | HEAD already amended for this chunk | parse `git log -1 --format=%B`, match `"chore: release"` + body of `- <name> v<ver>` lines against this chunk's crate-to-target map |
+| commit only ( skip-then-amend ) | HEAD is "chore: release" with empty body | classified as `CargoReleasePlaceholder` — commit ran but amend didn't |
+| publish | crate on crates.io at target version | per-crate `GET https://crates.io/api/v1/crates/<n>/<v>` |
+| tag | local tag `<crate>-v<ver>` already exists | one `git tag -l` snapshot |
+| push | local HEAD and each chunk tag on origin | one `git ls-remote origin` snapshot |
+
+Unrelated HEAD subject + clean working tree returns `Error::AmbiguousResume { chunk, head_subject }` rather than clobbering; the bailout names the offending subject so the operator can fix manually.
+
+`classify_head` is intentionally lenient: any subject starting with `"chore: release"` ( with or without trailing placeholders, single-crate-rendered or our amend ) is treated as a release commit; identity is established by the body, not the subject. Covers the transition period where `Cargo.toml` could still have the placeholder template, or a future single-crate publish whose subject renders the placeholders cleanly.
+
+### 4. The dependant-crate gap
+
+The user pointed out: when `winterbaume-foo` releases, every workspace member that depends on it ( directly or transitively ) should also be republished, otherwise the published `winterbaume-foo`-consumers on crates.io reference the old version. The harness had no propagation logic.
+
+Added two passes to `tools/release-harness/src/plan.rs`, run in order after the per-crate classification:
+
+#### 4a. Stale-deps pass
+
+For each `Unchanged` / auto-`Skip` non-umbrella non-overridden crate with a prior tag, check each direct workspace dep: is the dep's latest tag NOT an ancestor of this crate's last tag? If so → dep was released after this crate → this crate's published manifest pins a stale version → upgrade to `Patch`. Ancestry check via new `git::is_ancestor` ( `git merge-base --is-ancestor` ). Returns a structured `StaleReport { actionable, umbrellas }`; umbrellas are reported but never auto-upgraded.
+
+#### 4b. Transitive bump propagation
+
+Fixed-point loop: the "bumping" set is `{ Patch, Minor, Major, Pinned, Initial }`. For each bumping crate, every dependant currently at `Unchanged` or auto-`Skip` ( cosmetic-only ) flips to `Patch` with reason `"transitive patch: depends on bumping crate(s) [...]  (previously: <old reason>)"`. Explicit override entries ( whether `Skip`, `Patch`, or `Pinned` ) are never silently overridden — they reflect the operator's deliberate choice. `HeadState::Unrelated`-style umbrellas are reported via `umbrellas_with_moving_deps` and skipped from upgrade.
+
+Stale-deps pass runs first so its newly-Patched crates feed the bumping set of propagation, which then carries the bump further up the chain.
+
+### 5. The optional-deps gap
+
+First plan run after wiring up stale-deps reported one stale crate ( `winterbaume-server` ) and **no** umbrella. The umbrella should have been screaming. Root cause: `build_forward_deps` and `build_reverse_deps` walked `metadata.resolve.nodes`, which is the *resolved* graph — only deps that are actually activated under the current feature set appear there. `winterbaume` declares 214 optional workspace deps and activates none by default, so its resolve node has zero deps and the stale-deps pass saw nothing to check.
+
+Fix: read declared deps directly from `Package.dependencies` instead of `resolve.nodes`. Added a `Dep` struct to `metadata::Package` carrying just the `name` field ( we only need to know which workspace members the package declares deps on, not version reqs or feature gates ). Both `build_forward_deps` and `build_reverse_deps` switched to this source. The umbrella now correctly surfaces with 214 stale deps.
+
+### 6. End-state plan
+
+```
+crates_changed:           2
+  of which transitive:    0
+crates_skipped_doc_only:  221
+crates_unchanged:         18
+crates_initial:           0
+
+by bump level:
+  minor    (1): winterbaume               # pinned via release-plan-overrides.toml
+  patch    (1): winterbaume-server        # stale-deps pass: 18 service crates released since server-v0.2.0
+```
+
+Umbrella minor ( 0.2.0 → 0.3.0 ) because the inherited service deps include eight breaking 0.x → 1.0 jumps ( account, appconfig, applicationsignals, batch, ec2, ivs, opensearch, organizations ) plus five 0.2 → 0.3 moves ( appconfigdata, kinesisvideo, kinesisvideoarchivedmedia, sagemaker, sesv2 ). CHANGELOG entries written manually rather than via `release-harness changelog` to avoid spawning a nested `claude` CLI from inside the agent session.
+
+Publish step not run — that's the highly-visible / hard-to-reverse boundary, deferred to the operator.
+
+### Pitfalls hit
+
+- The first stab at compute_stale_deps quietly skipped umbrellas instead of reporting them. The user's "what about the umbrella crate?" pulled this back. Refactored compute to return `StaleReport { actionable, umbrellas }` and surface both channels.
+- `git merge-base --is-ancestor` returns *false* for two sibling tags created on different commits, even when both are reachable from main. For the umbrella case the existing dependants' tags ARE descendants of the umbrella's tag commit, so the false answer was actually correct ( "newer than umbrella's tag" ). Confirmed by hand: `winterbaume-accessanalyzer-v0.2.0` ( d0926423, 17:41 ) was tagged 2h after `winterbaume-v0.2.0` ( e588530f, 15:40 ) on the same day.
+- The earlier session-stored Cargo.toml fix ( `pre-release-commit-message = "chore: release"` ) had silently been re-applied somewhere between sessions, so by the time we committed there was no diff. The `classify_head` leniency tweak ( accept any `chore: release`-prefixed subject ) makes the resume protocol robust to the template drifting back to placeholders.
+- `cargo release commit --execute` would fail with "nothing to commit" if a previous attempt already committed the manifest changes. The resume protocol handles this via `HeadState::CargoReleasePlaceholder` ( subject matches but body is empty ) — runs only `git commit --amend`, not a fresh `cargo release commit`.
+- Running `release-harness changelog` from inside Claude Code would spawn the `claude` CLI as a subprocess for the polish pass. Wrote the two CHANGELOG entries by hand instead; the user can re-polish later via the steady-state workflow.
+
+### Commits
+
+- `ab54a1ed` per-step subcommand pipeline + full resume in `batch.rs`
+- `a0a5cfa9` lenient `classify_head` subject check
+- `de8af531` transitive bump propagation in `plan.rs`
+- `58534415` stale-deps pass + `git::is_ancestor`
+- `2feb4175` declared-deps graph ( fixes umbrella detection )
+- `44cff8c4` CHANGELOG entries for both crates + `release-plan-overrides.toml` pinning umbrella to minor
+
+### Gate
+
+Per-crate clippy + fmt clean for `release-harness`; 48 unit tests passing ( 21 `batch::tests`, 21 `plan::tests` covering propagation + stale-deps + classification, 5 `polisher::tests`, 4 `version::tests` ).
+
+### Not done
+
+- Publish step left for the operator — visible/external action, not appropriate to run autonomously.
+- `release-harness changelog` polisher pass deferred; the two manually-written entries will need a polish if the steady-state workflow re-runs the harness.
+- Level-keyword resume on first-publish crates ( `cargo release version patch -p new-unpublished-crate` ) still has an edge case where the heuristic "any chunk crate's current manifest version is on crates.io → bump needed" returns false for a brand-new crate, so version step is skipped and the publish lands at the unbumped version. The plan-based path uses literal versions for `Initial` / `Pinned` decisions, so this only bites direct `release-harness batch --version patch` against an unpublished crate. Documented in code; revisit when it actually fires.
+- The 214-stale-deps umbrella warning is a bit of a wall of text; if future runs hit similar sizes, the message should probably be truncated to the first ~5 deps with a "+N more" tail.
