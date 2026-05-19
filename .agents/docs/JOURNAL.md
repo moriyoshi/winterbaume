@@ -1318,3 +1318,41 @@ The resume path is unaffected: `classify_head` already handles the `Unrelated + 
 ### Pitfall noted
 
 This is the second time a `cargo release` per-subcommand quirk has bitten the harness ( first was the `consolidate-commits` template-placeholder issue, fixed by the manual amend step ). Worth keeping in mind whenever we add a new step: each `cargo release <subcommand>` has its own argument schema, and the umbrella `cargo release --help` doesn't list them — `cargo release <sub> --help` is the only authority.
+
+## 2026-05-19 — release-harness: `--sign` was also renamed per-subcommand
+
+Second exercise of the per-step pipeline got past the `-p` fix and tripped on the same class of issue one step later:
+
+```
+$ cargo release commit --sign --no-confirm
+error: unexpected argument '--sign' found
+  tip: a similar argument exists: '--sign-commit'
+```
+
+The legacy top-level `cargo release --sign` flag was split when the subcommands were decomposed: `commit` now takes `--sign-commit`, `tag` takes `--sign-tag`, and the other steps don't take a sign flag at all. `run_release_step` was still passing `--sign` whenever the caller set `sign=true`.
+
+### Fix
+
+`run_release_step` now maps the boolean `sign` arg to the right per-step flag:
+
+```rust
+let sign_flag: Option<&str> = if sign {
+    match step {
+        "commit" => Some("--sign-commit"),
+        "tag" => Some("--sign-tag"),
+        _ => None,
+    }
+} else {
+    None
+};
+```
+
+Only `commit` is currently called with `sign=true` ( the harness drives tagging via `git tag -s` directly rather than `cargo release tag`, see `create_tag` in `batch.rs` ), so the `tag` arm is forward-looking insurance for if/when we ever switch tagging back to cargo-release. Dry-run printer updated in lockstep to show `--sign-commit` instead of `--sign`.
+
+### Gate
+
+Same per-crate gate as the `-p` fix: fmt clean, clippy `-D warnings` clean, 48/48 unit tests pass. No new test coverage — the bug is again in `Command` argument plumbing that the unit-test layer doesn't exercise. Tempted to add a stub test that walks `step_args → expected Command argv` to catch the next per-subcommand schema drift, but holding off until we hit a third instance to confirm the pattern is worth the test-fixture maintenance cost.
+
+### Followup considered
+
+The "the schema of `cargo release <sub>` keeps drifting" pattern suggests we should pin the cargo-release version in the harness's Cargo.toml or at least document the version we validated against. Skipped for now — cargo-release is a global dev-tool install, not a workspace dep, and pinning it would mean either a `rust-toolchain.toml`-style version file or a build.rs check. Neither feels worth it for a harness only used by the maintainer.

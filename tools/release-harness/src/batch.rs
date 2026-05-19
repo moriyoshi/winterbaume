@@ -520,14 +520,14 @@ fn should_run_version_step(
 
 fn print_dry_run(version_or_level: &str, chunk: &[String], sign: bool, no_confirm: bool) {
     let p_args: String = chunk.iter().map(|c| format!(" -p {c}")).collect();
-    let sign_flag = if sign { " --sign" } else { "" };
+    let commit_sign_flag = if sign { " --sign-commit" } else { "" };
     let nc = if no_confirm { " --no-confirm" } else { "" };
     eprintln!("(steps below are gated on resume probes; some may be skipped at runtime)");
     eprintln!("$ cargo release version {version_or_level}{p_args}{nc} --execute");
     eprintln!("$ cargo release replace{p_args}{nc} --execute");
     eprintln!("$ cargo release hook{p_args}{nc} --execute");
     // `cargo release commit` rejects -p; it commits the whole working tree.
-    eprintln!("$ cargo release commit{sign_flag}{nc} --execute");
+    eprintln!("$ cargo release commit{commit_sign_flag}{nc} --execute");
     eprintln!(
         "$ git commit --amend{} -m \"chore: release ... per-crate body\"",
         if sign { " -S" } else { "" }
@@ -551,7 +551,22 @@ fn run_release_step(
     // cargo-release's `commit` subcommand operates on the whole working tree
     // and rejects `-p` outright ("error: unexpected argument '-p' found"). All
     // other steps we drive (version / replace / hook / publish) do accept it.
-    let pass_packages = step_args.first().copied() != Some("commit");
+    let step = step_args.first().copied().unwrap_or("");
+    let pass_packages = step != "commit";
+    // The legacy top-level `cargo release --sign` was split per subcommand:
+    // `cargo release commit` takes `--sign-commit` and `cargo release tag`
+    // takes `--sign-tag`. Map the harness's boolean to whichever is correct
+    // for the active step; other steps never take a sign flag, so a `sign`
+    // arg on them is silently ignored ( and is never set today anyway ).
+    let sign_flag: Option<&str> = if sign {
+        match step {
+            "commit" => Some("--sign-commit"),
+            "tag" => Some("--sign-tag"),
+            _ => None,
+        }
+    } else {
+        None
+    };
     let mut cmd = Command::new(cargo.path());
     cmd.arg("release");
     for a in step_args {
@@ -562,8 +577,8 @@ fn run_release_step(
             cmd.arg("-p").arg(c);
         }
     }
-    if sign {
-        cmd.arg("--sign");
+    if let Some(flag) = sign_flag {
+        cmd.arg(flag);
     }
     if no_confirm {
         cmd.arg("--no-confirm");
@@ -579,7 +594,7 @@ fn run_release_step(
         "$ cargo release {}{}{}{}",
         step_args.join(" "),
         p_args,
-        if sign { " --sign" } else { "" },
+        sign_flag.map(|f| format!(" {f}")).unwrap_or_default(),
         if no_confirm { " --no-confirm" } else { "" },
     );
     run_with_tee(&mut cmd)
