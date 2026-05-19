@@ -637,7 +637,7 @@ winterbaume-apigateway = { version = "0.2.0", path = "crates/winterbaume-apigate
 winterbaume-apigatewaymanagement = { version = "0.2.0", path = "crates/winterbaume-apigatewaymanagement" }
 winterbaume-apigatewayv2 = { version = "0.2.0", path = "crates/winterbaume-apigatewayv2" }
 winterbaume-eks = { version = "0.2.0", path = "crates/winterbaume-eks" }
-winterbaume-kinesis = { version = "0.2.0", path = "crates/winterbaume-kinesis" }
+winterbaume-kinesis = { version = "0.2.1", path = "crates/winterbaume-kinesis" }
 winterbaume-cloudformation = { version = "0.2.0", path = "crates/winterbaume-cloudformation" }
 winterbaume-cloudfront = { version = "0.2.0", path = "crates/winterbaume-cloudfront" }
 winterbaume-firehose = { version = "0.2.0", path = "crates/winterbaume-firehose" }
@@ -799,10 +799,10 @@ winterbaume-partiql = { version = "0.2.0", path = "crates/winterbaume-partiql" }
 # winterbaume-sqlengine-duckdb` still picks up the wrapper's own
 # `default = ["bundled"]` because that path doesn't go through this entry.
 winterbaume-sqlengine-duckdb = { version = "0.2.0", path = "crates/winterbaume-sqlengine-duckdb", default-features = false }
-winterbaume-sqs-redis = { version = "0.2.0", path = "crates/winterbaume-sqs-redis" }
+winterbaume-sqs-redis = { version = "0.2.1", path = "crates/winterbaume-sqs-redis" }
 winterbaume-tfstate = { version = "0.2.0", path = "crates/winterbaume-tfstate" }
 winterbaume-tfstate-resource-models = { version = "0.2.0", path = "crates/winterbaume-tfstate-resource-models" }
-winterbaume-terraform = { version = "0.2.0", path = "crates/winterbaume-terraform" }
+winterbaume-terraform = { version = "0.2.1", path = "crates/winterbaume-terraform" }
 
 # AWS SDK
 aws-sdk-accessanalyzer = "1"

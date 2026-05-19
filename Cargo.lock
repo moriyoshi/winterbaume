@@ -13196,7 +13196,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-kinesis"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aws-config",
  "aws-credential-types",
@@ -15208,7 +15208,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-sqs-redis"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "md-5 0.10.6",
@@ -15429,7 +15429,7 @@ dependencies = [
 
 [[package]]
 name = "winterbaume-terraform"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "aws-config",
  "aws-credential-types",
