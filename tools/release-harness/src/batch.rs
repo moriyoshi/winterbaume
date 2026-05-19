@@ -1,16 +1,28 @@
-//! Chunked `cargo release` driver for the crates.io `publish_new` rate limit.
+//! Per-step `cargo release` driver that composes a rich consolidated commit
+//! message and resumes cleanly from any partial-state failure.
 //!
-//! Originally a standalone binary (`tools/release-batch/`); folded into the
-//! harness so `publish` can call it in-process and there's one entry point for
-//! the release workflow.
+//! cargo-release's `consolidate-commits = true` path can't substitute
+//! `{{crate_name}}` / `{{version}}` (multiple crates → multiple values), so the
+//! workspace's `pre-release-commit-message` template is intentionally minimal
+//! and we amend the commit ourselves between `cargo release commit` and
+//! `cargo release publish`. Doing the amend *before* publish keeps the SHA
+//! recorded in each tarball's `.cargo_vcs_info.json` consistent with the final
+//! commit and with the per-crate tags that get created afterwards.
 //!
-//! Cargo rejects a multi-crate batch upfront when the planned new-crate count
-//! exceeds the account's `publish_new` quota (default: 5 per 10 minutes). This
-//! module splits a workspace release into successive `cargo release`
-//! invocations of at most `chunk_size` crates each, sleeping `sleep` seconds
-//! between invocations so the rate window slides.
+//! The chunk loop is fully resumable: every step is gated on a state probe
+//! (manifest versions, HEAD subject/body, crates.io publish status, local +
+//! remote git refs), so a re-run after a crash, 429 cliff, or Ctrl+C picks up
+//! where the previous attempt left off without re-bumping, re-committing,
+//! re-publishing, re-tagging, or re-pushing anything that already landed.
+//!
+//! Chunked invocation also accommodates the crates.io `publish_new` rate limit
+//! (default 5 per 10 minutes): a workspace release is split into successive
+//! per-step subcommand sequences of at most `chunk_size` crates each, sleeping
+//! `sleep` seconds between chunks so the rate window slides. Only the
+//! `publish` step is subject to that limit, so the retry-on-429 / prune
+//! already-published logic lives around that one call.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
@@ -18,7 +30,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime};
 
-use crate::metadata::CargoExe;
+use crate::metadata::{CargoExe, cargo_metadata};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -28,6 +40,17 @@ pub enum Error {
         status: String,
         stderr: String,
     },
+    #[error(
+        "ambiguous resume state for chunk {chunk:?}: HEAD subject = {head_subject:?}, \
+         working tree is clean, but no in-progress release commit was found. Bailing out \
+         to avoid clobbering unrelated work; fix manually and re-run."
+    )]
+    AmbiguousResume {
+        chunk: Vec<String>,
+        head_subject: String,
+    },
+    #[error(transparent)]
+    Metadata(#[from] crate::metadata::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
@@ -36,10 +59,10 @@ pub enum Error {
 
 /// Parameters to a single chunked release run.
 ///
-/// `version_or_level` is passed verbatim as `cargo release`'s first positional
-/// argument — either a level (`patch`, `minor`, `major`, `release`, `alpha`,
-/// `beta`, `rc`) or a concrete semver. The crates.io resumability check only
-/// runs when this is a concrete semver.
+/// `version_or_level` is passed verbatim as `cargo release version`'s
+/// positional argument — either a level (`patch`, `minor`, `major`, `release`,
+/// `alpha`, `beta`, `rc`) or a concrete semver. The crates.io resumability
+/// check only runs when this is a concrete semver.
 #[derive(Clone, Debug)]
 pub struct BatchOptions<'a> {
     pub cargo: &'a CargoExe,
@@ -62,7 +85,6 @@ pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
     let root = opts.root;
     let version_or_level = opts.version_or_level;
 
-    // Resumability is only meaningful when version_or_level is a concrete semver.
     let resumable_version: Option<&str> =
         if looks_like_semver(version_or_level) && !opts.skip_version_check {
             Some(version_or_level)
@@ -70,25 +92,28 @@ pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
             if !opts.skip_version_check {
                 eprintln!(
                     "note: `{version_or_level}` is a level, not a concrete semver; \
-                     skipping crates.io resumability check"
+                     skipping pre-flight crates.io resumability check"
                 );
             }
             None
         };
 
+    // Pre-flight prune: for literal-version runs, drop crates whose target is
+    // already on crates.io even before we start chunking. (Within-chunk resume
+    // re-checks at finer granularity.)
     let plan: Vec<String> = match resumable_version {
         Some(v) => {
             let mut keep = Vec::with_capacity(opts.crates.len());
-            for name in opts.crates {
-                if already_on_crates_io(&name, v) {
+            for name in &opts.crates {
+                if already_on_crates_io(name, v) {
                     eprintln!("skip {name} v{v}: already on crates.io");
                 } else {
-                    keep.push(name);
+                    keep.push(name.clone());
                 }
             }
             keep
         }
-        None => opts.crates,
+        None => opts.crates.clone(),
     };
 
     eprintln!("to publish ({version_or_level}): {}", plan.len());
@@ -106,68 +131,152 @@ pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
 
     for (i, chunk) in chunks.iter().enumerate() {
         let i1 = i + 1;
-        let mut working_chunk: Vec<String> = chunk.to_vec();
         eprintln!(
             "\n=== chunk {i1}/{n} ({k} crate(s)) ===",
             n = chunks.len(),
-            k = working_chunk.len()
-        );
-        eprintln!(
-            "$ cargo release {version_or_level} {}",
-            working_chunk.join(" ")
+            k = chunk.len()
         );
 
         if !opts.execute {
+            print_dry_run(version_or_level, chunk, opts.sign, opts.no_confirm);
             continue;
         }
 
-        let mut rate_limit_attempts: u32 = 0;
-        let outcome = loop {
-            let mut cmd = Command::new(cargo.path());
-            cmd.arg("release").arg(version_or_level);
-            for c in &working_chunk {
-                cmd.arg("-p").arg(c);
-            }
-            if opts.sign {
-                cmd.arg("--sign");
-            }
-            if opts.no_confirm {
-                cmd.arg("--no-confirm");
-            }
-            cmd.arg("--execute");
-            cmd.current_dir(root);
+        if let Some(status) = run_chunk(&opts, chunk, i1)? {
+            return Ok(RunOutcome::ChunkFailed(status));
+        }
 
-            let (status, captured) = run_with_tee(&mut cmd)?;
+        if i1 < chunks.len() {
+            eprintln!(
+                "sleeping {}s before next chunk",
+                opts.sleep_between_chunks.as_secs()
+            );
+            thread::sleep(opts.sleep_between_chunks);
+        }
+    }
+
+    eprintln!("\nall chunks complete");
+    Ok(RunOutcome::Success)
+}
+
+/// Run a single chunk's worth of steps, skipping each step that the state
+/// probes report is already complete. Returns `Some(status)` on a
+/// non-recoverable failure (the caller turns this into
+/// `RunOutcome::ChunkFailed`) and `None` on success.
+fn run_chunk(
+    opts: &BatchOptions<'_>,
+    chunk: &[String],
+    i1: usize,
+) -> Result<Option<ExitStatus>, Error> {
+    let cargo = opts.cargo;
+    let root = opts.root;
+    let version_or_level = opts.version_or_level;
+
+    // 1-3. Version-bump / replace / hook (only when manifests are not yet at
+    //      the target version).
+    let mut manifest_versions = read_versions(cargo, root, chunk)?;
+    if should_run_version_step(version_or_level, &manifest_versions, chunk) {
+        let (status, _) = run_release_step(
+            cargo,
+            root,
+            &["version", version_or_level],
+            chunk,
+            false,
+            opts.no_confirm,
+        )?;
+        if !status.success() {
+            return Ok(Some(status));
+        }
+        let (status, _) =
+            run_release_step(cargo, root, &["replace"], chunk, false, opts.no_confirm)?;
+        if !status.success() {
+            return Ok(Some(status));
+        }
+        let (status, _) = run_release_step(cargo, root, &["hook"], chunk, false, opts.no_confirm)?;
+        if !status.success() {
+            return Ok(Some(status));
+        }
+        manifest_versions = read_versions(cargo, root, chunk)?;
+    } else {
+        eprintln!("manifests already at target — skipping version/replace/hook");
+    }
+
+    // From here on, manifest_versions == target_versions for this chunk.
+    let target_versions = &manifest_versions;
+
+    // 4-5. Commit + amend, guided by what HEAD currently looks like.
+    let head_state = classify_head(root, chunk, target_versions)?;
+    match head_state {
+        HeadState::AmendedForThisChunk => {
+            eprintln!("HEAD already amended for this chunk — skipping commit + amend");
+        }
+        HeadState::CargoReleasePlaceholder => {
+            eprintln!("HEAD is a cargo-release placeholder commit — running amend only");
+            let msg = build_commit_message(chunk, target_versions);
+            amend_commit(root, &msg, opts.sign)?;
+        }
+        HeadState::Unrelated { subject } => {
+            if git_status_dirty(root)? {
+                let (status, _) =
+                    run_release_step(cargo, root, &["commit"], chunk, opts.sign, opts.no_confirm)?;
+                if !status.success() {
+                    return Ok(Some(status));
+                }
+                let msg = build_commit_message(chunk, target_versions);
+                amend_commit(root, &msg, opts.sign)?;
+            } else {
+                return Err(Error::AmbiguousResume {
+                    chunk: chunk.to_vec(),
+                    head_subject: subject,
+                });
+            }
+        }
+    }
+
+    // 6. Publish — with prune + 429 retry. Crates already on crates.io at the
+    //    target version are skipped before the first call.
+    let mut working_chunk: Vec<String> = chunk
+        .iter()
+        .filter(|c| match target_versions.get(*c) {
+            Some(v) => !already_on_crates_io(c, v),
+            None => true,
+        })
+        .cloned()
+        .collect();
+    if working_chunk.len() < chunk.len() {
+        eprintln!(
+            "publish: {} of {} crate(s) already on crates.io",
+            chunk.len() - working_chunk.len(),
+            chunk.len()
+        );
+    }
+
+    if !working_chunk.is_empty() {
+        let mut rate_limit_attempts: u32 = 0;
+        let publish_outcome = loop {
+            let (status, captured) = run_release_step(
+                cargo,
+                root,
+                &["publish"],
+                &working_chunk,
+                false,
+                opts.no_confirm,
+            )?;
             if status.success() {
                 break ChunkOutcome::Success;
             }
 
             // Two recovery signals can show up in cargo's output:
-            //   1. "<crate> <version> is already published to crates.io" — cargo's
-            //      own pre-flight check against the registry index. Authoritative.
-            //   2. "Please try again after <date> GMT" — a 429 publish_new rate
-            //      limit, indicating we should sleep until the window slides.
-            // If neither appears, the failure is something we can't recover from.
+            //   1. "<crate> <version> is already published to crates.io" —
+            //      cargo's own pre-flight check. Authoritative.
+            //   2. "Please try again after <date> GMT" — a 429 publish_new
+            //      rate limit; sleep until the window slides.
             let already_published = parse_already_published(&captured);
             let rate_limit_deadline = parse_retry_after(&captured);
-            let uploaded = parse_uploaded(&captured, version_or_level);
-
-            // Any chunk-failure path may have published crates before the failure
-            // hit. Backfill their tags before we either bail out or retry — the
-            // pruning loop below would otherwise miss crates that fall outside the
-            // 429 / already-published recovery branches.
-            for name in &uploaded {
-                let tag = format!("{name}-v{version_or_level}");
-                match backfill_tag(&tag, opts.sign, root) {
-                    Ok(BackfillOutcome::AlreadyExists) => {}
-                    Ok(BackfillOutcome::Created) => eprintln!("backfilled tag: {tag}"),
-                    Err(e) => eprintln!("warn: failed to backfill tag {tag}: {e}"),
-                }
-            }
 
             if rate_limit_deadline.is_none() && already_published.is_empty() {
                 eprintln!(
-                    "chunk {i1} failed (rc={:?}); fix the cause and re-run",
+                    "chunk {i1} publish failed (rc={:?}); fix the cause and re-run",
                     status.code()
                 );
                 break ChunkOutcome::Failure(status);
@@ -197,41 +306,22 @@ pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
                 thread::sleep(wait);
             }
 
-            // Prune crates already on crates.io. The two signals are complementary:
-            //   - cargo's "is already published" error names crates the index
-            //     already has.
-            //   - On a 429 retry, cargo never reached its pre-flight, so we also
-            //     probe the crates.io API as a best-effort secondary path.
             let before = working_chunk.len();
-            let mut pruned: Vec<String> = Vec::new();
             working_chunk.retain(|name| {
                 if already_published.contains(name) {
-                    eprintln!("skip {name} v{version_or_level}: cargo reports already published");
-                    pruned.push(name.clone());
+                    eprintln!("skip {name}: cargo reports already published");
                     return false;
                 }
-                if rate_limit_deadline.is_some() && already_on_crates_io(name, version_or_level) {
-                    eprintln!("skip {name} v{version_or_level}: published during previous attempt");
-                    pruned.push(name.clone());
-                    return false;
+                if rate_limit_deadline.is_some() {
+                    if let Some(v) = target_versions.get(name) {
+                        if already_on_crates_io(name, v) {
+                            eprintln!("skip {name} v{v}: published during previous attempt");
+                            return false;
+                        }
+                    }
                 }
                 true
             });
-
-            // cargo-release pushes tags only as part of the same invocation
-            // that publishes the crate. When a chunk is interrupted mid-batch
-            // by a 429, the crates that landed before the failure never get
-            // tagged, and the retry's `cargo release` invocation no longer
-            // includes them (we just pruned them above) — so the tag would be
-            // dropped on the floor unless we backfill it here.
-            for name in &pruned {
-                let tag = format!("{name}-v{version_or_level}");
-                match backfill_tag(&tag, opts.sign, root) {
-                    Ok(BackfillOutcome::AlreadyExists) => {}
-                    Ok(BackfillOutcome::Created) => eprintln!("backfilled tag: {tag}"),
-                    Err(e) => eprintln!("warn: failed to backfill tag {tag}: {e}"),
-                }
-            }
 
             if working_chunk.is_empty() {
                 eprintln!("chunk {i1} fully landed during previous attempt; nothing left to retry");
@@ -256,24 +346,68 @@ pub fn run_chunked(opts: BatchOptions<'_>) -> Result<RunOutcome, Error> {
             }
         };
 
-        if let ChunkOutcome::Failure(status) = outcome {
-            return Ok(RunOutcome::ChunkFailed(status));
+        if let ChunkOutcome::Failure(status) = publish_outcome {
+            return Ok(Some(status));
         }
-
-        if i1 < chunks.len() {
-            eprintln!(
-                "sleeping {}s before next chunk",
-                opts.sleep_between_chunks.as_secs()
-            );
-            thread::sleep(opts.sleep_between_chunks);
-        }
+    } else {
+        eprintln!("publish: all crates already on crates.io — skipping publish step");
     }
 
-    eprintln!("\nall chunks complete");
-    Ok(RunOutcome::Success)
+    // 7. Tag — one annotated (and signed when requested) tag per crate, at the
+    //    amended HEAD. Direct `git tag` so we can create only the missing ones.
+    let local_tags = local_tags(root)?;
+    let mut tagged_now = 0;
+    for c in chunk {
+        let v = target_versions.get(c).cloned().unwrap_or_default();
+        if v.is_empty() {
+            continue;
+        }
+        let tag = format!("{c}-v{v}");
+        if local_tags.contains(&tag) {
+            continue;
+        }
+        create_tag(root, &tag, &tag_message(c, &v), opts.sign)?;
+        eprintln!("created tag {tag}");
+        tagged_now += 1;
+    }
+    if tagged_now == 0 {
+        eprintln!("tag: all chunk tags already exist locally — skipping tag step");
+    }
+
+    // 8. Push — HEAD and any chunk tags missing on origin, in one push.
+    let remote = remote_refs(root)?;
+    let branch = current_branch(root)?;
+    let head_sha = rev_parse(root, "HEAD")?;
+    let head_pushed = remote
+        .get(&format!("refs/heads/{branch}"))
+        .map(|s| s == &head_sha)
+        .unwrap_or(false);
+
+    let mut refs_to_push: Vec<String> = Vec::new();
+    if !head_pushed {
+        refs_to_push.push(branch.clone());
+    }
+    for c in chunk {
+        let v = target_versions.get(c).cloned().unwrap_or_default();
+        if v.is_empty() {
+            continue;
+        }
+        let tag = format!("{c}-v{v}");
+        if remote.contains_key(&format!("refs/tags/{tag}")) {
+            continue;
+        }
+        refs_to_push.push(tag);
+    }
+    if refs_to_push.is_empty() {
+        eprintln!("push: HEAD and all chunk tags already on origin — nothing to push");
+    } else {
+        git_push(root, &refs_to_push)?;
+    }
+
+    Ok(None)
 }
 
-/// Result of a chunked-release run. `ChunkFailed` carries the failing chunk's
+/// Result of a chunked-release run. `ChunkFailed` carries the failing step's
 /// process exit status so the caller can propagate the same exit code.
 #[derive(Debug)]
 pub enum RunOutcome {
@@ -286,9 +420,343 @@ enum ChunkOutcome {
     Failure(ExitStatus),
 }
 
-enum BackfillOutcome {
-    AlreadyExists,
-    Created,
+#[derive(Debug, PartialEq, Eq)]
+enum HeadState {
+    /// HEAD subject is `chore: release` and the body lists exactly this
+    /// chunk's crates at their target versions.
+    AmendedForThisChunk,
+    /// HEAD subject is `chore: release` but the body is empty — i.e. cargo-
+    /// release ran `commit` but our `amend` step never landed. We still need
+    /// to amend, but we must not run `cargo release commit` again.
+    CargoReleasePlaceholder,
+    /// Anything else — could be a previous chunk's amended commit, an
+    /// unrelated user commit, or a mid-rebase state.
+    Unrelated { subject: String },
+}
+
+fn classify_head(
+    root: &Path,
+    chunk: &[String],
+    target_versions: &BTreeMap<String, String>,
+) -> Result<HeadState, Error> {
+    let msg = read_head_message(root)?;
+    Ok(classify_head_message(&msg, chunk, target_versions))
+}
+
+fn classify_head_message(
+    msg: &str,
+    chunk: &[String],
+    target_versions: &BTreeMap<String, String>,
+) -> HeadState {
+    let subject = msg.lines().next().unwrap_or("").to_string();
+    if subject.trim() != "chore: release" {
+        return HeadState::Unrelated { subject };
+    }
+    let parsed: BTreeMap<String, String> = parse_amend_body(msg).into_iter().collect();
+    if parsed.is_empty() {
+        return HeadState::CargoReleasePlaceholder;
+    }
+    let chunk_set: BTreeMap<String, String> = chunk
+        .iter()
+        .filter_map(|c| target_versions.get(c).map(|v| (c.clone(), v.clone())))
+        .collect();
+    if parsed == chunk_set {
+        HeadState::AmendedForThisChunk
+    } else {
+        HeadState::Unrelated { subject }
+    }
+}
+
+/// Parse body lines like `- winterbaume-foo v0.3.0` into `(name, version)`.
+fn parse_amend_body(msg: &str) -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    for line in msg.lines() {
+        let Some(rest) = line.strip_prefix("- ") else {
+            continue;
+        };
+        let Some((name, ver)) = rest.rsplit_once(' ') else {
+            continue;
+        };
+        let Some(v) = ver.strip_prefix('v') else {
+            continue;
+        };
+        if !name.is_empty() && !v.is_empty() {
+            out.push((name.to_string(), v.to_string()));
+        }
+    }
+    out
+}
+
+fn should_run_version_step(
+    version_or_level: &str,
+    manifest_versions: &BTreeMap<String, String>,
+    chunk: &[String],
+) -> bool {
+    if looks_like_semver(version_or_level) {
+        chunk.iter().any(|c| {
+            manifest_versions
+                .get(c)
+                .map(|v| v != version_or_level)
+                .unwrap_or(true)
+        })
+    } else {
+        // Level keyword: only re-bump if the current manifest versions are
+        // still the ones already on crates.io. If any current version is
+        // unpublished, we treat the chunk as already-bumped to avoid double-
+        // bumping mid-resume.
+        chunk.iter().any(|c| {
+            manifest_versions
+                .get(c)
+                .map(|v| already_on_crates_io(c, v))
+                .unwrap_or(false)
+        })
+    }
+}
+
+fn print_dry_run(version_or_level: &str, chunk: &[String], sign: bool, no_confirm: bool) {
+    let p_args: String = chunk.iter().map(|c| format!(" -p {c}")).collect();
+    let sign_flag = if sign { " --sign" } else { "" };
+    let nc = if no_confirm { " --no-confirm" } else { "" };
+    eprintln!("(steps below are gated on resume probes; some may be skipped at runtime)");
+    eprintln!("$ cargo release version {version_or_level}{p_args}{nc} --execute");
+    eprintln!("$ cargo release replace{p_args}{nc} --execute");
+    eprintln!("$ cargo release hook{p_args}{nc} --execute");
+    eprintln!("$ cargo release commit{p_args}{sign_flag}{nc} --execute");
+    eprintln!(
+        "$ git commit --amend{} -m \"chore: release ... per-crate body\"",
+        if sign { " -S" } else { "" }
+    );
+    eprintln!("$ cargo release publish{p_args}{nc} --execute");
+    eprintln!(
+        "$ git tag {}-m \"chore: release <crate> v<ver>\" <crate>-v<ver>   (per missing tag)",
+        if sign { "-s " } else { "-a " }
+    );
+    eprintln!("$ git push origin <branch> <missing-tags>");
+}
+
+fn run_release_step(
+    cargo: &CargoExe,
+    root: &Path,
+    step_args: &[&str],
+    crates: &[String],
+    sign: bool,
+    no_confirm: bool,
+) -> Result<(ExitStatus, String), Error> {
+    let mut cmd = Command::new(cargo.path());
+    cmd.arg("release");
+    for a in step_args {
+        cmd.arg(a);
+    }
+    for c in crates {
+        cmd.arg("-p").arg(c);
+    }
+    if sign {
+        cmd.arg("--sign");
+    }
+    if no_confirm {
+        cmd.arg("--no-confirm");
+    }
+    cmd.arg("--execute");
+    cmd.current_dir(root);
+    eprintln!(
+        "$ cargo release {}{}{}{}",
+        step_args.join(" "),
+        crates
+            .iter()
+            .map(|c| format!(" -p {c}"))
+            .collect::<String>(),
+        if sign { " --sign" } else { "" },
+        if no_confirm { " --no-confirm" } else { "" },
+    );
+    run_with_tee(&mut cmd)
+}
+
+fn read_versions(
+    cargo: &CargoExe,
+    root: &Path,
+    crates: &[String],
+) -> Result<BTreeMap<String, String>, Error> {
+    let meta = cargo_metadata(cargo, root)?;
+    let wanted: BTreeSet<&str> = crates.iter().map(|s| s.as_str()).collect();
+    let mut out = BTreeMap::new();
+    for pkg in &meta.packages {
+        if wanted.contains(pkg.name.as_str()) {
+            out.insert(pkg.name.clone(), pkg.version.clone());
+        }
+    }
+    Ok(out)
+}
+
+fn build_commit_message(crates: &[String], versions: &BTreeMap<String, String>) -> String {
+    let mut s = String::from("chore: release\n\n");
+    for name in crates {
+        match versions.get(name) {
+            Some(v) => s.push_str(&format!("- {name} v{v}\n")),
+            None => s.push_str(&format!("- {name}\n")),
+        }
+    }
+    s
+}
+
+fn tag_message(crate_name: &str, version: &str) -> String {
+    format!("chore: release {crate_name} v{version}")
+}
+
+fn amend_commit(root: &Path, message: &str, sign: bool) -> Result<(), Error> {
+    let mut cmd = Command::new("git");
+    cmd.arg("commit").arg("--amend");
+    if sign {
+        cmd.arg("-S");
+    }
+    cmd.arg("-m").arg(message);
+    cmd.current_dir(root);
+    let out = cmd.output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: "git commit --amend".to_string(),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    Ok(())
+}
+
+fn create_tag(root: &Path, tag: &str, message: &str, sign: bool) -> Result<(), Error> {
+    let mut cmd = Command::new("git");
+    cmd.arg("tag").arg(if sign { "-s" } else { "-a" });
+    cmd.args(["-m", message]).arg(tag);
+    cmd.current_dir(root);
+    let out = cmd.output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: "git tag".to_string(),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    Ok(())
+}
+
+fn git_push(root: &Path, refs: &[String]) -> Result<(), Error> {
+    let mut cmd = Command::new("git");
+    cmd.arg("push").arg("origin");
+    for r in refs {
+        cmd.arg(r);
+    }
+    cmd.current_dir(root);
+    eprintln!("$ git push origin {}", refs.join(" "));
+    let out = cmd.output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: "git push".to_string(),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    if !out.stderr.is_empty() {
+        std::io::stderr().write_all(&out.stderr)?;
+    }
+    Ok(())
+}
+
+fn read_head_message(root: &Path) -> Result<String, Error> {
+    let out = Command::new("git")
+        .args(["log", "-1", "--format=%B"])
+        .current_dir(root)
+        .output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: "git log -1 --format=%B".to_string(),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    Ok(String::from_utf8(out.stdout)?)
+}
+
+fn git_status_dirty(root: &Path) -> Result<bool, Error> {
+    let out = Command::new("git")
+        .args(["status", "--porcelain"])
+        .current_dir(root)
+        .output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: "git status --porcelain".to_string(),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    Ok(!out.stdout.iter().all(u8::is_ascii_whitespace))
+}
+
+fn local_tags(root: &Path) -> Result<BTreeSet<String>, Error> {
+    let out = Command::new("git")
+        .args(["tag", "-l"])
+        .current_dir(root)
+        .output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: "git tag -l".to_string(),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    Ok(String::from_utf8(out.stdout)?
+        .lines()
+        .map(|l| l.to_string())
+        .collect())
+}
+
+fn remote_refs(root: &Path) -> Result<BTreeMap<String, String>, Error> {
+    let out = Command::new("git")
+        .args(["ls-remote", "origin"])
+        .current_dir(root)
+        .output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: "git ls-remote origin".to_string(),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    let text = String::from_utf8(out.stdout)?;
+    let mut map = BTreeMap::new();
+    for line in text.lines() {
+        if let Some((sha, refname)) = line.split_once('\t') {
+            map.insert(refname.to_string(), sha.to_string());
+        }
+    }
+    Ok(map)
+}
+
+fn current_branch(root: &Path) -> Result<String, Error> {
+    let out = Command::new("git")
+        .args(["symbolic-ref", "--short", "HEAD"])
+        .current_dir(root)
+        .output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: "git symbolic-ref --short HEAD".to_string(),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    Ok(String::from_utf8(out.stdout)?.trim().to_string())
+}
+
+fn rev_parse(root: &Path, refname: &str) -> Result<String, Error> {
+    let out = Command::new("git")
+        .args(["rev-parse", refname])
+        .current_dir(root)
+        .output()?;
+    if !out.status.success() {
+        return Err(Error::GitFailed {
+            cmd: format!("git rev-parse {refname}"),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        });
+    }
+    Ok(String::from_utf8(out.stdout)?.trim().to_string())
 }
 
 pub(crate) fn looks_like_semver(s: &str) -> bool {
@@ -389,39 +857,6 @@ fn parse_already_published(text: &str) -> BTreeSet<String> {
     out
 }
 
-/// Scan cargo output for `Uploaded <crate> v<version>` status lines emitted by
-/// cargo when it has finished pushing a crate's tarball to crates.io.
-///
-/// Returns an empty set if `version` is not a concrete semver (i.e., a level
-/// keyword) — uploaded-line matching is only meaningful when we know the
-/// landing version up front.
-fn parse_uploaded(text: &str, version: &str) -> BTreeSet<String> {
-    if !looks_like_semver(version) {
-        return BTreeSet::new();
-    }
-    const PREFIX: &str = "Uploaded ";
-    let suffix = format!(" v{version}");
-    let mut out = BTreeSet::new();
-    for line in text.lines() {
-        let trimmed = line.trim_start();
-        let Some(rest) = trimmed.strip_prefix(PREFIX) else {
-            continue;
-        };
-        let Some(name_end) = rest.find(' ') else {
-            continue;
-        };
-        let name = &rest[..name_end];
-        let tail = &rest[name_end..];
-        if !(tail == suffix || tail.starts_with(&format!("{suffix} "))) {
-            continue;
-        }
-        if !name.is_empty() {
-            out.insert(name.to_string());
-        }
-    }
-    out
-}
-
 /// Scan cargo output for the crates.io 429 "Please try again after <date> GMT"
 /// marker and return the parsed deadline.
 fn parse_retry_after(text: &str) -> Option<SystemTime> {
@@ -439,61 +874,10 @@ fn parse_retry_after(text: &str) -> Option<SystemTime> {
     None
 }
 
-/// Create a (signed when requested) annotated tag at HEAD if it doesn't exist
-/// and push it to origin. Used to recover tags for crates that were uploaded
-/// to crates.io in the same chunk but where cargo-release failed before
-/// reaching its tag step (typically on a partial-batch 429).
-fn backfill_tag(tag: &str, sign: bool, root: &Path) -> Result<BackfillOutcome, Error> {
-    let exists = Command::new("git")
-        .args(["tag", "-l", tag])
-        .current_dir(root)
-        .output()?;
-    if !exists.status.success() {
-        return Err(Error::GitFailed {
-            cmd: "git tag -l".to_string(),
-            status: exists.status.to_string(),
-            stderr: String::from_utf8_lossy(&exists.stderr).into_owned(),
-        });
-    }
-    if !exists.stdout.is_empty() {
-        return Ok(BackfillOutcome::AlreadyExists);
-    }
-
-    let mut create = Command::new("git");
-    create
-        .arg("tag")
-        .arg(if sign { "-s" } else { "-a" })
-        .args(["-m", ""])
-        .arg(tag)
-        .current_dir(root);
-    let create_out = create.output()?;
-    if !create_out.status.success() {
-        return Err(Error::GitFailed {
-            cmd: "git tag".to_string(),
-            status: create_out.status.to_string(),
-            stderr: String::from_utf8_lossy(&create_out.stderr).into_owned(),
-        });
-    }
-
-    let push_out = Command::new("git")
-        .args(["push", "origin", tag])
-        .current_dir(root)
-        .output()?;
-    if !push_out.status.success() {
-        return Err(Error::GitFailed {
-            cmd: "git push origin <tag>".to_string(),
-            status: push_out.status.to_string(),
-            stderr: String::from_utf8_lossy(&push_out.stderr).into_owned(),
-        });
-    }
-    Ok(BackfillOutcome::Created)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// Verbatim error from a real crates.io 429 hit during first-launch.
     const REAL_429_OUTPUT: &str = "\
 note: the following crates have not been published yet:
   winterbaume-bedrock-flow-validator v0.1.0 (/Users/moriyoshi/Source/winterbaume/crates/winterbaume-bedrock-flow-validator)
@@ -569,63 +953,150 @@ chunk 1 failed (rc=Some(101)); fix the cause and re-run
         assert!(names.contains("winterbaume-foo"));
     }
 
-    const REAL_UPLOAD_LOG: &str = "\
-    Finished `release` profile [optimized] target(s) in 1.50s
-   Packaging winterbaume-foo v0.2.0 (/path/to/crates/winterbaume-foo)
-   Verifying winterbaume-foo v0.2.0 (/path/to/crates/winterbaume-foo)
-   Uploading winterbaume-foo v0.2.0 (/path/to/crates/winterbaume-foo)
-    Uploaded winterbaume-foo v0.2.0
-   Packaging winterbaume-bar v0.2.0 (/path/to/crates/winterbaume-bar)
-    Uploaded winterbaume-bar v0.2.0 to crates.io
-   Published winterbaume-foo v0.2.0
-error: failed to publish to registry at https://crates.io/
-";
-
     #[test]
-    fn parses_uploaded_crates_from_status_lines() {
-        let names = parse_uploaded(REAL_UPLOAD_LOG, "0.2.0");
-        assert!(names.contains("winterbaume-foo"));
-        assert!(names.contains("winterbaume-bar"));
-        assert_eq!(names.len(), 2);
+    fn build_commit_message_lists_each_crate() {
+        let crates = vec!["winterbaume-foo".to_string(), "winterbaume-bar".to_string()];
+        let mut versions = BTreeMap::new();
+        versions.insert("winterbaume-foo".to_string(), "0.3.0".to_string());
+        versions.insert("winterbaume-bar".to_string(), "1.0.0".to_string());
+        let msg = build_commit_message(&crates, &versions);
+        assert_eq!(
+            msg,
+            "chore: release\n\n- winterbaume-foo v0.3.0\n- winterbaume-bar v1.0.0\n"
+        );
     }
 
     #[test]
-    fn parse_uploaded_filters_by_version() {
-        let names = parse_uploaded(REAL_UPLOAD_LOG, "0.3.0");
-        assert!(names.is_empty());
+    fn build_commit_message_preserves_topo_order() {
+        let crates = vec![
+            "winterbaume-z-dep".to_string(),
+            "winterbaume-a-leaf".to_string(),
+        ];
+        let mut versions = BTreeMap::new();
+        versions.insert("winterbaume-z-dep".to_string(), "0.1.0".to_string());
+        versions.insert("winterbaume-a-leaf".to_string(), "0.1.0".to_string());
+        let msg = build_commit_message(&crates, &versions);
+        let lines: Vec<&str> = msg.lines().filter(|l| l.starts_with('-')).collect();
+        assert_eq!(
+            lines,
+            vec!["- winterbaume-z-dep v0.1.0", "- winterbaume-a-leaf v0.1.0"]
+        );
     }
 
     #[test]
-    fn parse_uploaded_skipped_for_level_keywords() {
-        let names = parse_uploaded(REAL_UPLOAD_LOG, "patch");
-        assert!(names.is_empty());
+    fn build_commit_message_handles_missing_version() {
+        let crates = vec!["winterbaume-foo".to_string()];
+        let versions = BTreeMap::new();
+        let msg = build_commit_message(&crates, &versions);
+        assert_eq!(msg, "chore: release\n\n- winterbaume-foo\n");
+    }
+
+    fn versions(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     #[test]
-    fn parse_uploaded_ignores_uploading_progress_lines() {
-        let progress_only = "\
-   Uploading winterbaume-foo v0.2.0
-   Uploading winterbaume-bar v0.2.0
-";
-        let names = parse_uploaded(progress_only, "0.2.0");
-        assert!(names.is_empty());
+    fn classify_head_amended_for_this_chunk() {
+        let msg = "chore: release\n\n- winterbaume-foo v0.3.0\n- winterbaume-bar v0.3.0\n";
+        let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
+        let targets = versions(&[("winterbaume-foo", "0.3.0"), ("winterbaume-bar", "0.3.0")]);
+        assert_eq!(
+            classify_head_message(msg, &chunk, &targets),
+            HeadState::AmendedForThisChunk
+        );
     }
 
     #[test]
-    fn parse_uploaded_rejects_version_mismatch() {
-        let mixed = "\
-    Uploaded winterbaume-foo v0.1.0
-    Uploaded winterbaume-bar v0.2.0
-";
-        let names = parse_uploaded(mixed, "0.2.0");
-        assert!(!names.contains("winterbaume-foo"));
-        assert!(names.contains("winterbaume-bar"));
-        assert_eq!(names.len(), 1);
+    fn classify_head_placeholder_when_body_empty() {
+        let msg = "chore: release\n";
+        let chunk = vec!["winterbaume-foo".into()];
+        let targets = versions(&[("winterbaume-foo", "0.3.0")]);
+        assert_eq!(
+            classify_head_message(msg, &chunk, &targets),
+            HeadState::CargoReleasePlaceholder
+        );
     }
 
     #[test]
-    fn parse_uploaded_empty_when_no_match() {
-        let unrelated = "error: build failed\nwarning: deprecated\n";
-        assert!(parse_uploaded(unrelated, "0.2.0").is_empty());
+    fn classify_head_unrelated_when_subject_differs() {
+        let msg = "fix: typo in README\n";
+        let chunk = vec!["winterbaume-foo".into()];
+        let targets = versions(&[("winterbaume-foo", "0.3.0")]);
+        match classify_head_message(msg, &chunk, &targets) {
+            HeadState::Unrelated { subject } => assert_eq!(subject, "fix: typo in README"),
+            other => panic!("expected Unrelated, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn classify_head_unrelated_when_body_lists_different_crates() {
+        // A previous chunk's amended commit: subject matches but body lists
+        // crates that are not in this chunk.
+        let msg = "chore: release\n\n- winterbaume-other v0.3.0\n";
+        let chunk = vec!["winterbaume-foo".into()];
+        let targets = versions(&[("winterbaume-foo", "0.3.0")]);
+        assert!(matches!(
+            classify_head_message(msg, &chunk, &targets),
+            HeadState::Unrelated { .. }
+        ));
+    }
+
+    #[test]
+    fn classify_head_unrelated_when_versions_differ() {
+        let msg = "chore: release\n\n- winterbaume-foo v0.2.0\n";
+        let chunk = vec!["winterbaume-foo".into()];
+        let targets = versions(&[("winterbaume-foo", "0.3.0")]);
+        assert!(matches!(
+            classify_head_message(msg, &chunk, &targets),
+            HeadState::Unrelated { .. }
+        ));
+    }
+
+    #[test]
+    fn parse_amend_body_extracts_pairs() {
+        let msg = "chore: release\n\n- winterbaume-foo v0.3.0\n- winterbaume-bar v1.0.0-beta.1\n";
+        let pairs = parse_amend_body(msg);
+        assert_eq!(
+            pairs,
+            vec![
+                ("winterbaume-foo".to_string(), "0.3.0".to_string()),
+                ("winterbaume-bar".to_string(), "1.0.0-beta.1".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn parse_amend_body_ignores_non_dash_lines() {
+        let msg = "chore: release\n\nsome prose\n- winterbaume-foo v0.3.0\nmore prose\n";
+        let pairs = parse_amend_body(msg);
+        assert_eq!(
+            pairs,
+            vec![("winterbaume-foo".to_string(), "0.3.0".to_string())]
+        );
+    }
+
+    #[test]
+    fn should_run_version_literal_skips_when_matched() {
+        let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
+        let mfs = versions(&[("winterbaume-foo", "0.3.0"), ("winterbaume-bar", "0.3.0")]);
+        assert!(!should_run_version_step("0.3.0", &mfs, &chunk));
+    }
+
+    #[test]
+    fn should_run_version_literal_runs_when_mismatched() {
+        let chunk = vec!["winterbaume-foo".into(), "winterbaume-bar".into()];
+        let mfs = versions(&[("winterbaume-foo", "0.2.0"), ("winterbaume-bar", "0.3.0")]);
+        assert!(should_run_version_step("0.3.0", &mfs, &chunk));
+    }
+
+    #[test]
+    fn tag_message_format() {
+        assert_eq!(
+            tag_message("winterbaume-foo", "0.3.0"),
+            "chore: release winterbaume-foo v0.3.0"
+        );
     }
 }

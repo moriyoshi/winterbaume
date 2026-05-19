@@ -552,7 +552,7 @@ shared-version = false
 consolidate-commits = true
 allow-branch = ["main"]
 tag-name = "{{crate_name}}-v{{version}}"
-pre-release-commit-message = "chore: release {{crate_name}} v{{version}}"
+pre-release-commit-message = "chore: release"
 tag-message = "chore: release {{crate_name}} v{{version}}"
 # Disable build verification during publish — cross-crate deps within the
 # workspace may not be on crates.io yet when publishing in order.
