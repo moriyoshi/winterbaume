@@ -8,6 +8,37 @@ Each crate is versioned independently via `cargo-release`. Release tags use the
 `<crate-name>-v<version>` convention (e.g. `winterbaume-s3-v0.2.0`); the umbrella
 `winterbaume` crate uses `winterbaume-v<version>`.
 
+## 2026-05-19 — `winterbaume` v0.3.0
+
+Umbrella dependency refresh. Bumps the optional workspace-dep version
+specifiers for every service crate that has been tagged since
+`winterbaume-v0.2.0` (2026-05-13), so that downstream consumers enabling
+feature flags pick up the new published service crates instead of the
+versions captured at the previous umbrella release.
+
+The umbrella is bumping `minor` (0.2.0 → 0.3.0) — pre-1.0 semver — because
+several of the inherited service crates released breaking 0.x → 1.0 jumps:
+
+- `winterbaume-account` v1.0.0
+- `winterbaume-appconfig` v1.0.0
+- `winterbaume-applicationsignals` v1.0.0
+- `winterbaume-batch` v1.0.0
+- `winterbaume-ec2` v1.0.0
+- `winterbaume-ivs` v1.0.0
+- `winterbaume-opensearch` v1.0.0
+- `winterbaume-organizations` v1.0.0
+
+Other refreshed service crates (non-breaking moves):
+
+- `winterbaume-appconfigdata` v0.3.0
+- `winterbaume-kinesisvideo` v0.3.0
+- `winterbaume-kinesisvideoarchivedmedia` v0.3.0
+- `winterbaume-sagemaker` v0.3.0
+- `winterbaume-sesv2` v0.3.0
+
+No new umbrella-level features or APIs; consult each per-crate
+`CHANGELOG.md` for the substantive changes.
+
 ## 2026-05-18
 
 - `winterbaume-account` v0.3.0: see [`crates/winterbaume-account/CHANGELOG.md`](crates/winterbaume-account/CHANGELOG.md).

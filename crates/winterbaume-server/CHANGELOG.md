@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.2.1 - 2026-05-19
+
+### Changed
+
+- Dependency refresh. Picks up the service-crate releases that landed
+  between `winterbaume-server-v0.2.0` and HEAD: `winterbaume-account`,
+  `winterbaume-appconfig`, `winterbaume-appconfigdata`,
+  `winterbaume-applicationsignals`, `winterbaume-batch`, `winterbaume-ec2`,
+  `winterbaume-ivs`, `winterbaume-kinesis`, `winterbaume-kinesisvideo`,
+  `winterbaume-kinesisvideoarchivedmedia`, `winterbaume-opensearch`,
+  `winterbaume-organizations`, `winterbaume-sagemaker`,
+  `winterbaume-sagemakerruntime`, `winterbaume-ses`, `winterbaume-sesv2`,
+  `winterbaume-sqs-redis`, `winterbaume-terraform`. No server-side code or
+  behaviour changes; this release exists so that consumers of
+  `winterbaume-server` from crates.io see a published manifest pinning the
+  new dep versions.
+
 ## v0.2.0 - 2026-05-14
 
 ### Changed
