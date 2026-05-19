@@ -178,3 +178,23 @@ pub fn rev_short(root: &Path, rev: &str) -> Result<String, Error> {
     let raw = run_git(root, &["rev-parse", "--short", rev])?;
     Ok(raw.trim().to_string())
 }
+
+/// `git merge-base --is-ancestor`. Returns true when `ancestor` is reachable
+/// from `descendant` (i.e. `ancestor` was made first), false otherwise.
+/// Distinct from the generic `GitFailed` branch: a clean status 1 is the "no"
+/// answer, not an error.
+pub fn is_ancestor(root: &Path, ancestor: &str, descendant: &str) -> Result<bool, Error> {
+    let out = Command::new("git")
+        .args(["merge-base", "--is-ancestor", ancestor, descendant])
+        .current_dir(root)
+        .output()?;
+    match out.status.code() {
+        Some(0) => Ok(true),
+        Some(1) => Ok(false),
+        _ => Err(Error::GitFailed {
+            cmd: format!("git merge-base --is-ancestor {ancestor} {descendant}"),
+            status: out.status.to_string(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        }),
+    }
+}

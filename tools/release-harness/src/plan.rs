@@ -379,6 +379,121 @@ fn classify_one(
     })
 }
 
+/// Map from each publishable member's name to the publishable members it
+/// directly depends on. Built from the same resolve graph as
+/// `build_reverse_deps`; both are inclusive of dev/build deps because under-
+/// bumping a dep would silently leave a stale published manifest.
+fn build_forward_deps(meta: &Metadata, members: &[&Package]) -> BTreeMap<String, BTreeSet<String>> {
+    let member_ids: BTreeSet<&str> = members.iter().map(|p| p.id.as_str()).collect();
+    let id_to_name: BTreeMap<&str, &str> = meta
+        .packages
+        .iter()
+        .map(|p| (p.id.as_str(), p.name.as_str()))
+        .collect();
+
+    let mut fdeps: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for node in &meta.resolve.nodes {
+        if !member_ids.contains(node.id.as_str()) {
+            continue;
+        }
+        let Some(src) = id_to_name.get(node.id.as_str()) else {
+            continue;
+        };
+        let entry = fdeps.entry((*src).to_string()).or_default();
+        for d in &node.deps {
+            if !member_ids.contains(d.pkg.as_str()) {
+                continue;
+            }
+            let Some(dep) = id_to_name.get(d.pkg.as_str()) else {
+                continue;
+            };
+            if dep == src {
+                continue;
+            }
+            entry.insert((*dep).to_string());
+        }
+    }
+    fdeps
+}
+
+/// Identify crates whose last release tag predates the last release tag of one
+/// or more of their workspace deps. Such crates have an unchanged code-dir
+/// (so the file-diff classifier marks them Unchanged or auto-Skip) but their
+/// published manifest references a stale dep version. Returned map is
+/// dependant-name → set of deps whose tags are newer.
+fn compute_stale_deps(
+    entries: &[CrateEntry],
+    fdeps: &BTreeMap<String, BTreeSet<String>>,
+    overrides: &BTreeMap<String, Override>,
+    umbrella_names: &BTreeSet<String>,
+    is_dep_newer: impl Fn(&str, &str) -> bool,
+) -> BTreeMap<String, BTreeSet<String>> {
+    let tag_by_name: BTreeMap<&str, &str> = entries
+        .iter()
+        .filter_map(|e| e.last_tag.as_deref().map(|t| (e.name.as_str(), t)))
+        .collect();
+
+    let mut stale: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for x in entries {
+        if umbrella_names.contains(&x.name) {
+            continue;
+        }
+        if overrides.contains_key(&x.name) {
+            continue;
+        }
+        if !matches!(x.bump, BumpDecision::Unchanged | BumpDecision::Skip) {
+            continue;
+        }
+        let Some(x_tag) = x.last_tag.as_deref() else {
+            // No prior tag → Initial path handles it; nothing stale yet.
+            continue;
+        };
+        let Some(deps) = fdeps.get(&x.name) else {
+            continue;
+        };
+        for dep_name in deps {
+            let Some(dep_tag) = tag_by_name.get(dep_name.as_str()) else {
+                continue;
+            };
+            if is_dep_newer(dep_tag, x_tag) {
+                stale
+                    .entry(x.name.clone())
+                    .or_default()
+                    .insert(dep_name.clone());
+            }
+        }
+    }
+    stale
+}
+
+fn apply_stale_updates(entries: &mut [CrateEntry], stale: &BTreeMap<String, BTreeSet<String>>) {
+    let index: BTreeMap<String, usize> = entries
+        .iter()
+        .enumerate()
+        .map(|(i, e)| (e.name.clone(), i))
+        .collect();
+    for (name, causes) in stale {
+        let Some(&idx) = index.get(name) else {
+            continue;
+        };
+        let entry = &mut entries[idx];
+        let Ok(current_v) = entry.current.parse::<Version>() else {
+            continue;
+        };
+        let prev_reason = entry.reason.clone();
+        entry.bump = BumpDecision::Patch;
+        entry.next = Some(current_v.bumped(Level::Patch).to_string());
+        let mut sorted: Vec<&str> = causes.iter().map(|s| s.as_str()).collect();
+        sorted.sort_unstable();
+        entry.reason = format!(
+            "stale workspace dep(s) [{}] released after {} (previously: {})",
+            sorted.join(", "),
+            entry.last_tag.as_deref().unwrap_or("(no prior tag)"),
+            prev_reason,
+        );
+    }
+}
+
 /// Map from each publishable member's name to the set of publishable members
 /// that depend on it (one hop). Transitive reach is achieved by iterating the
 /// propagation pass to a fixed point.
@@ -574,14 +689,50 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
         entries.push(entry);
     }
 
-    // Reverse-dep propagation: any crate that depends on a bumping crate gets
-    // patched so its published manifest references the new dep version.
     let rdeps = build_reverse_deps(&meta, &members);
+    let fdeps = build_forward_deps(&meta, &members);
     let umbrella_names: BTreeSet<String> = members
         .iter()
         .filter(|p| p.dir() == root.as_path())
         .map(|p| p.name.clone())
         .collect();
+
+    // Stale-deps pass: catches crates that were left behind by an earlier
+    // release run. Their own dir is unchanged but a workspace dep tagged after
+    // them so the published manifest references a stale version. The transitive
+    // propagation pass below then carries the bump further up the chain.
+    let stale = compute_stale_deps(
+        &entries,
+        &fdeps,
+        &overrides,
+        &umbrella_names,
+        |dep_tag, x_tag| {
+            // dep_tag is NOT an ancestor of x_tag → dep is newer → stale.
+            match git::is_ancestor(&root, dep_tag, x_tag) {
+                Ok(b) => !b,
+                Err(e) => {
+                    eprintln!("warn: ancestry check ({dep_tag} vs {x_tag}) failed: {e}");
+                    false
+                }
+            }
+        },
+    );
+    apply_stale_updates(&mut entries, &stale);
+    if !stale.is_empty() {
+        eprintln!(
+            "marked {} crate(s) as Patch because a workspace dep tagged after their last release:",
+            stale.len()
+        );
+        for (name, causes) in &stale {
+            eprintln!(
+                "  - {name} <- {}",
+                causes.iter().cloned().collect::<Vec<_>>().join(", ")
+            );
+        }
+    }
+
+    // Reverse-dep propagation: any crate that depends on a bumping crate gets
+    // patched so its published manifest references the new dep version.
     let prop = propagate_bumps(&mut entries, &rdeps, &umbrella_names, &overrides);
 
     if !prop.transitively_bumped.is_empty() {
@@ -862,6 +1013,191 @@ mod tests {
         for e in &entries {
             assert_eq!(e.bump, BumpDecision::Unchanged);
         }
+    }
+
+    fn entry_with_tag(
+        name: &str,
+        current: &str,
+        bump: BumpDecision,
+        reason: &str,
+        tag: Option<&str>,
+    ) -> CrateEntry {
+        let mut e = entry(name, current, bump, reason);
+        e.last_tag = tag.map(String::from);
+        e
+    }
+
+    fn fdeps_from(pairs: &[(&str, &[&str])]) -> BTreeMap<String, BTreeSet<String>> {
+        pairs
+            .iter()
+            .map(|(crate_name, deps)| {
+                (
+                    crate_name.to_string(),
+                    deps.iter().map(|s| s.to_string()).collect(),
+                )
+            })
+            .collect()
+    }
+
+    #[test]
+    fn stale_dep_marks_unchanged_dependant() {
+        // foo's tag is newer than bar's last tag → bar is stale on foo.
+        let entries = vec![
+            entry_with_tag(
+                "foo",
+                "1.0.0",
+                BumpDecision::Unchanged,
+                "no files since foo-v1.0.0",
+                Some("foo-v1.0.0"),
+            ),
+            entry_with_tag(
+                "bar",
+                "0.5.0",
+                BumpDecision::Unchanged,
+                "no files since bar-v0.5.0",
+                Some("bar-v0.5.0"),
+            ),
+        ];
+        let fdeps = fdeps_from(&[("bar", &["foo"])]);
+        let stale = compute_stale_deps(
+            &entries,
+            &fdeps,
+            &BTreeMap::new(),
+            &BTreeSet::new(),
+            // pretend foo-v1.0.0 is newer than bar-v0.5.0
+            |dep_tag, x_tag| dep_tag == "foo-v1.0.0" && x_tag == "bar-v0.5.0",
+        );
+        assert!(stale.get("bar").unwrap().contains("foo"));
+    }
+
+    #[test]
+    fn stale_dep_skips_when_dep_older() {
+        let entries = vec![
+            entry_with_tag(
+                "foo",
+                "1.0.0",
+                BumpDecision::Unchanged,
+                "no files",
+                Some("foo-v1.0.0"),
+            ),
+            entry_with_tag(
+                "bar",
+                "0.5.0",
+                BumpDecision::Unchanged,
+                "no files",
+                Some("bar-v0.5.0"),
+            ),
+        ];
+        let fdeps = fdeps_from(&[("bar", &["foo"])]);
+        let stale = compute_stale_deps(
+            &entries,
+            &fdeps,
+            &BTreeMap::new(),
+            &BTreeSet::new(),
+            |_, _| false, // foo is not newer
+        );
+        assert!(stale.is_empty());
+    }
+
+    #[test]
+    fn stale_dep_skips_when_already_bumping() {
+        let entries = vec![
+            entry_with_tag(
+                "foo",
+                "1.0.0",
+                BumpDecision::Unchanged,
+                "no files",
+                Some("foo-v1.0.0"),
+            ),
+            entry_with_tag(
+                "bar",
+                "0.5.0",
+                BumpDecision::Minor,
+                "files changed",
+                Some("bar-v0.5.0"),
+            ),
+        ];
+        let fdeps = fdeps_from(&[("bar", &["foo"])]);
+        let stale = compute_stale_deps(
+            &entries,
+            &fdeps,
+            &BTreeMap::new(),
+            &BTreeSet::new(),
+            |_, _| true,
+        );
+        assert!(stale.is_empty());
+    }
+
+    #[test]
+    fn stale_dep_skips_explicit_override() {
+        let entries = vec![
+            entry_with_tag(
+                "foo",
+                "1.0.0",
+                BumpDecision::Unchanged,
+                "no files",
+                Some("foo-v1.0.0"),
+            ),
+            entry_with_tag(
+                "bar",
+                "0.5.0",
+                BumpDecision::Skip,
+                "override: skip",
+                Some("bar-v0.5.0"),
+            ),
+        ];
+        let fdeps = fdeps_from(&[("bar", &["foo"])]);
+        let mut overrides = BTreeMap::new();
+        overrides.insert("bar".to_string(), Override::Skip);
+        let stale = compute_stale_deps(&entries, &fdeps, &overrides, &BTreeSet::new(), |_, _| true);
+        assert!(stale.is_empty());
+    }
+
+    #[test]
+    fn stale_dep_skips_umbrella() {
+        let entries = vec![
+            entry_with_tag(
+                "foo",
+                "1.0.0",
+                BumpDecision::Unchanged,
+                "no files",
+                Some("foo-v1.0.0"),
+            ),
+            entry_with_tag(
+                "winterbaume",
+                "0.5.0",
+                BumpDecision::Skip,
+                "umbrella crate",
+                Some("winterbaume-v0.5.0"),
+            ),
+        ];
+        let fdeps = fdeps_from(&[("winterbaume", &["foo"])]);
+        let umbrellas: BTreeSet<String> = ["winterbaume".to_string()].into_iter().collect();
+        let stale = compute_stale_deps(&entries, &fdeps, &BTreeMap::new(), &umbrellas, |_, _| true);
+        assert!(stale.is_empty());
+    }
+
+    #[test]
+    fn apply_stale_updates_promotes_to_patch_with_reason() {
+        let mut entries = vec![entry_with_tag(
+            "bar",
+            "0.5.0",
+            BumpDecision::Skip,
+            "only cosmetic files changed since bar-v0.5.0",
+            Some("bar-v0.5.0"),
+        )];
+        let mut stale: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        stale.insert("bar".to_string(), ["foo".to_string()].into_iter().collect());
+        apply_stale_updates(&mut entries, &stale);
+        let bar = &entries[0];
+        assert_eq!(bar.bump, BumpDecision::Patch);
+        assert_eq!(bar.next.as_deref(), Some("0.5.1"));
+        assert!(bar.reason.contains("stale workspace dep(s) [foo]"));
+        assert!(bar.reason.contains("bar-v0.5.0"));
+        assert!(
+            bar.reason
+                .contains("only cosmetic files changed since bar-v0.5.0")
+        );
     }
 
     #[test]
