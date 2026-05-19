@@ -69,6 +69,19 @@ pub struct Package {
     pub manifest_path: PathBuf,
     /// `null` (publishable to all registries), `[]` (publish=false), or a list of registries.
     pub publish: Option<Vec<String>>,
+    /// Direct dependencies declared in this package's Cargo.toml. Unlike the
+    /// resolved graph, this includes *optional* deps that aren't activated by
+    /// the current feature set — important for crates like the umbrella that
+    /// declare every service crate as an optional dep.
+    #[serde(default)]
+    pub dependencies: Vec<Dep>,
+}
+
+#[derive(Deserialize)]
+pub struct Dep {
+    /// The dependency's *package* name. For renamed deps, `rename` is the
+    /// local alias; this field always points at the upstream package.
+    pub name: String,
 }
 
 impl Package {

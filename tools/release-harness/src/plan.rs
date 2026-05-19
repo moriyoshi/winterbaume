@@ -17,9 +17,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::PlanArgs;
 use crate::git;
-use crate::metadata::{
-    CargoExe, Metadata, Package, cargo_metadata, publishable_members, workspace_root,
-};
+use crate::metadata::{CargoExe, Package, cargo_metadata, publishable_members, workspace_root};
 use crate::semver_checks;
 use crate::version::{Level, Version};
 
@@ -380,69 +378,70 @@ fn classify_one(
 }
 
 /// Map from each publishable member's name to the publishable members it
-/// directly depends on. Built from the same resolve graph as
-/// `build_reverse_deps`; both are inclusive of dev/build deps because under-
-/// bumping a dep would silently leave a stale published manifest.
-fn build_forward_deps(meta: &Metadata, members: &[&Package]) -> BTreeMap<String, BTreeSet<String>> {
-    let member_ids: BTreeSet<&str> = members.iter().map(|p| p.id.as_str()).collect();
-    let id_to_name: BTreeMap<&str, &str> = meta
-        .packages
-        .iter()
-        .map(|p| (p.id.as_str(), p.name.as_str()))
-        .collect();
-
+/// directly depends on, read from the declared `[dependencies]` /
+/// `[dev-dependencies]` / `[build-dependencies]` of each member's Cargo.toml.
+/// We deliberately use declared (not resolved) deps so optional deps the
+/// umbrella crate declares — but doesn't activate by default — still count;
+/// the published umbrella manifest references their version specifiers, so a
+/// dep tag moving past the umbrella tag is a real staleness.
+fn build_forward_deps(members: &[&Package]) -> BTreeMap<String, BTreeSet<String>> {
+    let member_names: BTreeSet<&str> = members.iter().map(|p| p.name.as_str()).collect();
     let mut fdeps: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for node in &meta.resolve.nodes {
-        if !member_ids.contains(node.id.as_str()) {
-            continue;
-        }
-        let Some(src) = id_to_name.get(node.id.as_str()) else {
-            continue;
-        };
-        let entry = fdeps.entry((*src).to_string()).or_default();
-        for d in &node.deps {
-            if !member_ids.contains(d.pkg.as_str()) {
+    for p in members {
+        let entry = fdeps.entry(p.name.clone()).or_default();
+        for d in &p.dependencies {
+            if d.name == p.name {
                 continue;
             }
-            let Some(dep) = id_to_name.get(d.pkg.as_str()) else {
-                continue;
-            };
-            if dep == src {
-                continue;
+            if member_names.contains(d.name.as_str()) {
+                entry.insert(d.name.clone());
             }
-            entry.insert((*dep).to_string());
         }
     }
     fdeps
 }
 
+/// Split of crates whose published manifest references a stale dep, computed
+/// purely from tag-time relationships. `actionable` is the set that the
+/// stale-deps pass will auto-upgrade to Patch; `umbrellas` is informational
+/// only — the umbrella crate is never auto-upgraded, but we still surface its
+/// stale deps so the operator can decide whether to pin a new umbrella
+/// version in `release-plan-overrides.toml`.
+#[derive(Debug, Default)]
+struct StaleReport {
+    actionable: BTreeMap<String, BTreeSet<String>>,
+    umbrellas: BTreeMap<String, BTreeSet<String>>,
+}
+
 /// Identify crates whose last release tag predates the last release tag of one
 /// or more of their workspace deps. Such crates have an unchanged code-dir
 /// (so the file-diff classifier marks them Unchanged or auto-Skip) but their
-/// published manifest references a stale dep version. Returned map is
-/// dependant-name → set of deps whose tags are newer.
+/// published manifest references a stale dep version.
 fn compute_stale_deps(
     entries: &[CrateEntry],
     fdeps: &BTreeMap<String, BTreeSet<String>>,
     overrides: &BTreeMap<String, Override>,
     umbrella_names: &BTreeSet<String>,
     is_dep_newer: impl Fn(&str, &str) -> bool,
-) -> BTreeMap<String, BTreeSet<String>> {
+) -> StaleReport {
     let tag_by_name: BTreeMap<&str, &str> = entries
         .iter()
         .filter_map(|e| e.last_tag.as_deref().map(|t| (e.name.as_str(), t)))
         .collect();
 
-    let mut stale: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut report = StaleReport::default();
     for x in entries {
-        if umbrella_names.contains(&x.name) {
-            continue;
-        }
-        if overrides.contains_key(&x.name) {
-            continue;
-        }
-        if !matches!(x.bump, BumpDecision::Unchanged | BumpDecision::Skip) {
-            continue;
+        let is_umbrella = umbrella_names.contains(&x.name);
+        // Non-umbrellas get filtered by override + current-bump-state; umbrellas
+        // are always candidates (they're never auto-upgraded, but we want to
+        // tell the operator about them).
+        if !is_umbrella {
+            if overrides.contains_key(&x.name) {
+                continue;
+            }
+            if !matches!(x.bump, BumpDecision::Unchanged | BumpDecision::Skip) {
+                continue;
+            }
         }
         let Some(x_tag) = x.last_tag.as_deref() else {
             // No prior tag → Initial path handles it; nothing stale yet.
@@ -451,19 +450,24 @@ fn compute_stale_deps(
         let Some(deps) = fdeps.get(&x.name) else {
             continue;
         };
+        let target = if is_umbrella {
+            &mut report.umbrellas
+        } else {
+            &mut report.actionable
+        };
         for dep_name in deps {
             let Some(dep_tag) = tag_by_name.get(dep_name.as_str()) else {
                 continue;
             };
             if is_dep_newer(dep_tag, x_tag) {
-                stale
+                target
                     .entry(x.name.clone())
                     .or_default()
                     .insert(dep_name.clone());
             }
         }
     }
-    stale
+    report
 }
 
 fn apply_stale_updates(entries: &mut [CrateEntry], stale: &BTreeMap<String, BTreeSet<String>>) {
@@ -495,38 +499,22 @@ fn apply_stale_updates(entries: &mut [CrateEntry], stale: &BTreeMap<String, BTre
 }
 
 /// Map from each publishable member's name to the set of publishable members
-/// that depend on it (one hop). Transitive reach is achieved by iterating the
-/// propagation pass to a fixed point.
-fn build_reverse_deps(meta: &Metadata, members: &[&Package]) -> BTreeMap<String, BTreeSet<String>> {
-    let member_ids: BTreeSet<&str> = members.iter().map(|p| p.id.as_str()).collect();
-    let id_to_name: BTreeMap<&str, &str> = meta
-        .packages
-        .iter()
-        .map(|p| (p.id.as_str(), p.name.as_str()))
-        .collect();
-
+/// that declare a dep on it (one hop). Built from declared deps, same as
+/// `build_forward_deps`, so optional deps still register.
+fn build_reverse_deps(members: &[&Package]) -> BTreeMap<String, BTreeSet<String>> {
+    let member_names: BTreeSet<&str> = members.iter().map(|p| p.name.as_str()).collect();
     let mut rdeps: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for node in &meta.resolve.nodes {
-        if !member_ids.contains(node.id.as_str()) {
-            continue;
-        }
-        let Some(src) = id_to_name.get(node.id.as_str()) else {
-            continue;
-        };
-        for d in &node.deps {
-            if !member_ids.contains(d.pkg.as_str()) {
+    for p in members {
+        for d in &p.dependencies {
+            if d.name == p.name {
                 continue;
             }
-            let Some(dep) = id_to_name.get(d.pkg.as_str()) else {
-                continue;
-            };
-            if dep == src {
-                continue;
+            if member_names.contains(d.name.as_str()) {
+                rdeps
+                    .entry(d.name.clone())
+                    .or_default()
+                    .insert(p.name.clone());
             }
-            rdeps
-                .entry((*dep).to_string())
-                .or_default()
-                .insert((*src).to_string());
         }
     }
     rdeps
@@ -689,8 +677,8 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
         entries.push(entry);
     }
 
-    let rdeps = build_reverse_deps(&meta, &members);
-    let fdeps = build_forward_deps(&meta, &members);
+    let rdeps = build_reverse_deps(&members);
+    let fdeps = build_forward_deps(&members);
     let umbrella_names: BTreeSet<String> = members
         .iter()
         .filter(|p| p.dir() == root.as_path())
@@ -717,18 +705,27 @@ pub fn run(cargo: &CargoExe, args: &PlanArgs) -> Result<ExitCode, Error> {
             }
         },
     );
-    apply_stale_updates(&mut entries, &stale);
-    if !stale.is_empty() {
+    apply_stale_updates(&mut entries, &stale.actionable);
+    if !stale.actionable.is_empty() {
         eprintln!(
             "marked {} crate(s) as Patch because a workspace dep tagged after their last release:",
-            stale.len()
+            stale.actionable.len()
         );
-        for (name, causes) in &stale {
+        for (name, causes) in &stale.actionable {
             eprintln!(
                 "  - {name} <- {}",
                 causes.iter().cloned().collect::<Vec<_>>().join(", ")
             );
         }
+    }
+    for (umbrella, causes) in &stale.umbrellas {
+        eprintln!(
+            "note: umbrella crate {umbrella} is stale on {} workspace dep(s) tagged after its \
+             last release. Pin it in release-plan-overrides.toml to publish a new umbrella \
+             version that references them. Stale deps: {}",
+            causes.len(),
+            causes.iter().cloned().collect::<Vec<_>>().join(", "),
+        );
     }
 
     // Reverse-dep propagation: any crate that depends on a bumping crate gets
@@ -1067,7 +1064,8 @@ mod tests {
             // pretend foo-v1.0.0 is newer than bar-v0.5.0
             |dep_tag, x_tag| dep_tag == "foo-v1.0.0" && x_tag == "bar-v0.5.0",
         );
-        assert!(stale.get("bar").unwrap().contains("foo"));
+        assert!(stale.actionable.get("bar").unwrap().contains("foo"));
+        assert!(stale.umbrellas.is_empty());
     }
 
     #[test]
@@ -1096,7 +1094,8 @@ mod tests {
             &BTreeSet::new(),
             |_, _| false, // foo is not newer
         );
-        assert!(stale.is_empty());
+        assert!(stale.actionable.is_empty());
+        assert!(stale.umbrellas.is_empty());
     }
 
     #[test]
@@ -1125,7 +1124,8 @@ mod tests {
             &BTreeSet::new(),
             |_, _| true,
         );
-        assert!(stale.is_empty());
+        assert!(stale.actionable.is_empty());
+        assert!(stale.umbrellas.is_empty());
     }
 
     #[test]
@@ -1150,11 +1150,12 @@ mod tests {
         let mut overrides = BTreeMap::new();
         overrides.insert("bar".to_string(), Override::Skip);
         let stale = compute_stale_deps(&entries, &fdeps, &overrides, &BTreeSet::new(), |_, _| true);
-        assert!(stale.is_empty());
+        assert!(stale.actionable.is_empty());
+        assert!(stale.umbrellas.is_empty());
     }
 
     #[test]
-    fn stale_dep_skips_umbrella() {
+    fn stale_dep_reports_umbrella_without_upgrading() {
         let entries = vec![
             entry_with_tag(
                 "foo",
@@ -1174,7 +1175,8 @@ mod tests {
         let fdeps = fdeps_from(&[("winterbaume", &["foo"])]);
         let umbrellas: BTreeSet<String> = ["winterbaume".to_string()].into_iter().collect();
         let stale = compute_stale_deps(&entries, &fdeps, &BTreeMap::new(), &umbrellas, |_, _| true);
-        assert!(stale.is_empty());
+        assert!(stale.actionable.is_empty());
+        assert!(stale.umbrellas.get("winterbaume").unwrap().contains("foo"));
     }
 
     #[test]
