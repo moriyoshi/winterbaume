@@ -668,6 +668,765 @@ async fn test_delete_origin_access_control() {
     assert!(result.is_err());
 }
 
+// ---- Conditional delete (If-Match) regression coverage --------------------
+//
+// CloudFront's Smithy model carries `If-Match` on every Delete*/Update*
+// operation. Real AWS returns 412 PreconditionFailed when the supplied ETag
+// does not match. Terraform's `aws_cloudfront_distribution` / `aws_
+// cloudfront_origin_access_control` resources send `If-Match` on every
+// destroy; a permissive mock that accepts any ETag would hide a real bug
+// where the provider sent a stale tag.
+
+#[tokio::test]
+async fn test_delete_distribution_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+
+    let create_resp = client
+        .create_distribution()
+        .distribution_config(make_distribution_config("ref-del-stale"))
+        .send()
+        .await
+        .unwrap();
+    let dist_id = create_resp.distribution().unwrap().id().to_string();
+
+    let err = client
+        .delete_distribution()
+        .id(&dist_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteDistribution with stale If-Match must fail");
+    if let aws_sdk_cloudfront::error::SdkError::ServiceError(svc) = &err {
+        assert_eq!(svc.raw().status().as_u16(), 412);
+    } else {
+        panic!("expected ServiceError, got {err:?}");
+    }
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+
+    // The distribution must still exist after the rejected delete.
+    client
+        .get_distribution()
+        .id(&dist_id)
+        .send()
+        .await
+        .expect("distribution must survive a rejected conditional delete");
+}
+
+#[tokio::test]
+async fn test_delete_distribution_no_if_match_succeeds() {
+    // S3 docs treat conditional headers as optional. When `If-Match` is
+    // absent the operation is unconditional; the mock should not require it.
+    let client = make_cloudfront_client().await;
+
+    let create_resp = client
+        .create_distribution()
+        .distribution_config(make_distribution_config("ref-del-noif"))
+        .send()
+        .await
+        .unwrap();
+    let dist_id = create_resp.distribution().unwrap().id().to_string();
+
+    client
+        .delete_distribution()
+        .id(&dist_id)
+        .send()
+        .await
+        .expect("DeleteDistribution without If-Match must succeed");
+}
+
+// ---- Update* stale-ETag SDK spot-coverage ---------------------------------
+//
+// State-level If-Match enforcement on every Update* operation is exercised by
+// the Delete* tests through shared `if let Some(expected) = if_match && ...`
+// guards in state.rs, but per the `cloudfront-if-match-enforcement` TODO the
+// SDK-driven surface needed direct typed-variant coverage too. These tests
+// confirm that an Update with a stale ETag surfaces 412 PreconditionFailed at
+// the SDK boundary for every commonly-exercised resource type. The matching
+// happy-path Update tests already exist above.
+
+#[tokio::test]
+async fn test_update_distribution_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_distribution()
+        .distribution_config(make_distribution_config("ref-update-stale"))
+        .send()
+        .await
+        .unwrap();
+    let dist_id = create_resp.distribution().unwrap().id().to_string();
+
+    let err = client
+        .update_distribution()
+        .id(&dist_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .distribution_config(make_distribution_config("ref-update-stale"))
+        .send()
+        .await
+        .expect_err("UpdateDistribution with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_update_origin_access_control_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let oac_config = aws_sdk_cloudfront::types::OriginAccessControlConfig::builder()
+        .name("test-oac-update-stale")
+        .signing_protocol(aws_sdk_cloudfront::types::OriginAccessControlSigningProtocols::Sigv4)
+        .signing_behavior(aws_sdk_cloudfront::types::OriginAccessControlSigningBehaviors::Always)
+        .origin_access_control_origin_type(
+            aws_sdk_cloudfront::types::OriginAccessControlOriginTypes::S3,
+        )
+        .build()
+        .unwrap();
+    let create_resp = client
+        .create_origin_access_control()
+        .origin_access_control_config(oac_config.clone())
+        .send()
+        .await
+        .unwrap();
+    let oac_id = create_resp
+        .origin_access_control()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .update_origin_access_control()
+        .id(&oac_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .origin_access_control_config(oac_config)
+        .send()
+        .await
+        .expect_err("UpdateOriginAccessControl with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_update_public_key_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let pk_config = aws_sdk_cloudfront::types::PublicKeyConfig::builder()
+        .caller_reference("pk-ref-update-stale")
+        .name("test-pk-update-stale")
+        .encoded_key("-----BEGIN PUBLIC KEY-----\nMIIBIjANBg==\n-----END PUBLIC KEY-----")
+        .build()
+        .unwrap();
+    let create_resp = client
+        .create_public_key()
+        .public_key_config(pk_config.clone())
+        .send()
+        .await
+        .unwrap();
+    let pk_id = create_resp.public_key().unwrap().id().to_string();
+
+    let err = client
+        .update_public_key()
+        .id(&pk_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .public_key_config(pk_config)
+        .send()
+        .await
+        .expect_err("UpdatePublicKey with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_update_key_group_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let kg_config = aws_sdk_cloudfront::types::KeyGroupConfig::builder()
+        .name("test-kg-update-stale")
+        .items("pk-id-stale")
+        .build()
+        .unwrap();
+    let create_resp = client
+        .create_key_group()
+        .key_group_config(kg_config.clone())
+        .send()
+        .await
+        .unwrap();
+    let kg_id = create_resp.key_group().unwrap().id().to_string();
+
+    let err = client
+        .update_key_group()
+        .id(&kg_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .key_group_config(kg_config)
+        .send()
+        .await
+        .expect_err("UpdateKeyGroup with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_update_origin_request_policy_if_match_mismatch_returns_412() {
+    use aws_sdk_cloudfront::types::*;
+    let client = make_cloudfront_client().await;
+    let orp_config = OriginRequestPolicyConfig::builder()
+        .name("test-orp-update-stale")
+        .cookies_config(
+            OriginRequestPolicyCookiesConfig::builder()
+                .cookie_behavior(OriginRequestPolicyCookieBehavior::None)
+                .build()
+                .unwrap(),
+        )
+        .headers_config(
+            OriginRequestPolicyHeadersConfig::builder()
+                .header_behavior(OriginRequestPolicyHeaderBehavior::None)
+                .build()
+                .unwrap(),
+        )
+        .query_strings_config(
+            OriginRequestPolicyQueryStringsConfig::builder()
+                .query_string_behavior(OriginRequestPolicyQueryStringBehavior::None)
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+    let create_resp = client
+        .create_origin_request_policy()
+        .origin_request_policy_config(orp_config.clone())
+        .send()
+        .await
+        .unwrap();
+    let orp_id = create_resp
+        .origin_request_policy()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .update_origin_request_policy()
+        .id(&orp_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .origin_request_policy_config(orp_config)
+        .send()
+        .await
+        .expect_err("UpdateOriginRequestPolicy with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_update_response_headers_policy_if_match_mismatch_returns_412() {
+    use aws_sdk_cloudfront::types::*;
+    let client = make_cloudfront_client().await;
+    let rhp_config = ResponseHeadersPolicyConfig::builder()
+        .name("test-rhp-update-stale")
+        .security_headers_config(
+            ResponseHeadersPolicySecurityHeadersConfig::builder()
+                .content_type_options(
+                    ResponseHeadersPolicyContentTypeOptions::builder()
+                        .r#override(false)
+                        .build()
+                        .unwrap(),
+                )
+                .build(),
+        )
+        .build()
+        .unwrap();
+    let create_resp = client
+        .create_response_headers_policy()
+        .response_headers_policy_config(rhp_config.clone())
+        .send()
+        .await
+        .unwrap();
+    let rhp_id = create_resp
+        .response_headers_policy()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .update_response_headers_policy()
+        .id(&rhp_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .response_headers_policy_config(rhp_config)
+        .send()
+        .await
+        .expect_err("UpdateResponseHeadersPolicy with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_update_continuous_deployment_policy_if_match_mismatch_returns_412() {
+    use aws_sdk_cloudfront::types::*;
+    let client = make_cloudfront_client().await;
+    let cdp_config = ContinuousDeploymentPolicyConfig::builder()
+        .staging_distribution_dns_names(
+            StagingDistributionDnsNames::builder()
+                .quantity(1)
+                .items("staging.example.com")
+                .build()
+                .unwrap(),
+        )
+        .enabled(false)
+        .traffic_config(
+            TrafficConfig::builder()
+                .r#type(ContinuousDeploymentPolicyType::SingleHeader)
+                .single_header_config(
+                    ContinuousDeploymentSingleHeaderConfig::builder()
+                        .header("aws-cf-cd-test")
+                        .value("staging")
+                        .build()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .build()
+        .unwrap();
+    let create_resp = client
+        .create_continuous_deployment_policy()
+        .continuous_deployment_policy_config(cdp_config.clone())
+        .send()
+        .await
+        .unwrap();
+    let cdp_id = create_resp
+        .continuous_deployment_policy()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .update_continuous_deployment_policy()
+        .id(&cdp_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .continuous_deployment_policy_config(cdp_config)
+        .send()
+        .await
+        .expect_err("UpdateContinuousDeploymentPolicy with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_update_connection_group_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_connection_group()
+        .name("test-cg-update-stale")
+        .send()
+        .await
+        .unwrap();
+    let cg_id = create_resp
+        .connection_group()
+        .unwrap()
+        .id()
+        .unwrap()
+        .to_string();
+
+    let err = client
+        .update_connection_group()
+        .id(&cg_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("UpdateConnectionGroup with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_delete_origin_access_control_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+
+    let create_resp = client
+        .create_origin_access_control()
+        .origin_access_control_config(
+            aws_sdk_cloudfront::types::OriginAccessControlConfig::builder()
+                .name("del-oac-stale")
+                .signing_protocol(
+                    aws_sdk_cloudfront::types::OriginAccessControlSigningProtocols::Sigv4,
+                )
+                .signing_behavior(
+                    aws_sdk_cloudfront::types::OriginAccessControlSigningBehaviors::Always,
+                )
+                .origin_access_control_origin_type(
+                    aws_sdk_cloudfront::types::OriginAccessControlOriginTypes::S3,
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let oac_id = create_resp
+        .origin_access_control()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .delete_origin_access_control()
+        .id(&oac_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteOriginAccessControl with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+    if let aws_sdk_cloudfront::error::SdkError::ServiceError(svc) = &err {
+        assert_eq!(svc.raw().status().as_u16(), 412);
+    }
+
+    // OAC must still exist after rejected delete.
+    client
+        .get_origin_access_control()
+        .id(&oac_id)
+        .send()
+        .await
+        .expect("OAC must survive a rejected conditional delete");
+}
+
+#[tokio::test]
+async fn test_delete_public_key_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_public_key()
+        .public_key_config(
+            aws_sdk_cloudfront::types::PublicKeyConfig::builder()
+                .caller_reference("pk-ref-stale")
+                .name("test-public-key-stale")
+                .encoded_key("-----BEGIN PUBLIC KEY-----\nMIIBIjANBg==\n-----END PUBLIC KEY-----")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let pk_id = create_resp.public_key().unwrap().id().to_string();
+
+    let err = client
+        .delete_public_key()
+        .id(&pk_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeletePublicKey with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+
+    client
+        .get_public_key()
+        .id(&pk_id)
+        .send()
+        .await
+        .expect("public key must survive a rejected conditional delete");
+}
+
+#[tokio::test]
+async fn test_delete_origin_request_policy_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_origin_request_policy()
+        .origin_request_policy_config(
+            aws_sdk_cloudfront::types::OriginRequestPolicyConfig::builder()
+                .name("test-orp-stale")
+                .cookies_config(
+                    aws_sdk_cloudfront::types::OriginRequestPolicyCookiesConfig::builder()
+                        .cookie_behavior(
+                            aws_sdk_cloudfront::types::OriginRequestPolicyCookieBehavior::None,
+                        )
+                        .build()
+                        .unwrap(),
+                )
+                .headers_config(
+                    aws_sdk_cloudfront::types::OriginRequestPolicyHeadersConfig::builder()
+                        .header_behavior(
+                            aws_sdk_cloudfront::types::OriginRequestPolicyHeaderBehavior::None,
+                        )
+                        .build()
+                        .unwrap(),
+                )
+                .query_strings_config(
+                    aws_sdk_cloudfront::types::OriginRequestPolicyQueryStringsConfig::builder()
+                        .query_string_behavior(
+                            aws_sdk_cloudfront::types::OriginRequestPolicyQueryStringBehavior::None,
+                        )
+                        .build()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let orp_id = create_resp
+        .origin_request_policy()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .delete_origin_request_policy()
+        .id(&orp_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteOriginRequestPolicy with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+
+    client
+        .get_origin_request_policy()
+        .id(&orp_id)
+        .send()
+        .await
+        .expect("origin request policy must survive a rejected conditional delete");
+}
+
+#[tokio::test]
+async fn test_delete_connection_function_if_match_mismatch_returns_412() {
+    use aws_sdk_cloudfront::primitives::Blob;
+    use aws_sdk_cloudfront::types::*;
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_connection_function()
+        .name("test-cf-stale")
+        .connection_function_config(
+            FunctionConfig::builder()
+                .comment("test")
+                .runtime(FunctionRuntime::CloudfrontJs20)
+                .build()
+                .unwrap(),
+        )
+        .connection_function_code(Blob::new(
+            b"function handler(event) { return event.request; }".to_vec(),
+        ))
+        .send()
+        .await
+        .unwrap();
+    let cf_id = create_resp
+        .connection_function_summary()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .delete_connection_function()
+        .id(&cf_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteConnectionFunction with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_delete_distribution_tenant_if_match_mismatch_returns_412() {
+    use aws_sdk_cloudfront::types::*;
+    let client = make_cloudfront_client().await;
+
+    // DistributionTenant requires an upstream distribution_id.
+    let dist = client
+        .create_distribution()
+        .distribution_config(make_distribution_config("ref-dt-stale"))
+        .send()
+        .await
+        .unwrap();
+    let dist_id = dist.distribution().unwrap().id().to_string();
+
+    let tenant = client
+        .create_distribution_tenant()
+        .name("test-dt-stale")
+        .distribution_id(&dist_id)
+        .domains(
+            DomainItem::builder()
+                .domain("tenant.example.com")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let dt_id = tenant
+        .distribution_tenant()
+        .unwrap()
+        .id()
+        .unwrap()
+        .to_string();
+
+    let err = client
+        .delete_distribution_tenant()
+        .id(&dt_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteDistributionTenant with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_delete_continuous_deployment_policy_if_match_mismatch_returns_412() {
+    use aws_sdk_cloudfront::types::*;
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_continuous_deployment_policy()
+        .continuous_deployment_policy_config(
+            ContinuousDeploymentPolicyConfig::builder()
+                .staging_distribution_dns_names(
+                    StagingDistributionDnsNames::builder()
+                        .quantity(1)
+                        .items("staging.example.com")
+                        .build()
+                        .unwrap(),
+                )
+                .enabled(false)
+                .traffic_config(
+                    TrafficConfig::builder()
+                        .r#type(ContinuousDeploymentPolicyType::SingleHeader)
+                        .single_header_config(
+                            ContinuousDeploymentSingleHeaderConfig::builder()
+                                .header("aws-cf-cd-test")
+                                .value("staging")
+                                .build()
+                                .unwrap(),
+                        )
+                        .build()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let cdp_id = create_resp
+        .continuous_deployment_policy()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .delete_continuous_deployment_policy()
+        .id(&cdp_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteContinuousDeploymentPolicy with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_delete_connection_group_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_connection_group()
+        .name("test-cg-stale")
+        .send()
+        .await
+        .unwrap();
+    let cg_id = create_resp
+        .connection_group()
+        .unwrap()
+        .id()
+        .unwrap()
+        .to_string();
+
+    let err = client
+        .delete_connection_group()
+        .id(&cg_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteConnectionGroup with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+#[tokio::test]
+async fn test_delete_response_headers_policy_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_response_headers_policy()
+        .response_headers_policy_config(
+            aws_sdk_cloudfront::types::ResponseHeadersPolicyConfig::builder()
+                .name("test-rhp-stale")
+                .security_headers_config(
+                    aws_sdk_cloudfront::types::ResponseHeadersPolicySecurityHeadersConfig::builder()
+                        .content_type_options(
+                            aws_sdk_cloudfront::types::ResponseHeadersPolicyContentTypeOptions::builder()
+                                .r#override(false)
+                                .build()
+                                .unwrap(),
+                        )
+                        .build(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let rhp_id = create_resp
+        .response_headers_policy()
+        .unwrap()
+        .id()
+        .to_string();
+
+    let err = client
+        .delete_response_headers_policy()
+        .id(&rhp_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteResponseHeadersPolicy with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+
+    client
+        .get_response_headers_policy()
+        .id(&rhp_id)
+        .send()
+        .await
+        .expect("response headers policy must survive a rejected conditional delete");
+}
+
+#[tokio::test]
+async fn test_delete_key_group_if_match_mismatch_returns_412() {
+    let client = make_cloudfront_client().await;
+    let create_resp = client
+        .create_key_group()
+        .key_group_config(
+            aws_sdk_cloudfront::types::KeyGroupConfig::builder()
+                .name("test-key-group-stale")
+                .items("pk-id-stale")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .unwrap();
+    let kg_id = create_resp.key_group().unwrap().id().to_string();
+
+    let err = client
+        .delete_key_group()
+        .id(&kg_id)
+        .if_match("\"stale-etag-xxxx\"")
+        .send()
+        .await
+        .expect_err("DeleteKeyGroup with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+
+    client
+        .get_key_group()
+        .id(&kg_id)
+        .send()
+        .await
+        .expect("key group must survive a rejected conditional delete");
+}
+
 #[tokio::test]
 async fn test_list_origin_access_controls() {
     let client = make_cloudfront_client().await;
@@ -1084,7 +1843,12 @@ async fn test_delete_unknown_distribution() {
     );
 }
 
-// Ported from moto: test_cloudfront_distributions.py::test_delete_distribution_random_etag
+// Diverges from moto's `test_delete_distribution_random_etag`, which asserts
+// that any If-Match value is accepted. Real CloudFront validates the ETag and
+// returns 412 PreconditionFailed on mismatch; Terraform's
+// `aws_cloudfront_distribution` destroy path relies on that behaviour. The
+// happy-path counterpart with the correct ETag is `test_delete_distribution`
+// above.
 #[tokio::test]
 async fn test_delete_distribution_random_etag() {
     let client = make_cloudfront_client().await;
@@ -1097,27 +1861,23 @@ async fn test_delete_distribution_random_etag() {
         .unwrap();
     let dist_id = create_resp.distribution().unwrap().id().to_string();
 
-    // Delete with any etag should succeed (etag validation is loose)
-    client
+    let err = client
         .delete_distribution()
         .id(&dist_id)
         .if_match("anything")
         .send()
         .await
-        .expect("delete_distribution with random etag should succeed");
+        .expect_err("delete_distribution with random etag must fail with PreconditionFailed");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
 
-    // Verify distribution is gone
-    let err = client
+    // Distribution must survive the rejected delete.
+    client
         .get_distribution()
         .id(&dist_id)
         .send()
         .await
-        .unwrap_err();
-    let err_str = format!("{:?}", err);
-    assert!(
-        err_str.contains("NoSuchDistribution"),
-        "Expected NoSuchDistribution, got: {err_str}"
-    );
+        .expect("distribution must survive rejected conditional delete");
 }
 
 // ============================================================================

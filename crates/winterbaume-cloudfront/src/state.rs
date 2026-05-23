@@ -189,7 +189,20 @@ impl CloudFrontState {
         Ok(self.distributions.get(id).unwrap())
     }
 
-    pub fn delete_distribution(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_distribution(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        // The Smithy model marks `If-Match` on DeleteDistribution as a real
+        // input. Terraform's `aws_cloudfront_distribution` destroy path sends
+        // it on every call, and real CloudFront returns 412 on mismatch.
+        if let Some(expected) = if_match
+            && let Some(dist) = self.distributions.get(id)
+            && dist.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.distributions.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchDistribution(id.to_string()));
         }
@@ -322,7 +335,17 @@ impl CloudFrontState {
         Ok(self.key_groups.get(id).unwrap())
     }
 
-    pub fn delete_key_group(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_key_group(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        if let Some(expected) = if_match
+            && let Some(kg) = self.key_groups.get(id)
+            && kg.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.key_groups.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchResource(format!(
                 "The specified key group does not exist: {id}"
@@ -406,7 +429,20 @@ impl CloudFrontState {
         Ok(self.origin_access_controls.get(id).unwrap())
     }
 
-    pub fn delete_origin_access_control(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_origin_access_control(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        // The Smithy model marks `If-Match` on DeleteOriginAccessControl as a
+        // real input. Terraform sends it on destroy of
+        // `aws_cloudfront_origin_access_control`.
+        if let Some(expected) = if_match
+            && let Some(oac) = self.origin_access_controls.get(id)
+            && oac.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.origin_access_controls.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchOriginAccessControl(id.to_string()));
         }
@@ -481,7 +517,17 @@ impl CloudFrontState {
         Ok(self.public_keys.get(id).unwrap())
     }
 
-    pub fn delete_public_key(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_public_key(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        if let Some(expected) = if_match
+            && let Some(pk) = self.public_keys.get(id)
+            && pk.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.public_keys.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchPublicKey(id.to_string()));
         }
@@ -668,7 +714,17 @@ impl CloudFrontState {
         Ok(self.origin_request_policies.get(id).unwrap())
     }
 
-    pub fn delete_origin_request_policy(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_origin_request_policy(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        if let Some(expected) = if_match
+            && let Some(orp) = self.origin_request_policies.get(id)
+            && orp.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.origin_request_policies.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchOriginRequestPolicy(id.to_string()));
         }
@@ -730,7 +786,17 @@ impl CloudFrontState {
         Ok(self.response_headers_policies.get(id).unwrap())
     }
 
-    pub fn delete_response_headers_policy(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_response_headers_policy(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        if let Some(expected) = if_match
+            && let Some(rhp) = self.response_headers_policies.get(id)
+            && rhp.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.response_headers_policies.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchResponseHeadersPolicy(id.to_string()));
         }
@@ -1672,7 +1738,17 @@ impl CloudFrontState {
         Ok(self.connection_functions.get(id).unwrap())
     }
 
-    pub fn delete_connection_function(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_connection_function(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        if let Some(expected) = if_match
+            && let Some(cf) = self.connection_functions.get(id)
+            && cf.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.connection_functions.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchConnectionFunction(id.to_string()));
         }
@@ -1782,7 +1858,17 @@ impl CloudFrontState {
         Ok(self.connection_groups.get(id).unwrap())
     }
 
-    pub fn delete_connection_group(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_connection_group(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        if let Some(expected) = if_match
+            && let Some(cg) = self.connection_groups.get(id)
+            && cg.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.connection_groups.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchConnectionGroup(id.to_string()));
         }
@@ -1847,7 +1933,17 @@ impl CloudFrontState {
         Ok(self.continuous_deployment_policies.get(id).unwrap())
     }
 
-    pub fn delete_continuous_deployment_policy(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_continuous_deployment_policy(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        if let Some(expected) = if_match
+            && let Some(cdp) = self.continuous_deployment_policies.get(id)
+            && cdp.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.continuous_deployment_policies.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchContinuousDeploymentPolicy(
                 id.to_string(),
@@ -1970,7 +2066,17 @@ impl CloudFrontState {
         Ok(self.distribution_tenants.get(id).unwrap())
     }
 
-    pub fn delete_distribution_tenant(&mut self, id: &str) -> Result<(), CloudFrontError> {
+    pub fn delete_distribution_tenant(
+        &mut self,
+        id: &str,
+        if_match: Option<&str>,
+    ) -> Result<(), CloudFrontError> {
+        if let Some(expected) = if_match
+            && let Some(dt) = self.distribution_tenants.get(id)
+            && dt.etag != expected
+        {
+            return Err(CloudFrontError::PreconditionFailed);
+        }
         if self.distribution_tenants.remove(id).is_none() {
             return Err(CloudFrontError::NoSuchDistributionTenant(id.to_string()));
         }
