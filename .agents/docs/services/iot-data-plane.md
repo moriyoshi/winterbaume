@@ -42,70 +42,86 @@ IoT data IoT data enables secure, bi-directional communication between Internet-
 ### Delete
 
 - Operations: `DeleteConnection`, `DeleteThingShadow`
-- Common required input members in this group: `clientId`, `thingName`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetRetainedMessage`, `GetThingShadow`
-- Common required input members in this group: `thingName`, `topic`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListNamedShadowsForThing`, `ListRetainedMessages`
 - Traits: `paginated` (1)
-- Common required input members in this group: `thingName`
+- Common required input members in this group: -
 
 ### Publish
 
 - Operations: `Publish`
-- Common required input members in this group: `topic`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateThingShadow`
-- Common required input members in this group: `payload`, `thingName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `DeleteConnection` | `DELETE /connections/{clientId}` | - | `clientId` | - | `Unit` | `ForbiddenException`, `InternalFailureException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Disconnects a connected MQTT client from Amazon Web Services IoT Core. When you disconnect a client, Amazon Web Services IoT Core closes the client's network connection and optionally cleans the session state. |
-| `DeleteThingShadow` | `DELETE /things/{thingName}/shadow` | - | `thingName` | - | `DeleteThingShadowResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException`, `UnsupportedDocumentEncodingException` | Deletes the shadow for the specified thing. Requires permission to access the DeleteThingShadow action. |
-| `GetRetainedMessage` | `GET /retainedMessage/{topic}` | - | `topic` | - | `GetRetainedMessageResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException` | Gets the details of a single retained message for the specified topic. This action returns the message payload of the retained message, which can incur messaging costs. |
-| `GetThingShadow` | `GET /things/{thingName}/shadow` | - | `thingName` | - | `GetThingShadowResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException`, `UnsupportedDocumentEncodingException` | Gets the shadow for the specified thing. Requires permission to access the GetThingShadow action. |
+| `DeleteThingShadow` | `DELETE /things/{thingName}/shadow` | - | `thingName` | - | `DeleteThingShadowResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException`, `UnsupportedDocumentEncodingException` | Deletes the shadow for the specified thing. Requires permission to access the DeleteThingShadow action. For more information, see DeleteThingShadow in the IoT Developer Guide. |
+| `GetRetainedMessage` | `GET /retainedMessage/{topic}` | - | `topic` | - | `GetRetainedMessageResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException` | Gets the details of a single retained message for the specified topic. This action returns the message payload of the retained message, which can incur messaging costs. To list only the topic names of the retained me ... |
+| `GetThingShadow` | `GET /things/{thingName}/shadow` | - | `thingName` | - | `GetThingShadowResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException`, `UnsupportedDocumentEncodingException` | Gets the shadow for the specified thing. Requires permission to access the GetThingShadow action. For more information, see GetThingShadow in the IoT Developer Guide. |
 | `ListNamedShadowsForThing` | `GET /api/things/shadow/ListNamedShadowsForThing/{thingName}` | - | `thingName` | - | `ListNamedShadowsForThingResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException` | Lists the shadows for the specified thing. Requires permission to access the ListNamedShadowsForThing action. |
-| `ListRetainedMessages` | `GET /retainedMessage` | `paginated` | - | - | `ListRetainedMessagesResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException` | Lists summary information about the retained messages stored for the account. This action returns only the topic names of the retained messages. |
-| `Publish` | `POST /topics/{topic}` | - | `topic` | - | `Unit` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ThrottlingException`, `UnauthorizedException` | Publishes an MQTT message. Requires permission to access the Publish action. |
-| `UpdateThingShadow` | `POST /things/{thingName}/shadow` | - | `payload`, `thingName` | - | `UpdateThingShadowResponse` | `ConflictException`, `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `RequestEntityTooLargeException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException`, ... (+1) | Updates the shadow for the specified thing. Requires permission to access the UpdateThingShadow action. |
+| `ListRetainedMessages` | `GET /retainedMessage` | `paginated` | - | - | `ListRetainedMessagesResponse` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException` | Lists summary information about the retained messages stored for the account. This action returns only the topic names of the retained messages. It doesn't return any message payloads. Although this action doesn't re ... |
+| `Publish` | `POST /topics/{topic}` | - | `topic` | - | `Unit` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ThrottlingException`, `UnauthorizedException` | Publishes an MQTT message. Requires permission to access the Publish action. For more information about MQTT messages, see MQTT Protocol in the IoT Developer Guide. For more information about messaging costs, see Ama ... |
+| `UpdateThingShadow` | `POST /things/{thingName}/shadow` | - | `thingName`, `payload` | - | `UpdateThingShadowResponse` | `ConflictException`, `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `RequestEntityTooLargeException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException`, `UnsupportedDocumentEncodingException` | Updates the shadow for the specified thing. Requires permission to access the UpdateThingShadow action. For more information, see UpdateThingShadow in the IoT Developer Guide. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteConnection` | - | `cleanSession -> cleanSession`, `preventWillMessage -> preventWillMessage` | - | - |
+| `DeleteThingShadow` | - | `shadowName -> name` | - | - |
+| `GetThingShadow` | - | `shadowName -> name` | - | - |
+| `ListNamedShadowsForThing` | - | `nextToken -> nextToken`, `pageSize -> pageSize` | - | - |
+| `ListRetainedMessages` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `Publish` | `userProperties -> x-amz-mqtt5-user-properties`, `payloadFormatIndicator -> x-amz-mqtt5-payload-format-indicator`, `correlationData -> x-amz-mqtt5-correlation-data` | `qos -> qos`, `retain -> retain`, `contentType -> contentType`, `responseTopic -> responseTopic`, `messageExpiry -> messageExpiry` | - | `payload` |
+| `UpdateThingShadow` | - | `shadowName -> name` | - | `payload` |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalFailureException` | `structure` | `message` | An unexpected error has occurred. |
-| `InvalidRequestException` | `structure` | `message` | The request is not valid. |
-| `ThrottlingException` | `structure` | `message` | The rate exceeds the limit. |
-| `MethodNotAllowedException` | `structure` | `message` | The specified combination of HTTP verb and URI is not supported. |
-| `UnauthorizedException` | `structure` | `message` | You are not authorized to perform this operation. |
-| `ServiceUnavailableException` | `structure` | `message` | The service is temporarily unavailable. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource does not exist. |
-| `UnsupportedDocumentEncodingException` | `structure` | `message` | The document encoding is not supported. |
-| `DeleteConnectionRequest` | `structure` | `cleanSession`, `clientId`, `preventWillMessage` | - |
-| `ForbiddenException` | `structure` | `message` | The caller isn't authorized to make the request. |
-| `DeleteThingShadowRequest` | `structure` | `shadowName`, `thingName` | The input for the DeleteThingShadow operation. |
-| `DeleteThingShadowResponse` | `structure` | `payload` | The output from the DeleteThingShadow operation. |
-| `GetRetainedMessageRequest` | `structure` | `topic` | The input for the GetRetainedMessage operation. |
-| `GetRetainedMessageResponse` | `structure` | `lastModifiedTime`, `payload`, `qos`, `topic`, `userProperties` | The output from the GetRetainedMessage operation. |
-| `GetThingShadowRequest` | `structure` | `shadowName`, `thingName` | The input for the GetThingShadow operation. |
-| `GetThingShadowResponse` | `structure` | `payload` | The output from the GetThingShadow operation. |
-| `ListNamedShadowsForThingRequest` | `structure` | `nextToken`, `pageSize`, `thingName` | - |
-| `ListNamedShadowsForThingResponse` | `structure` | `nextToken`, `results`, `timestamp` | - |
-| `ListRetainedMessagesRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListRetainedMessagesResponse` | `structure` | `nextToken`, `retainedTopics` | - |
-| `PublishRequest` | `structure` | `contentType`, `correlationData`, `messageExpiry`, `payload`, `payloadFormatIndicator`, `qos`, `responseTopic`, `retain`, `topic`, `userProperties` | The input for the Publish operation. |
-| `UpdateThingShadowRequest` | `structure` | `payload`, `shadowName`, `thingName` | The input for the UpdateThingShadow operation. |
-| `UpdateThingShadowResponse` | `structure` | `payload` | The output from the UpdateThingShadow operation. |
-
+| `ConflictException` | `structure` | message | The specified version does not match the version of the document. |
+| `ForbiddenException` | `structure` | message | The caller isn't authorized to make the request. |
+| `InternalFailureException` | `structure` | message | An unexpected error has occurred. |
+| `InvalidRequestException` | `structure` | message | The request is not valid. |
+| `MethodNotAllowedException` | `structure` | message | The specified combination of HTTP verb and URI is not supported. |
+| `RequestEntityTooLargeException` | `structure` | message | The payload exceeds the maximum size allowed. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource does not exist. |
+| `ServiceUnavailableException` | `structure` | message | The service is temporarily unavailable. |
+| `ThrottlingException` | `structure` | message | The rate exceeds the limit. |
+| `UnauthorizedException` | `structure` | message | You are not authorized to perform this operation. |
+| `UnsupportedDocumentEncodingException` | `structure` | message | The document encoding is not supported. |
+| `DeleteConnectionRequest` | `structure` | clientId, cleanSession, preventWillMessage | - |
+| `DeleteThingShadowRequest` | `structure` | thingName, shadowName | The input for the DeleteThingShadow operation. |
+| `DeleteThingShadowResponse` | `structure` | payload | The output from the DeleteThingShadow operation. |
+| `GetRetainedMessageRequest` | `structure` | topic | The input for the GetRetainedMessage operation. |
+| `GetRetainedMessageResponse` | `structure` | topic, payload, qos, lastModifiedTime, userProperties | The output from the GetRetainedMessage operation. |
+| `GetThingShadowRequest` | `structure` | thingName, shadowName | The input for the GetThingShadow operation. |
+| `GetThingShadowResponse` | `structure` | payload | The output from the GetThingShadow operation. |
+| `ListNamedShadowsForThingRequest` | `structure` | thingName, nextToken, pageSize | - |
+| `ListNamedShadowsForThingResponse` | `structure` | results, nextToken, timestamp | - |
+| `ListRetainedMessagesRequest` | `structure` | nextToken, maxResults | - |
+| `ListRetainedMessagesResponse` | `structure` | retainedTopics, nextToken | - |
+| `PublishRequest` | `structure` | topic, qos, retain, payload, userProperties, payloadFormatIndicator, contentType, responseTopic, correlationData, messageExpiry | The input for the Publish operation. |
+| `UpdateThingShadowRequest` | `structure` | thingName, shadowName, payload | The input for the UpdateThingShadow operation. |
+| `UpdateThingShadowResponse` | `structure` | payload | The output from the UpdateThingShadow operation. |
+| `PayloadFormatIndicator` | `enum` | UNSPECIFIED_BYTES, UTF8_DATA | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -36,27 +36,33 @@ No high-level service documentation is embedded in the AWS API model.
 ### Get
 
 - Operations: `GetMedia`
-- Common required input members in this group: `StartSelector`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetMedia` | `POST /getMedia` | - | `StartSelector` | - | `GetMediaOutput` | `ClientLimitExceededException`, `ConnectionLimitExceededException`, `InvalidArgumentException`, `InvalidEndpointException`, `NotAuthorizedException`, `ResourceNotFoundException` | Use this API to retrieve media content from a Kinesis video stream. In the request, you identify the stream name or stream Amazon Resource Name (ARN), and the starting chunk. |
+| `GetMedia` | `POST /getMedia` | - | `StartSelector` | - | `GetMediaOutput` | `ClientLimitExceededException`, `ConnectionLimitExceededException`, `InvalidArgumentException`, `InvalidEndpointException`, `NotAuthorizedException`, `ResourceNotFoundException` | Use this API to retrieve media content from a Kinesis video stream. In the request, you identify the stream name or stream Amazon Resource Name (ARN), and the starting chunk. Kinesis Video Streams then returns a stre ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `GetMediaInput` | `structure` | `StartSelector`, `StreamARN`, `StreamName` | - |
-| `GetMediaOutput` | `structure` | `ContentType`, `Payload` | - |
-| `ClientLimitExceededException` | `structure` | `Message` | Kinesis Video Streams has throttled the request because you have exceeded the limit of allowed client calls. |
-| `ConnectionLimitExceededException` | `structure` | `Message` | Kinesis Video Streams has throttled the request because you have exceeded the limit of allowed client connections. |
-| `InvalidArgumentException` | `structure` | `Message` | The value for this input parameter is invalid. |
-| `InvalidEndpointException` | `structure` | `Message` | Status Code: 400, Caller used wrong endpoint to write data to a stream. |
-| `NotAuthorizedException` | `structure` | `Message` | Status Code: 403, The caller is not authorized to perform an operation on the given stream, or the token has expired. |
-| `ResourceNotFoundException` | `structure` | `Message` | Status Code: 404, The stream with the given name does not exist. |
-
+| `ClientLimitExceededException` | `structure` | Message | Kinesis Video Streams has throttled the request because you have exceeded the limit of allowed client calls. Try making the call later. |
+| `ConnectionLimitExceededException` | `structure` | Message | Kinesis Video Streams has throttled the request because you have exceeded the limit of allowed client connections. |
+| `InvalidArgumentException` | `structure` | Message | The value for this input parameter is invalid. |
+| `InvalidEndpointException` | `structure` | Message | Status Code: 400, Caller used wrong endpoint to write data to a stream. On receiving such an exception, the user must call GetDataEndpoint with AccessMode s ... |
+| `NotAuthorizedException` | `structure` | Message | Status Code: 403, The caller is not authorized to perform an operation on the given stream, or the token has expired. |
+| `ResourceNotFoundException` | `structure` | Message | Status Code: 404, The stream with the given name does not exist. |
+| `GetMediaInput` | `structure` | StreamName, StreamARN, StartSelector | - |
+| `GetMediaOutput` | `structure` | ContentType, Payload | - |
+| `StartSelectorType` | `enum` | FRAGMENT_NUMBER, SERVER_TIMESTAMP, PRODUCER_TIMESTAMP, NOW, EARLIEST, CONTINUATION_TOKEN | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

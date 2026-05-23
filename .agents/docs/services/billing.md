@@ -68,101 +68,122 @@ Parity implications:
 ### List
 
 - Operations: `ListBillingViews`, `ListSourceViewsForBillingView`, `ListTagsForResource`
-- Traits: `paginated` (2), `readonly` (3)
-- Common required input members in this group: `arn`, `resourceArn`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetBillingView`, `GetResourcePolicy`
 - Traits: `readonly` (2)
-- Common required input members in this group: `arn`, `resourceArn`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateSourceViews`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `sourceViews`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateBillingView`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `name`, `sourceViews`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteBillingView`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateSourceViews`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `sourceViews`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `resourceTags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `resourceTagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateBillingView`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateSourceViews` | - | `idempotent` | `arn`, `sourceViews` | - | `AssociateSourceViewsResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates one or more source billing views with an existing billing view. This allows creating aggregate billing views that combine data from multiple sources. |
-| `CreateBillingView` | - | `idempotent`, `idempotency-token` | `name`, `sourceViews` | `clientToken` | `CreateBillingViewResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a billing view with the specified billing view attributes. |
-| `DeleteBillingView` | - | `idempotent` | `arn` | - | `DeleteBillingViewResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes the specified billing view. |
-| `DisassociateSourceViews` | - | `idempotent` | `arn`, `sourceViews` | - | `DisassociateSourceViewsResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the association between one or more source billing views and an existing billing view. This allows modifying the composition of aggregate billing views. |
-| `GetBillingView` | - | `readonly` | `arn` | - | `GetBillingViewResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the metadata associated to the specified billing view ARN. |
-| `GetResourcePolicy` | - | `readonly` | `resourceArn` | - | `GetResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the resource-based policy document attached to the resource in `JSON` format. |
-| `ListBillingViews` | `POST /` | `readonly`, `paginated` | - | - | `ListBillingViewsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the billing views available for a given time period. Every Amazon Web Services account has a unique `PRIMARY` billing view that represents the billing data available by default. |
-| `ListSourceViewsForBillingView` | - | `readonly`, `paginated` | `arn` | - | `ListSourceViewsForBillingViewResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the source views (managed Amazon Web Services billing views) associated with the billing view. |
-| `ListTagsForResource` | - | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists tags associated with the billing view resource. |
-| `TagResource` | - | - | `resourceArn`, `resourceTags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | An API operation for adding one or more tags (key-value pairs) to a resource. |
-| `UntagResource` | - | - | `resourceArn`, `resourceTagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes one or more tags from a resource. Specify only tag keys in your request. |
-| `UpdateBillingView` | - | `idempotent` | `arn` | - | `UpdateBillingViewResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | An API to update the attributes of the billing view. |
+| `AssociateSourceViews` | `-` | `idempotent` | `arn`, `sourceViews` | - | `AssociateSourceViewsResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates one or more source billing views with an existing billing view. This allows creating aggregate billing views that combine data from multiple sources. |
+| `CreateBillingView` | `-` | `idempotent`, `idempotency-token` | `name`, `sourceViews` | `clientToken` | `CreateBillingViewResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a billing view with the specified billing view attributes. |
+| `DeleteBillingView` | `-` | `idempotent` | `arn` | - | `DeleteBillingViewResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes the specified billing view. |
+| `DisassociateSourceViews` | `-` | `idempotent` | `arn`, `sourceViews` | - | `DisassociateSourceViewsResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the association between one or more source billing views and an existing billing view. This allows modifying the composition of aggregate billing views. |
+| `GetBillingView` | `-` | `readonly` | `arn` | - | `GetBillingViewResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the metadata associated to the specified billing view ARN. |
+| `GetResourcePolicy` | `-` | `readonly` | `resourceArn` | - | `GetResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the resource-based policy document attached to the resource in JSON format. |
+| `ListBillingViews` | `POST /` | `readonly`, `paginated` | - | - | `ListBillingViewsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the billing views available for a given time period. Every Amazon Web Services account has a unique PRIMARY billing view that represents the billing data available by default. Accounts that use Billing Conducto ... |
+| `ListSourceViewsForBillingView` | `-` | `readonly`, `paginated` | `arn` | - | `ListSourceViewsForBillingViewResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the source views (managed Amazon Web Services billing views) associated with the billing view. |
+| `ListTagsForResource` | `-` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists tags associated with the billing view resource. |
+| `TagResource` | `-` | - | `resourceArn`, `resourceTags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | An API operation for adding one or more tags (key-value pairs) to a resource. |
+| `UntagResource` | `-` | - | `resourceArn`, `resourceTagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes one or more tags from a resource. Specify only tag keys in your request. Don't specify the value. |
+| `UpdateBillingView` | `-` | `idempotent` | `arn` | - | `UpdateBillingViewResponse` | `AccessDeniedException`, `BillingViewHealthStatusException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | An API to update the attributes of the billing view. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateBillingView` | `clientToken -> X-Amzn-Client-Token` | - | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message` | The request processing failed because of an unknown error, exception, or failure. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The specified ARN in the request doesn't exist. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The requested operation would cause a conflict with the current state of a service resource associated with the request. |
-| `BillingViewHealthStatusException` | `structure` | `message` | Exception thrown when a billing view's health status prevents an operation from being performed. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | You've reached the limit of resources you can create, or exceeded the size of an individual resource. |
-| `AssociateSourceViewsRequest` | `structure` | `arn`, `sourceViews` | - |
-| `AssociateSourceViewsResponse` | `structure` | `arn` | - |
-| `CreateBillingViewRequest` | `structure` | `clientToken`, `dataFilterExpression`, `description`, `name`, `resourceTags`, `sourceViews` | - |
-| `CreateBillingViewResponse` | `structure` | `arn`, `createdAt` | - |
-| `DeleteBillingViewRequest` | `structure` | `arn`, `force` | - |
-| `DeleteBillingViewResponse` | `structure` | `arn` | - |
-| `DisassociateSourceViewsRequest` | `structure` | `arn`, `sourceViews` | - |
-| `DisassociateSourceViewsResponse` | `structure` | `arn` | - |
-| `GetBillingViewRequest` | `structure` | `arn` | - |
-| `GetBillingViewResponse` | `structure` | `billingView` | - |
-| `GetResourcePolicyRequest` | `structure` | `resourceArn` | - |
-| `GetResourcePolicyResponse` | `structure` | `policy`, `resourceArn` | - |
-| `ListBillingViewsRequest` | `structure` | `activeTimeRange`, `arns`, `billingViewTypes`, `maxResults`, `names`, `nextToken`, `ownerAccountId`, `sourceAccountId` | - |
-| `ListBillingViewsResponse` | `structure` | `billingViews`, `nextToken` | - |
-| `ListSourceViewsForBillingViewRequest` | `structure` | `arn`, `maxResults`, `nextToken` | - |
-| `ListSourceViewsForBillingViewResponse` | `structure` | `nextToken`, `sourceViews` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient access to perform this action. |
+| `BillingViewHealthStatusException` | `structure` | message | Exception thrown when a billing view's health status prevents an operation from being performed. This may occur if the billing view is in a state other than ... |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The requested operation would cause a conflict with the current state of a service resource associated with the request. Resolve the conflict before retryin ... |
+| `InternalServerException` | `structure` | message | The request processing failed because of an unknown error, exception, or failure. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The specified ARN in the request doesn't exist. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | You've reached the limit of resources you can create, or exceeded the size of an individual resource. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `AssociateSourceViewsRequest` | `structure` | arn, sourceViews | - |
+| `AssociateSourceViewsResponse` | `structure` | arn | - |
+| `CreateBillingViewRequest` | `structure` | name, description, sourceViews, dataFilterExpression, clientToken, resourceTags | - |
+| `CreateBillingViewResponse` | `structure` | arn, createdAt | - |
+| `DeleteBillingViewRequest` | `structure` | arn, force | - |
+| `DeleteBillingViewResponse` | `structure` | arn | - |
+| `DisassociateSourceViewsRequest` | `structure` | arn, sourceViews | - |
+| `DisassociateSourceViewsResponse` | `structure` | arn | - |
+| `GetBillingViewRequest` | `structure` | arn | - |
+| `GetBillingViewResponse` | `structure` | billingView | - |
+| `GetResourcePolicyRequest` | `structure` | resourceArn | - |
+| `GetResourcePolicyResponse` | `structure` | resourceArn, policy | - |
+| `ListBillingViewsRequest` | `structure` | activeTimeRange, arns, billingViewTypes, names, ownerAccountId, sourceAccountId, maxResults, nextToken | - |
+| `ListBillingViewsResponse` | `structure` | billingViews, nextToken | - |
+| `ListSourceViewsForBillingViewRequest` | `structure` | arn, maxResults, nextToken | - |
+| `ListSourceViewsForBillingViewResponse` | `structure` | sourceViews, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | resourceTags | - |
+| `TagResourceRequest` | `structure` | resourceArn, resourceTags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, resourceTagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateBillingViewRequest` | `structure` | arn, name, description, dataFilterExpression | - |
+| `UpdateBillingViewResponse` | `structure` | arn, updatedAt | - |
+| `BillingViewStatus` | `enum` | HEALTHY, UNHEALTHY, CREATING, UPDATING | - |
+| `BillingViewStatusReason` | `enum` | SOURCE_VIEW_UNHEALTHY, SOURCE_VIEW_UPDATING, SOURCE_VIEW_ACCESS_DENIED, SOURCE_VIEW_NOT_FOUND, CYCLIC_DEPENDENCY, SOURCE_VIEW_DEPTH_EXCEEDED, AGGREGATE_SOURCE, VIEW_OWNER_NOT_MANAGEMENT_ACCOUNT | - |
+| `BillingViewType` | `enum` | PRIMARY, BILLING_GROUP, CUSTOM, BILLING_TRANSFER, BILLING_TRANSFER_SHOWBACK | - |
+| `Dimension` | `enum` | LINKED_ACCOUNT | - |
+| `SearchOption` | `enum` | STARTS_WITH | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

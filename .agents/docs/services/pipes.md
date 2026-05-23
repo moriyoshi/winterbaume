@@ -52,100 +52,54 @@ Amazon EventBridge Pipes connects event sources to targets. Pipes reduces the ne
 
 ### List
 
-- Operations: `ListPipes`, `ListTagsForResource`
-- Traits: `paginated` (1), `readonly` (2)
-- Common required input members in this group: `resourceArn`
-
-### Create
-
-- Operations: `CreatePipe`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `Name`, `RoleArn`, `Source`, `Target`
-
-### Delete
-
-- Operations: `DeletePipe`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `Name`
-
-### Describe
-
-- Operations: `DescribePipe`
+- Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `Name`
-
-### Start
-
-- Operations: `StartPipe`
-- Common required input members in this group: `Name`
-
-### Stop
-
-- Operations: `StopPipe`
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdatePipe`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `Name`, `RoleArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreatePipe` | `POST /v1/pipes/{Name}` | `idempotent` | `Name`, `RoleArn`, `Source`, `Target` | - | `CreatePipeResponse` | `ConflictException`, `InternalException`, `NotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Create a pipe. Amazon EventBridge Pipes connect event sources to targets and reduces the need for specialized knowledge and integration code. |
-| `DeletePipe` | `DELETE /v1/pipes/{Name}` | `idempotent` | `Name` | - | `DeletePipeResponse` | `ConflictException`, `InternalException`, `NotFoundException`, `ThrottlingException`, `ValidationException` | Delete an existing pipe. For more information about pipes, see Amazon EventBridge Pipes in the Amazon EventBridge User Guide. |
-| `DescribePipe` | `GET /v1/pipes/{Name}` | `readonly` | `Name` | - | `DescribePipeResponse` | `InternalException`, `NotFoundException`, `ThrottlingException`, `ValidationException` | Get the information about an existing pipe. For more information about pipes, see Amazon EventBridge Pipes in the Amazon EventBridge User Guide. |
-| `ListPipes` | `GET /v1/pipes` | `readonly`, `paginated` | - | - | `ListPipesResponse` | `InternalException`, `ThrottlingException`, `ValidationException` | Get the pipes associated with this account. For more information about pipes, see Amazon EventBridge Pipes in the Amazon EventBridge User Guide. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalException`, `NotFoundException`, `ValidationException` | Displays the tags associated with a pipe. |
-| `StartPipe` | `POST /v1/pipes/{Name}/start` | - | `Name` | - | `StartPipeResponse` | `ConflictException`, `InternalException`, `NotFoundException`, `ThrottlingException`, `ValidationException` | Start an existing pipe. |
-| `StopPipe` | `POST /v1/pipes/{Name}/stop` | - | `Name` | - | `StopPipeResponse` | `ConflictException`, `InternalException`, `NotFoundException`, `ThrottlingException`, `ValidationException` | Stop an existing pipe. |
-| `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalException`, `NotFoundException`, `ValidationException` | Assigns one or more tags (key-value pairs) to the specified pipe. Tags can help you organize and categorize your resources. |
+| `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalException`, `NotFoundException`, `ValidationException` | Assigns one or more tags (key-value pairs) to the specified pipe. Tags can help you organize and categorize your resources. You can also use them to scope user permissions by granting a user permission to access or c ... |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalException`, `NotFoundException`, `ValidationException` | Removes one or more tags from the specified pipes. |
-| `UpdatePipe` | `PUT /v1/pipes/{Name}` | `idempotent` | `Name`, `RoleArn` | - | `UpdatePipeResponse` | `ConflictException`, `InternalException`, `NotFoundException`, `ThrottlingException`, `ValidationException` | Update an existing pipe. When you call `UpdatePipe`, EventBridge only the updates fields you have specified in the request; the rest remain unchanged. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalException` | `structure` | `message`, `retryAfterSeconds` | This exception occurs due to unexpected causes. |
-| `ValidationException` | `structure` | `fieldList`, `message` | Indicates that an error has occurred while performing a validate operation. |
-| `NotFoundException` | `structure` | `message` | An entity that you specified does not exist. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | An action was throttled. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | An action you attempted resulted in an exception. |
-| `CreatePipeRequest` | `structure` | `Description`, `DesiredState`, `Enrichment`, `EnrichmentParameters`, `KmsKeyIdentifier`, `LogConfiguration`, `Name`, `RoleArn`, `Source`, `SourceParameters`, `Tags`, `Target`, ... (+1) | - |
-| `CreatePipeResponse` | `structure` | `Arn`, `CreationTime`, `CurrentState`, `DesiredState`, `LastModifiedTime`, `Name` | - |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | A quota has been exceeded. |
-| `DeletePipeRequest` | `structure` | `Name` | - |
-| `DeletePipeResponse` | `structure` | `Arn`, `CreationTime`, `CurrentState`, `DesiredState`, `LastModifiedTime`, `Name` | - |
-| `DescribePipeRequest` | `structure` | `Name` | - |
-| `DescribePipeResponse` | `structure` | `Arn`, `CreationTime`, `CurrentState`, `Description`, `DesiredState`, `Enrichment`, `EnrichmentParameters`, `KmsKeyIdentifier`, `LastModifiedTime`, `LogConfiguration`, `Name`, `RoleArn`, ... (+6) | - |
-| `ListPipesRequest` | `structure` | `CurrentState`, `DesiredState`, `Limit`, `NamePrefix`, `NextToken`, `SourcePrefix`, `TargetPrefix` | - |
-| `ListPipesResponse` | `structure` | `NextToken`, `Pipes` | - |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `StartPipeRequest` | `structure` | `Name` | - |
-| `StartPipeResponse` | `structure` | `Arn`, `CreationTime`, `CurrentState`, `DesiredState`, `LastModifiedTime`, `Name` | - |
-| `StopPipeRequest` | `structure` | `Name` | - |
-| `StopPipeResponse` | `structure` | `Arn`, `CreationTime`, `CurrentState`, `DesiredState`, `LastModifiedTime`, `Name` | - |
-| `TagResourceRequest` | `structure` | `resourceArn`, `tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `resourceArn`, `tagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-
+| `ConflictException` | `structure` | message, resourceId, resourceType | An action you attempted resulted in an exception. |
+| `InternalException` | `structure` | message, retryAfterSeconds | This exception occurs due to unexpected causes. |
+| `NotFoundException` | `structure` | message | An entity that you specified does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | A quota has been exceeded. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | An action was throttled. |
+| `ValidationException` | `structure` | message, fieldList | Indicates that an error has occurred while performing a validate operation. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Winterbaume LTM Notes
 
 Sources: .agents/docs/LTM/aws-inter-service-integration-priorities.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md.

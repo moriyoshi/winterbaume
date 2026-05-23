@@ -39,62 +39,71 @@ Amazon Web Services Marketplace Metering Service This reference provides descrip
 ### Batch
 
 - Operations: `BatchMeterUsage`
-- Common required input members in this group: `UsageRecords`
+- Common required input members in this group: -
 
 ### Meter
 
 - Operations: `MeterUsage`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `ProductCode`, `Timestamp`, `UsageDimension`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterUsage`
-- Common required input members in this group: `ProductCode`, `PublicKeyVersion`
+- Common required input members in this group: -
 
 ### Resolve
 
 - Operations: `ResolveCustomer`
-- Common required input members in this group: `RegistrationToken`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchMeterUsage` | - | - | `UsageRecords` | - | `BatchMeterUsageResult` | `DisabledApiException`, `InternalServiceErrorException`, `InvalidCustomerIdentifierException`, `InvalidLicenseException`, `InvalidProductCodeException`, `InvalidTagException`, `InvalidUsageAllocationsException`, `InvalidUsageDimensionException`, ... (+2) | Amazon Web Services Marketplace is introducing Concurrent Agreements, enabling buyers to make multiple purchases per Amazon Web Services account. Starting June 1, 2026, new SaaS products must use `CustomerAWSAccountId` (instead of `CustomerIdentifier`)... |
-| `MeterUsage` | - | `idempotency-token` | `ProductCode`, `Timestamp`, `UsageDimension` | `ClientToken` | `MeterUsageResult` | `CustomerNotEntitledException`, `DuplicateRequestException`, `IdempotencyConflictException`, `InternalServiceErrorException`, `InvalidEndpointRegionException`, `InvalidProductCodeException`, `InvalidTagException`, `InvalidUsageAllocationsException`, ... (+3) | As a seller, your software hosted in the buyer's Amazon Web Services account uses this API action to emit metering records directly to Amazon Web Services Marketplace. You must use the following buyer Amazon Web Services account credentials to sign the API... |
-| `RegisterUsage` | - | - | `ProductCode`, `PublicKeyVersion` | - | `RegisterUsageResult` | `CustomerNotEntitledException`, `DisabledApiException`, `InternalServiceErrorException`, `InvalidProductCodeException`, `InvalidPublicKeyVersionException`, `InvalidRegionException`, `PlatformNotSupportedException`, `ThrottlingException` | Paid container software products sold through Amazon Web Services Marketplace must integrate with the Amazon Web Services Marketplace Metering Service and call the `RegisterUsage` operation for software entitlement and metering. Free and BYOL products for... |
-| `ResolveCustomer` | - | - | `RegistrationToken` | - | `ResolveCustomerResult` | `DisabledApiException`, `ExpiredTokenException`, `InternalServiceErrorException`, `InvalidTokenException`, `ThrottlingException` | `ResolveCustomer` is called by a SaaS application during the registration process. When a buyer visits your website during the registration process, the buyer submits a registration token through their browser. |
+| `BatchMeterUsage` | `-` | - | `UsageRecords` | - | `BatchMeterUsageResult` | `DisabledApiException`, `InternalServiceErrorException`, `InvalidCustomerIdentifierException`, `InvalidLicenseException`, `InvalidProductCodeException`, `InvalidTagException`, `InvalidUsageAllocationsException`, `InvalidUsageDimensionException`, `ThrottlingException`, `TimestampOutOfBoundsException` | Amazon Web Services Marketplace is introducing Concurrent Agreements, enabling buyers to make multiple purchases per Amazon Web Services account. Starting June 1, 2026, new SaaS products must use CustomerAWSAccountId ... |
+| `MeterUsage` | `-` | `idempotency-token` | `ProductCode`, `Timestamp`, `UsageDimension` | `ClientToken` | `MeterUsageResult` | `CustomerNotEntitledException`, `DuplicateRequestException`, `IdempotencyConflictException`, `InternalServiceErrorException`, `InvalidEndpointRegionException`, `InvalidProductCodeException`, `InvalidTagException`, `InvalidUsageAllocationsException`, `InvalidUsageDimensionException`, `ThrottlingException`, `TimestampOutOfBoundsException` | As a seller, your software hosted in the buyer's Amazon Web Services account uses this API action to emit metering records directly to Amazon Web Services Marketplace. You must use the following buyer Amazon Web Serv ... |
+| `RegisterUsage` | `-` | - | `ProductCode`, `PublicKeyVersion` | - | `RegisterUsageResult` | `CustomerNotEntitledException`, `DisabledApiException`, `InternalServiceErrorException`, `InvalidProductCodeException`, `InvalidPublicKeyVersionException`, `InvalidRegionException`, `PlatformNotSupportedException`, `ThrottlingException` | Paid container software products sold through Amazon Web Services Marketplace must integrate with the Amazon Web Services Marketplace Metering Service and call the RegisterUsage operation for software entitlement and ... |
+| `ResolveCustomer` | `-` | - | `RegistrationToken` | - | `ResolveCustomerResult` | `DisabledApiException`, `ExpiredTokenException`, `InternalServiceErrorException`, `InvalidTokenException`, `ThrottlingException` | ResolveCustomer is called by a SaaS application during the registration process. When a buyer visits your website during the registration process, the buyer submits a registration token through their browser. The reg ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServiceErrorException` | `structure` | `message` | An internal error has occurred. |
-| `ThrottlingException` | `structure` | `message` | The calls to the API are throttled. |
-| `DisabledApiException` | `structure` | `message` | The API is disabled in the Region. |
-| `InvalidProductCodeException` | `structure` | `message` | The product code passed does not match the product code used for publishing the product. |
-| `InvalidTagException` | `structure` | `message` | The tag is invalid, or the number of tags is greater than 5. |
-| `InvalidUsageAllocationsException` | `structure` | `message` | Sum of allocated usage quantities is not equal to the usage quantity. |
-| `InvalidUsageDimensionException` | `structure` | `message` | The usage dimension does not match one of the `UsageDimensions` associated with products. |
-| `TimestampOutOfBoundsException` | `structure` | `message` | The `timestamp` value passed in the `UsageRecord` is out of allowed range. |
-| `CustomerNotEntitledException` | `structure` | `message` | Exception thrown when the customer does not have a valid subscription for the product. |
-| `BatchMeterUsageRequest` | `structure` | `ProductCode`, `UsageRecords` | A `BatchMeterUsageRequest` contains `UsageRecords`, which indicate quantities of usage within your application. |
-| `BatchMeterUsageResult` | `structure` | `Results`, `UnprocessedRecords` | Contains the `UsageRecords` processed by `BatchMeterUsage` and any records that have failed due to transient error. |
-| `InvalidCustomerIdentifierException` | `structure` | `message` | You have metered usage for a `CustomerIdentifier` that does not exist. |
-| `InvalidLicenseException` | `structure` | `message` | Ensure the `LicenseArn` is valid, matches the customer, and usage is within the license activation period. |
-| `MeterUsageRequest` | `structure` | `ClientToken`, `DryRun`, `ProductCode`, `Timestamp`, `UsageAllocations`, `UsageDimension`, `UsageQuantity` | - |
-| `MeterUsageResult` | `structure` | `MeteringRecordId` | - |
-| `DuplicateRequestException` | `structure` | `message` | A metering record has already been emitted by the same EC2 instance, ECS task, or EKS pod for the given {`usageDimension`, `timestamp`} with a different `usageQuantity`. |
-| `IdempotencyConflictException` | `structure` | `message` | The `ClientToken` is being used for multiple requests. |
-| `InvalidEndpointRegionException` | `structure` | `message` | The endpoint being called is in a Amazon Web Services Region different from your EC2 instance, ECS task, or EKS pod. |
-| `RegisterUsageRequest` | `structure` | `Nonce`, `ProductCode`, `PublicKeyVersion` | - |
-| `RegisterUsageResult` | `structure` | `PublicKeyRotationTimestamp`, `Signature` | - |
-| `InvalidPublicKeyVersionException` | `structure` | `message` | Public Key version is invalid. |
-| `InvalidRegionException` | `structure` | `message` | `RegisterUsage` must be called in the same Amazon Web Services Region the ECS task was launched in. |
-| `PlatformNotSupportedException` | `structure` | `message` | Amazon Web Services Marketplace does not support metering usage from the underlying platform. |
-| `ResolveCustomerRequest` | `structure` | `RegistrationToken` | Contains input to the `ResolveCustomer` operation. |
-
+| `CustomerNotEntitledException` | `structure` | message | Exception thrown when the customer does not have a valid subscription for the product. |
+| `DisabledApiException` | `structure` | message | The API is disabled in the Region. |
+| `DuplicateRequestException` | `structure` | message | A metering record has already been emitted by the same EC2 instance, ECS task, or EKS pod for the given { usageDimension , timestamp } with a different usag ... |
+| `ExpiredTokenException` | `structure` | message | The submitted registration token has expired. This can happen if the buyer's browser takes too long to redirect to your page, the buyer has resubmitted the ... |
+| `IdempotencyConflictException` | `structure` | message | The ClientToken is being used for multiple requests. |
+| `InternalServiceErrorException` | `structure` | message | An internal error has occurred. Retry your request. If the problem persists, post a message with details on the Amazon Web Services forums. |
+| `InvalidCustomerIdentifierException` | `structure` | message | You have metered usage for a CustomerIdentifier that does not exist. |
+| `InvalidEndpointRegionException` | `structure` | message | The endpoint being called is in a Amazon Web Services Region different from your EC2 instance, ECS task, or EKS pod. The Region of the Metering Service endp ... |
+| `InvalidLicenseException` | `structure` | message | Ensure the LicenseArn is valid, matches the customer, and usage is within the license activation period. |
+| `InvalidProductCodeException` | `structure` | message | The product code passed does not match the product code used for publishing the product. |
+| `InvalidPublicKeyVersionException` | `structure` | message | Public Key version is invalid. |
+| `InvalidRegionException` | `structure` | message | RegisterUsage must be called in the same Amazon Web Services Region the ECS task was launched in. This prevents a container from hardcoding a Region (e.g. w ... |
+| `InvalidTagException` | `structure` | message | The tag is invalid, or the number of tags is greater than 5. |
+| `InvalidTokenException` | `structure` | message | Registration token is invalid. |
+| `InvalidUsageAllocationsException` | `structure` | message | Sum of allocated usage quantities is not equal to the usage quantity. |
+| `InvalidUsageDimensionException` | `structure` | message | The usage dimension does not match one of the UsageDimensions associated with products. |
+| `PlatformNotSupportedException` | `structure` | message | Amazon Web Services Marketplace does not support metering usage from the underlying platform. Currently, Amazon ECS, Amazon EKS, and Fargate are supported. |
+| `ThrottlingException` | `structure` | message | The calls to the API are throttled. |
+| `TimestampOutOfBoundsException` | `structure` | message | The timestamp value passed in the UsageRecord is out of allowed range. For BatchMeterUsage , if any of the records are outside of the allowed range, the ent ... |
+| `BatchMeterUsageRequest` | `structure` | UsageRecords, ProductCode | A BatchMeterUsageRequest contains UsageRecords , which indicate quantities of usage within your application. |
+| `BatchMeterUsageResult` | `structure` | Results, UnprocessedRecords | Contains the UsageRecords processed by BatchMeterUsage and any records that have failed due to transient error. |
+| `MeterUsageRequest` | `structure` | ProductCode, Timestamp, UsageDimension, UsageQuantity, DryRun, UsageAllocations, ClientToken | - |
+| `MeterUsageResult` | `structure` | MeteringRecordId | - |
+| `RegisterUsageRequest` | `structure` | ProductCode, PublicKeyVersion, Nonce | - |
+| `RegisterUsageResult` | `structure` | PublicKeyRotationTimestamp, Signature | - |
+| `ResolveCustomerRequest` | `structure` | RegistrationToken | Contains input to the ResolveCustomer operation. |
+| `ResolveCustomerResult` | `structure` | CustomerIdentifier, ProductCode, CustomerAWSAccountId, LicenseArn | The result of the ResolveCustomer operation. Contains the CustomerIdentifier along with the CustomerAWSAccountId , ProductCode , and LicenseArn . |
+| `UsageRecordResultStatus` | `enum` | SUCCESS, CUSTOMER_NOT_SUBSCRIBED, DUPLICATE_RECORD | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

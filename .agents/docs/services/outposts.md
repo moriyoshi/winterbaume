@@ -61,50 +61,51 @@ Parity implications:
 
 ### Get
 
-- Operations: `GetCapacityTask`, `GetCatalogItem`, `GetConnection`, `GetOrder`, `GetOutpost`, `GetOutpostBillingInformation`, `GetOutpostInstanceTypes`, `GetOutpostSupportedInstanceTypes`, `GetSite`, `GetSiteAddress`
+- Operations: `GetCapacityTask`, `GetCatalogItem`, `GetConnection`, `GetOrder`, `GetOutpost`, `GetOutpostBillingInformation`, `GetOutpostInstanceTypes`, `GetOutpostSupportedInstanceTypes`, `GetRenewalPricing`, `GetSite`, `GetSiteAddress`
 - Traits: `paginated` (3)
-- Common required input members in this group: `AddressType`, `CapacityTaskId`, `CatalogItemId`, `ConnectionId`, `OrderId`, `OutpostId`, `OutpostIdentifier`, `SiteId`
+- Common required input members in this group: `OutpostIdentifier`, `OutpostId`, `SiteId`
 
 ### List
 
 - Operations: `ListAssetInstances`, `ListAssets`, `ListBlockingInstancesForCapacityTask`, `ListCapacityTasks`, `ListCatalogItems`, `ListOrders`, `ListOutposts`, `ListSites`, `ListTagsForResource`
 - Traits: `paginated` (8)
-- Common required input members in this group: `CapacityTaskId`, `OutpostIdentifier`, `ResourceArn`
+- Common required input members in this group: `OutpostIdentifier`
+
+### Create
+
+- Operations: `CreateOrder`, `CreateOutpost`, `CreateRenewal`, `CreateSite`
+- Traits: `idempotency-token` (1)
+- Common required input members in this group: `OutpostIdentifier`, `PaymentOption`, `Name`
 
 ### Update
 
 - Operations: `UpdateOutpost`, `UpdateSite`, `UpdateSiteAddress`, `UpdateSiteRackPhysicalProperties`
-- Common required input members in this group: `Address`, `AddressType`, `OutpostId`, `SiteId`
-
-### Create
-
-- Operations: `CreateOrder`, `CreateOutpost`, `CreateSite`
-- Common required input members in this group: `Name`, `OutpostIdentifier`, `PaymentOption`, `SiteId`
+- Common required input members in this group: `SiteId`
 
 ### Start
 
 - Operations: `StartCapacityTask`, `StartConnection`, `StartOutpostDecommission`
-- Common required input members in this group: `AssetId`, `ClientPublicKey`, `InstancePools`, `NetworkInterfaceDeviceIndex`, `OutpostIdentifier`
+- Common required input members in this group: `OutpostIdentifier`
 
 ### Cancel
 
 - Operations: `CancelCapacityTask`, `CancelOrder`
-- Common required input members in this group: `CapacityTaskId`, `OrderId`, `OutpostIdentifier`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteOutpost`, `DeleteSite`
-- Common required input members in this group: `OutpostId`, `SiteId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -114,67 +115,114 @@ Parity implications:
 | `CancelOrder` | `POST /orders/{OrderId}/cancel` | - | `OrderId` | - | `CancelOrderOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Cancels the specified order for an Outpost. |
 | `CreateOrder` | `POST /orders` | - | `OutpostIdentifier`, `PaymentOption` | - | `CreateOrderOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an order for an Outpost. |
 | `CreateOutpost` | `POST /outposts` | - | `Name`, `SiteId` | - | `CreateOutpostOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an Outpost. You can specify either an Availability one or an AZ ID. |
+| `CreateRenewal` | `POST /renewals` | `idempotency-token` | `PaymentOption`, `PaymentTerm`, `OutpostIdentifier` | `ClientToken` | `CreateRenewalOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Creates a renewal contract for the specified Outpost. |
 | `CreateSite` | `POST /sites` | - | `Name` | - | `CreateSiteOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a site for an Outpost. |
 | `DeleteOutpost` | `DELETE /outposts/{OutpostId}` | - | `OutpostId` | - | `DeleteOutpostOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Deletes the specified Outpost. |
 | `DeleteSite` | `DELETE /sites/{SiteId}` | - | `SiteId` | - | `DeleteSiteOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Deletes the specified site. |
 | `GetCapacityTask` | `GET /outposts/{OutpostIdentifier}/capacity/{CapacityTaskId}` | - | `CapacityTaskId`, `OutpostIdentifier` | - | `GetCapacityTaskOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets details of the specified capacity task. |
 | `GetCatalogItem` | `GET /catalog/item/{CatalogItemId}` | - | `CatalogItemId` | - | `GetCatalogItemOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets information about the specified catalog item. |
-| `GetConnection` | `GET /connections/{ConnectionId}` | - | `ConnectionId` | - | `GetConnectionResponse` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Amazon Web Services uses this action to install Outpost servers. Gets information about the specified connection. |
+| `GetConnection` | `GET /connections/{ConnectionId}` | - | `ConnectionId` | - | `GetConnectionResponse` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Amazon Web Services uses this action to install Outpost servers. Gets information about the specified connection. Use CloudTrail to monitor this action or Amazon Web Services managed policy for Amazon Web Services Ou ... |
 | `GetOrder` | `GET /orders/{OrderId}` | - | `OrderId` | - | `GetOrderOutput` | `InternalServerException`, `NotFoundException`, `ValidationException` | Gets information about the specified order. |
 | `GetOutpost` | `GET /outposts/{OutpostId}` | - | `OutpostId` | - | `GetOutpostOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets information about the specified Outpost. |
 | `GetOutpostBillingInformation` | `GET /outpost/{OutpostIdentifier}/billing-information` | `paginated` | `OutpostIdentifier` | - | `GetOutpostBillingInformationOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException` | Gets current and historical billing information about the specified Outpost. |
 | `GetOutpostInstanceTypes` | `GET /outposts/{OutpostId}/instanceTypes` | `paginated` | `OutpostId` | - | `GetOutpostInstanceTypesOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets the instance types for the specified Outpost. |
-| `GetOutpostSupportedInstanceTypes` | `GET /outposts/{OutpostIdentifier}/supportedInstanceTypes` | `paginated` | `OutpostIdentifier` | - | `GetOutpostSupportedInstanceTypesOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets the instance types that an Outpost can support in `InstanceTypeCapacity`. This will generally include instance types that are not currently configured and therefore cannot be launched with the current Outpost capacity configuration. |
+| `GetOutpostSupportedInstanceTypes` | `GET /outposts/{OutpostIdentifier}/supportedInstanceTypes` | `paginated` | `OutpostIdentifier` | - | `GetOutpostSupportedInstanceTypesOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets the instance types that an Outpost can support in InstanceTypeCapacity . This will generally include instance types that are not currently configured and therefore cannot be launched with the current Outpost cap ... |
+| `GetRenewalPricing` | `GET /outpost/{OutpostIdentifier}/renewal-pricing` | - | `OutpostIdentifier` | - | `GetRenewalPricingOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets all available renewal pricing options for the specified Outpost. |
 | `GetSite` | `GET /sites/{SiteId}` | - | `SiteId` | - | `GetSiteOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets information about the specified Outpost site. |
-| `GetSiteAddress` | `GET /sites/{SiteId}/address` | - | `AddressType`, `SiteId` | - | `GetSiteAddressOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets the site address of the specified site. |
+| `GetSiteAddress` | `GET /sites/{SiteId}/address` | - | `SiteId`, `AddressType` | - | `GetSiteAddressOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Gets the site address of the specified site. |
 | `ListAssetInstances` | `GET /outposts/{OutpostIdentifier}/assetInstances` | `paginated` | `OutpostIdentifier` | - | `ListAssetInstancesOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | A list of Amazon EC2 instances, belonging to all accounts, running on the specified Outpost. Does not include Amazon EBS or Amazon S3 instances. |
-| `ListAssets` | `GET /outposts/{OutpostIdentifier}/assets` | `paginated` | `OutpostIdentifier` | - | `ListAssetsOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Lists the hardware assets for the specified Outpost. Use filters to return specific results. |
-| `ListBlockingInstancesForCapacityTask` | `GET /outposts/{OutpostIdentifier}/capacity/{CapacityTaskId}/blockingInstances` | `paginated` | `CapacityTaskId`, `OutpostIdentifier` | - | `ListBlockingInstancesForCapacityTaskOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | A list of Amazon EC2 instances running on the Outpost and belonging to the account that initiated the capacity task. Use this list to specify the instances you cannot stop to free up capacity to run the capacity task. |
-| `ListCapacityTasks` | `GET /capacity/tasks` | `paginated` | - | - | `ListCapacityTasksOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Lists the capacity tasks for your Amazon Web Services account. Use filters to return specific results. |
-| `ListCatalogItems` | `GET /catalog/items` | `paginated` | - | - | `ListCatalogItemsOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Lists the items in the catalog. Use filters to return specific results. |
+| `ListAssets` | `GET /outposts/{OutpostIdentifier}/assets` | `paginated` | `OutpostIdentifier` | - | `ListAssetsOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Lists the hardware assets for the specified Outpost. Use filters to return specific results. If you specify multiple filters, the results include only the resources that match all of the specified filters. For a filt ... |
+| `ListBlockingInstancesForCapacityTask` | `GET /outposts/{OutpostIdentifier}/capacity/{CapacityTaskId}/blockingInstances` | `paginated` | `OutpostIdentifier`, `CapacityTaskId` | - | `ListBlockingInstancesForCapacityTaskOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | A list of Amazon EC2 instances running on the Outpost and belonging to the account that initiated the capacity task. Use this list to specify the instances you cannot stop to free up capacity to run the capacity task. |
+| `ListCapacityTasks` | `GET /capacity/tasks` | `paginated` | - | - | `ListCapacityTasksOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Lists the capacity tasks for your Amazon Web Services account. Use filters to return specific results. If you specify multiple filters, the results include only the resources that match all of the specified filters. ... |
+| `ListCatalogItems` | `GET /catalog/items` | `paginated` | - | - | `ListCatalogItemsOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Lists the items in the catalog. Use filters to return specific results. If you specify multiple filters, the results include only the resources that match all of the specified filters. For a filter where you can spec ... |
 | `ListOrders` | `GET /list-orders` | `paginated` | - | - | `ListOrdersOutput` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Lists the Outpost orders for your Amazon Web Services account. |
-| `ListOutposts` | `GET /outposts` | `paginated` | - | - | `ListOutpostsOutput` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Lists the Outposts for your Amazon Web Services account. Use filters to return specific results. |
-| `ListSites` | `GET /sites` | `paginated` | - | - | `ListSitesOutput` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Lists the Outpost sites for your Amazon Web Services account. Use filters to return specific results. |
+| `ListOutposts` | `GET /outposts` | `paginated` | - | - | `ListOutpostsOutput` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Lists the Outposts for your Amazon Web Services account. Use filters to return specific results. If you specify multiple filters, the results include only the resources that match all of the specified filters. For a ... |
+| `ListSites` | `GET /sites` | `paginated` | - | - | `ListSitesOutput` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Lists the Outpost sites for your Amazon Web Services account. Use filters to return specific results. Use filters to return specific results. If you specify multiple filters, the results include only the resources th ... |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `NotFoundException`, `ValidationException` | Lists the tags for the specified resource. |
-| `StartCapacityTask` | `POST /outposts/{OutpostIdentifier}/capacity` | - | `InstancePools`, `OutpostIdentifier` | - | `StartCapacityTaskOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Starts the specified capacity task. You can have one active capacity task for each order and each Outpost. |
-| `StartConnection` | `POST /connections` | - | `AssetId`, `ClientPublicKey`, `NetworkInterfaceDeviceIndex` | - | `StartConnectionResponse` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Amazon Web Services uses this action to install Outpost servers. Starts the connection required for Outpost server installation. |
+| `StartCapacityTask` | `POST /outposts/{OutpostIdentifier}/capacity` | - | `OutpostIdentifier`, `InstancePools` | - | `StartCapacityTaskOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Starts the specified capacity task. You can have one active capacity task for each order and each Outpost. |
+| `StartConnection` | `POST /connections` | - | `AssetId`, `ClientPublicKey`, `NetworkInterfaceDeviceIndex` | - | `StartConnectionResponse` | `AccessDeniedException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Amazon Web Services uses this action to install Outpost servers. Starts the connection required for Outpost server installation. Use CloudTrail to monitor this action or Amazon Web Services managed policy for Amazon ... |
 | `StartOutpostDecommission` | `POST /outposts/{OutpostIdentifier}/decommission` | - | `OutpostIdentifier` | - | `StartOutpostDecommissionOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Starts the decommission process to return the Outposts racks or servers. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServerException`, `NotFoundException`, `ValidationException` | Adds tags to the specified resource. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `NotFoundException`, `ValidationException` | Removes tags from the specified resource. |
 | `UpdateOutpost` | `PATCH /outposts/{OutpostId}` | - | `OutpostId` | - | `UpdateOutpostOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Updates an Outpost. |
 | `UpdateSite` | `PATCH /sites/{SiteId}` | - | `SiteId` | - | `UpdateSiteOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Updates the specified site. |
-| `UpdateSiteAddress` | `PUT /sites/{SiteId}/address` | - | `Address`, `AddressType`, `SiteId` | - | `UpdateSiteAddressOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Updates the address of the specified site. You can't update a site address if there is an order in progress. |
-| `UpdateSiteRackPhysicalProperties` | `PATCH /sites/{SiteId}/rackPhysicalProperties` | - | `SiteId` | - | `UpdateSiteRackPhysicalPropertiesOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Update the physical and logistical details for a rack at a site. For more information about hardware requirements for racks, see Network readiness checklist in the Amazon Web Services Outposts User Guide. |
+| `UpdateSiteAddress` | `PUT /sites/{SiteId}/address` | - | `SiteId`, `AddressType`, `Address` | - | `UpdateSiteAddressOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Updates the address of the specified site. You can't update a site address if there is an order in progress. You must wait for the order to complete or cancel the order. You can update the operating address before yo ... |
+| `UpdateSiteRackPhysicalProperties` | `PATCH /sites/{SiteId}/rackPhysicalProperties` | - | `SiteId` | - | `UpdateSiteRackPhysicalPropertiesOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Update the physical and logistical details for a rack at a site. For more information about hardware requirements for racks, see Network readiness checklist in the Amazon Web Services Outposts User Guide. To update a ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetOutpostBillingInformation` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `GetOutpostInstanceTypes` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `GetOutpostSupportedInstanceTypes` | - | `OrderId -> OrderId`, `AssetId -> AssetId`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `GetSiteAddress` | - | `AddressType -> AddressType` | - | - |
+| `ListAssetInstances` | - | `AssetIdFilter -> AssetIdFilter`, `InstanceTypeFilter -> InstanceTypeFilter`, `AccountIdFilter -> AccountIdFilter`, `AwsServiceFilter -> AwsServiceFilter`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListAssets` | - | `HostIdFilter -> HostIdFilter`, `MaxResults -> MaxResults`, `NextToken -> NextToken`, `StatusFilter -> StatusFilter`, `AssetTypeFilter -> AssetTypeFilter` | - | - |
+| `ListBlockingInstancesForCapacityTask` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListCapacityTasks` | - | `OutpostIdentifierFilter -> OutpostIdentifierFilter`, `MaxResults -> MaxResults`, `NextToken -> NextToken`, `CapacityTaskStatusFilter -> CapacityTaskStatusFilter` | - | - |
+| `ListCatalogItems` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `ItemClassFilter -> ItemClassFilter`, `SupportedStorageFilter -> SupportedStorageFilter`, `EC2FamilyFilter -> EC2FamilyFilter` | - | - |
+| `ListOrders` | - | `OutpostIdentifierFilter -> OutpostIdentifierFilter`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListOutposts` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `LifeCycleStatusFilter -> LifeCycleStatusFilter`, `AvailabilityZoneFilter -> AvailabilityZoneFilter`, `AvailabilityZoneIdFilter -> AvailabilityZoneIdFilter` | - | - |
+| `ListSites` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `OperatingAddressCountryCodeFilter -> OperatingAddressCountryCodeFilter`, `OperatingAddressStateOrRegionFilter -> OperatingAddressStateOrRegionFilter`, `OperatingAddressCityFilter -> OperatingAddressCityFilter` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | An internal error has occurred. |
-| `ValidationException` | `structure` | `Message` | A parameter is not valid. |
-| `NotFoundException` | `structure` | `Message` | The specified request is not valid. |
-| `AccessDeniedException` | `structure` | `Message` | You do not have permission to perform this operation. |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | Updating or deleting this resource can cause an inconsistent state. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | You have exceeded a service quota. |
-| `CancelCapacityTaskInput` | `structure` | `CapacityTaskId`, `OutpostIdentifier` | - |
-| `CancelCapacityTaskOutput` | `structure` | - | - |
-| `CancelOrderInput` | `structure` | `OrderId` | - |
-| `CancelOrderOutput` | `structure` | - | - |
-| `CreateOrderInput` | `structure` | `LineItems`, `OutpostIdentifier`, `PaymentOption`, `PaymentTerm` | - |
-| `CreateOrderOutput` | `structure` | `Order` | - |
-| `CreateOutpostInput` | `structure` | `AvailabilityZone`, `AvailabilityZoneId`, `Description`, `Name`, `SiteId`, `SupportedHardwareType`, `Tags` | - |
-| `CreateOutpostOutput` | `structure` | `Outpost` | - |
-| `CreateSiteInput` | `structure` | `Description`, `Name`, `Notes`, `OperatingAddress`, `RackPhysicalProperties`, `ShippingAddress`, `Tags` | - |
-| `CreateSiteOutput` | `structure` | `Site` | - |
-| `DeleteOutpostInput` | `structure` | `OutpostId` | - |
-| `DeleteOutpostOutput` | `structure` | - | - |
-| `DeleteSiteInput` | `structure` | `SiteId` | - |
-| `DeleteSiteOutput` | `structure` | - | - |
-| `GetCapacityTaskInput` | `structure` | `CapacityTaskId`, `OutpostIdentifier` | - |
-| `GetCapacityTaskOutput` | `structure` | `AssetId`, `CapacityTaskId`, `CapacityTaskStatus`, `CompletionDate`, `CreationDate`, `DryRun`, `Failed`, `InstancesToExclude`, `LastModifiedDate`, `OrderId`, `OutpostId`, `RequestedInstancePools`, ... (+1) | - |
-| `GetCatalogItemInput` | `structure` | `CatalogItemId` | - |
-| `GetCatalogItemOutput` | `structure` | `CatalogItem` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have permission to perform this operation. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | Updating or deleting this resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | Message | An internal error has occurred. |
+| `NotFoundException` | `structure` | Message | The specified request is not valid. |
+| `ServiceQuotaExceededException` | `structure` | Message | You have exceeded a service quota. |
+| `ValidationException` | `structure` | Message | A parameter is not valid. |
+| `CancelCapacityTaskInput` | `structure` | CapacityTaskId, OutpostIdentifier | - |
+| `CancelCapacityTaskOutput` | `structure` | **empty (no members)** | - |
+| `CancelOrderInput` | `structure` | OrderId | - |
+| `CancelOrderOutput` | `structure` | **empty (no members)** | - |
+| `CreateOrderInput` | `structure` | OutpostIdentifier, LineItems, PaymentOption, PaymentTerm | - |
+| `CreateOrderOutput` | `structure` | Order | - |
+| `CreateOutpostInput` | `structure` | Name, Description, SiteId, AvailabilityZone, AvailabilityZoneId, Tags, SupportedHardwareType | - |
+| `CreateOutpostOutput` | `structure` | Outpost | - |
+| `CreateRenewalInput` | `structure` | PaymentOption, PaymentTerm, OutpostIdentifier, ClientToken | - |
+| `CreateRenewalOutput` | `structure` | PaymentOption, PaymentTerm, OutpostId, UpfrontPrice, MonthlyRecurringPrice | - |
+| `CreateSiteInput` | `structure` | Name, Description, Notes, Tags, OperatingAddress, ShippingAddress, RackPhysicalProperties | - |
+| `CreateSiteOutput` | `structure` | Site | - |
+| `DeleteOutpostInput` | `structure` | OutpostId | - |
+| `DeleteOutpostOutput` | `structure` | **empty (no members)** | - |
+| `DeleteSiteInput` | `structure` | SiteId | - |
+| `DeleteSiteOutput` | `structure` | **empty (no members)** | - |
+| `GetCapacityTaskInput` | `structure` | CapacityTaskId, OutpostIdentifier | - |
+| `GetCapacityTaskOutput` | `structure` | CapacityTaskId, OutpostId, OrderId, AssetId, RequestedInstancePools, InstancesToExclude, DryRun, CapacityTaskStatus, Failed, CreationDate, CompletionDate, LastModifiedDate, ... (+1) | - |
+| `GetCatalogItemInput` | `structure` | CatalogItemId | - |
+| `GetCatalogItemOutput` | `structure` | CatalogItem | - |
+| `GetConnectionRequest` | `structure` | ConnectionId | - |
+| `GetConnectionResponse` | `structure` | ConnectionId, ConnectionDetails | - |
+| `GetOrderInput` | `structure` | OrderId | - |
+| `GetOrderOutput` | `structure` | Order | - |
+| `GetOutpostInput` | `structure` | OutpostId | - |
+| `GetOutpostOutput` | `structure` | Outpost | - |
+| `GetOutpostBillingInformationInput` | `structure` | NextToken, MaxResults, OutpostIdentifier | - |
+| `GetOutpostBillingInformationOutput` | `structure` | NextToken, Subscriptions, ContractEndDate, PaymentTerm, PaymentOption | - |
+| `GetOutpostInstanceTypesInput` | `structure` | OutpostId, NextToken, MaxResults | - |
+| `GetOutpostInstanceTypesOutput` | `structure` | InstanceTypes, NextToken, OutpostId, OutpostArn | - |
+| `GetOutpostSupportedInstanceTypesInput` | `structure` | OutpostIdentifier, OrderId, AssetId, MaxResults, NextToken | - |
+| `GetOutpostSupportedInstanceTypesOutput` | `structure` | InstanceTypes, NextToken | - |
+| `GetRenewalPricingInput` | `structure` | OutpostIdentifier | - |
+| `GetRenewalPricingOutput` | `structure` | PricingResult, PricingOptions | - |
+| `AWSServiceName` | `enum` | AWS, EC2, ELASTICACHE, ELB, RDS, ROUTE53 | - |
+| `AddressType` | `enum` | SHIPPING_ADDRESS, OPERATING_ADDRESS | - |
+| `AssetState` | `enum` | ACTIVE, RETIRING, ISOLATED, INSTALLING | - |
+| `AssetType` | `enum` | COMPUTE, STORAGE, POWERSHELF, SWITCH, NETWORKING | - |
+| `BlockingResourceType` | `enum` | EC2_INSTANCE, OUTPOST_RAM_SHARE, LGW_ROUTING_DOMAIN, LGW_ROUTE_TABLE, LGW_VIRTUAL_INTERFACE_GROUP, OUTPOST_ORDER_CANCELLABLE, OUTPOST_ORDER_INTERVENTION_REQUIRED | - |
+| `CapacityTaskFailureType` | `enum` | UNSUPPORTED_CAPACITY_CONFIGURATION, UNEXPECTED_ASSET_STATE, BLOCKING_INSTANCES_NOT_EVACUATED, INTERNAL_SERVER_ERROR, RESOURCE_NOT_FOUND | - |
+| `CapacityTaskStatus` | `enum` | REQUESTED, IN_PROGRESS, FAILED, COMPLETED, WAITING_FOR_EVACUATION, CANCELLATION_IN_PROGRESS, CANCELLED | - |
+| `CatalogItemClass` | `enum` | RACK, SERVER | - |
+| `CatalogItemStatus` | `enum` | AVAILABLE, DISCONTINUED | - |
+| `ComputeAssetState` | `enum` | ACTIVE, ISOLATED, RETIRING, INSTALLING | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

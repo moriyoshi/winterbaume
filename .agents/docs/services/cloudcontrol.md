@@ -62,80 +62,98 @@ Parity implications:
 ### Get
 
 - Operations: `GetResource`, `GetResourceRequestStatus`
-- Common required input members in this group: `Identifier`, `RequestToken`, `TypeName`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListResourceRequests`, `ListResources`
 - Traits: `paginated` (2)
-- Common required input members in this group: `TypeName`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelResourceRequest`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `RequestToken`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateResource`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `DesiredState`, `TypeName`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteResource`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Identifier`, `TypeName`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateResource`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Identifier`, `PatchDocument`, `TypeName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelResourceRequest` | - | `idempotent` | `RequestToken` | - | `CancelResourceRequestOutput` | `ConcurrentModificationException`, `RequestTokenNotFoundException` | Cancels the specified resource operation request. For more information, see Canceling resource operation requests in the Amazon Web Services Cloud Control API User Guide . |
-| `CreateResource` | - | `idempotency-token` | `DesiredState`, `TypeName` | `ClientToken` | `CreateResourceOutput` | `AlreadyExistsException`, `ClientTokenConflictException`, `ConcurrentOperationException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, ... (+11) | Creates the specified resource. For more information, see Creating a resource in the Amazon Web Services Cloud Control API User Guide . |
-| `DeleteResource` | - | `idempotency-token` | `Identifier`, `TypeName` | `ClientToken` | `DeleteResourceOutput` | `AlreadyExistsException`, `ClientTokenConflictException`, `ConcurrentOperationException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, ... (+11) | Deletes the specified resource. For details, see Deleting a resource in the Amazon Web Services Cloud Control API User Guide . |
-| `GetResource` | - | - | `Identifier`, `TypeName` | - | `GetResourceOutput` | `AlreadyExistsException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, `NetworkFailureException`, `NotStabilizedException`, ... (+9) | Returns information about the current state of the specified resource. For details, see Reading a resource's current state. |
-| `GetResourceRequestStatus` | - | - | `RequestToken` | - | `GetResourceRequestStatusOutput` | `RequestTokenNotFoundException` | Returns the current status of a resource operation request. For more information, see Tracking the progress of resource operation requests in the Amazon Web Services Cloud Control API User Guide . |
-| `ListResourceRequests` | - | `paginated` | - | - | `ListResourceRequestsOutput` | - | Returns existing resource operation requests. This includes requests of all status types. |
-| `ListResources` | - | `paginated` | `TypeName` | - | `ListResourcesOutput` | `AlreadyExistsException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, `NetworkFailureException`, `NotStabilizedException`, ... (+9) | Returns information about the specified resources. For more information, see Discovering resources in the Amazon Web Services Cloud Control API User Guide . |
-| `UpdateResource` | - | `idempotency-token` | `Identifier`, `PatchDocument`, `TypeName` | `ClientToken` | `UpdateResourceOutput` | `AlreadyExistsException`, `ClientTokenConflictException`, `ConcurrentOperationException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, ... (+11) | Updates the specified property values in the resource. You specify your resource property updates as a list of patch operations contained in a JSON patch document that adheres to the RFC 6902 - JavaScript Object Notation (JSON) Patch standard. |
+| `CancelResourceRequest` | `-` | `idempotent` | `RequestToken` | - | `CancelResourceRequestOutput` | `ConcurrentModificationException`, `RequestTokenNotFoundException` | Cancels the specified resource operation request. For more information, see Canceling resource operation requests in the Amazon Web Services Cloud Control API User Guide . Only resource operations requests with a sta ... |
+| `CreateResource` | `-` | `idempotency-token` | `TypeName`, `DesiredState` | `ClientToken` | `CreateResourceOutput` | `AlreadyExistsException`, `ClientTokenConflictException`, `ConcurrentOperationException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, `NetworkFailureException`, `NotStabilizedException`, `NotUpdatableException`, `PrivateTypeException`, `ResourceConflictException`, `ResourceNotFoundException`, `ServiceInternalErrorException`, `ServiceLimitExceededException`, `ThrottlingException`, `TypeNotFoundException`, `UnsupportedActionException` | Creates the specified resource. For more information, see Creating a resource in the Amazon Web Services Cloud Control API User Guide . After you have initiated a resource creation request, you can monitor the progre ... |
+| `DeleteResource` | `-` | `idempotency-token` | `TypeName`, `Identifier` | `ClientToken` | `DeleteResourceOutput` | `AlreadyExistsException`, `ClientTokenConflictException`, `ConcurrentOperationException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, `NetworkFailureException`, `NotStabilizedException`, `NotUpdatableException`, `PrivateTypeException`, `ResourceConflictException`, `ResourceNotFoundException`, `ServiceInternalErrorException`, `ServiceLimitExceededException`, `ThrottlingException`, `TypeNotFoundException`, `UnsupportedActionException` | Deletes the specified resource. For details, see Deleting a resource in the Amazon Web Services Cloud Control API User Guide . After you have initiated a resource deletion request, you can monitor the progress of you ... |
+| `GetResource` | `-` | - | `TypeName`, `Identifier` | - | `GetResourceOutput` | `AlreadyExistsException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, `NetworkFailureException`, `NotStabilizedException`, `NotUpdatableException`, `PrivateTypeException`, `ResourceConflictException`, `ResourceNotFoundException`, `ServiceInternalErrorException`, `ServiceLimitExceededException`, `ThrottlingException`, `TypeNotFoundException`, `UnsupportedActionException` | Returns information about the current state of the specified resource. For details, see Reading a resource's current state . You can use this action to return information about an existing resource in your account an ... |
+| `GetResourceRequestStatus` | `-` | - | `RequestToken` | - | `GetResourceRequestStatusOutput` | `RequestTokenNotFoundException` | Returns the current status of a resource operation request. For more information, see Tracking the progress of resource operation requests in the Amazon Web Services Cloud Control API User Guide . |
+| `ListResourceRequests` | `-` | `paginated` | - | - | `ListResourceRequestsOutput` | - | Returns existing resource operation requests. This includes requests of all status types. For more information, see Listing active resource operation requests in the Amazon Web Services Cloud Control API User Guide . ... |
+| `ListResources` | `-` | `paginated` | `TypeName` | - | `ListResourcesOutput` | `AlreadyExistsException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, `NetworkFailureException`, `NotStabilizedException`, `NotUpdatableException`, `PrivateTypeException`, `ResourceConflictException`, `ResourceNotFoundException`, `ServiceInternalErrorException`, `ServiceLimitExceededException`, `ThrottlingException`, `TypeNotFoundException`, `UnsupportedActionException` | Returns information about the specified resources. For more information, see Discovering resources in the Amazon Web Services Cloud Control API User Guide . You can use this action to return information about existin ... |
+| `UpdateResource` | `-` | `idempotency-token` | `TypeName`, `Identifier`, `PatchDocument` | `ClientToken` | `UpdateResourceOutput` | `AlreadyExistsException`, `ClientTokenConflictException`, `ConcurrentOperationException`, `GeneralServiceException`, `HandlerFailureException`, `HandlerInternalFailureException`, `InvalidCredentialsException`, `InvalidRequestException`, `NetworkFailureException`, `NotStabilizedException`, `NotUpdatableException`, `PrivateTypeException`, `ResourceConflictException`, `ResourceNotFoundException`, `ServiceInternalErrorException`, `ServiceLimitExceededException`, `ThrottlingException`, `TypeNotFoundException`, `UnsupportedActionException` | Updates the specified property values in the resource. You specify your resource property updates as a list of patch operations contained in a JSON patch document that adheres to the RFC 6902 - JavaScript Object Nota ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AlreadyExistsException` | `structure` | `Message` | The resource with the name requested already exists. |
-| `GeneralServiceException` | `structure` | `Message` | The resource handler has returned that the downstream service generated an error that doesn't map to any other handler error code. |
-| `HandlerFailureException` | `structure` | `Message` | The resource handler has failed without a returning a more specific error code. |
-| `HandlerInternalFailureException` | `structure` | `Message` | The resource handler has returned that an unexpected error occurred within the resource handler. |
-| `InvalidCredentialsException` | `structure` | `Message` | The resource handler has returned that the credentials provided by the user are invalid. |
-| `InvalidRequestException` | `structure` | `Message` | The resource handler has returned that invalid input from the user has generated a generic exception. |
-| `NetworkFailureException` | `structure` | `Message` | The resource handler has returned that the request couldn't be completed due to networking issues, such as a failure to receive a response from the server. |
-| `NotStabilizedException` | `structure` | `Message` | The resource handler has returned that the downstream resource failed to complete all of its ready-state checks. |
-| `NotUpdatableException` | `structure` | `Message` | One or more properties included in this resource operation are defined as create-only, and therefore can't be updated. |
-| `PrivateTypeException` | `structure` | `Message` | Cloud Control API hasn't received a valid response from the resource handler, due to a configuration error. |
-| `ResourceConflictException` | `structure` | `Message` | The resource is temporarily unavailable to be acted upon. |
-| `ResourceNotFoundException` | `structure` | `Message` | A resource with the specified identifier can't be found. |
-| `ServiceInternalErrorException` | `structure` | `Message` | The resource handler has returned that the downstream service returned an internal error, typically with a `5XX HTTP` status code. |
-| `ServiceLimitExceededException` | `structure` | `Message` | The resource handler has returned that a non-transient resource limit was reached on the service side. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `TypeNotFoundException` | `structure` | `Message` | The specified extension doesn't exist in the CloudFormation registry. |
-| `UnsupportedActionException` | `structure` | `Message` | The specified resource doesn't support this resource operation. |
-| `ClientTokenConflictException` | `structure` | `Message` | The specified client token has already been used in another resource request. |
-| `ConcurrentOperationException` | `structure` | `Message` | Another resource operation is currently being performed on this resource. |
-| `RequestTokenNotFoundException` | `structure` | `Message` | A resource operation with the specified request token can't be found. |
-| `CancelResourceRequestInput` | `structure` | `RequestToken` | - |
-| `CancelResourceRequestOutput` | `structure` | `ProgressEvent` | - |
-| `ConcurrentModificationException` | `structure` | `Message` | The resource is currently being modified by another operation. |
-| `CreateResourceInput` | `structure` | `ClientToken`, `DesiredState`, `RoleArn`, `TypeName`, `TypeVersionId` | - |
-
+| `AlreadyExistsException` | `structure` | Message | The resource with the name requested already exists. |
+| `ClientTokenConflictException` | `structure` | Message | The specified client token has already been used in another resource request. It's best practice for client tokens to be unique for each resource operation ... |
+| `ConcurrentModificationException` | `structure` | Message | The resource is currently being modified by another operation. |
+| `ConcurrentOperationException` | `structure` | Message | Another resource operation is currently being performed on this resource. |
+| `GeneralServiceException` | `structure` | Message | The resource handler has returned that the downstream service generated an error that doesn't map to any other handler error code. |
+| `HandlerFailureException` | `structure` | Message | The resource handler has failed without a returning a more specific error code. This can include timeouts. |
+| `HandlerInternalFailureException` | `structure` | Message | The resource handler has returned that an unexpected error occurred within the resource handler. |
+| `InvalidCredentialsException` | `structure` | Message | The resource handler has returned that the credentials provided by the user are invalid. |
+| `InvalidRequestException` | `structure` | Message | The resource handler has returned that invalid input from the user has generated a generic exception. |
+| `NetworkFailureException` | `structure` | Message | The resource handler has returned that the request couldn't be completed due to networking issues, such as a failure to receive a response from the server. |
+| `NotStabilizedException` | `structure` | Message | The resource handler has returned that the downstream resource failed to complete all of its ready-state checks. |
+| `NotUpdatableException` | `structure` | Message | One or more properties included in this resource operation are defined as create-only, and therefore can't be updated. |
+| `PrivateTypeException` | `structure` | Message | Cloud Control API hasn't received a valid response from the resource handler, due to a configuration error. This includes issues such as the resource handle ... |
+| `RequestTokenNotFoundException` | `structure` | Message | A resource operation with the specified request token can't be found. |
+| `ResourceConflictException` | `structure` | Message | The resource is temporarily unavailable to be acted upon. For example, if the resource is currently undergoing an operation and can't be acted upon until th ... |
+| `ResourceNotFoundException` | `structure` | Message | A resource with the specified identifier can't be found. |
+| `ServiceInternalErrorException` | `structure` | Message | The resource handler has returned that the downstream service returned an internal error, typically with a 5XX HTTP status code. |
+| `ServiceLimitExceededException` | `structure` | Message | The resource handler has returned that a non-transient resource limit was reached on the service side. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `TypeNotFoundException` | `structure` | Message | The specified extension doesn't exist in the CloudFormation registry. |
+| `UnsupportedActionException` | `structure` | Message | The specified resource doesn't support this resource operation. |
+| `CancelResourceRequestInput` | `structure` | RequestToken | - |
+| `CancelResourceRequestOutput` | `structure` | ProgressEvent | - |
+| `CreateResourceInput` | `structure` | TypeName, TypeVersionId, RoleArn, ClientToken, DesiredState | - |
+| `CreateResourceOutput` | `structure` | ProgressEvent | - |
+| `DeleteResourceInput` | `structure` | TypeName, TypeVersionId, RoleArn, ClientToken, Identifier | - |
+| `DeleteResourceOutput` | `structure` | ProgressEvent | - |
+| `GetResourceInput` | `structure` | TypeName, TypeVersionId, RoleArn, Identifier | - |
+| `GetResourceOutput` | `structure` | TypeName, ResourceDescription | - |
+| `GetResourceRequestStatusInput` | `structure` | RequestToken | - |
+| `GetResourceRequestStatusOutput` | `structure` | ProgressEvent, HooksProgressEvent | - |
+| `ListResourceRequestsInput` | `structure` | MaxResults, NextToken, ResourceRequestStatusFilter | - |
+| `ListResourceRequestsOutput` | `structure` | ResourceRequestStatusSummaries, NextToken | - |
+| `ListResourcesInput` | `structure` | TypeName, TypeVersionId, RoleArn, NextToken, MaxResults, ResourceModel | - |
+| `ListResourcesOutput` | `structure` | TypeName, ResourceDescriptions, NextToken | - |
+| `UpdateResourceInput` | `structure` | TypeName, TypeVersionId, RoleArn, ClientToken, Identifier, PatchDocument | - |
+| `UpdateResourceOutput` | `structure` | ProgressEvent | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -40,72 +40,84 @@ Amazon CloudFront KeyValueStore Service to View and Update Data in a KVS Resourc
 
 - Operations: `DeleteKey`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `IfMatch`, `Key`, `KvsARN`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeKeyValueStore`
 - Traits: `readonly` (1)
-- Common required input members in this group: `KvsARN`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetKey`
 - Traits: `readonly` (1)
-- Common required input members in this group: `Key`, `KvsARN`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListKeys`
-- Traits: `paginated` (1), `readonly` (1)
-- Common required input members in this group: `KvsARN`
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutKey`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `IfMatch`, `Key`, `KvsARN`, `Value`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateKeys`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `IfMatch`, `KvsARN`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DeleteKey` | `DELETE /key-value-stores/{KvsARN}/keys/{Key}` | `idempotent` | `IfMatch`, `Key`, `KvsARN` | - | `DeleteKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Deletes the key value pair specified by the key. |
+| `DeleteKey` | `DELETE /key-value-stores/{KvsARN}/keys/{Key}` | `idempotent` | `KvsARN`, `Key`, `IfMatch` | - | `DeleteKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Deletes the key value pair specified by the key. |
 | `DescribeKeyValueStore` | `GET /key-value-stores/{KvsARN}` | `readonly` | `KvsARN` | - | `DescribeKeyValueStoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Returns metadata information about Key Value Store. |
-| `GetKey` | `GET /key-value-stores/{KvsARN}/keys/{Key}` | `readonly` | `Key`, `KvsARN` | - | `GetKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Returns a key value pair. |
+| `GetKey` | `GET /key-value-stores/{KvsARN}/keys/{Key}` | `readonly` | `KvsARN`, `Key` | - | `GetKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException` | Returns a key value pair. |
 | `ListKeys` | `GET /key-value-stores/{KvsARN}/keys` | `readonly`, `paginated` | `KvsARN` | - | `ListKeysResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of key value pairs. |
-| `PutKey` | `PUT /key-value-stores/{KvsARN}/keys/{Key}` | `idempotent` | `IfMatch`, `Key`, `KvsARN`, `Value` | - | `PutKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new key value pair or replaces the value of an existing key. |
-| `UpdateKeys` | `POST /key-value-stores/{KvsARN}/keys` | `idempotent` | `IfMatch`, `KvsARN` | - | `UpdateKeysResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Puts or Deletes multiple key value pairs in a single, all-or-nothing operation. |
+| `PutKey` | `PUT /key-value-stores/{KvsARN}/keys/{Key}` | `idempotent` | `Key`, `Value`, `KvsARN`, `IfMatch` | - | `PutKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new key value pair or replaces the value of an existing key. |
+| `UpdateKeys` | `POST /key-value-stores/{KvsARN}/keys` | `idempotent` | `KvsARN`, `IfMatch` | - | `UpdateKeysResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Puts or Deletes multiple key value pairs in a single, all-or-nothing operation. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteKey` | `IfMatch -> If-Match` | - | - | - |
+| `ListKeys` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `PutKey` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateKeys` | `IfMatch -> If-Match` | - | - | - |
+
+**Conditional-write/read coverage:** the following operations model RFC 7232 conditional headers and therefore must enforce 412 PreconditionFailed (and may emit 409 ConditionalRequestConflict on races) even though those error codes are typically not in the modelled `errors:` list: `DeleteKey`, `PutKey`, `UpdateKeys`.
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | Access denied. |
-| `ConflictException` | `structure` | `Message` | Resource is not in expected state. |
-| `InternalServerException` | `structure` | `Message` | Internal server error. |
-| `ResourceNotFoundException` | `structure` | `Message` | Resource was not found. |
-| `ValidationException` | `structure` | `Message` | Validation failed. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | Limit exceeded. |
-| `DeleteKeyRequest` | `structure` | `IfMatch`, `Key`, `KvsARN` | - |
-| `DeleteKeyResponse` | `structure` | `ETag`, `ItemCount`, `TotalSizeInBytes` | Metadata information about a Key Value Store. |
-| `DescribeKeyValueStoreRequest` | `structure` | `KvsARN` | - |
-| `DescribeKeyValueStoreResponse` | `structure` | `Created`, `ETag`, `FailureReason`, `ItemCount`, `KvsARN`, `LastModified`, `Status`, `TotalSizeInBytes` | Metadata information about a Key Value Store. |
-| `GetKeyRequest` | `structure` | `Key`, `KvsARN` | - |
-| `GetKeyResponse` | `structure` | `ItemCount`, `Key`, `TotalSizeInBytes`, `Value` | A key value pair. |
-| `ListKeysRequest` | `structure` | `KvsARN`, `MaxResults`, `NextToken` | - |
-| `ListKeysResponse` | `structure` | `Items`, `NextToken` | - |
-| `PutKeyRequest` | `structure` | `IfMatch`, `Key`, `KvsARN`, `Value` | A key value pair. |
-| `PutKeyResponse` | `structure` | `ETag`, `ItemCount`, `TotalSizeInBytes` | Metadata information about a Key Value Store. |
-| `UpdateKeysRequest` | `structure` | `Deletes`, `IfMatch`, `KvsARN`, `Puts` | - |
-| `UpdateKeysResponse` | `structure` | `ETag`, `ItemCount`, `TotalSizeInBytes` | Metadata information about a Key Value Store. |
-
+| `AccessDeniedException` | `structure` | Message | Access denied. |
+| `ConflictException` | `structure` | Message | Resource is not in expected state. |
+| `InternalServerException` | `structure` | Message | Internal server error. |
+| `ResourceNotFoundException` | `structure` | Message | Resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | Message | Limit exceeded. |
+| `ValidationException` | `structure` | Message | Validation failed. |
+| `DeleteKeyRequest` | `structure` | KvsARN, Key, IfMatch | - |
+| `DeleteKeyResponse` | `structure` | ItemCount, TotalSizeInBytes, ETag | Metadata information about a Key Value Store. |
+| `DescribeKeyValueStoreRequest` | `structure` | KvsARN | - |
+| `DescribeKeyValueStoreResponse` | `structure` | ItemCount, TotalSizeInBytes, KvsARN, Created, ETag, LastModified, Status, FailureReason | Metadata information about a Key Value Store. |
+| `GetKeyRequest` | `structure` | KvsARN, Key | - |
+| `GetKeyResponse` | `structure` | Key, Value, ItemCount, TotalSizeInBytes | A key value pair. |
+| `ListKeysRequest` | `structure` | KvsARN, NextToken, MaxResults | - |
+| `ListKeysResponse` | `structure` | NextToken, Items | - |
+| `PutKeyRequest` | `structure` | Key, Value, KvsARN, IfMatch | A key value pair. |
+| `PutKeyResponse` | `structure` | ItemCount, TotalSizeInBytes, ETag | Metadata information about a Key Value Store. |
+| `UpdateKeysRequest` | `structure` | KvsARN, IfMatch, Puts, Deletes | - |
+| `UpdateKeysResponse` | `structure` | ItemCount, TotalSizeInBytes, ETag | Metadata information about a Key Value Store. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

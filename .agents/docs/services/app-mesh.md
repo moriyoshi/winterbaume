@@ -78,118 +78,60 @@ Parity implications:
 
 ### List
 
-- Operations: `ListGatewayRoutes`, `ListMeshes`, `ListRoutes`, `ListTagsForResource`, `ListVirtualGateways`, `ListVirtualNodes`, `ListVirtualRouters`, `ListVirtualServices`
-- Traits: `paginated` (8), `readonly` (8)
-- Common required input members in this group: `meshName`, `resourceArn`, `virtualGatewayName`, `virtualRouterName`
-
-### Create
-
-- Operations: `CreateGatewayRoute`, `CreateMesh`, `CreateRoute`, `CreateVirtualGateway`, `CreateVirtualNode`, `CreateVirtualRouter`, `CreateVirtualService`
-- Traits: `idempotency-token` (7), `idempotent` (7)
-- Common required input members in this group: `gatewayRouteName`, `meshName`, `routeName`, `spec`, `virtualGatewayName`, `virtualNodeName`, `virtualRouterName`, `virtualServiceName`
-
-### Delete
-
-- Operations: `DeleteGatewayRoute`, `DeleteMesh`, `DeleteRoute`, `DeleteVirtualGateway`, `DeleteVirtualNode`, `DeleteVirtualRouter`, `DeleteVirtualService`
-- Traits: `idempotent` (7)
-- Common required input members in this group: `gatewayRouteName`, `meshName`, `routeName`, `virtualGatewayName`, `virtualNodeName`, `virtualRouterName`, `virtualServiceName`
-
-### Describe
-
-- Operations: `DescribeGatewayRoute`, `DescribeMesh`, `DescribeRoute`, `DescribeVirtualGateway`, `DescribeVirtualNode`, `DescribeVirtualRouter`, `DescribeVirtualService`
-- Traits: `readonly` (7)
-- Common required input members in this group: `gatewayRouteName`, `meshName`, `routeName`, `virtualGatewayName`, `virtualNodeName`, `virtualRouterName`, `virtualServiceName`
-
-### Update
-
-- Operations: `UpdateGatewayRoute`, `UpdateMesh`, `UpdateRoute`, `UpdateVirtualGateway`, `UpdateVirtualNode`, `UpdateVirtualRouter`, `UpdateVirtualService`
-- Traits: `idempotency-token` (7), `idempotent` (7)
-- Common required input members in this group: `gatewayRouteName`, `meshName`, `routeName`, `spec`, `virtualGatewayName`, `virtualNodeName`, `virtualRouterName`, `virtualServiceName`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateGatewayRoute` | `PUT /v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes` | `idempotent`, `idempotency-token` | `gatewayRouteName`, `meshName`, `spec`, `virtualGatewayName` | `clientToken` | `CreateGatewayRouteOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Creates a gateway route. A gateway route is attached to a virtual gateway and routes traffic to an existing virtual service. |
-| `CreateMesh` | `PUT /v20190125/meshes` | `idempotent`, `idempotency-token` | `meshName` | `clientToken` | `CreateMeshOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Creates a service mesh. A service mesh is a logical boundary for network traffic between services that are represented by resources within the mesh. |
-| `CreateRoute` | `PUT /v20190125/meshes/{meshName}/virtualRouter/{virtualRouterName}/routes` | `idempotent`, `idempotency-token` | `meshName`, `routeName`, `spec`, `virtualRouterName` | `clientToken` | `CreateRouteOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Creates a route that is associated with a virtual router. You can route several different protocols and define a retry policy for a route. |
-| `CreateVirtualGateway` | `PUT /v20190125/meshes/{meshName}/virtualGateways` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualGatewayName` | `clientToken` | `CreateVirtualGatewayOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Creates a virtual gateway. A virtual gateway allows resources outside your mesh to communicate to resources that are inside your mesh. |
-| `CreateVirtualNode` | `PUT /v20190125/meshes/{meshName}/virtualNodes` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualNodeName` | `clientToken` | `CreateVirtualNodeOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Creates a virtual node within a service mesh. A virtual node acts as a logical pointer to a particular task group, such as an Amazon ECS service or a Kubernetes deployment. |
-| `CreateVirtualRouter` | `PUT /v20190125/meshes/{meshName}/virtualRouters` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualRouterName` | `clientToken` | `CreateVirtualRouterOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Creates a virtual router within a service mesh. Specify a `listener` for any inbound traffic that your virtual router receives. |
-| `CreateVirtualService` | `PUT /v20190125/meshes/{meshName}/virtualServices` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualServiceName` | `clientToken` | `CreateVirtualServiceOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Creates a virtual service within a service mesh. A virtual service is an abstraction of a real service that is provided by a virtual node directly or indirectly by means of a virtual router. |
-| `DeleteGatewayRoute` | `DELETE /v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes/{gatewayRouteName}` | `idempotent` | `gatewayRouteName`, `meshName`, `virtualGatewayName` | - | `DeleteGatewayRouteOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ResourceInUseException`, `ServiceUnavailableException`, `TooManyRequestsException` | Deletes an existing gateway route. |
-| `DeleteMesh` | `DELETE /v20190125/meshes/{meshName}` | `idempotent` | `meshName` | - | `DeleteMeshOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ResourceInUseException`, `ServiceUnavailableException`, `TooManyRequestsException` | Deletes an existing service mesh. You must delete all resources (virtual services, routes, virtual routers, and virtual nodes) in the service mesh before you can delete the mesh itself. |
-| `DeleteRoute` | `DELETE /v20190125/meshes/{meshName}/virtualRouter/{virtualRouterName}/routes/{routeName}` | `idempotent` | `meshName`, `routeName`, `virtualRouterName` | - | `DeleteRouteOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ResourceInUseException`, `ServiceUnavailableException`, `TooManyRequestsException` | Deletes an existing route. |
-| `DeleteVirtualGateway` | `DELETE /v20190125/meshes/{meshName}/virtualGateways/{virtualGatewayName}` | `idempotent` | `meshName`, `virtualGatewayName` | - | `DeleteVirtualGatewayOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ResourceInUseException`, `ServiceUnavailableException`, `TooManyRequestsException` | Deletes an existing virtual gateway. You cannot delete a virtual gateway if any gateway routes are associated to it. |
-| `DeleteVirtualNode` | `DELETE /v20190125/meshes/{meshName}/virtualNodes/{virtualNodeName}` | `idempotent` | `meshName`, `virtualNodeName` | - | `DeleteVirtualNodeOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ResourceInUseException`, `ServiceUnavailableException`, `TooManyRequestsException` | Deletes an existing virtual node. You must delete any virtual services that list a virtual node as a service provider before you can delete the virtual node itself. |
-| `DeleteVirtualRouter` | `DELETE /v20190125/meshes/{meshName}/virtualRouters/{virtualRouterName}` | `idempotent` | `meshName`, `virtualRouterName` | - | `DeleteVirtualRouterOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ResourceInUseException`, `ServiceUnavailableException`, `TooManyRequestsException` | Deletes an existing virtual router. You must delete any routes associated with the virtual router before you can delete the router itself. |
-| `DeleteVirtualService` | `DELETE /v20190125/meshes/{meshName}/virtualServices/{virtualServiceName}` | `idempotent` | `meshName`, `virtualServiceName` | - | `DeleteVirtualServiceOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ResourceInUseException`, `ServiceUnavailableException`, `TooManyRequestsException` | Deletes an existing virtual service. |
-| `DescribeGatewayRoute` | `GET /v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes/{gatewayRouteName}` | `readonly` | `gatewayRouteName`, `meshName`, `virtualGatewayName` | - | `DescribeGatewayRouteOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Describes an existing gateway route. |
-| `DescribeMesh` | `GET /v20190125/meshes/{meshName}` | `readonly` | `meshName` | - | `DescribeMeshOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Describes an existing service mesh. |
-| `DescribeRoute` | `GET /v20190125/meshes/{meshName}/virtualRouter/{virtualRouterName}/routes/{routeName}` | `readonly` | `meshName`, `routeName`, `virtualRouterName` | - | `DescribeRouteOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Describes an existing route. |
-| `DescribeVirtualGateway` | `GET /v20190125/meshes/{meshName}/virtualGateways/{virtualGatewayName}` | `readonly` | `meshName`, `virtualGatewayName` | - | `DescribeVirtualGatewayOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Describes an existing virtual gateway. |
-| `DescribeVirtualNode` | `GET /v20190125/meshes/{meshName}/virtualNodes/{virtualNodeName}` | `readonly` | `meshName`, `virtualNodeName` | - | `DescribeVirtualNodeOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Describes an existing virtual node. |
-| `DescribeVirtualRouter` | `GET /v20190125/meshes/{meshName}/virtualRouters/{virtualRouterName}` | `readonly` | `meshName`, `virtualRouterName` | - | `DescribeVirtualRouterOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Describes an existing virtual router. |
-| `DescribeVirtualService` | `GET /v20190125/meshes/{meshName}/virtualServices/{virtualServiceName}` | `readonly` | `meshName`, `virtualServiceName` | - | `DescribeVirtualServiceOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Describes an existing virtual service. |
-| `ListGatewayRoutes` | `GET /v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes` | `readonly`, `paginated` | `meshName`, `virtualGatewayName` | - | `ListGatewayRoutesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Returns a list of existing gateway routes that are associated to a virtual gateway. |
-| `ListMeshes` | `GET /v20190125/meshes` | `readonly`, `paginated` | - | - | `ListMeshesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Returns a list of existing service meshes. |
-| `ListRoutes` | `GET /v20190125/meshes/{meshName}/virtualRouter/{virtualRouterName}/routes` | `readonly`, `paginated` | `meshName`, `virtualRouterName` | - | `ListRoutesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Returns a list of existing routes in a service mesh. |
 | `ListTagsForResource` | `GET /v20190125/tags` | `readonly`, `paginated` | `resourceArn` | - | `ListTagsForResourceOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | List the tags for an App Mesh resource. |
-| `ListVirtualGateways` | `GET /v20190125/meshes/{meshName}/virtualGateways` | `readonly`, `paginated` | `meshName` | - | `ListVirtualGatewaysOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Returns a list of existing virtual gateways in a service mesh. |
-| `ListVirtualNodes` | `GET /v20190125/meshes/{meshName}/virtualNodes` | `readonly`, `paginated` | `meshName` | - | `ListVirtualNodesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Returns a list of existing virtual nodes. |
-| `ListVirtualRouters` | `GET /v20190125/meshes/{meshName}/virtualRouters` | `readonly`, `paginated` | `meshName` | - | `ListVirtualRoutersOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Returns a list of existing virtual routers in a service mesh. |
-| `ListVirtualServices` | `GET /v20190125/meshes/{meshName}/virtualServices` | `readonly`, `paginated` | `meshName` | - | `ListVirtualServicesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Returns a list of existing virtual services in a service mesh. |
-| `TagResource` | `PUT /v20190125/tag` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `TooManyTagsException` | Associates the specified tags to a resource with the specified `resourceArn`. If existing tags on a resource aren't specified in the request parameters, they aren't changed. |
+| `TagResource` | `PUT /v20190125/tag` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `TooManyTagsException` | Associates the specified tags to a resource with the specified resourceArn . If existing tags on a resource aren't specified in the request parameters, they aren't changed. When a resource is deleted, the tags associ ... |
 | `UntagResource` | `PUT /v20190125/untag` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Deletes specified tags from a resource. |
-| `UpdateGatewayRoute` | `PUT /v20190125/meshes/{meshName}/virtualGateway/{virtualGatewayName}/gatewayRoutes/{gatewayRouteName}` | `idempotent`, `idempotency-token` | `gatewayRouteName`, `meshName`, `spec`, `virtualGatewayName` | `clientToken` | `UpdateGatewayRouteOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing gateway route that is associated to a specified virtual gateway in a service mesh. |
-| `UpdateMesh` | `PUT /v20190125/meshes/{meshName}` | `idempotent`, `idempotency-token` | `meshName` | `clientToken` | `UpdateMeshOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing service mesh. |
-| `UpdateRoute` | `PUT /v20190125/meshes/{meshName}/virtualRouter/{virtualRouterName}/routes/{routeName}` | `idempotent`, `idempotency-token` | `meshName`, `routeName`, `spec`, `virtualRouterName` | `clientToken` | `UpdateRouteOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing route for a specified service mesh and virtual router. |
-| `UpdateVirtualGateway` | `PUT /v20190125/meshes/{meshName}/virtualGateways/{virtualGatewayName}` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualGatewayName` | `clientToken` | `UpdateVirtualGatewayOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing virtual gateway in a specified service mesh. |
-| `UpdateVirtualNode` | `PUT /v20190125/meshes/{meshName}/virtualNodes/{virtualNodeName}` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualNodeName` | `clientToken` | `UpdateVirtualNodeOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing virtual node in a specified service mesh. |
-| `UpdateVirtualRouter` | `PUT /v20190125/meshes/{meshName}/virtualRouters/{virtualRouterName}` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualRouterName` | `clientToken` | `UpdateVirtualRouterOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing virtual router in a specified service mesh. |
-| `UpdateVirtualService` | `PUT /v20190125/meshes/{meshName}/virtualServices/{virtualServiceName}` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualServiceName` | `clientToken` | `UpdateVirtualServiceOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing virtual service in a specified service mesh. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListTagsForResource` | - | `resourceArn -> resourceArn`, `nextToken -> nextToken`, `limit -> limit` | - | - |
+| `TagResource` | - | `resourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `resourceArn -> resourceArn` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `message` | The request syntax was malformed. |
-| `ForbiddenException` | `structure` | `message` | You don't have permissions to perform this action. |
-| `InternalServerErrorException` | `structure` | `message` | The request processing has failed because of an unknown error, exception, or failure. |
-| `NotFoundException` | `structure` | `message` | The specified resource doesn't exist. |
-| `ServiceUnavailableException` | `structure` | `message` | The request has failed due to a temporary failure of the service. |
-| `TooManyRequestsException` | `structure` | `message` | The maximum request rate permitted by the App Mesh APIs has been exceeded for your account. |
-| `ConflictException` | `structure` | `message` | The request contains a client token that was used for a previous update resource call with different specifications. |
-| `LimitExceededException` | `structure` | `message` | You have exceeded a service limit for your account. |
-| `ResourceInUseException` | `structure` | `message` | You can't delete the specified resource because it's in use or required by another resource. |
-| `CreateGatewayRouteInput` | `structure` | `clientToken`, `gatewayRouteName`, `meshName`, `meshOwner`, `spec`, `tags`, `virtualGatewayName` | - |
-| `CreateGatewayRouteOutput` | `structure` | `gatewayRoute` | - |
-| `CreateMeshInput` | `structure` | `clientToken`, `meshName`, `spec`, `tags` | - |
-| `CreateMeshOutput` | `structure` | `mesh` | - |
-| `CreateRouteInput` | `structure` | `clientToken`, `meshName`, `meshOwner`, `routeName`, `spec`, `tags`, `virtualRouterName` | - |
-| `CreateRouteOutput` | `structure` | `route` | - |
-| `CreateVirtualGatewayInput` | `structure` | `clientToken`, `meshName`, `meshOwner`, `spec`, `tags`, `virtualGatewayName` | - |
-| `CreateVirtualGatewayOutput` | `structure` | `virtualGateway` | - |
-| `CreateVirtualNodeInput` | `structure` | `clientToken`, `meshName`, `meshOwner`, `spec`, `tags`, `virtualNodeName` | - |
-| `CreateVirtualNodeOutput` | `structure` | `virtualNode` | - |
-| `CreateVirtualRouterInput` | `structure` | `clientToken`, `meshName`, `meshOwner`, `spec`, `tags`, `virtualRouterName` | - |
-| `CreateVirtualRouterOutput` | `structure` | `virtualRouter` | - |
-| `CreateVirtualServiceInput` | `structure` | `clientToken`, `meshName`, `meshOwner`, `spec`, `tags`, `virtualServiceName` | - |
-| `CreateVirtualServiceOutput` | `structure` | `virtualService` | - |
-| `DeleteGatewayRouteInput` | `structure` | `gatewayRouteName`, `meshName`, `meshOwner`, `virtualGatewayName` | - |
-
+| `BadRequestException` | `structure` | message | The request syntax was malformed. Check your request syntax and try again. |
+| `ConflictException` | `structure` | message | The request contains a client token that was used for a previous update resource call with different specifications. Try the request again with a new client ... |
+| `ForbiddenException` | `structure` | message | You don't have permissions to perform this action. |
+| `InternalServerErrorException` | `structure` | message | The request processing has failed because of an unknown error, exception, or failure. |
+| `LimitExceededException` | `structure` | message | You have exceeded a service limit for your account. For more information, see Service Limits in the App Mesh User Guide . |
+| `NotFoundException` | `structure` | message | The specified resource doesn't exist. Check your request syntax and try again. |
+| `ResourceInUseException` | `structure` | message | You can't delete the specified resource because it's in use or required by another resource. |
+| `ServiceUnavailableException` | `structure` | message | The request has failed due to a temporary failure of the service. |
+| `TooManyRequestsException` | `structure` | message | The maximum request rate permitted by the App Mesh APIs has been exceeded for your account. For best results, use an increasing or variable sleep interval b ... |
+| `TooManyTagsException` | `structure` | message | The request exceeds the maximum allowed number of tags allowed per resource. The current limit is 50 user tags per resource. You must reduce the number of t ... |
+| `ListTagsForResourceInput` | `structure` | resourceArn, nextToken, limit | - |
+| `ListTagsForResourceOutput` | `structure` | tags, nextToken | - |
+| `TagResourceInput` | `structure` | resourceArn, tags | - |
+| `TagResourceOutput` | `structure` | **empty (no members)** | - |
+| `UntagResourceInput` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceOutput` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

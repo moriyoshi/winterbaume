@@ -55,39 +55,50 @@ Parity implications:
 ### Search
 
 - Operations: `Search`
-- Common required input members in this group: `query`
+- Common required input members in this group: -
 
 ### Suggest
 
 - Operations: `Suggest`
-- Common required input members in this group: `query`, `suggester`
+- Common required input members in this group: -
 
 ### Upload
 
 - Operations: `UploadDocuments`
-- Common required input members in this group: `contentType`, `documents`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `Search` | `GET /2013-01-01/search?format=sdk&pretty=true` | - | `query` | - | `SearchResponse` | `SearchException` | Retrieves a list of documents that match the specified search criteria. How you specify the search criteria depends on which query parser you use. |
-| `Suggest` | `GET /2013-01-01/suggest?format=sdk&pretty=true` | - | `query`, `suggester` | - | `SuggestResponse` | `SearchException` | Retrieves autocomplete suggestions for a partial query string. You can use suggestions enable you to display likely matches before users finish typing. |
-| `UploadDocuments` | `POST /2013-01-01/documents/batch?format=sdk` | - | `contentType`, `documents` | - | `UploadDocumentsResponse` | `DocumentServiceException` | Posts a batch of documents to a search domain for indexing. A document batch is a collection of add and delete operations that represent the documents you want to add, update, or delete from your domain. |
+| `Search` | `GET /2013-01-01/search?format=sdk&pretty=true` | - | `query` | - | `SearchResponse` | `SearchException` | Retrieves a list of documents that match the specified search criteria. How you specify the search criteria depends on which query parser you use. Amazon CloudSearch supports four query parsers: simple : search all t ... |
+| `Suggest` | `GET /2013-01-01/suggest?format=sdk&pretty=true` | - | `query`, `suggester` | - | `SuggestResponse` | `SearchException` | Retrieves autocomplete suggestions for a partial query string. You can use suggestions enable you to display likely matches before users finish typing. In Amazon CloudSearch, suggestions are based on the contents of ... |
+| `UploadDocuments` | `POST /2013-01-01/documents/batch?format=sdk` | - | `documents`, `contentType` | - | `UploadDocumentsResponse` | `DocumentServiceException` | Posts a batch of documents to a search domain for indexing. A document batch is a collection of add and delete operations that represent the documents you want to add, update, or delete from your domain. Batches can ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `Search` | - | `cursor -> cursor`, `expr -> expr`, `facet -> facet`, `filterQuery -> fq`, `highlight -> highlight`, `partial -> partial`, `query -> q`, `queryOptions -> q.options`, `queryParser -> q.parser`, `return -> return`, `size -> size`, `sort -> sort`, `start -> start`, `stats -> stats` | - | - |
+| `Suggest` | - | `query -> q`, `suggester -> suggester`, `size -> size` | - | - |
+| `UploadDocuments` | `contentType -> Content-Type` | - | - | `documents` |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `SearchException` | `structure` | `message` | Information about any problems encountered while processing a search request. |
-| `SearchRequest` | `structure` | `cursor`, `expr`, `facet`, `filterQuery`, `highlight`, `partial`, `query`, `queryOptions`, `queryParser`, `return`, `size`, `sort`, ... (+2) | Container for the parameters to the `Search` request. |
-| `SearchResponse` | `structure` | `facets`, `hits`, `stats`, `status` | The result of a `Search` request. |
-| `SuggestRequest` | `structure` | `query`, `size`, `suggester` | Container for the parameters to the `Suggest` request. |
-| `SuggestResponse` | `structure` | `status`, `suggest` | Contains the response to a `Suggest` request. |
-| `UploadDocumentsRequest` | `structure` | `contentType`, `documents` | Container for the parameters to the `UploadDocuments` request. |
-| `UploadDocumentsResponse` | `structure` | `adds`, `deletes`, `status`, `warnings` | Contains the response to an `UploadDocuments` request. |
-| `DocumentServiceException` | `structure` | `message`, `status` | Information about any problems encountered while processing an upload request. |
-
+| `DocumentServiceException` | `structure` | status, message | Information about any problems encountered while processing an upload request. |
+| `SearchException` | `structure` | message | Information about any problems encountered while processing a search request. |
+| `SearchRequest` | `structure` | cursor, expr, facet, filterQuery, highlight, partial, query, queryOptions, queryParser, return, size, sort, ... (+2) | Container for the parameters to the Search request. |
+| `SearchResponse` | `structure` | status, hits, facets, stats | The result of a Search request. Contains the documents that match the specified search criteria and any requested fields, highlights, and facet information. |
+| `SuggestRequest` | `structure` | query, suggester, size | Container for the parameters to the Suggest request. |
+| `SuggestResponse` | `structure` | status, suggest | Contains the response to a Suggest request. |
+| `UploadDocumentsRequest` | `structure` | documents, contentType | Container for the parameters to the UploadDocuments request. |
+| `UploadDocumentsResponse` | `structure` | status, adds, deletes, warnings | Contains the response to an UploadDocuments request. |
+| `ContentType` | `enum` | application_json, application_xml | - |
+| `QueryParser` | `enum` | simple, structured, lucene, dismax | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

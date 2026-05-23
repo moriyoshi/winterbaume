@@ -49,98 +49,53 @@ SimSpace Weaver (SimSpace Weaver) is a service that you can use to build and run
 
 ### List
 
-- Operations: `ListApps`, `ListSimulations`, `ListTagsForResource`
-- Traits: `paginated` (2), `readonly` (3)
-- Common required input members in this group: `ResourceArn`, `Simulation`
-
-### Start
-
-- Operations: `StartApp`, `StartClock`, `StartSimulation`
-- Traits: `idempotency-token` (2)
-- Common required input members in this group: `Domain`, `Name`, `RoleArn`, `Simulation`
-
-### Stop
-
-- Operations: `StopApp`, `StopClock`, `StopSimulation`
-- Common required input members in this group: `App`, `Domain`, `Simulation`
-
-### Delete
-
-- Operations: `DeleteApp`, `DeleteSimulation`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `App`, `Domain`, `Simulation`
-
-### Describe
-
-- Operations: `DescribeApp`, `DescribeSimulation`
-- Traits: `readonly` (2)
-- Common required input members in this group: `App`, `Domain`, `Simulation`
-
-### Create
-
-- Operations: `CreateSnapshot`
-- Common required input members in this group: `Destination`, `Simulation`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateSnapshot` | `POST /createsnapshot` | - | `Destination`, `Simulation` | - | `CreateSnapshotOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a snapshot of the specified simulation. A snapshot is a file that contains simulation state data at a specific time. |
-| `DeleteApp` | `DELETE /deleteapp` | `idempotent` | `App`, `Domain`, `Simulation` | - | `DeleteAppOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the instance of the given custom app. |
-| `DeleteSimulation` | `DELETE /deletesimulation` | `idempotent` | `Simulation` | - | `DeleteSimulationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes all SimSpace Weaver resources assigned to the given simulation. Your simulation uses resources in other Amazon Web Services. |
-| `DescribeApp` | `GET /describeapp` | `readonly` | `App`, `Domain`, `Simulation` | - | `DescribeAppOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the state of the given custom app. |
-| `DescribeSimulation` | `GET /describesimulation` | `readonly` | `Simulation` | - | `DescribeSimulationOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the current state of the given simulation. |
-| `ListApps` | `GET /listapps` | `readonly`, `paginated` | `Simulation` | - | `ListAppsOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists all custom apps or service apps for the given simulation and domain. |
-| `ListSimulations` | `GET /listsimulations` | `readonly`, `paginated` | - | - | `ListSimulationsOutput` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Lists the SimSpace Weaver simulations in the Amazon Web Services account used to make the API call. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceOutput` | `ResourceNotFoundException`, `ValidationException` | Lists all tags on a SimSpace Weaver resource. |
-| `StartApp` | `POST /startapp` | `idempotency-token` | `Domain`, `Name`, `Simulation` | `ClientToken` | `StartAppOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Starts a custom app with the configuration specified in the simulation schema. |
-| `StartClock` | `POST /startclock` | - | `Simulation` | - | `StartClockOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Starts the simulation clock. |
-| `StartSimulation` | `POST /startsimulation` | `idempotency-token` | `Name`, `RoleArn` | `ClientToken` | `StartSimulationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Starts a simulation with the given name. You must choose to start your simulation from a schema or from a snapshot. |
-| `StopApp` | `POST /stopapp` | - | `App`, `Domain`, `Simulation` | - | `StopAppOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops the given custom app and shuts down all of its allocated compute resources. |
-| `StopClock` | `POST /stopclock` | - | `Simulation` | - | `StopClockOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops the simulation clock. |
-| `StopSimulation` | `POST /stopsimulation` | - | `Simulation` | - | `StopSimulationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops the given simulation. You can't restart a simulation after you stop it. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Adds tags to a SimSpace Weaver resource. For more information about tags, see Tagging Amazon Web Services resources in the Amazon Web Services General Reference . |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceOutput` | `ResourceNotFoundException`, `ValidationException` | Removes tags from a SimSpace Weaver resource. For more information about tags, see Tagging Amazon Web Services resources in the Amazon Web Services General Reference . |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `Message` | - |
-| `AccessDeniedException` | `structure` | `Message` | - |
-| `InternalServerException` | `structure` | `Message` | - |
-| `ResourceNotFoundException` | `structure` | `Message` | - |
-| `ConflictException` | `structure` | `Message` | - |
-| `ServiceQuotaExceededException` | `structure` | `Message` | - |
-| `CreateSnapshotInput` | `structure` | `Destination`, `Simulation` | - |
-| `CreateSnapshotOutput` | `structure` | - | - |
-| `DeleteAppInput` | `structure` | `App`, `Domain`, `Simulation` | - |
-| `DeleteAppOutput` | `structure` | - | - |
-| `DeleteSimulationInput` | `structure` | `Simulation` | - |
-| `DeleteSimulationOutput` | `structure` | - | - |
-| `DescribeAppInput` | `structure` | `App`, `Domain`, `Simulation` | - |
-| `DescribeAppOutput` | `structure` | `Description`, `Domain`, `EndpointInfo`, `LaunchOverrides`, `Name`, `Simulation`, `Status`, `TargetStatus` | - |
-| `DescribeSimulationInput` | `structure` | `Simulation` | - |
-| `DescribeSimulationOutput` | `structure` | `Arn`, `CreationTime`, `Description`, `ExecutionId`, `LiveSimulationState`, `LoggingConfiguration`, `MaximumDuration`, `Name`, `RoleArn`, `SchemaError`, `SchemaS3Location`, `SnapshotS3Location`, ... (+3) | - |
-| `ListAppsInput` | `structure` | `Domain`, `MaxResults`, `NextToken`, `Simulation` | - |
-| `ListAppsOutput` | `structure` | `Apps`, `NextToken` | - |
-| `ListSimulationsInput` | `structure` | `MaxResults`, `NextToken` | - |
-| `ListSimulationsOutput` | `structure` | `NextToken`, `Simulations` | - |
-| `ListTagsForResourceInput` | `structure` | `ResourceArn` | - |
-| `ListTagsForResourceOutput` | `structure` | `Tags` | - |
-| `StartAppInput` | `structure` | `ClientToken`, `Description`, `Domain`, `LaunchOverrides`, `Name`, `Simulation` | - |
-| `StartAppOutput` | `structure` | `Domain`, `Name`, `Simulation` | - |
-
+| `AccessDeniedException` | `structure` | Message | - |
+| `ConflictException` | `structure` | Message | - |
+| `InternalServerException` | `structure` | Message | - |
+| `ResourceNotFoundException` | `structure` | Message | - |
+| `ServiceQuotaExceededException` | `structure` | Message | - |
+| `TooManyTagsException` | `structure` | Message | - |
+| `ValidationException` | `structure` | Message | - |
+| `ListTagsForResourceInput` | `structure` | ResourceArn | - |
+| `ListTagsForResourceOutput` | `structure` | Tags | - |
+| `TagResourceInput` | `structure` | ResourceArn, Tags | - |
+| `TagResourceOutput` | `structure` | **empty (no members)** | - |
+| `UntagResourceInput` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceOutput` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

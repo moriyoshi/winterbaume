@@ -41,82 +41,91 @@ Amazon Web Services Support App in Slack You can use the Amazon Web Services Sup
 ### Delete
 
 - Operations: `DeleteAccountAlias`, `DeleteSlackChannelConfiguration`, `DeleteSlackWorkspaceConfiguration`
-- Common required input members in this group: `channelId`, `teamId`
+- Common required input members in this group: `teamId`
 
 ### List
 
 - Operations: `ListSlackChannelConfigurations`, `ListSlackWorkspaceConfigurations`
-- Traits: `paginated` (2), `readonly` (2)
+- Traits: `readonly` (2), `paginated` (2)
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateSlackChannelConfiguration`
-- Common required input members in this group: `channelId`, `channelRoleArn`, `notifyOnCaseSeverity`, `teamId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetAccountAlias`
 - Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutAccountAlias`
-- Common required input members in this group: `accountAlias`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterSlackWorkspaceForOrganization`
-- Common required input members in this group: `teamId`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateSlackChannelConfiguration`
-- Common required input members in this group: `channelId`, `teamId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateSlackChannelConfiguration` | `POST /control/create-slack-channel-configuration` | - | `channelId`, `channelRoleArn`, `notifyOnCaseSeverity`, `teamId` | - | `CreateSlackChannelConfigurationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a Slack channel configuration for your Amazon Web Services account. You can add up to 5 Slack workspaces for your account. |
-| `DeleteAccountAlias` | `POST /control/delete-account-alias` | - | - | - | `DeleteAccountAliasResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException` | Deletes an alias for an Amazon Web Services account ID. The alias appears in the Amazon Web Services Support App page of the Amazon Web Services Support Center. |
-| `DeleteSlackChannelConfiguration` | `POST /control/delete-slack-channel-configuration` | - | `channelId`, `teamId` | - | `DeleteSlackChannelConfigurationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a Slack channel configuration from your Amazon Web Services account. This operation doesn't delete your Slack channel. |
+| `CreateSlackChannelConfiguration` | `POST /control/create-slack-channel-configuration` | - | `teamId`, `channelId`, `notifyOnCaseSeverity`, `channelRoleArn` | - | `CreateSlackChannelConfigurationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a Slack channel configuration for your Amazon Web Services account. You can add up to 5 Slack workspaces for your account. You can add up to 20 Slack channels for your account. A Slack channel can have up to ... |
+| `DeleteAccountAlias` | `POST /control/delete-account-alias` | - | - | - | `DeleteAccountAliasResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException` | Deletes an alias for an Amazon Web Services account ID. The alias appears in the Amazon Web Services Support App page of the Amazon Web Services Support Center. The alias also appears in Slack messages from the Amazo ... |
+| `DeleteSlackChannelConfiguration` | `POST /control/delete-slack-channel-configuration` | - | `teamId`, `channelId` | - | `DeleteSlackChannelConfigurationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a Slack channel configuration from your Amazon Web Services account. This operation doesn't delete your Slack channel. |
 | `DeleteSlackWorkspaceConfiguration` | `POST /control/delete-slack-workspace-configuration` | - | `teamId` | - | `DeleteSlackWorkspaceConfigurationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a Slack workspace configuration from your Amazon Web Services account. This operation doesn't delete your Slack workspace. |
-| `GetAccountAlias` | `POST /control/get-account-alias` | `readonly` | - | - | `GetAccountAliasResult` | `InternalServerException` | Retrieves the alias from an Amazon Web Services account ID. The alias appears in the Amazon Web Services Support App page of the Amazon Web Services Support Center. |
+| `GetAccountAlias` | `POST /control/get-account-alias` | `readonly` | - | - | `GetAccountAliasResult` | `InternalServerException` | Retrieves the alias from an Amazon Web Services account ID. The alias appears in the Amazon Web Services Support App page of the Amazon Web Services Support Center. The alias also appears in Slack messages from the A ... |
 | `ListSlackChannelConfigurations` | `POST /control/list-slack-channel-configurations` | `readonly`, `paginated` | - | - | `ListSlackChannelConfigurationsResult` | `AccessDeniedException`, `InternalServerException` | Lists the Slack channel configurations for an Amazon Web Services account. |
 | `ListSlackWorkspaceConfigurations` | `POST /control/list-slack-workspace-configurations` | `readonly`, `paginated` | - | - | `ListSlackWorkspaceConfigurationsResult` | `AccessDeniedException`, `InternalServerException` | Lists the Slack workspace configurations for an Amazon Web Services account. |
-| `PutAccountAlias` | `POST /control/put-account-alias` | - | `accountAlias` | - | `PutAccountAliasResult` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Creates or updates an individual alias for each Amazon Web Services account ID. The alias appears in the Amazon Web Services Support App page of the Amazon Web Services Support Center. |
-| `RegisterSlackWorkspaceForOrganization` | `POST /control/register-slack-workspace-for-organization` | - | `teamId` | - | `RegisterSlackWorkspaceForOrganizationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Registers a Slack workspace for your Amazon Web Services account. To call this API, your account must be part of an organization in Organizations. |
-| `UpdateSlackChannelConfiguration` | `POST /control/update-slack-channel-configuration` | - | `channelId`, `teamId` | - | `UpdateSlackChannelConfigurationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the configuration for a Slack channel, such as case update notifications. |
+| `PutAccountAlias` | `POST /control/put-account-alias` | - | `accountAlias` | - | `PutAccountAliasResult` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Creates or updates an individual alias for each Amazon Web Services account ID. The alias appears in the Amazon Web Services Support App page of the Amazon Web Services Support Center. The alias also appears in Slack ... |
+| `RegisterSlackWorkspaceForOrganization` | `POST /control/register-slack-workspace-for-organization` | - | `teamId` | - | `RegisterSlackWorkspaceForOrganizationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Registers a Slack workspace for your Amazon Web Services account. To call this API, your account must be part of an organization in Organizations. If you're the management account and you want to register Slack works ... |
+| `UpdateSlackChannelConfiguration` | `POST /control/update-slack-channel-configuration` | - | `teamId`, `channelId` | - | `UpdateSlackChannelConfigurationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the configuration for a Slack channel, such as case update notifications. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | We can’t process your request right now because of a server issue. |
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient permission to perform this action. |
-| `ValidationException` | `structure` | `message` | Your request input doesn't meet the constraints that the Amazon Web Services Support App specifies. |
-| `ConflictException` | `structure` | `message` | Your request has a conflict. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource is missing or doesn't exist, such as an account alias, Slack channel configuration, or Slack workspace configuration. |
-| `CreateSlackChannelConfigurationRequest` | `structure` | `channelId`, `channelName`, `channelRoleArn`, `notifyOnAddCorrespondenceToCase`, `notifyOnCaseSeverity`, `notifyOnCreateOrReopenCase`, `notifyOnResolveCase`, `teamId` | - |
-| `CreateSlackChannelConfigurationResult` | `structure` | - | - |
-| `ServiceQuotaExceededException` | `structure` | `message` | Your Service Quotas request exceeds the quota for the service. |
-| `DeleteAccountAliasRequest` | `structure` | - | - |
-| `DeleteAccountAliasResult` | `structure` | - | - |
-| `DeleteSlackChannelConfigurationRequest` | `structure` | `channelId`, `teamId` | - |
-| `DeleteSlackChannelConfigurationResult` | `structure` | - | - |
-| `DeleteSlackWorkspaceConfigurationRequest` | `structure` | `teamId` | - |
-| `DeleteSlackWorkspaceConfigurationResult` | `structure` | - | - |
-| `GetAccountAliasRequest` | `structure` | - | - |
-| `GetAccountAliasResult` | `structure` | `accountAlias` | - |
-| `ListSlackChannelConfigurationsRequest` | `structure` | `nextToken` | - |
-| `ListSlackChannelConfigurationsResult` | `structure` | `nextToken`, `slackChannelConfigurations` | - |
-| `ListSlackWorkspaceConfigurationsRequest` | `structure` | `nextToken` | - |
-| `ListSlackWorkspaceConfigurationsResult` | `structure` | `nextToken`, `slackWorkspaceConfigurations` | - |
-| `PutAccountAliasRequest` | `structure` | `accountAlias` | - |
-| `PutAccountAliasResult` | `structure` | - | - |
-| `RegisterSlackWorkspaceForOrganizationRequest` | `structure` | `teamId` | - |
-| `RegisterSlackWorkspaceForOrganizationResult` | `structure` | `accountType`, `teamId`, `teamName` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient permission to perform this action. |
+| `ConflictException` | `structure` | message | Your request has a conflict. For example, you might receive this error if you try the following: Add, update, or delete a Slack channel configuration before ... |
+| `InternalServerException` | `structure` | message | We can’t process your request right now because of a server issue. Try again later. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource is missing or doesn't exist, such as an account alias, Slack channel configuration, or Slack workspace configuration. |
+| `ServiceQuotaExceededException` | `structure` | message | Your Service Quotas request exceeds the quota for the service. For example, your Service Quotas request to Amazon Web Services Support App might exceed the ... |
+| `ValidationException` | `structure` | message | Your request input doesn't meet the constraints that the Amazon Web Services Support App specifies. |
+| `CreateSlackChannelConfigurationRequest` | `structure` | teamId, channelId, channelName, notifyOnCreateOrReopenCase, notifyOnAddCorrespondenceToCase, notifyOnResolveCase, notifyOnCaseSeverity, channelRoleArn | - |
+| `CreateSlackChannelConfigurationResult` | `structure` | **empty (no members)** | - |
+| `DeleteAccountAliasRequest` | `structure` | **empty (no members)** | - |
+| `DeleteAccountAliasResult` | `structure` | **empty (no members)** | - |
+| `DeleteSlackChannelConfigurationRequest` | `structure` | teamId, channelId | - |
+| `DeleteSlackChannelConfigurationResult` | `structure` | **empty (no members)** | - |
+| `DeleteSlackWorkspaceConfigurationRequest` | `structure` | teamId | - |
+| `DeleteSlackWorkspaceConfigurationResult` | `structure` | **empty (no members)** | - |
+| `GetAccountAliasRequest` | `structure` | **empty (no members)** | - |
+| `GetAccountAliasResult` | `structure` | accountAlias | - |
+| `ListSlackChannelConfigurationsRequest` | `structure` | nextToken | - |
+| `ListSlackChannelConfigurationsResult` | `structure` | nextToken, slackChannelConfigurations | - |
+| `ListSlackWorkspaceConfigurationsRequest` | `structure` | nextToken | - |
+| `ListSlackWorkspaceConfigurationsResult` | `structure` | nextToken, slackWorkspaceConfigurations | - |
+| `PutAccountAliasRequest` | `structure` | accountAlias | - |
+| `PutAccountAliasResult` | `structure` | **empty (no members)** | - |
+| `RegisterSlackWorkspaceForOrganizationRequest` | `structure` | teamId | - |
+| `RegisterSlackWorkspaceForOrganizationResult` | `structure` | teamId, teamName, accountType | - |
+| `UpdateSlackChannelConfigurationRequest` | `structure` | teamId, channelId, channelName, notifyOnCreateOrReopenCase, notifyOnAddCorrespondenceToCase, notifyOnResolveCase, notifyOnCaseSeverity, channelRoleArn | - |
+| `UpdateSlackChannelConfigurationResult` | `structure` | teamId, channelId, channelName, notifyOnCreateOrReopenCase, notifyOnAddCorrespondenceToCase, notifyOnResolveCase, notifyOnCaseSeverity, channelRoleArn | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -65,86 +65,86 @@ Parity implications:
 
 - Operations: `ListApps`, `ListArtifacts`, `ListBackendEnvironments`, `ListBranches`, `ListDomainAssociations`, `ListJobs`, `ListTagsForResource`, `ListWebhooks`
 - Traits: `paginated` (4)
-- Common required input members in this group: `appId`, `branchName`, `jobId`, `resourceArn`
+- Common required input members in this group: `appId`, `branchName`
 
 ### Get
 
 - Operations: `GetApp`, `GetArtifactUrl`, `GetBackendEnvironment`, `GetBranch`, `GetDomainAssociation`, `GetJob`, `GetWebhook`
-- Common required input members in this group: `appId`, `artifactId`, `branchName`, `domainName`, `environmentName`, `jobId`, `webhookId`
+- Common required input members in this group: `appId`, `branchName`
 
 ### Create
 
 - Operations: `CreateApp`, `CreateBackendEnvironment`, `CreateBranch`, `CreateDeployment`, `CreateDomainAssociation`, `CreateWebhook`
-- Common required input members in this group: `appId`, `branchName`, `domainName`, `environmentName`, `name`, `subDomainSettings`
+- Common required input members in this group: `appId`, `branchName`
 
 ### Delete
 
 - Operations: `DeleteApp`, `DeleteBackendEnvironment`, `DeleteBranch`, `DeleteDomainAssociation`, `DeleteJob`, `DeleteWebhook`
-- Common required input members in this group: `appId`, `branchName`, `domainName`, `environmentName`, `jobId`, `webhookId`
+- Common required input members in this group: `appId`, `branchName`
 
 ### Update
 
 - Operations: `UpdateApp`, `UpdateBranch`, `UpdateDomainAssociation`, `UpdateWebhook`
-- Common required input members in this group: `appId`, `branchName`, `domainName`, `webhookId`
+- Common required input members in this group: `appId`
 
 ### Start
 
 - Operations: `StartDeployment`, `StartJob`
-- Common required input members in this group: `appId`, `branchName`, `jobType`
+- Common required input members in this group: `appId`, `branchName`
 
 ### Generate
 
 - Operations: `GenerateAccessLogs`
-- Common required input members in this group: `appId`, `domainName`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopJob`
-- Common required input members in this group: `appId`, `branchName`, `jobId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `CreateApp` | `POST /apps` | - | `name` | - | `CreateAppResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `LimitExceededException`, `UnauthorizedException` | Creates a new Amplify app. |
-| `CreateBackendEnvironment` | `POST /apps/{appId}/backendenvironments` | - | `appId`, `environmentName` | - | `CreateBackendEnvironmentResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Creates a new backend environment for an Amplify app. This API is available only to Amplify Gen 1 applications where the backend is created using Amplify Studio or the Amplify command line interface (CLI). |
+| `CreateBackendEnvironment` | `POST /apps/{appId}/backendenvironments` | - | `appId`, `environmentName` | - | `CreateBackendEnvironmentResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Creates a new backend environment for an Amplify app. This API is available only to Amplify Gen 1 applications where the backend is created using Amplify Studio or the Amplify command line interface (CLI). This API i ... |
 | `CreateBranch` | `POST /apps/{appId}/branches` | - | `appId`, `branchName` | - | `CreateBranchResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Creates a new branch for an Amplify app. |
-| `CreateDeployment` | `POST /apps/{appId}/branches/{branchName}/deployments` | - | `appId`, `branchName` | - | `CreateDeploymentResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `UnauthorizedException` | Creates a deployment for a manually deployed Amplify app. Manually deployed apps are not connected to a Git repository. |
+| `CreateDeployment` | `POST /apps/{appId}/branches/{branchName}/deployments` | - | `appId`, `branchName` | - | `CreateDeploymentResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `UnauthorizedException` | Creates a deployment for a manually deployed Amplify app. Manually deployed apps are not connected to a Git repository. The maximum duration between the CreateDeployment call and the StartDeployment call cannot excee ... |
 | `CreateDomainAssociation` | `POST /apps/{appId}/domains` | - | `appId`, `domainName`, `subDomainSettings` | - | `CreateDomainAssociationResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Creates a new domain association for an Amplify app. This action associates a custom domain with the Amplify app |
 | `CreateWebhook` | `POST /apps/{appId}/webhooks` | - | `appId`, `branchName` | - | `CreateWebhookResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Creates a new webhook on an Amplify app. |
 | `DeleteApp` | `DELETE /apps/{appId}` | - | `appId` | - | `DeleteAppResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Deletes an existing Amplify app specified by an app ID. |
-| `DeleteBackendEnvironment` | `DELETE /apps/{appId}/backendenvironments/{environmentName}` | - | `appId`, `environmentName` | - | `DeleteBackendEnvironmentResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Deletes a backend environment for an Amplify app. This API is available only to Amplify Gen 1 applications where the backend is created using Amplify Studio or the Amplify command line interface (CLI). |
+| `DeleteBackendEnvironment` | `DELETE /apps/{appId}/backendenvironments/{environmentName}` | - | `appId`, `environmentName` | - | `DeleteBackendEnvironmentResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Deletes a backend environment for an Amplify app. This API is available only to Amplify Gen 1 applications where the backend is created using Amplify Studio or the Amplify command line interface (CLI). This API isn’t ... |
 | `DeleteBranch` | `DELETE /apps/{appId}/branches/{branchName}` | - | `appId`, `branchName` | - | `DeleteBranchResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Deletes a branch for an Amplify app. |
 | `DeleteDomainAssociation` | `DELETE /apps/{appId}/domains/{domainName}` | - | `appId`, `domainName` | - | `DeleteDomainAssociationResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Deletes a domain association for an Amplify app. |
 | `DeleteJob` | `DELETE /apps/{appId}/branches/{branchName}/jobs/{jobId}` | - | `appId`, `branchName`, `jobId` | - | `DeleteJobResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Deletes a job for a branch of an Amplify app. |
 | `DeleteWebhook` | `DELETE /webhooks/{webhookId}` | - | `webhookId` | - | `DeleteWebhookResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Deletes a webhook. |
-| `GenerateAccessLogs` | `POST /apps/{appId}/accesslogs` | - | `appId`, `domainName` | - | `GenerateAccessLogsResult` | `BadRequestException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Returns the website access logs for a specific time range using a presigned URL. |
+| `GenerateAccessLogs` | `POST /apps/{appId}/accesslogs` | - | `domainName`, `appId` | - | `GenerateAccessLogsResult` | `BadRequestException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Returns the website access logs for a specific time range using a presigned URL. |
 | `GetApp` | `GET /apps/{appId}` | - | `appId` | - | `GetAppResult` | `BadRequestException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Returns an existing Amplify app specified by an app ID. |
 | `GetArtifactUrl` | `GET /artifacts/{artifactId}` | - | `artifactId` | - | `GetArtifactUrlResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Returns the artifact info that corresponds to an artifact id. |
-| `GetBackendEnvironment` | `GET /apps/{appId}/backendenvironments/{environmentName}` | - | `appId`, `environmentName` | - | `GetBackendEnvironmentResult` | `BadRequestException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Returns a backend environment for an Amplify app. This API is available only to Amplify Gen 1 applications where the backend is created using Amplify Studio or the Amplify command line interface (CLI). |
+| `GetBackendEnvironment` | `GET /apps/{appId}/backendenvironments/{environmentName}` | - | `appId`, `environmentName` | - | `GetBackendEnvironmentResult` | `BadRequestException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Returns a backend environment for an Amplify app. This API is available only to Amplify Gen 1 applications where the backend is created using Amplify Studio or the Amplify command line interface (CLI). This API isn’t ... |
 | `GetBranch` | `GET /apps/{appId}/branches/{branchName}` | - | `appId`, `branchName` | - | `GetBranchResult` | `BadRequestException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Returns a branch for an Amplify app. |
 | `GetDomainAssociation` | `GET /apps/{appId}/domains/{domainName}` | - | `appId`, `domainName` | - | `GetDomainAssociationResult` | `BadRequestException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Returns the domain information for an Amplify app. |
 | `GetJob` | `GET /apps/{appId}/branches/{branchName}/jobs/{jobId}` | - | `appId`, `branchName`, `jobId` | - | `GetJobResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Returns a job for a branch of an Amplify app. |
 | `GetWebhook` | `GET /webhooks/{webhookId}` | - | `webhookId` | - | `GetWebhookResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Returns the webhook information that corresponds to a specified webhook ID. |
 | `ListApps` | `GET /apps` | `paginated` | - | - | `ListAppsResult` | `BadRequestException`, `InternalFailureException`, `UnauthorizedException` | Returns a list of the existing Amplify apps. |
-| `ListArtifacts` | `GET /apps/{appId}/branches/{branchName}/jobs/{jobId}/artifacts` | - | `appId`, `branchName`, `jobId` | - | `ListArtifactsResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `UnauthorizedException` | Returns a list of end-to-end testing artifacts for a specified app, branch, and job. To return the build artifacts, use the GetJob API. |
-| `ListBackendEnvironments` | `GET /apps/{appId}/backendenvironments` | - | `appId` | - | `ListBackendEnvironmentsResult` | `BadRequestException`, `InternalFailureException`, `UnauthorizedException` | Lists the backend environments for an Amplify app. This API is available only to Amplify Gen 1 applications where the backend is created using Amplify Studio or the Amplify command line interface (CLI). |
+| `ListArtifacts` | `GET /apps/{appId}/branches/{branchName}/jobs/{jobId}/artifacts` | - | `appId`, `branchName`, `jobId` | - | `ListArtifactsResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `UnauthorizedException` | Returns a list of end-to-end testing artifacts for a specified app, branch, and job. To return the build artifacts, use the GetJob API. For more information about Amplify testing support, see Setting up end-to-end Cy ... |
+| `ListBackendEnvironments` | `GET /apps/{appId}/backendenvironments` | - | `appId` | - | `ListBackendEnvironmentsResult` | `BadRequestException`, `InternalFailureException`, `UnauthorizedException` | Lists the backend environments for an Amplify app. This API is available only to Amplify Gen 1 applications where the backend is created using Amplify Studio or the Amplify command line interface (CLI). This API isn’ ... |
 | `ListBranches` | `GET /apps/{appId}/branches` | `paginated` | `appId` | - | `ListBranchesResult` | `BadRequestException`, `InternalFailureException`, `UnauthorizedException` | Lists the branches of an Amplify app. |
 | `ListDomainAssociations` | `GET /apps/{appId}/domains` | `paginated` | `appId` | - | `ListDomainAssociationsResult` | `BadRequestException`, `InternalFailureException`, `UnauthorizedException` | Returns the domain associations for an Amplify app. |
 | `ListJobs` | `GET /apps/{appId}/branches/{branchName}/jobs` | `paginated` | `appId`, `branchName` | - | `ListJobsResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `UnauthorizedException` | Lists the jobs for a branch of an Amplify app. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `BadRequestException`, `InternalFailureException`, `ResourceNotFoundException` | Returns a list of tags for a specified Amazon Resource Name (ARN). |
 | `ListWebhooks` | `GET /apps/{appId}/webhooks` | - | `appId` | - | `ListWebhooksResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `UnauthorizedException` | Returns a list of webhooks for an Amplify app. |
-| `StartDeployment` | `POST /apps/{appId}/branches/{branchName}/deployments/start` | - | `appId`, `branchName` | - | `StartDeploymentResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Starts a deployment for a manually deployed app. Manually deployed apps are not connected to a Git repository. |
+| `StartDeployment` | `POST /apps/{appId}/branches/{branchName}/deployments/start` | - | `appId`, `branchName` | - | `StartDeploymentResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Starts a deployment for a manually deployed app. Manually deployed apps are not connected to a Git repository. The maximum duration between the CreateDeployment call and the StartDeployment call cannot exceed 8 hours ... |
 | `StartJob` | `POST /apps/{appId}/branches/{branchName}/jobs` | - | `appId`, `branchName`, `jobType` | - | `StartJobResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Starts a new job for a branch of an Amplify app. |
 | `StopJob` | `DELETE /apps/{appId}/branches/{branchName}/jobs/{jobId}/stop` | - | `appId`, `branchName`, `jobId` | - | `StopJobResult` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException`, `UnauthorizedException` | Stops a job that is in progress for a branch of an Amplify app. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `BadRequestException`, `InternalFailureException`, `ResourceNotFoundException` | Tags the resource with a tag key and value. |
@@ -154,35 +154,75 @@ Parity implications:
 | `UpdateDomainAssociation` | `POST /apps/{appId}/domains/{domainName}` | - | `appId`, `domainName` | - | `UpdateDomainAssociationResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Creates a new domain association for an Amplify app. |
 | `UpdateWebhook` | `POST /webhooks/{webhookId}` | - | `webhookId` | - | `UpdateWebhookResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Updates a webhook. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListApps` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListArtifacts` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListBackendEnvironments` | - | `environmentName -> environmentName`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListBranches` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDomainAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListJobs` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListWebhooks` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `message` | A request contains unexpected data. |
-| `InternalFailureException` | `structure` | `message` | The service failed to perform an operation due to an internal issue. |
-| `UnauthorizedException` | `structure` | `message` | An operation failed due to a lack of access. |
-| `NotFoundException` | `structure` | `message` | An entity was not found during an operation. |
-| `LimitExceededException` | `structure` | `message` | A resource could not be created because service quotas were exceeded. |
-| `DependentServiceFailureException` | `structure` | `message` | An operation failed because a dependent service threw an exception. |
-| `ResourceNotFoundException` | `structure` | `code`, `message` | An operation failed due to a non-existent resource. |
-| `CreateAppRequest` | `structure` | `accessToken`, `autoBranchCreationConfig`, `autoBranchCreationPatterns`, `basicAuthCredentials`, `buildSpec`, `cacheConfig`, `computeRoleArn`, `customHeaders`, `customRules`, `description`, `enableAutoBranchCreation`, `enableBasicAuth`, ... (+10) | The request structure used to create apps in Amplify. |
-| `CreateAppResult` | `structure` | `app` | - |
-| `CreateBackendEnvironmentRequest` | `structure` | `appId`, `deploymentArtifacts`, `environmentName`, `stackName` | The request structure for the backend environment create request. |
-| `CreateBackendEnvironmentResult` | `structure` | `backendEnvironment` | The result structure for the create backend environment request. |
-| `CreateBranchRequest` | `structure` | `appId`, `backend`, `backendEnvironmentArn`, `basicAuthCredentials`, `branchName`, `buildSpec`, `computeRoleArn`, `description`, `displayName`, `enableAutoBuild`, `enableBasicAuth`, `enableNotification`, ... (+9) | The request structure for the create branch request. |
-| `CreateBranchResult` | `structure` | `branch` | The result structure for create branch request. |
-| `CreateDeploymentRequest` | `structure` | `appId`, `branchName`, `fileMap` | The request structure for the create a new deployment request. |
-| `CreateDeploymentResult` | `structure` | `fileUploadUrls`, `jobId`, `zipUploadUrl` | The result structure for the create a new deployment request. |
-| `CreateDomainAssociationRequest` | `structure` | `appId`, `autoSubDomainCreationPatterns`, `autoSubDomainIAMRole`, `certificateSettings`, `domainName`, `enableAutoSubDomain`, `subDomainSettings` | The request structure for the create domain association request. |
-| `CreateDomainAssociationResult` | `structure` | `domainAssociation` | The result structure for the create domain association request. |
-| `CreateWebhookRequest` | `structure` | `appId`, `branchName`, `description` | The request structure for the create webhook request. |
-| `CreateWebhookResult` | `structure` | `webhook` | The result structure for the create webhook request. |
-| `DeleteAppRequest` | `structure` | `appId` | Describes the request structure for the delete app request. |
-| `DeleteAppResult` | `structure` | `app` | The result structure for the delete app request. |
-| `DeleteBackendEnvironmentRequest` | `structure` | `appId`, `environmentName` | The request structure for the delete backend environment request. |
-| `DeleteBackendEnvironmentResult` | `structure` | `backendEnvironment` | The result structure of the delete backend environment result. |
-| `DeleteBranchRequest` | `structure` | `appId`, `branchName` | The request structure for the delete branch request. |
-
+| `BadRequestException` | `structure` | message | A request contains unexpected data. |
+| `DependentServiceFailureException` | `structure` | message | An operation failed because a dependent service threw an exception. |
+| `InternalFailureException` | `structure` | message | The service failed to perform an operation due to an internal issue. |
+| `LimitExceededException` | `structure` | message | A resource could not be created because service quotas were exceeded. |
+| `NotFoundException` | `structure` | message | An entity was not found during an operation. |
+| `ResourceNotFoundException` | `structure` | code, message | An operation failed due to a non-existent resource. |
+| `UnauthorizedException` | `structure` | message | An operation failed due to a lack of access. |
+| `CreateAppRequest` | `structure` | name, description, repository, platform, computeRoleArn, iamServiceRoleArn, oauthToken, accessToken, environmentVariables, enableBranchAutoBuild, enableBranchAutoDeletion, enableBasicAuth, ... (+10) | The request structure used to create apps in Amplify. |
+| `CreateAppResult` | `structure` | app | - |
+| `CreateBackendEnvironmentRequest` | `structure` | appId, environmentName, stackName, deploymentArtifacts | The request structure for the backend environment create request. |
+| `CreateBackendEnvironmentResult` | `structure` | backendEnvironment | The result structure for the create backend environment request. |
+| `CreateBranchRequest` | `structure` | appId, branchName, description, stage, framework, enableNotification, enableAutoBuild, enableSkewProtection, environmentVariables, basicAuthCredentials, enableBasicAuth, enablePerformanceMode, ... (+9) | The request structure for the create branch request. |
+| `CreateBranchResult` | `structure` | branch | The result structure for create branch request. |
+| `CreateDeploymentRequest` | `structure` | appId, branchName, fileMap | The request structure for the create a new deployment request. |
+| `CreateDeploymentResult` | `structure` | jobId, fileUploadUrls, zipUploadUrl | The result structure for the create a new deployment request. |
+| `CreateDomainAssociationRequest` | `structure` | appId, domainName, enableAutoSubDomain, subDomainSettings, autoSubDomainCreationPatterns, autoSubDomainIAMRole, certificateSettings | The request structure for the create domain association request. |
+| `CreateDomainAssociationResult` | `structure` | domainAssociation | The result structure for the create domain association request. |
+| `CreateWebhookRequest` | `structure` | appId, branchName, description | The request structure for the create webhook request. |
+| `CreateWebhookResult` | `structure` | webhook | The result structure for the create webhook request. |
+| `DeleteAppRequest` | `structure` | appId | Describes the request structure for the delete app request. |
+| `DeleteAppResult` | `structure` | app | The result structure for the delete app request. |
+| `DeleteBackendEnvironmentRequest` | `structure` | appId, environmentName | The request structure for the delete backend environment request. |
+| `DeleteBackendEnvironmentResult` | `structure` | backendEnvironment | The result structure of the delete backend environment result. |
+| `DeleteBranchRequest` | `structure` | appId, branchName | The request structure for the delete branch request. |
+| `DeleteBranchResult` | `structure` | branch | The result structure for the delete branch request. |
+| `DeleteDomainAssociationRequest` | `structure` | appId, domainName | The request structure for the delete domain association request. |
+| `DeleteDomainAssociationResult` | `structure` | domainAssociation | - |
+| `DeleteJobRequest` | `structure` | appId, branchName, jobId | The request structure for the delete job request. |
+| `DeleteJobResult` | `structure` | jobSummary | The result structure for the delete job request. |
+| `DeleteWebhookRequest` | `structure` | webhookId | The request structure for the delete webhook request. |
+| `DeleteWebhookResult` | `structure` | webhook | The result structure for the delete webhook request. |
+| `GenerateAccessLogsRequest` | `structure` | startTime, endTime, domainName, appId | The request structure for the generate access logs request. |
+| `GenerateAccessLogsResult` | `structure` | logUrl | The result structure for the generate access logs request. |
+| `GetAppRequest` | `structure` | appId | The request structure for the get app request. |
+| `GetAppResult` | `structure` | app | - |
+| `GetArtifactUrlRequest` | `structure` | artifactId | Returns the request structure for the get artifact request. |
+| `GetArtifactUrlResult` | `structure` | artifactId, artifactUrl | Returns the result structure for the get artifact request. |
+| `GetBackendEnvironmentRequest` | `structure` | appId, environmentName | The request structure for the get backend environment request. |
+| `GetBackendEnvironmentResult` | `structure` | backendEnvironment | The result structure for the get backend environment result. |
+| `GetBranchRequest` | `structure` | appId, branchName | The request structure for the get branch request. |
+| `BuildComputeType` | `enum` | STANDARD_8GB, LARGE_16GB, XLARGE_72GB | - |
+| `CacheConfigType` | `enum` | AMPLIFY_MANAGED, AMPLIFY_MANAGED_NO_COOKIES | - |
+| `CertificateType` | `enum` | AMPLIFY_MANAGED, CUSTOM | - |
+| `DomainStatus` | `enum` | PENDING_VERIFICATION, IN_PROGRESS, AVAILABLE, IMPORTING_CUSTOM_CERTIFICATE, PENDING_DEPLOYMENT, AWAITING_APP_CNAME, FAILED, CREATING, REQUESTING_CERTIFICATE, UPDATING | - |
+| `JobStatus` | `enum` | CREATED, PENDING, PROVISIONING, RUNNING, FAILED, SUCCEED, CANCELLING, CANCELLED | - |
+| `JobType` | `enum` | RELEASE, RETRY, MANUAL, WEB_HOOK | - |
+| `Platform` | `enum` | WEB, WEB_DYNAMIC, WEB_COMPUTE | - |
+| `RepositoryCloneMethod` | `enum` | SSH, TOKEN, SIGV4 | - |
+| `SourceUrlType` | `enum` | ZIP, BUCKET_PREFIX | - |
+| `Stage` | `enum` | PRODUCTION, BETA, DEVELOPMENT, EXPERIMENTAL, PULL_REQUEST | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

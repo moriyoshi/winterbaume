@@ -37,48 +37,60 @@ Contains all data plane API operations and data types for the Amazon SageMaker F
 ### Batch
 
 - Operations: `BatchGetRecord`
-- Common required input members in this group: `Identifiers`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteRecord`
-- Common required input members in this group: `EventTime`, `FeatureGroupName`, `RecordIdentifierValueAsString`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetRecord`
-- Common required input members in this group: `FeatureGroupName`, `RecordIdentifierValueAsString`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutRecord`
-- Common required input members in this group: `FeatureGroupName`, `Record`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchGetRecord` | `POST /BatchGetRecord` | - | `Identifiers` | - | `BatchGetRecordResponse` | `AccessForbidden`, `InternalFailure`, `ServiceUnavailable`, `ValidationError` | Retrieves a batch of `Records` from a `FeatureGroup`. |
-| `DeleteRecord` | `DELETE /FeatureGroup/{FeatureGroupName}` | - | `EventTime`, `FeatureGroupName`, `RecordIdentifierValueAsString` | - | `Unit` | `AccessForbidden`, `InternalFailure`, `ServiceUnavailable`, `ValidationError` | Deletes a `Record` from a `FeatureGroup` in the `OnlineStore`. Feature Store supports both `SoftDelete` and `HardDelete`. |
-| `GetRecord` | `GET /FeatureGroup/{FeatureGroupName}` | - | `FeatureGroupName`, `RecordIdentifierValueAsString` | - | `GetRecordResponse` | `AccessForbidden`, `InternalFailure`, `ResourceNotFound`, `ServiceUnavailable`, `ValidationError` | Use for `OnlineStore` serving from a `FeatureStore`. Only the latest records stored in the `OnlineStore` can be retrieved. |
-| `PutRecord` | `PUT /FeatureGroup/{FeatureGroupName}` | - | `FeatureGroupName`, `Record` | - | `Unit` | `AccessForbidden`, `InternalFailure`, `ServiceUnavailable`, `ValidationError` | The `PutRecord` API is used to ingest a list of `Records` into your feature group. If a new record’s `EventTime` is greater, the new record is written to both the `OnlineStore` and `OfflineStore`. |
+| `BatchGetRecord` | `POST /BatchGetRecord` | - | `Identifiers` | - | `BatchGetRecordResponse` | `AccessForbidden`, `InternalFailure`, `ServiceUnavailable`, `ValidationError` | Retrieves a batch of Records from a FeatureGroup . |
+| `DeleteRecord` | `DELETE /FeatureGroup/{FeatureGroupName}` | - | `FeatureGroupName`, `RecordIdentifierValueAsString`, `EventTime` | - | `Unit` | `AccessForbidden`, `InternalFailure`, `ServiceUnavailable`, `ValidationError` | Deletes a Record from a FeatureGroup in the OnlineStore . Feature Store supports both SoftDelete and HardDelete . For SoftDelete (default), feature columns are set to null and the record is no longer retrievable by G ... |
+| `GetRecord` | `GET /FeatureGroup/{FeatureGroupName}` | - | `FeatureGroupName`, `RecordIdentifierValueAsString` | - | `GetRecordResponse` | `AccessForbidden`, `InternalFailure`, `ResourceNotFound`, `ServiceUnavailable`, `ValidationError` | Use for OnlineStore serving from a FeatureStore . Only the latest records stored in the OnlineStore can be retrieved. If no Record with RecordIdentifierValue is found, then an empty result is returned. |
+| `PutRecord` | `PUT /FeatureGroup/{FeatureGroupName}` | - | `FeatureGroupName`, `Record` | - | `Unit` | `AccessForbidden`, `InternalFailure`, `ServiceUnavailable`, `ValidationError` | The PutRecord API is used to ingest a list of Records into your feature group. If a new record’s EventTime is greater, the new record is written to both the OnlineStore and OfflineStore . Otherwise, the record is a h ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteRecord` | - | `RecordIdentifierValueAsString -> RecordIdentifierValueAsString`, `EventTime -> EventTime`, `TargetStores -> TargetStores`, `DeletionMode -> DeletionMode` | - | - |
+| `GetRecord` | - | `RecordIdentifierValueAsString -> RecordIdentifierValueAsString`, `FeatureNames -> FeatureName`, `ExpirationTimeResponse -> ExpirationTimeResponse` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessForbidden` | `structure` | `Message` | You do not have permission to perform an action. |
-| `InternalFailure` | `structure` | `Message` | An internal failure occurred. |
-| `ServiceUnavailable` | `structure` | `Message` | The service is currently unavailable. |
-| `ValidationError` | `structure` | `Message` | There was an error validating your request. |
-| `BatchGetRecordRequest` | `structure` | `ExpirationTimeResponse`, `Identifiers` | - |
-| `BatchGetRecordResponse` | `structure` | `Errors`, `Records`, `UnprocessedIdentifiers` | - |
-| `DeleteRecordRequest` | `structure` | `DeletionMode`, `EventTime`, `FeatureGroupName`, `RecordIdentifierValueAsString`, `TargetStores` | - |
-| `GetRecordRequest` | `structure` | `ExpirationTimeResponse`, `FeatureGroupName`, `FeatureNames`, `RecordIdentifierValueAsString` | - |
-| `GetRecordResponse` | `structure` | `ExpiresAt`, `Record` | - |
-| `ResourceNotFound` | `structure` | `Message` | A resource that is required to perform an action was not found. |
-| `PutRecordRequest` | `structure` | `FeatureGroupName`, `Record`, `TargetStores`, `TtlDuration` | - |
-
+| `AccessForbidden` | `structure` | Message | You do not have permission to perform an action. |
+| `InternalFailure` | `structure` | Message | An internal failure occurred. Try your request again. If the problem persists, contact Amazon Web Services customer support. |
+| `ResourceNotFound` | `structure` | Message | A resource that is required to perform an action was not found. |
+| `ServiceUnavailable` | `structure` | Message | The service is currently unavailable. |
+| `ValidationError` | `structure` | Message | There was an error validating your request. |
+| `BatchGetRecordRequest` | `structure` | Identifiers, ExpirationTimeResponse | - |
+| `BatchGetRecordResponse` | `structure` | Records, Errors, UnprocessedIdentifiers | - |
+| `DeleteRecordRequest` | `structure` | FeatureGroupName, RecordIdentifierValueAsString, EventTime, TargetStores, DeletionMode | - |
+| `GetRecordRequest` | `structure` | FeatureGroupName, RecordIdentifierValueAsString, FeatureNames, ExpirationTimeResponse | - |
+| `GetRecordResponse` | `structure` | Record, ExpiresAt | - |
+| `PutRecordRequest` | `structure` | FeatureGroupName, Record, TargetStores, TtlDuration | - |
+| `DeletionMode` | `enum` | SOFT_DELETE, HARD_DELETE | - |
+| `ExpirationTimeResponse` | `enum` | ENABLED, DISABLED | - |
+| `TargetStore` | `enum` | ONLINE_STORE, OFFLINE_STORE | - |
+| `TtlDurationUnit` | `enum` | SECONDS, MINUTES, HOURS, DAYS, WEEKS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

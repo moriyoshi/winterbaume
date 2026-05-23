@@ -40,29 +40,25 @@ The Amazon Web Services Marketplace `GetBuyerDashboard` API enables you to get a
 | `Dashboard` | `dashboardIdentifier` | - | `GetBuyerDashboard` | - |
 ## Operation Groups
 
-### Get
-
-- Operations: `GetBuyerDashboard`
-- Traits: `readonly` (1)
-- Common required input members in this group: `dashboardIdentifier`, `embeddingDomains`
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetBuyerDashboard` | `POST /getBuyerDashboard` | `readonly` | `dashboardIdentifier`, `embeddingDomains` | - | `GetBuyerDashboardOutput` | `AccessDeniedException`, `BadRequestException`, `InternalServerException`, `UnauthorizedException` | Generates an embedding URL for an Amazon QuickSight dashboard for an anonymous user. This API is available only to Amazon Web Services Organization management accounts or delegated administrators registered for the procurement insights... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `GetBuyerDashboardInput` | `structure` | `dashboardIdentifier`, `embeddingDomains` | - |
-| `GetBuyerDashboardOutput` | `structure` | `dashboardIdentifier`, `embedUrl`, `embeddingDomains` | - |
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `BadRequestException` | `structure` | `message` | The request is malformed, or it contains an error such as an invalid parameter. |
-| `InternalServerException` | `structure` | `message` | The operation failed due to a server error. |
-| `UnauthorizedException` | `structure` | `message` | You do not have permission to perform this action. |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `BadRequestException` | `structure` | message | The request is malformed, or it contains an error such as an invalid parameter. Ensure the request has all required parameters. |
+| `InternalServerException` | `structure` | message | The operation failed due to a server error. |
+| `UnauthorizedException` | `structure` | message | You do not have permission to perform this action. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

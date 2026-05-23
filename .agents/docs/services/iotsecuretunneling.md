@@ -40,73 +40,86 @@ IoT Secure Tunneling IoT Secure Tunneling creates remote connections to devices 
 
 - Operations: `ListTagsForResource`, `ListTunnels`
 - Traits: `paginated` (1)
-- Common required input members in this group: `resourceArn`
+- Common required input members in this group: -
 
 ### Close
 
 - Operations: `CloseTunnel`
-- Common required input members in this group: `tunnelId`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeTunnel`
-- Common required input members in this group: `tunnelId`
+- Common required input members in this group: -
 
 ### Open
 
 - Operations: `OpenTunnel`
+- Common required input members in this group: -
 
 ### Rotate
 
 - Operations: `RotateTunnelAccessToken`
-- Common required input members in this group: `clientMode`, `tunnelId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CloseTunnel` | `DELETE /tunnels/{tunnelId}` | - | `tunnelId` | - | `CloseTunnelResponse` | `ResourceNotFoundException` | Closes a tunnel identified by the unique tunnel id. When a `CloseTunnel` request is received, we close the WebSocket connections between the client and proxy server so no data can be transmitted. |
+| `CloseTunnel` | `DELETE /tunnels/{tunnelId}` | - | `tunnelId` | - | `CloseTunnelResponse` | `ResourceNotFoundException` | Closes a tunnel identified by the unique tunnel id. When a CloseTunnel request is received, we close the WebSocket connections between the client and proxy server so no data can be transmitted. Requires permission to ... |
 | `DescribeTunnel` | `GET /tunnels/{tunnelId}` | - | `tunnelId` | - | `DescribeTunnelResponse` | `ResourceNotFoundException` | Gets information about a tunnel identified by the unique tunnel id. Requires permission to access the DescribeTunnel action. |
 | `ListTagsForResource` | `GET /tags` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Lists the tags for the specified resource. |
-| `ListTunnels` | `GET /tunnels` | `paginated` | - | - | `ListTunnelsResponse` | - | List all tunnels for an Amazon Web Services account. Tunnels are listed by creation time in descending order, newer tunnels will be listed before older tunnels. |
+| `ListTunnels` | `GET /tunnels` | `paginated` | - | - | `ListTunnelsResponse` | - | List all tunnels for an Amazon Web Services account. Tunnels are listed by creation time in descending order, newer tunnels will be listed before older tunnels. Requires permission to access the ListTunnels action. |
 | `OpenTunnel` | `POST /tunnels` | - | - | - | `OpenTunnelResponse` | `LimitExceededException` | Creates a new tunnel, and returns two client access tokens for clients to use to connect to the IoT Secure Tunneling proxy server. Requires permission to access the OpenTunnel action. |
-| `RotateTunnelAccessToken` | `POST /tunnel/{tunnelId}/rotate` | - | `clientMode`, `tunnelId` | - | `RotateTunnelAccessTokenResponse` | `ResourceNotFoundException` | Revokes the current client access token (CAT) and returns new CAT for clients to use when reconnecting to secure tunneling to access the same tunnel. Requires permission to access the RotateTunnelAccessToken action. |
+| `RotateTunnelAccessToken` | `POST /tunnel/{tunnelId}/rotate` | - | `tunnelId`, `clientMode` | - | `RotateTunnelAccessTokenResponse` | `ResourceNotFoundException` | Revokes the current client access token (CAT) and returns new CAT for clients to use when reconnecting to secure tunneling to access the same tunnel. Requires permission to access the RotateTunnelAccessToken action. ... |
 | `TagResource` | `POST /tags` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException` | A resource tag. |
 | `UntagResource` | `POST /untag` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException` | Removes a tag from a resource. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CloseTunnel` | - | `delete -> delete` | - | - |
+| `ListTagsForResource` | - | `resourceArn -> resourceArn` | - | - |
+| `ListTunnels` | - | `thingName -> thingName`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message` | Thrown when an operation is attempted on a resource that does not exist. |
-| `CloseTunnelRequest` | `structure` | `delete`, `tunnelId` | - |
-| `CloseTunnelResponse` | `structure` | - | - |
-| `DescribeTunnelRequest` | `structure` | `tunnelId` | - |
-| `DescribeTunnelResponse` | `structure` | `tunnel` | - |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `ListTunnelsRequest` | `structure` | `maxResults`, `nextToken`, `thingName` | - |
-| `ListTunnelsResponse` | `structure` | `nextToken`, `tunnelSummaries` | - |
-| `OpenTunnelRequest` | `structure` | `description`, `destinationConfig`, `tags`, `timeoutConfig` | - |
-| `OpenTunnelResponse` | `structure` | `destinationAccessToken`, `sourceAccessToken`, `tunnelArn`, `tunnelId` | - |
-| `LimitExceededException` | `structure` | `message` | Thrown when a tunnel limit is exceeded. |
-| `RotateTunnelAccessTokenRequest` | `structure` | `clientMode`, `destinationConfig`, `tunnelId` | - |
-| `RotateTunnelAccessTokenResponse` | `structure` | `destinationAccessToken`, `sourceAccessToken`, `tunnelArn` | - |
-| `TagResourceRequest` | `structure` | `resourceArn`, `tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `resourceArn`, `tagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-
+| `LimitExceededException` | `structure` | message | Thrown when a tunnel limit is exceeded. |
+| `ResourceNotFoundException` | `structure` | message | Thrown when an operation is attempted on a resource that does not exist. |
+| `CloseTunnelRequest` | `structure` | tunnelId, delete | - |
+| `CloseTunnelResponse` | `structure` | **empty (no members)** | - |
+| `DescribeTunnelRequest` | `structure` | tunnelId | - |
+| `DescribeTunnelResponse` | `structure` | tunnel | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `ListTunnelsRequest` | `structure` | thingName, maxResults, nextToken | - |
+| `ListTunnelsResponse` | `structure` | tunnelSummaries, nextToken | - |
+| `OpenTunnelRequest` | `structure` | description, tags, destinationConfig, timeoutConfig | - |
+| `OpenTunnelResponse` | `structure` | tunnelId, tunnelArn, sourceAccessToken, destinationAccessToken | - |
+| `RotateTunnelAccessTokenRequest` | `structure` | tunnelId, clientMode, destinationConfig | - |
+| `RotateTunnelAccessTokenResponse` | `structure` | tunnelArn, sourceAccessToken, destinationAccessToken | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `ClientMode` | `enum` | SOURCE, DESTINATION, ALL | - |
+| `ConnectionStatus` | `enum` | CONNECTED, DISCONNECTED | - |
+| `TunnelStatus` | `enum` | OPEN, CLOSED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

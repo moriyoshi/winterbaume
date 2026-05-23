@@ -39,24 +39,30 @@ AWS Marketplace Entitlement Service This reference provides descriptions of the 
 
 - Operations: `GetEntitlements`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ProductCode`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetEntitlements` | - | `paginated` | `ProductCode` | - | `GetEntitlementsResult` | `InternalServiceErrorException`, `InvalidParameterException`, `ThrottlingException` | GetEntitlements retrieves entitlement values for a given product. The results can be filtered based on customer identifier, AWS account ID, license ARN, or product dimensions. |
+| `GetEntitlements` | `-` | `paginated` | `ProductCode` | - | `GetEntitlementsResult` | `InternalServiceErrorException`, `InvalidParameterException`, `ThrottlingException` | GetEntitlements retrieves entitlement values for a given product. The results can be filtered based on customer identifier, AWS account ID, license ARN, or product dimensions. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `GetEntitlementsRequest` | `structure` | `Filter`, `MaxResults`, `NextToken`, `ProductCode` | The GetEntitlementsRequest contains parameters for the GetEntitlements operation. |
-| `GetEntitlementsResult` | `structure` | `Entitlements`, `NextToken` | The GetEntitlementsRequest contains results from the GetEntitlements operation. |
-| `InternalServiceErrorException` | `structure` | `message` | An internal error has occurred. |
-| `InvalidParameterException` | `structure` | `message` | One or more parameters in your request was invalid. |
-| `ThrottlingException` | `structure` | `message` | The calls to the GetEntitlements API are throttled. |
-
+| `InternalServiceErrorException` | `structure` | message | An internal error has occurred. Retry your request. If the problem persists, post a message with details on the AWS forums. |
+| `InvalidParameterException` | `structure` | message | One or more parameters in your request was invalid. |
+| `ThrottlingException` | `structure` | message | The calls to the GetEntitlements API are throttled. |
+| `GetEntitlementsRequest` | `structure` | ProductCode, Filter, NextToken, MaxResults | The GetEntitlementsRequest contains parameters for the GetEntitlements operation. |
+| `GetEntitlementsResult` | `structure` | Entitlements, NextToken | The GetEntitlementsRequest contains results from the GetEntitlements operation. |
+| `GetEntitlementFilterName` | `enum` | CUSTOMER_IDENTIFIER, DIMENSION, CUSTOMER_AWS_ACCOUNT_ID, LICENSE_ARN | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -78,159 +78,120 @@ Parity implications:
 
 ### Get
 
-- Operations: `GetCredentials`, `GetCustomDomainAssociation`, `GetEndpointAccess`, `GetIdentityCenterAuthToken`, `GetNamespace`, `GetRecoveryPoint`, `GetReservation`, `GetReservationOffering`, `GetResourcePolicy`, `GetScheduledAction`, `GetSnapshot`, `GetTableRestoreStatus`, `GetTrack`, `GetUsageLimit`, `GetWorkgroup`
-- Traits: `readonly` (12)
-- Common required input members in this group: `customDomainName`, `endpointName`, `namespaceName`, `offeringId`, `recoveryPointId`, `reservationId`, `resourceArn`, `scheduledActionName`, `tableRestoreRequestId`, `trackName`, `usageLimitId`, `workgroupName`, `workgroupNames`
+- Operations: `GetCredentials`, `GetCustomDomainAssociation`, `GetIdentityCenterAuthToken`, `GetResourcePolicy`, `GetTrack`
+- Traits: `readonly` (2)
+- Common required input members in this group: -
 
 ### List
 
-- Operations: `ListCustomDomainAssociations`, `ListEndpointAccess`, `ListManagedWorkgroups`, `ListNamespaces`, `ListRecoveryPoints`, `ListReservationOfferings`, `ListReservations`, `ListScheduledActions`, `ListSnapshotCopyConfigurations`, `ListSnapshots`, `ListTableRestoreStatus`, `ListTagsForResource`, `ListTracks`, `ListUsageLimits`, `ListWorkgroups`
-- Traits: `paginated` (14), `readonly` (14)
-- Common required input members in this group: `resourceArn`
-
-### Create
-
-- Operations: `CreateCustomDomainAssociation`, `CreateEndpointAccess`, `CreateNamespace`, `CreateReservation`, `CreateScheduledAction`, `CreateSnapshot`, `CreateSnapshotCopyConfiguration`, `CreateUsageLimit`, `CreateWorkgroup`
-- Traits: `idempotency-token` (1), `idempotent` (8)
-- Common required input members in this group: `amount`, `capacity`, `customDomainCertificateArn`, `customDomainName`, `destinationRegion`, `endpointName`, `namespaceName`, `offeringId`, `resourceArn`, `roleArn`, `schedule`, `scheduledActionName`, `snapshotName`, `subnetIds`, `targetAction`, `usageType`, `workgroupName`
+- Operations: `ListCustomDomainAssociations`, `ListTagsForResource`, `ListTracks`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: -
 
 ### Delete
 
-- Operations: `DeleteCustomDomainAssociation`, `DeleteEndpointAccess`, `DeleteNamespace`, `DeleteResourcePolicy`, `DeleteScheduledAction`, `DeleteSnapshot`, `DeleteSnapshotCopyConfiguration`, `DeleteUsageLimit`, `DeleteWorkgroup`
-- Traits: `idempotent` (7)
-- Common required input members in this group: `customDomainName`, `endpointName`, `namespaceName`, `resourceArn`, `scheduledActionName`, `snapshotCopyConfigurationId`, `snapshotName`, `usageLimitId`, `workgroupName`
+- Operations: `DeleteCustomDomainAssociation`, `DeleteResourcePolicy`
+- Common required input members in this group: -
 
-### Update
+### Create
 
-- Operations: `UpdateCustomDomainAssociation`, `UpdateEndpointAccess`, `UpdateLakehouseConfiguration`, `UpdateNamespace`, `UpdateScheduledAction`, `UpdateSnapshot`, `UpdateSnapshotCopyConfiguration`, `UpdateUsageLimit`, `UpdateWorkgroup`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `customDomainCertificateArn`, `customDomainName`, `endpointName`, `namespaceName`, `scheduledActionName`, `snapshotCopyConfigurationId`, `snapshotName`, `usageLimitId`, `workgroupName`
-
-### Restore
-
-- Operations: `RestoreFromRecoveryPoint`, `RestoreFromSnapshot`, `RestoreTableFromRecoveryPoint`, `RestoreTableFromSnapshot`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `namespaceName`, `newTableName`, `recoveryPointId`, `snapshotName`, `sourceDatabaseName`, `sourceTableName`, `workgroupName`
-
-### Convert
-
-- Operations: `ConvertRecoveryPointToSnapshot`
-- Common required input members in this group: `recoveryPointId`, `snapshotName`
+- Operations: `CreateCustomDomainAssociation`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutResourcePolicy`
-- Common required input members in this group: `policy`, `resourceArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
+
+### Update
+
+- Operations: `UpdateCustomDomainAssociation`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ConvertRecoveryPointToSnapshot` | - | - | `recoveryPointId`, `snapshotName` | - | `ConvertRecoveryPointToSnapshotResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `TooManyTagsException`, `ValidationException` | Converts a recovery point to a snapshot. For more information about recovery points and snapshots, see Working with snapshots and recovery points. |
-| `CreateCustomDomainAssociation` | - | - | `customDomainCertificateArn`, `customDomainName`, `workgroupName` | - | `CreateCustomDomainAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a custom domain association for Amazon Redshift Serverless. |
-| `CreateEndpointAccess` | - | `idempotent` | `endpointName`, `subnetIds`, `workgroupName` | - | `CreateEndpointAccessResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an Amazon Redshift Serverless managed VPC endpoint. |
-| `CreateNamespace` | - | `idempotent` | `namespaceName` | - | `CreateNamespaceResponse` | `ConflictException`, `InternalServerException`, `TooManyTagsException`, `ValidationException` | Creates a namespace in Amazon Redshift Serverless. |
-| `CreateReservation` | - | `idempotent`, `idempotency-token` | `capacity`, `offeringId` | `clientToken` | `CreateReservationResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `TooManyTagsException`, `ValidationException` | Creates an Amazon Redshift Serverless reservation, which gives you the option to commit to a specified number of Redshift Processing Units (RPUs) for a year at a discount from Serverless on-demand (OD) rates. |
-| `CreateScheduledAction` | - | `idempotent` | `namespaceName`, `roleArn`, `schedule`, `scheduledActionName`, `targetAction` | - | `CreateScheduledActionResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a scheduled action. A scheduled action contains a schedule and an Amazon Redshift API action. |
-| `CreateSnapshot` | - | `idempotent` | `namespaceName`, `snapshotName` | - | `CreateSnapshotResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `TooManyTagsException`, `ValidationException` | Creates a snapshot of all databases in a namespace. For more information about snapshots, see Working with snapshots and recovery points. |
-| `CreateSnapshotCopyConfiguration` | - | `idempotent` | `destinationRegion`, `namespaceName` | - | `CreateSnapshotCopyConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a snapshot copy configuration that lets you copy snapshots to another Amazon Web Services Region. |
-| `CreateUsageLimit` | - | `idempotent` | `amount`, `resourceArn`, `usageType` | - | `CreateUsageLimitResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a usage limit for a specified Amazon Redshift Serverless usage type. The usage limit is identified by the returned usage limit identifier. |
-| `CreateWorkgroup` | - | `idempotent` | `namespaceName`, `workgroupName` | - | `CreateWorkgroupResponse` | `ConflictException`, `InsufficientCapacityException`, `InternalServerException`, `Ipv6CidrBlockNotFoundException`, `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Creates an workgroup in Amazon Redshift Serverless. VPC Block Public Access (BPA) enables you to block resources in VPCs and subnets that you own in a Region from reaching or being reached from the internet through internet gateways and egress-only internet... |
-| `DeleteCustomDomainAssociation` | - | - | `customDomainName`, `workgroupName` | - | `DeleteCustomDomainAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a custom domain association for Amazon Redshift Serverless. |
-| `DeleteEndpointAccess` | - | `idempotent` | `endpointName` | - | `DeleteEndpointAccessResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an Amazon Redshift Serverless managed VPC endpoint. |
-| `DeleteNamespace` | - | `idempotent` | `namespaceName` | - | `DeleteNamespaceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a namespace from Amazon Redshift Serverless. Before you delete the namespace, you can create a final snapshot that has all of the data within the namespace. |
-| `DeleteResourcePolicy` | - | - | `resourceArn` | - | `DeleteResourcePolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified resource policy. |
-| `DeleteScheduledAction` | - | `idempotent` | `scheduledActionName` | - | `DeleteScheduledActionResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a scheduled action. |
-| `DeleteSnapshot` | - | `idempotent` | `snapshotName` | - | `DeleteSnapshotResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a snapshot from Amazon Redshift Serverless. |
-| `DeleteSnapshotCopyConfiguration` | - | `idempotent` | `snapshotCopyConfigurationId` | - | `DeleteSnapshotCopyConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a snapshot copy configuration |
-| `DeleteUsageLimit` | - | `idempotent` | `usageLimitId` | - | `DeleteUsageLimitResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a usage limit from Amazon Redshift Serverless. |
-| `DeleteWorkgroup` | - | `idempotent` | `workgroupName` | - | `DeleteWorkgroupResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a workgroup. |
-| `GetCredentials` | - | - | - | - | `GetCredentialsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a database user name and temporary password with temporary authorization to log in to Amazon Redshift Serverless. By default, the temporary credentials expire in 900 seconds. |
-| `GetCustomDomainAssociation` | - | - | `customDomainName`, `workgroupName` | - | `GetCustomDomainAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a specific custom domain association. |
-| `GetEndpointAccess` | - | `readonly` | `endpointName` | - | `GetEndpointAccessResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information, such as the name, about a VPC endpoint. |
-| `GetIdentityCenterAuthToken` | - | - | `workgroupNames` | - | `GetIdentityCenterAuthTokenResponse` | `AccessDeniedException`, `ConflictException`, `DryRunException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns an Identity Center authentication token for accessing Amazon Redshift Serverless workgroups. The token provides secure access to data within the specified workgroups using Identity Center identity propagation. |
-| `GetNamespace` | - | `readonly` | `namespaceName` | - | `GetNamespaceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a namespace in Amazon Redshift Serverless. |
-| `GetRecoveryPoint` | - | `readonly` | `recoveryPointId` | - | `GetRecoveryPointResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a recovery point. |
-| `GetReservation` | - | `readonly` | `reservationId` | - | `GetReservationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets an Amazon Redshift Serverless reservation. A reservation gives you the option to commit to a specified number of Redshift Processing Units (RPUs) for a year at a discount from Serverless on-demand (OD) rates. |
-| `GetReservationOffering` | - | `readonly` | `offeringId` | - | `GetReservationOfferingResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the reservation offering. The offering determines the payment schedule for the reservation. |
-| `GetResourcePolicy` | - | `readonly` | `resourceArn` | - | `GetResourcePolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a resource policy. |
-| `GetScheduledAction` | - | `readonly` | `scheduledActionName` | - | `GetScheduledActionResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a scheduled action. |
-| `GetSnapshot` | - | `readonly` | - | - | `GetSnapshotResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a specific snapshot. |
-| `GetTableRestoreStatus` | - | `readonly` | `tableRestoreRequestId` | - | `GetTableRestoreStatusResponse` | `ResourceNotFoundException`, `ValidationException` | Returns information about a `TableRestoreStatus` object. |
-| `GetTrack` | - | `readonly` | `trackName` | - | `GetTrackResponse` | `AccessDeniedException`, `ConflictException`, `DryRunException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the Redshift Serverless version for a specified track. |
-| `GetUsageLimit` | - | `readonly` | `usageLimitId` | - | `GetUsageLimitResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a usage limit. |
-| `GetWorkgroup` | - | `readonly` | `workgroupName` | - | `GetWorkgroupResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a specific workgroup. |
-| `ListCustomDomainAssociations` | - | `readonly`, `paginated` | - | - | `ListCustomDomainAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidPaginationException`, `ThrottlingException`, `ValidationException` | Lists custom domain associations for Amazon Redshift Serverless. |
-| `ListEndpointAccess` | - | `readonly`, `paginated` | - | - | `ListEndpointAccessResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns an array of `EndpointAccess` objects and relevant information. |
-| `ListManagedWorkgroups` | - | `paginated` | - | - | `ListManagedWorkgroupsResponse` | `AccessDeniedException`, `InternalServerException` | Returns information about a list of specified managed workgroups in your account. |
-| `ListNamespaces` | - | `readonly`, `paginated` | - | - | `ListNamespacesResponse` | `InternalServerException`, `ValidationException` | Returns information about a list of specified namespaces. |
-| `ListRecoveryPoints` | - | `readonly`, `paginated` | - | - | `ListRecoveryPointsResponse` | `InternalServerException`, `ValidationException` | Returns an array of recovery points. |
-| `ListReservationOfferings` | - | `readonly`, `paginated` | - | - | `ListReservationOfferingsResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the current reservation offerings in your account. |
-| `ListReservations` | - | `readonly`, `paginated` | - | - | `ListReservationsResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of Reservation objects. |
-| `ListScheduledActions` | - | `readonly`, `paginated` | - | - | `ListScheduledActionsResponse` | `InternalServerException`, `InvalidPaginationException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of scheduled actions. You can use the flags to filter the list of returned scheduled actions. |
-| `ListSnapshotCopyConfigurations` | - | `readonly`, `paginated` | - | - | `ListSnapshotCopyConfigurationsResponse` | `ConflictException`, `InternalServerException`, `InvalidPaginationException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of snapshot copy configurations. |
-| `ListSnapshots` | - | `readonly`, `paginated` | - | - | `ListSnapshotsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of snapshots. |
-| `ListTableRestoreStatus` | - | `readonly`, `paginated` | - | - | `ListTableRestoreStatusResponse` | `InvalidPaginationException`, `ResourceNotFoundException`, `ValidationException` | Returns information about an array of `TableRestoreStatus` objects. |
-| `ListTagsForResource` | - | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags assigned to a resource. |
-| `ListTracks` | - | `readonly`, `paginated` | - | - | `ListTracksResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidPaginationException`, `ThrottlingException`, `ValidationException` | List the Amazon Redshift Serverless versions. |
-| `ListUsageLimits` | - | `readonly`, `paginated` | - | - | `ListUsageLimitsResponse` | `ConflictException`, `InternalServerException`, `InvalidPaginationException`, `ResourceNotFoundException`, `ValidationException` | Lists all usage limits within Amazon Redshift Serverless. |
-| `ListWorkgroups` | - | `readonly`, `paginated` | - | - | `ListWorkgroupsResponse` | `InternalServerException`, `ValidationException` | Returns information about a list of specified workgroups. |
-| `PutResourcePolicy` | - | - | `policy`, `resourceArn` | - | `PutResourcePolicyResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates or updates a resource policy. Currently, you can use policies to share snapshots across Amazon Web Services accounts. |
-| `RestoreFromRecoveryPoint` | - | - | `namespaceName`, `recoveryPointId`, `workgroupName` | - | `RestoreFromRecoveryPointResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Restore the data from a recovery point. |
-| `RestoreFromSnapshot` | - | `idempotent` | `namespaceName`, `workgroupName` | - | `RestoreFromSnapshotResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Restores a namespace from a snapshot. |
-| `RestoreTableFromRecoveryPoint` | - | - | `namespaceName`, `newTableName`, `recoveryPointId`, `sourceDatabaseName`, `sourceTableName`, `workgroupName` | - | `RestoreTableFromRecoveryPointResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Restores a table from a recovery point to your Amazon Redshift Serverless instance. You can't use this operation to restore tables with interleaved sort keys. |
-| `RestoreTableFromSnapshot` | - | - | `namespaceName`, `newTableName`, `snapshotName`, `sourceDatabaseName`, `sourceTableName`, `workgroupName` | - | `RestoreTableFromSnapshotResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Restores a table from a snapshot to your Amazon Redshift Serverless instance. You can't use this operation to restore tables with interleaved sort keys. |
-| `TagResource` | - | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `TooManyTagsException`, `ValidationException` | Assigns one or more tags to a resource. |
-| `UntagResource` | - | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a tag or set of tags from a resource. |
-| `UpdateCustomDomainAssociation` | - | - | `customDomainCertificateArn`, `customDomainName`, `workgroupName` | - | `UpdateCustomDomainAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an Amazon Redshift Serverless certificate associated with a custom domain. |
-| `UpdateEndpointAccess` | - | - | `endpointName` | - | `UpdateEndpointAccessResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates an Amazon Redshift Serverless managed endpoint. |
-| `UpdateLakehouseConfiguration` | - | - | `namespaceName` | - | `UpdateLakehouseConfigurationResponse` | `ConflictException`, `DryRunException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Modifies the lakehouse configuration for a namespace. This operation allows you to manage Amazon Redshift federated permissions and Amazon Web Services IAM Identity Center trusted identity propagation. |
-| `UpdateNamespace` | - | - | `namespaceName` | - | `UpdateNamespaceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a namespace with the specified settings. Unless required, you can't update multiple parameters in one request. |
-| `UpdateScheduledAction` | - | `idempotent` | `scheduledActionName` | - | `UpdateScheduledActionResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a scheduled action. |
-| `UpdateSnapshot` | - | - | `snapshotName` | - | `UpdateSnapshotResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a snapshot. |
-| `UpdateSnapshotCopyConfiguration` | - | - | `snapshotCopyConfigurationId` | - | `UpdateSnapshotCopyConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a snapshot copy configuration. |
-| `UpdateUsageLimit` | - | - | `usageLimitId` | - | `UpdateUsageLimitResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Update a usage limit in Amazon Redshift Serverless. You can't update the usage type or period of a usage limit. |
-| `UpdateWorkgroup` | - | - | `workgroupName` | - | `UpdateWorkgroupResponse` | `ConflictException`, `InsufficientCapacityException`, `InternalServerException`, `Ipv6CidrBlockNotFoundException`, `ResourceNotFoundException`, `ValidationException` | Updates a workgroup with the specified configuration settings. You can't update multiple parameters in one request. |
+| `CreateCustomDomainAssociation` | `-` | - | `workgroupName`, `customDomainName`, `customDomainCertificateArn` | - | `CreateCustomDomainAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a custom domain association for Amazon Redshift Serverless. |
+| `DeleteCustomDomainAssociation` | `-` | - | `workgroupName`, `customDomainName` | - | `DeleteCustomDomainAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a custom domain association for Amazon Redshift Serverless. |
+| `DeleteResourcePolicy` | `-` | - | `resourceArn` | - | `DeleteResourcePolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified resource policy. |
+| `GetCredentials` | `-` | - | - | - | `GetCredentialsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a database user name and temporary password with temporary authorization to log in to Amazon Redshift Serverless. By default, the temporary credentials expire in 900 seconds. You can optionally specify a dura ... |
+| `GetCustomDomainAssociation` | `-` | - | `customDomainName`, `workgroupName` | - | `GetCustomDomainAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a specific custom domain association. |
+| `GetIdentityCenterAuthToken` | `-` | - | `workgroupNames` | - | `GetIdentityCenterAuthTokenResponse` | `AccessDeniedException`, `ConflictException`, `DryRunException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns an Identity Center authentication token for accessing Amazon Redshift Serverless workgroups. The token provides secure access to data within the specified workgroups using Identity Center identity propagation ... |
+| `GetResourcePolicy` | `-` | `readonly` | `resourceArn` | - | `GetResourcePolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a resource policy. |
+| `GetTrack` | `-` | `readonly` | `trackName` | - | `GetTrackResponse` | `AccessDeniedException`, `ConflictException`, `DryRunException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the Redshift Serverless version for a specified track. |
+| `ListCustomDomainAssociations` | `-` | `readonly`, `paginated` | - | - | `ListCustomDomainAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidPaginationException`, `ThrottlingException`, `ValidationException` | Lists custom domain associations for Amazon Redshift Serverless. |
+| `ListTagsForResource` | `-` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags assigned to a resource. |
+| `ListTracks` | `-` | `readonly`, `paginated` | - | - | `ListTracksResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidPaginationException`, `ThrottlingException`, `ValidationException` | List the Amazon Redshift Serverless versions. |
+| `PutResourcePolicy` | `-` | - | `resourceArn`, `policy` | - | `PutResourcePolicyResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates or updates a resource policy. Currently, you can use policies to share snapshots across Amazon Web Services accounts. |
+| `TagResource` | `-` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `TooManyTagsException`, `ValidationException` | Assigns one or more tags to a resource. |
+| `UntagResource` | `-` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a tag or set of tags from a resource. |
+| `UpdateCustomDomainAssociation` | `-` | - | `workgroupName`, `customDomainName`, `customDomainCertificateArn` | - | `UpdateCustomDomainAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an Amazon Redshift Serverless certificate associated with a custom domain. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListCustomDomainAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListTracks` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `message` | The input failed to satisfy the constraints specified by an Amazon Web Services service. |
-| `InternalServerException` | `structure` | `message` | The request processing has failed because of an unknown error, exception or failure. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceName` | The resource could not be found. |
-| `ConflictException` | `structure` | `message` | The submitted action has conflicts. |
-| `ThrottlingException` | `structure` | `code`, `message` | The request was denied due to request throttling. |
-| `AccessDeniedException` | `structure` | `code`, `message` | You do not have sufficient access to perform this action. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The service limit was exceeded. |
-| `TooManyTagsException` | `structure` | `message`, `resourceName` | The request exceeded the number of tags allowed for a resource. |
-| `InvalidPaginationException` | `structure` | `message` | The provided pagination token is invalid. |
-| `DryRunException` | `structure` | `message` | This exception is thrown when the request was successful, but dry run was enabled so no action was taken. |
-| `InsufficientCapacityException` | `structure` | `message` | There is an insufficient capacity to perform the action. |
-| `Ipv6CidrBlockNotFoundException` | `structure` | `message` | There are no subnets in your VPC with associated IPv6 CIDR blocks. |
-| `ConvertRecoveryPointToSnapshotRequest` | `structure` | `recoveryPointId`, `retentionPeriod`, `snapshotName`, `tags` | - |
-| `ConvertRecoveryPointToSnapshotResponse` | `structure` | `snapshot` | - |
-| `CreateCustomDomainAssociationRequest` | `structure` | `customDomainCertificateArn`, `customDomainName`, `workgroupName` | - |
-| `CreateCustomDomainAssociationResponse` | `structure` | `customDomainCertificateArn`, `customDomainCertificateExpiryTime`, `customDomainName`, `workgroupName` | - |
-| `CreateEndpointAccessRequest` | `structure` | `endpointName`, `ownerAccount`, `subnetIds`, `vpcSecurityGroupIds`, `workgroupName` | - |
-| `CreateEndpointAccessResponse` | `structure` | `endpoint` | - |
-| `CreateNamespaceRequest` | `structure` | `adminPasswordSecretKmsKeyId`, `adminUserPassword`, `adminUsername`, `dbName`, `defaultIamRoleArn`, `iamRoles`, `kmsKeyId`, `logExports`, `manageAdminPassword`, `namespaceName`, `redshiftIdcApplicationArn`, `tags` | - |
-| `CreateNamespaceResponse` | `structure` | `namespace` | - |
-| `CreateReservationRequest` | `structure` | `capacity`, `clientToken`, `offeringId` | - |
-| `CreateReservationResponse` | `structure` | `reservation` | - |
-| `CreateScheduledActionRequest` | `structure` | `enabled`, `endTime`, `namespaceName`, `roleArn`, `schedule`, `scheduledActionDescription`, `scheduledActionName`, `startTime`, `targetAction` | - |
-| `CreateScheduledActionResponse` | `structure` | `scheduledAction` | - |
-
+| `AccessDeniedException` | `structure` | code, message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message | The submitted action has conflicts. |
+| `DryRunException` | `structure` | message | This exception is thrown when the request was successful, but dry run was enabled so no action was taken. |
+| `InsufficientCapacityException` | `structure` | message | There is an insufficient capacity to perform the action. |
+| `InternalServerException` | `structure` | message | The request processing has failed because of an unknown error, exception or failure. |
+| `InvalidPaginationException` | `structure` | message | The provided pagination token is invalid. |
+| `Ipv6CidrBlockNotFoundException` | `structure` | message | There are no subnets in your VPC with associated IPv6 CIDR blocks. To use dual-stack mode, associate an IPv6 CIDR block with each subnet in your VPC. |
+| `ResourceNotFoundException` | `structure` | message, resourceName | The resource could not be found. |
+| `ServiceQuotaExceededException` | `structure` | message | The service limit was exceeded. |
+| `ThrottlingException` | `structure` | code, message | The request was denied due to request throttling. |
+| `TooManyTagsException` | `structure` | message, resourceName | The request exceeded the number of tags allowed for a resource. |
+| `ValidationException` | `structure` | message | The input failed to satisfy the constraints specified by an Amazon Web Services service. |
+| `CreateCustomDomainAssociationRequest` | `structure` | workgroupName, customDomainName, customDomainCertificateArn | - |
+| `CreateCustomDomainAssociationResponse` | `structure` | customDomainName, workgroupName, customDomainCertificateArn, customDomainCertificateExpiryTime | - |
+| `DeleteCustomDomainAssociationRequest` | `structure` | workgroupName, customDomainName | - |
+| `DeleteCustomDomainAssociationResponse` | `structure` | **empty (no members)** | - |
+| `DeleteResourcePolicyRequest` | `structure` | resourceArn | - |
+| `DeleteResourcePolicyResponse` | `structure` | **empty (no members)** | - |
+| `GetCredentialsRequest` | `structure` | dbName, durationSeconds, workgroupName, customDomainName | - |
+| `GetCredentialsResponse` | `structure` | dbUser, dbPassword, expiration, nextRefreshTime | - |
+| `GetCustomDomainAssociationRequest` | `structure` | customDomainName, workgroupName | - |
+| `GetCustomDomainAssociationResponse` | `structure` | customDomainName, workgroupName, customDomainCertificateArn, customDomainCertificateExpiryTime | - |
+| `GetIdentityCenterAuthTokenRequest` | `structure` | workgroupNames | - |
+| `GetIdentityCenterAuthTokenResponse` | `structure` | token, expirationTime | - |
+| `GetResourcePolicyRequest` | `structure` | resourceArn | - |
+| `GetResourcePolicyResponse` | `structure` | resourcePolicy | - |
+| `GetTrackRequest` | `structure` | trackName | - |
+| `GetTrackResponse` | `structure` | track | - |
+| `ListCustomDomainAssociationsRequest` | `structure` | nextToken, maxResults, customDomainName, customDomainCertificateArn | - |
+| `ListCustomDomainAssociationsResponse` | `structure` | nextToken, associations | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `ListTracksRequest` | `structure` | nextToken, maxResults | - |
+| `ListTracksResponse` | `structure` | tracks, nextToken | - |
+| `PutResourcePolicyRequest` | `structure` | resourceArn, policy | - |
+| `PutResourcePolicyResponse` | `structure` | resourcePolicy | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `ManagedWorkgroupStatus` | `enum` | CREATING, DELETING, MODIFYING, AVAILABLE, NOT_AVAILABLE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

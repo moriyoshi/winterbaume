@@ -69,173 +69,213 @@ Parity implications:
 
 ### Describe
 
-- Operations: `DescribeCertificates`, `DescribeDBClusterParameterGroups`, `DescribeDBClusterParameters`, `DescribeDBClusterSnapshotAttributes`, `DescribeDBClusterSnapshots`, `DescribeDBClusters`, `DescribeDBEngineVersions`, `DescribeDBInstances`, `DescribeDBSubnetGroups`, `DescribeEngineDefaultClusterParameters`, `DescribeEventCategories`, `DescribeEventSubscriptions`, `DescribeEvents`, `DescribeGlobalClusters`, `DescribeOrderableDBInstanceOptions`, `DescribePendingMaintenanceActions`
+- Operations: `DescribeCertificates`, `DescribeDBClusterParameterGroups`, `DescribeDBClusterParameters`, `DescribeDBClusters`, `DescribeDBClusterSnapshotAttributes`, `DescribeDBClusterSnapshots`, `DescribeDBEngineVersions`, `DescribeDBInstances`, `DescribeDBSubnetGroups`, `DescribeEngineDefaultClusterParameters`, `DescribeEventCategories`, `DescribeEvents`, `DescribeEventSubscriptions`, `DescribeGlobalClusters`, `DescribeOrderableDBInstanceOptions`, `DescribePendingMaintenanceActions`
 - Traits: `paginated` (13)
-- Common required input members in this group: `DBClusterParameterGroupName`, `DBClusterSnapshotIdentifier`, `DBParameterGroupFamily`, `Engine`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateDBCluster`, `CreateDBClusterParameterGroup`, `CreateDBClusterSnapshot`, `CreateDBInstance`, `CreateDBSubnetGroup`, `CreateEventSubscription`, `CreateGlobalCluster`
-- Common required input members in this group: `DBClusterIdentifier`, `DBClusterParameterGroupName`, `DBClusterSnapshotIdentifier`, `DBInstanceClass`, `DBInstanceIdentifier`, `DBParameterGroupFamily`, `DBSubnetGroupDescription`, `DBSubnetGroupName`, `Description`, `Engine`, `GlobalClusterIdentifier`, `SnsTopicArn`, `SubnetIds`, `SubscriptionName`
+- Common required input members in this group: `DBClusterIdentifier`, `Engine`
 
 ### Delete
 
 - Operations: `DeleteDBCluster`, `DeleteDBClusterParameterGroup`, `DeleteDBClusterSnapshot`, `DeleteDBInstance`, `DeleteDBSubnetGroup`, `DeleteEventSubscription`, `DeleteGlobalCluster`
-- Common required input members in this group: `DBClusterIdentifier`, `DBClusterParameterGroupName`, `DBClusterSnapshotIdentifier`, `DBInstanceIdentifier`, `DBSubnetGroupName`, `GlobalClusterIdentifier`, `SubscriptionName`
+- Common required input members in this group: -
 
 ### Modify
 
 - Operations: `ModifyDBCluster`, `ModifyDBClusterParameterGroup`, `ModifyDBClusterSnapshotAttribute`, `ModifyDBInstance`, `ModifyDBSubnetGroup`, `ModifyEventSubscription`, `ModifyGlobalCluster`
-- Common required input members in this group: `AttributeName`, `DBClusterIdentifier`, `DBClusterParameterGroupName`, `DBClusterSnapshotIdentifier`, `DBInstanceIdentifier`, `DBSubnetGroupName`, `GlobalClusterIdentifier`, `Parameters`, `SubnetIds`, `SubscriptionName`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveFromGlobalCluster`, `RemoveSourceIdentifierFromSubscription`, `RemoveTagsFromResource`
-- Common required input members in this group: `DbClusterIdentifier`, `GlobalClusterIdentifier`, `ResourceName`, `SourceIdentifier`, `SubscriptionName`, `TagKeys`
+- Common required input members in this group: -
 
 ### Add
 
 - Operations: `AddSourceIdentifierToSubscription`, `AddTagsToResource`
-- Common required input members in this group: `ResourceName`, `SourceIdentifier`, `SubscriptionName`, `Tags`
+- Common required input members in this group: -
 
 ### Copy
 
 - Operations: `CopyDBClusterParameterGroup`, `CopyDBClusterSnapshot`
-- Common required input members in this group: `SourceDBClusterParameterGroupIdentifier`, `SourceDBClusterSnapshotIdentifier`, `TargetDBClusterParameterGroupDescription`, `TargetDBClusterParameterGroupIdentifier`, `TargetDBClusterSnapshotIdentifier`
+- Common required input members in this group: -
 
 ### Failover
 
 - Operations: `FailoverDBCluster`, `FailoverGlobalCluster`
-- Common required input members in this group: `GlobalClusterIdentifier`, `TargetDbClusterIdentifier`
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestoreDBClusterFromSnapshot`, `RestoreDBClusterToPointInTime`
-- Common required input members in this group: `DBClusterIdentifier`, `Engine`, `SnapshotIdentifier`, `SourceDBClusterIdentifier`
+- Common required input members in this group: `DBClusterIdentifier`
 
 ### Apply
 
 - Operations: `ApplyPendingMaintenanceAction`
-- Common required input members in this group: `ApplyAction`, `OptInType`, `ResourceIdentifier`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
-- Common required input members in this group: `ResourceName`
+- Common required input members in this group: -
 
 ### Reboot
 
 - Operations: `RebootDBInstance`
-- Common required input members in this group: `DBInstanceIdentifier`
+- Common required input members in this group: -
 
 ### Reset
 
 - Operations: `ResetDBClusterParameterGroup`
-- Common required input members in this group: `DBClusterParameterGroupName`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartDBCluster`
-- Common required input members in this group: `DBClusterIdentifier`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopDBCluster`
-- Common required input members in this group: `DBClusterIdentifier`
+- Common required input members in this group: -
 
 ### Switchover
 
 - Operations: `SwitchoverGlobalCluster`
-- Common required input members in this group: `GlobalClusterIdentifier`, `TargetDbClusterIdentifier`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddSourceIdentifierToSubscription` | - | - | `SourceIdentifier`, `SubscriptionName` | - | `AddSourceIdentifierToSubscriptionResult` | `SourceNotFoundFault`, `SubscriptionNotFoundFault` | Adds a source identifier to an existing event notification subscription. |
-| `AddTagsToResource` | - | - | `ResourceName`, `Tags` | - | `Unit` | `DBClusterNotFoundFault`, `DBInstanceNotFoundFault`, `DBSnapshotNotFoundFault` | Adds metadata tags to an Amazon DocumentDB resource. You can use these tags with cost allocation reporting to track costs that are associated with Amazon DocumentDB resources or in a `Condition` statement in an Identity and Access Management (IAM) policy for... |
-| `ApplyPendingMaintenanceAction` | - | - | `ApplyAction`, `OptInType`, `ResourceIdentifier` | - | `ApplyPendingMaintenanceActionResult` | `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault`, `ResourceNotFoundFault` | Applies a pending maintenance action to a resource (for example, to an Amazon DocumentDB instance). |
-| `CopyDBClusterParameterGroup` | - | - | `SourceDBClusterParameterGroupIdentifier`, `TargetDBClusterParameterGroupDescription`, `TargetDBClusterParameterGroupIdentifier` | - | `CopyDBClusterParameterGroupResult` | `DBParameterGroupAlreadyExistsFault`, `DBParameterGroupNotFoundFault`, `DBParameterGroupQuotaExceededFault` | Copies the specified cluster parameter group. |
-| `CopyDBClusterSnapshot` | - | - | `SourceDBClusterSnapshotIdentifier`, `TargetDBClusterSnapshotIdentifier` | - | `CopyDBClusterSnapshotResult` | `DBClusterSnapshotAlreadyExistsFault`, `DBClusterSnapshotNotFoundFault`, `InvalidDBClusterSnapshotStateFault`, `InvalidDBClusterStateFault`, `KMSKeyNotAccessibleFault`, `SnapshotQuotaExceededFault` | Copies a snapshot of a cluster. To copy a cluster snapshot from a shared manual cluster snapshot, `SourceDBClusterSnapshotIdentifier` must be the Amazon Resource Name (ARN) of the shared cluster snapshot. |
-| `CreateDBCluster` | - | - | `DBClusterIdentifier`, `Engine` | - | `CreateDBClusterResult` | `DBClusterAlreadyExistsFault`, `DBClusterNotFoundFault`, `DBClusterParameterGroupNotFoundFault`, `DBClusterQuotaExceededFault`, `DBInstanceNotFoundFault`, `DBSubnetGroupDoesNotCoverEnoughAZs`, `DBSubnetGroupNotFoundFault`, `GlobalClusterNotFoundFault`, ... (+10) | Creates a new Amazon DocumentDB cluster. |
-| `CreateDBClusterParameterGroup` | - | - | `DBClusterParameterGroupName`, `DBParameterGroupFamily`, `Description` | - | `CreateDBClusterParameterGroupResult` | `DBParameterGroupAlreadyExistsFault`, `DBParameterGroupQuotaExceededFault` | Creates a new cluster parameter group. Parameters in a cluster parameter group apply to all of the instances in a cluster. |
-| `CreateDBClusterSnapshot` | - | - | `DBClusterIdentifier`, `DBClusterSnapshotIdentifier` | - | `CreateDBClusterSnapshotResult` | `DBClusterNotFoundFault`, `DBClusterSnapshotAlreadyExistsFault`, `InvalidDBClusterSnapshotStateFault`, `InvalidDBClusterStateFault`, `SnapshotQuotaExceededFault` | Creates a snapshot of a cluster. |
-| `CreateDBInstance` | - | - | `DBClusterIdentifier`, `DBInstanceClass`, `DBInstanceIdentifier`, `Engine` | - | `CreateDBInstanceResult` | `AuthorizationNotFoundFault`, `DBClusterNotFoundFault`, `DBInstanceAlreadyExistsFault`, `DBParameterGroupNotFoundFault`, `DBSecurityGroupNotFoundFault`, `DBSubnetGroupDoesNotCoverEnoughAZs`, `DBSubnetGroupNotFoundFault`, `InstanceQuotaExceededFault`, ... (+7) | Creates a new instance. |
-| `CreateDBSubnetGroup` | - | - | `DBSubnetGroupDescription`, `DBSubnetGroupName`, `SubnetIds` | - | `CreateDBSubnetGroupResult` | `DBSubnetGroupAlreadyExistsFault`, `DBSubnetGroupDoesNotCoverEnoughAZs`, `DBSubnetGroupQuotaExceededFault`, `DBSubnetQuotaExceededFault`, `InvalidSubnet` | Creates a new subnet group. subnet groups must contain at least one subnet in at least two Availability Zones in the Amazon Web Services Region. |
-| `CreateEventSubscription` | - | - | `SnsTopicArn`, `SubscriptionName` | - | `CreateEventSubscriptionResult` | `EventSubscriptionQuotaExceededFault`, `SNSInvalidTopicFault`, `SNSNoAuthorizationFault`, `SNSTopicArnNotFoundFault`, `SourceNotFoundFault`, `SubscriptionAlreadyExistFault`, `SubscriptionCategoryNotFoundFault` | Creates an Amazon DocumentDB event notification subscription. This action requires a topic Amazon Resource Name (ARN) created by using the Amazon DocumentDB console, the Amazon SNS console, or the Amazon SNS API. |
-| `CreateGlobalCluster` | - | - | `GlobalClusterIdentifier` | - | `CreateGlobalClusterResult` | `DBClusterNotFoundFault`, `GlobalClusterAlreadyExistsFault`, `GlobalClusterQuotaExceededFault`, `InvalidDBClusterStateFault` | Creates an Amazon DocumentDB global cluster that can span multiple multiple Amazon Web Services Regions. The global cluster contains one primary cluster with read-write capability, and up-to 10 read-only secondary clusters. |
-| `DeleteDBCluster` | - | - | `DBClusterIdentifier` | - | `DeleteDBClusterResult` | `DBClusterNotFoundFault`, `DBClusterSnapshotAlreadyExistsFault`, `InvalidDBClusterSnapshotStateFault`, `InvalidDBClusterStateFault`, `SnapshotQuotaExceededFault` | Deletes a previously provisioned cluster. When you delete a cluster, all automated backups for that cluster are deleted and can't be recovered. |
-| `DeleteDBClusterParameterGroup` | - | - | `DBClusterParameterGroupName` | - | `Unit` | `DBParameterGroupNotFoundFault`, `InvalidDBParameterGroupStateFault` | Deletes a specified cluster parameter group. The cluster parameter group to be deleted can't be associated with any clusters. |
-| `DeleteDBClusterSnapshot` | - | - | `DBClusterSnapshotIdentifier` | - | `DeleteDBClusterSnapshotResult` | `DBClusterSnapshotNotFoundFault`, `InvalidDBClusterSnapshotStateFault` | Deletes a cluster snapshot. If the snapshot is being copied, the copy operation is terminated. |
-| `DeleteDBInstance` | - | - | `DBInstanceIdentifier` | - | `DeleteDBInstanceResult` | `DBInstanceNotFoundFault`, `DBSnapshotAlreadyExistsFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault`, `SnapshotQuotaExceededFault` | Deletes a previously provisioned instance. |
-| `DeleteDBSubnetGroup` | - | - | `DBSubnetGroupName` | - | `Unit` | `DBSubnetGroupNotFoundFault`, `InvalidDBSubnetGroupStateFault`, `InvalidDBSubnetStateFault` | Deletes a subnet group. The specified database subnet group must not be associated with any DB instances. |
-| `DeleteEventSubscription` | - | - | `SubscriptionName` | - | `DeleteEventSubscriptionResult` | `InvalidEventSubscriptionStateFault`, `SubscriptionNotFoundFault` | Deletes an Amazon DocumentDB event notification subscription. |
-| `DeleteGlobalCluster` | - | - | `GlobalClusterIdentifier` | - | `DeleteGlobalClusterResult` | `GlobalClusterNotFoundFault`, `InvalidGlobalClusterStateFault` | Deletes a global cluster. The primary and secondary clusters must already be detached or deleted before attempting to delete a global cluster. |
-| `DescribeCertificates` | - | `paginated` | - | - | `CertificateMessage` | `CertificateNotFoundFault` | Returns a list of certificate authority (CA) certificates provided by Amazon DocumentDB for this Amazon Web Services account. |
-| `DescribeDBClusterParameterGroups` | - | `paginated` | - | - | `DBClusterParameterGroupsMessage` | `DBParameterGroupNotFoundFault` | Returns a list of `DBClusterParameterGroup` descriptions. If a `DBClusterParameterGroupName` parameter is specified, the list contains only the description of the specified cluster parameter group. |
-| `DescribeDBClusterParameters` | - | `paginated` | `DBClusterParameterGroupName` | - | `DBClusterParameterGroupDetails` | `DBParameterGroupNotFoundFault` | Returns the detailed parameter list for a particular cluster parameter group. |
-| `DescribeDBClusterSnapshotAttributes` | - | - | `DBClusterSnapshotIdentifier` | - | `DescribeDBClusterSnapshotAttributesResult` | `DBClusterSnapshotNotFoundFault` | Returns a list of cluster snapshot attribute names and values for a manual DB cluster snapshot. When you share snapshots with other Amazon Web Services accounts, `DescribeDBClusterSnapshotAttributes` returns the `restore` attribute and a list of IDs for the... |
-| `DescribeDBClusterSnapshots` | - | `paginated` | - | - | `DBClusterSnapshotMessage` | `DBClusterSnapshotNotFoundFault` | Returns information about cluster snapshots. This API operation supports pagination. |
-| `DescribeDBClusters` | - | `paginated` | - | - | `DBClusterMessage` | `DBClusterNotFoundFault` | Returns information about provisioned Amazon DocumentDB clusters. This API operation supports pagination. |
-| `DescribeDBEngineVersions` | - | `paginated` | - | - | `DBEngineVersionMessage` | - | Returns a list of the available engines. |
-| `DescribeDBInstances` | - | `paginated` | - | - | `DBInstanceMessage` | `DBInstanceNotFoundFault` | Returns information about provisioned Amazon DocumentDB instances. This API supports pagination. |
-| `DescribeDBSubnetGroups` | - | `paginated` | - | - | `DBSubnetGroupMessage` | `DBSubnetGroupNotFoundFault` | Returns a list of `DBSubnetGroup` descriptions. If a `DBSubnetGroupName` is specified, the list will contain only the descriptions of the specified `DBSubnetGroup`. |
-| `DescribeEngineDefaultClusterParameters` | - | - | `DBParameterGroupFamily` | - | `DescribeEngineDefaultClusterParametersResult` | - | Returns the default engine and system parameter information for the cluster database engine. |
-| `DescribeEventCategories` | - | - | - | - | `EventCategoriesMessage` | - | Displays a list of categories for all event source types, or, if specified, for a specified source type. |
-| `DescribeEventSubscriptions` | - | `paginated` | - | - | `EventSubscriptionsMessage` | `SubscriptionNotFoundFault` | Lists all the subscription descriptions for a customer account. The description for a subscription includes `SubscriptionName`, `SNSTopicARN`, `CustomerID`, `SourceType`, `SourceID`, `CreationTime`, and `Status`. |
-| `DescribeEvents` | - | `paginated` | - | - | `EventsMessage` | - | Returns events related to instances, security groups, snapshots, and DB parameter groups for the past 14 days. You can obtain events specific to a particular DB instance, security group, snapshot, or parameter group by providing the name as a parameter. |
-| `DescribeGlobalClusters` | - | `paginated` | - | - | `GlobalClustersMessage` | `GlobalClusterNotFoundFault` | Returns information about Amazon DocumentDB global clusters. This API supports pagination. |
-| `DescribeOrderableDBInstanceOptions` | - | `paginated` | `Engine` | - | `OrderableDBInstanceOptionsMessage` | - | Returns a list of orderable instance options for the specified engine. |
-| `DescribePendingMaintenanceActions` | - | `paginated` | - | - | `PendingMaintenanceActionsMessage` | `ResourceNotFoundFault` | Returns a list of resources (for example, instances) that have at least one pending maintenance action. |
-| `FailoverDBCluster` | - | - | - | - | `FailoverDBClusterResult` | `DBClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault` | Forces a failover for a cluster. A failover for a cluster promotes one of the Amazon DocumentDB replicas (read-only instances) in the cluster to be the primary instance (the cluster writer). |
-| `FailoverGlobalCluster` | - | - | `GlobalClusterIdentifier`, `TargetDbClusterIdentifier` | - | `FailoverGlobalClusterResult` | `DBClusterNotFoundFault`, `GlobalClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidGlobalClusterStateFault` | Promotes the specified secondary DB cluster to be the primary DB cluster in the global cluster when failing over a global cluster occurs. Use this operation to respond to an unplanned event, such as a regional disaster in the primary region. |
-| `ListTagsForResource` | - | - | `ResourceName` | - | `TagListMessage` | `DBClusterNotFoundFault`, `DBInstanceNotFoundFault`, `DBSnapshotNotFoundFault` | Lists all tags on an Amazon DocumentDB resource. |
-| `ModifyDBCluster` | - | - | `DBClusterIdentifier` | - | `ModifyDBClusterResult` | `DBClusterAlreadyExistsFault`, `DBClusterNotFoundFault`, `DBClusterParameterGroupNotFoundFault`, `DBSubnetGroupNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault`, `InvalidDBSecurityGroupStateFault`, `InvalidDBSubnetGroupStateFault`, ... (+4) | Modifies a setting for an Amazon DocumentDB cluster. You can change one or more database configuration parameters by specifying these parameters and the new values in the request. |
-| `ModifyDBClusterParameterGroup` | - | - | `DBClusterParameterGroupName`, `Parameters` | - | `DBClusterParameterGroupNameMessage` | `DBParameterGroupNotFoundFault`, `InvalidDBParameterGroupStateFault` | Modifies the parameters of a cluster parameter group. To modify more than one parameter, submit a list of the following: `ParameterName`, `ParameterValue`, and `ApplyMethod`. |
-| `ModifyDBClusterSnapshotAttribute` | - | - | `AttributeName`, `DBClusterSnapshotIdentifier` | - | `ModifyDBClusterSnapshotAttributeResult` | `DBClusterSnapshotNotFoundFault`, `InvalidDBClusterSnapshotStateFault`, `SharedSnapshotQuotaExceededFault` | Adds an attribute and values to, or removes an attribute and values from, a manual cluster snapshot. To share a manual cluster snapshot with other Amazon Web Services accounts, specify `restore` as the `AttributeName`, and use the `ValuesToAdd` parameter to... |
-| `ModifyDBInstance` | - | - | `DBInstanceIdentifier` | - | `ModifyDBInstanceResult` | `AuthorizationNotFoundFault`, `CertificateNotFoundFault`, `DBInstanceAlreadyExistsFault`, `DBInstanceNotFoundFault`, `DBParameterGroupNotFoundFault`, `DBSecurityGroupNotFoundFault`, `DBUpgradeDependencyFailureFault`, `InsufficientDBInstanceCapacityFault`, ... (+5) | Modifies settings for an instance. You can change one or more database configuration parameters by specifying these parameters and the new values in the request. |
-| `ModifyDBSubnetGroup` | - | - | `DBSubnetGroupName`, `SubnetIds` | - | `ModifyDBSubnetGroupResult` | `DBSubnetGroupDoesNotCoverEnoughAZs`, `DBSubnetGroupNotFoundFault`, `DBSubnetQuotaExceededFault`, `InvalidSubnet`, `SubnetAlreadyInUse` | Modifies an existing subnet group. subnet groups must contain at least one subnet in at least two Availability Zones in the Amazon Web Services Region. |
-| `ModifyEventSubscription` | - | - | `SubscriptionName` | - | `ModifyEventSubscriptionResult` | `EventSubscriptionQuotaExceededFault`, `SNSInvalidTopicFault`, `SNSNoAuthorizationFault`, `SNSTopicArnNotFoundFault`, `SubscriptionCategoryNotFoundFault`, `SubscriptionNotFoundFault` | Modifies an existing Amazon DocumentDB event notification subscription. |
-| `ModifyGlobalCluster` | - | - | `GlobalClusterIdentifier` | - | `ModifyGlobalClusterResult` | `GlobalClusterNotFoundFault`, `InvalidGlobalClusterStateFault` | Modify a setting for an Amazon DocumentDB global cluster. You can change one or more configuration parameters (for example: deletion protection), or the global cluster identifier by specifying these parameters and the new values in the request. |
-| `RebootDBInstance` | - | - | `DBInstanceIdentifier` | - | `RebootDBInstanceResult` | `DBInstanceNotFoundFault`, `InvalidDBInstanceStateFault` | You might need to reboot your instance, usually for maintenance reasons. For example, if you make certain changes, or if you change the cluster parameter group that is associated with the instance, you must reboot the instance for the changes to take effect. |
-| `RemoveFromGlobalCluster` | - | - | `DbClusterIdentifier`, `GlobalClusterIdentifier` | - | `RemoveFromGlobalClusterResult` | `DBClusterNotFoundFault`, `GlobalClusterNotFoundFault`, `InvalidGlobalClusterStateFault` | Detaches an Amazon DocumentDB secondary cluster from a global cluster. The cluster becomes a standalone cluster with read-write capability instead of being read-only and receiving data from a primary in a different region. |
-| `RemoveSourceIdentifierFromSubscription` | - | - | `SourceIdentifier`, `SubscriptionName` | - | `RemoveSourceIdentifierFromSubscriptionResult` | `SourceNotFoundFault`, `SubscriptionNotFoundFault` | Removes a source identifier from an existing Amazon DocumentDB event notification subscription. |
-| `RemoveTagsFromResource` | - | - | `ResourceName`, `TagKeys` | - | `Unit` | `DBClusterNotFoundFault`, `DBInstanceNotFoundFault`, `DBSnapshotNotFoundFault` | Removes metadata tags from an Amazon DocumentDB resource. |
-| `ResetDBClusterParameterGroup` | - | - | `DBClusterParameterGroupName` | - | `DBClusterParameterGroupNameMessage` | `DBParameterGroupNotFoundFault`, `InvalidDBParameterGroupStateFault` | Modifies the parameters of a cluster parameter group to the default value. To reset specific parameters, submit a list of the following: `ParameterName` and `ApplyMethod`. |
-| `RestoreDBClusterFromSnapshot` | - | - | `DBClusterIdentifier`, `Engine`, `SnapshotIdentifier` | - | `RestoreDBClusterFromSnapshotResult` | `DBClusterAlreadyExistsFault`, `DBClusterQuotaExceededFault`, `DBClusterSnapshotNotFoundFault`, `DBSnapshotNotFoundFault`, `DBSubnetGroupNotFoundFault`, `InsufficientDBClusterCapacityFault`, `InsufficientStorageClusterCapacityFault`, `InvalidDBClusterSnapshotStateFault`, ... (+7) | Creates a new cluster from a snapshot or cluster snapshot. If a snapshot is specified, the target cluster is created from the source DB snapshot with a default configuration and default security group. |
-| `RestoreDBClusterToPointInTime` | - | - | `DBClusterIdentifier`, `SourceDBClusterIdentifier` | - | `RestoreDBClusterToPointInTimeResult` | `DBClusterAlreadyExistsFault`, `DBClusterNotFoundFault`, `DBClusterQuotaExceededFault`, `DBClusterSnapshotNotFoundFault`, `DBSubnetGroupNotFoundFault`, `InsufficientDBClusterCapacityFault`, `InsufficientStorageClusterCapacityFault`, `InvalidDBClusterSnapshotStateFault`, ... (+8) | Restores a cluster to an arbitrary point in time. Users can restore to any point in time before `LatestRestorableTime` for up to `BackupRetentionPeriod` days. |
-| `StartDBCluster` | - | - | `DBClusterIdentifier` | - | `StartDBClusterResult` | `DBClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault` | Restarts the stopped cluster that is specified by `DBClusterIdentifier`. For more information, see Stopping and Starting an Amazon DocumentDB Cluster. |
-| `StopDBCluster` | - | - | `DBClusterIdentifier` | - | `StopDBClusterResult` | `DBClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault` | Stops the running cluster that is specified by `DBClusterIdentifier`. The cluster must be in the available state. |
-| `SwitchoverGlobalCluster` | - | - | `GlobalClusterIdentifier`, `TargetDbClusterIdentifier` | - | `SwitchoverGlobalClusterResult` | `DBClusterNotFoundFault`, `GlobalClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidGlobalClusterStateFault` | Switches over the specified secondary Amazon DocumentDB cluster to be the new primary Amazon DocumentDB cluster in the global database cluster. |
+| `AddSourceIdentifierToSubscription` | `-` | - | `SubscriptionName`, `SourceIdentifier` | - | `AddSourceIdentifierToSubscriptionResult` | `SourceNotFoundFault`, `SubscriptionNotFoundFault` | Adds a source identifier to an existing event notification subscription. |
+| `AddTagsToResource` | `-` | - | `ResourceName`, `Tags` | - | `Unit` | `DBClusterNotFoundFault`, `DBInstanceNotFoundFault`, `DBSnapshotNotFoundFault` | Adds metadata tags to an Amazon DocumentDB resource. You can use these tags with cost allocation reporting to track costs that are associated with Amazon DocumentDB resources or in a Condition statement in an Identit ... |
+| `ApplyPendingMaintenanceAction` | `-` | - | `ResourceIdentifier`, `ApplyAction`, `OptInType` | - | `ApplyPendingMaintenanceActionResult` | `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault`, `ResourceNotFoundFault` | Applies a pending maintenance action to a resource (for example, to an Amazon DocumentDB instance). |
+| `CopyDBClusterParameterGroup` | `-` | - | `SourceDBClusterParameterGroupIdentifier`, `TargetDBClusterParameterGroupIdentifier`, `TargetDBClusterParameterGroupDescription` | - | `CopyDBClusterParameterGroupResult` | `DBParameterGroupAlreadyExistsFault`, `DBParameterGroupNotFoundFault`, `DBParameterGroupQuotaExceededFault` | Copies the specified cluster parameter group. |
+| `CopyDBClusterSnapshot` | `-` | - | `SourceDBClusterSnapshotIdentifier`, `TargetDBClusterSnapshotIdentifier` | - | `CopyDBClusterSnapshotResult` | `DBClusterSnapshotAlreadyExistsFault`, `DBClusterSnapshotNotFoundFault`, `InvalidDBClusterSnapshotStateFault`, `InvalidDBClusterStateFault`, `KMSKeyNotAccessibleFault`, `SnapshotQuotaExceededFault` | Copies a snapshot of a cluster. To copy a cluster snapshot from a shared manual cluster snapshot, SourceDBClusterSnapshotIdentifier must be the Amazon Resource Name (ARN) of the shared cluster snapshot. You can only ... |
+| `CreateDBCluster` | `-` | - | `DBClusterIdentifier`, `Engine` | - | `CreateDBClusterResult` | `DBClusterAlreadyExistsFault`, `DBClusterNotFoundFault`, `DBClusterParameterGroupNotFoundFault`, `DBClusterQuotaExceededFault`, `DBInstanceNotFoundFault`, `DBSubnetGroupDoesNotCoverEnoughAZs`, `DBSubnetGroupNotFoundFault`, `GlobalClusterNotFoundFault`, `InsufficientStorageClusterCapacityFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault`, `InvalidDBSubnetGroupStateFault`, `InvalidGlobalClusterStateFault`, `InvalidSubnet`, `InvalidVPCNetworkStateFault`, `KMSKeyNotAccessibleFault`, `NetworkTypeNotSupported`, `StorageQuotaExceededFault` | Creates a new Amazon DocumentDB cluster. |
+| `CreateDBClusterParameterGroup` | `-` | - | `DBClusterParameterGroupName`, `DBParameterGroupFamily`, `Description` | - | `CreateDBClusterParameterGroupResult` | `DBParameterGroupAlreadyExistsFault`, `DBParameterGroupQuotaExceededFault` | Creates a new cluster parameter group. Parameters in a cluster parameter group apply to all of the instances in a cluster. A cluster parameter group is initially created with the default parameters for the database e ... |
+| `CreateDBClusterSnapshot` | `-` | - | `DBClusterSnapshotIdentifier`, `DBClusterIdentifier` | - | `CreateDBClusterSnapshotResult` | `DBClusterNotFoundFault`, `DBClusterSnapshotAlreadyExistsFault`, `InvalidDBClusterSnapshotStateFault`, `InvalidDBClusterStateFault`, `SnapshotQuotaExceededFault` | Creates a snapshot of a cluster. |
+| `CreateDBInstance` | `-` | - | `DBInstanceIdentifier`, `DBInstanceClass`, `Engine`, `DBClusterIdentifier` | - | `CreateDBInstanceResult` | `AuthorizationNotFoundFault`, `DBClusterNotFoundFault`, `DBInstanceAlreadyExistsFault`, `DBParameterGroupNotFoundFault`, `DBSecurityGroupNotFoundFault`, `DBSubnetGroupDoesNotCoverEnoughAZs`, `DBSubnetGroupNotFoundFault`, `InstanceQuotaExceededFault`, `InsufficientDBInstanceCapacityFault`, `InvalidDBClusterStateFault`, `InvalidSubnet`, `InvalidVPCNetworkStateFault`, `KMSKeyNotAccessibleFault`, `StorageQuotaExceededFault`, `StorageTypeNotSupportedFault` | Creates a new instance. |
+| `CreateDBSubnetGroup` | `-` | - | `DBSubnetGroupName`, `DBSubnetGroupDescription`, `SubnetIds` | - | `CreateDBSubnetGroupResult` | `DBSubnetGroupAlreadyExistsFault`, `DBSubnetGroupDoesNotCoverEnoughAZs`, `DBSubnetGroupQuotaExceededFault`, `DBSubnetQuotaExceededFault`, `InvalidSubnet` | Creates a new subnet group. subnet groups must contain at least one subnet in at least two Availability Zones in the Amazon Web Services Region. |
+| `CreateEventSubscription` | `-` | - | `SubscriptionName`, `SnsTopicArn` | - | `CreateEventSubscriptionResult` | `EventSubscriptionQuotaExceededFault`, `SNSInvalidTopicFault`, `SNSNoAuthorizationFault`, `SNSTopicArnNotFoundFault`, `SourceNotFoundFault`, `SubscriptionAlreadyExistFault`, `SubscriptionCategoryNotFoundFault` | Creates an Amazon DocumentDB event notification subscription. This action requires a topic Amazon Resource Name (ARN) created by using the Amazon DocumentDB console, the Amazon SNS console, or the Amazon SNS API. To ... |
+| `CreateGlobalCluster` | `-` | - | `GlobalClusterIdentifier` | - | `CreateGlobalClusterResult` | `DBClusterNotFoundFault`, `GlobalClusterAlreadyExistsFault`, `GlobalClusterQuotaExceededFault`, `InvalidDBClusterStateFault` | Creates an Amazon DocumentDB global cluster that can span multiple multiple Amazon Web Services Regions. The global cluster contains one primary cluster with read-write capability, and up-to 10 read-only secondary cl ... |
+| `DeleteDBCluster` | `-` | - | `DBClusterIdentifier` | - | `DeleteDBClusterResult` | `DBClusterNotFoundFault`, `DBClusterSnapshotAlreadyExistsFault`, `InvalidDBClusterSnapshotStateFault`, `InvalidDBClusterStateFault`, `SnapshotQuotaExceededFault` | Deletes a previously provisioned cluster. When you delete a cluster, all automated backups for that cluster are deleted and can't be recovered. Manual DB cluster snapshots of the specified cluster are not deleted. |
+| `DeleteDBClusterParameterGroup` | `-` | - | `DBClusterParameterGroupName` | - | `Unit` | `DBParameterGroupNotFoundFault`, `InvalidDBParameterGroupStateFault` | Deletes a specified cluster parameter group. The cluster parameter group to be deleted can't be associated with any clusters. |
+| `DeleteDBClusterSnapshot` | `-` | - | `DBClusterSnapshotIdentifier` | - | `DeleteDBClusterSnapshotResult` | `DBClusterSnapshotNotFoundFault`, `InvalidDBClusterSnapshotStateFault` | Deletes a cluster snapshot. If the snapshot is being copied, the copy operation is terminated. The cluster snapshot must be in the available state to be deleted. |
+| `DeleteDBInstance` | `-` | - | `DBInstanceIdentifier` | - | `DeleteDBInstanceResult` | `DBInstanceNotFoundFault`, `DBSnapshotAlreadyExistsFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault`, `SnapshotQuotaExceededFault` | Deletes a previously provisioned instance. |
+| `DeleteDBSubnetGroup` | `-` | - | `DBSubnetGroupName` | - | `Unit` | `DBSubnetGroupNotFoundFault`, `InvalidDBSubnetGroupStateFault`, `InvalidDBSubnetStateFault` | Deletes a subnet group. The specified database subnet group must not be associated with any DB instances. |
+| `DeleteEventSubscription` | `-` | - | `SubscriptionName` | - | `DeleteEventSubscriptionResult` | `InvalidEventSubscriptionStateFault`, `SubscriptionNotFoundFault` | Deletes an Amazon DocumentDB event notification subscription. |
+| `DeleteGlobalCluster` | `-` | - | `GlobalClusterIdentifier` | - | `DeleteGlobalClusterResult` | `GlobalClusterNotFoundFault`, `InvalidGlobalClusterStateFault` | Deletes a global cluster. The primary and secondary clusters must already be detached or deleted before attempting to delete a global cluster. This action only applies to Amazon DocumentDB clusters. |
+| `DescribeCertificates` | `-` | `paginated` | - | - | `CertificateMessage` | `CertificateNotFoundFault` | Returns a list of certificate authority (CA) certificates provided by Amazon DocumentDB for this Amazon Web Services account. |
+| `DescribeDBClusterParameterGroups` | `-` | `paginated` | - | - | `DBClusterParameterGroupsMessage` | `DBParameterGroupNotFoundFault` | Returns a list of DBClusterParameterGroup descriptions. If a DBClusterParameterGroupName parameter is specified, the list contains only the description of the specified cluster parameter group. |
+| `DescribeDBClusterParameters` | `-` | `paginated` | `DBClusterParameterGroupName` | - | `DBClusterParameterGroupDetails` | `DBParameterGroupNotFoundFault` | Returns the detailed parameter list for a particular cluster parameter group. |
+| `DescribeDBClusters` | `-` | `paginated` | - | - | `DBClusterMessage` | `DBClusterNotFoundFault` | Returns information about provisioned Amazon DocumentDB clusters. This API operation supports pagination. For certain management features such as cluster and instance lifecycle management, Amazon DocumentDB leverages ... |
+| `DescribeDBClusterSnapshotAttributes` | `-` | - | `DBClusterSnapshotIdentifier` | - | `DescribeDBClusterSnapshotAttributesResult` | `DBClusterSnapshotNotFoundFault` | Returns a list of cluster snapshot attribute names and values for a manual DB cluster snapshot. When you share snapshots with other Amazon Web Services accounts, DescribeDBClusterSnapshotAttributes returns the restor ... |
+| `DescribeDBClusterSnapshots` | `-` | `paginated` | - | - | `DBClusterSnapshotMessage` | `DBClusterSnapshotNotFoundFault` | Returns information about cluster snapshots. This API operation supports pagination. |
+| `DescribeDBEngineVersions` | `-` | `paginated` | - | - | `DBEngineVersionMessage` | - | Returns a list of the available engines. |
+| `DescribeDBInstances` | `-` | `paginated` | - | - | `DBInstanceMessage` | `DBInstanceNotFoundFault` | Returns information about provisioned Amazon DocumentDB instances. This API supports pagination. |
+| `DescribeDBSubnetGroups` | `-` | `paginated` | - | - | `DBSubnetGroupMessage` | `DBSubnetGroupNotFoundFault` | Returns a list of DBSubnetGroup descriptions. If a DBSubnetGroupName is specified, the list will contain only the descriptions of the specified DBSubnetGroup . |
+| `DescribeEngineDefaultClusterParameters` | `-` | - | `DBParameterGroupFamily` | - | `DescribeEngineDefaultClusterParametersResult` | - | Returns the default engine and system parameter information for the cluster database engine. |
+| `DescribeEventCategories` | `-` | - | - | - | `EventCategoriesMessage` | - | Displays a list of categories for all event source types, or, if specified, for a specified source type. |
+| `DescribeEvents` | `-` | `paginated` | - | - | `EventsMessage` | - | Returns events related to instances, security groups, snapshots, and DB parameter groups for the past 14 days. You can obtain events specific to a particular DB instance, security group, snapshot, or parameter group ... |
+| `DescribeEventSubscriptions` | `-` | `paginated` | - | - | `EventSubscriptionsMessage` | `SubscriptionNotFoundFault` | Lists all the subscription descriptions for a customer account. The description for a subscription includes SubscriptionName , SNSTopicARN , CustomerID , SourceType , SourceID , CreationTime , and Status . If you spe ... |
+| `DescribeGlobalClusters` | `-` | `paginated` | - | - | `GlobalClustersMessage` | `GlobalClusterNotFoundFault` | Returns information about Amazon DocumentDB global clusters. This API supports pagination. This action only applies to Amazon DocumentDB clusters. |
+| `DescribeOrderableDBInstanceOptions` | `-` | `paginated` | `Engine` | - | `OrderableDBInstanceOptionsMessage` | - | Returns a list of orderable instance options for the specified engine. |
+| `DescribePendingMaintenanceActions` | `-` | `paginated` | - | - | `PendingMaintenanceActionsMessage` | `ResourceNotFoundFault` | Returns a list of resources (for example, instances) that have at least one pending maintenance action. |
+| `FailoverDBCluster` | `-` | - | - | - | `FailoverDBClusterResult` | `DBClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault` | Forces a failover for a cluster. A failover for a cluster promotes one of the Amazon DocumentDB replicas (read-only instances) in the cluster to be the primary instance (the cluster writer). If the primary instance f ... |
+| `FailoverGlobalCluster` | `-` | - | `GlobalClusterIdentifier`, `TargetDbClusterIdentifier` | - | `FailoverGlobalClusterResult` | `DBClusterNotFoundFault`, `GlobalClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidGlobalClusterStateFault` | Promotes the specified secondary DB cluster to be the primary DB cluster in the global cluster when failing over a global cluster occurs. Use this operation to respond to an unplanned event, such as a regional disast ... |
+| `ListTagsForResource` | `-` | - | `ResourceName` | - | `TagListMessage` | `DBClusterNotFoundFault`, `DBInstanceNotFoundFault`, `DBSnapshotNotFoundFault` | Lists all tags on an Amazon DocumentDB resource. |
+| `ModifyDBCluster` | `-` | - | `DBClusterIdentifier` | - | `ModifyDBClusterResult` | `DBClusterAlreadyExistsFault`, `DBClusterNotFoundFault`, `DBClusterParameterGroupNotFoundFault`, `DBSubnetGroupNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault`, `InvalidDBSecurityGroupStateFault`, `InvalidDBSubnetGroupStateFault`, `InvalidSubnet`, `InvalidVPCNetworkStateFault`, `NetworkTypeNotSupported`, `StorageQuotaExceededFault` | Modifies a setting for an Amazon DocumentDB cluster. You can change one or more database configuration parameters by specifying these parameters and the new values in the request. |
+| `ModifyDBClusterParameterGroup` | `-` | - | `DBClusterParameterGroupName`, `Parameters` | - | `DBClusterParameterGroupNameMessage` | `DBParameterGroupNotFoundFault`, `InvalidDBParameterGroupStateFault` | Modifies the parameters of a cluster parameter group. To modify more than one parameter, submit a list of the following: ParameterName , ParameterValue , and ApplyMethod . A maximum of 20 parameters can be modified i ... |
+| `ModifyDBClusterSnapshotAttribute` | `-` | - | `DBClusterSnapshotIdentifier`, `AttributeName` | - | `ModifyDBClusterSnapshotAttributeResult` | `DBClusterSnapshotNotFoundFault`, `InvalidDBClusterSnapshotStateFault`, `SharedSnapshotQuotaExceededFault` | Adds an attribute and values to, or removes an attribute and values from, a manual cluster snapshot. To share a manual cluster snapshot with other Amazon Web Services accounts, specify restore as the AttributeName , ... |
+| `ModifyDBInstance` | `-` | - | `DBInstanceIdentifier` | - | `ModifyDBInstanceResult` | `AuthorizationNotFoundFault`, `CertificateNotFoundFault`, `DBInstanceAlreadyExistsFault`, `DBInstanceNotFoundFault`, `DBParameterGroupNotFoundFault`, `DBSecurityGroupNotFoundFault`, `DBUpgradeDependencyFailureFault`, `InsufficientDBInstanceCapacityFault`, `InvalidDBInstanceStateFault`, `InvalidDBSecurityGroupStateFault`, `InvalidVPCNetworkStateFault`, `StorageQuotaExceededFault`, `StorageTypeNotSupportedFault` | Modifies settings for an instance. You can change one or more database configuration parameters by specifying these parameters and the new values in the request. |
+| `ModifyDBSubnetGroup` | `-` | - | `DBSubnetGroupName`, `SubnetIds` | - | `ModifyDBSubnetGroupResult` | `DBSubnetGroupDoesNotCoverEnoughAZs`, `DBSubnetGroupNotFoundFault`, `DBSubnetQuotaExceededFault`, `InvalidSubnet`, `SubnetAlreadyInUse` | Modifies an existing subnet group. subnet groups must contain at least one subnet in at least two Availability Zones in the Amazon Web Services Region. |
+| `ModifyEventSubscription` | `-` | - | `SubscriptionName` | - | `ModifyEventSubscriptionResult` | `EventSubscriptionQuotaExceededFault`, `SNSInvalidTopicFault`, `SNSNoAuthorizationFault`, `SNSTopicArnNotFoundFault`, `SubscriptionCategoryNotFoundFault`, `SubscriptionNotFoundFault` | Modifies an existing Amazon DocumentDB event notification subscription. |
+| `ModifyGlobalCluster` | `-` | - | `GlobalClusterIdentifier` | - | `ModifyGlobalClusterResult` | `GlobalClusterNotFoundFault`, `InvalidGlobalClusterStateFault` | Modify a setting for an Amazon DocumentDB global cluster. You can change one or more configuration parameters (for example: deletion protection), or the global cluster identifier by specifying these parameters and th ... |
+| `RebootDBInstance` | `-` | - | `DBInstanceIdentifier` | - | `RebootDBInstanceResult` | `DBInstanceNotFoundFault`, `InvalidDBInstanceStateFault` | You might need to reboot your instance, usually for maintenance reasons. For example, if you make certain changes, or if you change the cluster parameter group that is associated with the instance, you must reboot th ... |
+| `RemoveFromGlobalCluster` | `-` | - | `GlobalClusterIdentifier`, `DbClusterIdentifier` | - | `RemoveFromGlobalClusterResult` | `DBClusterNotFoundFault`, `GlobalClusterNotFoundFault`, `InvalidGlobalClusterStateFault` | Detaches an Amazon DocumentDB secondary cluster from a global cluster. The cluster becomes a standalone cluster with read-write capability instead of being read-only and receiving data from a primary in a different r ... |
+| `RemoveSourceIdentifierFromSubscription` | `-` | - | `SubscriptionName`, `SourceIdentifier` | - | `RemoveSourceIdentifierFromSubscriptionResult` | `SourceNotFoundFault`, `SubscriptionNotFoundFault` | Removes a source identifier from an existing Amazon DocumentDB event notification subscription. |
+| `RemoveTagsFromResource` | `-` | - | `ResourceName`, `TagKeys` | - | `Unit` | `DBClusterNotFoundFault`, `DBInstanceNotFoundFault`, `DBSnapshotNotFoundFault` | Removes metadata tags from an Amazon DocumentDB resource. |
+| `ResetDBClusterParameterGroup` | `-` | - | `DBClusterParameterGroupName` | - | `DBClusterParameterGroupNameMessage` | `DBParameterGroupNotFoundFault`, `InvalidDBParameterGroupStateFault` | Modifies the parameters of a cluster parameter group to the default value. To reset specific parameters, submit a list of the following: ParameterName and ApplyMethod . To reset the entire cluster parameter group, sp ... |
+| `RestoreDBClusterFromSnapshot` | `-` | - | `DBClusterIdentifier`, `SnapshotIdentifier`, `Engine` | - | `RestoreDBClusterFromSnapshotResult` | `DBClusterAlreadyExistsFault`, `DBClusterQuotaExceededFault`, `DBClusterSnapshotNotFoundFault`, `DBSnapshotNotFoundFault`, `DBSubnetGroupNotFoundFault`, `InsufficientDBClusterCapacityFault`, `InsufficientStorageClusterCapacityFault`, `InvalidDBClusterSnapshotStateFault`, `InvalidDBSnapshotStateFault`, `InvalidRestoreFault`, `InvalidSubnet`, `InvalidVPCNetworkStateFault`, `KMSKeyNotAccessibleFault`, `NetworkTypeNotSupported`, `StorageQuotaExceededFault` | Creates a new cluster from a snapshot or cluster snapshot. If a snapshot is specified, the target cluster is created from the source DB snapshot with a default configuration and default security group. If a cluster s ... |
+| `RestoreDBClusterToPointInTime` | `-` | - | `DBClusterIdentifier`, `SourceDBClusterIdentifier` | - | `RestoreDBClusterToPointInTimeResult` | `DBClusterAlreadyExistsFault`, `DBClusterNotFoundFault`, `DBClusterQuotaExceededFault`, `DBClusterSnapshotNotFoundFault`, `DBSubnetGroupNotFoundFault`, `InsufficientDBClusterCapacityFault`, `InsufficientStorageClusterCapacityFault`, `InvalidDBClusterSnapshotStateFault`, `InvalidDBClusterStateFault`, `InvalidDBSnapshotStateFault`, `InvalidRestoreFault`, `InvalidSubnet`, `InvalidVPCNetworkStateFault`, `KMSKeyNotAccessibleFault`, `NetworkTypeNotSupported`, `StorageQuotaExceededFault` | Restores a cluster to an arbitrary point in time. Users can restore to any point in time before LatestRestorableTime for up to BackupRetentionPeriod days. The target cluster is created from the source cluster with th ... |
+| `StartDBCluster` | `-` | - | `DBClusterIdentifier` | - | `StartDBClusterResult` | `DBClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault` | Restarts the stopped cluster that is specified by DBClusterIdentifier . For more information, see Stopping and Starting an Amazon DocumentDB Cluster . |
+| `StopDBCluster` | `-` | - | `DBClusterIdentifier` | - | `StopDBClusterResult` | `DBClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidDBInstanceStateFault` | Stops the running cluster that is specified by DBClusterIdentifier . The cluster must be in the available state. For more information, see Stopping and Starting an Amazon DocumentDB Cluster . |
+| `SwitchoverGlobalCluster` | `-` | - | `GlobalClusterIdentifier`, `TargetDbClusterIdentifier` | - | `SwitchoverGlobalClusterResult` | `DBClusterNotFoundFault`, `GlobalClusterNotFoundFault`, `InvalidDBClusterStateFault`, `InvalidGlobalClusterStateFault` | Switches over the specified secondary Amazon DocumentDB cluster to be the new primary Amazon DocumentDB cluster in the global database cluster. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `DBClusterNotFoundFault` | `structure` | `message` | `DBClusterIdentifier` doesn't refer to an existing cluster. |
-| `InvalidDBClusterStateFault` | `structure` | `message` | The cluster isn't in a valid state. |
-| `InvalidDBInstanceStateFault` | `structure` | `message` | The specified instance isn't in the available state. |
-| `DBInstanceNotFoundFault` | `structure` | `message` | `DBInstanceIdentifier` doesn't refer to an existing instance. |
-| `DBParameterGroupNotFoundFault` | `structure` | `message` | `DBParameterGroupName` doesn't refer to an existing parameter group. |
-| `DBSubnetGroupNotFoundFault` | `structure` | `message` | `DBSubnetGroupName` doesn't refer to an existing subnet group. |
-| `DBClusterSnapshotNotFoundFault` | `structure` | `message` | `DBClusterSnapshotIdentifier` doesn't refer to an existing cluster snapshot. |
-| `InvalidDBClusterSnapshotStateFault` | `structure` | `message` | The provided value isn't a valid cluster snapshot state. |
-| `GlobalClusterNotFoundFault` | `structure` | `message` | The `GlobalClusterIdentifier` doesn't refer to an existing global cluster. |
-| `InvalidSubnet` | `structure` | `message` | The requested subnet is not valid, or multiple subnets were requested that are not all in a common virtual private cloud (VPC). |
-| `InvalidGlobalClusterStateFault` | `structure` | `message` | The requested operation can't be performed while the cluster is in this state. |
-| `InvalidVPCNetworkStateFault` | `structure` | `message` | The subnet group doesn't cover all Availability Zones after it is created because of changes that were made. |
-| `StorageQuotaExceededFault` | `structure` | `message` | The request would cause you to exceed the allowed amount of storage available across all instances. |
-| `SubscriptionNotFoundFault` | `structure` | `message` | The subscription name does not exist. |
-| `KMSKeyNotAccessibleFault` | `structure` | `message` | An error occurred when accessing an KMS key. |
-| `DBSnapshotNotFoundFault` | `structure` | `message` | `DBSnapshotIdentifier` doesn't refer to an existing snapshot. |
-| `SnapshotQuotaExceededFault` | `structure` | `message` | The request would cause you to exceed the allowed number of snapshots. |
-| `DBClusterAlreadyExistsFault` | `structure` | `message` | You already have a cluster with the given identifier. |
-| `DBSubnetGroupDoesNotCoverEnoughAZs` | `structure` | `message` | Subnets in the subnet group should cover at least two Availability Zones unless there is only one Availability Zone. |
-| `NetworkTypeNotSupported` | `structure` | `message` | The network type is not supported by either `DBSubnetGroup` or the DB engine version. |
-| `SourceNotFoundFault` | `structure` | `message` | The requested source could not be found. |
-| `DBClusterSnapshotAlreadyExistsFault` | `structure` | `message` | You already have a cluster snapshot with the given identifier. |
-| `DBClusterQuotaExceededFault` | `structure` | `message` | The cluster can't be created because you have reached the maximum allowed quota of clusters. |
-
+| `AuthorizationNotFoundFault` | `structure` | message | The specified CIDR IP or Amazon EC2 security group isn't authorized for the specified security group. Amazon DocumentDB also might not be authorized to perf ... |
+| `CertificateNotFoundFault` | `structure` | message | CertificateIdentifier doesn't refer to an existing certificate. |
+| `DBClusterAlreadyExistsFault` | `structure` | message | You already have a cluster with the given identifier. |
+| `DBClusterNotFoundFault` | `structure` | message | DBClusterIdentifier doesn't refer to an existing cluster. |
+| `DBClusterParameterGroupNotFoundFault` | `structure` | message | DBClusterParameterGroupName doesn't refer to an existing cluster parameter group. |
+| `DBClusterQuotaExceededFault` | `structure` | message | The cluster can't be created because you have reached the maximum allowed quota of clusters. |
+| `DBClusterSnapshotAlreadyExistsFault` | `structure` | message | You already have a cluster snapshot with the given identifier. |
+| `DBClusterSnapshotNotFoundFault` | `structure` | message | DBClusterSnapshotIdentifier doesn't refer to an existing cluster snapshot. |
+| `DBInstanceAlreadyExistsFault` | `structure` | message | You already have a instance with the given identifier. |
+| `DBInstanceNotFoundFault` | `structure` | message | DBInstanceIdentifier doesn't refer to an existing instance. |
+| `DBParameterGroupAlreadyExistsFault` | `structure` | message | A parameter group with the same name already exists. |
+| `DBParameterGroupNotFoundFault` | `structure` | message | DBParameterGroupName doesn't refer to an existing parameter group. |
+| `DBParameterGroupQuotaExceededFault` | `structure` | message | This request would cause you to exceed the allowed number of parameter groups. |
+| `DBSecurityGroupNotFoundFault` | `structure` | message | DBSecurityGroupName doesn't refer to an existing security group. |
+| `DBSnapshotAlreadyExistsFault` | `structure` | message | DBSnapshotIdentifier is already being used by an existing snapshot. |
+| `DBSnapshotNotFoundFault` | `structure` | message | DBSnapshotIdentifier doesn't refer to an existing snapshot. |
+| `DBSubnetGroupAlreadyExistsFault` | `structure` | message | DBSubnetGroupName is already being used by an existing subnet group. |
+| `DBSubnetGroupDoesNotCoverEnoughAZs` | `structure` | message | Subnets in the subnet group should cover at least two Availability Zones unless there is only one Availability Zone. |
+| `DBSubnetGroupNotFoundFault` | `structure` | message | DBSubnetGroupName doesn't refer to an existing subnet group. |
+| `DBSubnetGroupQuotaExceededFault` | `structure` | message | The request would cause you to exceed the allowed number of subnet groups. |
+| `DBSubnetQuotaExceededFault` | `structure` | message | The request would cause you to exceed the allowed number of subnets in a subnet group. |
+| `DBUpgradeDependencyFailureFault` | `structure` | message | The upgrade failed because a resource that the depends on can't be modified. |
+| `EventSubscriptionQuotaExceededFault` | `structure` | message | You have reached the maximum number of event subscriptions. |
+| `GlobalClusterAlreadyExistsFault` | `structure` | message | The GlobalClusterIdentifier already exists. Choose a new global cluster identifier (unique name) to create a new global cluster. |
+| `GlobalClusterNotFoundFault` | `structure` | message | The GlobalClusterIdentifier doesn't refer to an existing global cluster. |
+| `GlobalClusterQuotaExceededFault` | `structure` | message | The number of global clusters for this account is already at the maximum allowed. |
+| `InstanceQuotaExceededFault` | `structure` | message | The request would cause you to exceed the allowed number of instances. |
+| `InsufficientDBClusterCapacityFault` | `structure` | message | The cluster doesn't have enough capacity for the current operation. |
+| `InsufficientDBInstanceCapacityFault` | `structure` | message | The specified instance class isn't available in the specified Availability Zone. |
+| `InsufficientStorageClusterCapacityFault` | `structure` | message | There is not enough storage available for the current action. You might be able to resolve this error by updating your subnet group to use different Availab ... |
+| `InvalidDBClusterSnapshotStateFault` | `structure` | message | The provided value isn't a valid cluster snapshot state. |
+| `InvalidDBClusterStateFault` | `structure` | message | The cluster isn't in a valid state. |
+| `InvalidDBInstanceStateFault` | `structure` | message | The specified instance isn't in the available state. |
+| `InvalidDBParameterGroupStateFault` | `structure` | message | The parameter group is in use, or it is in a state that is not valid. If you are trying to delete the parameter group, you can't delete it when the paramete ... |
+| `InvalidDBSecurityGroupStateFault` | `structure` | message | The state of the security group doesn't allow deletion. |
+| `InvalidDBSnapshotStateFault` | `structure` | message | The state of the snapshot doesn't allow deletion. |
+| `InvalidDBSubnetGroupStateFault` | `structure` | message | The subnet group can't be deleted because it's in use. |
+| `InvalidDBSubnetStateFault` | `structure` | message | The subnet isn't in the available state. |
+| `InvalidEventSubscriptionStateFault` | `structure` | message | Someone else might be modifying a subscription. Wait a few seconds, and try again. |
+| `InvalidGlobalClusterStateFault` | `structure` | message | The requested operation can't be performed while the cluster is in this state. |
+| `InvalidRestoreFault` | `structure` | message | You cannot restore from a virtual private cloud (VPC) backup to a non-VPC DB instance. |
+| `InvalidSubnet` | `structure` | message | The requested subnet is not valid, or multiple subnets were requested that are not all in a common virtual private cloud (VPC). |
+| `InvalidVPCNetworkStateFault` | `structure` | message | The subnet group doesn't cover all Availability Zones after it is created because of changes that were made. |
+| `KMSKeyNotAccessibleFault` | `structure` | message | An error occurred when accessing an KMS key. |
+| `NetworkTypeNotSupported` | `structure` | message | The network type is not supported by either DBSubnetGroup or the DB engine version. |
+| `ResourceNotFoundFault` | `structure` | message | The specified resource ID was not found. |
+| `SNSInvalidTopicFault` | `structure` | message | Amazon SNS has responded that there is a problem with the specified topic. |
+| `SNSNoAuthorizationFault` | `structure` | message | You do not have permission to publish to the SNS topic Amazon Resource Name (ARN). |
+| `SNSTopicArnNotFoundFault` | `structure` | message | The SNS topic Amazon Resource Name (ARN) does not exist. |
+| `SharedSnapshotQuotaExceededFault` | `structure` | message | You have exceeded the maximum number of accounts that you can share a manual DB snapshot with. |
+| `SnapshotQuotaExceededFault` | `structure` | message | The request would cause you to exceed the allowed number of snapshots. |
+| `SourceNotFoundFault` | `structure` | message | The requested source could not be found. |
+| `StorageQuotaExceededFault` | `structure` | message | The request would cause you to exceed the allowed amount of storage available across all instances. |
+| `StorageTypeNotSupportedFault` | `structure` | message | Storage of the specified StorageType can't be associated with the DB instance. |
+| `SubnetAlreadyInUse` | `structure` | message | The subnet is already in use in the Availability Zone. |
+| `SubscriptionAlreadyExistFault` | `structure` | message | The provided subscription name already exists. |
+| `SubscriptionCategoryNotFoundFault` | `structure` | message | The provided category does not exist. |
+| `SubscriptionNotFoundFault` | `structure` | message | The subscription name does not exist. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

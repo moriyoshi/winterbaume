@@ -44,117 +44,154 @@ AWS Signer is a fully managed code-signing service to help you ensure the trust 
 
 - Operations: `ListProfilePermissions`, `ListSigningJobs`, `ListSigningPlatforms`, `ListSigningProfiles`, `ListTagsForResource`
 - Traits: `paginated` (3)
-- Common required input members in this group: `profileName`, `resourceArn`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetRevocationStatus`, `GetSigningPlatform`, `GetSigningProfile`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `certificateHashes`, `jobArn`, `platformId`, `profileName`, `profileVersionArn`, `signatureTimestamp`
+- Common required input members in this group: `platformId`
 
 ### Revoke
 
 - Operations: `RevokeSignature`, `RevokeSigningProfile`
-- Common required input members in this group: `effectiveTime`, `jobId`, `profileName`, `profileVersion`, `reason`
+- Common required input members in this group: `reason`
 
 ### Add
 
 - Operations: `AddProfilePermission`
-- Common required input members in this group: `action`, `principal`, `profileName`, `statementId`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelSigningProfile`
-- Common required input members in this group: `profileName`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeSigningJob`
-- Common required input members in this group: `jobId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutSigningProfile`
-- Common required input members in this group: `platformId`, `profileName`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveProfilePermission`
-- Common required input members in this group: `profileName`, `revisionId`, `statementId`
+- Common required input members in this group: -
 
 ### Sign
 
 - Operations: `SignPayload`
-- Common required input members in this group: `payload`, `payloadFormat`, `profileName`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartSigningJob`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `clientRequestToken`, `destination`, `profileName`, `source`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddProfilePermission` | `POST /signing-profiles/{profileName}/permissions` | - | `action`, `principal`, `profileName`, `statementId` | - | `AddProfilePermissionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `TooManyRequestsException`, `ValidationException` | Adds cross-account permissions to a signing profile. |
-| `CancelSigningProfile` | `DELETE /signing-profiles/{profileName}` | - | `profileName` | - | `Unit` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException` | Changes the state of an `ACTIVE` signing profile to `CANCELED`. A canceled profile is still viewable with the `ListSigningProfiles` operation, but it cannot perform new signing jobs. |
-| `DescribeSigningJob` | `GET /signing-jobs/{jobId}` | - | `jobId` | - | `DescribeSigningJobResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException` | Returns information about a specific code signing job. You specify the job by using the `jobId` value that is returned by the StartSigningJob operation. |
-| `GetRevocationStatus` | `GET /revocations` | `endpoint-bound` | `certificateHashes`, `jobArn`, `platformId`, `profileVersionArn`, `signatureTimestamp` | - | `GetRevocationStatusResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException`, `ValidationException` | Retrieves the revocation status of one or more of the signing profile, signing job, and signing certificate. |
+| `AddProfilePermission` | `POST /signing-profiles/{profileName}/permissions` | - | `profileName`, `action`, `principal`, `statementId` | - | `AddProfilePermissionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `ServiceLimitExceededException`, `TooManyRequestsException`, `ValidationException` | Adds cross-account permissions to a signing profile. |
+| `CancelSigningProfile` | `DELETE /signing-profiles/{profileName}` | - | `profileName` | - | `Unit` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException` | Changes the state of an ACTIVE signing profile to CANCELED . A canceled profile is still viewable with the ListSigningProfiles operation, but it cannot perform new signing jobs. See Data Retention for more informatio ... |
+| `DescribeSigningJob` | `GET /signing-jobs/{jobId}` | - | `jobId` | - | `DescribeSigningJobResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException` | Returns information about a specific code signing job. You specify the job by using the jobId value that is returned by the StartSigningJob operation. |
+| `GetRevocationStatus` | `GET /revocations` | - | `signatureTimestamp`, `platformId`, `profileVersionArn`, `jobArn`, `certificateHashes` | - | `GetRevocationStatusResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException`, `ValidationException` | Retrieves the revocation status of one or more of the signing profile, signing job, and signing certificate. |
 | `GetSigningPlatform` | `GET /signing-platforms/{platformId}` | - | `platformId` | - | `GetSigningPlatformResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException` | Returns information on a specific signing platform. |
 | `GetSigningProfile` | `GET /signing-profiles/{profileName}` | - | `profileName` | - | `GetSigningProfileResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException` | Returns information on a specific signing profile. |
 | `ListProfilePermissions` | `GET /signing-profiles/{profileName}/permissions` | - | `profileName` | - | `ListProfilePermissionsResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Lists the cross-account permissions associated with a signing profile. |
-| `ListSigningJobs` | `GET /signing-jobs` | `paginated` | - | - | `ListSigningJobsResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException`, `ValidationException` | Lists all your signing jobs. You can use the `maxResults` parameter to limit the number of signing jobs that are returned in the response. |
-| `ListSigningPlatforms` | `GET /signing-platforms` | `paginated` | - | - | `ListSigningPlatformsResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException`, `ValidationException` | Lists all signing platforms available in AWS Signer that match the request parameters. If additional jobs remain to be listed, Signer returns a `nextToken` value. |
-| `ListSigningProfiles` | `GET /signing-profiles` | `paginated` | - | - | `ListSigningProfilesResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException` | Lists all available signing profiles in your AWS account. Returns only profiles with an `ACTIVE` status unless the `includeCanceled` request field is set to `true`. |
+| `ListSigningJobs` | `GET /signing-jobs` | `paginated` | - | - | `ListSigningJobsResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException`, `ValidationException` | Lists all your signing jobs. You can use the maxResults parameter to limit the number of signing jobs that are returned in the response. If additional jobs remain to be listed, AWS Signer returns a nextToken value. U ... |
+| `ListSigningPlatforms` | `GET /signing-platforms` | `paginated` | - | - | `ListSigningPlatformsResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException`, `ValidationException` | Lists all signing platforms available in AWS Signer that match the request parameters. If additional jobs remain to be listed, Signer returns a nextToken value. Use this value in subsequent calls to ListSigningJobs t ... |
+| `ListSigningProfiles` | `GET /signing-profiles` | `paginated` | - | - | `ListSigningProfilesResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException` | Lists all available signing profiles in your AWS account. Returns only profiles with an ACTIVE status unless the includeCanceled request field is set to true . If additional jobs remain to be listed, AWS Signer retur ... |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Returns a list of the tags associated with a signing profile resource. |
-| `PutSigningProfile` | `PUT /signing-profiles/{profileName}` | - | `platformId`, `profileName` | - | `PutSigningProfileResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Creates a signing profile. A signing profile is a code-signing template that can be used to carry out a pre-defined signing job. |
+| `PutSigningProfile` | `PUT /signing-profiles/{profileName}` | - | `profileName`, `platformId` | - | `PutSigningProfileResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Creates a signing profile. A signing profile is a code-signing template that can be used to carry out a pre-defined signing job. |
 | `RemoveProfilePermission` | `DELETE /signing-profiles/{profileName}/permissions/{statementId}` | - | `profileName`, `revisionId`, `statementId` | - | `RemoveProfilePermissionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Removes cross-account permissions from a signing profile. |
-| `RevokeSignature` | `PUT /signing-jobs/{jobId}/revoke` | - | `jobId`, `reason` | - | `Unit` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Changes the state of a signing job to `REVOKED`. This indicates that the signature is no longer valid. |
-| `RevokeSigningProfile` | `PUT /signing-profiles/{profileName}/revoke` | - | `effectiveTime`, `profileName`, `profileVersion`, `reason` | - | `Unit` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Changes the state of a signing profile to `REVOKED`. This indicates that signatures generated using the signing profile after an effective start date are no longer valid. |
-| `SignPayload` | `POST /signing-jobs/with-payload` | - | `payload`, `payloadFormat`, `profileName` | - | `SignPayloadResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Signs a binary payload and returns a signature envelope. |
-| `StartSigningJob` | `POST /signing-jobs` | `idempotency-token` | `clientRequestToken`, `destination`, `profileName`, `source` | `clientRequestToken` | `StartSigningJobResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `ThrottlingException`, `TooManyRequestsException`, `ValidationException` | Initiates a signing job to be performed on the code provided. Signing jobs are viewable by the `ListSigningJobs` operation. |
-| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Adds one or more tags to a signing profile. Tags are labels that you can use to identify and organize your AWS resources. |
+| `RevokeSignature` | `PUT /signing-jobs/{jobId}/revoke` | - | `jobId`, `reason` | - | `Unit` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Changes the state of a signing job to REVOKED . This indicates that the signature is no longer valid. |
+| `RevokeSigningProfile` | `PUT /signing-profiles/{profileName}/revoke` | - | `profileName`, `profileVersion`, `reason`, `effectiveTime` | - | `Unit` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Changes the state of a signing profile to REVOKED . This indicates that signatures generated using the signing profile after an effective start date are no longer valid. A revoked profile is still viewable with the L ... |
+| `SignPayload` | `POST /signing-jobs/with-payload` | - | `profileName`, `payload`, `payloadFormat` | - | `SignPayloadResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Signs a binary payload and returns a signature envelope. |
+| `StartSigningJob` | `POST /signing-jobs` | `idempotency-token` | `source`, `destination`, `profileName`, `clientRequestToken` | `clientRequestToken` | `StartSigningJobResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `ResourceNotFoundException`, `ThrottlingException`, `TooManyRequestsException`, `ValidationException` | Initiates a signing job to be performed on the code provided. Signing jobs are viewable by the ListSigningJobs operation. Note the following requirements: You must create an Amazon S3 source bucket. For more informat ... |
+| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Adds one or more tags to a signing profile. Tags are labels that you can use to identify and organize your AWS resources. Each tag consists of a key and an optional value. To specify the signing profile, use its Amaz ... |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Removes one or more tags from a signing profile. To remove the tags, specify a list of tag keys. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetRevocationStatus` | - | `signatureTimestamp -> signatureTimestamp`, `platformId -> platformId`, `profileVersionArn -> profileVersionArn`, `jobArn -> jobArn`, `certificateHashes -> certificateHashes` | - | - |
+| `GetSigningProfile` | - | `profileOwner -> profileOwner` | - | - |
+| `ListProfilePermissions` | - | `nextToken -> nextToken` | - | - |
+| `ListSigningJobs` | - | `status -> status`, `platformId -> platformId`, `requestedBy -> requestedBy`, `maxResults -> maxResults`, `nextToken -> nextToken`, `isRevoked -> isRevoked`, `signatureExpiresBefore -> signatureExpiresBefore`, `signatureExpiresAfter -> signatureExpiresAfter`, `jobInvoker -> jobInvoker` | - | - |
+| `ListSigningPlatforms` | - | `category -> category`, `partner -> partner`, `target -> target`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListSigningProfiles` | - | `includeCanceled -> includeCanceled`, `maxResults -> maxResults`, `nextToken -> nextToken`, `platformId -> platformId`, `statuses -> statuses` | - | - |
+| `RemoveProfilePermission` | - | `revisionId -> revisionId` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServiceErrorException` | `structure` | `code`, `message` | An internal error occurred. |
-| `TooManyRequestsException` | `structure` | `code`, `message` | The allowed number of job-signing requests has been exceeded. |
-| `AccessDeniedException` | `structure` | `code`, `message` | You do not have sufficient access to perform this action. |
-| `ResourceNotFoundException` | `structure` | `code`, `message` | A specified resource could not be found. |
-| `ValidationException` | `structure` | `code`, `message` | You signing certificate could not be validated. |
-| `BadRequestException` | `structure` | `code`, `message` | The request contains invalid parameters for the ARN or tags. |
-| `NotFoundException` | `structure` | `code`, `message` | The signing profile was not found. |
-| `ConflictException` | `structure` | `code`, `message` | The resource encountered a conflicting state. |
-| `AddProfilePermissionRequest` | `structure` | `action`, `principal`, `profileName`, `profileVersion`, `revisionId`, `statementId` | - |
-| `AddProfilePermissionResponse` | `structure` | `revisionId` | - |
-| `ServiceLimitExceededException` | `structure` | `code`, `message` | The client is making a request that exceeds service limits. |
-| `CancelSigningProfileRequest` | `structure` | `profileName` | - |
-| `DescribeSigningJobRequest` | `structure` | `jobId` | - |
-| `DescribeSigningJobResponse` | `structure` | `completedAt`, `createdAt`, `jobId`, `jobInvoker`, `jobOwner`, `overrides`, `platformDisplayName`, `platformId`, `profileName`, `profileVersion`, `requestedBy`, `revocationRecord`, ... (+7) | - |
-| `GetRevocationStatusRequest` | `structure` | `certificateHashes`, `jobArn`, `platformId`, `profileVersionArn`, `signatureTimestamp` | - |
-| `GetRevocationStatusResponse` | `structure` | `revokedEntities` | - |
-| `GetSigningPlatformRequest` | `structure` | `platformId` | - |
-| `GetSigningPlatformResponse` | `structure` | `category`, `displayName`, `maxSizeInMB`, `partner`, `platformId`, `revocationSupported`, `signingConfiguration`, `signingImageFormat`, `target` | - |
-| `GetSigningProfileRequest` | `structure` | `profileName`, `profileOwner` | - |
-| `GetSigningProfileResponse` | `structure` | `arn`, `overrides`, `platformDisplayName`, `platformId`, `profileName`, `profileVersion`, `profileVersionArn`, `revocationRecord`, `signatureValidityPeriod`, `signingMaterial`, `signingParameters`, `status`, ... (+2) | - |
-| `ListProfilePermissionsRequest` | `structure` | `nextToken`, `profileName` | - |
-| `ListProfilePermissionsResponse` | `structure` | `nextToken`, `permissions`, `policySizeBytes`, `revisionId` | - |
-| `ListSigningJobsRequest` | `structure` | `isRevoked`, `jobInvoker`, `maxResults`, `nextToken`, `platformId`, `requestedBy`, `signatureExpiresAfter`, `signatureExpiresBefore`, `status` | - |
-
+| `AccessDeniedException` | `structure` | message, code | You do not have sufficient access to perform this action. |
+| `BadRequestException` | `structure` | message, code | The request contains invalid parameters for the ARN or tags. This exception also occurs when you call a tagging API on a cancelled signing profile. |
+| `ConflictException` | `structure` | message, code | The resource encountered a conflicting state. |
+| `InternalServiceErrorException` | `structure` | message, code | An internal error occurred. |
+| `NotFoundException` | `structure` | message, code | The signing profile was not found. |
+| `ResourceNotFoundException` | `structure` | message, code | A specified resource could not be found. |
+| `ServiceLimitExceededException` | `structure` | message, code | The client is making a request that exceeds service limits. |
+| `ThrottlingException` | `structure` | message, code | The request was denied due to request throttling. Instead of this error, TooManyRequestsException should be used. |
+| `TooManyRequestsException` | `structure` | message, code | The allowed number of job-signing requests has been exceeded. This error supersedes the error ThrottlingException . |
+| `ValidationException` | `structure` | message, code | You signing certificate could not be validated. |
+| `AddProfilePermissionRequest` | `structure` | profileName, profileVersion, action, principal, revisionId, statementId | - |
+| `AddProfilePermissionResponse` | `structure` | revisionId | - |
+| `CancelSigningProfileRequest` | `structure` | profileName | - |
+| `DescribeSigningJobRequest` | `structure` | jobId | - |
+| `DescribeSigningJobResponse` | `structure` | jobId, source, signingMaterial, platformId, platformDisplayName, profileName, profileVersion, overrides, signingParameters, createdAt, completedAt, signatureExpiresAt, ... (+7) | - |
+| `GetRevocationStatusRequest` | `structure` | signatureTimestamp, platformId, profileVersionArn, jobArn, certificateHashes | - |
+| `GetRevocationStatusResponse` | `structure` | revokedEntities | - |
+| `GetSigningPlatformRequest` | `structure` | platformId | - |
+| `GetSigningPlatformResponse` | `structure` | platformId, displayName, partner, target, category, signingConfiguration, signingImageFormat, maxSizeInMB, revocationSupported | - |
+| `GetSigningProfileRequest` | `structure` | profileName, profileOwner | - |
+| `GetSigningProfileResponse` | `structure` | profileName, profileVersion, profileVersionArn, revocationRecord, signingMaterial, platformId, platformDisplayName, signatureValidityPeriod, overrides, signingParameters, status, statusReason, ... (+2) | - |
+| `ListProfilePermissionsRequest` | `structure` | profileName, nextToken | - |
+| `ListProfilePermissionsResponse` | `structure` | revisionId, policySizeBytes, permissions, nextToken | - |
+| `ListSigningJobsRequest` | `structure` | status, platformId, requestedBy, maxResults, nextToken, isRevoked, signatureExpiresBefore, signatureExpiresAfter, jobInvoker | - |
+| `ListSigningJobsResponse` | `structure` | jobs, nextToken | - |
+| `ListSigningPlatformsRequest` | `structure` | category, partner, target, maxResults, nextToken | - |
+| `ListSigningPlatformsResponse` | `structure` | platforms, nextToken | - |
+| `ListSigningProfilesRequest` | `structure` | includeCanceled, maxResults, nextToken, platformId, statuses | - |
+| `ListSigningProfilesResponse` | `structure` | profiles, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `PutSigningProfileRequest` | `structure` | profileName, signingMaterial, signatureValidityPeriod, platformId, overrides, signingParameters, tags | - |
+| `PutSigningProfileResponse` | `structure` | arn, profileVersion, profileVersionArn | - |
+| `RemoveProfilePermissionRequest` | `structure` | profileName, revisionId, statementId | - |
+| `RemoveProfilePermissionResponse` | `structure` | revisionId | - |
+| `RevokeSignatureRequest` | `structure` | jobId, jobOwner, reason | - |
+| `RevokeSigningProfileRequest` | `structure` | profileName, profileVersion, reason, effectiveTime | - |
+| `SignPayloadRequest` | `structure` | profileName, profileOwner, payload, payloadFormat | - |
+| `SignPayloadResponse` | `structure` | jobId, jobOwner, metadata, signature | - |
+| `StartSigningJobRequest` | `structure` | source, destination, profileName, clientRequestToken, profileOwner | - |
+| `Category` | `enum` | AWSIoT | - |
+| `EncryptionAlgorithm` | `enum` | RSA, ECDSA | - |
+| `HashAlgorithm` | `enum` | SHA1, SHA256 | - |
+| `ImageFormat` | `enum` | JSON, JSONEmbedded, JSONDetached | - |
+| `SigningProfileStatus` | `enum` | Active, Canceled, Revoked | - |
+| `SigningStatus` | `enum` | InProgress, Failed, Succeeded | - |
+| `ValidityType` | `enum` | DAYS, MONTHS, YEARS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

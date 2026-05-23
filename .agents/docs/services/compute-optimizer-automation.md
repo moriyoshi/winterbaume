@@ -43,127 +43,158 @@ Automation is a feature within Amazon Web Services Compute Optimizer that enable
 
 ### List
 
-- Operations: `ListAccounts`, `ListAutomationEventSteps`, `ListAutomationEventSummaries`, `ListAutomationEvents`, `ListAutomationRulePreview`, `ListAutomationRulePreviewSummaries`, `ListAutomationRules`, `ListRecommendedActionSummaries`, `ListRecommendedActions`, `ListTagsForResource`
-- Traits: `paginated` (9), `readonly` (4)
-- Common required input members in this group: `eventId`, `recommendedActionTypes`, `resourceArn`, `ruleType`
+- Operations: `ListAccounts`, `ListAutomationEvents`, `ListAutomationEventSteps`, `ListAutomationEventSummaries`, `ListAutomationRulePreview`, `ListAutomationRulePreviewSummaries`, `ListAutomationRules`, `ListRecommendedActions`, `ListRecommendedActionSummaries`, `ListTagsForResource`
+- Traits: `readonly` (4), `paginated` (9)
+- Common required input members in this group: `ruleType`, `recommendedActionTypes`
 
 ### Get
 
 - Operations: `GetAutomationEvent`, `GetAutomationRule`, `GetEnrollmentConfiguration`
 - Traits: `readonly` (1)
-- Common required input members in this group: `eventId`, `ruleArn`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateAutomationRule`, `UpdateEnrollmentConfiguration`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `ruleArn`, `ruleRevision`, `status`
+- Traits: `idempotent` (2), `idempotency-token` (2)
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateAccounts`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `accountIds`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateAutomationRule`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `name`, `recommendedActionTypes`, `ruleType`, `schedule`, `status`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteAutomationRule`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `ruleArn`, `ruleRevision`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateAccounts`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `accountIds`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Rollback
 
 - Operations: `RollbackAutomationEvent`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `eventId`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartAutomationEvent`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `recommendedActionId`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `ruleRevision`, `tags`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `ruleRevision`, `tagKeys`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateAccounts` | - | `idempotent`, `idempotency-token` | `accountIds` | `clientToken` | `AssociateAccountsResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, ... (+2) | Associates one or more member accounts with your organization's management account, enabling centralized implementation of optimization actions across those accounts. Once associated, the management account (or a delegated administrator) can apply recommended... |
-| `CreateAutomationRule` | - | `idempotent`, `idempotency-token` | `name`, `recommendedActionTypes`, `ruleType`, `schedule`, `status` | `clientToken` | `CreateAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, ... (+3) | Creates a new automation rule to apply recommended actions to resources based on specified criteria. |
-| `DeleteAutomationRule` | - | `idempotent`, `idempotency-token` | `ruleArn`, `ruleRevision` | `clientToken` | `DeleteAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, ... (+2) | Deletes an existing automation rule. |
-| `DisassociateAccounts` | - | `idempotent`, `idempotency-token` | `accountIds` | `clientToken` | `DisassociateAccountsResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, ... (+2) | Disassociates member accounts from your organization's management account, removing centralized automation capabilities. Once disassociated, organization rules no longer apply to the member account, and the management account (or delegated administrator)... |
-| `GetAutomationEvent` | - | - | `eventId` | - | `GetAutomationEventResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Retrieves details about a specific automation event. |
-| `GetAutomationRule` | - | - | `ruleArn` | - | `GetAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Retrieves details about a specific automation rule. |
-| `GetEnrollmentConfiguration` | - | `readonly` | - | - | `GetEnrollmentConfigurationResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Retrieves the current enrollment configuration for Compute Optimizer Automation. |
-| `ListAccounts` | - | `readonly`, `paginated` | - | - | `ListAccountsResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the accounts in your organization that are enrolled in Compute Optimizer and whether they have enabled Automation. Only the management account or a delegated administrator can perform this action. |
-| `ListAutomationEventSteps` | - | `paginated` | `eventId` | - | `ListAutomationEventStepsResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the steps for a specific automation event. You can only list steps for events created within the past year. |
-| `ListAutomationEventSummaries` | - | `paginated` | - | - | `ListAutomationEventSummariesResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Provides a summary of automation events based on specified filters. Only events created within the past year will be included in the summary. |
-| `ListAutomationEvents` | - | `paginated` | - | - | `ListAutomationEventsResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Lists automation events based on specified filters. You can retrieve events that were created within the past year. |
-| `ListAutomationRulePreview` | - | `readonly`, `paginated` | `recommendedActionTypes`, `ruleType` | - | `ListAutomationRulePreviewResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Returns a preview of the recommended actions that match your Automation rule's configuration and criteria. |
-| `ListAutomationRulePreviewSummaries` | - | `readonly`, `paginated` | `recommendedActionTypes`, `ruleType` | - | `ListAutomationRulePreviewSummariesResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Returns a summary of the recommended actions that match your rule preview configuration and criteria. |
-| `ListAutomationRules` | - | `paginated` | - | - | `ListAutomationRulesResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the automation rules that match specified filters. |
-| `ListRecommendedActionSummaries` | - | `paginated` | - | - | `ListRecommendedActionSummariesResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Provides a summary of recommended actions based on specified filters. Management accounts and delegated administrators can retrieve recommended actions that include associated member accounts. |
-| `ListRecommendedActions` | - | `paginated` | - | - | `ListRecommendedActionsResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the recommended actions based that match specified filters. Management accounts and delegated administrators can retrieve recommended actions that include associated member accounts. |
-| `ListTagsForResource` | - | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the tags for a specified resource. |
-| `RollbackAutomationEvent` | - | `idempotent`, `idempotency-token` | `eventId` | `clientToken` | `RollbackAutomationEventResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, ... (+2) | Initiates a rollback for a completed automation event. Management accounts and delegated administrators can only initiate a rollback for events belonging to associated member accounts. |
-| `StartAutomationEvent` | - | `idempotent`, `idempotency-token` | `recommendedActionId` | `clientToken` | `StartAutomationEventResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, ... (+3) | Initiates a one-time, on-demand automation for the specified recommended action. Management accounts and delegated administrators can only initiate recommended actions for associated member accounts. |
-| `TagResource` | - | `idempotent`, `idempotency-token` | `resourceArn`, `ruleRevision`, `tags` | `clientToken` | `TagResourceResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, ... (+2) | Adds tags to the specified resource. |
-| `UntagResource` | - | `idempotent`, `idempotency-token` | `resourceArn`, `ruleRevision`, `tagKeys` | `clientToken` | `UntagResourceResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, ... (+2) | Removes tags from the specified resource. |
-| `UpdateAutomationRule` | - | `idempotent`, `idempotency-token` | `ruleArn`, `ruleRevision` | `clientToken` | `UpdateAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, ... (+2) | Updates an existing automation rule. |
-| `UpdateEnrollmentConfiguration` | - | `idempotent`, `idempotency-token` | `status` | `clientToken` | `UpdateEnrollmentConfigurationResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, ... (+3) | Updates your account’s Compute Optimizer Automation enrollment configuration. |
+| `AssociateAccounts` | `-` | `idempotent`, `idempotency-token` | `accountIds` | `clientToken` | `AssociateAccountsResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Associates one or more member accounts with your organization's management account, enabling centralized implementation of optimization actions across those accounts. Once associated, the management account (or a del ... |
+| `CreateAutomationRule` | `-` | `idempotent`, `idempotency-token` | `name`, `ruleType`, `recommendedActionTypes`, `schedule`, `status` | `clientToken` | `CreateAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException` | Creates a new automation rule to apply recommended actions to resources based on specified criteria. |
+| `DeleteAutomationRule` | `-` | `idempotent`, `idempotency-token` | `ruleArn`, `ruleRevision` | `clientToken` | `DeleteAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Deletes an existing automation rule. |
+| `DisassociateAccounts` | `-` | `idempotent`, `idempotency-token` | `accountIds` | `clientToken` | `DisassociateAccountsResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Disassociates member accounts from your organization's management account, removing centralized automation capabilities. Once disassociated, organization rules no longer apply to the member account, and the managemen ... |
+| `GetAutomationEvent` | `-` | - | `eventId` | - | `GetAutomationEventResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Retrieves details about a specific automation event. |
+| `GetAutomationRule` | `-` | - | `ruleArn` | - | `GetAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Retrieves details about a specific automation rule. |
+| `GetEnrollmentConfiguration` | `-` | `readonly` | - | - | `GetEnrollmentConfigurationResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Retrieves the current enrollment configuration for Compute Optimizer Automation. |
+| `ListAccounts` | `-` | `readonly`, `paginated` | - | - | `ListAccountsResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the accounts in your organization that are enrolled in Compute Optimizer and whether they have enabled Automation. Only the management account or a delegated administrator can perform this action. |
+| `ListAutomationEvents` | `-` | `paginated` | - | - | `ListAutomationEventsResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Lists automation events based on specified filters. You can retrieve events that were created within the past year. |
+| `ListAutomationEventSteps` | `-` | `paginated` | `eventId` | - | `ListAutomationEventStepsResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the steps for a specific automation event. You can only list steps for events created within the past year. |
+| `ListAutomationEventSummaries` | `-` | `paginated` | - | - | `ListAutomationEventSummariesResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Provides a summary of automation events based on specified filters. Only events created within the past year will be included in the summary. |
+| `ListAutomationRulePreview` | `-` | `readonly`, `paginated` | `ruleType`, `recommendedActionTypes` | - | `ListAutomationRulePreviewResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Returns a preview of the recommended actions that match your Automation rule's configuration and criteria. |
+| `ListAutomationRulePreviewSummaries` | `-` | `readonly`, `paginated` | `ruleType`, `recommendedActionTypes` | - | `ListAutomationRulePreviewSummariesResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Returns a summary of the recommended actions that match your rule preview configuration and criteria. |
+| `ListAutomationRules` | `-` | `paginated` | - | - | `ListAutomationRulesResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the automation rules that match specified filters. |
+| `ListRecommendedActions` | `-` | `paginated` | - | - | `ListRecommendedActionsResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the recommended actions based that match specified filters. Management accounts and delegated administrators can retrieve recommended actions that include associated member accounts. You can associate a member ... |
+| `ListRecommendedActionSummaries` | `-` | `paginated` | - | - | `ListRecommendedActionSummariesResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ServiceUnavailableException`, `ThrottlingException` | Provides a summary of recommended actions based on specified filters. Management accounts and delegated administrators can retrieve recommended actions that include associated member accounts. You can associate a mem ... |
+| `ListTagsForResource` | `-` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `ForbiddenException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Lists the tags for a specified resource. |
+| `RollbackAutomationEvent` | `-` | `idempotent`, `idempotency-token` | `eventId` | `clientToken` | `RollbackAutomationEventResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Initiates a rollback for a completed automation event. Management accounts and delegated administrators can only initiate a rollback for events belonging to associated member accounts. You can associate a member acco ... |
+| `StartAutomationEvent` | `-` | `idempotent`, `idempotency-token` | `recommendedActionId` | `clientToken` | `StartAutomationEventResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ServiceUnavailableException`, `ThrottlingException` | Initiates a one-time, on-demand automation for the specified recommended action. Management accounts and delegated administrators can only initiate recommended actions for associated member accounts. You can associat ... |
+| `TagResource` | `-` | `idempotent`, `idempotency-token` | `resourceArn`, `ruleRevision`, `tags` | `clientToken` | `TagResourceResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Adds tags to the specified resource. |
+| `UntagResource` | `-` | `idempotent`, `idempotency-token` | `resourceArn`, `ruleRevision`, `tagKeys` | `clientToken` | `UntagResourceResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Removes tags from the specified resource. |
+| `UpdateAutomationRule` | `-` | `idempotent`, `idempotency-token` | `ruleArn`, `ruleRevision` | `clientToken` | `UpdateAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Updates an existing automation rule. |
+| `UpdateEnrollmentConfiguration` | `-` | `idempotent`, `idempotency-token` | `status` | `clientToken` | `UpdateEnrollmentConfigurationResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Updates your account’s Compute Optimizer Automation enrollment configuration. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient permissions to perform this action. |
-| `ForbiddenException` | `structure` | `message` | You are not authorized to perform this action. |
-| `InternalServerException` | `structure` | `message` | An internal error occurred while processing the request. |
-| `InvalidParameterValueException` | `structure` | `message` | One or more parameter values are not valid. |
-| `OptInRequiredException` | `structure` | `message` | The account must be opted in to Compute Optimizer Automation before performing this action. |
-| `ServiceUnavailableException` | `structure` | `message` | The service is temporarily unavailable. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource was not found. |
-| `IdempotencyTokenInUseException` | `structure` | `message` | The specified client token is already in use. |
-| `IdempotentParameterMismatchException` | `structure` | `message` | Exception thrown when the same client token is used with different parameters, indicating a mismatch in idempotent request parameters. |
-| `NotManagementAccountException` | `structure` | `message` | The operation can only be performed by a management account. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request would exceed service quotas. |
-| `AssociateAccountsRequest` | `structure` | `accountIds`, `clientToken` | - |
-| `AssociateAccountsResponse` | `structure` | `accountIds`, `errors` | - |
-| `CreateAutomationRuleRequest` | `structure` | `clientToken`, `criteria`, `description`, `name`, `organizationConfiguration`, `priority`, `recommendedActionTypes`, `ruleType`, `schedule`, `status`, `tags` | - |
-| `CreateAutomationRuleResponse` | `structure` | `createdTimestamp`, `criteria`, `description`, `name`, `organizationConfiguration`, `priority`, `recommendedActionTypes`, `ruleArn`, `ruleId`, `ruleRevision`, `ruleType`, `schedule`, ... (+2) | - |
-| `DeleteAutomationRuleRequest` | `structure` | `clientToken`, `ruleArn`, `ruleRevision` | - |
-| `DeleteAutomationRuleResponse` | `structure` | - | - |
-| `DisassociateAccountsRequest` | `structure` | `accountIds`, `clientToken` | - |
-| `DisassociateAccountsResponse` | `structure` | `accountIds`, `errors` | - |
-| `GetAutomationEventRequest` | `structure` | `eventId` | - |
-| `GetAutomationEventResponse` | `structure` | `accountId`, `completedTimestamp`, `createdTimestamp`, `estimatedMonthlySavings`, `eventDescription`, `eventId`, `eventStatus`, `eventStatusReason`, `eventType`, `recommendedActionId`, `region`, `resourceArn`, ... (+3) | - |
-| `GetAutomationRuleRequest` | `structure` | `ruleArn` | - |
-| `GetAutomationRuleResponse` | `structure` | `accountId`, `createdTimestamp`, `criteria`, `description`, `lastUpdatedTimestamp`, `name`, `organizationConfiguration`, `priority`, `recommendedActionTypes`, `ruleArn`, `ruleId`, `ruleRevision`, ... (+4) | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient permissions to perform this action. |
+| `ForbiddenException` | `structure` | message | You are not authorized to perform this action. |
+| `IdempotencyTokenInUseException` | `structure` | message | The specified client token is already in use. |
+| `IdempotentParameterMismatchException` | `structure` | message | Exception thrown when the same client token is used with different parameters, indicating a mismatch in idempotent request parameters. |
+| `InternalServerException` | `structure` | message | An internal error occurred while processing the request. |
+| `InvalidParameterValueException` | `structure` | message | One or more parameter values are not valid. |
+| `NotManagementAccountException` | `structure` | message | The operation can only be performed by a management account. |
+| `OptInRequiredException` | `structure` | message | The account must be opted in to Compute Optimizer Automation before performing this action. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message | The request would exceed service quotas. |
+| `ServiceUnavailableException` | `structure` | message | The service is temporarily unavailable. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `AssociateAccountsRequest` | `structure` | accountIds, clientToken | - |
+| `AssociateAccountsResponse` | `structure` | accountIds, errors | - |
+| `CreateAutomationRuleRequest` | `structure` | name, description, ruleType, organizationConfiguration, priority, recommendedActionTypes, criteria, schedule, status, tags, clientToken | - |
+| `CreateAutomationRuleResponse` | `structure` | ruleArn, ruleId, name, description, ruleType, ruleRevision, organizationConfiguration, priority, recommendedActionTypes, criteria, schedule, status, ... (+2) | - |
+| `DeleteAutomationRuleRequest` | `structure` | ruleArn, ruleRevision, clientToken | - |
+| `DeleteAutomationRuleResponse` | `structure` | **empty (no members)** | - |
+| `DisassociateAccountsRequest` | `structure` | accountIds, clientToken | - |
+| `DisassociateAccountsResponse` | `structure` | accountIds, errors | - |
+| `GetAutomationEventRequest` | `structure` | eventId | - |
+| `GetAutomationEventResponse` | `structure` | eventId, eventDescription, eventType, eventStatus, eventStatusReason, resourceArn, resourceId, recommendedActionId, accountId, region, ruleId, resourceType, ... (+3) | - |
+| `GetAutomationRuleRequest` | `structure` | ruleArn | - |
+| `GetAutomationRuleResponse` | `structure` | ruleArn, ruleId, name, description, ruleType, ruleRevision, accountId, organizationConfiguration, priority, recommendedActionTypes, criteria, schedule, ... (+4) | - |
+| `GetEnrollmentConfigurationRequest` | `structure` | **empty (no members)** | - |
+| `GetEnrollmentConfigurationResponse` | `structure` | status, statusReason, organizationRuleMode, lastUpdatedTimestamp | - |
+| `ListAccountsRequest` | `structure` | maxResults, nextToken | - |
+| `ListAccountsResponse` | `structure` | accounts, nextToken | - |
+| `ListAutomationEventsRequest` | `structure` | filters, startTimeInclusive, endTimeExclusive, maxResults, nextToken | - |
+| `ListAutomationEventsResponse` | `structure` | automationEvents, nextToken | - |
+| `ListAutomationEventStepsRequest` | `structure` | eventId, maxResults, nextToken | - |
+| `ListAutomationEventStepsResponse` | `structure` | automationEventSteps, nextToken | - |
+| `ListAutomationEventSummariesRequest` | `structure` | filters, startDateInclusive, endDateExclusive, maxResults, nextToken | - |
+| `ListAutomationEventSummariesResponse` | `structure` | automationEventSummaries, nextToken | - |
+| `ListAutomationRulePreviewRequest` | `structure` | ruleType, organizationScope, recommendedActionTypes, criteria, maxResults, nextToken | - |
+| `ListAutomationRulePreviewResponse` | `structure` | previewResults, nextToken | - |
+| `ListAutomationRulePreviewSummariesRequest` | `structure` | ruleType, organizationScope, recommendedActionTypes, criteria, maxResults, nextToken | - |
+| `ListAutomationRulePreviewSummariesResponse` | `structure` | previewResultSummaries, nextToken | - |
+| `ListAutomationRulesRequest` | `structure` | filters, maxResults, nextToken | - |
+| `ListAutomationRulesResponse` | `structure` | automationRules, nextToken | - |
+| `ComparisonOperator` | `enum` | STRING_EQUALS, STRING_NOT_EQUALS, STRING_EQUALS_IGNORE_CASE, STRING_NOT_EQUALS_IGNORE_CASE, STRING_LIKE, STRING_NOT_LIKE, NUMERIC_EQUALS, NUMERIC_NOT_EQUALS, NUMERIC_LESS_THAN, NUMERIC_LESS_THAN_EQUALS, NUMERIC_GREATER_THAN, NUMERIC_GREATER_THAN_EQUALS | - |
+| `EnrollmentStatus` | `enum` | ACTIVE, INACTIVE, PENDING, FAILED | - |
+| `EventStatus` | `enum` | READY, IN_PROGRESS, COMPLETE, FAILED, CANCELLED, ROLLBACK_READY, ROLLBACK_IN_PROGRESS, ROLLBACK_COMPLETE, ROLLBACK_FAILED | - |
+| `EventType` | `enum` | SNAPSHOT_AND_DELETE_UNATTACHED_EBS_VOLUME, UPGRADE_EBS_VOLUME_TYPE | Event type enumeration |
+| `OrganizationRuleMode` | `enum` | ANY_ALLOWED, NONE_ALLOWED | - |
+| `RecommendedActionType` | `enum` | SNAPSHOT_AND_DELETE_UNATTACHED_EBS_VOLUME, UPGRADE_EBS_VOLUME_TYPE | Recommended action type enumeration |
+| `ResourceType` | `enum` | EBS_VOLUME | - |
+| `RuleApplyOrder` | `enum` | BEFORE_ACCOUNT_RULES, AFTER_ACCOUNT_RULES | - |
+| `RuleStatus` | `enum` | ACTIVE, INACTIVE | - |
+| `RuleType` | `enum` | ORGANIZATIONAL_RULE, ACCOUNT_RULE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

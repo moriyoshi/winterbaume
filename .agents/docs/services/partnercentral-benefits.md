@@ -54,7 +54,7 @@ AWS Partner Central Benefits Service provides APIs for managing partner benefits
 
 - Operations: `ListBenefitAllocations`, `ListBenefitApplications`, `ListBenefits`, `ListTagsForResource`
 - Traits: `paginated` (3), `readonly` (1)
-- Common required input members in this group: `Catalog`, `resourceArn`
+- Common required input members in this group: `Catalog`
 
 ### Get
 
@@ -64,65 +64,65 @@ AWS Partner Central Benefits Service provides APIs for managing partner benefits
 ### Amend
 
 - Operations: `AmendBenefitApplication`
-- Common required input members in this group: `AmendmentReason`, `Amendments`, `Catalog`, `ClientToken`, `Identifier`, `Revision`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateBenefitApplicationResource`
-- Common required input members in this group: `BenefitApplicationIdentifier`, `Catalog`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelBenefitApplication`
-- Common required input members in this group: `Catalog`, `ClientToken`, `Identifier`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateBenefitApplication`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `BenefitIdentifier`, `Catalog`, `ClientToken`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateBenefitApplicationResource`
-- Common required input members in this group: `BenefitApplicationIdentifier`, `Catalog`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Recall
 
 - Operations: `RecallBenefitApplication`
-- Common required input members in this group: `Catalog`, `Identifier`, `Reason`
+- Common required input members in this group: -
 
 ### Submit
 
 - Operations: `SubmitBenefitApplication`
-- Common required input members in this group: `Catalog`, `Identifier`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateBenefitApplication`
-- Common required input members in this group: `Catalog`, `ClientToken`, `Identifier`, `Revision`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AmendBenefitApplication` | `POST /AmendBenefitApplication` | - | `AmendmentReason`, `Amendments`, `Catalog`, `ClientToken`, `Identifier`, `Revision` | - | `AmendBenefitApplicationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies an existing benefit application by applying amendments to specific fields while maintaining revision control. |
-| `AssociateBenefitApplicationResource` | `POST /AssociateBenefitApplicationResource` | - | `BenefitApplicationIdentifier`, `Catalog`, `ResourceArn` | - | `AssociateBenefitApplicationResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Links an AWS resource to an existing benefit application for tracking and management purposes. |
+| `AmendBenefitApplication` | `POST /AmendBenefitApplication` | - | `Catalog`, `ClientToken`, `Revision`, `Identifier`, `AmendmentReason`, `Amendments` | - | `AmendBenefitApplicationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies an existing benefit application by applying amendments to specific fields while maintaining revision control. |
+| `AssociateBenefitApplicationResource` | `POST /AssociateBenefitApplicationResource` | - | `Catalog`, `BenefitApplicationIdentifier`, `ResourceArn` | - | `AssociateBenefitApplicationResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Links an AWS resource to an existing benefit application for tracking and management purposes. |
 | `CancelBenefitApplication` | `POST /CancelBenefitApplication` | - | `Catalog`, `ClientToken`, `Identifier` | - | `CancelBenefitApplicationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels a benefit application that is currently in progress, preventing further processing. |
-| `CreateBenefitApplication` | `POST /CreateBenefitApplication` | `idempotent` | `BenefitIdentifier`, `Catalog`, `ClientToken` | - | `CreateBenefitApplicationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new benefit application for a partner to request access to AWS benefits and programs. |
-| `DisassociateBenefitApplicationResource` | `POST /DisassociateBenefitApplicationResource` | - | `BenefitApplicationIdentifier`, `Catalog`, `ResourceArn` | - | `DisassociateBenefitApplicationResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the association between an AWS resource and a benefit application. |
+| `CreateBenefitApplication` | `POST /CreateBenefitApplication` | `idempotent` | `Catalog`, `ClientToken`, `BenefitIdentifier` | - | `CreateBenefitApplicationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new benefit application for a partner to request access to AWS benefits and programs. |
+| `DisassociateBenefitApplicationResource` | `POST /DisassociateBenefitApplicationResource` | - | `Catalog`, `BenefitApplicationIdentifier`, `ResourceArn` | - | `DisassociateBenefitApplicationResourceOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the association between an AWS resource and a benefit application. |
 | `GetBenefit` | `POST /GetBenefit` | - | `Catalog`, `Identifier` | - | `GetBenefitOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific benefit available in the partner catalog. |
 | `GetBenefitAllocation` | `POST /GetBenefitAllocation` | - | `Catalog`, `Identifier` | - | `GetBenefitAllocationOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific benefit allocation that has been granted to a partner. |
 | `GetBenefitApplication` | `POST /GetBenefitApplication` | - | `Catalog`, `Identifier` | - | `GetBenefitApplicationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific benefit application. |
@@ -136,35 +136,65 @@ AWS Partner Central Benefits Service provides APIs for managing partner benefits
 | `UntagResource` | `POST /UntagResource` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Removes specified tags from a resource. |
 | `UpdateBenefitApplication` | `POST /UpdateBenefitApplication` | - | `Catalog`, `ClientToken`, `Identifier`, `Revision` | - | `UpdateBenefitApplicationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing benefit application with new information while maintaining revision control. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | Thrown when the caller does not have sufficient permissions to perform the requested operation. |
-| `InternalServerException` | `structure` | `Message` | Thrown when an unexpected error occurs on the server side during request processing. |
-| `ResourceNotFoundException` | `structure` | `Message` | Thrown when the requested resource cannot be found or does not exist. |
-| `ThrottlingException` | `structure` | `Message` | Thrown when the request rate exceeds the allowed limits and the request is being throttled. |
-| `ValidationException` | `structure` | `FieldList`, `Message`, `Reason` | Thrown when the request contains invalid parameters or fails input validation requirements. |
-| `ConflictException` | `structure` | `Message` | Thrown when the request conflicts with the current state of the resource, such as attempting to modify a resource that has been changed by another process. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `QuotaCode`, `ResourceId`, `ResourceType` | Thrown when the request would exceed the service quotas or limits for the account. |
-| `AmendBenefitApplicationInput` | `structure` | `AmendmentReason`, `Amendments`, `Catalog`, `ClientToken`, `Identifier`, `Revision` | - |
-| `AmendBenefitApplicationOutput` | `structure` | - | - |
-| `AssociateBenefitApplicationResourceInput` | `structure` | `BenefitApplicationIdentifier`, `Catalog`, `ResourceArn` | - |
-| `AssociateBenefitApplicationResourceOutput` | `structure` | `Arn`, `Id`, `Revision` | - |
-| `CancelBenefitApplicationInput` | `structure` | `Catalog`, `ClientToken`, `Identifier`, `Reason` | - |
-| `CancelBenefitApplicationOutput` | `structure` | - | - |
-| `CreateBenefitApplicationInput` | `structure` | `AssociatedResources`, `BenefitApplicationDetails`, `BenefitIdentifier`, `Catalog`, `ClientToken`, `Description`, `FileDetails`, `FulfillmentTypes`, `Name`, `PartnerContacts`, `Tags` | - |
-| `CreateBenefitApplicationOutput` | `structure` | `Arn`, `Id`, `Revision` | - |
-| `DisassociateBenefitApplicationResourceInput` | `structure` | `BenefitApplicationIdentifier`, `Catalog`, `ResourceArn` | - |
-| `DisassociateBenefitApplicationResourceOutput` | `structure` | `Arn`, `Id`, `Revision` | - |
-| `GetBenefitInput` | `structure` | `Catalog`, `Identifier` | - |
-| `GetBenefitOutput` | `structure` | `Arn`, `BenefitRequestSchema`, `Catalog`, `Description`, `FulfillmentTypes`, `Id`, `Name`, `Programs`, `Status` | - |
-| `GetBenefitAllocationInput` | `structure` | `Catalog`, `Identifier` | - |
-| `GetBenefitAllocationOutput` | `structure` | `ApplicableBenefitIds`, `Arn`, `BenefitApplicationId`, `BenefitId`, `Catalog`, `CreatedAt`, `Description`, `ExpiresAt`, `FulfillmentDetail`, `FulfillmentType`, `Id`, `Name`, ... (+4) | - |
-| `GetBenefitApplicationInput` | `structure` | `Catalog`, `Identifier` | - |
-| `GetBenefitApplicationOutput` | `structure` | `Arn`, `AssociatedResources`, `BenefitApplicationDetails`, `BenefitId`, `Catalog`, `CreatedAt`, `Description`, `FileDetails`, `FulfillmentTypes`, `Id`, `Name`, `PartnerContacts`, ... (+8) | - |
-| `ListBenefitAllocationsInput` | `structure` | `BenefitApplicationIdentifiers`, `BenefitIdentifiers`, `Catalog`, `FulfillmentTypes`, `MaxResults`, `NextToken`, `Status` | - |
-
+| `AccessDeniedException` | `structure` | Message | Thrown when the caller does not have sufficient permissions to perform the requested operation. |
+| `ConflictException` | `structure` | Message | Thrown when the request conflicts with the current state of the resource, such as attempting to modify a resource that has been changed by another process. |
+| `InternalServerException` | `structure` | Message | Thrown when an unexpected error occurs on the server side during request processing. |
+| `ResourceNotFoundException` | `structure` | Message | Thrown when the requested resource cannot be found or does not exist. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, QuotaCode | Thrown when the request would exceed the service quotas or limits for the account. |
+| `ThrottlingException` | `structure` | Message | Thrown when the request rate exceeds the allowed limits and the request is being throttled. |
+| `ValidationException` | `structure` | Message, Reason, FieldList | Thrown when the request contains invalid parameters or fails input validation requirements. |
+| `AmendBenefitApplicationInput` | `structure` | Catalog, ClientToken, Revision, Identifier, AmendmentReason, Amendments | - |
+| `AmendBenefitApplicationOutput` | `structure` | **empty (no members)** | - |
+| `AssociateBenefitApplicationResourceInput` | `structure` | Catalog, BenefitApplicationIdentifier, ResourceArn | - |
+| `AssociateBenefitApplicationResourceOutput` | `structure` | Id, Arn, Revision | - |
+| `CancelBenefitApplicationInput` | `structure` | Catalog, ClientToken, Identifier, Reason | - |
+| `CancelBenefitApplicationOutput` | `structure` | **empty (no members)** | - |
+| `CreateBenefitApplicationInput` | `structure` | Catalog, ClientToken, Name, Description, BenefitIdentifier, FulfillmentTypes, BenefitApplicationDetails, Tags, AssociatedResources, PartnerContacts, FileDetails | - |
+| `CreateBenefitApplicationOutput` | `structure` | Id, Arn, Revision | - |
+| `DisassociateBenefitApplicationResourceInput` | `structure` | Catalog, BenefitApplicationIdentifier, ResourceArn | - |
+| `DisassociateBenefitApplicationResourceOutput` | `structure` | Id, Arn, Revision | - |
+| `GetBenefitInput` | `structure` | Catalog, Identifier | - |
+| `GetBenefitOutput` | `structure` | Id, Catalog, Arn, Name, Description, Programs, FulfillmentTypes, BenefitRequestSchema, Status | - |
+| `GetBenefitAllocationInput` | `structure` | Catalog, Identifier | - |
+| `GetBenefitAllocationOutput` | `structure` | Id, Catalog, Arn, Name, Description, Status, StatusReason, BenefitApplicationId, BenefitId, FulfillmentType, ApplicableBenefitIds, FulfillmentDetail, ... (+4) | - |
+| `GetBenefitApplicationInput` | `structure` | Catalog, Identifier | - |
+| `GetBenefitApplicationOutput` | `structure` | Id, Arn, Catalog, BenefitId, Name, Description, FulfillmentTypes, BenefitApplicationDetails, Programs, Status, Stage, StatusReason, ... (+8) | - |
+| `ListBenefitAllocationsInput` | `structure` | Catalog, FulfillmentTypes, BenefitIdentifiers, BenefitApplicationIdentifiers, Status, MaxResults, NextToken | - |
+| `ListBenefitAllocationsOutput` | `structure` | BenefitAllocationSummaries, NextToken | - |
+| `ListBenefitApplicationsInput` | `structure` | Catalog, Programs, FulfillmentTypes, BenefitIdentifiers, Status, Stages, AssociatedResources, AssociatedResourceArns, MaxResults, NextToken | - |
+| `ListBenefitApplicationsOutput` | `structure` | BenefitApplicationSummaries, NextToken | - |
+| `ListBenefitsInput` | `structure` | Catalog, Programs, FulfillmentTypes, Status, MaxResults, NextToken | - |
+| `ListBenefitsOutput` | `structure` | BenefitSummaries, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `RecallBenefitApplicationInput` | `structure` | Catalog, ClientToken, Identifier, Reason | - |
+| `RecallBenefitApplicationOutput` | `structure` | **empty (no members)** | - |
+| `SubmitBenefitApplicationInput` | `structure` | Catalog, Identifier | - |
+| `SubmitBenefitApplicationOutput` | `structure` | **empty (no members)** | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateBenefitApplicationInput` | `structure` | Catalog, ClientToken, Name, Description, Identifier, Revision, BenefitApplicationDetails, PartnerContacts, FileDetails | - |
+| `BenefitAllocationStatus` | `enum` | ACTIVE, INACTIVE, FULFILLED | - |
+| `BenefitApplicationStatus` | `enum` | PENDING_SUBMISSION, IN_REVIEW, ACTION_REQUIRED, APPROVED, REJECTED, CANCELED | - |
+| `BenefitStatus` | `enum` | ACTIVE, INACTIVE | - |
+| `CurrencyCode` | `enum` | AED, AMD, ARS, AUD, AWG, AZN, BBD, BDT, BGN, BMD, BND, BOB, ... (+83) | - |
+| `FileType` | `enum` | DOC, DOCX, XLSX, PPTX, PDF, PNG, JPG, SVG, CSV | - |
+| `FulfillmentType` | `enum` | CREDITS, CASH, ACCESS | - |
+| `ResourceType` | `enum` | OPPORTUNITY, BENEFIT_ALLOCATION | - |
+| `ValidationExceptionErrorCode` | `enum` | REQUIRED_FIELD_MISSING, INVALID_ENUM_VALUE, INVALID_STRING_FORMAT, INVALID_VALUE, NOT_ENOUGH_VALUES, TOO_MANY_VALUES, INVALID_RESOURCE_STATE, DUPLICATE_KEY_VALUE, VALUE_OUT_OF_RANGE, ACTION_NOT_PERMITTED | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER, BUSINESS_VALIDATION_FAILED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

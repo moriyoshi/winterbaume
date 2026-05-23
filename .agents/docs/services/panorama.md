@@ -42,74 +42,74 @@ AWS Panorama Overview This is the AWS Panorama API Reference . For an introducti
 
 - Operations: `ListApplicationInstanceDependencies`, `ListApplicationInstanceNodeInstances`, `ListApplicationInstances`, `ListDevices`, `ListDevicesJobs`, `ListNodeFromTemplateJobs`, `ListNodes`, `ListPackageImportJobs`, `ListPackages`, `ListTagsForResource`
 - Traits: `paginated` (9)
-- Common required input members in this group: `ApplicationInstanceId`, `ResourceArn`
+- Common required input members in this group: `ApplicationInstanceId`
 
 ### Describe
 
 - Operations: `DescribeApplicationInstance`, `DescribeApplicationInstanceDetails`, `DescribeDevice`, `DescribeDeviceJob`, `DescribeNode`, `DescribeNodeFromTemplateJob`, `DescribePackage`, `DescribePackageImportJob`, `DescribePackageVersion`
-- Common required input members in this group: `ApplicationInstanceId`, `DeviceId`, `JobId`, `NodeId`, `PackageId`, `PackageVersion`
+- Common required input members in this group: `ApplicationInstanceId`, `JobId`, `PackageId`
 
 ### Create
 
 - Operations: `CreateApplicationInstance`, `CreateJobForDevices`, `CreateNodeFromTemplateJob`, `CreatePackage`, `CreatePackageImportJob`
-- Common required input members in this group: `ClientToken`, `DefaultRuntimeContextDevice`, `DeviceIds`, `InputConfig`, `JobType`, `ManifestPayload`, `NodeName`, `OutputConfig`, `OutputPackageName`, `OutputPackageVersion`, `PackageName`, `TemplateParameters`, `TemplateType`
+- Common required input members in this group: `JobType`
 
 ### Delete
 
 - Operations: `DeleteDevice`, `DeletePackage`
-- Common required input members in this group: `DeviceId`, `PackageId`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterPackageVersion`
-- Common required input members in this group: `PackageId`, `PackageVersion`, `PatchVersion`
+- Common required input members in this group: -
 
 ### Provision
 
 - Operations: `ProvisionDevice`
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterPackageVersion`
-- Common required input members in this group: `PackageId`, `PackageVersion`, `PatchVersion`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveApplicationInstance`
-- Common required input members in this group: `ApplicationInstanceId`
+- Common required input members in this group: -
 
 ### Signal
 
 - Operations: `SignalApplicationInstanceNodeInstances`
-- Common required input members in this group: `ApplicationInstanceId`, `NodeSignals`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateDeviceMetadata`
-- Common required input members in this group: `DeviceId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateApplicationInstance` | `POST /application-instances` | - | `DefaultRuntimeContextDevice`, `ManifestPayload` | - | `CreateApplicationInstanceResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an application instance and deploys it to a device. |
+| `CreateApplicationInstance` | `POST /application-instances` | - | `ManifestPayload`, `DefaultRuntimeContextDevice` | - | `CreateApplicationInstanceResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an application instance and deploys it to a device. |
 | `CreateJobForDevices` | `POST /jobs` | - | `DeviceIds`, `JobType` | - | `CreateJobForDevicesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a job to run on a device. A job can update a device's software or reboot it. |
-| `CreateNodeFromTemplateJob` | `POST /packages/template-job` | - | `NodeName`, `OutputPackageName`, `OutputPackageVersion`, `TemplateParameters`, `TemplateType` | - | `CreateNodeFromTemplateJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Creates a camera stream node. |
+| `CreateNodeFromTemplateJob` | `POST /packages/template-job` | - | `TemplateType`, `OutputPackageName`, `OutputPackageVersion`, `NodeName`, `TemplateParameters` | - | `CreateNodeFromTemplateJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Creates a camera stream node. |
 | `CreatePackage` | `POST /packages` | - | `PackageName` | - | `CreatePackageResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Creates a package and storage location in an Amazon S3 access point. |
-| `CreatePackageImportJob` | `POST /packages/import-jobs` | - | `ClientToken`, `InputConfig`, `JobType`, `OutputConfig` | - | `CreatePackageImportJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Imports a node package. |
+| `CreatePackageImportJob` | `POST /packages/import-jobs` | - | `JobType`, `InputConfig`, `OutputConfig`, `ClientToken` | - | `CreatePackageImportJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Imports a node package. |
 | `DeleteDevice` | `DELETE /devices/{DeviceId}` | - | `DeviceId` | - | `DeleteDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a device. |
-| `DeletePackage` | `DELETE /packages/{PackageId}` | - | `PackageId` | - | `DeletePackageResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a package. To delete a package, you need permission to call `s3:DeleteObject` in addition to permissions for the AWS Panorama API. |
+| `DeletePackage` | `DELETE /packages/{PackageId}` | - | `PackageId` | - | `DeletePackageResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a package. To delete a package, you need permission to call s3:DeleteObject in addition to permissions for the AWS Panorama API. |
 | `DeregisterPackageVersion` | `DELETE /packages/{PackageId}/versions/{PackageVersion}/patch/{PatchVersion}` | - | `PackageId`, `PackageVersion`, `PatchVersion` | - | `DeregisterPackageVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deregisters a package version. |
 | `DescribeApplicationInstance` | `GET /application-instances/{ApplicationInstanceId}` | - | `ApplicationInstanceId` | - | `DescribeApplicationInstanceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about an application instance on a device. |
 | `DescribeApplicationInstanceDetails` | `GET /application-instances/{ApplicationInstanceId}/details` | - | `ApplicationInstanceId` | - | `DescribeApplicationInstanceDetailsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about an application instance's configuration manifest. |
@@ -130,7 +130,7 @@ AWS Panorama Overview This is the AWS Panorama API Reference . For an introducti
 | `ListPackageImportJobs` | `GET /packages/import-jobs` | `paginated` | - | - | `ListPackageImportJobsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Returns a list of package import jobs. |
 | `ListPackages` | `GET /packages` | `paginated` | - | - | `ListPackagesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of packages. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of tags for a resource. |
-| `ProvisionDevice` | `POST /devices` | - | `Name` | - | `ProvisionDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a device and returns a configuration archive. The configuration archive is a ZIP file that contains a provisioning certificate that is valid for 5 minutes. |
+| `ProvisionDevice` | `POST /devices` | - | `Name` | - | `ProvisionDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a device and returns a configuration archive. The configuration archive is a ZIP file that contains a provisioning certificate that is valid for 5 minutes. Name the configuration archive certificates-omni_ de ... |
 | `RegisterPackageVersion` | `PUT /packages/{PackageId}/versions/{PackageVersion}/patch/{PatchVersion}` | - | `PackageId`, `PackageVersion`, `PatchVersion` | - | `RegisterPackageVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ValidationException` | Registers a package version. |
 | `RemoveApplicationInstance` | `DELETE /application-instances/{ApplicationInstanceId}` | - | `ApplicationInstanceId` | - | `RemoveApplicationInstanceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes an application instance. |
 | `SignalApplicationInstanceNodeInstances` | `PUT /application-instances/{ApplicationInstanceId}/node-signals` | - | `ApplicationInstanceId`, `NodeSignals` | - | `SignalApplicationInstanceNodeInstancesResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Signal camera nodes to stop or resume. |
@@ -138,35 +138,71 @@ AWS Panorama Overview This is the AWS Panorama API Reference . For an introducti
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from a resource. |
 | `UpdateDeviceMetadata` | `PUT /devices/{DeviceId}` | - | `DeviceId` | - | `UpdateDeviceMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a device's metadata. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeletePackage` | - | `ForceDelete -> ForceDelete` | - | - |
+| `DeregisterPackageVersion` | - | `OwnerAccount -> OwnerAccount`, `UpdatedLatestPatchVersion -> UpdatedLatestPatchVersion` | - | - |
+| `DescribeNode` | - | `OwnerAccount -> OwnerAccount` | - | - |
+| `DescribePackageVersion` | - | `OwnerAccount -> OwnerAccount`, `PatchVersion -> PatchVersion` | - | - |
+| `ListApplicationInstanceDependencies` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListApplicationInstanceNodeInstances` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListApplicationInstances` | - | `DeviceId -> deviceId`, `StatusFilter -> statusFilter`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDevices` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `SortBy -> SortBy`, `SortOrder -> SortOrder`, `NameFilter -> NameFilter`, `DeviceAggregatedStatusFilter -> DeviceAggregatedStatusFilter` | - | - |
+| `ListDevicesJobs` | - | `DeviceId -> DeviceId`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListNodeFromTemplateJobs` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListNodes` | - | `Category -> category`, `OwnerAccount -> ownerAccount`, `PackageName -> packageName`, `PackageVersion -> packageVersion`, `PatchVersion -> patchVersion`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListPackageImportJobs` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListPackages` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message`, `RetryAfterSeconds` | An internal error occurred. |
-| `ValidationException` | `structure` | `ErrorArguments`, `ErrorId`, `Fields`, `Message`, `Reason` | The request contains an invalid parameter value. |
-| `AccessDeniedException` | `structure` | `Message` | The requestor does not have permission to access the target action or resource. |
-| `ConflictException` | `structure` | `ErrorArguments`, `ErrorId`, `Message`, `ResourceId`, `ResourceType` | The target resource is in use. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | The target resource was not found. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `QuotaCode`, `ResourceId`, `ResourceType`, `ServiceCode` | The request would cause a limit to be exceeded. |
-| `CreateApplicationInstanceRequest` | `structure` | `ApplicationInstanceIdToReplace`, `DefaultRuntimeContextDevice`, `Description`, `ManifestOverridesPayload`, `ManifestPayload`, `Name`, `RuntimeRoleArn`, `Tags` | - |
-| `CreateApplicationInstanceResponse` | `structure` | `ApplicationInstanceId` | - |
-| `CreateJobForDevicesRequest` | `structure` | `DeviceIds`, `DeviceJobConfig`, `JobType` | - |
-| `CreateJobForDevicesResponse` | `structure` | `Jobs` | - |
-| `CreateNodeFromTemplateJobRequest` | `structure` | `JobTags`, `NodeDescription`, `NodeName`, `OutputPackageName`, `OutputPackageVersion`, `TemplateParameters`, `TemplateType` | - |
-| `CreateNodeFromTemplateJobResponse` | `structure` | `JobId` | - |
-| `CreatePackageRequest` | `structure` | `PackageName`, `Tags` | - |
-| `CreatePackageResponse` | `structure` | `Arn`, `PackageId`, `StorageLocation` | - |
-| `CreatePackageImportJobRequest` | `structure` | `ClientToken`, `InputConfig`, `JobTags`, `JobType`, `OutputConfig` | - |
-| `CreatePackageImportJobResponse` | `structure` | `JobId` | - |
-| `DeleteDeviceRequest` | `structure` | `DeviceId` | - |
-| `DeleteDeviceResponse` | `structure` | `DeviceId` | - |
-| `DeletePackageRequest` | `structure` | `ForceDelete`, `PackageId` | - |
-| `DeletePackageResponse` | `structure` | - | - |
-| `DeregisterPackageVersionRequest` | `structure` | `OwnerAccount`, `PackageId`, `PackageVersion`, `PatchVersion`, `UpdatedLatestPatchVersion` | - |
-| `DeregisterPackageVersionResponse` | `structure` | - | - |
-| `DescribeApplicationInstanceRequest` | `structure` | `ApplicationInstanceId` | - |
-| `DescribeApplicationInstanceResponse` | `structure` | `ApplicationInstanceId`, `ApplicationInstanceIdToReplace`, `Arn`, `CreatedTime`, `DefaultRuntimeContextDevice`, `DefaultRuntimeContextDeviceName`, `Description`, `HealthStatus`, `LastUpdatedTime`, `Name`, `RuntimeContextStates`, `RuntimeRoleArn`, ... (+3) | - |
-
+| `AccessDeniedException` | `structure` | Message | The requestor does not have permission to access the target action or resource. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType, ErrorId, ErrorArguments | The target resource is in use. |
+| `InternalServerException` | `structure` | Message, RetryAfterSeconds | An internal error occurred. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | The target resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, QuotaCode, ServiceCode | The request would cause a limit to be exceeded. |
+| `ValidationException` | `structure` | Message, Reason, ErrorId, ErrorArguments, Fields | The request contains an invalid parameter value. |
+| `CreateApplicationInstanceRequest` | `structure` | Name, Description, ManifestPayload, ManifestOverridesPayload, ApplicationInstanceIdToReplace, RuntimeRoleArn, DefaultRuntimeContextDevice, Tags | - |
+| `CreateApplicationInstanceResponse` | `structure` | ApplicationInstanceId | - |
+| `CreateJobForDevicesRequest` | `structure` | DeviceIds, DeviceJobConfig, JobType | - |
+| `CreateJobForDevicesResponse` | `structure` | Jobs | - |
+| `CreateNodeFromTemplateJobRequest` | `structure` | TemplateType, OutputPackageName, OutputPackageVersion, NodeName, NodeDescription, TemplateParameters, JobTags | - |
+| `CreateNodeFromTemplateJobResponse` | `structure` | JobId | - |
+| `CreatePackageRequest` | `structure` | PackageName, Tags | - |
+| `CreatePackageResponse` | `structure` | PackageId, Arn, StorageLocation | - |
+| `CreatePackageImportJobRequest` | `structure` | JobType, InputConfig, OutputConfig, ClientToken, JobTags | - |
+| `CreatePackageImportJobResponse` | `structure` | JobId | - |
+| `DeleteDeviceRequest` | `structure` | DeviceId | - |
+| `DeleteDeviceResponse` | `structure` | DeviceId | - |
+| `DeletePackageRequest` | `structure` | PackageId, ForceDelete | - |
+| `DeletePackageResponse` | `structure` | **empty (no members)** | - |
+| `DeregisterPackageVersionRequest` | `structure` | OwnerAccount, PackageId, PackageVersion, PatchVersion, UpdatedLatestPatchVersion | - |
+| `DeregisterPackageVersionResponse` | `structure` | **empty (no members)** | - |
+| `DescribeApplicationInstanceRequest` | `structure` | ApplicationInstanceId | - |
+| `DescribeApplicationInstanceResponse` | `structure` | Name, Description, DefaultRuntimeContextDevice, DefaultRuntimeContextDeviceName, ApplicationInstanceIdToReplace, RuntimeRoleArn, Status, HealthStatus, StatusDescription, CreatedTime, LastUpdatedTime, ApplicationInstanceId, ... (+3) | - |
+| `DescribeApplicationInstanceDetailsRequest` | `structure` | ApplicationInstanceId | - |
+| `DescribeApplicationInstanceDetailsResponse` | `structure` | Name, Description, DefaultRuntimeContextDevice, ManifestPayload, ManifestOverridesPayload, ApplicationInstanceIdToReplace, CreatedTime, ApplicationInstanceId | - |
+| `DescribeDeviceRequest` | `structure` | DeviceId | - |
+| `DescribeDeviceResponse` | `structure` | DeviceId, Name, Arn, Description, Type, DeviceConnectionStatus, CreatedTime, ProvisioningStatus, LatestSoftware, CurrentSoftware, SerialNumber, Tags, ... (+8) | - |
+| `DescribeDeviceJobRequest` | `structure` | JobId | - |
+| `DescribeDeviceJobResponse` | `structure` | JobId, DeviceId, DeviceArn, DeviceName, DeviceType, ImageVersion, Status, CreatedTime, JobType | - |
+| `DescribeNodeRequest` | `structure` | NodeId, OwnerAccount | - |
+| `DescribeNodeResponse` | `structure` | NodeId, Name, Category, OwnerAccount, PackageName, PackageId, PackageArn, PackageVersion, PatchVersion, NodeInterface, AssetName, Description, ... (+2) | - |
+| `DescribeNodeFromTemplateJobRequest` | `structure` | JobId | - |
+| `DescribeNodeFromTemplateJobResponse` | `structure` | JobId, Status, StatusMessage, CreatedTime, LastUpdatedTime, OutputPackageName, OutputPackageVersion, NodeName, NodeDescription, TemplateType, TemplateParameters, JobTags | - |
+| `DescribePackageRequest` | `structure` | PackageId | - |
+| `DescribePackageResponse` | `structure` | PackageId, PackageName, Arn, StorageLocation, ReadAccessPrincipalArns, WriteAccessPrincipalArns, CreatedTime, Tags | - |
+| `DescribePackageImportJobRequest` | `structure` | JobId | - |
+| `DescribePackageImportJobResponse` | `structure` | JobId, ClientToken, JobType, InputConfig, OutputConfig, Output, CreatedTime, LastUpdatedTime, Status, StatusMessage, JobTags | - |
+| `DescribePackageVersionRequest` | `structure` | OwnerAccount, PackageId, PackageVersion, PatchVersion | - |
+| `DescribePackageVersionResponse` | `structure` | OwnerAccount, PackageId, PackageArn, PackageName, PackageVersion, PatchVersion, IsLatestPatch, Status, StatusDescription, RegisteredTime | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

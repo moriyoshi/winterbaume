@@ -67,99 +67,68 @@ Parity implications:
 
 ## Operation Groups
 
-### List
-
-- Operations: `ListGroupMemberships`, `ListGroupMembershipsForMember`, `ListGroups`, `ListUsers`
-- Traits: `paginated` (4), `readonly` (4)
-- Common required input members in this group: `GroupId`, `IdentityStoreId`, `MemberId`
-
-### Create
-
-- Operations: `CreateGroup`, `CreateGroupMembership`, `CreateUser`
-- Common required input members in this group: `GroupId`, `IdentityStoreId`, `MemberId`
-
-### Delete
-
-- Operations: `DeleteGroup`, `DeleteGroupMembership`, `DeleteUser`
-- Traits: `idempotent` (3)
-- Common required input members in this group: `GroupId`, `IdentityStoreId`, `MembershipId`, `UserId`
-
-### Describe
-
-- Operations: `DescribeGroup`, `DescribeGroupMembership`, `DescribeUser`
-- Traits: `readonly` (3)
-- Common required input members in this group: `GroupId`, `IdentityStoreId`, `MembershipId`, `UserId`
-
 ### Get
 
 - Operations: `GetGroupId`, `GetGroupMembershipId`, `GetUserId`
 - Traits: `readonly` (3)
-- Common required input members in this group: `AlternateIdentifier`, `GroupId`, `IdentityStoreId`, `MemberId`
-
-### Update
-
-- Operations: `UpdateGroup`, `UpdateUser`
-- Common required input members in this group: `GroupId`, `IdentityStoreId`, `Operations`, `UserId`
+- Common required input members in this group: `IdentityStoreId`, `AlternateIdentifier`
 
 ### Is
 
 - Operations: `IsMemberInGroups`
 - Traits: `readonly` (1)
-- Common required input members in this group: `GroupIds`, `IdentityStoreId`, `MemberId`
+- Common required input members in this group: -
+
+### List
+
+- Operations: `ListGroupMembershipsForMember`
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateGroup` | - | - | `IdentityStoreId` | - | `CreateGroupResponse` | `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a group within the specified identity store. |
-| `CreateGroupMembership` | - | - | `GroupId`, `IdentityStoreId`, `MemberId` | - | `CreateGroupMembershipResponse` | `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a relationship between a member and a group. The following identifiers must be specified: `GroupId`, `IdentityStoreId`, and `MemberId`. |
-| `CreateUser` | - | - | `IdentityStoreId` | - | `CreateUserResponse` | `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a user within the specified identity store. |
-| `DeleteGroup` | - | `idempotent` | `GroupId`, `IdentityStoreId` | - | `DeleteGroupResponse` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Delete a group within an identity store given `GroupId`. |
-| `DeleteGroupMembership` | - | `idempotent` | `IdentityStoreId`, `MembershipId` | - | `DeleteGroupMembershipResponse` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Delete a membership within a group given `MembershipId`. |
-| `DeleteUser` | - | `idempotent` | `IdentityStoreId`, `UserId` | - | `DeleteUserResponse` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Deletes a user within an identity store given `UserId`. |
-| `DescribeGroup` | - | `readonly` | `GroupId`, `IdentityStoreId` | - | `DescribeGroupResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves the group metadata and attributes from `GroupId` in an identity store. If you have access to a member account, you can use this API operation from the member account. |
-| `DescribeGroupMembership` | - | `readonly` | `IdentityStoreId`, `MembershipId` | - | `DescribeGroupMembershipResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves membership metadata and attributes from `MembershipId` in an identity store. If you have access to a member account, you can use this API operation from the member account. |
-| `DescribeUser` | - | `readonly` | `IdentityStoreId`, `UserId` | - | `DescribeUserResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves the user metadata and attributes from the `UserId` in an identity store. If you have access to a member account, you can use this API operation from the member account. |
-| `GetGroupId` | - | `readonly` | `AlternateIdentifier`, `IdentityStoreId` | - | `GetGroupIdResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves `GroupId` in an identity store. If you have access to a member account, you can use this API operation from the member account. |
-| `GetGroupMembershipId` | - | `readonly` | `GroupId`, `IdentityStoreId`, `MemberId` | - | `GetGroupMembershipIdResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves the `MembershipId` in an identity store. If you have access to a member account, you can use this API operation from the member account. |
-| `GetUserId` | - | `readonly` | `AlternateIdentifier`, `IdentityStoreId` | - | `GetUserIdResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves the `UserId` in an identity store. If you have access to a member account, you can use this API operation from the member account. |
-| `IsMemberInGroups` | - | `readonly` | `GroupIds`, `IdentityStoreId`, `MemberId` | - | `IsMemberInGroupsResponse` | `ResourceNotFoundException`, `ValidationException` | Checks the user's membership in all requested groups and returns if the member exists in all queried groups. If you have access to a member account, you can use this API operation from the member account. |
-| `ListGroupMemberships` | - | `readonly`, `paginated` | `GroupId`, `IdentityStoreId` | - | `ListGroupMembershipsResponse` | `ResourceNotFoundException`, `ValidationException` | For the specified group in the specified identity store, returns the list of all ` GroupMembership` objects and returns results in paginated form. If you have access to a member account, you can use this API operation from the member account. |
-| `ListGroupMembershipsForMember` | - | `readonly`, `paginated` | `IdentityStoreId`, `MemberId` | - | `ListGroupMembershipsForMemberResponse` | `ResourceNotFoundException`, `ValidationException` | For the specified member in the specified identity store, returns the list of all ` GroupMembership` objects and returns results in paginated form. If you have access to a member account, you can use this API operation from the member account. |
-| `ListGroups` | - | `readonly`, `paginated` | `IdentityStoreId` | - | `ListGroupsResponse` | `ResourceNotFoundException`, `ValidationException` | Lists all groups in the identity store. Returns a paginated list of complete `Group` objects. |
-| `ListUsers` | - | `readonly`, `paginated` | `IdentityStoreId` | - | `ListUsersResponse` | `ResourceNotFoundException`, `ValidationException` | Lists all users in the identity store. Returns a paginated list of complete `User` objects. |
-| `UpdateGroup` | - | - | `GroupId`, `IdentityStoreId`, `Operations` | - | `UpdateGroupResponse` | `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates the specified group metadata and attributes in the specified identity store. |
-| `UpdateUser` | - | - | `IdentityStoreId`, `Operations`, `UserId` | - | `UpdateUserResponse` | `ConflictException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates the specified user metadata and attributes in the specified identity store. |
+| `GetGroupId` | `-` | `readonly` | `IdentityStoreId`, `AlternateIdentifier` | - | `GetGroupIdResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves GroupId in an identity store. If you have access to a member account, you can use this API operation from the member account. For more information, see Limiting access to the identity store from member acco ... |
+| `GetGroupMembershipId` | `-` | `readonly` | `IdentityStoreId`, `GroupId`, `MemberId` | - | `GetGroupMembershipIdResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves the MembershipId in an identity store. If you have access to a member account, you can use this API operation from the member account. For more information, see Limiting access to the identity store from me ... |
+| `GetUserId` | `-` | `readonly` | `IdentityStoreId`, `AlternateIdentifier` | - | `GetUserIdResponse` | `ResourceNotFoundException`, `ValidationException` | Retrieves the UserId in an identity store. If you have access to a member account, you can use this API operation from the member account. For more information, see Limiting access to the identity store from member a ... |
+| `IsMemberInGroups` | `-` | `readonly` | `IdentityStoreId`, `MemberId`, `GroupIds` | - | `IsMemberInGroupsResponse` | `ResourceNotFoundException`, `ValidationException` | Checks the user's membership in all requested groups and returns if the member exists in all queried groups. If you have access to a member account, you can use this API operation from the member account. For more in ... |
+| `ListGroupMembershipsForMember` | `-` | `readonly`, `paginated` | `IdentityStoreId`, `MemberId` | - | `ListGroupMembershipsForMemberResponse` | `ResourceNotFoundException`, `ValidationException` | For the specified member in the specified identity store, returns the list of all GroupMembership objects and returns results in paginated form. If you have access to a member account, you can use this API operation ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `Message`, `Reason`, `RequestId`, `ResourceId`, `ResourceType` | Indicates that a requested resource is not found. |
-| `ValidationException` | `structure` | `Message`, `Reason`, `RequestId` | The request failed because it contains a syntax error. |
-| `ConflictException` | `structure` | `Message`, `Reason`, `RequestId` | This request cannot be completed for one of the following reasons: Performing the requested operation would violate an existing uniqueness claim in the identity store. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `RequestId` | The request would cause the number of users or groups in the identity store to exceed the maximum allowed. |
-| `CreateGroupRequest` | `structure` | `Description`, `DisplayName`, `IdentityStoreId` | - |
-| `CreateGroupResponse` | `structure` | `GroupId`, `IdentityStoreId` | - |
-| `CreateGroupMembershipRequest` | `structure` | `GroupId`, `IdentityStoreId`, `MemberId` | - |
-| `CreateGroupMembershipResponse` | `structure` | `IdentityStoreId`, `MembershipId` | - |
-| `CreateUserRequest` | `structure` | `Addresses`, `Birthdate`, `DisplayName`, `Emails`, `Extensions`, `IdentityStoreId`, `Locale`, `Name`, `NickName`, `PhoneNumbers`, `Photos`, `PreferredLanguage`, ... (+7) | - |
-| `CreateUserResponse` | `structure` | `IdentityStoreId`, `UserId` | - |
-| `DeleteGroupRequest` | `structure` | `GroupId`, `IdentityStoreId` | - |
-| `DeleteGroupResponse` | `structure` | - | - |
-| `DeleteGroupMembershipRequest` | `structure` | `IdentityStoreId`, `MembershipId` | - |
-| `DeleteGroupMembershipResponse` | `structure` | - | - |
-| `DeleteUserRequest` | `structure` | `IdentityStoreId`, `UserId` | - |
-| `DeleteUserResponse` | `structure` | - | - |
-| `DescribeGroupRequest` | `structure` | `GroupId`, `IdentityStoreId` | - |
-| `DescribeGroupResponse` | `structure` | `CreatedAt`, `CreatedBy`, `Description`, `DisplayName`, `ExternalIds`, `GroupId`, `IdentityStoreId`, `UpdatedAt`, `UpdatedBy` | - |
-| `DescribeGroupMembershipRequest` | `structure` | `IdentityStoreId`, `MembershipId` | - |
-| `DescribeGroupMembershipResponse` | `structure` | `CreatedAt`, `CreatedBy`, `GroupId`, `IdentityStoreId`, `MemberId`, `MembershipId`, `UpdatedAt`, `UpdatedBy` | - |
-| `DescribeUserRequest` | `structure` | `Extensions`, `IdentityStoreId`, `UserId` | - |
-| `DescribeUserResponse` | `structure` | `Addresses`, `Birthdate`, `CreatedAt`, `CreatedBy`, `DisplayName`, `Emails`, `Extensions`, `ExternalIds`, `IdentityStoreId`, `Locale`, `Name`, `NickName`, ... (+14) | - |
-| `GetGroupIdRequest` | `structure` | `AlternateIdentifier`, `IdentityStoreId` | - |
-| `GetGroupIdResponse` | `structure` | `GroupId`, `IdentityStoreId` | - |
-
+| `AccessDeniedException` | `structure` | Message, RequestId, Reason | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | Message, RequestId, Reason | This request cannot be completed for one of the following reasons: Performing the requested operation would violate an existing uniqueness claim in the iden ... |
+| `InternalServerException` | `structure` | Message, RequestId, RetryAfterSeconds | The request processing has failed because of an unknown error, exception or failure with an internal server. |
+| `ResourceNotFoundException` | `structure` | ResourceType, ResourceId, Reason, Message, RequestId | Indicates that a requested resource is not found. |
+| `ServiceQuotaExceededException` | `structure` | Message, RequestId | The request would cause the number of users or groups in the identity store to exceed the maximum allowed. |
+| `ThrottlingException` | `structure` | Message, RequestId, RetryAfterSeconds, Reason | Indicates that the principal has crossed the throttling limits of the API operations. |
+| `ValidationException` | `structure` | Message, RequestId, Reason | The request failed because it contains a syntax error. |
+| `GetGroupIdRequest` | `structure` | IdentityStoreId, AlternateIdentifier | - |
+| `GetGroupIdResponse` | `structure` | GroupId, IdentityStoreId | - |
+| `GetGroupMembershipIdRequest` | `structure` | IdentityStoreId, GroupId, MemberId | - |
+| `GetGroupMembershipIdResponse` | `structure` | MembershipId, IdentityStoreId | - |
+| `GetUserIdRequest` | `structure` | IdentityStoreId, AlternateIdentifier | - |
+| `GetUserIdResponse` | `structure` | IdentityStoreId, UserId | - |
+| `IsMemberInGroupsRequest` | `structure` | IdentityStoreId, MemberId, GroupIds | - |
+| `IsMemberInGroupsResponse` | `structure` | Results | - |
+| `ListGroupMembershipsForMemberRequest` | `structure` | IdentityStoreId, MemberId, MaxResults, NextToken | - |
+| `ListGroupMembershipsForMemberResponse` | `structure` | GroupMemberships, NextToken | - |
+| `AccessDeniedExceptionReason` | `enum` | KMS_ACCESS_DENIED | - |
+| `ConflictExceptionReason` | `enum` | UNIQUENESS_CONSTRAINT_VIOLATION, CONCURRENT_MODIFICATION | - |
+| `ResourceNotFoundExceptionReason` | `enum` | KMS_KEY_NOT_FOUND | - |
+| `ResourceType` | `enum` | GROUP, USER, IDENTITY_STORE, GROUP_MEMBERSHIP, RESOURCE_POLICY | - |
+| `ThrottlingExceptionReason` | `enum` | KMS_THROTTLING | - |
+| `UserStatus` | `enum` | ENABLED, DISABLED | - |
+| `ValidationExceptionReason` | `enum` | KMS_INVALID_ARN, KMS_INVALID_KEY_USAGE, KMS_INVALID_STATE, KMS_DISABLED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

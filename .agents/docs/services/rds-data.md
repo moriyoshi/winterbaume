@@ -66,68 +66,78 @@ Parity implications:
 ### Execute
 
 - Operations: `ExecuteSql`, `ExecuteStatement`
-- Common required input members in this group: `awsSecretStoreArn`, `dbClusterOrInstanceArn`, `resourceArn`, `secretArn`, `sql`, `sqlStatements`
+- Common required input members in this group: -
 
 ### Batch
 
 - Operations: `BatchExecuteStatement`
-- Common required input members in this group: `resourceArn`, `secretArn`, `sql`
+- Common required input members in this group: -
 
 ### Begin
 
 - Operations: `BeginTransaction`
-- Common required input members in this group: `resourceArn`, `secretArn`
+- Common required input members in this group: -
 
 ### Commit
 
 - Operations: `CommitTransaction`
-- Common required input members in this group: `resourceArn`, `secretArn`, `transactionId`
+- Common required input members in this group: -
 
 ### Rollback
 
 - Operations: `RollbackTransaction`
-- Common required input members in this group: `resourceArn`, `secretArn`, `transactionId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchExecuteStatement` | `POST /BatchExecute` | - | `resourceArn`, `secretArn`, `sql` | - | `BatchExecuteStatementResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseResumingException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, ... (+7) | Runs a batch SQL statement over an array of data. You can run bulk update and insert operations for multiple records using a DML statement with different parameter sets. |
-| `BeginTransaction` | `POST /BeginTransaction` | - | `resourceArn`, `secretArn` | - | `BeginTransactionResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseResumingException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, ... (+7) | Starts a SQL transaction. A transaction can run for a maximum of 24 hours. |
-| `CommitTransaction` | `POST /CommitTransaction` | - | `resourceArn`, `secretArn`, `transactionId` | - | `CommitTransactionResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, `InternalServerErrorException`, ... (+7) | Ends a SQL transaction started with the `BeginTransaction` operation and commits the changes. |
-| `ExecuteSql` | `POST /ExecuteSql` | - | `awsSecretStoreArn`, `dbClusterOrInstanceArn`, `sqlStatements` | - | `ExecuteSqlResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `ServiceUnavailableError` | Runs one or more SQL statements. This operation isn't supported for Aurora Serverless v2 and provisioned DB clusters. |
-| `ExecuteStatement` | `POST /Execute` | - | `resourceArn`, `secretArn`, `sql` | - | `ExecuteStatementResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseResumingException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, ... (+8) | Runs a SQL statement against a database. If a call isn't part of a transaction because it doesn't include the `transactionID` parameter, changes that result from the call are committed automatically. |
-| `RollbackTransaction` | `POST /RollbackTransaction` | - | `resourceArn`, `secretArn`, `transactionId` | - | `RollbackTransactionResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, `InternalServerErrorException`, ... (+7) | Performs a rollback of a transaction. Rolling back a transaction cancels its changes. |
+| `BatchExecuteStatement` | `POST /BatchExecute` | - | `resourceArn`, `secretArn`, `sql` | - | `BatchExecuteStatementResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseResumingException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, `InternalServerErrorException`, `InvalidResourceStateException`, `InvalidSecretException`, `SecretsErrorException`, `ServiceUnavailableError`, `StatementTimeoutException`, `TransactionNotFoundException` | Runs a batch SQL statement over an array of data. You can run bulk update and insert operations for multiple records using a DML statement with different parameter sets. Bulk operations can provide a significant perf ... |
+| `BeginTransaction` | `POST /BeginTransaction` | - | `resourceArn`, `secretArn` | - | `BeginTransactionResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseResumingException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, `InternalServerErrorException`, `InvalidResourceStateException`, `InvalidSecretException`, `SecretsErrorException`, `ServiceUnavailableError`, `StatementTimeoutException`, `TransactionNotFoundException` | Starts a SQL transaction. A transaction can run for a maximum of 24 hours. A transaction is terminated and rolled back automatically after 24 hours. A transaction times out if no calls use its transaction ID in three ... |
+| `CommitTransaction` | `POST /CommitTransaction` | - | `resourceArn`, `secretArn`, `transactionId` | - | `CommitTransactionResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, `InternalServerErrorException`, `InvalidResourceStateException`, `InvalidSecretException`, `NotFoundException`, `SecretsErrorException`, `ServiceUnavailableError`, `StatementTimeoutException`, `TransactionNotFoundException` | Ends a SQL transaction started with the BeginTransaction operation and commits the changes. |
+| `ExecuteSql` | `POST /ExecuteSql` | - | `dbClusterOrInstanceArn`, `awsSecretStoreArn`, `sqlStatements` | - | `ExecuteSqlResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `ServiceUnavailableError` | Runs one or more SQL statements. This operation isn't supported for Aurora Serverless v2 and provisioned DB clusters. For Aurora Serverless v1 DB clusters, the operation is deprecated. Use the BatchExecuteStatement o ... |
+| `ExecuteStatement` | `POST /Execute` | - | `resourceArn`, `secretArn`, `sql` | - | `ExecuteStatementResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseResumingException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, `InternalServerErrorException`, `InvalidResourceStateException`, `InvalidSecretException`, `SecretsErrorException`, `ServiceUnavailableError`, `StatementTimeoutException`, `TransactionNotFoundException`, `UnsupportedResultException` | Runs a SQL statement against a database. If a call isn't part of a transaction because it doesn't include the transactionID parameter, changes that result from the call are committed automatically. If the binary resp ... |
+| `RollbackTransaction` | `POST /RollbackTransaction` | - | `resourceArn`, `secretArn`, `transactionId` | - | `RollbackTransactionResponse` | `AccessDeniedException`, `BadRequestException`, `DatabaseErrorException`, `DatabaseNotFoundException`, `DatabaseUnavailableException`, `ForbiddenException`, `HttpEndpointNotEnabledException`, `InternalServerErrorException`, `InvalidResourceStateException`, `InvalidSecretException`, `NotFoundException`, `SecretsErrorException`, `ServiceUnavailableError`, `StatementTimeoutException`, `TransactionNotFoundException` | Performs a rollback of a transaction. Rolling back a transaction cancels its changes. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient access to perform this action. |
-| `BadRequestException` | `structure` | `message` | There is an error in the call or in a SQL statement. |
-| `ForbiddenException` | `structure` | `message` | There are insufficient privileges to make the call. |
-| `InternalServerErrorException` | `structure` | - | An internal error occurred. |
-| `ServiceUnavailableError` | `structure` | - | The service specified by the `resourceArn` parameter isn't available. |
-| `DatabaseErrorException` | `structure` | `message` | There was an error in processing the SQL statement. |
-| `DatabaseNotFoundException` | `structure` | `message` | The DB cluster doesn't have a DB instance. |
-| `DatabaseUnavailableException` | `structure` | - | The writer instance in the DB cluster isn't available. |
-| `HttpEndpointNotEnabledException` | `structure` | `message` | The HTTP endpoint for using RDS Data API isn't enabled for the DB cluster. |
-| `InvalidResourceStateException` | `structure` | `message` | The resource is in an invalid state. |
-| `InvalidSecretException` | `structure` | `message` | The Secrets Manager secret used with the request isn't valid. |
-| `SecretsErrorException` | `structure` | `message` | There was a problem with the Secrets Manager secret used with the request, caused by one of the following conditions: RDS Data API timed out retrieving the secret. |
-| `StatementTimeoutException` | `structure` | `dbConnectionId`, `message` | The execution of the SQL statement timed out. |
-| `TransactionNotFoundException` | `structure` | `message` | The transaction ID wasn't found. |
-| `DatabaseResumingException` | `structure` | `message` | A request was cancelled because the Aurora Serverless v2 DB instance was paused. |
-| `NotFoundException` | `structure` | `message` | The `resourceArn`, `secretArn`, or `transactionId` value can't be found. |
-| `BatchExecuteStatementRequest` | `structure` | `database`, `parameterSets`, `resourceArn`, `schema`, `secretArn`, `sql`, `transactionId` | The request parameters represent the input of a SQL statement over an array of data. |
-| `BatchExecuteStatementResponse` | `structure` | `updateResults` | The response elements represent the output of a SQL statement over an array of data. |
-| `BeginTransactionRequest` | `structure` | `database`, `resourceArn`, `schema`, `secretArn` | The request parameters represent the input of a request to start a SQL transaction. |
-| `BeginTransactionResponse` | `structure` | `transactionId` | The response elements represent the output of a request to start a SQL transaction. |
-| `CommitTransactionRequest` | `structure` | `resourceArn`, `secretArn`, `transactionId` | The request parameters represent the input of a commit transaction request. |
-| `CommitTransactionResponse` | `structure` | `transactionStatus` | The response elements represent the output of a commit transaction request. |
-| `ExecuteSqlRequest` | `structure` | `awsSecretStoreArn`, `database`, `dbClusterOrInstanceArn`, `schema`, `sqlStatements` | The request parameters represent the input of a request to run one or more SQL statements. |
-| `ExecuteSqlResponse` | `structure` | `sqlStatementResults` | The response elements represent the output of a request to run one or more SQL statements. |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient access to perform this action. |
+| `BadRequestException` | `structure` | message | There is an error in the call or in a SQL statement. (This error only appears in calls from Aurora Serverless v1 databases.) |
+| `DatabaseErrorException` | `structure` | message | There was an error in processing the SQL statement. |
+| `DatabaseNotFoundException` | `structure` | message | The DB cluster doesn't have a DB instance. |
+| `DatabaseResumingException` | `structure` | message | A request was cancelled because the Aurora Serverless v2 DB instance was paused. The Data API request automatically resumes the DB instance. Wait a few seco ... |
+| `DatabaseUnavailableException` | `structure` | **empty (no members)** | The writer instance in the DB cluster isn't available. |
+| `ForbiddenException` | `structure` | message | There are insufficient privileges to make the call. |
+| `HttpEndpointNotEnabledException` | `structure` | message | The HTTP endpoint for using RDS Data API isn't enabled for the DB cluster. |
+| `InternalServerErrorException` | `structure` | **empty (no members)** | An internal error occurred. |
+| `InvalidResourceStateException` | `structure` | message | The resource is in an invalid state. |
+| `InvalidSecretException` | `structure` | message | The Secrets Manager secret used with the request isn't valid. |
+| `NotFoundException` | `structure` | message | The resourceArn , secretArn , or transactionId value can't be found. |
+| `SecretsErrorException` | `structure` | message | There was a problem with the Secrets Manager secret used with the request, caused by one of the following conditions: RDS Data API timed out retrieving the ... |
+| `ServiceUnavailableError` | `structure` | **empty (no members)** | The service specified by the resourceArn parameter isn't available. |
+| `StatementTimeoutException` | `structure` | message, dbConnectionId | The execution of the SQL statement timed out. |
+| `TransactionNotFoundException` | `structure` | message | The transaction ID wasn't found. |
+| `UnsupportedResultException` | `structure` | message | There was a problem with the result because of one of the following conditions: It contained an unsupported data type. It contained a multidimensional array ... |
+| `BatchExecuteStatementRequest` | `structure` | resourceArn, secretArn, sql, database, schema, parameterSets, transactionId | The request parameters represent the input of a SQL statement over an array of data. |
+| `BatchExecuteStatementResponse` | `structure` | updateResults | The response elements represent the output of a SQL statement over an array of data. |
+| `BeginTransactionRequest` | `structure` | resourceArn, secretArn, database, schema | The request parameters represent the input of a request to start a SQL transaction. |
+| `BeginTransactionResponse` | `structure` | transactionId | The response elements represent the output of a request to start a SQL transaction. |
+| `CommitTransactionRequest` | `structure` | resourceArn, secretArn, transactionId | The request parameters represent the input of a commit transaction request. |
+| `CommitTransactionResponse` | `structure` | transactionStatus | The response elements represent the output of a commit transaction request. |
+| `ExecuteSqlRequest` | `structure` | dbClusterOrInstanceArn, awsSecretStoreArn, sqlStatements, database, schema | The request parameters represent the input of a request to run one or more SQL statements. |
+| `ExecuteSqlResponse` | `structure` | sqlStatementResults | The response elements represent the output of a request to run one or more SQL statements. |
+| `ExecuteStatementRequest` | `structure` | resourceArn, secretArn, sql, database, schema, parameters, transactionId, includeResultMetadata, continueAfterTimeout, resultSetOptions, formatRecordsAs | The request parameters represent the input of a request to run a SQL statement against a database. |
+| `ExecuteStatementResponse` | `structure` | records, columnMetadata, numberOfRecordsUpdated, generatedFields, formattedRecords | The response elements represent the output of a request to run a SQL statement against a database. |
+| `RollbackTransactionRequest` | `structure` | resourceArn, secretArn, transactionId | The request parameters represent the input of a request to perform a rollback of a transaction. |
+| `RollbackTransactionResponse` | `structure` | transactionStatus | The response elements represent the output of a request to perform a rollback of a transaction. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

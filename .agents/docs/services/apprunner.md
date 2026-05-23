@@ -77,135 +77,166 @@ App Runner exposes VPC-aware operations in the model but currently does not pers
 
 - Operations: `ListAutoScalingConfigurations`, `ListConnections`, `ListObservabilityConfigurations`, `ListOperations`, `ListServices`, `ListServicesForAutoScalingConfiguration`, `ListTagsForResource`, `ListVpcConnectors`, `ListVpcIngressConnections`
 - Traits: `paginated` (8)
-- Common required input members in this group: `AutoScalingConfigurationArn`, `ResourceArn`, `ServiceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateAutoScalingConfiguration`, `CreateConnection`, `CreateObservabilityConfiguration`, `CreateService`, `CreateVpcConnector`, `CreateVpcIngressConnection`
-- Common required input members in this group: `AutoScalingConfigurationName`, `ConnectionName`, `IngressVpcConfiguration`, `ObservabilityConfigurationName`, `ProviderType`, `ServiceArn`, `ServiceName`, `SourceConfiguration`, `Subnets`, `VpcConnectorName`, `VpcIngressConnectionName`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteAutoScalingConfiguration`, `DeleteConnection`, `DeleteObservabilityConfiguration`, `DeleteService`, `DeleteVpcConnector`, `DeleteVpcIngressConnection`
-- Common required input members in this group: `AutoScalingConfigurationArn`, `ConnectionArn`, `ObservabilityConfigurationArn`, `ServiceArn`, `VpcConnectorArn`, `VpcIngressConnectionArn`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeAutoScalingConfiguration`, `DescribeCustomDomains`, `DescribeObservabilityConfiguration`, `DescribeService`, `DescribeVpcConnector`, `DescribeVpcIngressConnection`
 - Traits: `paginated` (1)
-- Common required input members in this group: `AutoScalingConfigurationArn`, `ObservabilityConfigurationArn`, `ServiceArn`, `VpcConnectorArn`, `VpcIngressConnectionArn`
+- Common required input members in this group: `ServiceArn`
 
 ### Update
 
 - Operations: `UpdateDefaultAutoScalingConfiguration`, `UpdateService`, `UpdateVpcIngressConnection`
-- Common required input members in this group: `AutoScalingConfigurationArn`, `IngressVpcConfiguration`, `ServiceArn`, `VpcIngressConnectionArn`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateCustomDomain`
-- Common required input members in this group: `DomainName`, `ServiceArn`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateCustomDomain`
-- Common required input members in this group: `DomainName`, `ServiceArn`
+- Common required input members in this group: -
 
 ### Pause
 
 - Operations: `PauseService`
-- Common required input members in this group: `ServiceArn`
+- Common required input members in this group: -
 
 ### Resume
 
 - Operations: `ResumeService`
-- Common required input members in this group: `ServiceArn`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartDeployment`
-- Common required input members in this group: `ServiceArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateCustomDomain` | - | - | `DomainName`, `ServiceArn` | - | `AssociateCustomDomainResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException` | Associate your own domain name with the App Runner subdomain URL of your App Runner service. After you call `AssociateCustomDomain` and receive a successful response, use the information in the CustomDomain record that's returned to add CNAME records to your... |
-| `CreateAutoScalingConfiguration` | - | - | `AutoScalingConfigurationName` | - | `CreateAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner automatic scaling configuration resource. App Runner requires this resource when you create or update App Runner services and you require non-default auto scaling settings. |
-| `CreateConnection` | - | - | `ConnectionName`, `ProviderType` | - | `CreateConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner connection resource. App Runner requires a connection resource when you create App Runner services that access private repositories from certain third-party providers. |
-| `CreateObservabilityConfiguration` | - | - | `ObservabilityConfigurationName` | - | `CreateObservabilityConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner observability configuration resource. App Runner requires this resource when you create or update App Runner services and you want to enable non-default observability features. |
-| `CreateService` | - | - | `ServiceName`, `SourceConfiguration` | - | `CreateServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner service. After the service is created, the action also automatically starts a deployment. |
-| `CreateVpcConnector` | - | - | `Subnets`, `VpcConnectorName` | - | `CreateVpcConnectorResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner VPC connector resource. App Runner requires this resource when you want to associate your App Runner service to a custom Amazon Virtual Private Cloud (Amazon VPC). |
-| `CreateVpcIngressConnection` | - | - | `IngressVpcConfiguration`, `ServiceArn`, `VpcIngressConnectionName` | - | `CreateVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ServiceQuotaExceededException` | Create an App Runner VPC Ingress Connection resource. App Runner requires this resource when you want to associate your App Runner service with an Amazon VPC endpoint. |
-| `DeleteAutoScalingConfiguration` | - | - | `AutoScalingConfigurationArn` | - | `DeleteAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Delete an App Runner automatic scaling configuration resource. You can delete a top level auto scaling configuration, a specific revision of one, or all revisions associated with the top level configuration. |
-| `DeleteConnection` | - | - | `ConnectionArn` | - | `DeleteConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Delete an App Runner connection. You must first ensure that there are no running App Runner services that use this connection. |
-| `DeleteObservabilityConfiguration` | - | - | `ObservabilityConfigurationArn` | - | `DeleteObservabilityConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Delete an App Runner observability configuration resource. You can delete a specific revision or the latest active revision. |
-| `DeleteService` | - | - | `ServiceArn` | - | `DeleteServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Delete an App Runner service. This is an asynchronous operation. |
-| `DeleteVpcConnector` | - | - | `VpcConnectorArn` | - | `DeleteVpcConnectorResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Delete an App Runner VPC connector resource. You can't delete a connector that's used by one or more App Runner services. |
-| `DeleteVpcIngressConnection` | - | - | `VpcIngressConnectionArn` | - | `DeleteVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Delete an App Runner VPC Ingress Connection resource that's associated with an App Runner service. The VPC Ingress Connection must be in one of the following states to be deleted: `AVAILABLE` `FAILED_CREATION` `FAILED_UPDATE` `FAILED_DELETION` |
-| `DescribeAutoScalingConfiguration` | - | - | `AutoScalingConfigurationArn` | - | `DescribeAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a full description of an App Runner automatic scaling configuration resource. |
-| `DescribeCustomDomains` | - | `paginated` | `ServiceArn` | - | `DescribeCustomDomainsResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a description of custom domain names that are associated with an App Runner service. |
-| `DescribeObservabilityConfiguration` | - | - | `ObservabilityConfigurationArn` | - | `DescribeObservabilityConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a full description of an App Runner observability configuration resource. |
-| `DescribeService` | - | - | `ServiceArn` | - | `DescribeServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a full description of an App Runner service. |
-| `DescribeVpcConnector` | - | - | `VpcConnectorArn` | - | `DescribeVpcConnectorResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a description of an App Runner VPC connector resource. |
-| `DescribeVpcIngressConnection` | - | - | `VpcIngressConnectionArn` | - | `DescribeVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a full description of an App Runner VPC Ingress Connection resource. |
-| `DisassociateCustomDomain` | - | - | `DomainName`, `ServiceArn` | - | `DisassociateCustomDomainResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Disassociate a custom domain name from an App Runner service. Certificates tracking domain validity are associated with a custom domain and are stored in AWS Certificate Manager (ACM). |
-| `ListAutoScalingConfigurations` | - | `paginated` | - | - | `ListAutoScalingConfigurationsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of active App Runner automatic scaling configurations in your Amazon Web Services account. You can query the revisions for a specific configuration name or the revisions for all active configurations in your account. |
-| `ListConnections` | - | `paginated` | - | - | `ListConnectionsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of App Runner connections that are associated with your Amazon Web Services account. |
-| `ListObservabilityConfigurations` | - | `paginated` | - | - | `ListObservabilityConfigurationsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of active App Runner observability configurations in your Amazon Web Services account. You can query the revisions for a specific configuration name or the revisions for all active configurations in your account. |
-| `ListOperations` | - | `paginated` | `ServiceArn` | - | `ListOperationsResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a list of operations that occurred on an App Runner service. The resulting list of OperationSummary objects is sorted in reverse chronological order. |
-| `ListServices` | - | `paginated` | - | - | `ListServicesResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of running App Runner services in your Amazon Web Services account. |
-| `ListServicesForAutoScalingConfiguration` | - | `paginated` | `AutoScalingConfigurationArn` | - | `ListServicesForAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Returns a list of the associated App Runner services using an auto scaling configuration. |
-| `ListTagsForResource` | - | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | List tags that are associated with for an App Runner resource. The response contains a list of tag key-value pairs. |
-| `ListVpcConnectors` | - | `paginated` | - | - | `ListVpcConnectorsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of App Runner VPC connectors in your Amazon Web Services account. |
-| `ListVpcIngressConnections` | - | `paginated` | - | - | `ListVpcIngressConnectionsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Return a list of App Runner VPC Ingress Connections in your Amazon Web Services account. |
-| `PauseService` | - | - | `ServiceArn` | - | `PauseServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Pause an active App Runner service. App Runner reduces compute capacity for the service to zero and loses state (for example, ephemeral storage is removed). |
-| `ResumeService` | - | - | `ServiceArn` | - | `ResumeServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Resume an active App Runner service. App Runner provisions compute capacity for the service. |
-| `StartDeployment` | - | - | `ServiceArn` | - | `StartDeploymentResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Initiate a manual deployment of the latest commit in a source code repository or the latest image in a source image repository to an App Runner service. For a source code repository, App Runner retrieves the commit and builds a Docker image. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Add tags to, or update the tag values of, an App Runner resource. A tag is a key-value pair. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Remove tags from an App Runner resource. |
-| `UpdateDefaultAutoScalingConfiguration` | - | - | `AutoScalingConfigurationArn` | - | `UpdateDefaultAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Update an auto scaling configuration to be the default. The existing default auto scaling configuration will be set to non-default automatically. |
-| `UpdateService` | - | - | `ServiceArn` | - | `UpdateServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Update an App Runner service. You can update the source configuration and instance configuration of the service. |
-| `UpdateVpcIngressConnection` | - | - | `IngressVpcConfiguration`, `VpcIngressConnectionArn` | - | `UpdateVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Update an existing App Runner VPC Ingress Connection resource. The VPC Ingress Connection must be in one of the following states to be updated: AVAILABLE FAILED_CREATION FAILED_UPDATE |
+| `AssociateCustomDomain` | `-` | - | `ServiceArn`, `DomainName` | - | `AssociateCustomDomainResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException` | Associate your own domain name with the App Runner subdomain URL of your App Runner service. After you call AssociateCustomDomain and receive a successful response, use the information in the CustomDomain record that ... |
+| `CreateAutoScalingConfiguration` | `-` | - | `AutoScalingConfigurationName` | - | `CreateAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner automatic scaling configuration resource. App Runner requires this resource when you create or update App Runner services and you require non-default auto scaling settings. You can share an auto ... |
+| `CreateConnection` | `-` | - | `ConnectionName`, `ProviderType` | - | `CreateConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner connection resource. App Runner requires a connection resource when you create App Runner services that access private repositories from certain third-party providers. You can share a connection ... |
+| `CreateObservabilityConfiguration` | `-` | - | `ObservabilityConfigurationName` | - | `CreateObservabilityConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner observability configuration resource. App Runner requires this resource when you create or update App Runner services and you want to enable non-default observability features. You can share an o ... |
+| `CreateService` | `-` | - | `ServiceName`, `SourceConfiguration` | - | `CreateServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner service. After the service is created, the action also automatically starts a deployment. This is an asynchronous operation. On a successful call, you can use the returned OperationId and the Lis ... |
+| `CreateVpcConnector` | `-` | - | `VpcConnectorName`, `Subnets` | - | `CreateVpcConnectorResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ServiceQuotaExceededException` | Create an App Runner VPC connector resource. App Runner requires this resource when you want to associate your App Runner service to a custom Amazon Virtual Private Cloud (Amazon VPC). |
+| `CreateVpcIngressConnection` | `-` | - | `ServiceArn`, `VpcIngressConnectionName`, `IngressVpcConfiguration` | - | `CreateVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ServiceQuotaExceededException` | Create an App Runner VPC Ingress Connection resource. App Runner requires this resource when you want to associate your App Runner service with an Amazon VPC endpoint. |
+| `DeleteAutoScalingConfiguration` | `-` | - | `AutoScalingConfigurationArn` | - | `DeleteAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Delete an App Runner automatic scaling configuration resource. You can delete a top level auto scaling configuration, a specific revision of one, or all revisions associated with the top level configuration. You can' ... |
+| `DeleteConnection` | `-` | - | `ConnectionArn` | - | `DeleteConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Delete an App Runner connection. You must first ensure that there are no running App Runner services that use this connection. If there are any, the DeleteConnection action fails. |
+| `DeleteObservabilityConfiguration` | `-` | - | `ObservabilityConfigurationArn` | - | `DeleteObservabilityConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Delete an App Runner observability configuration resource. You can delete a specific revision or the latest active revision. You can't delete a configuration that's used by one or more App Runner services. |
+| `DeleteService` | `-` | - | `ServiceArn` | - | `DeleteServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Delete an App Runner service. This is an asynchronous operation. On a successful call, you can use the returned OperationId and the ListOperations call to track the operation's progress. Make sure that you don't have ... |
+| `DeleteVpcConnector` | `-` | - | `VpcConnectorArn` | - | `DeleteVpcConnectorResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Delete an App Runner VPC connector resource. You can't delete a connector that's used by one or more App Runner services. |
+| `DeleteVpcIngressConnection` | `-` | - | `VpcIngressConnectionArn` | - | `DeleteVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Delete an App Runner VPC Ingress Connection resource that's associated with an App Runner service. The VPC Ingress Connection must be in one of the following states to be deleted: AVAILABLE FAILED_CREATION FAILED_UPD ... |
+| `DescribeAutoScalingConfiguration` | `-` | - | `AutoScalingConfigurationArn` | - | `DescribeAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a full description of an App Runner automatic scaling configuration resource. |
+| `DescribeCustomDomains` | `-` | `paginated` | `ServiceArn` | - | `DescribeCustomDomainsResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a description of custom domain names that are associated with an App Runner service. |
+| `DescribeObservabilityConfiguration` | `-` | - | `ObservabilityConfigurationArn` | - | `DescribeObservabilityConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a full description of an App Runner observability configuration resource. |
+| `DescribeService` | `-` | - | `ServiceArn` | - | `DescribeServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a full description of an App Runner service. |
+| `DescribeVpcConnector` | `-` | - | `VpcConnectorArn` | - | `DescribeVpcConnectorResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a description of an App Runner VPC connector resource. |
+| `DescribeVpcIngressConnection` | `-` | - | `VpcIngressConnectionArn` | - | `DescribeVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a full description of an App Runner VPC Ingress Connection resource. |
+| `DisassociateCustomDomain` | `-` | - | `ServiceArn`, `DomainName` | - | `DisassociateCustomDomainResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Disassociate a custom domain name from an App Runner service. Certificates tracking domain validity are associated with a custom domain and are stored in AWS Certificate Manager (ACM) . These certificates aren't dele ... |
+| `ListAutoScalingConfigurations` | `-` | `paginated` | - | - | `ListAutoScalingConfigurationsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of active App Runner automatic scaling configurations in your Amazon Web Services account. You can query the revisions for a specific configuration name or the revisions for all active configurations i ... |
+| `ListConnections` | `-` | `paginated` | - | - | `ListConnectionsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of App Runner connections that are associated with your Amazon Web Services account. |
+| `ListObservabilityConfigurations` | `-` | `paginated` | - | - | `ListObservabilityConfigurationsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of active App Runner observability configurations in your Amazon Web Services account. You can query the revisions for a specific configuration name or the revisions for all active configurations in yo ... |
+| `ListOperations` | `-` | `paginated` | `ServiceArn` | - | `ListOperationsResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Return a list of operations that occurred on an App Runner service. The resulting list of OperationSummary objects is sorted in reverse chronological order. The first object on the list represents the last started op ... |
+| `ListServices` | `-` | `paginated` | - | - | `ListServicesResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of running App Runner services in your Amazon Web Services account. |
+| `ListServicesForAutoScalingConfiguration` | `-` | `paginated` | `AutoScalingConfigurationArn` | - | `ListServicesForAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Returns a list of the associated App Runner services using an auto scaling configuration. |
+| `ListTagsForResource` | `-` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | List tags that are associated with for an App Runner resource. The response contains a list of tag key-value pairs. |
+| `ListVpcConnectors` | `-` | `paginated` | - | - | `ListVpcConnectorsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Returns a list of App Runner VPC connectors in your Amazon Web Services account. |
+| `ListVpcIngressConnections` | `-` | `paginated` | - | - | `ListVpcIngressConnectionsResponse` | `InternalServiceErrorException`, `InvalidRequestException` | Return a list of App Runner VPC Ingress Connections in your Amazon Web Services account. |
+| `PauseService` | `-` | - | `ServiceArn` | - | `PauseServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Pause an active App Runner service. App Runner reduces compute capacity for the service to zero and loses state (for example, ephemeral storage is removed). This is an asynchronous operation. On a successful call, yo ... |
+| `ResumeService` | `-` | - | `ServiceArn` | - | `ResumeServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Resume an active App Runner service. App Runner provisions compute capacity for the service. This is an asynchronous operation. On a successful call, you can use the returned OperationId and the ListOperations call t ... |
+| `StartDeployment` | `-` | - | `ServiceArn` | - | `StartDeploymentResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Initiate a manual deployment of the latest commit in a source code repository or the latest image in a source image repository to an App Runner service. For a source code repository, App Runner retrieves the commit a ... |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Add tags to, or update the tag values of, an App Runner resource. A tag is a key-value pair. |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Remove tags from an App Runner resource. |
+| `UpdateDefaultAutoScalingConfiguration` | `-` | - | `AutoScalingConfigurationArn` | - | `UpdateDefaultAutoScalingConfigurationResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException` | Update an auto scaling configuration to be the default. The existing default auto scaling configuration will be set to non-default automatically. |
+| `UpdateService` | `-` | - | `ServiceArn` | - | `UpdateServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Update an App Runner service. You can update the source configuration and instance configuration of the service. You can also update the ARN of the auto scaling configuration resource that's associated with the servi ... |
+| `UpdateVpcIngressConnection` | `-` | - | `VpcIngressConnectionArn`, `IngressVpcConfiguration` | - | `UpdateVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Update an existing App Runner VPC Ingress Connection resource. The VPC Ingress Connection must be in one of the following states to be updated: AVAILABLE FAILED_CREATION FAILED_UPDATE |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServiceErrorException` | `structure` | `Message` | An unexpected service exception occurred. |
-| `InvalidRequestException` | `structure` | `Message` | One or more input parameters aren't valid. |
-| `ResourceNotFoundException` | `structure` | `Message` | A resource doesn't exist for the specified Amazon Resource Name (ARN) in your Amazon Web Services account. |
-| `InvalidStateException` | `structure` | `Message` | You can't perform this action when the resource is in its current state. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | App Runner can't create this resource. |
-| `AssociateCustomDomainRequest` | `structure` | `DomainName`, `EnableWWWSubdomain`, `ServiceArn` | - |
-| `AssociateCustomDomainResponse` | `structure` | `CustomDomain`, `DNSTarget`, `ServiceArn`, `VpcDNSTargets` | - |
-| `CreateAutoScalingConfigurationRequest` | `structure` | `AutoScalingConfigurationName`, `MaxConcurrency`, `MaxSize`, `MinSize`, `Tags` | - |
-| `CreateAutoScalingConfigurationResponse` | `structure` | `AutoScalingConfiguration` | - |
-| `CreateConnectionRequest` | `structure` | `ConnectionName`, `ProviderType`, `Tags` | - |
-| `CreateConnectionResponse` | `structure` | `Connection` | - |
-| `CreateObservabilityConfigurationRequest` | `structure` | `ObservabilityConfigurationName`, `Tags`, `TraceConfiguration` | - |
-| `CreateObservabilityConfigurationResponse` | `structure` | `ObservabilityConfiguration` | - |
-| `CreateServiceRequest` | `structure` | `AutoScalingConfigurationArn`, `EncryptionConfiguration`, `HealthCheckConfiguration`, `InstanceConfiguration`, `NetworkConfiguration`, `ObservabilityConfiguration`, `ServiceName`, `SourceConfiguration`, `Tags` | - |
-| `CreateServiceResponse` | `structure` | `OperationId`, `Service` | - |
-| `CreateVpcConnectorRequest` | `structure` | `SecurityGroups`, `Subnets`, `Tags`, `VpcConnectorName` | - |
-| `CreateVpcConnectorResponse` | `structure` | `VpcConnector` | - |
-| `CreateVpcIngressConnectionRequest` | `structure` | `IngressVpcConfiguration`, `ServiceArn`, `Tags`, `VpcIngressConnectionName` | - |
-| `CreateVpcIngressConnectionResponse` | `structure` | `VpcIngressConnection` | - |
-| `DeleteAutoScalingConfigurationRequest` | `structure` | `AutoScalingConfigurationArn`, `DeleteAllRevisions` | - |
-| `DeleteAutoScalingConfigurationResponse` | `structure` | `AutoScalingConfiguration` | - |
-| `DeleteConnectionRequest` | `structure` | `ConnectionArn` | - |
-| `DeleteConnectionResponse` | `structure` | `Connection` | - |
-| `DeleteObservabilityConfigurationRequest` | `structure` | `ObservabilityConfigurationArn` | - |
-
+| `InternalServiceErrorException` | `structure` | Message | An unexpected service exception occurred. |
+| `InvalidRequestException` | `structure` | Message | One or more input parameters aren't valid. Refer to the API action's document page, correct the input parameters, and try the action again. |
+| `InvalidStateException` | `structure` | Message | You can't perform this action when the resource is in its current state. |
+| `ResourceNotFoundException` | `structure` | Message | A resource doesn't exist for the specified Amazon Resource Name (ARN) in your Amazon Web Services account. |
+| `ServiceQuotaExceededException` | `structure` | Message | App Runner can't create this resource. You've reached your account quota for this resource type. For App Runner per-resource quotas, see App Runner endpoint ... |
+| `AssociateCustomDomainRequest` | `structure` | ServiceArn, DomainName, EnableWWWSubdomain | - |
+| `AssociateCustomDomainResponse` | `structure` | DNSTarget, ServiceArn, CustomDomain, VpcDNSTargets | - |
+| `CreateAutoScalingConfigurationRequest` | `structure` | AutoScalingConfigurationName, MaxConcurrency, MinSize, MaxSize, Tags | - |
+| `CreateAutoScalingConfigurationResponse` | `structure` | AutoScalingConfiguration | - |
+| `CreateConnectionRequest` | `structure` | ConnectionName, ProviderType, Tags | - |
+| `CreateConnectionResponse` | `structure` | Connection | - |
+| `CreateObservabilityConfigurationRequest` | `structure` | ObservabilityConfigurationName, TraceConfiguration, Tags | - |
+| `CreateObservabilityConfigurationResponse` | `structure` | ObservabilityConfiguration | - |
+| `CreateServiceRequest` | `structure` | ServiceName, SourceConfiguration, InstanceConfiguration, Tags, EncryptionConfiguration, HealthCheckConfiguration, AutoScalingConfigurationArn, NetworkConfiguration, ObservabilityConfiguration | - |
+| `CreateServiceResponse` | `structure` | Service, OperationId | - |
+| `CreateVpcConnectorRequest` | `structure` | VpcConnectorName, Subnets, SecurityGroups, Tags | - |
+| `CreateVpcConnectorResponse` | `structure` | VpcConnector | - |
+| `CreateVpcIngressConnectionRequest` | `structure` | ServiceArn, VpcIngressConnectionName, IngressVpcConfiguration, Tags | - |
+| `CreateVpcIngressConnectionResponse` | `structure` | VpcIngressConnection | - |
+| `DeleteAutoScalingConfigurationRequest` | `structure` | AutoScalingConfigurationArn, DeleteAllRevisions | - |
+| `DeleteAutoScalingConfigurationResponse` | `structure` | AutoScalingConfiguration | - |
+| `DeleteConnectionRequest` | `structure` | ConnectionArn | - |
+| `DeleteConnectionResponse` | `structure` | Connection | - |
+| `DeleteObservabilityConfigurationRequest` | `structure` | ObservabilityConfigurationArn | - |
+| `DeleteObservabilityConfigurationResponse` | `structure` | ObservabilityConfiguration | - |
+| `DeleteServiceRequest` | `structure` | ServiceArn | - |
+| `DeleteServiceResponse` | `structure` | Service, OperationId | - |
+| `DeleteVpcConnectorRequest` | `structure` | VpcConnectorArn | - |
+| `DeleteVpcConnectorResponse` | `structure` | VpcConnector | - |
+| `DeleteVpcIngressConnectionRequest` | `structure` | VpcIngressConnectionArn | - |
+| `DeleteVpcIngressConnectionResponse` | `structure` | VpcIngressConnection | - |
+| `DescribeAutoScalingConfigurationRequest` | `structure` | AutoScalingConfigurationArn | - |
+| `DescribeAutoScalingConfigurationResponse` | `structure` | AutoScalingConfiguration | - |
+| `DescribeCustomDomainsRequest` | `structure` | ServiceArn, NextToken, MaxResults | - |
+| `DescribeCustomDomainsResponse` | `structure` | DNSTarget, ServiceArn, CustomDomains, VpcDNSTargets, NextToken | - |
+| `DescribeObservabilityConfigurationRequest` | `structure` | ObservabilityConfigurationArn | - |
+| `DescribeObservabilityConfigurationResponse` | `structure` | ObservabilityConfiguration | - |
+| `DescribeServiceRequest` | `structure` | ServiceArn | - |
+| `DescribeServiceResponse` | `structure` | Service | - |
+| `DescribeVpcConnectorRequest` | `structure` | VpcConnectorArn | - |
+| `AutoScalingConfigurationStatus` | `enum` | ACTIVE, INACTIVE | - |
+| `CertificateValidationRecordStatus` | `enum` | PENDING_VALIDATION, SUCCESS, FAILED | - |
+| `ConfigurationSource` | `enum` | REPOSITORY, API | - |
+| `ConnectionStatus` | `enum` | PENDING_HANDSHAKE, AVAILABLE, ERROR, DELETED | - |
+| `CustomDomainAssociationStatus` | `enum` | CREATING, CREATE_FAILED, ACTIVE, DELETING, DELETE_FAILED, PENDING_CERTIFICATE_DNS_VALIDATION, BINDING_CERTIFICATE | - |
+| `EgressType` | `enum` | DEFAULT, VPC | - |
+| `HealthCheckProtocol` | `enum` | TCP, HTTP | - |
+| `ImageRepositoryType` | `enum` | ECR, ECR_PUBLIC | - |
+| `IpAddressType` | `enum` | IPV4, DUAL_STACK | - |
+| `ObservabilityConfigurationStatus` | `enum` | ACTIVE, INACTIVE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

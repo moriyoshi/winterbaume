@@ -79,133 +79,66 @@ Parity implications:
 
 ### List
 
-- Operations: `ListCrls`, `ListProfiles`, `ListSubjects`, `ListTagsForResource`, `ListTrustAnchors`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `resourceArn`
-
-### Delete
-
-- Operations: `DeleteAttributeMapping`, `DeleteCrl`, `DeleteProfile`, `DeleteTrustAnchor`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `certificateField`, `crlId`, `profileId`, `trustAnchorId`
-
-### Get
-
-- Operations: `GetCrl`, `GetProfile`, `GetSubject`, `GetTrustAnchor`
-- Traits: `readonly` (4)
-- Common required input members in this group: `crlId`, `profileId`, `subjectId`, `trustAnchorId`
-
-### Disable
-
-- Operations: `DisableCrl`, `DisableProfile`, `DisableTrustAnchor`
-- Common required input members in this group: `crlId`, `profileId`, `trustAnchorId`
-
-### Enable
-
-- Operations: `EnableCrl`, `EnableProfile`, `EnableTrustAnchor`
-- Common required input members in this group: `crlId`, `profileId`, `trustAnchorId`
-
-### Update
-
-- Operations: `UpdateCrl`, `UpdateProfile`, `UpdateTrustAnchor`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `crlId`, `profileId`, `trustAnchorId`
-
-### Create
-
-- Operations: `CreateProfile`, `CreateTrustAnchor`
-- Common required input members in this group: `name`, `roleArns`, `source`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Put
 
-- Operations: `PutAttributeMapping`, `PutNotificationSettings`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `certificateField`, `mappingRules`, `notificationSettings`, `profileId`, `trustAnchorId`
-
-### Import
-
-- Operations: `ImportCrl`
-- Common required input members in this group: `crlData`, `name`, `trustAnchorArn`
+- Operations: `PutNotificationSettings`
+- Common required input members in this group: -
 
 ### Reset
 
 - Operations: `ResetNotificationSettings`
-- Common required input members in this group: `notificationSettingKeys`, `trustAnchorId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateProfile` | `POST /profiles` | - | `name`, `roleArns` | - | `ProfileDetailResponse` | `AccessDeniedException`, `ValidationException` | Creates a profile , a list of the roles that Roles Anywhere service is trusted to assume. You use profiles to intersect permissions with IAM managed policies. |
-| `CreateTrustAnchor` | `POST /trustanchors` | - | `name`, `source` | - | `TrustAnchorDetailResponse` | `AccessDeniedException`, `ValidationException` | Creates a trust anchor to establish trust between IAM Roles Anywhere and your certificate authority (CA). You can define a trust anchor as a reference to an Private Certificate Authority (Private CA) or by uploading a CA certificate. |
-| `DeleteAttributeMapping` | `DELETE /profiles/{profileId}/mappings` | `idempotent` | `certificateField`, `profileId` | - | `DeleteAttributeMappingResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Delete an entry from the attribute mapping rules enforced by a given profile. |
-| `DeleteCrl` | `DELETE /crl/{crlId}` | `idempotent` | `crlId` | - | `CrlDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Deletes a certificate revocation list (CRL). Required permissions: `rolesanywhere:DeleteCrl`. |
-| `DeleteProfile` | `DELETE /profile/{profileId}` | `idempotent` | `profileId` | - | `ProfileDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Deletes a profile. Required permissions: `rolesanywhere:DeleteProfile`. |
-| `DeleteTrustAnchor` | `DELETE /trustanchor/{trustAnchorId}` | `idempotent` | `trustAnchorId` | - | `TrustAnchorDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Deletes a trust anchor. Required permissions: `rolesanywhere:DeleteTrustAnchor`. |
-| `DisableCrl` | `POST /crl/{crlId}/disable` | - | `crlId` | - | `CrlDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Disables a certificate revocation list (CRL). Required permissions: `rolesanywhere:DisableCrl`. |
-| `DisableProfile` | `POST /profile/{profileId}/disable` | - | `profileId` | - | `ProfileDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Disables a profile. When disabled, temporary credential requests with this profile fail. |
-| `DisableTrustAnchor` | `POST /trustanchor/{trustAnchorId}/disable` | - | `trustAnchorId` | - | `TrustAnchorDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Disables a trust anchor. When disabled, temporary credential requests specifying this trust anchor are unauthorized. |
-| `EnableCrl` | `POST /crl/{crlId}/enable` | - | `crlId` | - | `CrlDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Enables a certificate revocation list (CRL). When enabled, certificates stored in the CRL are unauthorized to receive session credentials. |
-| `EnableProfile` | `POST /profile/{profileId}/enable` | - | `profileId` | - | `ProfileDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Enables temporary credential requests for a profile. Required permissions: `rolesanywhere:EnableProfile`. |
-| `EnableTrustAnchor` | `POST /trustanchor/{trustAnchorId}/enable` | - | `trustAnchorId` | - | `TrustAnchorDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Enables a trust anchor. When enabled, certificates in the trust anchor chain are authorized for trust validation. |
-| `GetCrl` | `GET /crl/{crlId}` | `readonly` | `crlId` | - | `CrlDetailResponse` | `ResourceNotFoundException` | Gets a certificate revocation list (CRL). Required permissions: `rolesanywhere:GetCrl`. |
-| `GetProfile` | `GET /profile/{profileId}` | `readonly` | `profileId` | - | `ProfileDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Gets a profile. Required permissions: `rolesanywhere:GetProfile`. |
-| `GetSubject` | `GET /subject/{subjectId}` | `readonly` | `subjectId` | - | `SubjectDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException` | Gets a subject , which associates a certificate identity with authentication attempts. The subject stores auditing information such as the status of the last authentication attempt, the certificate data used in the attempt, and the last time the associated... |
-| `GetTrustAnchor` | `GET /trustanchor/{trustAnchorId}` | `readonly` | `trustAnchorId` | - | `TrustAnchorDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets a trust anchor. Required permissions: `rolesanywhere:GetTrustAnchor`. |
-| `ImportCrl` | `POST /crls` | - | `crlData`, `name`, `trustAnchorArn` | - | `CrlDetailResponse` | `AccessDeniedException`, `ValidationException` | Imports the certificate revocation list (CRL). A CRL is a list of certificates that have been revoked by the issuing certificate Authority (CA).In order to be properly imported, a CRL must be in PEM format. |
-| `ListCrls` | `GET /crls` | `readonly`, `paginated` | - | - | `ListCrlsResponse` | `AccessDeniedException`, `ValidationException` | Lists all certificate revocation lists (CRL) in the authenticated account and Amazon Web Services Region. Required permissions: `rolesanywhere:ListCrls`. |
-| `ListProfiles` | `GET /profiles` | `readonly`, `paginated` | - | - | `ListProfilesResponse` | `AccessDeniedException`, `ValidationException` | Lists all profiles in the authenticated account and Amazon Web Services Region. Required permissions: `rolesanywhere:ListProfiles`. |
-| `ListSubjects` | `GET /subjects` | `readonly`, `paginated` | - | - | `ListSubjectsResponse` | `AccessDeniedException`, `ValidationException` | Lists the subjects in the authenticated account and Amazon Web Services Region. Required permissions: `rolesanywhere:ListSubjects`. |
-| `ListTagsForResource` | `GET /ListTagsForResource` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags attached to the resource. Required permissions: `rolesanywhere:ListTagsForResource`. |
-| `ListTrustAnchors` | `GET /trustanchors` | `readonly`, `paginated` | - | - | `ListTrustAnchorsResponse` | `AccessDeniedException`, `ValidationException` | Lists the trust anchors in the authenticated account and Amazon Web Services Region. Required permissions: `rolesanywhere:ListTrustAnchors`. |
-| `PutAttributeMapping` | `PUT /profiles/{profileId}/mappings` | `idempotent` | `certificateField`, `mappingRules`, `profileId` | - | `PutAttributeMappingResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Put an entry in the attribute mapping rules that will be enforced by a given profile. A mapping specifies a certificate field and one or more specifiers that have contextual meanings. |
-| `PutNotificationSettings` | `PATCH /put-notifications-settings` | - | `notificationSettings`, `trustAnchorId` | - | `PutNotificationSettingsResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Attaches a list of notification settings to a trust anchor. A notification setting includes information such as event name, threshold, status of the notification setting, and the channel to notify. |
-| `ResetNotificationSettings` | `PATCH /reset-notifications-settings` | - | `notificationSettingKeys`, `trustAnchorId` | - | `ResetNotificationSettingsResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Resets the custom notification setting to IAM Roles Anywhere default setting. Required permissions: `rolesanywhere:ResetNotificationSettings`. |
-| `TagResource` | `POST /TagResource` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Attaches tags to a resource. Required permissions: `rolesanywhere:TagResource`. |
-| `UntagResource` | `POST /UntagResource` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from the resource. Required permissions: `rolesanywhere:UntagResource`. |
-| `UpdateCrl` | `PATCH /crl/{crlId}` | - | `crlId` | - | `CrlDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Updates the certificate revocation list (CRL). A CRL is a list of certificates that have been revoked by the issuing certificate authority (CA). |
-| `UpdateProfile` | `PATCH /profile/{profileId}` | `idempotent` | `profileId` | - | `ProfileDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Updates a profile , a list of the roles that IAM Roles Anywhere service is trusted to assume. You use profiles to intersect permissions with IAM managed policies. |
-| `UpdateTrustAnchor` | `PATCH /trustanchor/{trustAnchorId}` | `idempotent` | `trustAnchorId` | - | `TrustAnchorDetailResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Updates a trust anchor. You establish trust between IAM Roles Anywhere and your certificate authority (CA) by configuring a trust anchor. |
+| `ListTagsForResource` | `GET /ListTagsForResource` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags attached to the resource. Required permissions: rolesanywhere:ListTagsForResource . |
+| `PutNotificationSettings` | `PATCH /put-notifications-settings` | - | `trustAnchorId`, `notificationSettings` | - | `PutNotificationSettingsResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Attaches a list of notification settings to a trust anchor. A notification setting includes information such as event name, threshold, status of the notification setting, and the channel to notify. Required permissio ... |
+| `ResetNotificationSettings` | `PATCH /reset-notifications-settings` | - | `trustAnchorId`, `notificationSettingKeys` | - | `ResetNotificationSettingsResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Resets the custom notification setting to IAM Roles Anywhere default setting. Required permissions: rolesanywhere:ResetNotificationSettings . |
+| `TagResource` | `POST /TagResource` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Attaches tags to a resource. Required permissions: rolesanywhere:TagResource . |
+| `UntagResource` | `POST /UntagResource` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from the resource. Required permissions: rolesanywhere:UntagResource . |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListTagsForResource` | - | `resourceArn -> resourceArn` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource could not be found. |
-| `ValidationException` | `structure` | `message` | Validation exception error. |
-| `ProfileDetailResponse` | `structure` | `profile` | - |
-| `TrustAnchorDetailResponse` | `structure` | `trustAnchor` | - |
-| `CrlDetailResponse` | `structure` | `crl` | - |
-| `ScalarCrlRequest` | `structure` | `crlId` | - |
-| `ScalarProfileRequest` | `structure` | `profileId` | - |
-| `ScalarTrustAnchorRequest` | `structure` | `trustAnchorId` | - |
-| `ListRequest` | `structure` | `nextToken`, `pageSize` | - |
-| `CreateProfileRequest` | `structure` | `acceptRoleSessionName`, `durationSeconds`, `enabled`, `managedPolicyArns`, `name`, `requireInstanceProperties`, `roleArns`, `sessionPolicy`, `tags` | - |
-| `CreateTrustAnchorRequest` | `structure` | `enabled`, `name`, `notificationSettings`, `source`, `tags` | - |
-| `DeleteAttributeMappingRequest` | `structure` | `certificateField`, `profileId`, `specifiers` | - |
-| `DeleteAttributeMappingResponse` | `structure` | `profile` | - |
-| `ScalarSubjectRequest` | `structure` | `subjectId` | - |
-| `SubjectDetailResponse` | `structure` | `subject` | - |
-| `ImportCrlRequest` | `structure` | `crlData`, `enabled`, `name`, `tags`, `trustAnchorArn` | - |
-| `ListCrlsResponse` | `structure` | `crls`, `nextToken` | - |
-| `ListProfilesResponse` | `structure` | `nextToken`, `profiles` | - |
-| `ListSubjectsResponse` | `structure` | `nextToken`, `subjects` | - |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `ListTrustAnchorsResponse` | `structure` | `nextToken`, `trustAnchors` | - |
-| `PutAttributeMappingRequest` | `structure` | `certificateField`, `mappingRules`, `profileId` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ResourceNotFoundException` | `structure` | message | The resource could not be found. |
+| `TooManyTagsException` | `structure` | message | Too many tags. |
+| `ValidationException` | `structure` | message | Validation exception error. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `PutNotificationSettingsRequest` | `structure` | trustAnchorId, notificationSettings | - |
+| `PutNotificationSettingsResponse` | `structure` | trustAnchor | - |
+| `ResetNotificationSettingsRequest` | `structure` | trustAnchorId, notificationSettingKeys | - |
+| `ResetNotificationSettingsResponse` | `structure` | trustAnchor | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

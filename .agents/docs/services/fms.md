@@ -43,123 +43,155 @@ This is the Firewall Manager API Reference . This guide is for developers who ne
 
 - Operations: `ListAdminAccountsForOrganization`, `ListAdminsManagingAccount`, `ListAppsLists`, `ListComplianceStatus`, `ListDiscoveredResources`, `ListMemberAccounts`, `ListPolicies`, `ListProtocolsLists`, `ListResourceSetResources`, `ListResourceSets`, `ListTagsForResource`, `ListThirdPartyFirewallFirewallPolicies`
 - Traits: `paginated` (8)
-- Common required input members in this group: `Identifier`, `MaxResults`, `MemberAccountIds`, `PolicyId`, `ResourceArn`, `ResourceType`, `ThirdPartyFirewall`
+- Common required input members in this group: `MaxResults`
 
 ### Get
 
 - Operations: `GetAdminAccount`, `GetAdminScope`, `GetAppsList`, `GetComplianceDetail`, `GetNotificationChannel`, `GetPolicy`, `GetProtectionStatus`, `GetProtocolsList`, `GetResourceSet`, `GetThirdPartyFirewallAssociationStatus`, `GetViolationDetails`
-- Common required input members in this group: `AdminAccount`, `Identifier`, `ListId`, `MemberAccount`, `PolicyId`, `ResourceId`, `ResourceType`, `ThirdPartyFirewall`
+- Common required input members in this group: `ListId`, `PolicyId`, `MemberAccount`
 
 ### Put
 
 - Operations: `PutAdminAccount`, `PutAppsList`, `PutNotificationChannel`, `PutPolicy`, `PutProtocolsList`, `PutResourceSet`
-- Common required input members in this group: `AdminAccount`, `AppsList`, `Policy`, `ProtocolsList`, `ResourceSet`, `SnsRoleName`, `SnsTopicArn`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteAppsList`, `DeleteNotificationChannel`, `DeletePolicy`, `DeleteProtocolsList`, `DeleteResourceSet`
-- Common required input members in this group: `Identifier`, `ListId`, `PolicyId`
+- Common required input members in this group: `ListId`
 
 ### Associate
 
 - Operations: `AssociateAdminAccount`, `AssociateThirdPartyFirewall`
-- Common required input members in this group: `AdminAccount`, `ThirdPartyFirewall`
+- Common required input members in this group: -
 
 ### Batch
 
 - Operations: `BatchAssociateResource`, `BatchDisassociateResource`
-- Common required input members in this group: `Items`, `ResourceSetIdentifier`
+- Common required input members in this group: `ResourceSetIdentifier`, `Items`
 
 ### Disassociate
 
 - Operations: `DisassociateAdminAccount`, `DisassociateThirdPartyFirewall`
-- Common required input members in this group: `ThirdPartyFirewall`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `TagList`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateAdminAccount` | - | - | `AdminAccount` | - | `Unit` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Sets a Firewall Manager default administrator account. The Firewall Manager default administrator account can manage third-party firewalls and has full administrative scope that allows administration of all policy types, accounts, organizational units, and... |
-| `AssociateThirdPartyFirewall` | - | - | `ThirdPartyFirewall` | - | `AssociateThirdPartyFirewallResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Sets the Firewall Manager policy administrator as a tenant administrator of a third-party firewall service. A tenant is an instance of the third-party firewall service that's associated with your Amazon Web Services customer account. |
-| `BatchAssociateResource` | - | - | `Items`, `ResourceSetIdentifier` | - | `BatchAssociateResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Associate resources to a Firewall Manager resource set. |
-| `BatchDisassociateResource` | - | - | `Items`, `ResourceSetIdentifier` | - | `BatchDisassociateResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Disassociates resources from a Firewall Manager resource set. |
-| `DeleteAppsList` | - | - | `ListId` | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Permanently deletes an Firewall Manager applications list. |
-| `DeleteNotificationChannel` | - | - | - | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Deletes an Firewall Manager association with the IAM role and the Amazon Simple Notification Service (SNS) topic that is used to record Firewall Manager SNS logs. |
-| `DeletePolicy` | - | - | `PolicyId` | - | `Unit` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Permanently deletes an Firewall Manager policy. |
-| `DeleteProtocolsList` | - | - | `ListId` | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Permanently deletes an Firewall Manager protocols list. |
-| `DeleteResourceSet` | - | - | `Identifier` | - | `Unit` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Deletes the specified ResourceSet. |
-| `DisassociateAdminAccount` | - | - | - | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Disassociates an Firewall Manager administrator account. To set a different account as an Firewall Manager administrator, submit a PutAdminAccount request. |
-| `DisassociateThirdPartyFirewall` | - | - | `ThirdPartyFirewall` | - | `DisassociateThirdPartyFirewallResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Disassociates a Firewall Manager policy administrator from a third-party firewall tenant. When you call `DisassociateThirdPartyFirewall`, the third-party firewall vendor deletes all of the firewalls that are associated with the account. |
-| `GetAdminAccount` | - | - | - | - | `GetAdminAccountResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns the Organizations account that is associated with Firewall Manager as the Firewall Manager default administrator. |
-| `GetAdminScope` | - | - | `AdminAccount` | - | `GetAdminScopeResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Returns information about the specified account's administrative scope. The administrative scope defines the resources that an Firewall Manager administrator can manage. |
-| `GetAppsList` | - | - | `ListId` | - | `GetAppsListResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns information about the specified Firewall Manager applications list. |
-| `GetComplianceDetail` | - | - | `MemberAccount`, `PolicyId` | - | `GetComplianceDetailResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns detailed compliance information about the specified member account. Details include resources that are in and out of compliance with the specified policy. |
-| `GetNotificationChannel` | - | - | - | - | `GetNotificationChannelResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Information about the Amazon Simple Notification Service (SNS) topic that is used to record Firewall Manager SNS logs. |
-| `GetPolicy` | - | - | `PolicyId` | - | `GetPolicyResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidTypeException`, `ResourceNotFoundException` | Returns information about the specified Firewall Manager policy. |
-| `GetProtectionStatus` | - | - | `PolicyId` | - | `GetProtectionStatusResponse` | `InternalErrorException`, `InvalidInputException`, `ResourceNotFoundException` | If you created a Shield Advanced policy, returns policy-level attack summary information in the event of a potential DDoS attack. Other policy types are currently unsupported. |
-| `GetProtocolsList` | - | - | `ListId` | - | `GetProtocolsListResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns information about the specified Firewall Manager protocols list. |
-| `GetResourceSet` | - | - | `Identifier` | - | `GetResourceSetResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Gets information about a specific resource set. |
-| `GetThirdPartyFirewallAssociationStatus` | - | - | `ThirdPartyFirewall` | - | `GetThirdPartyFirewallAssociationStatusResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | The onboarding status of a Firewall Manager admin account to third-party firewall vendor tenant. |
-| `GetViolationDetails` | - | - | `MemberAccount`, `PolicyId`, `ResourceId`, `ResourceType` | - | `GetViolationDetailsResponse` | `InternalErrorException`, `InvalidInputException`, `ResourceNotFoundException` | Retrieves violations for a resource based on the specified Firewall Manager policy and Amazon Web Services account. |
-| `ListAdminAccountsForOrganization` | - | `paginated` | - | - | `ListAdminAccountsForOrganizationResponse` | `InternalErrorException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Returns a `AdminAccounts` object that lists the Firewall Manager administrators within the organization that are onboarded to Firewall Manager by AssociateAdminAccount. This operation can be called only from the organization's management account. |
-| `ListAdminsManagingAccount` | - | `paginated` | - | - | `ListAdminsManagingAccountResponse` | `InternalErrorException`, `InvalidInputException`, `ResourceNotFoundException` | Lists the accounts that are managing the specified Organizations member account. This is useful for any member account so that they can view the accounts who are managing their account. |
-| `ListAppsLists` | - | `paginated` | `MaxResults` | - | `ListAppsListsResponse` | `InternalErrorException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Returns an array of `AppsListDataSummary` objects. |
-| `ListComplianceStatus` | - | `paginated` | `PolicyId` | - | `ListComplianceStatusResponse` | `InternalErrorException`, `ResourceNotFoundException` | Returns an array of `PolicyComplianceStatus` objects. Use `PolicyComplianceStatus` to get a summary of which member accounts are protected by the specified policy. |
-| `ListDiscoveredResources` | - | - | `MemberAccountIds`, `ResourceType` | - | `ListDiscoveredResourcesResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException` | Returns an array of resources in the organization's accounts that are available to be associated with a resource set. |
-| `ListMemberAccounts` | - | `paginated` | - | - | `ListMemberAccountsResponse` | `InternalErrorException`, `ResourceNotFoundException` | Returns a `MemberAccounts` object that lists the member accounts in the administrator's Amazon Web Services organization. Either an Firewall Manager administrator or the organization's management account can make this request. |
-| `ListPolicies` | - | `paginated` | - | - | `ListPoliciesResponse` | `InternalErrorException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Returns an array of `PolicySummary` objects. |
-| `ListProtocolsLists` | - | `paginated` | `MaxResults` | - | `ListProtocolsListsResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns an array of `ProtocolsListDataSummary` objects. |
-| `ListResourceSetResources` | - | - | `Identifier` | - | `ListResourceSetResourcesResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns an array of resources that are currently associated to a resource set. |
-| `ListResourceSets` | - | - | - | - | `ListResourceSetsResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException` | Returns an array of `ResourceSetSummary` objects. |
-| `ListTagsForResource` | - | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Retrieves the list of tags for the specified Amazon Web Services resource. |
-| `ListThirdPartyFirewallFirewallPolicies` | - | `paginated` | `MaxResults`, `ThirdPartyFirewall` | - | `ListThirdPartyFirewallFirewallPoliciesResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Retrieves a list of all of the third-party firewall policies that are associated with the third-party firewall administrator's account. |
-| `PutAdminAccount` | - | - | `AdminAccount` | - | `Unit` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException` | Creates or updates an Firewall Manager administrator account. The account must be a member of the organization that was onboarded to Firewall Manager by AssociateAdminAccount. |
-| `PutAppsList` | - | - | `AppsList` | - | `PutAppsListResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Creates an Firewall Manager applications list. |
-| `PutNotificationChannel` | - | - | `SnsRoleName`, `SnsTopicArn` | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Designates the IAM role and Amazon Simple Notification Service (SNS) topic that Firewall Manager uses to record SNS logs. To perform this action outside of the console, you must first configure the SNS topic's access policy to allow the `SnsRoleName` to... |
-| `PutPolicy` | - | - | `Policy` | - | `PutPolicyResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `InvalidTypeException`, `LimitExceededException`, `ResourceNotFoundException` | Creates an Firewall Manager policy. A Firewall Manager policy is specific to the individual policy type. |
-| `PutProtocolsList` | - | - | `ProtocolsList` | - | `PutProtocolsListResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Creates an Firewall Manager protocols list. |
-| `PutResourceSet` | - | - | `ResourceSet` | - | `PutResourceSetResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException` | Creates the resource set. An Firewall Manager resource set defines the resources to import into an Firewall Manager policy from another Amazon Web Services service. |
-| `TagResource` | - | - | `ResourceArn`, `TagList` | - | `TagResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Adds one or more tags to an Amazon Web Services resource. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Removes one or more tags from an Amazon Web Services resource. |
+| `AssociateAdminAccount` | `-` | - | `AdminAccount` | - | `Unit` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Sets a Firewall Manager default administrator account. The Firewall Manager default administrator account can manage third-party firewalls and has full administrative scope that allows administration of all policy ty ... |
+| `AssociateThirdPartyFirewall` | `-` | - | `ThirdPartyFirewall` | - | `AssociateThirdPartyFirewallResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Sets the Firewall Manager policy administrator as a tenant administrator of a third-party firewall service. A tenant is an instance of the third-party firewall service that's associated with your Amazon Web Services ... |
+| `BatchAssociateResource` | `-` | - | `ResourceSetIdentifier`, `Items` | - | `BatchAssociateResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Associate resources to a Firewall Manager resource set. |
+| `BatchDisassociateResource` | `-` | - | `ResourceSetIdentifier`, `Items` | - | `BatchDisassociateResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Disassociates resources from a Firewall Manager resource set. |
+| `DeleteAppsList` | `-` | - | `ListId` | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Permanently deletes an Firewall Manager applications list. |
+| `DeleteNotificationChannel` | `-` | - | - | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Deletes an Firewall Manager association with the IAM role and the Amazon Simple Notification Service (SNS) topic that is used to record Firewall Manager SNS logs. |
+| `DeletePolicy` | `-` | - | `PolicyId` | - | `Unit` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Permanently deletes an Firewall Manager policy. |
+| `DeleteProtocolsList` | `-` | - | `ListId` | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Permanently deletes an Firewall Manager protocols list. |
+| `DeleteResourceSet` | `-` | - | `Identifier` | - | `Unit` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Deletes the specified ResourceSet . |
+| `DisassociateAdminAccount` | `-` | - | - | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Disassociates an Firewall Manager administrator account. To set a different account as an Firewall Manager administrator, submit a PutAdminAccount request. To set an account as a default administrator account, you mu ... |
+| `DisassociateThirdPartyFirewall` | `-` | - | `ThirdPartyFirewall` | - | `DisassociateThirdPartyFirewallResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Disassociates a Firewall Manager policy administrator from a third-party firewall tenant. When you call DisassociateThirdPartyFirewall , the third-party firewall vendor deletes all of the firewalls that are associate ... |
+| `GetAdminAccount` | `-` | - | - | - | `GetAdminAccountResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns the Organizations account that is associated with Firewall Manager as the Firewall Manager default administrator. |
+| `GetAdminScope` | `-` | - | `AdminAccount` | - | `GetAdminScopeResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Returns information about the specified account's administrative scope. The administrative scope defines the resources that an Firewall Manager administrator can manage. |
+| `GetAppsList` | `-` | - | `ListId` | - | `GetAppsListResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns information about the specified Firewall Manager applications list. |
+| `GetComplianceDetail` | `-` | - | `PolicyId`, `MemberAccount` | - | `GetComplianceDetailResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns detailed compliance information about the specified member account. Details include resources that are in and out of compliance with the specified policy. The reasons for resources being considered compliant ... |
+| `GetNotificationChannel` | `-` | - | - | - | `GetNotificationChannelResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Information about the Amazon Simple Notification Service (SNS) topic that is used to record Firewall Manager SNS logs. |
+| `GetPolicy` | `-` | - | `PolicyId` | - | `GetPolicyResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidTypeException`, `ResourceNotFoundException` | Returns information about the specified Firewall Manager policy. |
+| `GetProtectionStatus` | `-` | - | `PolicyId` | - | `GetProtectionStatusResponse` | `InternalErrorException`, `InvalidInputException`, `ResourceNotFoundException` | If you created a Shield Advanced policy, returns policy-level attack summary information in the event of a potential DDoS attack. Other policy types are currently unsupported. |
+| `GetProtocolsList` | `-` | - | `ListId` | - | `GetProtocolsListResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns information about the specified Firewall Manager protocols list. |
+| `GetResourceSet` | `-` | - | `Identifier` | - | `GetResourceSetResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Gets information about a specific resource set. |
+| `GetThirdPartyFirewallAssociationStatus` | `-` | - | `ThirdPartyFirewall` | - | `GetThirdPartyFirewallAssociationStatusResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | The onboarding status of a Firewall Manager admin account to third-party firewall vendor tenant. |
+| `GetViolationDetails` | `-` | - | `PolicyId`, `MemberAccount`, `ResourceId`, `ResourceType` | - | `GetViolationDetailsResponse` | `InternalErrorException`, `InvalidInputException`, `ResourceNotFoundException` | Retrieves violations for a resource based on the specified Firewall Manager policy and Amazon Web Services account. |
+| `ListAdminAccountsForOrganization` | `-` | `paginated` | - | - | `ListAdminAccountsForOrganizationResponse` | `InternalErrorException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Returns a AdminAccounts object that lists the Firewall Manager administrators within the organization that are onboarded to Firewall Manager by AssociateAdminAccount . This operation can be called only from the organ ... |
+| `ListAdminsManagingAccount` | `-` | `paginated` | - | - | `ListAdminsManagingAccountResponse` | `InternalErrorException`, `InvalidInputException`, `ResourceNotFoundException` | Lists the accounts that are managing the specified Organizations member account. This is useful for any member account so that they can view the accounts who are managing their account. This operation only returns th ... |
+| `ListAppsLists` | `-` | `paginated` | `MaxResults` | - | `ListAppsListsResponse` | `InternalErrorException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Returns an array of AppsListDataSummary objects. |
+| `ListComplianceStatus` | `-` | `paginated` | `PolicyId` | - | `ListComplianceStatusResponse` | `InternalErrorException`, `ResourceNotFoundException` | Returns an array of PolicyComplianceStatus objects. Use PolicyComplianceStatus to get a summary of which member accounts are protected by the specified policy. |
+| `ListDiscoveredResources` | `-` | - | `MemberAccountIds`, `ResourceType` | - | `ListDiscoveredResourcesResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException` | Returns an array of resources in the organization's accounts that are available to be associated with a resource set. |
+| `ListMemberAccounts` | `-` | `paginated` | - | - | `ListMemberAccountsResponse` | `InternalErrorException`, `ResourceNotFoundException` | Returns a MemberAccounts object that lists the member accounts in the administrator's Amazon Web Services organization. Either an Firewall Manager administrator or the organization's management account can make this ... |
+| `ListPolicies` | `-` | `paginated` | - | - | `ListPoliciesResponse` | `InternalErrorException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Returns an array of PolicySummary objects. |
+| `ListProtocolsLists` | `-` | `paginated` | `MaxResults` | - | `ListProtocolsListsResponse` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns an array of ProtocolsListDataSummary objects. |
+| `ListResourceSetResources` | `-` | - | `Identifier` | - | `ListResourceSetResourcesResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Returns an array of resources that are currently associated to a resource set. |
+| `ListResourceSets` | `-` | - | - | - | `ListResourceSetsResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException` | Returns an array of ResourceSetSummary objects. |
+| `ListTagsForResource` | `-` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Retrieves the list of tags for the specified Amazon Web Services resource. |
+| `ListThirdPartyFirewallFirewallPolicies` | `-` | `paginated` | `ThirdPartyFirewall`, `MaxResults` | - | `ListThirdPartyFirewallFirewallPoliciesResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Retrieves a list of all of the third-party firewall policies that are associated with the third-party firewall administrator's account. |
+| `PutAdminAccount` | `-` | - | `AdminAccount` | - | `Unit` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException` | Creates or updates an Firewall Manager administrator account. The account must be a member of the organization that was onboarded to Firewall Manager by AssociateAdminAccount . Only the organization's management acco ... |
+| `PutAppsList` | `-` | - | `AppsList` | - | `PutAppsListResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Creates an Firewall Manager applications list. |
+| `PutNotificationChannel` | `-` | - | `SnsTopicArn`, `SnsRoleName` | - | `Unit` | `InternalErrorException`, `InvalidOperationException`, `ResourceNotFoundException` | Designates the IAM role and Amazon Simple Notification Service (SNS) topic that Firewall Manager uses to record SNS logs. To perform this action outside of the console, you must first configure the SNS topic's access ... |
+| `PutPolicy` | `-` | - | `Policy` | - | `PutPolicyResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `InvalidTypeException`, `LimitExceededException`, `ResourceNotFoundException` | Creates an Firewall Manager policy. A Firewall Manager policy is specific to the individual policy type. If you want to enforce multiple policy types across accounts, you can create multiple policies. You can create ... |
+| `PutProtocolsList` | `-` | - | `ProtocolsList` | - | `PutProtocolsListResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Creates an Firewall Manager protocols list. |
+| `PutResourceSet` | `-` | - | `ResourceSet` | - | `PutResourceSetResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException` | Creates the resource set. An Firewall Manager resource set defines the resources to import into an Firewall Manager policy from another Amazon Web Services service. |
+| `TagResource` | `-` | - | `ResourceArn`, `TagList` | - | `TagResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `LimitExceededException`, `ResourceNotFoundException` | Adds one or more tags to an Amazon Web Services resource. |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalErrorException`, `InvalidInputException`, `InvalidOperationException`, `ResourceNotFoundException` | Removes one or more tags from an Amazon Web Services resource. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalErrorException` | `structure` | `Message` | The operation failed because of a system problem, even though the request was valid. |
-| `ResourceNotFoundException` | `structure` | `Message` | The specified resource was not found. |
-| `InvalidOperationException` | `structure` | `Message` | The operation failed because there was nothing to do or the operation wasn't possible. |
-| `InvalidInputException` | `structure` | `Message` | The parameters of the request were invalid. |
-| `LimitExceededException` | `structure` | `Message` | The operation exceeds a resource limit, for example, the maximum number of `policy` objects that you can create for an Amazon Web Services account. |
-| `InvalidTypeException` | `structure` | `Message` | The value of the `Type` parameter is invalid. |
-| `AssociateAdminAccountRequest` | `structure` | `AdminAccount` | - |
-| `AssociateThirdPartyFirewallRequest` | `structure` | `ThirdPartyFirewall` | - |
-| `AssociateThirdPartyFirewallResponse` | `structure` | `ThirdPartyFirewallStatus` | - |
-| `BatchAssociateResourceRequest` | `structure` | `Items`, `ResourceSetIdentifier` | - |
-| `BatchAssociateResourceResponse` | `structure` | `FailedItems`, `ResourceSetIdentifier` | - |
-| `BatchDisassociateResourceRequest` | `structure` | `Items`, `ResourceSetIdentifier` | - |
-| `BatchDisassociateResourceResponse` | `structure` | `FailedItems`, `ResourceSetIdentifier` | - |
-| `DeleteAppsListRequest` | `structure` | `ListId` | - |
-| `DeleteNotificationChannelRequest` | `structure` | - | - |
-| `DeletePolicyRequest` | `structure` | `DeleteAllPolicyResources`, `PolicyId` | - |
-| `DeleteProtocolsListRequest` | `structure` | `ListId` | - |
-| `DeleteResourceSetRequest` | `structure` | `Identifier` | - |
-| `DisassociateAdminAccountRequest` | `structure` | - | - |
-| `DisassociateThirdPartyFirewallRequest` | `structure` | `ThirdPartyFirewall` | - |
-| `DisassociateThirdPartyFirewallResponse` | `structure` | `ThirdPartyFirewallStatus` | - |
-| `GetAdminAccountRequest` | `structure` | - | - |
-| `GetAdminAccountResponse` | `structure` | `AdminAccount`, `RoleStatus` | - |
-
+| `InternalErrorException` | `structure` | Message | The operation failed because of a system problem, even though the request was valid. Retry your request. |
+| `InvalidInputException` | `structure` | Message | The parameters of the request were invalid. |
+| `InvalidOperationException` | `structure` | Message | The operation failed because there was nothing to do or the operation wasn't possible. For example, you might have submitted an AssociateAdminAccount reques ... |
+| `InvalidTypeException` | `structure` | Message | The value of the Type parameter is invalid. |
+| `LimitExceededException` | `structure` | Message | The operation exceeds a resource limit, for example, the maximum number of policy objects that you can create for an Amazon Web Services account. For more i ... |
+| `ResourceNotFoundException` | `structure` | Message | The specified resource was not found. |
+| `AssociateAdminAccountRequest` | `structure` | AdminAccount | - |
+| `AssociateThirdPartyFirewallRequest` | `structure` | ThirdPartyFirewall | - |
+| `AssociateThirdPartyFirewallResponse` | `structure` | ThirdPartyFirewallStatus | - |
+| `BatchAssociateResourceRequest` | `structure` | ResourceSetIdentifier, Items | - |
+| `BatchAssociateResourceResponse` | `structure` | ResourceSetIdentifier, FailedItems | - |
+| `BatchDisassociateResourceRequest` | `structure` | ResourceSetIdentifier, Items | - |
+| `BatchDisassociateResourceResponse` | `structure` | ResourceSetIdentifier, FailedItems | - |
+| `DeleteAppsListRequest` | `structure` | ListId | - |
+| `DeleteNotificationChannelRequest` | `structure` | **empty (no members)** | - |
+| `DeletePolicyRequest` | `structure` | PolicyId, DeleteAllPolicyResources | - |
+| `DeleteProtocolsListRequest` | `structure` | ListId | - |
+| `DeleteResourceSetRequest` | `structure` | Identifier | - |
+| `DisassociateAdminAccountRequest` | `structure` | **empty (no members)** | - |
+| `DisassociateThirdPartyFirewallRequest` | `structure` | ThirdPartyFirewall | - |
+| `DisassociateThirdPartyFirewallResponse` | `structure` | ThirdPartyFirewallStatus | - |
+| `GetAdminAccountRequest` | `structure` | **empty (no members)** | - |
+| `GetAdminAccountResponse` | `structure` | AdminAccount, RoleStatus | - |
+| `GetAdminScopeRequest` | `structure` | AdminAccount | - |
+| `GetAdminScopeResponse` | `structure` | AdminScope, Status | - |
+| `GetAppsListRequest` | `structure` | ListId, DefaultList | - |
+| `GetAppsListResponse` | `structure` | AppsList, AppsListArn | - |
+| `GetComplianceDetailRequest` | `structure` | PolicyId, MemberAccount | - |
+| `GetComplianceDetailResponse` | `structure` | PolicyComplianceDetail | - |
+| `GetNotificationChannelRequest` | `structure` | **empty (no members)** | - |
+| `GetNotificationChannelResponse` | `structure` | SnsTopicArn, SnsRoleName | - |
+| `GetPolicyRequest` | `structure` | PolicyId | - |
+| `GetPolicyResponse` | `structure` | Policy, PolicyArn | - |
+| `GetProtectionStatusRequest` | `structure` | PolicyId, MemberAccountId, StartTime, EndTime, NextToken, MaxResults | - |
+| `GetProtectionStatusResponse` | `structure` | AdminAccountId, ServiceType, Data, NextToken | - |
+| `GetProtocolsListRequest` | `structure` | ListId, DefaultList | - |
+| `GetProtocolsListResponse` | `structure` | ProtocolsList, ProtocolsListArn | - |
+| `GetResourceSetRequest` | `structure` | Identifier | - |
+| `GetResourceSetResponse` | `structure` | ResourceSet, ResourceSetArn | - |
+| `GetThirdPartyFirewallAssociationStatusRequest` | `structure` | ThirdPartyFirewall | - |
+| `AccountRoleStatus` | `enum` | Ready, Creating, PendingDeletion, Deleting, Deleted | - |
+| `CustomerPolicyScopeIdType` | `enum` | ACCOUNT, ORG_UNIT | - |
+| `CustomerPolicyStatus` | `enum` | ACTIVE, OUT_OF_ADMIN_SCOPE | - |
+| `DependentServiceName` | `enum` | AWSConfig, AWSWAF, AWSShieldAdvanced, AWSVirtualPrivateCloud | - |
+| `DestinationType` | `enum` | IPV4, IPV6, PrefixList | - |
+| `EntryType` | `enum` | FMSManagedFirstEntry, FMSManagedLastEntry, CustomEntry | - |
+| `EntryViolationReason` | `enum` | MissingExpectedEntry, IncorrectEntryOrder, EntryConflict | - |
+| `FailedItemReason` | `enum` | NotValidArn, NotValidPartition, NotValidRegion, NotValidService, NotValidResourceType, NotValidAccountId | - |
+| `FirewallDeploymentModel` | `enum` | CENTRALIZED, DISTRIBUTED | - |
+| `MarketplaceSubscriptionOnboardingStatus` | `enum` | NO_SUBSCRIPTION, NOT_COMPLETE, COMPLETE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

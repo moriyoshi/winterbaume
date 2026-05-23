@@ -41,18 +41,18 @@ Introduction The Amazon IVS Chat control-plane API enables you to create and man
 ### Create
 
 - Operations: `CreateChatToken`, `CreateLoggingConfiguration`, `CreateRoom`
-- Common required input members in this group: `destinationConfiguration`, `roomIdentifier`, `userId`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteLoggingConfiguration`, `DeleteMessage`, `DeleteRoom`
-- Common required input members in this group: `id`, `identifier`, `roomIdentifier`
+- Common required input members in this group: `identifier`
 
 ### List
 
 - Operations: `ListLoggingConfigurations`, `ListRooms`, `ListTagsForResource`
-- Traits: `paginated` (2), `readonly` (3)
-- Common required input members in this group: `resourceArn`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: -
 
 ### Get
 
@@ -68,74 +68,98 @@ Introduction The Amazon IVS Chat control-plane API enables you to create and man
 ### Disconnect
 
 - Operations: `DisconnectUser`
-- Common required input members in this group: `roomIdentifier`, `userId`
+- Common required input members in this group: -
 
 ### Send
 
 - Operations: `SendEvent`
-- Common required input members in this group: `eventName`, `roomIdentifier`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateChatToken` | `POST /CreateChatToken` | - | `roomIdentifier`, `userId` | - | `CreateChatTokenResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Creates an encrypted token that is used by a chat participant to establish an individual WebSocket chat connection to a room. When the token is used to connect to chat, the connection is valid for the session duration specified in the request. |
+| `CreateChatToken` | `POST /CreateChatToken` | - | `roomIdentifier`, `userId` | - | `CreateChatTokenResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Creates an encrypted token that is used by a chat participant to establish an individual WebSocket chat connection to a room. When the token is used to connect to chat, the connection is valid for the session duratio ... |
 | `CreateLoggingConfiguration` | `POST /CreateLoggingConfiguration` | - | `destinationConfiguration` | - | `CreateLoggingConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a logging configuration that allows clients to store and record sent messages. |
 | `CreateRoom` | `POST /CreateRoom` | - | - | - | `CreateRoomResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a room that allows clients to connect and pass messages. |
 | `DeleteLoggingConfiguration` | `POST /DeleteLoggingConfiguration` | - | `identifier` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified logging configuration. |
-| `DeleteMessage` | `POST /DeleteMessage` | - | `id`, `roomIdentifier` | - | `DeleteMessageResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends an event to a specific room which directs clients to delete a specific message; that is, unrender it from view and delete it from the client’s chat history. This event’s `EventName` is `aws:DELETE_MESSAGE`. |
+| `DeleteMessage` | `POST /DeleteMessage` | - | `roomIdentifier`, `id` | - | `DeleteMessageResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends an event to a specific room which directs clients to delete a specific message; that is, unrender it from view and delete it from the client’s chat history. This event’s EventName is aws:DELETE_MESSAGE . This r ... |
 | `DeleteRoom` | `POST /DeleteRoom` | - | `identifier` | - | `Unit` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified room. |
 | `DisconnectUser` | `POST /DisconnectUser` | - | `roomIdentifier`, `userId` | - | `DisconnectUserResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disconnects all connections using a specified user ID from a room. This replicates the DisconnectUser WebSocket operation in the Amazon IVS Chat Messaging API. |
 | `GetLoggingConfiguration` | `POST /GetLoggingConfiguration` | - | `identifier` | - | `GetLoggingConfigurationResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets the specified logging configuration. |
 | `GetRoom` | `POST /GetRoom` | `readonly` | `identifier` | - | `GetRoomResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets the specified room. |
 | `ListLoggingConfigurations` | `POST /ListLoggingConfigurations` | `readonly`, `paginated` | - | - | `ListLoggingConfigurationsResponse` | `AccessDeniedException`, `ValidationException` | Gets summary information about all your logging configurations in the AWS region where the API request is processed. |
-| `ListRooms` | `POST /ListRooms` | `readonly`, `paginated` | - | - | `ListRoomsResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets summary information about all your rooms in the AWS region where the API request is processed. Results are sorted in descending order of `updateTime`. |
+| `ListRooms` | `POST /ListRooms` | `readonly`, `paginated` | - | - | `ListRoomsResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ValidationException` | Gets summary information about all your rooms in the AWS region where the API request is processed. Results are sorted in descending order of updateTime . |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Gets information about AWS tags for the specified ARN. |
-| `SendEvent` | `POST /SendEvent` | - | `eventName`, `roomIdentifier` | - | `SendEventResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends an event to a room. Use this within your application’s business logic to send events to clients of a room; e.g., to notify clients to change the way the chat UI is rendered. |
+| `SendEvent` | `POST /SendEvent` | - | `roomIdentifier`, `eventName` | - | `SendEventResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends an event to a room. Use this within your application’s business logic to send events to clients of a room; e.g., to notify clients to change the way the chat UI is rendered. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds or updates tags for the AWS resource with the specified ARN. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from the resource with the specified ARN. |
 | `UpdateLoggingConfiguration` | `POST /UpdateLoggingConfiguration` | - | `identifier` | - | `UpdateLoggingConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Updates a specified logging configuration. |
 | `UpdateRoom` | `POST /UpdateRoom` | - | `identifier` | - | `UpdateRoomResponse` | `AccessDeniedException`, `PendingVerification`, `ResourceNotFoundException`, `ValidationException` | Updates a room’s configuration. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | - |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | - |
-| `AccessDeniedException` | `structure` | `message` | - |
-| `PendingVerification` | `structure` | `message` | - |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | - |
-| `ThrottlingException` | `structure` | `limit`, `message`, `resourceId`, `resourceType` | - |
-| `InternalServerException` | `structure` | `message` | - |
-| `ServiceQuotaExceededException` | `structure` | `limit`, `message`, `resourceId`, `resourceType` | - |
-| `CreateChatTokenRequest` | `structure` | `attributes`, `capabilities`, `roomIdentifier`, `sessionDurationInMinutes`, `userId` | - |
-| `CreateChatTokenResponse` | `structure` | `sessionExpirationTime`, `token`, `tokenExpirationTime` | - |
-| `CreateLoggingConfigurationRequest` | `structure` | `destinationConfiguration`, `name`, `tags` | - |
-| `CreateLoggingConfigurationResponse` | `structure` | `arn`, `createTime`, `destinationConfiguration`, `id`, `name`, `state`, `tags`, `updateTime` | - |
-| `CreateRoomRequest` | `structure` | `loggingConfigurationIdentifiers`, `maximumMessageLength`, `maximumMessageRatePerSecond`, `messageReviewHandler`, `name`, `tags` | - |
-| `CreateRoomResponse` | `structure` | `arn`, `createTime`, `id`, `loggingConfigurationIdentifiers`, `maximumMessageLength`, `maximumMessageRatePerSecond`, `messageReviewHandler`, `name`, `tags`, `updateTime` | - |
-| `DeleteLoggingConfigurationRequest` | `structure` | `identifier` | - |
-| `DeleteMessageRequest` | `structure` | `id`, `reason`, `roomIdentifier` | - |
-| `DeleteMessageResponse` | `structure` | `id` | - |
-| `DeleteRoomRequest` | `structure` | `identifier` | - |
-| `DisconnectUserRequest` | `structure` | `reason`, `roomIdentifier`, `userId` | - |
-| `DisconnectUserResponse` | `structure` | - | - |
-| `GetLoggingConfigurationRequest` | `structure` | `identifier` | - |
-| `GetLoggingConfigurationResponse` | `structure` | `arn`, `createTime`, `destinationConfiguration`, `id`, `name`, `state`, `tags`, `updateTime` | - |
-| `GetRoomRequest` | `structure` | `identifier` | - |
-
+| `AccessDeniedException` | `structure` | message | - |
+| `ConflictException` | `structure` | message, resourceId, resourceType | - |
+| `InternalServerException` | `structure` | message | - |
+| `PendingVerification` | `structure` | message | - |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | - |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, limit | - |
+| `ThrottlingException` | `structure` | message, resourceId, resourceType, limit | - |
+| `ValidationException` | `structure` | message, reason, fieldList | - |
+| `CreateChatTokenRequest` | `structure` | roomIdentifier, userId, capabilities, sessionDurationInMinutes, attributes | - |
+| `CreateChatTokenResponse` | `structure` | token, tokenExpirationTime, sessionExpirationTime | - |
+| `CreateLoggingConfigurationRequest` | `structure` | name, destinationConfiguration, tags | - |
+| `CreateLoggingConfigurationResponse` | `structure` | arn, id, createTime, updateTime, name, destinationConfiguration, state, tags | - |
+| `CreateRoomRequest` | `structure` | name, maximumMessageRatePerSecond, maximumMessageLength, messageReviewHandler, tags, loggingConfigurationIdentifiers | - |
+| `CreateRoomResponse` | `structure` | arn, id, name, createTime, updateTime, maximumMessageRatePerSecond, maximumMessageLength, messageReviewHandler, tags, loggingConfigurationIdentifiers | - |
+| `DeleteLoggingConfigurationRequest` | `structure` | identifier | - |
+| `DeleteMessageRequest` | `structure` | roomIdentifier, id, reason | - |
+| `DeleteMessageResponse` | `structure` | id | - |
+| `DeleteRoomRequest` | `structure` | identifier | - |
+| `DisconnectUserRequest` | `structure` | roomIdentifier, userId, reason | - |
+| `DisconnectUserResponse` | `structure` | **empty (no members)** | - |
+| `GetLoggingConfigurationRequest` | `structure` | identifier | - |
+| `GetLoggingConfigurationResponse` | `structure` | arn, id, createTime, updateTime, name, destinationConfiguration, state, tags | - |
+| `GetRoomRequest` | `structure` | identifier | - |
+| `GetRoomResponse` | `structure` | arn, id, name, createTime, updateTime, maximumMessageRatePerSecond, maximumMessageLength, messageReviewHandler, tags, loggingConfigurationIdentifiers | - |
+| `ListLoggingConfigurationsRequest` | `structure` | nextToken, maxResults | - |
+| `ListLoggingConfigurationsResponse` | `structure` | loggingConfigurations, nextToken | - |
+| `ListRoomsRequest` | `structure` | name, nextToken, maxResults, messageReviewHandlerUri, loggingConfigurationIdentifier | - |
+| `ListRoomsResponse` | `structure` | rooms, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `SendEventRequest` | `structure` | roomIdentifier, eventName, attributes | - |
+| `SendEventResponse` | `structure` | id | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateLoggingConfigurationRequest` | `structure` | identifier, name, destinationConfiguration | - |
+| `UpdateLoggingConfigurationResponse` | `structure` | arn, id, createTime, updateTime, name, destinationConfiguration, state, tags | - |
+| `UpdateRoomRequest` | `structure` | identifier, name, maximumMessageRatePerSecond, maximumMessageLength, messageReviewHandler, loggingConfigurationIdentifiers | - |
+| `UpdateRoomResponse` | `structure` | arn, id, name, createTime, updateTime, maximumMessageRatePerSecond, maximumMessageLength, messageReviewHandler, tags, loggingConfigurationIdentifiers | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

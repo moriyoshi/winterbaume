@@ -38,25 +38,33 @@ Amazon Inspector Scan is a vulnerability discovery service that scans a provided
 
 - Operations: `ScanSbom`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `sbom`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ScanSbom` | `POST /scan/sbom` | `idempotent` | `sbom` | - | `ScanSbomResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Scans a provided CycloneDX 1.5 SBOM and reports on any vulnerabilities discovered in that SBOM. You can generate compatible SBOMs for your resources using the Amazon Inspector SBOM generator. |
+| `ScanSbom` | `POST /scan/sbom` | `idempotent` | `sbom` | - | `ScanSbomResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Scans a provided CycloneDX 1.5 SBOM and reports on any vulnerabilities discovered in that SBOM. You can generate compatible SBOMs for your resources using the Amazon Inspector SBOM generator . The output of this acti ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ScanSbomRequest` | `structure` | `outputFormat`, `sbom` | - |
-| `ScanSbomResponse` | `structure` | `sbom` | - |
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message`, `reason`, `retryAfterSeconds` | The request processing has failed because of an unknown error, exception or failure. |
-| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `fields`, `message`, `reason` | The request has failed validation due to missing required fields or having invalid inputs. |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `InternalServerException` | `structure` | message, reason, retryAfterSeconds | The request processing has failed because of an unknown error, exception or failure. |
+| `ThrottlingException` | `structure` | message, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fields | The request has failed validation due to missing required fields or having invalid inputs. |
+| `ScanSbomRequest` | `structure` | sbom, outputFormat | - |
+| `ScanSbomResponse` | `structure` | sbom | - |
+| `InternalServerExceptionReason` | `enum` | FAILED_TO_GENERATE_SBOM, OTHER | - |
+| `OutputFormat` | `enum` | CYCLONE_DX_1_5, INSPECTOR, INSPECTOR_ALT | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, UNSUPPORTED_SBOM_TYPE, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

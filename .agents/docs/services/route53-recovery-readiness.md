@@ -41,48 +41,48 @@ Recovery readiness
 
 - Operations: `GetArchitectureRecommendations`, `GetCell`, `GetCellReadinessSummary`, `GetReadinessCheck`, `GetReadinessCheckResourceStatus`, `GetReadinessCheckStatus`, `GetRecoveryGroup`, `GetRecoveryGroupReadinessSummary`, `GetResourceSet`
 - Traits: `paginated` (4)
-- Common required input members in this group: `CellName`, `ReadinessCheckName`, `RecoveryGroupName`, `ResourceIdentifier`, `ResourceSetName`
+- Common required input members in this group: `RecoveryGroupName`, `CellName`, `ReadinessCheckName`
 
 ### List
 
 - Operations: `ListCells`, `ListCrossAccountAuthorizations`, `ListReadinessChecks`, `ListRecoveryGroups`, `ListResourceSets`, `ListRules`, `ListTagsForResources`
 - Traits: `paginated` (6)
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateCell`, `CreateCrossAccountAuthorization`, `CreateReadinessCheck`, `CreateRecoveryGroup`, `CreateResourceSet`
-- Common required input members in this group: `CellName`, `CrossAccountAuthorization`, `ReadinessCheckName`, `RecoveryGroupName`, `ResourceSetName`, `ResourceSetType`, `Resources`
+- Common required input members in this group: `ResourceSetName`
 
 ### Delete
 
 - Operations: `DeleteCell`, `DeleteCrossAccountAuthorization`, `DeleteReadinessCheck`, `DeleteRecoveryGroup`, `DeleteResourceSet`
-- Common required input members in this group: `CellName`, `CrossAccountAuthorization`, `ReadinessCheckName`, `RecoveryGroupName`, `ResourceSetName`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateCell`, `UpdateReadinessCheck`, `UpdateRecoveryGroup`, `UpdateResourceSet`
-- Common required input members in this group: `CellName`, `Cells`, `ReadinessCheckName`, `RecoveryGroupName`, `ResourceSetName`, `ResourceSetType`, `Resources`
+- Common required input members in this group: `Cells`, `ResourceSetName`
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `CreateCell` | `POST /cells` | - | `CellName` | - | `CreateCellResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a cell in an account. |
-| `CreateCrossAccountAuthorization` | `POST /crossaccountauthorizations` | - | `CrossAccountAuthorization` | - | `CreateCrossAccountAuthorizationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a cross-account readiness authorization. This lets you authorize another account to work with Route 53 Application Recovery Controller, for example, to check the readiness status of resources in a separate account. |
-| `CreateReadinessCheck` | `POST /readinesschecks` | - | `ReadinessCheckName`, `ResourceSetName` | - | `CreateReadinessCheckResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a readiness check in an account. A readiness check monitors a resource set in your application, such as a set of Amazon Aurora instances, that Application Recovery Controller is auditing recovery readiness for. |
+| `CreateCrossAccountAuthorization` | `POST /crossaccountauthorizations` | - | `CrossAccountAuthorization` | - | `CreateCrossAccountAuthorizationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a cross-account readiness authorization. This lets you authorize another account to work with Route 53 Application Recovery Controller, for example, to check the readiness status of resources in a separate ac ... |
+| `CreateReadinessCheck` | `POST /readinesschecks` | - | `ReadinessCheckName`, `ResourceSetName` | - | `CreateReadinessCheckResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a readiness check in an account. A readiness check monitors a resource set in your application, such as a set of Amazon Aurora instances, that Application Recovery Controller is auditing recovery readiness fo ... |
 | `CreateRecoveryGroup` | `POST /recoverygroups` | - | `RecoveryGroupName` | - | `CreateRecoveryGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a recovery group in an account. A recovery group corresponds to an application and includes a list of the cells that make up the application. |
-| `CreateResourceSet` | `POST /resourcesets` | - | `ResourceSetName`, `ResourceSetType`, `Resources` | - | `CreateResourceSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a resource set. A resource set is a set of resources of one type that span multiple cells. |
+| `CreateResourceSet` | `POST /resourcesets` | - | `ResourceSetName`, `ResourceSetType`, `Resources` | - | `CreateResourceSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a resource set. A resource set is a set of resources of one type that span multiple cells. You can associate a resource set with a readiness check to monitor the resources for failover readiness. |
 | `DeleteCell` | `DELETE /cells/{CellName}` | - | `CellName` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete a cell. When successful, the response code is 204, with no response body. |
 | `DeleteCrossAccountAuthorization` | `DELETE /crossaccountauthorizations/{CrossAccountAuthorization}` | - | `CrossAccountAuthorization` | - | `DeleteCrossAccountAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes cross account readiness authorization. |
 | `DeleteReadinessCheck` | `DELETE /readinesschecks/{ReadinessCheckName}` | - | `ReadinessCheckName` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a readiness check. |
@@ -92,8 +92,8 @@ Recovery readiness
 | `GetCell` | `GET /cells/{CellName}` | - | `CellName` | - | `GetCellResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a cell including cell name, cell Amazon Resource Name (ARN), ARNs of nested cells for this cell, and a list of those cell ARNs with their associated recovery group ARNs. |
 | `GetCellReadinessSummary` | `GET /cellreadiness/{CellName}` | `paginated` | `CellName` | - | `GetCellReadinessSummaryResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets readiness for a cell. Aggregates the readiness of all the resources that are associated with the cell into a single value. |
 | `GetReadinessCheck` | `GET /readinesschecks/{ReadinessCheckName}` | - | `ReadinessCheckName` | - | `GetReadinessCheckResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets details about a readiness check. |
-| `GetReadinessCheckResourceStatus` | `GET /readinesschecks/{ReadinessCheckName}/resource/{ResourceIdentifier}/status` | `paginated` | `ReadinessCheckName`, `ResourceIdentifier` | - | `GetReadinessCheckResourceStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets individual readiness status for a readiness check. To see the overall readiness status for a recovery group, that considers the readiness status for all the readiness checks in the recovery group, use GetRecoveryGroupReadinessSummary. |
-| `GetReadinessCheckStatus` | `GET /readinesschecks/{ReadinessCheckName}/status` | `paginated` | `ReadinessCheckName` | - | `GetReadinessCheckStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the readiness status for an individual readiness check. To see the overall readiness status for a recovery group, that considers the readiness status for all the readiness checks in a recovery group, use GetRecoveryGroupReadinessSummary. |
+| `GetReadinessCheckResourceStatus` | `GET /readinesschecks/{ReadinessCheckName}/resource/{ResourceIdentifier}/status` | `paginated` | `ReadinessCheckName`, `ResourceIdentifier` | - | `GetReadinessCheckResourceStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets individual readiness status for a readiness check. To see the overall readiness status for a recovery group, that considers the readiness status for all the readiness checks in the recovery group, use GetRecover ... |
+| `GetReadinessCheckStatus` | `GET /readinesschecks/{ReadinessCheckName}/status` | `paginated` | `ReadinessCheckName` | - | `GetReadinessCheckStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the readiness status for an individual readiness check. To see the overall readiness status for a recovery group, that considers the readiness status for all the readiness checks in a recovery group, use GetReco ... |
 | `GetRecoveryGroup` | `GET /recoverygroups/{RecoveryGroupName}` | - | `RecoveryGroupName` | - | `GetRecoveryGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets details about a recovery group, including a list of the cells that are included in it. |
 | `GetRecoveryGroupReadinessSummary` | `GET /recoverygroupreadiness/{RecoveryGroupName}` | `paginated` | `RecoveryGroupName` | - | `GetRecoveryGroupReadinessSummaryResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Displays a summary of information about a recovery group's readiness status. Includes the readiness checks for resources in the recovery group and the readiness status of each one. |
 | `GetResourceSet` | `GET /resourcesets/{ResourceSetName}` | - | `ResourceSetName` | - | `GetResourceSetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Displays the details about a resource set, including a list of the resources in the set. |
@@ -111,34 +111,70 @@ Recovery readiness
 | `UpdateRecoveryGroup` | `PUT /recoverygroups/{RecoveryGroupName}` | - | `Cells`, `RecoveryGroupName` | - | `UpdateRecoveryGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a recovery group. |
 | `UpdateResourceSet` | `PUT /resourcesets/{ResourceSetName}` | - | `ResourceSetName`, `ResourceSetType`, `Resources` | - | `UpdateResourceSetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a resource set. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetArchitectureRecommendations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCellReadinessSummary` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetReadinessCheckResourceStatus` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetReadinessCheckStatus` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetRecoveryGroupReadinessSummary` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCells` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCrossAccountAuthorizations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListReadinessChecks` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListRecoveryGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListResourceSets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListRules` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `ResourceType -> resourceType` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | An unexpected error occurred. |
-| `ValidationException` | `structure` | `Message` | The input fails to satisfy the constraints specified by an AWS service. |
-| `AccessDeniedException` | `structure` | `Message` | User does not have sufficient access to perform this action. |
-| `ThrottlingException` | `structure` | `Message` | Request was denied due to request throttling. |
-| `ResourceNotFoundException` | `structure` | `Message` | The requested resource does not exist. |
-| `ConflictException` | `structure` | `Message` | Updating or deleting a resource can cause an inconsistent state. |
-| `CreateCellRequest` | `structure` | `CellName`, `Cells`, `Tags` | - |
-| `CreateCellResponse` | `structure` | `CellArn`, `CellName`, `Cells`, `ParentReadinessScopes`, `Tags` | - |
-| `CreateCrossAccountAuthorizationRequest` | `structure` | `CrossAccountAuthorization` | - |
-| `CreateCrossAccountAuthorizationResponse` | `structure` | `CrossAccountAuthorization` | - |
-| `CreateReadinessCheckRequest` | `structure` | `ReadinessCheckName`, `ResourceSetName`, `Tags` | - |
-| `CreateReadinessCheckResponse` | `structure` | `ReadinessCheckArn`, `ReadinessCheckName`, `ResourceSet`, `Tags` | - |
-| `CreateRecoveryGroupRequest` | `structure` | `Cells`, `RecoveryGroupName`, `Tags` | - |
-| `CreateRecoveryGroupResponse` | `structure` | `Cells`, `RecoveryGroupArn`, `RecoveryGroupName`, `Tags` | - |
-| `CreateResourceSetRequest` | `structure` | `ResourceSetName`, `ResourceSetType`, `Resources`, `Tags` | - |
-| `CreateResourceSetResponse` | `structure` | `ResourceSetArn`, `ResourceSetName`, `ResourceSetType`, `Resources`, `Tags` | - |
-| `DeleteCellRequest` | `structure` | `CellName` | - |
-| `DeleteCrossAccountAuthorizationRequest` | `structure` | `CrossAccountAuthorization` | - |
-| `DeleteCrossAccountAuthorizationResponse` | `structure` | - | - |
-| `DeleteReadinessCheckRequest` | `structure` | `ReadinessCheckName` | - |
-| `DeleteRecoveryGroupRequest` | `structure` | `RecoveryGroupName` | - |
-| `DeleteResourceSetRequest` | `structure` | `ResourceSetName` | - |
-| `GetArchitectureRecommendationsRequest` | `structure` | `MaxResults`, `NextToken`, `RecoveryGroupName` | - |
-
+| `AccessDeniedException` | `structure` | Message | User does not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | Message | Updating or deleting a resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | Message | An unexpected error occurred. |
+| `ResourceNotFoundException` | `structure` | Message | The requested resource does not exist. |
+| `ThrottlingException` | `structure` | Message | Request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message | The input fails to satisfy the constraints specified by an AWS service. |
+| `CreateCellRequest` | `structure` | CellName, Cells, Tags | - |
+| `CreateCellResponse` | `structure` | CellArn, CellName, Cells, ParentReadinessScopes, Tags | - |
+| `CreateCrossAccountAuthorizationRequest` | `structure` | CrossAccountAuthorization | - |
+| `CreateCrossAccountAuthorizationResponse` | `structure` | CrossAccountAuthorization | - |
+| `CreateReadinessCheckRequest` | `structure` | ReadinessCheckName, ResourceSetName, Tags | - |
+| `CreateReadinessCheckResponse` | `structure` | ReadinessCheckArn, ReadinessCheckName, ResourceSet, Tags | - |
+| `CreateRecoveryGroupRequest` | `structure` | Cells, RecoveryGroupName, Tags | - |
+| `CreateRecoveryGroupResponse` | `structure` | Cells, RecoveryGroupArn, RecoveryGroupName, Tags | - |
+| `CreateResourceSetRequest` | `structure` | ResourceSetName, ResourceSetType, Resources, Tags | - |
+| `CreateResourceSetResponse` | `structure` | ResourceSetArn, ResourceSetName, ResourceSetType, Resources, Tags | - |
+| `DeleteCellRequest` | `structure` | CellName | - |
+| `DeleteCrossAccountAuthorizationRequest` | `structure` | CrossAccountAuthorization | - |
+| `DeleteCrossAccountAuthorizationResponse` | `structure` | **empty (no members)** | - |
+| `DeleteReadinessCheckRequest` | `structure` | ReadinessCheckName | - |
+| `DeleteRecoveryGroupRequest` | `structure` | RecoveryGroupName | - |
+| `DeleteResourceSetRequest` | `structure` | ResourceSetName | - |
+| `GetArchitectureRecommendationsRequest` | `structure` | MaxResults, NextToken, RecoveryGroupName | - |
+| `GetArchitectureRecommendationsResponse` | `structure` | LastAuditTimestamp, NextToken, Recommendations | - |
+| `GetCellRequest` | `structure` | CellName | - |
+| `GetCellResponse` | `structure` | CellArn, CellName, Cells, ParentReadinessScopes, Tags | - |
+| `GetCellReadinessSummaryRequest` | `structure` | CellName, MaxResults, NextToken | - |
+| `GetCellReadinessSummaryResponse` | `structure` | NextToken, Readiness, ReadinessChecks | - |
+| `GetReadinessCheckRequest` | `structure` | ReadinessCheckName | - |
+| `GetReadinessCheckResponse` | `structure` | ReadinessCheckArn, ReadinessCheckName, ResourceSet, Tags | - |
+| `GetReadinessCheckResourceStatusRequest` | `structure` | MaxResults, NextToken, ReadinessCheckName, ResourceIdentifier | - |
+| `GetReadinessCheckResourceStatusResponse` | `structure` | NextToken, Readiness, Rules | - |
+| `GetReadinessCheckStatusRequest` | `structure` | MaxResults, NextToken, ReadinessCheckName | - |
+| `GetReadinessCheckStatusResponse` | `structure` | Messages, NextToken, Readiness, Resources | - |
+| `GetRecoveryGroupRequest` | `structure` | RecoveryGroupName | - |
+| `GetRecoveryGroupResponse` | `structure` | Cells, RecoveryGroupArn, RecoveryGroupName, Tags | - |
+| `GetRecoveryGroupReadinessSummaryRequest` | `structure` | MaxResults, NextToken, RecoveryGroupName | - |
+| `GetRecoveryGroupReadinessSummaryResponse` | `structure` | NextToken, Readiness, ReadinessChecks | - |
+| `GetResourceSetRequest` | `structure` | ResourceSetName | - |
+| `GetResourceSetResponse` | `structure` | ResourceSetArn, ResourceSetName, ResourceSetType, Resources, Tags | - |
+| `Readiness` | `enum` | READY, NOT_READY, UNKNOWN, NOT_AUTHORIZED | The readiness status. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

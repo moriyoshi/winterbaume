@@ -50,131 +50,146 @@ Amazon Connect Voice ID provides real-time caller authentication and fraud risk 
 
 ### List
 
-- Operations: `ListDomains`, `ListFraudsterRegistrationJobs`, `ListFraudsters`, `ListSpeakerEnrollmentJobs`, `ListSpeakers`, `ListTagsForResource`, `ListWatchlists`
-- Traits: `paginated` (6), `readonly` (1)
-- Common required input members in this group: `DomainId`, `ResourceArn`
+- Operations: `ListFraudsterRegistrationJobs`, `ListFraudsters`, `ListSpeakerEnrollmentJobs`, `ListSpeakers`, `ListTagsForResource`, `ListWatchlists`
+- Traits: `paginated` (5)
+- Common required input members in this group: `DomainId`
 
 ### Describe
 
-- Operations: `DescribeDomain`, `DescribeFraudster`, `DescribeFraudsterRegistrationJob`, `DescribeSpeaker`, `DescribeSpeakerEnrollmentJob`, `DescribeWatchlist`
-- Traits: `readonly` (1)
-- Common required input members in this group: `DomainId`, `FraudsterId`, `JobId`, `SpeakerId`, `WatchlistId`
+- Operations: `DescribeFraudster`, `DescribeFraudsterRegistrationJob`, `DescribeSpeaker`, `DescribeSpeakerEnrollmentJob`, `DescribeWatchlist`
+- Common required input members in this group: `DomainId`, `JobId`
 
 ### Delete
 
-- Operations: `DeleteDomain`, `DeleteFraudster`, `DeleteSpeaker`, `DeleteWatchlist`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `DomainId`, `FraudsterId`, `SpeakerId`, `WatchlistId`
-
-### Create
-
-- Operations: `CreateDomain`, `CreateWatchlist`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `DomainId`, `Name`, `ServerSideEncryptionConfiguration`
+- Operations: `DeleteFraudster`, `DeleteSpeaker`, `DeleteWatchlist`
+- Common required input members in this group: `DomainId`
 
 ### Start
 
 - Operations: `StartFraudsterRegistrationJob`, `StartSpeakerEnrollmentJob`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `DataAccessRoleArn`, `DomainId`, `InputDataConfig`, `OutputDataConfig`
-
-### Update
-
-- Operations: `UpdateDomain`, `UpdateWatchlist`
-- Common required input members in this group: `DomainId`, `Name`, `ServerSideEncryptionConfiguration`, `WatchlistId`
+- Traits: `idempotent` (2), `idempotency-token` (2)
+- Common required input members in this group: `DomainId`, `DataAccessRoleArn`, `InputDataConfig`, `OutputDataConfig`
 
 ### Associate
 
 - Operations: `AssociateFraudster`
-- Common required input members in this group: `DomainId`, `FraudsterId`, `WatchlistId`
+- Common required input members in this group: -
+
+### Create
+
+- Operations: `CreateWatchlist`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateFraudster`
-- Common required input members in this group: `DomainId`, `FraudsterId`, `WatchlistId`
+- Common required input members in this group: -
 
 ### Evaluate
 
 - Operations: `EvaluateSession`
-- Common required input members in this group: `DomainId`, `SessionNameOrId`
+- Common required input members in this group: -
 
 ### Opt
 
 - Operations: `OptOutSpeaker`
-- Common required input members in this group: `DomainId`, `SpeakerId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
+
+### Update
+
+- Operations: `UpdateWatchlist`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateFraudster` | - | - | `DomainId`, `FraudsterId`, `WatchlistId` | - | `AssociateFraudsterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates the fraudsters with the watchlist specified in the same domain. |
-| `CreateDomain` | - | `idempotent`, `idempotency-token` | `Name`, `ServerSideEncryptionConfiguration` | `ClientToken` | `CreateDomainResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a domain that contains all Amazon Connect Voice ID data, such as speakers, fraudsters, customer audio, and voiceprints. Every domain is created with a default watchlist that fraudsters can be a part of. |
-| `CreateWatchlist` | - | `idempotent`, `idempotency-token` | `DomainId`, `Name` | `ClientToken` | `CreateWatchlistResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a watchlist that fraudsters can be a part of. |
-| `DeleteDomain` | - | `idempotent` | `DomainId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified domain from Voice ID. |
-| `DeleteFraudster` | - | - | `DomainId`, `FraudsterId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified fraudster from Voice ID. This action disassociates the fraudster from any watchlists it is a part of. |
-| `DeleteSpeaker` | - | - | `DomainId`, `SpeakerId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified speaker from Voice ID. |
-| `DeleteWatchlist` | - | - | `DomainId`, `WatchlistId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified watchlist from Voice ID. This API throws an exception when there are fraudsters in the watchlist that you are trying to delete. |
-| `DescribeDomain` | - | `readonly` | `DomainId` | - | `DescribeDomainResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified domain. |
-| `DescribeFraudster` | - | - | `DomainId`, `FraudsterId` | - | `DescribeFraudsterResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified fraudster. |
-| `DescribeFraudsterRegistrationJob` | - | - | `DomainId`, `JobId` | - | `DescribeFraudsterRegistrationJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified fraudster registration job. |
-| `DescribeSpeaker` | - | - | `DomainId`, `SpeakerId` | - | `DescribeSpeakerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified speaker. |
-| `DescribeSpeakerEnrollmentJob` | - | - | `DomainId`, `JobId` | - | `DescribeSpeakerEnrollmentJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified speaker enrollment job. |
-| `DescribeWatchlist` | - | - | `DomainId`, `WatchlistId` | - | `DescribeWatchlistResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified watchlist. |
-| `DisassociateFraudster` | - | - | `DomainId`, `FraudsterId`, `WatchlistId` | - | `DisassociateFraudsterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates the fraudsters from the watchlist specified. Voice ID always expects a fraudster to be a part of at least one watchlist. |
-| `EvaluateSession` | - | - | `DomainId`, `SessionNameOrId` | - | `EvaluateSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Evaluates a specified session based on audio data accumulated during a streaming Amazon Connect Voice ID call. |
-| `ListDomains` | - | `readonly`, `paginated` | - | - | `ListDomainsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all the domains in the Amazon Web Services account. |
-| `ListFraudsterRegistrationJobs` | - | `paginated` | `DomainId` | - | `ListFraudsterRegistrationJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the fraudster registration jobs in the domain with the given `JobStatus`. If `JobStatus` is not provided, this lists all fraudster registration jobs in the given domain. |
-| `ListFraudsters` | - | `paginated` | `DomainId` | - | `ListFraudstersResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all fraudsters in a specified watchlist or domain. |
-| `ListSpeakerEnrollmentJobs` | - | `paginated` | `DomainId` | - | `ListSpeakerEnrollmentJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the speaker enrollment jobs in the domain with the specified `JobStatus`. If `JobStatus` is not provided, this lists all jobs with all possible speaker enrollment job statuses. |
-| `ListSpeakers` | - | `paginated` | `DomainId` | - | `ListSpeakersResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all speakers in a specified domain. |
-| `ListTagsForResource` | - | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all tags associated with a specified Voice ID resource. |
-| `ListWatchlists` | - | `paginated` | `DomainId` | - | `ListWatchlistsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all watchlists in a specified domain. |
-| `OptOutSpeaker` | - | - | `DomainId`, `SpeakerId` | - | `OptOutSpeakerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Opts out a speaker from Voice ID. A speaker can be opted out regardless of whether or not they already exist in Voice ID. |
-| `StartFraudsterRegistrationJob` | - | `idempotent`, `idempotency-token` | `DataAccessRoleArn`, `DomainId`, `InputDataConfig`, `OutputDataConfig` | `ClientToken` | `StartFraudsterRegistrationJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a new batch fraudster registration job using provided details. |
-| `StartSpeakerEnrollmentJob` | - | `idempotent`, `idempotency-token` | `DataAccessRoleArn`, `DomainId`, `InputDataConfig`, `OutputDataConfig` | `ClientToken` | `StartSpeakerEnrollmentJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a new batch speaker enrollment job using specified details. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Tags a Voice ID resource with the provided list of tags. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes specified tags from a specified Amazon Connect Voice ID resource. |
-| `UpdateDomain` | - | - | `DomainId`, `Name`, `ServerSideEncryptionConfiguration` | - | `UpdateDomainResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified domain. This API has clobber behavior, and clears and replaces all attributes. |
-| `UpdateWatchlist` | - | - | `DomainId`, `WatchlistId` | - | `UpdateWatchlistResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified watchlist. Every domain has a default watchlist which cannot be updated. |
+| `AssociateFraudster` | `-` | - | `DomainId`, `WatchlistId`, `FraudsterId` | - | `AssociateFraudsterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates the fraudsters with the watchlist specified in the same domain. |
+| `CreateWatchlist` | `-` | `idempotent`, `idempotency-token` | `DomainId`, `Name` | `ClientToken` | `CreateWatchlistResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a watchlist that fraudsters can be a part of. |
+| `DeleteFraudster` | `-` | - | `DomainId`, `FraudsterId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified fraudster from Voice ID. This action disassociates the fraudster from any watchlists it is a part of. |
+| `DeleteSpeaker` | `-` | - | `DomainId`, `SpeakerId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified speaker from Voice ID. |
+| `DeleteWatchlist` | `-` | - | `DomainId`, `WatchlistId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified watchlist from Voice ID. This API throws an exception when there are fraudsters in the watchlist that you are trying to delete. You must delete the fraudsters, and then delete the watchlist. Eve ... |
+| `DescribeFraudster` | `-` | - | `DomainId`, `FraudsterId` | - | `DescribeFraudsterResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified fraudster. |
+| `DescribeFraudsterRegistrationJob` | `-` | - | `DomainId`, `JobId` | - | `DescribeFraudsterRegistrationJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified fraudster registration job. |
+| `DescribeSpeaker` | `-` | - | `DomainId`, `SpeakerId` | - | `DescribeSpeakerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified speaker. |
+| `DescribeSpeakerEnrollmentJob` | `-` | - | `DomainId`, `JobId` | - | `DescribeSpeakerEnrollmentJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified speaker enrollment job. |
+| `DescribeWatchlist` | `-` | - | `DomainId`, `WatchlistId` | - | `DescribeWatchlistResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the specified watchlist. |
+| `DisassociateFraudster` | `-` | - | `DomainId`, `WatchlistId`, `FraudsterId` | - | `DisassociateFraudsterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates the fraudsters from the watchlist specified. Voice ID always expects a fraudster to be a part of at least one watchlist. If you try to disassociate a fraudster from its only watchlist, a ValidationExcep ... |
+| `EvaluateSession` | `-` | - | `DomainId`, `SessionNameOrId` | - | `EvaluateSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Evaluates a specified session based on audio data accumulated during a streaming Amazon Connect Voice ID call. |
+| `ListFraudsterRegistrationJobs` | `-` | `paginated` | `DomainId` | - | `ListFraudsterRegistrationJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the fraudster registration jobs in the domain with the given JobStatus . If JobStatus is not provided, this lists all fraudster registration jobs in the given domain. |
+| `ListFraudsters` | `-` | `paginated` | `DomainId` | - | `ListFraudstersResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all fraudsters in a specified watchlist or domain. |
+| `ListSpeakerEnrollmentJobs` | `-` | `paginated` | `DomainId` | - | `ListSpeakerEnrollmentJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the speaker enrollment jobs in the domain with the specified JobStatus . If JobStatus is not provided, this lists all jobs with all possible speaker enrollment job statuses. |
+| `ListSpeakers` | `-` | `paginated` | `DomainId` | - | `ListSpeakersResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all speakers in a specified domain. |
+| `ListTagsForResource` | `-` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all tags associated with a specified Voice ID resource. |
+| `ListWatchlists` | `-` | `paginated` | `DomainId` | - | `ListWatchlistsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all watchlists in a specified domain. |
+| `OptOutSpeaker` | `-` | - | `DomainId`, `SpeakerId` | - | `OptOutSpeakerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Opts out a speaker from Voice ID. A speaker can be opted out regardless of whether or not they already exist in Voice ID. If they don't yet exist, a new speaker is created in an opted out state. If they already exist ... |
+| `StartFraudsterRegistrationJob` | `-` | `idempotent`, `idempotency-token` | `DomainId`, `DataAccessRoleArn`, `InputDataConfig`, `OutputDataConfig` | `ClientToken` | `StartFraudsterRegistrationJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a new batch fraudster registration job using provided details. |
+| `StartSpeakerEnrollmentJob` | `-` | `idempotent`, `idempotency-token` | `DomainId`, `DataAccessRoleArn`, `InputDataConfig`, `OutputDataConfig` | `ClientToken` | `StartSpeakerEnrollmentJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a new batch speaker enrollment job using specified details. |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Tags a Voice ID resource with the provided list of tags. |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes specified tags from a specified Amazon Connect Voice ID resource. |
+| `UpdateWatchlist` | `-` | - | `DomainId`, `WatchlistId` | - | `UpdateWatchlistResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified watchlist. Every domain has a default watchlist which cannot be updated. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient permissions to perform this action. |
-| `InternalServerException` | `structure` | `Message` | The request failed due to an unknown error on the server side. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Message` | The request failed one or more validations; check the error message for more details. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceType` | The specified resource cannot be found. |
-| `ConflictException` | `structure` | `ConflictType`, `Message` | The request failed due to a conflict. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | The request exceeded the service quota. |
-| `AssociateFraudsterRequest` | `structure` | `DomainId`, `FraudsterId`, `WatchlistId` | - |
-| `AssociateFraudsterResponse` | `structure` | `Fraudster` | - |
-| `CreateDomainRequest` | `structure` | `ClientToken`, `Description`, `Name`, `ServerSideEncryptionConfiguration`, `Tags` | - |
-| `CreateDomainResponse` | `structure` | `Domain` | - |
-| `CreateWatchlistRequest` | `structure` | `ClientToken`, `Description`, `DomainId`, `Name` | - |
-| `CreateWatchlistResponse` | `structure` | `Watchlist` | - |
-| `DeleteDomainRequest` | `structure` | `DomainId` | - |
-| `DeleteFraudsterRequest` | `structure` | `DomainId`, `FraudsterId` | - |
-| `DeleteSpeakerRequest` | `structure` | `DomainId`, `SpeakerId` | - |
-| `DeleteWatchlistRequest` | `structure` | `DomainId`, `WatchlistId` | - |
-| `DescribeDomainRequest` | `structure` | `DomainId` | - |
-| `DescribeDomainResponse` | `structure` | `Domain` | - |
-| `DescribeFraudsterRequest` | `structure` | `DomainId`, `FraudsterId` | - |
-| `DescribeFraudsterResponse` | `structure` | `Fraudster` | - |
-| `DescribeFraudsterRegistrationJobRequest` | `structure` | `DomainId`, `JobId` | - |
-| `DescribeFraudsterRegistrationJobResponse` | `structure` | `Job` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient permissions to perform this action. Check the error message and try again. |
+| `ConflictException` | `structure` | Message, ConflictType | The request failed due to a conflict. Check the ConflictType and error message for more details. |
+| `InternalServerException` | `structure` | Message | The request failed due to an unknown error on the server side. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceType | The specified resource cannot be found. Check the ResourceType and error message for more details. |
+| `ServiceQuotaExceededException` | `structure` | Message | The request exceeded the service quota. Refer to Voice ID Service Quotas and try your request again. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. Please slow down your request rate. Refer to Amazon Connect Voice ID Service API throttling quotas and try ... |
+| `ValidationException` | `structure` | Message | The request failed one or more validations; check the error message for more details. |
+| `AssociateFraudsterRequest` | `structure` | DomainId, WatchlistId, FraudsterId | - |
+| `AssociateFraudsterResponse` | `structure` | Fraudster | - |
+| `CreateWatchlistRequest` | `structure` | DomainId, Name, Description, ClientToken | - |
+| `CreateWatchlistResponse` | `structure` | Watchlist | - |
+| `DeleteFraudsterRequest` | `structure` | DomainId, FraudsterId | - |
+| `DeleteSpeakerRequest` | `structure` | DomainId, SpeakerId | - |
+| `DeleteWatchlistRequest` | `structure` | DomainId, WatchlistId | - |
+| `DescribeFraudsterRequest` | `structure` | DomainId, FraudsterId | - |
+| `DescribeFraudsterResponse` | `structure` | Fraudster | - |
+| `DescribeFraudsterRegistrationJobRequest` | `structure` | DomainId, JobId | - |
+| `DescribeFraudsterRegistrationJobResponse` | `structure` | Job | - |
+| `DescribeSpeakerRequest` | `structure` | DomainId, SpeakerId | - |
+| `DescribeSpeakerResponse` | `structure` | Speaker | - |
+| `DescribeSpeakerEnrollmentJobRequest` | `structure` | DomainId, JobId | - |
+| `DescribeSpeakerEnrollmentJobResponse` | `structure` | Job | - |
+| `DescribeWatchlistRequest` | `structure` | DomainId, WatchlistId | - |
+| `DescribeWatchlistResponse` | `structure` | Watchlist | - |
+| `DisassociateFraudsterRequest` | `structure` | DomainId, WatchlistId, FraudsterId | - |
+| `DisassociateFraudsterResponse` | `structure` | Fraudster | - |
+| `EvaluateSessionRequest` | `structure` | DomainId, SessionNameOrId | - |
+| `EvaluateSessionResponse` | `structure` | DomainId, SessionId, SessionName, StreamingStatus, AuthenticationResult, FraudDetectionResult | - |
+| `ListFraudsterRegistrationJobsRequest` | `structure` | DomainId, JobStatus, MaxResults, NextToken | - |
+| `ListFraudsterRegistrationJobsResponse` | `structure` | JobSummaries, NextToken | - |
+| `ListFraudstersRequest` | `structure` | DomainId, WatchlistId, MaxResults, NextToken | - |
+| `ListFraudstersResponse` | `structure` | FraudsterSummaries, NextToken | - |
+| `ListSpeakerEnrollmentJobsRequest` | `structure` | DomainId, JobStatus, MaxResults, NextToken | - |
+| `ListSpeakerEnrollmentJobsResponse` | `structure` | JobSummaries, NextToken | - |
+| `ListSpeakersRequest` | `structure` | DomainId, MaxResults, NextToken | - |
+| `ListSpeakersResponse` | `structure` | SpeakerSummaries, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `ListWatchlistsRequest` | `structure` | DomainId, MaxResults, NextToken | - |
+| `ListWatchlistsResponse` | `structure` | WatchlistSummaries, NextToken | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

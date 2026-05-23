@@ -51,113 +51,100 @@ Multi-party approval is a capability of Organizations that allows you to protect
 
 ### List
 
-- Operations: `ListApprovalTeams`, `ListIdentitySources`, `ListPolicies`, `ListPolicyVersions`, `ListResourcePolicies`, `ListSessions`, `ListTagsForResource`
-- Traits: `paginated` (6), `readonly` (7)
-- Common required input members in this group: `ApprovalTeamArn`, `PolicyArn`, `ResourceArn`
+- Operations: `ListPolicies`, `ListPolicyVersions`, `ListResourcePolicies`, `ListTagsForResource`
+- Traits: `readonly` (4), `paginated` (3)
+- Common required input members in this group: `ResourceArn`
 
 ### Get
 
-- Operations: `GetApprovalTeam`, `GetIdentitySource`, `GetPolicyVersion`, `GetResourcePolicy`, `GetSession`
-- Traits: `readonly` (5)
-- Common required input members in this group: `Arn`, `IdentitySourceArn`, `PolicyName`, `PolicyType`, `PolicyVersionArn`, `ResourceArn`, `SessionArn`
-
-### Create
-
-- Operations: `CreateApprovalTeam`, `CreateIdentitySource`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `ApprovalStrategy`, `Approvers`, `Description`, `IdentitySourceParameters`, `Name`, `Policies`
-
-### Delete
-
-- Operations: `DeleteIdentitySource`, `DeleteInactiveApprovalTeamVersion`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `Arn`, `IdentitySourceArn`, `VersionId`
-
-### Start
-
-- Operations: `StartActiveApprovalTeamDeletion`, `StartApprovalTeamBaseline`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `Arn`
-
-### Cancel
-
-- Operations: `CancelSession`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `SessionArn`
+- Operations: `GetPolicyVersion`, `GetResourcePolicy`
+- Traits: `readonly` (2)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
-
-### Update
-
-- Operations: `UpdateApprovalTeam`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `Arn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelSession` | `PUT /sessions/{SessionArn}` | `idempotent` | `SessionArn` | - | `CancelSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels an approval session. For more information, see Session in the Multi-party approval User Guide . |
-| `CreateApprovalTeam` | `POST /approval-teams` | `idempotent`, `idempotency-token` | `ApprovalStrategy`, `Approvers`, `Description`, `Name`, `Policies` | `ClientToken` | `CreateApprovalTeamResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new approval team. For more information, see Approval team in the Multi-party approval User Guide . |
-| `CreateIdentitySource` | `POST /identity-sources` | `idempotent`, `idempotency-token` | `IdentitySourceParameters` | `ClientToken` | `CreateIdentitySourceResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new identity source. For more information, see Identity Source in the Multi-party approval User Guide . |
-| `DeleteIdentitySource` | `DELETE /identity-sources/{IdentitySourceArn}` | `idempotent` | `IdentitySourceArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes an identity source. For more information, see Identity Source in the Multi-party approval User Guide . |
-| `DeleteInactiveApprovalTeamVersion` | `DELETE /approval-teams/{Arn}/{VersionId}` | `idempotent` | `Arn`, `VersionId` | - | `DeleteInactiveApprovalTeamVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an inactive approval team. For more information, see Team health in the Multi-party approval User Guide . |
-| `GetApprovalTeam` | `GET /approval-teams/{Arn}` | `readonly` | `Arn` | - | `GetApprovalTeamResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details for an approval team. |
-| `GetIdentitySource` | `GET /identity-sources/{IdentitySourceArn}` | `readonly` | `IdentitySourceArn` | - | `GetIdentitySourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details for an identity source. For more information, see Identity Source in the Multi-party approval User Guide . |
 | `GetPolicyVersion` | `GET /policy-versions/{PolicyVersionArn}` | `readonly` | `PolicyVersionArn` | - | `GetPolicyVersionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details for the version of a policy. Policies define the permissions for team resources. |
-| `GetResourcePolicy` | `POST /GetResourcePolicy` | `readonly` | `PolicyName`, `PolicyType`, `ResourceArn` | - | `GetResourcePolicyResponse` | `AccessDeniedException`, `InvalidParameterException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details about a policy for a resource. |
-| `GetSession` | `GET /sessions/{SessionArn}` | `readonly` | `SessionArn` | - | `GetSessionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details for an approval session. For more information, see Session in the Multi-party approval User Guide . |
-| `ListApprovalTeams` | `POST /approval-teams/?List` | `readonly`, `paginated` | - | - | `ListApprovalTeamsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of approval teams. |
-| `ListIdentitySources` | `POST /identity-sources/?List` | `readonly`, `paginated` | - | - | `ListIdentitySourcesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of identity sources. For more information, see Identity Source in the Multi-party approval User Guide . |
+| `GetResourcePolicy` | `POST /GetResourcePolicy` | `readonly` | `ResourceArn`, `PolicyName`, `PolicyType` | - | `GetResourcePolicyResponse` | `AccessDeniedException`, `InvalidParameterException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details about a policy for a resource. |
 | `ListPolicies` | `POST /policies/?List` | `readonly`, `paginated` | - | - | `ListPoliciesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of policies. Policies define the permissions for team resources. |
 | `ListPolicyVersions` | `POST /policies/{PolicyArn}/?List` | `readonly`, `paginated` | `PolicyArn` | - | `ListPolicyVersionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of the versions for policies. Policies define the permissions for team resources. |
 | `ListResourcePolicies` | `POST /resource-policies/{ResourceArn}/?List` | `readonly`, `paginated` | `ResourceArn` | - | `ListResourcePoliciesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of policies for a resource. |
-| `ListSessions` | `POST /approval-teams/{ApprovalTeamArn}/sessions/?List` | `readonly`, `paginated` | `ApprovalTeamArn` | - | `ListSessionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of approval sessions. For more information, see Session in the Multi-party approval User Guide . |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of the tags for a resource. |
-| `StartActiveApprovalTeamDeletion` | `POST /approval-teams/{Arn}?Delete` | `idempotent` | `Arn` | - | `StartActiveApprovalTeamDeletionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts the deletion process for an active approval team. Deletions require team approval Requests to delete an active team must be approved by the team. |
-| `StartApprovalTeamBaseline` | `POST /approval-teams/{Arn}/baseline` | - | `Arn` | - | `StartApprovalTeamBaselineResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a baseline session for specified approvers on an `ACTIVE` approval team. |
-| `TagResource` | `PUT /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `TooManyTagsException`, `ValidationException` | Creates or updates a resource tag. Each tag is a label consisting of a user-defined key and value. |
-| `UntagResource` | `POST /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a resource tag. Each tag is a label consisting of a user-defined key and value. |
-| `UpdateApprovalTeam` | `PATCH /approval-teams/{Arn}` | `idempotent` | `Arn` | - | `UpdateApprovalTeamResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates an approval team. You can request to update the team description, approval threshold, and approvers in the team. |
+| `TagResource` | `PUT /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `TooManyTagsException`, `ValidationException` | Creates or updates a resource tag. Each tag is a label consisting of a user-defined key and value. Tags can help you manage, identify, organize, search for, and filter resources. |
+| `UntagResource` | `POST /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a resource tag. Each tag is a label consisting of a user-defined key and value. Tags can help you manage, identify, organize, search for, and filter resources. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListPolicies` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListPolicyVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListResourcePolicies` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Message` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `InternalServerException` | `structure` | `Message` | The service encountered an internal error. |
-| `ResourceNotFoundException` | `structure` | `Message` | The specified resource doesn't exist. |
-| `ConflictException` | `structure` | `Message` | The request cannot be completed because it conflicts with the current state of a resource. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | The request exceeds the service quota for your account. |
-| `CancelSessionRequest` | `structure` | `SessionArn` | - |
-| `CancelSessionResponse` | `structure` | - | - |
-| `CreateApprovalTeamRequest` | `structure` | `ApprovalStrategy`, `Approvers`, `ClientToken`, `Description`, `Name`, `Policies`, `Tags` | - |
-| `CreateApprovalTeamResponse` | `structure` | `Arn`, `CreationTime`, `Name`, `VersionId` | - |
-| `CreateIdentitySourceRequest` | `structure` | `ClientToken`, `IdentitySourceParameters`, `Tags` | - |
-| `CreateIdentitySourceResponse` | `structure` | `CreationTime`, `IdentitySourceArn`, `IdentitySourceType` | - |
-| `DeleteIdentitySourceRequest` | `structure` | `IdentitySourceArn` | - |
-| `DeleteInactiveApprovalTeamVersionRequest` | `structure` | `Arn`, `VersionId` | - |
-| `DeleteInactiveApprovalTeamVersionResponse` | `structure` | - | - |
-| `GetApprovalTeamRequest` | `structure` | `Arn` | - |
-| `GetApprovalTeamResponse` | `structure` | `ApprovalStrategy`, `Approvers`, `Arn`, `CreationTime`, `Description`, `LastUpdateTime`, `Name`, `NumberOfApprovers`, `PendingUpdate`, `Policies`, `Status`, `StatusCode`, ... (+3) | - |
-| `GetIdentitySourceRequest` | `structure` | `IdentitySourceArn` | - |
-| `GetIdentitySourceResponse` | `structure` | `CreationTime`, `IdentitySourceArn`, `IdentitySourceParameters`, `IdentitySourceType`, `Status`, `StatusCode`, `StatusMessage` | - |
-| `GetPolicyVersionRequest` | `structure` | `PolicyVersionArn` | - |
-| `GetPolicyVersionResponse` | `structure` | `PolicyVersion` | - |
-| `GetResourcePolicyRequest` | `structure` | `PolicyName`, `PolicyType`, `ResourceArn` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. Check your permissions, and try again. |
+| `ConflictException` | `structure` | Message | The request cannot be completed because it conflicts with the current state of a resource. |
+| `InternalServerException` | `structure` | Message | The service encountered an internal error. Try your request again. If the problem persists, contact Amazon Web Services Support. |
+| `InvalidParameterException` | `structure` | Message | The request contains an invalid parameter value. |
+| `ResourceNotFoundException` | `structure` | Message | The specified resource doesn't exist. Check the resource ID, and try again. |
+| `ServiceQuotaExceededException` | `structure` | Message | The request exceeds the service quota for your account. Request a quota increase or reduce your request size. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `TooManyTagsException` | `structure` | Message, ResourceName | The request exceeds the maximum number of tags allowed for this resource. Remove some tags, and try again. |
+| `ValidationException` | `structure` | Message | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `GetPolicyVersionRequest` | `structure` | PolicyVersionArn | - |
+| `GetPolicyVersionResponse` | `structure` | PolicyVersion | - |
+| `GetResourcePolicyRequest` | `structure` | ResourceArn, PolicyName, PolicyType | - |
+| `GetResourcePolicyResponse` | `structure` | ResourceArn, PolicyType, PolicyVersionArn, PolicyName, PolicyDocument | - |
+| `ListPoliciesRequest` | `structure` | MaxResults, NextToken | - |
+| `ListPoliciesResponse` | `structure` | NextToken, Policies | - |
+| `ListPolicyVersionsRequest` | `structure` | MaxResults, NextToken, PolicyArn | - |
+| `ListPolicyVersionsResponse` | `structure` | NextToken, PolicyVersions | - |
+| `ListResourcePoliciesRequest` | `structure` | ResourceArn, MaxResults, NextToken | - |
+| `ListResourcePoliciesResponse` | `structure` | NextToken, ResourcePolicies | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `ActionCompletionStrategy` | `enum` | AUTO_COMPLETION_UPON_APPROVAL | - |
+| `AdditionalSecurityRequirement` | `enum` | APPROVER_VERIFICATION_REQUIRED | Additional security requirements applied to a session or invitation APPROVER_VERIFICATION_REQUIRED : Approvers will be required to perform an MFA challenge ... |
+| `ApprovalTeamStatus` | `enum` | ACTIVE, INACTIVE, DELETING, PENDING | - |
+| `ApprovalTeamStatusCode` | `enum` | VALIDATING, PENDING_ACTIVATION, FAILED_VALIDATION, FAILED_ACTIVATION, UPDATE_PENDING_APPROVAL, UPDATE_PENDING_ACTIVATION, UPDATE_FAILED_APPROVAL, UPDATE_FAILED_ACTIVATION, UPDATE_FAILED_VALIDATION, DELETE_PENDING_APPROVAL, DELETE_FAILED_APPROVAL, DELETE_FAILED_VALIDATION | - |
+| `ApproverLastActivity` | `enum` | VOTED, BASELINED, RESPONDED_TO_INVITATION | - |
+| `FilterField` | `enum` | ACTION_NAME, APPROVAL_TEAM_NAME, VOTING_TIME, VOTE, SESSION_STATUS, INITIATION_TIME | - |
+| `IdentitySourceStatus` | `enum` | CREATING, ACTIVE, DELETING, ERROR | - |
+| `IdentitySourceStatusCode` | `enum` | ACCESS_DENIED, DELETION_FAILED, IDC_INSTANCE_NOT_FOUND, IDC_INSTANCE_NOT_VALID | - |
+| `IdentitySourceType` | `enum` | IAM_IDENTITY_CENTER | - |
+| `IdentityStatus` | `enum` | PENDING, ACCEPTED, REJECTED, INVALID | - |
+| `MfaSyncStatus` | `enum` | IN_SYNC, OUT_OF_SYNC | Indicates if the approver's MFA device is in-sync with the Identity Source IN_SYNC : The approver's MFA device is in-sync with the Identity Source OUT_OF_SY ... |
+| `MfaType` | `enum` | EMAIL_OTP | The type of MFA device used by the approver EMAIL_OTP : The approver will receive emailed one-time passwords to their primary email |
+| `Operator` | `enum` | EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GREATER_THAN_OR_EQUAL_TO, LESS_THAN_OR_EQUAL_TO, CONTAINS, DOES_NOT_CONTAIN, BETWEEN | - |
+| `PolicyStatus` | `enum` | ATTACHABLE, DEPRECATED | - |
+| `PolicyType` | `enum` | AWS_MANAGED, AWS_RAM | - |
+| `SessionExecutionStatus` | `enum` | EXECUTED, FAILED, PENDING | - |
+| `SessionResponse` | `enum` | APPROVED, REJECTED, NO_RESPONSE | - |
+| `SessionStatus` | `enum` | PENDING, CANCELLED, APPROVED, FAILED, CREATING | - |
+| `SessionStatusCode` | `enum` | REJECTED, EXPIRED, CONFIGURATION_CHANGED, ALL_APPROVERS_IN_SESSION | - |
+| `UpdateAction` | `enum` | SYNCHRONIZE_MFA_DEVICES | Actions that can be taken when updating an approval team SYNCHRONIZE_MFA_DEVICES : Synchronize MFA devices for all approvers on the team |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

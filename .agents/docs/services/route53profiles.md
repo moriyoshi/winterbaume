@@ -43,62 +43,62 @@ With Amazon Route 53 Profiles you can share Route 53 configurations with VPCs an
 ### List
 
 - Operations: `ListProfileAssociations`, `ListProfileResourceAssociations`, `ListProfiles`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `ProfileId`, `ResourceArn`
+- Traits: `readonly` (4), `paginated` (3)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetProfile`, `GetProfileAssociation`, `GetProfileResourceAssociation`
 - Traits: `readonly` (3)
-- Common required input members in this group: `ProfileAssociationId`, `ProfileId`, `ProfileResourceAssociationId`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateProfile`, `AssociateResourceToProfile`
-- Common required input members in this group: `Name`, `ProfileId`, `ResourceArn`, `ResourceId`
+- Common required input members in this group: `ProfileId`, `Name`
 
 ### Disassociate
 
 - Operations: `DisassociateProfile`, `DisassociateResourceFromProfile`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `ProfileId`, `ResourceArn`, `ResourceId`
+- Common required input members in this group: `ProfileId`
 
 ### Create
 
 - Operations: `CreateProfile`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `ClientToken`, `Name`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteProfile`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ProfileId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateProfileResourceAssociation`
-- Common required input members in this group: `ProfileResourceAssociationId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateProfile` | `POST /profileassociation` | - | `Name`, `ProfileId`, `ResourceId` | - | `AssociateProfileResponse` | `AccessDeniedException`, `ConflictException`, `InvalidParameterException`, `LimitExceededException`, `ResourceExistsException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a Route 53 Profiles profile with a VPC. A VPC can have only one Profile associated with it, but a Profile can be associated with 1000 of VPCs (and you can request a higher quota). |
-| `AssociateResourceToProfile` | `POST /profileresourceassociation` | - | `Name`, `ProfileId`, `ResourceArn` | - | `AssociateResourceToProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceErrorException`, `InvalidParameterException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a DNS reource configuration to a Route 53 Profile. |
-| `CreateProfile` | `POST /profile` | `idempotency-token` | `ClientToken`, `Name` | `ClientToken` | `CreateProfileResponse` | `AccessDeniedException`, `InvalidParameterException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Creates an empty Route 53 Profile. |
+| `AssociateProfile` | `POST /profileassociation` | - | `ProfileId`, `ResourceId`, `Name` | - | `AssociateProfileResponse` | `AccessDeniedException`, `ConflictException`, `InvalidParameterException`, `LimitExceededException`, `ResourceExistsException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a Route 53 Profiles profile with a VPC. A VPC can have only one Profile associated with it, but a Profile can be associated with 1000 of VPCs (and you can request a higher quota). For more information, see ... |
+| `AssociateResourceToProfile` | `POST /profileresourceassociation` | - | `ProfileId`, `ResourceArn`, `Name` | - | `AssociateResourceToProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceErrorException`, `InvalidParameterException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a DNS reource configuration to a Route 53 Profile. |
+| `CreateProfile` | `POST /profile` | `idempotency-token` | `Name`, `ClientToken` | `ClientToken` | `CreateProfileResponse` | `AccessDeniedException`, `InvalidParameterException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Creates an empty Route 53 Profile. |
 | `DeleteProfile` | `DELETE /profile/{ProfileId}` | `idempotent` | `ProfileId` | - | `DeleteProfileResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified Route 53 Profile. Before you can delete a profile, you must first disassociate it from all VPCs. |
 | `DisassociateProfile` | `DELETE /profileassociation/Profileid/{ProfileId}/resourceid/{ResourceId}` | `idempotent` | `ProfileId`, `ResourceId` | - | `DisassociateProfileResponse` | `AccessDeniedException`, `InvalidParameterException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Dissociates a specified Route 53 Profile from the specified VPC. |
 | `DisassociateResourceFromProfile` | `DELETE /profileresourceassociation/profileid/{ProfileId}/resourcearn/{ResourceArn}` | `idempotent` | `ProfileId`, `ResourceArn` | - | `DisassociateResourceFromProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceErrorException`, `InvalidParameterException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Dissoaciated a specified resource, from the Route 53 Profile. |
@@ -113,35 +113,63 @@ With Amazon Route 53 Profiles you can share Route 53 configurations with VPCs an
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes one or more tags from a specified resource. |
 | `UpdateProfileResourceAssociation` | `PATCH /profileresourceassociation/{ProfileResourceAssociationId}` | - | `ProfileResourceAssociationId` | - | `UpdateProfileResourceAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceErrorException`, `InvalidParameterException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified Route 53 Profile resourse association. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListProfileAssociations` | - | `ResourceId -> resourceId`, `ProfileId -> profileId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListProfileResourceAssociations` | - | `ResourceType -> resourceType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListProfiles` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | The current account doesn't have the IAM permissions required to perform the specified operation. |
-| `ThrottlingException` | `structure` | `Message` | The request was throttled. |
-| `ValidationException` | `structure` | `Message` | You have provided an invalid command. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceType` | The resource you are associating is not found. |
-| `InvalidParameterException` | `structure` | `FieldName`, `Message` | One or more parameters in this request are not valid. |
-| `ConflictException` | `structure` | `Message` | The request you submitted conflicts with an existing request. |
-| `LimitExceededException` | `structure` | `Message`, `ResourceType` | The request caused one or more limits to be exceeded. |
-| `InternalServiceErrorException` | `structure` | `Message` | An internal server error occured. |
-| `InvalidNextTokenException` | `structure` | `Message` | The `NextToken` you provided isn;t valid. |
-| `AssociateProfileRequest` | `structure` | `Name`, `ProfileId`, `ResourceId`, `Tags` | - |
-| `AssociateProfileResponse` | `structure` | `ProfileAssociation` | - |
-| `ResourceExistsException` | `structure` | `Message`, `ResourceType` | The resource you are trying to associate, has already been associated. |
-| `AssociateResourceToProfileRequest` | `structure` | `Name`, `ProfileId`, `ResourceArn`, `ResourceProperties` | - |
-| `AssociateResourceToProfileResponse` | `structure` | `ProfileResourceAssociation` | - |
-| `CreateProfileRequest` | `structure` | `ClientToken`, `Name`, `Tags` | - |
-| `CreateProfileResponse` | `structure` | `Profile` | - |
-| `DeleteProfileRequest` | `structure` | `ProfileId` | - |
-| `DeleteProfileResponse` | `structure` | `Profile` | - |
-| `DisassociateProfileRequest` | `structure` | `ProfileId`, `ResourceId` | - |
-| `DisassociateProfileResponse` | `structure` | `ProfileAssociation` | - |
-| `DisassociateResourceFromProfileRequest` | `structure` | `ProfileId`, `ResourceArn` | - |
-| `DisassociateResourceFromProfileResponse` | `structure` | `ProfileResourceAssociation` | - |
-| `GetProfileRequest` | `structure` | `ProfileId` | - |
-| `GetProfileResponse` | `structure` | `Profile` | - |
-
+| `AccessDeniedException` | `structure` | Message | The current account doesn't have the IAM permissions required to perform the specified operation. |
+| `ConflictException` | `structure` | Message | The request you submitted conflicts with an existing request. |
+| `InternalServiceErrorException` | `structure` | Message | An internal server error occured. Retry your request. |
+| `InvalidNextTokenException` | `structure` | Message | The NextToken you provided isn;t valid. |
+| `InvalidParameterException` | `structure` | Message, FieldName | One or more parameters in this request are not valid. |
+| `LimitExceededException` | `structure` | Message, ResourceType | The request caused one or more limits to be exceeded. |
+| `ResourceExistsException` | `structure` | Message, ResourceType | The resource you are trying to associate, has already been associated. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceType | The resource you are associating is not found. |
+| `ThrottlingException` | `structure` | Message | The request was throttled. Try again in a few minutes. |
+| `ValidationException` | `structure` | Message | You have provided an invalid command. |
+| `AssociateProfileRequest` | `structure` | ProfileId, ResourceId, Name, Tags | - |
+| `AssociateProfileResponse` | `structure` | ProfileAssociation | - |
+| `AssociateResourceToProfileRequest` | `structure` | ProfileId, ResourceArn, Name, ResourceProperties | - |
+| `AssociateResourceToProfileResponse` | `structure` | ProfileResourceAssociation | - |
+| `CreateProfileRequest` | `structure` | Name, ClientToken, Tags | - |
+| `CreateProfileResponse` | `structure` | Profile | - |
+| `DeleteProfileRequest` | `structure` | ProfileId | - |
+| `DeleteProfileResponse` | `structure` | Profile | - |
+| `DisassociateProfileRequest` | `structure` | ProfileId, ResourceId | - |
+| `DisassociateProfileResponse` | `structure` | ProfileAssociation | - |
+| `DisassociateResourceFromProfileRequest` | `structure` | ProfileId, ResourceArn | - |
+| `DisassociateResourceFromProfileResponse` | `structure` | ProfileResourceAssociation | - |
+| `GetProfileRequest` | `structure` | ProfileId | - |
+| `GetProfileResponse` | `structure` | Profile | - |
+| `GetProfileAssociationRequest` | `structure` | ProfileAssociationId | - |
+| `GetProfileAssociationResponse` | `structure` | ProfileAssociation | - |
+| `GetProfileResourceAssociationRequest` | `structure` | ProfileResourceAssociationId | - |
+| `GetProfileResourceAssociationResponse` | `structure` | ProfileResourceAssociation | - |
+| `ListProfileAssociationsRequest` | `structure` | ResourceId, ProfileId, MaxResults, NextToken | - |
+| `ListProfileAssociationsResponse` | `structure` | ProfileAssociations, NextToken | - |
+| `ListProfileResourceAssociationsRequest` | `structure` | ProfileId, ResourceType, MaxResults, NextToken | - |
+| `ListProfileResourceAssociationsResponse` | `structure` | ProfileResourceAssociations, NextToken | - |
+| `ListProfilesRequest` | `structure` | MaxResults, NextToken | - |
+| `ListProfilesResponse` | `structure` | ProfileSummaries, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `ProfileStatus` | `enum` | COMPLETE, DELETING, UPDATING, CREATING, DELETED, FAILED | - |
+| `ShareStatus` | `enum` | NOT_SHARED, SHARED_WITH_ME, SHARED_BY_ME | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

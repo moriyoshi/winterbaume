@@ -54,28 +54,29 @@ Synthetics currently has a placeholder for canary VPC configuration.
 
 - Operations: `ListAssociatedGroups`, `ListGroupResources`, `ListGroups`, `ListTagsForResource`
 - Traits: `paginated` (3)
-- Common required input members in this group: `GroupIdentifier`, `ResourceArn`
+- Common required input members in this group: `ResourceArn`
 
 ### Describe
 
 - Operations: `DescribeCanaries`, `DescribeCanariesLastRun`, `DescribeRuntimeVersions`
 - Traits: `paginated` (3)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetCanary`, `GetCanaryRuns`, `GetGroup`
 - Traits: `paginated` (1)
-- Common required input members in this group: `GroupIdentifier`, `Name`
+- Common required input members in this group: `Name`
 
 ### Create
 
 - Operations: `CreateCanary`, `CreateGroup`
-- Common required input members in this group: `ArtifactS3Location`, `Code`, `ExecutionRoleArn`, `Name`, `RuntimeVersion`, `Schedule`
+- Common required input members in this group: `Name`
 
 ### Delete
 
 - Operations: `DeleteCanary`, `DeleteGroup`
-- Common required input members in this group: `GroupIdentifier`, `Name`
+- Common required input members in this group: -
 
 ### Start
 
@@ -85,89 +86,124 @@ Synthetics currently has a placeholder for canary VPC configuration.
 ### Associate
 
 - Operations: `AssociateResource`
-- Common required input members in this group: `GroupIdentifier`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateResource`
-- Common required input members in this group: `GroupIdentifier`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopCanary`
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateCanary`
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateResource` | `PATCH /group/{GroupIdentifier}/associate` | - | `GroupIdentifier`, `ResourceArn` | - | `AssociateResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Associates a canary with a group. Using groups can help you with managing and automating your canaries, and you can also view aggregated run results and statistics for all canaries in a group. |
-| `CreateCanary` | `POST /canary` | - | `ArtifactS3Location`, `Code`, `ExecutionRoleArn`, `Name`, `RuntimeVersion`, `Schedule` | - | `CreateCanaryResponse` | `InternalServerException`, `RequestEntityTooLargeException`, `ValidationException` | Creates a canary. Canaries are scripts that monitor your endpoints and APIs from the outside-in. |
-| `CreateGroup` | `POST /group` | - | `Name` | - | `CreateGroupResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a group which you can use to associate canaries with each other, including cross-Region canaries. Using groups can help you with managing and automating your canaries, and you can also view aggregated run results and statistics for all canaries in a... |
-| `DeleteCanary` | `DELETE /canary/{Name}` | - | `Name` | - | `DeleteCanaryResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Permanently deletes the specified canary. If the canary's `ProvisionedResourceCleanup` field is set to `AUTOMATIC` or you specify `DeleteLambda` in this operation as `true`, CloudWatch Synthetics also deletes the Lambda functions and layers that are used by... |
-| `DeleteGroup` | `DELETE /group/{GroupIdentifier}` | - | `GroupIdentifier` | - | `DeleteGroupResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a group. The group doesn't need to be empty to be deleted. |
-| `DescribeCanaries` | `POST /canaries` | `paginated` | - | - | `DescribeCanariesResponse` | `InternalServerException`, `ValidationException` | This operation returns a list of the canaries in your account, along with full details about each canary. This operation supports resource-level authorization using an IAM policy and the `Names` parameter. |
-| `DescribeCanariesLastRun` | `POST /canaries/last-run` | `paginated` | - | - | `DescribeCanariesLastRunResponse` | `InternalServerException`, `ValidationException` | Use this operation to see information from the most recent run of each canary that you have created. This operation supports resource-level authorization using an IAM policy and the `Names` parameter. |
-| `DescribeRuntimeVersions` | `POST /runtime-versions` | `paginated` | - | - | `DescribeRuntimeVersionsResponse` | `InternalServerException`, `ValidationException` | Returns a list of Synthetics canary runtime versions. For more information, see Canary Runtime Versions. |
+| `AssociateResource` | `PATCH /group/{GroupIdentifier}/associate` | - | `GroupIdentifier`, `ResourceArn` | - | `AssociateResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Associates a canary with a group. Using groups can help you with managing and automating your canaries, and you can also view aggregated run results and statistics for all canaries in a group. You must run this opera ... |
+| `CreateCanary` | `POST /canary` | - | `Name`, `Code`, `ArtifactS3Location`, `ExecutionRoleArn`, `Schedule`, `RuntimeVersion` | - | `CreateCanaryResponse` | `InternalServerException`, `RequestEntityTooLargeException`, `ValidationException` | Creates a canary. Canaries are scripts that monitor your endpoints and APIs from the outside-in. Canaries help you check the availability and latency of your web services and troubleshoot anomalies by investigating l ... |
+| `CreateGroup` | `POST /group` | - | `Name` | - | `CreateGroupResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a group which you can use to associate canaries with each other, including cross-Region canaries. Using groups can help you with managing and automating your canaries, and you can also view aggregated run res ... |
+| `DeleteCanary` | `DELETE /canary/{Name}` | - | `Name` | - | `DeleteCanaryResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Permanently deletes the specified canary. If the canary's ProvisionedResourceCleanup field is set to AUTOMATIC or you specify DeleteLambda in this operation as true , CloudWatch Synthetics also deletes the Lambda fun ... |
+| `DeleteGroup` | `DELETE /group/{GroupIdentifier}` | - | `GroupIdentifier` | - | `DeleteGroupResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a group. The group doesn't need to be empty to be deleted. If there are canaries in the group, they are not deleted when you delete the group. Groups are a global resource that appear in all Regions, but the ... |
+| `DescribeCanaries` | `POST /canaries` | `paginated` | - | - | `DescribeCanariesResponse` | `InternalServerException`, `ValidationException` | This operation returns a list of the canaries in your account, along with full details about each canary. This operation supports resource-level authorization using an IAM policy and the Names parameter. If you speci ... |
+| `DescribeCanariesLastRun` | `POST /canaries/last-run` | `paginated` | - | - | `DescribeCanariesLastRunResponse` | `InternalServerException`, `ValidationException` | Use this operation to see information from the most recent run of each canary that you have created. This operation supports resource-level authorization using an IAM policy and the Names parameter. If you specify th ... |
+| `DescribeRuntimeVersions` | `POST /runtime-versions` | `paginated` | - | - | `DescribeRuntimeVersionsResponse` | `InternalServerException`, `ValidationException` | Returns a list of Synthetics canary runtime versions. For more information, see Canary Runtime Versions . |
 | `DisassociateResource` | `PATCH /group/{GroupIdentifier}/disassociate` | - | `GroupIdentifier`, `ResourceArn` | - | `DisassociateResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes a canary from a group. You must run this operation in the Region where the canary exists. |
-| `GetCanary` | `GET /canary/{Name}` | - | `Name` | - | `GetCanaryResponse` | `InternalServerException`, `ValidationException` | Retrieves complete information about one canary. You must specify the name of the canary that you want. |
+| `GetCanary` | `GET /canary/{Name}` | - | `Name` | - | `GetCanaryResponse` | `InternalServerException`, `ValidationException` | Retrieves complete information about one canary. You must specify the name of the canary that you want. To get a list of canaries and their names, use DescribeCanaries . |
 | `GetCanaryRuns` | `POST /canary/{Name}/runs` | `paginated` | `Name` | - | `GetCanaryRunsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Retrieves a list of runs for a specified canary. |
 | `GetGroup` | `GET /group/{GroupIdentifier}` | - | `GroupIdentifier` | - | `GetGroupResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about one group. Groups are a global resource, so you can use this operation from any Region. |
 | `ListAssociatedGroups` | `POST /resource/{ResourceArn}/groups` | `paginated` | `ResourceArn` | - | `ListAssociatedGroupsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of the groups that the specified canary is associated with. The canary that you specify must be in the current Region. |
 | `ListGroupResources` | `POST /group/{GroupIdentifier}/resources` | `paginated` | `GroupIdentifier` | - | `ListGroupResourcesResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | This operation returns a list of the ARNs of the canaries that are associated with the specified group. |
 | `ListGroups` | `POST /groups` | `paginated` | - | - | `ListGroupsResponse` | `InternalServerException`, `ValidationException` | Returns a list of all groups in the account, displaying their names, unique IDs, and ARNs. The groups from all Regions are returned. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `NotFoundException`, `TooManyRequestsException` | Displays the tags associated with a canary or group. |
-| `StartCanary` | `POST /canary/{Name}/start` | - | `Name` | - | `StartCanaryResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Use this operation to run a canary that has already been created. The frequency of the canary runs is determined by the value of the canary's `Schedule`. |
+| `StartCanary` | `POST /canary/{Name}/start` | - | `Name` | - | `StartCanaryResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Use this operation to run a canary that has already been created. The frequency of the canary runs is determined by the value of the canary's Schedule . To see a canary's schedule, use GetCanary . |
 | `StartCanaryDryRun` | `POST /canary/{Name}/dry-run/start` | - | `Name` | - | `StartCanaryDryRunResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Use this operation to start a dry run for a canary that has already been created |
-| `StopCanary` | `POST /canary/{Name}/stop` | - | `Name` | - | `StopCanaryResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops the canary to prevent all future runs. If the canary is currently running,the run that is in progress completes on its own, publishes metrics, and uploads artifacts, but it is not recorded in Synthetics as a completed run. |
-| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `NotFoundException`, `TooManyRequestsException` | Assigns one or more tags (key-value pairs) to the specified canary or group. Tags can help you organize and categorize your resources. |
+| `StopCanary` | `POST /canary/{Name}/stop` | - | `Name` | - | `StopCanaryResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Stops the canary to prevent all future runs. If the canary is currently running,the run that is in progress completes on its own, publishes metrics, and uploads artifacts, but it is not recorded in Synthetics as a co ... |
+| `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `NotFoundException`, `TooManyRequestsException` | Assigns one or more tags (key-value pairs) to the specified canary or group. Tags can help you organize and categorize your resources. You can also use them to scope user permissions, by granting a user permission to ... |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `NotFoundException`, `TooManyRequestsException` | Removes one or more tags from the specified resource. |
-| `UpdateCanary` | `PATCH /canary/{Name}` | - | `Name` | - | `UpdateCanaryResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `RequestEntityTooLargeException`, `ResourceNotFoundException`, `ValidationException` | Updates the configuration of a canary that has already been created. For multibrowser canaries, you can add or remove browsers by updating the browserConfig list in the update call. |
+| `UpdateCanary` | `PATCH /canary/{Name}` | - | `Name` | - | `UpdateCanaryResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `RequestEntityTooLargeException`, `ResourceNotFoundException`, `ValidationException` | Updates the configuration of a canary that has already been created. For multibrowser canaries, you can add or remove browsers by updating the browserConfig list in the update call. For example: To add Firefox to a c ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteCanary` | - | `DeleteLambda -> deleteLambda` | - | - |
+| `GetCanary` | - | `DryRunId -> dryRunId` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | An unknown internal error occurred. |
-| `ValidationException` | `structure` | `Message` | A parameter could not be validated. |
-| `ConflictException` | `structure` | `Message` | A conflicting operation is already in progress. |
-| `ResourceNotFoundException` | `structure` | `Message` | One of the specified resources was not found. |
-| `BadRequestException` | `structure` | `Message` | The request was not valid. |
-| `InternalFailureException` | `structure` | `Message` | An internal failure occurred. |
-| `NotFoundException` | `structure` | `Message` | The specified resource was not found. |
-| `TooManyRequestsException` | `structure` | `Message` | There were too many simultaneous requests. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | The request exceeded a service quota value. |
-| `RequestEntityTooLargeException` | `structure` | `Message` | One of the input resources is larger than is allowed. |
-| `AccessDeniedException` | `structure` | `Message` | You don't have permission to perform this operation on this resource. |
-| `AssociateResourceRequest` | `structure` | `GroupIdentifier`, `ResourceArn` | - |
-| `AssociateResourceResponse` | `structure` | - | - |
-| `CreateCanaryRequest` | `structure` | `ArtifactConfig`, `ArtifactS3Location`, `BrowserConfigs`, `Code`, `ExecutionRoleArn`, `FailureRetentionPeriodInDays`, `Name`, `ProvisionedResourceCleanup`, `ResourcesToReplicateTags`, `RunConfig`, `RuntimeVersion`, `Schedule`, ... (+3) | - |
-| `CreateCanaryResponse` | `structure` | `Canary` | - |
-| `CreateGroupRequest` | `structure` | `Name`, `Tags` | - |
-| `CreateGroupResponse` | `structure` | `Group` | - |
-| `DeleteCanaryRequest` | `structure` | `DeleteLambda`, `Name` | - |
-| `DeleteCanaryResponse` | `structure` | - | - |
-| `DeleteGroupRequest` | `structure` | `GroupIdentifier` | - |
-| `DeleteGroupResponse` | `structure` | - | - |
-| `DescribeCanariesRequest` | `structure` | `MaxResults`, `Names`, `NextToken` | - |
-| `DescribeCanariesResponse` | `structure` | `Canaries`, `NextToken` | - |
-| `DescribeCanariesLastRunRequest` | `structure` | `BrowserType`, `MaxResults`, `Names`, `NextToken` | - |
-
+| `AccessDeniedException` | `structure` | Message | You don't have permission to perform this operation on this resource. |
+| `BadRequestException` | `structure` | Message | The request was not valid. |
+| `ConflictException` | `structure` | Message | A conflicting operation is already in progress. |
+| `InternalFailureException` | `structure` | Message | An internal failure occurred. Try the operation again. |
+| `InternalServerException` | `structure` | Message | An unknown internal error occurred. |
+| `NotFoundException` | `structure` | Message | The specified resource was not found. |
+| `RequestEntityTooLargeException` | `structure` | Message | One of the input resources is larger than is allowed. |
+| `ResourceNotFoundException` | `structure` | Message | One of the specified resources was not found. |
+| `ServiceQuotaExceededException` | `structure` | Message | The request exceeded a service quota value. |
+| `TooManyRequestsException` | `structure` | Message | There were too many simultaneous requests. Try the operation again. |
+| `ValidationException` | `structure` | Message | A parameter could not be validated. |
+| `AssociateResourceRequest` | `structure` | GroupIdentifier, ResourceArn | - |
+| `AssociateResourceResponse` | `structure` | **empty (no members)** | - |
+| `CreateCanaryRequest` | `structure` | Name, Code, ArtifactS3Location, ExecutionRoleArn, Schedule, RunConfig, SuccessRetentionPeriodInDays, FailureRetentionPeriodInDays, RuntimeVersion, VpcConfig, ResourcesToReplicateTags, ProvisionedResourceCleanup, ... (+3) | - |
+| `CreateCanaryResponse` | `structure` | Canary | - |
+| `CreateGroupRequest` | `structure` | Name, Tags | - |
+| `CreateGroupResponse` | `structure` | Group | - |
+| `DeleteCanaryRequest` | `structure` | Name, DeleteLambda | - |
+| `DeleteCanaryResponse` | `structure` | **empty (no members)** | - |
+| `DeleteGroupRequest` | `structure` | GroupIdentifier | - |
+| `DeleteGroupResponse` | `structure` | **empty (no members)** | - |
+| `DescribeCanariesRequest` | `structure` | NextToken, MaxResults, Names | - |
+| `DescribeCanariesResponse` | `structure` | Canaries, NextToken | - |
+| `DescribeCanariesLastRunRequest` | `structure` | NextToken, MaxResults, Names, BrowserType | - |
+| `DescribeCanariesLastRunResponse` | `structure` | CanariesLastRun, NextToken | - |
+| `DescribeRuntimeVersionsRequest` | `structure` | NextToken, MaxResults | - |
+| `DescribeRuntimeVersionsResponse` | `structure` | RuntimeVersions, NextToken | - |
+| `DisassociateResourceRequest` | `structure` | GroupIdentifier, ResourceArn | - |
+| `DisassociateResourceResponse` | `structure` | **empty (no members)** | - |
+| `GetCanaryRequest` | `structure` | Name, DryRunId | - |
+| `GetCanaryResponse` | `structure` | Canary | - |
+| `GetCanaryRunsRequest` | `structure` | Name, NextToken, MaxResults, DryRunId, RunType | - |
+| `GetCanaryRunsResponse` | `structure` | CanaryRuns, NextToken | - |
+| `GetGroupRequest` | `structure` | GroupIdentifier | - |
+| `GetGroupResponse` | `structure` | Group | - |
+| `ListAssociatedGroupsRequest` | `structure` | NextToken, MaxResults, ResourceArn | - |
+| `ListAssociatedGroupsResponse` | `structure` | Groups, NextToken | - |
+| `ListGroupResourcesRequest` | `structure` | NextToken, MaxResults, GroupIdentifier | - |
+| `ListGroupResourcesResponse` | `structure` | Resources, NextToken | - |
+| `ListGroupsRequest` | `structure` | NextToken, MaxResults | - |
+| `BrowserType` | `enum` | CHROME, FIREFOX | - |
+| `CanaryRunState` | `enum` | RUNNING, PASSED, FAILED | - |
+| `CanaryRunStateReasonCode` | `enum` | CANARY_FAILURE, EXECUTION_FAILURE | - |
+| `CanaryRunTestResult` | `enum` | PASSED, FAILED, UNKNOWN | - |
+| `CanaryState` | `enum` | CREATING, READY, STARTING, RUNNING, UPDATING, STOPPING, STOPPED, ERROR, DELETING | - |
+| `CanaryStateReasonCode` | `enum` | INVALID_PERMISSIONS, CREATE_PENDING, CREATE_IN_PROGRESS, CREATE_FAILED, UPDATE_PENDING, UPDATE_IN_PROGRESS, UPDATE_COMPLETE, ROLLBACK_COMPLETE, ROLLBACK_FAILED, DELETE_IN_PROGRESS, DELETE_FAILED, SYNC_DELETE_IN_PROGRESS | - |
+| `DependencyType` | `enum` | LambdaLayer | - |
+| `EncryptionMode` | `enum` | SSE_S3, SSE_KMS | - |
+| `ProvisionedResourceCleanupSetting` | `enum` | AUTOMATIC, OFF | - |
+| `ResourceToTag` | `enum` | LAMBDA_FUNCTION | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

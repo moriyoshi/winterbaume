@@ -44,133 +44,165 @@ Shield Advanced This is the Shield Advanced API Reference . This guide is for de
 ### Describe
 
 - Operations: `DescribeAttack`, `DescribeAttackStatistics`, `DescribeDRTAccess`, `DescribeEmergencyContactSettings`, `DescribeProtection`, `DescribeProtectionGroup`, `DescribeSubscription`
-- Common required input members in this group: `AttackId`, `ProtectionGroupId`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListAttacks`, `ListProtectionGroups`, `ListProtections`, `ListResourcesInProtectionGroup`, `ListTagsForResource`
 - Traits: `paginated` (4)
-- Common required input members in this group: `ProtectionGroupId`, `ResourceARN`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateDRTLogBucket`, `AssociateDRTRole`, `AssociateHealthCheck`, `AssociateProactiveEngagementDetails`
-- Common required input members in this group: `EmergencyContactList`, `HealthCheckArn`, `LogBucket`, `ProtectionId`, `RoleArn`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateApplicationLayerAutomaticResponse`, `UpdateEmergencyContactSettings`, `UpdateProtectionGroup`, `UpdateSubscription`
-- Common required input members in this group: `Action`, `Aggregation`, `Pattern`, `ProtectionGroupId`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateProtection`, `CreateProtectionGroup`, `CreateSubscription`
-- Common required input members in this group: `Aggregation`, `Name`, `Pattern`, `ProtectionGroupId`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteProtection`, `DeleteProtectionGroup`, `DeleteSubscription`
-- Common required input members in this group: `ProtectionGroupId`, `ProtectionId`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateDRTLogBucket`, `DisassociateDRTRole`, `DisassociateHealthCheck`
-- Common required input members in this group: `HealthCheckArn`, `LogBucket`, `ProtectionId`
+- Common required input members in this group: -
 
 ### Disable
 
 - Operations: `DisableApplicationLayerAutomaticResponse`, `DisableProactiveEngagement`
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Enable
 
 - Operations: `EnableApplicationLayerAutomaticResponse`, `EnableProactiveEngagement`
-- Common required input members in this group: `Action`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetSubscriptionState`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateDRTLogBucket` | - | - | `LogBucket` | - | `AssociateDRTLogBucketResponse` | `AccessDeniedForDependencyException`, `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `LimitsExceededException`, `NoAssociatedRoleException`, `OptimisticLockException`, `ResourceNotFoundException` | Authorizes the Shield Response Team (SRT) to access the specified Amazon S3 bucket containing log data such as Application Load Balancer access logs, CloudFront logs, or logs from third party sources. You can associate up to 10 Amazon S3 buckets with your... |
-| `AssociateDRTRole` | - | - | `RoleArn` | - | `AssociateDRTRoleResponse` | `AccessDeniedForDependencyException`, `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Authorizes the Shield Response Team (SRT) using the specified role, to access your Amazon Web Services account to assist with DDoS attack mitigation during potential attacks. This enables the SRT to inspect your WAF configuration and create or update WAF... |
-| `AssociateHealthCheck` | - | - | `HealthCheckArn`, `ProtectionId` | - | `AssociateHealthCheckResponse` | `InternalErrorException`, `InvalidParameterException`, `InvalidResourceException`, `LimitsExceededException`, `OptimisticLockException`, `ResourceNotFoundException` | Adds health-based detection to the Shield Advanced protection for a resource. Shield Advanced health-based detection uses the health of your Amazon Web Services resource to improve responsiveness and accuracy in attack detection and response. |
-| `AssociateProactiveEngagementDetails` | - | - | `EmergencyContactList` | - | `AssociateProactiveEngagementDetailsResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Initializes proactive engagement and sets the list of contacts for the Shield Response Team (SRT) to use. You must provide at least one phone number in the emergency contact list. |
-| `CreateProtection` | - | - | `Name`, `ResourceArn` | - | `CreateProtectionResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `InvalidResourceException`, `LimitsExceededException`, `OptimisticLockException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException` | Enables Shield Advanced for a specific Amazon Web Services resource. The resource can be an Amazon CloudFront distribution, Amazon Route 53 hosted zone, Global Accelerator standard accelerator, Elastic IP Address, Application Load Balancer, or a Classic Load... |
-| `CreateProtectionGroup` | - | - | `Aggregation`, `Pattern`, `ProtectionGroupId` | - | `CreateProtectionGroupResponse` | `InternalErrorException`, `InvalidParameterException`, `LimitsExceededException`, `OptimisticLockException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException` | Creates a grouping of protected resources so they can be handled as a collective. This resource grouping improves the accuracy of detection and reduces false positives. |
-| `CreateSubscription` | - | - | - | - | `CreateSubscriptionResponse` | `InternalErrorException`, `ResourceAlreadyExistsException` | Activates Shield Advanced for an account. For accounts that are members of an Organizations organization, Shield Advanced subscriptions are billed against the organization's payer account, regardless of whether the payer account itself is subscribed. |
-| `DeleteProtection` | - | - | `ProtectionId` | - | `DeleteProtectionResponse` | `InternalErrorException`, `OptimisticLockException`, `ResourceNotFoundException` | Deletes an Shield Advanced Protection. |
-| `DeleteProtectionGroup` | - | - | `ProtectionGroupId` | - | `DeleteProtectionGroupResponse` | `InternalErrorException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes the specified protection group. |
-| `DeleteSubscription` | - | - | - | - | `DeleteSubscriptionResponse` | `InternalErrorException`, `LockedSubscriptionException`, `ResourceNotFoundException` | Removes Shield Advanced from an account. Shield Advanced requires a 1-year subscription commitment. |
-| `DescribeAttack` | - | - | `AttackId` | - | `DescribeAttackResponse` | `AccessDeniedException`, `InternalErrorException` | Describes the details of a DDoS attack. |
-| `DescribeAttackStatistics` | - | - | - | - | `DescribeAttackStatisticsResponse` | `InternalErrorException` | Provides information about the number and type of attacks Shield has detected in the last year for all resources that belong to your account, regardless of whether you've defined Shield protections for them. This operation is available to Shield customers as... |
-| `DescribeDRTAccess` | - | - | - | - | `DescribeDRTAccessResponse` | `InternalErrorException`, `ResourceNotFoundException` | Returns the current role and list of Amazon S3 log buckets used by the Shield Response Team (SRT) to access your Amazon Web Services account while assisting with attack mitigation. |
-| `DescribeEmergencyContactSettings` | - | - | - | - | `DescribeEmergencyContactSettingsResponse` | `InternalErrorException`, `ResourceNotFoundException` | A list of email addresses and phone numbers that the Shield Response Team (SRT) can use to contact you if you have proactive engagement enabled, for escalations to the SRT and to initiate proactive customer support. |
-| `DescribeProtection` | - | - | - | - | `DescribeProtectionResponse` | `InternalErrorException`, `InvalidParameterException`, `ResourceNotFoundException` | Lists the details of a Protection object. |
-| `DescribeProtectionGroup` | - | - | `ProtectionGroupId` | - | `DescribeProtectionGroupResponse` | `InternalErrorException`, `ResourceNotFoundException` | Returns the specification for the specified protection group. |
-| `DescribeSubscription` | - | - | - | - | `DescribeSubscriptionResponse` | `InternalErrorException`, `ResourceNotFoundException` | Provides details about the Shield Advanced subscription for an account. |
-| `DisableApplicationLayerAutomaticResponse` | - | - | `ResourceArn` | - | `DisableApplicationLayerAutomaticResponseResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Disable the Shield Advanced automatic application layer DDoS mitigation feature for the protected resource. This stops Shield Advanced from creating, verifying, and applying WAF rules for attacks that it detects for the resource. |
-| `DisableProactiveEngagement` | - | - | - | - | `DisableProactiveEngagementResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes authorization from the Shield Response Team (SRT) to notify contacts about escalations to the SRT and to initiate proactive customer support. |
-| `DisassociateDRTLogBucket` | - | - | `LogBucket` | - | `DisassociateDRTLogBucketResponse` | `AccessDeniedForDependencyException`, `InternalErrorException`, `InvalidOperationException`, `NoAssociatedRoleException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes the Shield Response Team's (SRT) access to the specified Amazon S3 bucket containing the logs that you shared previously. |
-| `DisassociateDRTRole` | - | - | - | - | `DisassociateDRTRoleResponse` | `InternalErrorException`, `InvalidOperationException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes the Shield Response Team's (SRT) access to your Amazon Web Services account. |
-| `DisassociateHealthCheck` | - | - | `HealthCheckArn`, `ProtectionId` | - | `DisassociateHealthCheckResponse` | `InternalErrorException`, `InvalidParameterException`, `InvalidResourceException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes health-based detection from the Shield Advanced protection for a resource. Shield Advanced health-based detection uses the health of your Amazon Web Services resource to improve responsiveness and accuracy in attack detection and response. |
-| `EnableApplicationLayerAutomaticResponse` | - | - | `Action`, `ResourceArn` | - | `EnableApplicationLayerAutomaticResponseResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `LimitsExceededException`, `OptimisticLockException`, `ResourceNotFoundException` | Enable the Shield Advanced automatic application layer DDoS mitigation for the protected resource. This feature is available for Amazon CloudFront distributions and Application Load Balancers only. |
-| `EnableProactiveEngagement` | - | - | - | - | `EnableProactiveEngagementResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Authorizes the Shield Response Team (SRT) to use email and phone to notify contacts about escalations to the SRT and to initiate proactive customer support. |
-| `GetSubscriptionState` | - | - | - | - | `GetSubscriptionStateResponse` | `InternalErrorException` | Returns the `SubscriptionState`, either `Active` or `Inactive`. |
-| `ListAttacks` | - | `paginated` | - | - | `ListAttacksResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException` | Returns all ongoing DDoS attacks or all DDoS attacks during a specified time period. |
-| `ListProtectionGroups` | - | `paginated` | - | - | `ListProtectionGroupsResponse` | `InternalErrorException`, `InvalidPaginationTokenException`, `ResourceNotFoundException` | Retrieves ProtectionGroup objects for the account. You can retrieve all protection groups or you can provide filtering criteria and retrieve just the subset of protection groups that match the criteria. |
-| `ListProtections` | - | `paginated` | - | - | `ListProtectionsResponse` | `InternalErrorException`, `InvalidPaginationTokenException`, `ResourceNotFoundException` | Retrieves Protection objects for the account. You can retrieve all protections or you can provide filtering criteria and retrieve just the subset of protections that match the criteria. |
-| `ListResourcesInProtectionGroup` | - | `paginated` | `ProtectionGroupId` | - | `ListResourcesInProtectionGroupResponse` | `InternalErrorException`, `InvalidPaginationTokenException`, `ResourceNotFoundException` | Retrieves the resources that are included in the protection group. |
-| `ListTagsForResource` | - | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `InternalErrorException`, `InvalidResourceException`, `ResourceNotFoundException` | Gets information about Amazon Web Services tags for a specified Amazon Resource Name (ARN) in Shield. |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `InternalErrorException`, `InvalidParameterException`, `InvalidResourceException`, `ResourceNotFoundException` | Adds or updates tags for a resource in Shield. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `InternalErrorException`, `InvalidParameterException`, `InvalidResourceException`, `ResourceNotFoundException` | Removes tags from a resource in Shield. |
-| `UpdateApplicationLayerAutomaticResponse` | - | - | `Action`, `ResourceArn` | - | `UpdateApplicationLayerAutomaticResponseResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Updates an existing Shield Advanced automatic application layer DDoS mitigation configuration for the specified resource. |
-| `UpdateEmergencyContactSettings` | - | - | - | - | `UpdateEmergencyContactSettingsResponse` | `InternalErrorException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Updates the details of the list of email addresses and phone numbers that the Shield Response Team (SRT) can use to contact you if you have proactive engagement enabled, for escalations to the SRT and to initiate proactive customer support. |
-| `UpdateProtectionGroup` | - | - | `Aggregation`, `Pattern`, `ProtectionGroupId` | - | `UpdateProtectionGroupResponse` | `InternalErrorException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Updates an existing protection group. A protection group is a grouping of protected resources so they can be handled as a collective. |
-| `UpdateSubscription` | - | - | - | - | `UpdateSubscriptionResponse` | `InternalErrorException`, `InvalidParameterException`, `LockedSubscriptionException`, `OptimisticLockException`, `ResourceNotFoundException` | Updates the details of an existing subscription. Only enter values for parameters you want to change. |
+| `AssociateDRTLogBucket` | `-` | - | `LogBucket` | - | `AssociateDRTLogBucketResponse` | `AccessDeniedForDependencyException`, `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `LimitsExceededException`, `NoAssociatedRoleException`, `OptimisticLockException`, `ResourceNotFoundException` | Authorizes the Shield Response Team (SRT) to access the specified Amazon S3 bucket containing log data such as Application Load Balancer access logs, CloudFront logs, or logs from third party sources. You can associa ... |
+| `AssociateDRTRole` | `-` | - | `RoleArn` | - | `AssociateDRTRoleResponse` | `AccessDeniedForDependencyException`, `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Authorizes the Shield Response Team (SRT) using the specified role, to access your Amazon Web Services account to assist with DDoS attack mitigation during potential attacks. This enables the SRT to inspect your WAF ... |
+| `AssociateHealthCheck` | `-` | - | `ProtectionId`, `HealthCheckArn` | - | `AssociateHealthCheckResponse` | `InternalErrorException`, `InvalidParameterException`, `InvalidResourceException`, `LimitsExceededException`, `OptimisticLockException`, `ResourceNotFoundException` | Adds health-based detection to the Shield Advanced protection for a resource. Shield Advanced health-based detection uses the health of your Amazon Web Services resource to improve responsiveness and accuracy in atta ... |
+| `AssociateProactiveEngagementDetails` | `-` | - | `EmergencyContactList` | - | `AssociateProactiveEngagementDetailsResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Initializes proactive engagement and sets the list of contacts for the Shield Response Team (SRT) to use. You must provide at least one phone number in the emergency contact list. After you have initialized proactive ... |
+| `CreateProtection` | `-` | - | `Name`, `ResourceArn` | - | `CreateProtectionResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `InvalidResourceException`, `LimitsExceededException`, `OptimisticLockException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException` | Enables Shield Advanced for a specific Amazon Web Services resource. The resource can be an Amazon CloudFront distribution, Amazon Route 53 hosted zone, Global Accelerator standard accelerator, Elastic IP Address, Ap ... |
+| `CreateProtectionGroup` | `-` | - | `ProtectionGroupId`, `Aggregation`, `Pattern` | - | `CreateProtectionGroupResponse` | `InternalErrorException`, `InvalidParameterException`, `LimitsExceededException`, `OptimisticLockException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException` | Creates a grouping of protected resources so they can be handled as a collective. This resource grouping improves the accuracy of detection and reduces false positives. |
+| `CreateSubscription` | `-` | - | - | - | `CreateSubscriptionResponse` | `InternalErrorException`, `ResourceAlreadyExistsException` | Activates Shield Advanced for an account. For accounts that are members of an Organizations organization, Shield Advanced subscriptions are billed against the organization's payer account, regardless of whether the p ... |
+| `DeleteProtection` | `-` | - | `ProtectionId` | - | `DeleteProtectionResponse` | `InternalErrorException`, `OptimisticLockException`, `ResourceNotFoundException` | Deletes an Shield Advanced Protection . |
+| `DeleteProtectionGroup` | `-` | - | `ProtectionGroupId` | - | `DeleteProtectionGroupResponse` | `InternalErrorException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes the specified protection group. |
+| `DeleteSubscription` | `-` | - | - | - | `DeleteSubscriptionResponse` | `InternalErrorException`, `LockedSubscriptionException`, `ResourceNotFoundException` | Removes Shield Advanced from an account. Shield Advanced requires a 1-year subscription commitment. You cannot delete a subscription prior to the completion of that commitment. |
+| `DescribeAttack` | `-` | - | `AttackId` | - | `DescribeAttackResponse` | `AccessDeniedException`, `InternalErrorException` | Describes the details of a DDoS attack. |
+| `DescribeAttackStatistics` | `-` | - | - | - | `DescribeAttackStatisticsResponse` | `InternalErrorException` | Provides information about the number and type of attacks Shield has detected in the last year for all resources that belong to your account, regardless of whether you've defined Shield protections for them. This ope ... |
+| `DescribeDRTAccess` | `-` | - | - | - | `DescribeDRTAccessResponse` | `InternalErrorException`, `ResourceNotFoundException` | Returns the current role and list of Amazon S3 log buckets used by the Shield Response Team (SRT) to access your Amazon Web Services account while assisting with attack mitigation. |
+| `DescribeEmergencyContactSettings` | `-` | - | - | - | `DescribeEmergencyContactSettingsResponse` | `InternalErrorException`, `ResourceNotFoundException` | A list of email addresses and phone numbers that the Shield Response Team (SRT) can use to contact you if you have proactive engagement enabled, for escalations to the SRT and to initiate proactive customer support. |
+| `DescribeProtection` | `-` | - | - | - | `DescribeProtectionResponse` | `InternalErrorException`, `InvalidParameterException`, `ResourceNotFoundException` | Lists the details of a Protection object. |
+| `DescribeProtectionGroup` | `-` | - | `ProtectionGroupId` | - | `DescribeProtectionGroupResponse` | `InternalErrorException`, `ResourceNotFoundException` | Returns the specification for the specified protection group. |
+| `DescribeSubscription` | `-` | - | - | - | `DescribeSubscriptionResponse` | `InternalErrorException`, `ResourceNotFoundException` | Provides details about the Shield Advanced subscription for an account. |
+| `DisableApplicationLayerAutomaticResponse` | `-` | - | `ResourceArn` | - | `DisableApplicationLayerAutomaticResponseResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Disable the Shield Advanced automatic application layer DDoS mitigation feature for the protected resource. This stops Shield Advanced from creating, verifying, and applying WAF rules for attacks that it detects for ... |
+| `DisableProactiveEngagement` | `-` | - | - | - | `DisableProactiveEngagementResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes authorization from the Shield Response Team (SRT) to notify contacts about escalations to the SRT and to initiate proactive customer support. |
+| `DisassociateDRTLogBucket` | `-` | - | `LogBucket` | - | `DisassociateDRTLogBucketResponse` | `AccessDeniedForDependencyException`, `InternalErrorException`, `InvalidOperationException`, `NoAssociatedRoleException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes the Shield Response Team's (SRT) access to the specified Amazon S3 bucket containing the logs that you shared previously. |
+| `DisassociateDRTRole` | `-` | - | - | - | `DisassociateDRTRoleResponse` | `InternalErrorException`, `InvalidOperationException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes the Shield Response Team's (SRT) access to your Amazon Web Services account. |
+| `DisassociateHealthCheck` | `-` | - | `ProtectionId`, `HealthCheckArn` | - | `DisassociateHealthCheckResponse` | `InternalErrorException`, `InvalidParameterException`, `InvalidResourceException`, `OptimisticLockException`, `ResourceNotFoundException` | Removes health-based detection from the Shield Advanced protection for a resource. Shield Advanced health-based detection uses the health of your Amazon Web Services resource to improve responsiveness and accuracy in ... |
+| `EnableApplicationLayerAutomaticResponse` | `-` | - | `ResourceArn`, `Action` | - | `EnableApplicationLayerAutomaticResponseResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `LimitsExceededException`, `OptimisticLockException`, `ResourceNotFoundException` | Enable the Shield Advanced automatic application layer DDoS mitigation for the protected resource. This feature is available for Amazon CloudFront distributions and Application Load Balancers only. This causes Shield ... |
+| `EnableProactiveEngagement` | `-` | - | - | - | `EnableProactiveEngagementResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Authorizes the Shield Response Team (SRT) to use email and phone to notify contacts about escalations to the SRT and to initiate proactive customer support. |
+| `GetSubscriptionState` | `-` | - | - | - | `GetSubscriptionStateResponse` | `InternalErrorException` | Returns the SubscriptionState , either Active or Inactive . |
+| `ListAttacks` | `-` | `paginated` | - | - | `ListAttacksResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException` | Returns all ongoing DDoS attacks or all DDoS attacks during a specified time period. |
+| `ListProtectionGroups` | `-` | `paginated` | - | - | `ListProtectionGroupsResponse` | `InternalErrorException`, `InvalidPaginationTokenException`, `ResourceNotFoundException` | Retrieves ProtectionGroup objects for the account. You can retrieve all protection groups or you can provide filtering criteria and retrieve just the subset of protection groups that match the criteria. |
+| `ListProtections` | `-` | `paginated` | - | - | `ListProtectionsResponse` | `InternalErrorException`, `InvalidPaginationTokenException`, `ResourceNotFoundException` | Retrieves Protection objects for the account. You can retrieve all protections or you can provide filtering criteria and retrieve just the subset of protections that match the criteria. |
+| `ListResourcesInProtectionGroup` | `-` | `paginated` | `ProtectionGroupId` | - | `ListResourcesInProtectionGroupResponse` | `InternalErrorException`, `InvalidPaginationTokenException`, `ResourceNotFoundException` | Retrieves the resources that are included in the protection group. |
+| `ListTagsForResource` | `-` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `InternalErrorException`, `InvalidResourceException`, `ResourceNotFoundException` | Gets information about Amazon Web Services tags for a specified Amazon Resource Name (ARN) in Shield. |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `InternalErrorException`, `InvalidParameterException`, `InvalidResourceException`, `ResourceNotFoundException` | Adds or updates tags for a resource in Shield. |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `InternalErrorException`, `InvalidParameterException`, `InvalidResourceException`, `ResourceNotFoundException` | Removes tags from a resource in Shield. |
+| `UpdateApplicationLayerAutomaticResponse` | `-` | - | `ResourceArn`, `Action` | - | `UpdateApplicationLayerAutomaticResponseResponse` | `InternalErrorException`, `InvalidOperationException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Updates an existing Shield Advanced automatic application layer DDoS mitigation configuration for the specified resource. |
+| `UpdateEmergencyContactSettings` | `-` | - | - | - | `UpdateEmergencyContactSettingsResponse` | `InternalErrorException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Updates the details of the list of email addresses and phone numbers that the Shield Response Team (SRT) can use to contact you if you have proactive engagement enabled, for escalations to the SRT and to initiate pro ... |
+| `UpdateProtectionGroup` | `-` | - | `ProtectionGroupId`, `Aggregation`, `Pattern` | - | `UpdateProtectionGroupResponse` | `InternalErrorException`, `InvalidParameterException`, `OptimisticLockException`, `ResourceNotFoundException` | Updates an existing protection group. A protection group is a grouping of protected resources so they can be handled as a collective. This resource grouping improves the accuracy of detection and reduces false positives. |
+| `UpdateSubscription` | `-` | - | - | - | `UpdateSubscriptionResponse` | `InternalErrorException`, `InvalidParameterException`, `LockedSubscriptionException`, `OptimisticLockException`, `ResourceNotFoundException` | Updates the details of an existing subscription. Only enter values for parameters you want to change. Empty parameters are not updated. For accounts that are members of an Organizations organization, Shield Advanced ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalErrorException` | `structure` | `message` | Exception that indicates that a problem occurred with the service infrastructure. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceType` | Exception indicating the specified resource does not exist. |
-| `InvalidParameterException` | `structure` | `fields`, `message`, `reason` | Exception that indicates that the parameters passed to the API are invalid. |
-| `OptimisticLockException` | `structure` | `message` | Exception that indicates that the resource state has been modified by another client. |
-| `InvalidOperationException` | `structure` | `message` | Exception that indicates that the operation would not cause any change to occur. |
-| `InvalidResourceException` | `structure` | `message` | Exception that indicates that the resource is invalid. |
-| `LimitsExceededException` | `structure` | `Limit`, `Type`, `message` | Exception that indicates that the operation would exceed a limit. |
-| `AccessDeniedForDependencyException` | `structure` | `message` | In order to grant the necessary access to the Shield Response Team (SRT) the user submitting the request must have the `iam:PassRole` permission. |
-| `ResourceAlreadyExistsException` | `structure` | `message`, `resourceType` | Exception indicating the specified resource already exists. |
-| `InvalidPaginationTokenException` | `structure` | `message` | Exception that indicates that the `NextToken` specified in the request is invalid. |
-| `NoAssociatedRoleException` | `structure` | `message` | The ARN of the role that you specified does not exist. |
-| `LockedSubscriptionException` | `structure` | `message` | You are trying to update a subscription that has not yet completed the 1-year commitment. |
-| `AssociateDRTLogBucketRequest` | `structure` | `LogBucket` | - |
-| `AssociateDRTLogBucketResponse` | `structure` | - | - |
-| `AssociateDRTRoleRequest` | `structure` | `RoleArn` | - |
-| `AssociateDRTRoleResponse` | `structure` | - | - |
-| `AssociateHealthCheckRequest` | `structure` | `HealthCheckArn`, `ProtectionId` | - |
-| `AssociateHealthCheckResponse` | `structure` | - | - |
-| `AssociateProactiveEngagementDetailsRequest` | `structure` | `EmergencyContactList` | - |
-| `AssociateProactiveEngagementDetailsResponse` | `structure` | - | - |
-| `CreateProtectionRequest` | `structure` | `Name`, `ResourceArn`, `Tags` | - |
-| `CreateProtectionResponse` | `structure` | `ProtectionId` | - |
-| `CreateProtectionGroupRequest` | `structure` | `Aggregation`, `Members`, `Pattern`, `ProtectionGroupId`, `ResourceType`, `Tags` | - |
-| `CreateProtectionGroupResponse` | `structure` | - | - |
-
+| `AccessDeniedException` | `structure` | message | Exception that indicates the specified AttackId does not exist, or the requester does not have the appropriate permissions to access the AttackId . |
+| `AccessDeniedForDependencyException` | `structure` | message | In order to grant the necessary access to the Shield Response Team (SRT) the user submitting the request must have the iam:PassRole permission. This error i ... |
+| `InternalErrorException` | `structure` | message | Exception that indicates that a problem occurred with the service infrastructure. You can retry the request. |
+| `InvalidOperationException` | `structure` | message | Exception that indicates that the operation would not cause any change to occur. |
+| `InvalidPaginationTokenException` | `structure` | message | Exception that indicates that the NextToken specified in the request is invalid. Submit the request using the NextToken value that was returned in the prior ... |
+| `InvalidParameterException` | `structure` | message, reason, fields | Exception that indicates that the parameters passed to the API are invalid. If available, this exception includes details in additional properties. |
+| `InvalidResourceException` | `structure` | message | Exception that indicates that the resource is invalid. You might not have access to the resource, or the resource might not exist. |
+| `LimitsExceededException` | `structure` | message, Type, Limit | Exception that indicates that the operation would exceed a limit. |
+| `LockedSubscriptionException` | `structure` | message | You are trying to update a subscription that has not yet completed the 1-year commitment. You can change the AutoRenew parameter during the last 30 days of ... |
+| `NoAssociatedRoleException` | `structure` | message | The ARN of the role that you specified does not exist. |
+| `OptimisticLockException` | `structure` | message | Exception that indicates that the resource state has been modified by another client. Retrieve the resource and then retry your request. |
+| `ResourceAlreadyExistsException` | `structure` | message, resourceType | Exception indicating the specified resource already exists. If available, this exception includes details in additional properties. |
+| `ResourceNotFoundException` | `structure` | message, resourceType | Exception indicating the specified resource does not exist. If available, this exception includes details in additional properties. |
+| `AssociateDRTLogBucketRequest` | `structure` | LogBucket | - |
+| `AssociateDRTLogBucketResponse` | `structure` | **empty (no members)** | - |
+| `AssociateDRTRoleRequest` | `structure` | RoleArn | - |
+| `AssociateDRTRoleResponse` | `structure` | **empty (no members)** | - |
+| `AssociateHealthCheckRequest` | `structure` | ProtectionId, HealthCheckArn | - |
+| `AssociateHealthCheckResponse` | `structure` | **empty (no members)** | - |
+| `AssociateProactiveEngagementDetailsRequest` | `structure` | EmergencyContactList | - |
+| `AssociateProactiveEngagementDetailsResponse` | `structure` | **empty (no members)** | - |
+| `CreateProtectionRequest` | `structure` | Name, ResourceArn, Tags | - |
+| `CreateProtectionResponse` | `structure` | ProtectionId | - |
+| `CreateProtectionGroupRequest` | `structure` | ProtectionGroupId, Aggregation, Pattern, ResourceType, Members, Tags | - |
+| `CreateProtectionGroupResponse` | `structure` | **empty (no members)** | - |
+| `CreateSubscriptionRequest` | `structure` | **empty (no members)** | - |
+| `CreateSubscriptionResponse` | `structure` | **empty (no members)** | - |
+| `DeleteProtectionRequest` | `structure` | ProtectionId | - |
+| `DeleteProtectionResponse` | `structure` | **empty (no members)** | - |
+| `DeleteProtectionGroupRequest` | `structure` | ProtectionGroupId | - |
+| `DeleteProtectionGroupResponse` | `structure` | **empty (no members)** | - |
+| `DeleteSubscriptionRequest` | `structure` | **empty (no members)** | - |
+| `DeleteSubscriptionResponse` | `structure` | **empty (no members)** | - |
+| `DescribeAttackRequest` | `structure` | AttackId | - |
+| `DescribeAttackResponse` | `structure` | Attack | - |
+| `DescribeAttackStatisticsRequest` | `structure` | **empty (no members)** | - |
+| `DescribeAttackStatisticsResponse` | `structure` | TimeRange, DataItems | - |
+| `DescribeDRTAccessRequest` | `structure` | **empty (no members)** | - |
+| `DescribeDRTAccessResponse` | `structure` | RoleArn, LogBucketList | - |
+| `DescribeEmergencyContactSettingsRequest` | `structure` | **empty (no members)** | - |
+| `ApplicationLayerAutomaticResponseStatus` | `enum` | ENABLED, DISABLED | - |
+| `AttackLayer` | `enum` | NETWORK, APPLICATION | - |
+| `AttackPropertyIdentifier` | `enum` | DESTINATION_URL, REFERRER, SOURCE_ASN, SOURCE_COUNTRY, SOURCE_IP_ADDRESS, SOURCE_USER_AGENT, WORDPRESS_PINGBACK_REFLECTOR, WORDPRESS_PINGBACK_SOURCE | - |
+| `AutoRenew` | `enum` | ENABLED, DISABLED | - |
+| `ProactiveEngagementStatus` | `enum` | ENABLED, DISABLED, PENDING | - |
+| `ProtectedResourceType` | `enum` | CLOUDFRONT_DISTRIBUTION, ROUTE_53_HOSTED_ZONE, ELASTIC_IP_ALLOCATION, CLASSIC_LOAD_BALANCER, APPLICATION_LOAD_BALANCER, GLOBAL_ACCELERATOR | - |
+| `ProtectionGroupAggregation` | `enum` | SUM, MEAN, MAX | - |
+| `ProtectionGroupPattern` | `enum` | ALL, ARBITRARY, BY_RESOURCE_TYPE | - |
+| `SubResourceType` | `enum` | IP, URL | - |
+| `SubscriptionState` | `enum` | ACTIVE, INACTIVE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

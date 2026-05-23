@@ -75,110 +75,58 @@ Parity implications:
 
 ## Operation Groups
 
-### Search
-
-- Operations: `SearchDevices`, `SearchJobs`, `SearchQuantumTasks`, `SearchSpendingLimits`
-- Traits: `paginated` (4), `readonly` (3)
-- Common required input members in this group: `filters`
-
-### Create
-
-- Operations: `CreateJob`, `CreateQuantumTask`, `CreateSpendingLimit`
-- Traits: `idempotency-token` (3)
-- Common required input members in this group: `action`, `algorithmSpecification`, `clientToken`, `deviceArn`, `deviceConfig`, `instanceConfig`, `jobName`, `outputDataConfig`, `outputS3Bucket`, `outputS3KeyPrefix`, `roleArn`, `shots`, `spendingLimit`
-
-### Get
-
-- Operations: `GetDevice`, `GetJob`, `GetQuantumTask`
-- Traits: `readonly` (3)
-- Common required input members in this group: `deviceArn`, `jobArn`, `quantumTaskArn`
-
-### Cancel
-
-- Operations: `CancelJob`, `CancelQuantumTask`
-- Traits: `idempotency-token` (1), `idempotent` (2)
-- Common required input members in this group: `clientToken`, `jobArn`, `quantumTaskArn`
-
-### Delete
-
-- Operations: `DeleteSpendingLimit`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `spendingLimitArn`
-
 ### List
 
 - Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `resourceArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdateSpendingLimit`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `clientToken`, `spendingLimitArn`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelJob` | `PUT /job/{jobArn}/cancel` | `idempotent` | `jobArn` | - | `CancelJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels an Amazon Braket hybrid job. |
-| `CancelQuantumTask` | `PUT /quantum-task/{quantumTaskArn}/cancel` | `idempotent`, `idempotency-token` | `clientToken`, `quantumTaskArn` | `clientToken` | `CancelQuantumTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels the specified task. |
-| `CreateJob` | `POST /job` | `idempotency-token` | `algorithmSpecification`, `clientToken`, `deviceConfig`, `instanceConfig`, `jobName`, `outputDataConfig`, `roleArn` | `clientToken` | `CreateJobResponse` | `AccessDeniedException`, `ConflictException`, `DeviceOfflineException`, `DeviceRetiredException`, `InternalServiceException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Braket hybrid job. |
-| `CreateQuantumTask` | `POST /quantum-task` | `idempotency-token` | `action`, `clientToken`, `deviceArn`, `outputS3Bucket`, `outputS3KeyPrefix`, `shots` | `clientToken` | `CreateQuantumTaskResponse` | `AccessDeniedException`, `DeviceOfflineException`, `DeviceRetiredException`, `InternalServiceException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a quantum task. |
-| `CreateSpendingLimit` | `POST /spending-limit` | `idempotency-token` | `clientToken`, `deviceArn`, `spendingLimit` | `clientToken` | `CreateSpendingLimitResponse` | `AccessDeniedException`, `DeviceRetiredException`, `InternalServiceException`, `ThrottlingException`, `ValidationException` | Creates a spending limit for a specified quantum device. Spending limits help you control costs by setting maximum amounts that can be spent on quantum computing tasks within a specified time period. |
-| `DeleteSpendingLimit` | `DELETE /spending-limit/{spendingLimitArn}/delete` | `idempotent` | `spendingLimitArn` | - | `DeleteSpendingLimitResponse` | `AccessDeniedException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing spending limit. This operation permanently removes the spending limit and cannot be undone. |
-| `GetDevice` | `GET /device/{deviceArn}` | `readonly` | `deviceArn` | - | `GetDeviceResponse` | `AccessDeniedException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the devices available in Amazon Braket. For backwards compatibility with older versions of BraketSchemas, OpenQASM information is omitted from GetDevice API calls. |
-| `GetJob` | `GET /job/{jobArn}` | `readonly` | `jobArn` | - | `GetJobResponse` | `AccessDeniedException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the specified Amazon Braket hybrid job. |
-| `GetQuantumTask` | `GET /quantum-task/{quantumTaskArn}` | `readonly` | `quantumTaskArn` | - | `GetQuantumTaskResponse` | `AccessDeniedException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the specified quantum task. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServiceException`, `ResourceNotFoundException`, `ValidationException` | Shows the tags associated with this resource. |
-| `SearchDevices` | `POST /devices` | `readonly`, `paginated` | `filters` | - | `SearchDevicesResponse` | `AccessDeniedException`, `InternalServiceException`, `ThrottlingException`, `ValidationException` | Searches for devices using the specified filters. |
-| `SearchJobs` | `POST /jobs` | `paginated` | `filters` | - | `SearchJobsResponse` | `AccessDeniedException`, `InternalServiceException`, `ThrottlingException`, `ValidationException` | Searches for Amazon Braket hybrid jobs that match the specified filter values. |
-| `SearchQuantumTasks` | `POST /quantum-tasks` | `readonly`, `paginated` | `filters` | - | `SearchQuantumTasksResponse` | `AccessDeniedException`, `InternalServiceException`, `ThrottlingException`, `ValidationException` | Searches for tasks that match the specified filter values. |
-| `SearchSpendingLimits` | `POST /spending-limits` | `readonly`, `paginated` | - | - | `SearchSpendingLimitsResponse` | `AccessDeniedException`, `InternalServiceException`, `ThrottlingException`, `ValidationException` | Searches and lists spending limits based on specified filters. This operation supports pagination and allows filtering by various criteria to find specific spending limits. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServiceException`, `ResourceNotFoundException`, `ValidationException` | Add a tag to the specified resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServiceException`, `ResourceNotFoundException`, `ValidationException` | Remove tags from a resource. |
-| `UpdateSpendingLimit` | `PATCH /spending-limit/{spendingLimitArn}/update` | `idempotent`, `idempotency-token` | `clientToken`, `spendingLimitArn` | `clientToken` | `UpdateSpendingLimitResponse` | `AccessDeniedException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing spending limit. You can modify the spending amount or time period. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServiceException` | `structure` | `message` | The request failed because of an unknown error. |
-| `ValidationException` | `structure` | `message`, `programSetValidationFailures`, `reason` | The input request failed to satisfy constraints expected by Amazon Braket. |
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient permissions to perform this action. |
-| `ThrottlingException` | `structure` | `message` | The API throttling rate limit is exceeded. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource was not found. |
-| `ConflictException` | `structure` | `message` | An error occurred due to a conflict. |
-| `DeviceRetiredException` | `structure` | `message` | The specified device has been retired. |
-| `DeviceOfflineException` | `structure` | `message` | The specified device is currently offline. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request failed because a service quota is exceeded. |
-| `CancelJobRequest` | `structure` | `jobArn` | - |
-| `CancelJobResponse` | `structure` | `cancellationStatus`, `jobArn` | - |
-| `CancelQuantumTaskRequest` | `structure` | `clientToken`, `quantumTaskArn` | - |
-| `CancelQuantumTaskResponse` | `structure` | `cancellationStatus`, `quantumTaskArn` | - |
-| `CreateJobRequest` | `structure` | `algorithmSpecification`, `associations`, `checkpointConfig`, `clientToken`, `deviceConfig`, `hyperParameters`, `inputDataConfig`, `instanceConfig`, `jobName`, `outputDataConfig`, `roleArn`, `stoppingCondition`, ... (+1) | - |
-| `CreateJobResponse` | `structure` | `jobArn` | - |
-| `CreateQuantumTaskRequest` | `structure` | `action`, `associations`, `clientToken`, `deviceArn`, `deviceParameters`, `experimentalCapabilities`, `jobToken`, `outputS3Bucket`, `outputS3KeyPrefix`, `shots`, `tags` | - |
-| `CreateQuantumTaskResponse` | `structure` | `quantumTaskArn` | - |
-| `CreateSpendingLimitRequest` | `structure` | `clientToken`, `deviceArn`, `spendingLimit`, `tags`, `timePeriod` | - |
-| `CreateSpendingLimitResponse` | `structure` | `spendingLimitArn` | - |
-| `DeleteSpendingLimitRequest` | `structure` | `spendingLimitArn` | - |
-| `DeleteSpendingLimitResponse` | `structure` | - | - |
-| `GetDeviceRequest` | `structure` | `deviceArn` | - |
-| `GetDeviceResponse` | `structure` | `deviceArn`, `deviceCapabilities`, `deviceName`, `deviceQueueInfo`, `deviceStatus`, `deviceType`, `providerName` | - |
-| `GetJobRequest` | `structure` | `additionalAttributeNames`, `jobArn` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient permissions to perform this action. |
+| `ConflictException` | `structure` | message | An error occurred due to a conflict. |
+| `DeviceOfflineException` | `structure` | message | The specified device is currently offline. |
+| `DeviceRetiredException` | `structure` | message | The specified device has been retired. |
+| `InternalServiceException` | `structure` | message | The request failed because of an unknown error. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message | The request failed because a service quota is exceeded. |
+| `ThrottlingException` | `structure` | message | The API throttling rate limit is exceeded. |
+| `ValidationException` | `structure` | message, reason, programSetValidationFailures | The input request failed to satisfy constraints expected by Amazon Braket. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

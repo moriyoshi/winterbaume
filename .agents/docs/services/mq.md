@@ -72,48 +72,48 @@ Amazon MQ currently treats broker networking as broker metadata.
 ### Describe
 
 - Operations: `DescribeBroker`, `DescribeBrokerEngineTypes`, `DescribeBrokerInstanceOptions`, `DescribeConfiguration`, `DescribeConfigurationRevision`, `DescribeUser`
-- Common required input members in this group: `BrokerId`, `ConfigurationId`, `ConfigurationRevision`, `Username`
+- Common required input members in this group: `BrokerId`, `ConfigurationId`
 
 ### List
 
 - Operations: `ListBrokers`, `ListConfigurationRevisions`, `ListConfigurations`, `ListTags`, `ListUsers`
 - Traits: `paginated` (1)
-- Common required input members in this group: `BrokerId`, `ConfigurationId`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateBroker`, `CreateConfiguration`, `CreateTags`, `CreateUser`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `BrokerId`, `BrokerName`, `DeploymentMode`, `EngineType`, `HostInstanceType`, `Name`, `Password`, `PubliclyAccessible`, `ResourceArn`, `Username`
+- Common required input members in this group: `EngineType`
 
 ### Delete
 
 - Operations: `DeleteBroker`, `DeleteConfiguration`, `DeleteTags`, `DeleteUser`
-- Common required input members in this group: `BrokerId`, `ConfigurationId`, `ResourceArn`, `TagKeys`, `Username`
+- Common required input members in this group: `BrokerId`
 
 ### Update
 
 - Operations: `UpdateBroker`, `UpdateConfiguration`, `UpdateUser`
-- Common required input members in this group: `BrokerId`, `ConfigurationId`, `Data`, `Username`
+- Common required input members in this group: `BrokerId`
 
 ### Promote
 
 - Operations: `Promote`
-- Common required input members in this group: `BrokerId`, `Mode`
+- Common required input members in this group: -
 
 ### Reboot
 
 - Operations: `RebootBroker`
-- Common required input members in this group: `BrokerId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateBroker` | `POST /v1/brokers` | `idempotency-token` | `BrokerName`, `DeploymentMode`, `EngineType`, `HostInstanceType`, `PubliclyAccessible` | `CreatorRequestId` | `CreateBrokerResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `UnauthorizedException` | Creates a broker. Note: This API is asynchronous. |
+| `CreateBroker` | `POST /v1/brokers` | `idempotency-token` | `BrokerName`, `DeploymentMode`, `EngineType`, `HostInstanceType`, `PubliclyAccessible` | `CreatorRequestId` | `CreateBrokerResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `UnauthorizedException` | Creates a broker. Note: This API is asynchronous. To create a broker, you must either use the AmazonMQFullAccess IAM policy or include the following EC2 permissions in your IAM policy. ec2:CreateNetworkInterface This ... |
 | `CreateConfiguration` | `POST /v1/configurations` | - | `EngineType`, `Name` | - | `CreateConfigurationResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException` | Creates a new configuration for the specified configuration name. Amazon MQ uses the default configuration (the engine type and version). |
 | `CreateTags` | `POST /v1/tags/{ResourceArn}` | - | `ResourceArn` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Add a tag to a resource. |
-| `CreateUser` | `POST /v1/brokers/{BrokerId}/users/{Username}` | - | `BrokerId`, `Password`, `Username` | - | `CreateUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Creates an ActiveMQ user. Do not add personally identifiable information (PII) or other confidential or sensitive information in broker usernames. |
+| `CreateUser` | `POST /v1/brokers/{BrokerId}/users/{Username}` | - | `BrokerId`, `Password`, `Username` | - | `CreateUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Creates an ActiveMQ user. Do not add personally identifiable information (PII) or other confidential or sensitive information in broker usernames. Broker usernames are accessible to other Amazon Web Services services ... |
 | `DeleteBroker` | `DELETE /v1/brokers/{BrokerId}` | - | `BrokerId` | - | `DeleteBrokerResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Deletes a broker. Note: This API is asynchronous. |
 | `DeleteConfiguration` | `DELETE /v1/configurations/{ConfigurationId}` | - | `ConfigurationId` | - | `DeleteConfigurationResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Deletes the specified configuration. |
 | `DeleteTags` | `DELETE /v1/tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Removes a tag from a resource. |
@@ -135,34 +135,74 @@ Amazon MQ currently treats broker networking as broker metadata.
 | `UpdateConfiguration` | `PUT /v1/configurations/{ConfigurationId}` | - | `ConfigurationId`, `Data` | - | `UpdateConfigurationResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Updates the specified configuration. |
 | `UpdateUser` | `PUT /v1/brokers/{BrokerId}/users/{Username}` | - | `BrokerId`, `Username` | - | `UpdateUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Updates the information for an ActiveMQ user. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteTags` | - | `TagKeys -> tagKeys` | - | - |
+| `DescribeBrokerEngineTypes` | - | `EngineType -> engineType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DescribeBrokerInstanceOptions` | - | `EngineType -> engineType`, `HostInstanceType -> hostInstanceType`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `StorageType -> storageType` | - | - |
+| `ListBrokers` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListConfigurationRevisions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListConfigurations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListUsers` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `ErrorAttribute`, `Message` | Returns information about an error. |
-| `ForbiddenException` | `structure` | `ErrorAttribute`, `Message` | Returns information about an error. |
-| `InternalServerErrorException` | `structure` | `ErrorAttribute`, `Message` | Returns information about an error. |
-| `NotFoundException` | `structure` | `ErrorAttribute`, `Message` | Returns information about an error. |
-| `ConflictException` | `structure` | `ErrorAttribute`, `Message` | Returns information about an error. |
-| `CreateBrokerRequest` | `structure` | `AuthenticationStrategy`, `AutoMinorVersionUpgrade`, `BrokerName`, `Configuration`, `CreatorRequestId`, `DataReplicationMode`, `DataReplicationPrimaryBrokerArn`, `DeploymentMode`, `EncryptionOptions`, `EngineType`, `EngineVersion`, `HostInstanceType`, ... (+9) | Creates a broker using the specified properties. |
-| `CreateBrokerResponse` | `structure` | `BrokerArn`, `BrokerId` | - |
-| `UnauthorizedException` | `structure` | `ErrorAttribute`, `Message` | Returns information about an error. |
-| `CreateConfigurationRequest` | `structure` | `AuthenticationStrategy`, `EngineType`, `EngineVersion`, `Name`, `Tags` | Creates a new configuration for the specified configuration name. |
-| `CreateConfigurationResponse` | `structure` | `Arn`, `AuthenticationStrategy`, `Created`, `Id`, `LatestRevision`, `Name` | - |
-| `CreateTagsRequest` | `structure` | `ResourceArn`, `Tags` | A map of the key-value pairs for the resource tag. |
-| `CreateUserRequest` | `structure` | `BrokerId`, `ConsoleAccess`, `Groups`, `Password`, `ReplicationUser`, `Username` | Creates a new ActiveMQ user. |
-| `CreateUserResponse` | `structure` | - | - |
-| `DeleteBrokerRequest` | `structure` | `BrokerId` | - |
-| `DeleteBrokerResponse` | `structure` | `BrokerId` | - |
-| `DeleteConfigurationRequest` | `structure` | `ConfigurationId` | - |
-| `DeleteConfigurationResponse` | `structure` | `ConfigurationId` | - |
-| `DeleteTagsRequest` | `structure` | `ResourceArn`, `TagKeys` | - |
-| `DeleteUserRequest` | `structure` | `BrokerId`, `Username` | - |
-| `DeleteUserResponse` | `structure` | - | - |
-| `DescribeBrokerRequest` | `structure` | `BrokerId` | - |
-| `DescribeBrokerResponse` | `structure` | `ActionsRequired`, `AuthenticationStrategy`, `AutoMinorVersionUpgrade`, `BrokerArn`, `BrokerId`, `BrokerInstances`, `BrokerName`, `BrokerState`, `Configurations`, `Created`, `DataReplicationMetadata`, `DataReplicationMode`, ... (+21) | - |
-| `DescribeBrokerEngineTypesRequest` | `structure` | `EngineType`, `MaxResults`, `NextToken` | - |
-
+| `BadRequestException` | `structure` | ErrorAttribute, Message | Returns information about an error. |
+| `ConflictException` | `structure` | ErrorAttribute, Message | Returns information about an error. |
+| `ForbiddenException` | `structure` | ErrorAttribute, Message | Returns information about an error. |
+| `InternalServerErrorException` | `structure` | ErrorAttribute, Message | Returns information about an error. |
+| `NotFoundException` | `structure` | ErrorAttribute, Message | Returns information about an error. |
+| `UnauthorizedException` | `structure` | ErrorAttribute, Message | Returns information about an error. |
+| `CreateBrokerRequest` | `structure` | AuthenticationStrategy, AutoMinorVersionUpgrade, BrokerName, Configuration, CreatorRequestId, DeploymentMode, EncryptionOptions, EngineType, EngineVersion, HostInstanceType, LdapServerMetadata, Logs, ... (+9) | Creates a broker using the specified properties. |
+| `CreateBrokerResponse` | `structure` | BrokerArn, BrokerId | - |
+| `CreateConfigurationRequest` | `structure` | AuthenticationStrategy, EngineType, EngineVersion, Name, Tags | Creates a new configuration for the specified configuration name. Amazon MQ uses the default configuration (the engine type and version). |
+| `CreateConfigurationResponse` | `structure` | Arn, AuthenticationStrategy, Created, Id, LatestRevision, Name | - |
+| `CreateTagsRequest` | `structure` | ResourceArn, Tags | A map of the key-value pairs for the resource tag. |
+| `CreateUserRequest` | `structure` | BrokerId, ConsoleAccess, Groups, Password, Username, ReplicationUser | Creates a new ActiveMQ user. |
+| `CreateUserResponse` | `structure` | **empty (no members)** | - |
+| `DeleteBrokerRequest` | `structure` | BrokerId | - |
+| `DeleteBrokerResponse` | `structure` | BrokerId | - |
+| `DeleteConfigurationRequest` | `structure` | ConfigurationId | - |
+| `DeleteConfigurationResponse` | `structure` | ConfigurationId | - |
+| `DeleteTagsRequest` | `structure` | ResourceArn, TagKeys | - |
+| `DeleteUserRequest` | `structure` | BrokerId, Username | - |
+| `DeleteUserResponse` | `structure` | **empty (no members)** | - |
+| `DescribeBrokerRequest` | `structure` | BrokerId | - |
+| `DescribeBrokerResponse` | `structure` | ActionsRequired, AuthenticationStrategy, AutoMinorVersionUpgrade, BrokerArn, BrokerId, BrokerInstances, BrokerName, BrokerState, Configurations, Created, DeploymentMode, EncryptionOptions, ... (+21) | - |
+| `DescribeBrokerEngineTypesRequest` | `structure` | EngineType, MaxResults, NextToken | - |
+| `DescribeBrokerEngineTypesResponse` | `structure` | BrokerEngineTypes, MaxResults, NextToken | - |
+| `DescribeBrokerInstanceOptionsRequest` | `structure` | EngineType, HostInstanceType, MaxResults, NextToken, StorageType | - |
+| `DescribeBrokerInstanceOptionsResponse` | `structure` | BrokerInstanceOptions, MaxResults, NextToken | - |
+| `DescribeConfigurationRequest` | `structure` | ConfigurationId | - |
+| `DescribeConfigurationResponse` | `structure` | Arn, AuthenticationStrategy, Created, Description, EngineType, EngineVersion, Id, LatestRevision, Name, Tags | - |
+| `DescribeConfigurationRevisionRequest` | `structure` | ConfigurationId, ConfigurationRevision | - |
+| `DescribeConfigurationRevisionResponse` | `structure` | ConfigurationId, Created, Data, Description | - |
+| `DescribeUserRequest` | `structure` | BrokerId, Username | - |
+| `DescribeUserResponse` | `structure` | BrokerId, ConsoleAccess, Groups, Pending, Username, ReplicationUser | - |
+| `ListBrokersRequest` | `structure` | MaxResults, NextToken | - |
+| `ListBrokersResponse` | `structure` | BrokerSummaries, NextToken | - |
+| `ListConfigurationRevisionsRequest` | `structure` | ConfigurationId, MaxResults, NextToken | - |
+| `ListConfigurationRevisionsResponse` | `structure` | ConfigurationId, MaxResults, NextToken, Revisions | - |
+| `ListConfigurationsRequest` | `structure` | MaxResults, NextToken | - |
+| `ListConfigurationsResponse` | `structure` | Configurations, MaxResults, NextToken | - |
+| `ListTagsRequest` | `structure` | ResourceArn | - |
+| `ListTagsResponse` | `structure` | Tags | - |
+| `AuthenticationStrategy` | `enum` | SIMPLE, LDAP, CONFIG_MANAGED | Optional. The authentication strategy used to secure the broker. The default is SIMPLE. |
+| `BrokerState` | `enum` | CREATION_IN_PROGRESS, CREATION_FAILED, DELETION_IN_PROGRESS, RUNNING, REBOOT_IN_PROGRESS, CRITICAL_ACTION_REQUIRED, REPLICA | The broker's status. |
+| `BrokerStorageType` | `enum` | EBS, EFS | The broker's storage type. EFS is not supported for RabbitMQ engine type. |
+| `ChangeType` | `enum` | CREATE, UPDATE, DELETE | The type of change pending for the ActiveMQ user. |
+| `DataReplicationMode` | `enum` | NONE, CRDR | Specifies whether a broker is a part of a data replication pair. |
+| `DayOfWeek` | `enum` | MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY | - |
+| `DeploymentMode` | `enum` | SINGLE_INSTANCE, ACTIVE_STANDBY_MULTI_AZ, CLUSTER_MULTI_AZ | The broker's deployment mode. |
+| `EngineType` | `enum` | ACTIVEMQ, RABBITMQ | The type of broker engine. Amazon MQ supports ActiveMQ and RabbitMQ. |
+| `PromoteMode` | `enum` | SWITCHOVER, FAILOVER | The Promote mode requested. |
+| `SanitizationWarningReason` | `enum` | DISALLOWED_ELEMENT_REMOVED, DISALLOWED_ATTRIBUTE_REMOVED, INVALID_ATTRIBUTE_VALUE_REMOVED | The reason for which the configuration elements or attributes were sanitized. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

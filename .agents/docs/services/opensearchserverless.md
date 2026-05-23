@@ -83,132 +83,108 @@ OpenSearch Serverless currently has one implemented VPC endpoint create path and
 
 ## Operation Groups
 
-### Update
-
-- Operations: `UpdateAccessPolicy`, `UpdateAccountSettings`, `UpdateCollection`, `UpdateCollectionGroup`, `UpdateIndex`, `UpdateLifecyclePolicy`, `UpdateSecurityConfig`, `UpdateSecurityPolicy`, `UpdateVpcEndpoint`
-- Traits: `idempotency-token` (7), `idempotent` (8)
-- Common required input members in this group: `configVersion`, `id`, `indexName`, `name`, `policyVersion`, `type`
-
-### Create
-
-- Operations: `CreateAccessPolicy`, `CreateCollection`, `CreateCollectionGroup`, `CreateIndex`, `CreateLifecyclePolicy`, `CreateSecurityConfig`, `CreateSecurityPolicy`, `CreateVpcEndpoint`
-- Traits: `idempotency-token` (7), `idempotent` (8)
-- Common required input members in this group: `id`, `indexName`, `name`, `policy`, `standbyReplicas`, `subnetIds`, `type`, `vpcId`
-
-### Delete
-
-- Operations: `DeleteAccessPolicy`, `DeleteCollection`, `DeleteCollectionGroup`, `DeleteIndex`, `DeleteLifecyclePolicy`, `DeleteSecurityConfig`, `DeleteSecurityPolicy`, `DeleteVpcEndpoint`
-- Traits: `idempotency-token` (7), `idempotent` (8)
-- Common required input members in this group: `id`, `indexName`, `name`, `type`
-
-### List
-
-- Operations: `ListAccessPolicies`, `ListCollectionGroups`, `ListCollections`, `ListLifecyclePolicies`, `ListSecurityConfigs`, `ListSecurityPolicies`, `ListTagsForResource`, `ListVpcEndpoints`
-- Traits: `paginated` (7), `readonly` (7)
-- Common required input members in this group: `resourceArn`, `type`
-
-### Get
-
-- Operations: `GetAccessPolicy`, `GetAccountSettings`, `GetIndex`, `GetPoliciesStats`, `GetSecurityConfig`, `GetSecurityPolicy`
-- Traits: `readonly` (6)
-- Common required input members in this group: `id`, `indexName`, `name`, `type`
-
 ### Batch
 
 - Operations: `BatchGetCollection`, `BatchGetCollectionGroup`, `BatchGetEffectiveLifecyclePolicy`, `BatchGetLifecyclePolicy`, `BatchGetVpcEndpoint`
 - Traits: `readonly` (5)
-- Common required input members in this group: `identifiers`, `ids`, `resourceIdentifiers`
+- Common required input members in this group: -
+
+### Create
+
+- Operations: `CreateLifecyclePolicy`, `CreateSecurityPolicy`
+- Traits: `idempotent` (2), `idempotency-token` (2)
+- Common required input members in this group: `type`, `name`, `policy`
+
+### Get
+
+- Operations: `GetAccountSettings`, `GetPoliciesStats`
+- Traits: `readonly` (2)
+- Common required input members in this group: -
+
+### Update
+
+- Operations: `UpdateAccountSettings`, `UpdateVpcEndpoint`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
+
+### List
+
+- Operations: `ListTagsForResource`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchGetCollection` | - | `readonly` | - | - | `BatchGetCollectionResponse` | `InternalServerException`, `ValidationException` | Returns attributes for one or more collections, including the collection endpoint, the OpenSearch Dashboards endpoint, and FIPS-compliant endpoints. For more information, see Creating and managing Amazon OpenSearch Serverless collections. |
-| `BatchGetCollectionGroup` | - | `readonly` | - | - | `BatchGetCollectionGroupResponse` | `InternalServerException`, `ValidationException` | Returns attributes for one or more collection groups, including capacity limits and the number of collections in each group. For more information, see Creating and managing Amazon OpenSearch Serverless collections. |
-| `BatchGetEffectiveLifecyclePolicy` | - | `readonly` | `resourceIdentifiers` | - | `BatchGetEffectiveLifecyclePolicyResponse` | `InternalServerException`, `ValidationException` | Returns a list of successful and failed retrievals for the OpenSearch Serverless indexes. For more information, see Viewing data lifecycle policies. |
-| `BatchGetLifecyclePolicy` | - | `readonly` | `identifiers` | - | `BatchGetLifecyclePolicyResponse` | `InternalServerException`, `ValidationException` | Returns one or more configured OpenSearch Serverless lifecycle policies. For more information, see Viewing data lifecycle policies. |
-| `BatchGetVpcEndpoint` | - | `readonly` | `ids` | - | `BatchGetVpcEndpointResponse` | `InternalServerException`, `ValidationException` | Returns attributes for one or more VPC endpoints associated with the current account. For more information, see Access Amazon OpenSearch Serverless using an interface endpoint. |
-| `CreateAccessPolicy` | - | `idempotent`, `idempotency-token` | `name`, `policy`, `type` | `clientToken` | `CreateAccessPolicyResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a data access policy for OpenSearch Serverless. Access policies limit access to collections and the resources within them, and allow a user to access that data irrespective of the access mechanism or network source. |
-| `CreateCollection` | - | `idempotent`, `idempotency-token` | `name` | `clientToken` | `CreateCollectionResponse` | `ConflictException`, `InternalServerException`, `OcuLimitExceededException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new OpenSearch Serverless collection. For more information, see Creating and managing Amazon OpenSearch Serverless collections. |
-| `CreateCollectionGroup` | - | `idempotent`, `idempotency-token` | `name`, `standbyReplicas` | `clientToken` | `CreateCollectionGroupResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a collection group within OpenSearch Serverless. Collection groups let you manage OpenSearch Compute Units (OCUs) at a group level, with multiple collections sharing the group's capacity limits. |
-| `CreateIndex` | - | `idempotent` | `id`, `indexName` | - | `CreateIndexResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates an index within an OpenSearch Serverless collection. Unlike other OpenSearch indexes, indexes created by this API are automatically configured to conduct automatic semantic enrichment ingestion and search. |
-| `CreateLifecyclePolicy` | - | `idempotent`, `idempotency-token` | `name`, `policy`, `type` | `clientToken` | `CreateLifecyclePolicyResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a lifecyle policy to be applied to OpenSearch Serverless indexes. Lifecycle policies define the number of days or hours to retain the data on an OpenSearch Serverless index. |
-| `CreateSecurityConfig` | - | `idempotent`, `idempotency-token` | `name`, `type` | `clientToken` | `CreateSecurityConfigResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Specifies a security configuration for OpenSearch Serverless. For more information, see SAML authentication for Amazon OpenSearch Serverless. |
-| `CreateSecurityPolicy` | - | `idempotent`, `idempotency-token` | `name`, `policy`, `type` | `clientToken` | `CreateSecurityPolicyResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a security policy to be used by one or more OpenSearch Serverless collections. Security policies provide access to a collection and its OpenSearch Dashboards endpoint from public networks or specific VPC endpoints. |
-| `CreateVpcEndpoint` | - | `idempotent`, `idempotency-token` | `name`, `subnetIds`, `vpcId` | `clientToken` | `CreateVpcEndpointResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an OpenSearch Serverless-managed interface VPC endpoint. For more information, see Access Amazon OpenSearch Serverless using an interface endpoint. |
-| `DeleteAccessPolicy` | - | `idempotent`, `idempotency-token` | `name`, `type` | `clientToken` | `DeleteAccessPolicyResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an OpenSearch Serverless access policy. For more information, see Data access control for Amazon OpenSearch Serverless. |
-| `DeleteCollection` | - | `idempotent`, `idempotency-token` | `id` | `clientToken` | `DeleteCollectionResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an OpenSearch Serverless collection. For more information, see Creating and managing Amazon OpenSearch Serverless collections. |
-| `DeleteCollectionGroup` | - | `idempotent`, `idempotency-token` | `id` | `clientToken` | `DeleteCollectionGroupResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a collection group. You can only delete empty collection groups that contain no collections. |
-| `DeleteIndex` | - | `idempotent` | `id`, `indexName` | - | `DeleteIndexResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an index from an OpenSearch Serverless collection. Be aware that the index might be configured to conduct automatic semantic enrichment ingestion and search. |
-| `DeleteLifecyclePolicy` | - | `idempotent`, `idempotency-token` | `name`, `type` | `clientToken` | `DeleteLifecyclePolicyResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an OpenSearch Serverless lifecycle policy. For more information, see Deleting data lifecycle policies. |
-| `DeleteSecurityConfig` | - | `idempotent`, `idempotency-token` | `id` | `clientToken` | `DeleteSecurityConfigResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a security configuration for OpenSearch Serverless. For more information, see SAML authentication for Amazon OpenSearch Serverless. |
-| `DeleteSecurityPolicy` | - | `idempotent`, `idempotency-token` | `name`, `type` | `clientToken` | `DeleteSecurityPolicyResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an OpenSearch Serverless security policy. |
-| `DeleteVpcEndpoint` | - | `idempotent`, `idempotency-token` | `id` | `clientToken` | `DeleteVpcEndpointResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an OpenSearch Serverless-managed interface endpoint. For more information, see Access Amazon OpenSearch Serverless using an interface endpoint. |
-| `GetAccessPolicy` | - | `readonly` | `name`, `type` | - | `GetAccessPolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns an OpenSearch Serverless access policy. For more information, see Data access control for Amazon OpenSearch Serverless. |
-| `GetAccountSettings` | - | `readonly` | - | - | `GetAccountSettingsResponse` | `InternalServerException`, `ValidationException` | Returns account-level settings related to OpenSearch Serverless. |
-| `GetIndex` | - | `readonly` | `id`, `indexName` | - | `GetIndexResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Retrieves information about an index in an OpenSearch Serverless collection, including its schema definition. The index might be configured to conduct automatic semantic enrichment ingestion and search. |
-| `GetPoliciesStats` | - | `readonly` | - | - | `GetPoliciesStatsResponse` | `InternalServerException` | Returns statistical information about your OpenSearch Serverless access policies, security configurations, and security policies. |
-| `GetSecurityConfig` | - | `readonly` | `id` | - | `GetSecurityConfigResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about an OpenSearch Serverless security configuration. For more information, see SAML authentication for Amazon OpenSearch Serverless. |
-| `GetSecurityPolicy` | - | `readonly` | `name`, `type` | - | `GetSecurityPolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns information about a configured OpenSearch Serverless security policy. For more information, see Network access for Amazon OpenSearch Serverless and Encryption at rest for Amazon OpenSearch Serverless. |
-| `ListAccessPolicies` | - | `readonly`, `paginated` | `type` | - | `ListAccessPoliciesResponse` | `InternalServerException`, `ValidationException` | Returns information about a list of OpenSearch Serverless access policies. |
-| `ListCollectionGroups` | - | `readonly`, `paginated` | - | - | `ListCollectionGroupsResponse` | `InternalServerException`, `ValidationException` | Returns a list of collection groups. For more information, see Creating and managing Amazon OpenSearch Serverless collections. |
-| `ListCollections` | - | `readonly`, `paginated` | - | - | `ListCollectionsResponse` | `InternalServerException`, `ValidationException` | Lists all OpenSearch Serverless collections. For more information, see Creating and managing Amazon OpenSearch Serverless collections. |
-| `ListLifecyclePolicies` | - | `readonly`, `paginated` | `type` | - | `ListLifecyclePoliciesResponse` | `InternalServerException`, `ValidationException` | Returns a list of OpenSearch Serverless lifecycle policies. For more information, see Viewing data lifecycle policies. |
-| `ListSecurityConfigs` | - | `readonly`, `paginated` | `type` | - | `ListSecurityConfigsResponse` | `InternalServerException`, `ValidationException` | Returns information about configured OpenSearch Serverless security configurations. For more information, see SAML authentication for Amazon OpenSearch Serverless. |
-| `ListSecurityPolicies` | - | `readonly`, `paginated` | `type` | - | `ListSecurityPoliciesResponse` | `InternalServerException`, `ValidationException` | Returns information about configured OpenSearch Serverless security policies. |
-| `ListTagsForResource` | - | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the tags for an OpenSearch Serverless resource. For more information, see Tagging Amazon OpenSearch Serverless collections. |
-| `ListVpcEndpoints` | - | `readonly`, `paginated` | - | - | `ListVpcEndpointsResponse` | `InternalServerException`, `ValidationException` | Returns the OpenSearch Serverless-managed interface VPC endpoints associated with the current account. For more information, see Access Amazon OpenSearch Serverless using an interface endpoint. |
-| `TagResource` | - | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Associates tags with an OpenSearch Serverless resource. For more information, see Tagging Amazon OpenSearch Serverless collections. |
-| `UntagResource` | - | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes a tag or set of tags from an OpenSearch Serverless resource. For more information, see Tagging Amazon OpenSearch Serverless collections. |
-| `UpdateAccessPolicy` | - | `idempotent`, `idempotency-token` | `name`, `policyVersion`, `type` | `clientToken` | `UpdateAccessPolicyResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates an OpenSearch Serverless access policy. For more information, see Data access control for Amazon OpenSearch Serverless. |
-| `UpdateAccountSettings` | - | - | - | - | `UpdateAccountSettingsResponse` | `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Update the OpenSearch Serverless settings for the current Amazon Web Services account. For more information, see Managing capacity limits for Amazon OpenSearch Serverless. |
-| `UpdateCollection` | - | `idempotent`, `idempotency-token` | `id` | `clientToken` | `UpdateCollectionResponse` | `ConflictException`, `InternalServerException`, `ValidationException` | Updates an OpenSearch Serverless collection. |
-| `UpdateCollectionGroup` | - | `idempotent`, `idempotency-token` | `id` | `clientToken` | `UpdateCollectionGroupResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Updates the description and capacity limits of a collection group. |
-| `UpdateIndex` | - | `idempotent` | `id`, `indexName` | - | `UpdateIndexResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates an existing index in an OpenSearch Serverless collection. This operation allows you to modify the index schema, including adding new fields or changing field mappings. |
-| `UpdateLifecyclePolicy` | - | `idempotent`, `idempotency-token` | `name`, `policyVersion`, `type` | `clientToken` | `UpdateLifecyclePolicyResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates an OpenSearch Serverless access policy. For more information, see Updating data lifecycle policies. |
-| `UpdateSecurityConfig` | - | `idempotent`, `idempotency-token` | `configVersion`, `id` | `clientToken` | `UpdateSecurityConfigResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a security configuration for OpenSearch Serverless. For more information, see SAML authentication for Amazon OpenSearch Serverless. |
-| `UpdateSecurityPolicy` | - | `idempotent`, `idempotency-token` | `name`, `policyVersion`, `type` | `clientToken` | `UpdateSecurityPolicyResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates an OpenSearch Serverless security policy. For more information, see Network access for Amazon OpenSearch Serverless and Encryption at rest for Amazon OpenSearch Serverless. |
-| `UpdateVpcEndpoint` | - | `idempotent`, `idempotency-token` | `id` | `clientToken` | `UpdateVpcEndpointResponse` | `ConflictException`, `InternalServerException`, `ValidationException` | Updates an OpenSearch Serverless-managed interface endpoint. For more information, see Access Amazon OpenSearch Serverless using an interface endpoint. |
+| `BatchGetCollection` | `-` | `readonly` | - | - | `BatchGetCollectionResponse` | `InternalServerException`, `ValidationException` | Returns attributes for one or more collections, including the collection endpoint, the OpenSearch Dashboards endpoint, and FIPS-compliant endpoints. For more information, see Creating and managing Amazon OpenSearch S ... |
+| `BatchGetCollectionGroup` | `-` | `readonly` | - | - | `BatchGetCollectionGroupResponse` | `InternalServerException`, `ValidationException` | Returns attributes for one or more collection groups, including capacity limits and the number of collections in each group. For more information, see Creating and managing Amazon OpenSearch Serverless collections . |
+| `BatchGetEffectiveLifecyclePolicy` | `-` | `readonly` | `resourceIdentifiers` | - | `BatchGetEffectiveLifecyclePolicyResponse` | `InternalServerException`, `ValidationException` | Returns a list of successful and failed retrievals for the OpenSearch Serverless indexes. For more information, see Viewing data lifecycle policies . |
+| `BatchGetLifecyclePolicy` | `-` | `readonly` | `identifiers` | - | `BatchGetLifecyclePolicyResponse` | `InternalServerException`, `ValidationException` | Returns one or more configured OpenSearch Serverless lifecycle policies. For more information, see Viewing data lifecycle policies . |
+| `BatchGetVpcEndpoint` | `-` | `readonly` | `ids` | - | `BatchGetVpcEndpointResponse` | `InternalServerException`, `ValidationException` | Returns attributes for one or more VPC endpoints associated with the current account. For more information, see Access Amazon OpenSearch Serverless using an interface endpoint . |
+| `CreateLifecyclePolicy` | `-` | `idempotent`, `idempotency-token` | `type`, `name`, `policy` | `clientToken` | `CreateLifecyclePolicyResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a lifecyle policy to be applied to OpenSearch Serverless indexes. Lifecycle policies define the number of days or hours to retain the data on an OpenSearch Serverless index. For more information, see Creating ... |
+| `CreateSecurityPolicy` | `-` | `idempotent`, `idempotency-token` | `type`, `name`, `policy` | `clientToken` | `CreateSecurityPolicyResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a security policy to be used by one or more OpenSearch Serverless collections. Security policies provide access to a collection and its OpenSearch Dashboards endpoint from public networks or specific VPC endp ... |
+| `GetAccountSettings` | `-` | `readonly` | - | - | `GetAccountSettingsResponse` | `InternalServerException`, `ValidationException` | Returns account-level settings related to OpenSearch Serverless. |
+| `GetPoliciesStats` | `-` | `readonly` | - | - | `GetPoliciesStatsResponse` | `InternalServerException` | Returns statistical information about your OpenSearch Serverless access policies, security configurations, and security policies. |
+| `ListTagsForResource` | `-` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the tags for an OpenSearch Serverless resource. For more information, see Tagging Amazon OpenSearch Serverless collections . |
+| `TagResource` | `-` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Associates tags with an OpenSearch Serverless resource. For more information, see Tagging Amazon OpenSearch Serverless collections . |
+| `UntagResource` | `-` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes a tag or set of tags from an OpenSearch Serverless resource. For more information, see Tagging Amazon OpenSearch Serverless collections . |
+| `UpdateAccountSettings` | `-` | - | - | - | `UpdateAccountSettingsResponse` | `InternalServerException`, `ServiceQuotaExceededException`, `ValidationException` | Update the OpenSearch Serverless settings for the current Amazon Web Services account. For more information, see Managing capacity limits for Amazon OpenSearch Serverless . |
+| `UpdateVpcEndpoint` | `-` | `idempotent`, `idempotency-token` | `id` | `clientToken` | `UpdateVpcEndpointResponse` | `ConflictException`, `InternalServerException`, `ValidationException` | Updates an OpenSearch Serverless-managed interface endpoint. For more information, see Access Amazon OpenSearch Serverless using an interface endpoint . |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | Thrown when an error internal to the service occurs while processing a request. |
-| `ValidationException` | `structure` | `message` | Thrown when the HTTP request contains invalid input or is missing required input. |
-| `ConflictException` | `structure` | `message` | When creating a resource, thrown when a resource with the same name already exists or is being created. |
-| `ResourceNotFoundException` | `structure` | `message` | Thrown when accessing or deleting a resource that does not exist. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | Thrown when you attempt to create more resources than the service allows based on service quotas. |
-| `BatchGetCollectionRequest` | `structure` | `ids`, `names` | - |
-| `BatchGetCollectionResponse` | `structure` | `collectionDetails`, `collectionErrorDetails` | - |
-| `BatchGetCollectionGroupRequest` | `structure` | `ids`, `names` | - |
-| `BatchGetCollectionGroupResponse` | `structure` | `collectionGroupDetails`, `collectionGroupErrorDetails` | - |
-| `BatchGetEffectiveLifecyclePolicyRequest` | `structure` | `resourceIdentifiers` | - |
-| `BatchGetEffectiveLifecyclePolicyResponse` | `structure` | `effectiveLifecyclePolicyDetails`, `effectiveLifecyclePolicyErrorDetails` | - |
-| `BatchGetLifecyclePolicyRequest` | `structure` | `identifiers` | - |
-| `BatchGetLifecyclePolicyResponse` | `structure` | `lifecyclePolicyDetails`, `lifecyclePolicyErrorDetails` | - |
-| `BatchGetVpcEndpointRequest` | `structure` | `ids` | - |
-| `BatchGetVpcEndpointResponse` | `structure` | `vpcEndpointDetails`, `vpcEndpointErrorDetails` | - |
-| `CreateAccessPolicyRequest` | `structure` | `clientToken`, `description`, `name`, `policy`, `type` | - |
-| `CreateAccessPolicyResponse` | `structure` | `accessPolicyDetail` | - |
-| `CreateCollectionRequest` | `structure` | `clientToken`, `collectionGroupName`, `description`, `encryptionConfig`, `name`, `standbyReplicas`, `tags`, `type`, `vectorOptions` | - |
-| `CreateCollectionResponse` | `structure` | `createCollectionDetail` | - |
-| `OcuLimitExceededException` | `structure` | `message` | Thrown when the collection you're attempting to create results in a number of search or indexing OCUs that exceeds the account limit. |
-| `CreateCollectionGroupRequest` | `structure` | `capacityLimits`, `clientToken`, `description`, `name`, `standbyReplicas`, `tags` | - |
-| `CreateCollectionGroupResponse` | `structure` | `createCollectionGroupDetail` | - |
-| `CreateIndexRequest` | `structure` | `id`, `indexName`, `indexSchema` | - |
-| `CreateIndexResponse` | `structure` | - | - |
-
+| `ConflictException` | `structure` | message | When creating a resource, thrown when a resource with the same name already exists or is being created. When deleting a resource, thrown when the resource i ... |
+| `InternalServerException` | `structure` | message | Thrown when an error internal to the service occurs while processing a request. |
+| `OcuLimitExceededException` | `structure` | message | Thrown when the collection you're attempting to create results in a number of search or indexing OCUs that exceeds the account limit. |
+| `ResourceNotFoundException` | `structure` | message | Thrown when accessing or deleting a resource that does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | Thrown when you attempt to create more resources than the service allows based on service quotas. |
+| `ValidationException` | `structure` | message | Thrown when the HTTP request contains invalid input or is missing required input. |
+| `BatchGetCollectionRequest` | `structure` | ids, names | - |
+| `BatchGetCollectionResponse` | `structure` | collectionDetails, collectionErrorDetails | - |
+| `BatchGetCollectionGroupRequest` | `structure` | ids, names | - |
+| `BatchGetCollectionGroupResponse` | `structure` | collectionGroupDetails, collectionGroupErrorDetails | - |
+| `BatchGetEffectiveLifecyclePolicyRequest` | `structure` | resourceIdentifiers | - |
+| `BatchGetEffectiveLifecyclePolicyResponse` | `structure` | effectiveLifecyclePolicyDetails, effectiveLifecyclePolicyErrorDetails | - |
+| `BatchGetLifecyclePolicyRequest` | `structure` | identifiers | - |
+| `BatchGetLifecyclePolicyResponse` | `structure` | lifecyclePolicyDetails, lifecyclePolicyErrorDetails | - |
+| `BatchGetVpcEndpointRequest` | `structure` | ids | - |
+| `BatchGetVpcEndpointResponse` | `structure` | vpcEndpointDetails, vpcEndpointErrorDetails | - |
+| `CreateLifecyclePolicyRequest` | `structure` | type, name, description, policy, clientToken | - |
+| `CreateLifecyclePolicyResponse` | `structure` | lifecyclePolicyDetail | - |
+| `CreateSecurityPolicyRequest` | `structure` | type, name, description, policy, clientToken | - |
+| `CreateSecurityPolicyResponse` | `structure` | securityPolicyDetail | - |
+| `GetAccountSettingsRequest` | `structure` | **empty (no members)** | - |
+| `GetAccountSettingsResponse` | `structure` | accountSettingsDetail | - |
+| `GetPoliciesStatsRequest` | `structure` | **empty (no members)** | - |
+| `GetPoliciesStatsResponse` | `structure` | AccessPolicyStats, SecurityPolicyStats, SecurityConfigStats, LifecyclePolicyStats, TotalPolicyCount | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateAccountSettingsRequest` | `structure` | capacityLimits | - |
+| `UpdateAccountSettingsResponse` | `structure` | accountSettingsDetail | - |
+| `UpdateVpcEndpointRequest` | `structure` | id, addSubnetIds, removeSubnetIds, addSecurityGroupIds, removeSecurityGroupIds, clientToken | - |
+| `UpdateVpcEndpointResponse` | `structure` | UpdateVpcEndpointDetail | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

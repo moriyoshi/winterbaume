@@ -44,121 +44,159 @@ Amazon DevOps Guru is a fully managed service that helps you identify anomalous 
 
 - Operations: `DescribeAccountHealth`, `DescribeAccountOverview`, `DescribeAnomaly`, `DescribeEventSourcesConfig`, `DescribeFeedback`, `DescribeInsight`, `DescribeOrganizationHealth`, `DescribeOrganizationOverview`, `DescribeOrganizationResourceCollectionHealth`, `DescribeResourceCollectionHealth`, `DescribeServiceIntegration`
 - Traits: `paginated` (2)
-- Common required input members in this group: `FromTime`, `Id`, `OrganizationResourceCollectionType`, `ResourceCollectionType`
+- Common required input members in this group: `FromTime`, `Id`
 
 ### List
 
 - Operations: `ListAnomaliesForInsight`, `ListAnomalousLogGroups`, `ListEvents`, `ListInsights`, `ListMonitoredResources`, `ListNotificationChannels`, `ListOrganizationInsights`, `ListRecommendations`
 - Traits: `paginated` (8)
-- Common required input members in this group: `Filters`, `InsightId`, `StatusFilter`
+- Common required input members in this group: `InsightId`, `StatusFilter`
 
 ### Update
 
 - Operations: `UpdateEventSourcesConfig`, `UpdateResourceCollection`, `UpdateServiceIntegration`
-- Common required input members in this group: `Action`, `ResourceCollection`, `ServiceIntegration`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetCostEstimation`, `GetResourceCollection`
 - Traits: `paginated` (2)
-- Common required input members in this group: `ResourceCollectionType`
+- Common required input members in this group: -
 
 ### Search
 
 - Operations: `SearchInsights`, `SearchOrganizationInsights`
 - Traits: `paginated` (2)
-- Common required input members in this group: `AccountIds`, `StartTimeRange`, `Type`
+- Common required input members in this group: `StartTimeRange`, `Type`
 
 ### Add
 
 - Operations: `AddNotificationChannel`
-- Common required input members in this group: `Config`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteInsight`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutFeedback`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveNotificationChannel`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartCostEstimation`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `ResourceCollection`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddNotificationChannel` | `PUT /channels` | - | `Config` | - | `AddNotificationChannelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Adds a notification channel to DevOps Guru. A notification channel is used to notify you about important DevOps Guru events, such as when an insight is generated. |
+| `AddNotificationChannel` | `PUT /channels` | - | `Config` | - | `AddNotificationChannelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Adds a notification channel to DevOps Guru. A notification channel is used to notify you about important DevOps Guru events, such as when an insight is generated. If you use an Amazon SNS topic in another account, yo ... |
 | `DeleteInsight` | `DELETE /insights/{Id}` | - | `Id` | - | `DeleteInsightResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the insight along with the associated anomalies, events and recommendations. |
-| `DescribeAccountHealth` | `GET /accounts/health` | - | - | - | `DescribeAccountHealthResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the number of open reactive insights, the number of open proactive insights, and the number of metrics analyzed in your Amazon Web Services account. Use these numbers to gauge the health of operations in your Amazon Web Services account. |
+| `DescribeAccountHealth` | `GET /accounts/health` | - | - | - | `DescribeAccountHealthResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the number of open reactive insights, the number of open proactive insights, and the number of metrics analyzed in your Amazon Web Services account. Use these numbers to gauge the health of operations in your ... |
 | `DescribeAccountOverview` | `POST /accounts/overview` | - | `FromTime` | - | `DescribeAccountOverviewResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | For the time range passed in, returns the number of open reactive insight that were created, the number of open proactive insights that were created, and the Mean Time to Recover (MTTR) for all closed reactive insights. |
 | `DescribeAnomaly` | `GET /anomalies/{Id}` | - | `Id` | - | `DescribeAnomalyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details about an anomaly that you specify using its ID. |
-| `DescribeEventSourcesConfig` | `POST /event-sources` | - | - | - | `DescribeEventSourcesConfigResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the integration status of services that are integrated with DevOps Guru as Consumer via EventBridge. The one service that can be integrated with DevOps Guru is Amazon CodeGuru Profiler, which can produce proactive recommendations which can be stored... |
+| `DescribeEventSourcesConfig` | `POST /event-sources` | - | - | - | `DescribeEventSourcesConfigResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the integration status of services that are integrated with DevOps Guru as Consumer via EventBridge. The one service that can be integrated with DevOps Guru is Amazon CodeGuru Profiler, which can produce proa ... |
 | `DescribeFeedback` | `POST /feedback` | - | - | - | `DescribeFeedbackResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the most recent feedback submitted in the current Amazon Web Services account and Region. |
 | `DescribeInsight` | `GET /insights/{Id}` | - | `Id` | - | `DescribeInsightResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns details about an insight that you specify using its ID. |
 | `DescribeOrganizationHealth` | `POST /organization/health` | - | - | - | `DescribeOrganizationHealthResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns active insights, predictive insights, and resource hours analyzed in last hour. |
 | `DescribeOrganizationOverview` | `POST /organization/overview` | - | `FromTime` | - | `DescribeOrganizationOverviewResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns an overview of your organization's history based on the specified time range. The overview includes the total reactive and proactive insights. |
-| `DescribeOrganizationResourceCollectionHealth` | `POST /organization/health/resource-collection` | `paginated` | `OrganizationResourceCollectionType` | - | `DescribeOrganizationResourceCollectionHealthResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provides an overview of your system's health. If additional member accounts are part of your organization, you can filter those accounts using the `AccountIds` field. |
-| `DescribeResourceCollectionHealth` | `GET /accounts/health/resource-collection/{ResourceCollectionType}` | `paginated` | `ResourceCollectionType` | - | `DescribeResourceCollectionHealthResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the number of open proactive insights, open reactive insights, and the Mean Time to Recover (MTTR) for all closed insights in resource collections in your account. You specify the type of Amazon Web Services resources collection. |
-| `DescribeServiceIntegration` | `GET /service-integrations` | - | - | - | `DescribeServiceIntegrationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the integration status of services that are integrated with DevOps Guru. The one service that can be integrated with DevOps Guru is Amazon Web Services Systems Manager, which can be used to create an OpsItem for each generated insight. |
-| `GetCostEstimation` | `GET /cost-estimation` | `paginated` | - | - | `GetCostEstimationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns an estimate of the monthly cost for DevOps Guru to analyze your Amazon Web Services resources. For more information, see Estimate your Amazon DevOps Guru costs and Amazon DevOps Guru pricing. |
-| `GetResourceCollection` | `GET /resource-collections/{ResourceCollectionType}` | `paginated` | `ResourceCollectionType` | - | `GetResourceCollectionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns lists Amazon Web Services resources that are of the specified resource collection type. The two types of Amazon Web Services resource collections supported are Amazon Web Services CloudFormation stacks and Amazon Web Services resources that contain... |
+| `DescribeOrganizationResourceCollectionHealth` | `POST /organization/health/resource-collection` | `paginated` | `OrganizationResourceCollectionType` | - | `DescribeOrganizationResourceCollectionHealthResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provides an overview of your system's health. If additional member accounts are part of your organization, you can filter those accounts using the AccountIds field. |
+| `DescribeResourceCollectionHealth` | `GET /accounts/health/resource-collection/{ResourceCollectionType}` | `paginated` | `ResourceCollectionType` | - | `DescribeResourceCollectionHealthResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the number of open proactive insights, open reactive insights, and the Mean Time to Recover (MTTR) for all closed insights in resource collections in your account. You specify the type of Amazon Web Services ... |
+| `DescribeServiceIntegration` | `GET /service-integrations` | - | - | - | `DescribeServiceIntegrationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the integration status of services that are integrated with DevOps Guru. The one service that can be integrated with DevOps Guru is Amazon Web Services Systems Manager, which can be used to create an OpsItem ... |
+| `GetCostEstimation` | `GET /cost-estimation` | `paginated` | - | - | `GetCostEstimationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns an estimate of the monthly cost for DevOps Guru to analyze your Amazon Web Services resources. For more information, see Estimate your Amazon DevOps Guru costs and Amazon DevOps Guru pricing . |
+| `GetResourceCollection` | `GET /resource-collections/{ResourceCollectionType}` | `paginated` | `ResourceCollectionType` | - | `GetResourceCollectionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns lists Amazon Web Services resources that are of the specified resource collection type. The two types of Amazon Web Services resource collections supported are Amazon Web Services CloudFormation stacks and Am ... |
 | `ListAnomaliesForInsight` | `POST /anomalies/insight/{InsightId}` | `paginated` | `InsightId` | - | `ListAnomaliesForInsightResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of the anomalies that belong to an insight that you specify using its ID. |
 | `ListAnomalousLogGroups` | `POST /list-log-anomalies` | `paginated` | `InsightId` | - | `ListAnomalousLogGroupsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the list of log groups that contain log anomalies. |
 | `ListEvents` | `POST /events` | `paginated` | `Filters` | - | `ListEventsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of the events emitted by the resources that are evaluated by DevOps Guru. You can use filters to specify which events are returned. |
-| `ListInsights` | `POST /insights` | `paginated` | `StatusFilter` | - | `ListInsightsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of insights in your Amazon Web Services account. You can specify which insights are returned by their start time and status (`ONGOING`, `CLOSED`, or `ANY`). |
+| `ListInsights` | `POST /insights` | `paginated` | `StatusFilter` | - | `ListInsightsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of insights in your Amazon Web Services account. You can specify which insights are returned by their start time and status ( ONGOING , CLOSED , or ANY ). |
 | `ListMonitoredResources` | `POST /monitoredResources` | `paginated` | - | - | `ListMonitoredResourcesResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the list of all log groups that are being monitored and tagged by DevOps Guru. |
-| `ListNotificationChannels` | `POST /channels` | `paginated` | - | - | `ListNotificationChannelsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of notification channels configured for DevOps Guru. Each notification channel is used to notify you when DevOps Guru generates an insight that contains information about how to improve your operations. |
+| `ListNotificationChannels` | `POST /channels` | `paginated` | - | - | `ListNotificationChannelsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of notification channels configured for DevOps Guru. Each notification channel is used to notify you when DevOps Guru generates an insight that contains information about how to improve your operations ... |
 | `ListOrganizationInsights` | `POST /organization/insights` | `paginated` | `StatusFilter` | - | `ListOrganizationInsightsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of insights associated with the account or OU Id. |
 | `ListRecommendations` | `POST /recommendations` | `paginated` | `InsightId` | - | `ListRecommendationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of a specified insight's recommendations. Each recommendation includes a list of related metrics and a list of related events. |
 | `PutFeedback` | `PUT /feedback` | - | - | - | `PutFeedbackResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Collects customer feedback about the specified insight. |
 | `RemoveNotificationChannel` | `DELETE /channels/{Id}` | - | `Id` | - | `RemoveNotificationChannelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a notification channel from DevOps Guru. A notification channel is used to notify you when DevOps Guru generates an insight that contains information about how to improve your operations. |
-| `SearchInsights` | `POST /insights/search` | `paginated` | `StartTimeRange`, `Type` | - | `SearchInsightsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of insights in your Amazon Web Services account. You can specify which insights are returned by their start time, one or more statuses (`ONGOING` or `CLOSED`), one or more severities (`LOW`, `MEDIUM`, and `HIGH`), and type (`REACTIVE` or... |
-| `SearchOrganizationInsights` | `POST /organization/insights/search` | `paginated` | `AccountIds`, `StartTimeRange`, `Type` | - | `SearchOrganizationInsightsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of insights in your organization. You can specify which insights are returned by their start time, one or more statuses (`ONGOING`, `CLOSED`, and `CLOSED`), one or more severities (`LOW`, `MEDIUM`, and `HIGH`), and type (`REACTIVE` or... |
+| `SearchInsights` | `POST /insights/search` | `paginated` | `StartTimeRange`, `Type` | - | `SearchInsightsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of insights in your Amazon Web Services account. You can specify which insights are returned by their start time, one or more statuses ( ONGOING or CLOSED ), one or more severities ( LOW , MEDIUM , and ... |
+| `SearchOrganizationInsights` | `POST /organization/insights/search` | `paginated` | `AccountIds`, `StartTimeRange`, `Type` | - | `SearchOrganizationInsightsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of insights in your organization. You can specify which insights are returned by their start time, one or more statuses ( ONGOING , CLOSED , and CLOSED ), one or more severities ( LOW , MEDIUM , and HI ... |
 | `StartCostEstimation` | `PUT /cost-estimation` | `idempotency-token` | `ResourceCollection` | `ClientToken` | `StartCostEstimationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts the creation of an estimate of the monthly cost to analyze your Amazon Web Services resources. |
-| `UpdateEventSourcesConfig` | `PUT /event-sources` | - | - | - | `UpdateEventSourcesConfigResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Enables or disables integration with a service that can be integrated with DevOps Guru. The one service that can be integrated with DevOps Guru is Amazon CodeGuru Profiler, which can produce proactive recommendations which can be stored and viewed in DevOps... |
-| `UpdateResourceCollection` | `PUT /resource-collections` | - | `Action`, `ResourceCollection` | - | `UpdateResourceCollectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates the collection of resources that DevOps Guru analyzes. The two types of Amazon Web Services resource collections supported are Amazon Web Services CloudFormation stacks and Amazon Web Services resources that contain the same Amazon Web Services tag. |
-| `UpdateServiceIntegration` | `PUT /service-integrations` | - | `ServiceIntegration` | - | `UpdateServiceIntegrationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Enables or disables integration with a service that can be integrated with DevOps Guru. The one service that can be integrated with DevOps Guru is Amazon Web Services Systems Manager, which can be used to create an OpsItem for each generated insight. |
+| `UpdateEventSourcesConfig` | `PUT /event-sources` | - | - | - | `UpdateEventSourcesConfigResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Enables or disables integration with a service that can be integrated with DevOps Guru. The one service that can be integrated with DevOps Guru is Amazon CodeGuru Profiler, which can produce proactive recommendations ... |
+| `UpdateResourceCollection` | `PUT /resource-collections` | - | `Action`, `ResourceCollection` | - | `UpdateResourceCollectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates the collection of resources that DevOps Guru analyzes. The two types of Amazon Web Services resource collections supported are Amazon Web Services CloudFormation stacks and Amazon Web Services resources that ... |
+| `UpdateServiceIntegration` | `PUT /service-integrations` | - | `ServiceIntegration` | - | `UpdateServiceIntegrationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Enables or disables integration with a service that can be integrated with DevOps Guru. The one service that can be integrated with DevOps Guru is Amazon Web Services Systems Manager, which can be used to create an O ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeAnomaly` | - | `AccountId -> AccountId` | - | - |
+| `DescribeInsight` | - | `AccountId -> AccountId` | - | - |
+| `DescribeResourceCollectionHealth` | - | `NextToken -> NextToken` | - | - |
+| `GetCostEstimation` | - | `NextToken -> NextToken` | - | - |
+| `GetResourceCollection` | - | `NextToken -> NextToken` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message`, `RetryAfterSeconds` | An internal failure in an Amazon service occurred. |
-| `ThrottlingException` | `structure` | `Message`, `QuotaCode`, `RetryAfterSeconds`, `ServiceCode` | The request was denied due to a request throttling. |
-| `ValidationException` | `structure` | `Fields`, `Message`, `Reason` | Contains information about data passed in to a field during a request that is not valid. |
-| `AccessDeniedException` | `structure` | `Message` | You don't have permissions to perform the requested operation. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | A requested resource could not be found |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | An exception that is thrown when a conflict occurs. |
-| `AddNotificationChannelRequest` | `structure` | `Config` | - |
-| `AddNotificationChannelResponse` | `structure` | `Id` | - |
-| `ServiceQuotaExceededException` | `structure` | `Message` | The request contains a value that exceeds a maximum quota. |
-| `DeleteInsightRequest` | `structure` | `Id` | - |
-| `DeleteInsightResponse` | `structure` | - | - |
-| `DescribeAccountHealthRequest` | `structure` | - | - |
-| `DescribeAccountHealthResponse` | `structure` | `AnalyzedResourceCount`, `MetricsAnalyzed`, `OpenProactiveInsights`, `OpenReactiveInsights`, `ResourceHours` | - |
-| `DescribeAccountOverviewRequest` | `structure` | `FromTime`, `ToTime` | - |
-| `DescribeAccountOverviewResponse` | `structure` | `MeanTimeToRecoverInMilliseconds`, `ProactiveInsights`, `ReactiveInsights` | - |
-| `DescribeAnomalyRequest` | `structure` | `AccountId`, `Id` | - |
-| `DescribeAnomalyResponse` | `structure` | `ProactiveAnomaly`, `ReactiveAnomaly` | - |
-| `DescribeEventSourcesConfigRequest` | `structure` | - | - |
-| `DescribeEventSourcesConfigResponse` | `structure` | `EventSources` | - |
-| `DescribeFeedbackRequest` | `structure` | `InsightId` | - |
-| `DescribeFeedbackResponse` | `structure` | `InsightFeedback` | - |
-| `DescribeInsightRequest` | `structure` | `AccountId`, `Id` | - |
-| `DescribeInsightResponse` | `structure` | `ProactiveInsight`, `ReactiveInsight` | - |
-| `DescribeOrganizationHealthRequest` | `structure` | `AccountIds`, `OrganizationalUnitIds` | - |
-
+| `AccessDeniedException` | `structure` | Message | You don't have permissions to perform the requested operation. The user or role that is making the request must have at least one IAM permissions policy att ... |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | An exception that is thrown when a conflict occurs. |
+| `InternalServerException` | `structure` | Message, RetryAfterSeconds | An internal failure in an Amazon service occurred. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | A requested resource could not be found |
+| `ServiceQuotaExceededException` | `structure` | Message | The request contains a value that exceeds a maximum quota. |
+| `ThrottlingException` | `structure` | Message, QuotaCode, ServiceCode, RetryAfterSeconds | The request was denied due to a request throttling. |
+| `ValidationException` | `structure` | Message, Reason, Fields | Contains information about data passed in to a field during a request that is not valid. |
+| `AddNotificationChannelRequest` | `structure` | Config | - |
+| `AddNotificationChannelResponse` | `structure` | Id | - |
+| `DeleteInsightRequest` | `structure` | Id | - |
+| `DeleteInsightResponse` | `structure` | **empty (no members)** | - |
+| `DescribeAccountHealthRequest` | `structure` | **empty (no members)** | - |
+| `DescribeAccountHealthResponse` | `structure` | OpenReactiveInsights, OpenProactiveInsights, MetricsAnalyzed, ResourceHours, AnalyzedResourceCount | - |
+| `DescribeAccountOverviewRequest` | `structure` | FromTime, ToTime | - |
+| `DescribeAccountOverviewResponse` | `structure` | ReactiveInsights, ProactiveInsights, MeanTimeToRecoverInMilliseconds | - |
+| `DescribeAnomalyRequest` | `structure` | Id, AccountId | - |
+| `DescribeAnomalyResponse` | `structure` | ProactiveAnomaly, ReactiveAnomaly | - |
+| `DescribeEventSourcesConfigRequest` | `structure` | **empty (no members)** | - |
+| `DescribeEventSourcesConfigResponse` | `structure` | EventSources | - |
+| `DescribeFeedbackRequest` | `structure` | InsightId | - |
+| `DescribeFeedbackResponse` | `structure` | InsightFeedback | - |
+| `DescribeInsightRequest` | `structure` | Id, AccountId | - |
+| `DescribeInsightResponse` | `structure` | ProactiveInsight, ReactiveInsight | - |
+| `DescribeOrganizationHealthRequest` | `structure` | AccountIds, OrganizationalUnitIds | - |
+| `DescribeOrganizationHealthResponse` | `structure` | OpenReactiveInsights, OpenProactiveInsights, MetricsAnalyzed, ResourceHours | - |
+| `DescribeOrganizationOverviewRequest` | `structure` | FromTime, ToTime, AccountIds, OrganizationalUnitIds | - |
+| `DescribeOrganizationOverviewResponse` | `structure` | ReactiveInsights, ProactiveInsights | - |
+| `DescribeOrganizationResourceCollectionHealthRequest` | `structure` | OrganizationResourceCollectionType, AccountIds, OrganizationalUnitIds, NextToken, MaxResults | - |
+| `DescribeOrganizationResourceCollectionHealthResponse` | `structure` | CloudFormation, Service, Account, NextToken, Tags | - |
+| `DescribeResourceCollectionHealthRequest` | `structure` | ResourceCollectionType, NextToken | - |
+| `DescribeResourceCollectionHealthResponse` | `structure` | CloudFormation, Service, NextToken, Tags | - |
+| `DescribeServiceIntegrationRequest` | `structure` | **empty (no members)** | - |
+| `DescribeServiceIntegrationResponse` | `structure` | ServiceIntegration | - |
+| `GetCostEstimationRequest` | `structure` | NextToken | - |
+| `GetCostEstimationResponse` | `structure` | ResourceCollection, Status, Costs, TimeRange, TotalCost, NextToken | - |
+| `GetResourceCollectionRequest` | `structure` | ResourceCollectionType, NextToken | - |
+| `GetResourceCollectionResponse` | `structure` | ResourceCollection, NextToken | - |
+| `ListAnomaliesForInsightRequest` | `structure` | InsightId, StartTimeRange, MaxResults, NextToken, AccountId, Filters | - |
+| `ListAnomaliesForInsightResponse` | `structure` | ProactiveAnomalies, ReactiveAnomalies, NextToken | - |
+| `ListAnomalousLogGroupsRequest` | `structure` | InsightId, MaxResults, NextToken | - |
+| `AnomalySeverity` | `enum` | LOW, MEDIUM, HIGH | - |
+| `AnomalyStatus` | `enum` | ONGOING, CLOSED | - |
+| `AnomalyType` | `enum` | CAUSAL, CONTEXTUAL | - |
+| `CloudWatchMetricDataStatusCode` | `enum` | COMPLETE, INTERNAL_ERROR, PARTIAL_DATA | - |
+| `CloudWatchMetricsStat` | `enum` | SUM, AVERAGE, SAMPLE_COUNT, MINIMUM, MAXIMUM, P99, P90, P50 | - |
+| `CostEstimationServiceResourceState` | `enum` | ACTIVE, INACTIVE | - |
+| `CostEstimationStatus` | `enum` | ONGOING, COMPLETED | - |
+| `EventClass` | `enum` | INFRASTRUCTURE, DEPLOYMENT, SECURITY_CHANGE, CONFIG_CHANGE, SCHEMA_CHANGE | - |
+| `EventDataSource` | `enum` | AWS_CLOUD_TRAIL, AWS_CODE_DEPLOY | - |
+| `EventSourceOptInStatus` | `enum` | ENABLED, DISABLED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

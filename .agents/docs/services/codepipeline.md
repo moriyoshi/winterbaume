@@ -67,32 +67,32 @@ Parity implications:
 
 - Operations: `ListActionExecutions`, `ListActionTypes`, `ListDeployActionExecutionTargets`, `ListPipelineExecutions`, `ListPipelines`, `ListRuleExecutions`, `ListRuleTypes`, `ListTagsForResource`, `ListWebhooks`
 - Traits: `paginated` (8)
-- Common required input members in this group: `actionExecutionId`, `pipelineName`, `resourceArn`
+- Common required input members in this group: `pipelineName`
 
 ### Put
 
 - Operations: `PutActionRevision`, `PutApprovalResult`, `PutJobFailureResult`, `PutJobSuccessResult`, `PutThirdPartyJobFailureResult`, `PutThirdPartyJobSuccessResult`, `PutWebhook`
-- Common required input members in this group: `actionName`, `actionRevision`, `clientToken`, `failureDetails`, `jobId`, `pipelineName`, `result`, `stageName`, `token`, `webhook`
+- Common required input members in this group: `pipelineName`, `stageName`, `actionName`, `jobId`, `failureDetails`, `clientToken`
 
 ### Get
 
 - Operations: `GetActionType`, `GetJobDetails`, `GetPipeline`, `GetPipelineExecution`, `GetPipelineState`, `GetThirdPartyJobDetails`
-- Common required input members in this group: `category`, `clientToken`, `jobId`, `name`, `owner`, `pipelineExecutionId`, `pipelineName`, `provider`, `version`
+- Common required input members in this group: `jobId`, `name`
 
 ### Delete
 
 - Operations: `DeleteCustomActionType`, `DeletePipeline`, `DeleteWebhook`
-- Common required input members in this group: `category`, `name`, `provider`, `version`
+- Common required input members in this group: `name`
 
 ### Acknowledge
 
 - Operations: `AcknowledgeJob`, `AcknowledgeThirdPartyJob`
-- Common required input members in this group: `clientToken`, `jobId`, `nonce`
+- Common required input members in this group: `jobId`, `nonce`
 
 ### Create
 
 - Operations: `CreateCustomActionType`, `CreatePipeline`
-- Common required input members in this group: `category`, `inputArtifactDetails`, `outputArtifactDetails`, `pipeline`, `provider`, `version`
+- Common required input members in this group: -
 
 ### Poll
 
@@ -102,139 +102,173 @@ Parity implications:
 ### Update
 
 - Operations: `UpdateActionType`, `UpdatePipeline`
-- Common required input members in this group: `actionType`, `pipeline`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterWebhookWithThirdParty`
+- Common required input members in this group: -
 
 ### Disable
 
 - Operations: `DisableStageTransition`
-- Common required input members in this group: `pipelineName`, `reason`, `stageName`, `transitionType`
+- Common required input members in this group: -
 
 ### Enable
 
 - Operations: `EnableStageTransition`
-- Common required input members in this group: `pipelineName`, `stageName`, `transitionType`
+- Common required input members in this group: -
 
 ### Override
 
 - Operations: `OverrideStageCondition`
-- Common required input members in this group: `conditionType`, `pipelineExecutionId`, `pipelineName`, `stageName`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterWebhookWithThirdParty`
+- Common required input members in this group: -
 
 ### Retry
 
 - Operations: `RetryStageExecution`
-- Common required input members in this group: `pipelineExecutionId`, `pipelineName`, `retryMode`, `stageName`
+- Common required input members in this group: -
 
 ### Rollback
 
 - Operations: `RollbackStage`
-- Common required input members in this group: `pipelineName`, `stageName`, `targetPipelineExecutionId`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartPipelineExecution`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `name`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopPipelineExecution`
-- Common required input members in this group: `pipelineExecutionId`, `pipelineName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcknowledgeJob` | - | - | `jobId`, `nonce` | - | `AcknowledgeJobOutput` | `InvalidNonceException`, `JobNotFoundException`, `ValidationException` | Returns information about a specified job and whether that job has been received by the job worker. Used for custom actions only. |
-| `AcknowledgeThirdPartyJob` | - | - | `clientToken`, `jobId`, `nonce` | - | `AcknowledgeThirdPartyJobOutput` | `InvalidClientTokenException`, `InvalidNonceException`, `JobNotFoundException`, `ValidationException` | Confirms a job worker has received the specified job. Used for partner actions only. |
-| `CreateCustomActionType` | - | - | `category`, `inputArtifactDetails`, `outputArtifactDetails`, `provider`, `version` | - | `CreateCustomActionTypeOutput` | `ConcurrentModificationException`, `InvalidTagsException`, `LimitExceededException`, `TooManyTagsException`, `ValidationException` | Creates a new custom action that can be used in all pipelines associated with the Amazon Web Services account. Only used for custom actions. |
-| `CreatePipeline` | - | - | `pipeline` | - | `CreatePipelineOutput` | `ConcurrentModificationException`, `InvalidActionDeclarationException`, `InvalidBlockerDeclarationException`, `InvalidStageDeclarationException`, `InvalidStructureException`, `InvalidTagsException`, `LimitExceededException`, `PipelineNameInUseException`, ... (+2) | Creates a pipeline. In the pipeline structure, you must include either `artifactStore` or `artifactStores` in your pipeline, but you cannot use both. |
-| `DeleteCustomActionType` | - | - | `category`, `provider`, `version` | - | `Unit` | `ConcurrentModificationException`, `ValidationException` | Marks a custom action as deleted. `PollForJobs` for the custom action fails after the action is marked for deletion. |
-| `DeletePipeline` | - | - | `name` | - | `Unit` | `ConcurrentModificationException`, `ValidationException` | Deletes the specified pipeline. |
-| `DeleteWebhook` | - | - | `name` | - | `DeleteWebhookOutput` | `ConcurrentModificationException`, `ValidationException` | Deletes a previously created webhook by name. Deleting the webhook stops CodePipeline from starting a pipeline every time an external event occurs. |
-| `DeregisterWebhookWithThirdParty` | - | - | - | - | `DeregisterWebhookWithThirdPartyOutput` | `ValidationException`, `WebhookNotFoundException` | Removes the connection between the webhook that was created by CodePipeline and the external tool with events to be detected. Currently supported only for webhooks that target an action type of GitHub. |
-| `DisableStageTransition` | - | - | `pipelineName`, `reason`, `stageName`, `transitionType` | - | `Unit` | `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Prevents artifacts in a pipeline from transitioning to the next stage in the pipeline. |
-| `EnableStageTransition` | - | - | `pipelineName`, `stageName`, `transitionType` | - | `Unit` | `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Enables artifacts in a pipeline to transition to a stage in a pipeline. |
-| `GetActionType` | - | - | `category`, `owner`, `provider`, `version` | - | `GetActionTypeOutput` | `ActionTypeNotFoundException`, `ValidationException` | Returns information about an action type created for an external provider, where the action is to be used by customers of the external provider. The action can be created with any supported integration model. |
-| `GetJobDetails` | - | - | `jobId` | - | `GetJobDetailsOutput` | `JobNotFoundException`, `ValidationException` | Returns information about a job. Used for custom actions only. |
-| `GetPipeline` | - | - | `name` | - | `GetPipelineOutput` | `PipelineNotFoundException`, `PipelineVersionNotFoundException`, `ValidationException` | Returns the metadata, structure, stages, and actions of a pipeline. Can be used to return the entire structure of a pipeline in JSON format, which can then be modified and used to update the pipeline structure with UpdatePipeline. |
-| `GetPipelineExecution` | - | - | `pipelineExecutionId`, `pipelineName` | - | `GetPipelineExecutionOutput` | `PipelineExecutionNotFoundException`, `PipelineNotFoundException`, `ValidationException` | Returns information about an execution of a pipeline, including details about artifacts, the pipeline execution ID, and the name, version, and status of the pipeline. |
-| `GetPipelineState` | - | - | `name` | - | `GetPipelineStateOutput` | `PipelineNotFoundException`, `ValidationException` | Returns information about the state of a pipeline, including the stages and actions. Values returned in the `revisionId` and `revisionUrl` fields indicate the source revision information, such as the commit ID, for the current state. |
-| `GetThirdPartyJobDetails` | - | - | `clientToken`, `jobId` | - | `GetThirdPartyJobDetailsOutput` | `InvalidClientTokenException`, `InvalidJobException`, `JobNotFoundException`, `ValidationException` | Requests the details of a job for a third party action. Used for partner actions only. |
-| `ListActionExecutions` | - | `paginated` | `pipelineName` | - | `ListActionExecutionsOutput` | `InvalidNextTokenException`, `PipelineExecutionNotFoundException`, `PipelineNotFoundException`, `ValidationException` | Lists the action executions that have occurred in a pipeline. |
-| `ListActionTypes` | - | `paginated` | - | - | `ListActionTypesOutput` | `InvalidNextTokenException`, `ValidationException` | Gets a summary of all CodePipeline action types associated with your account. |
-| `ListDeployActionExecutionTargets` | - | `paginated` | `actionExecutionId` | - | `ListDeployActionExecutionTargetsOutput` | `ActionExecutionNotFoundException`, `InvalidNextTokenException`, `PipelineNotFoundException`, `ValidationException` | Lists the targets for the deploy action. |
-| `ListPipelineExecutions` | - | `paginated` | `pipelineName` | - | `ListPipelineExecutionsOutput` | `InvalidNextTokenException`, `PipelineNotFoundException`, `ValidationException` | Gets a summary of the most recent executions for a pipeline. When applying the filter for pipeline executions that have succeeded in the stage, the operation returns all executions in the current pipeline version beginning on February 1, 2024. |
-| `ListPipelines` | - | `paginated` | - | - | `ListPipelinesOutput` | `InvalidNextTokenException`, `ValidationException` | Gets a summary of all of the pipelines associated with your account. |
-| `ListRuleExecutions` | - | `paginated` | `pipelineName` | - | `ListRuleExecutionsOutput` | `InvalidNextTokenException`, `PipelineExecutionNotFoundException`, `PipelineNotFoundException`, `ValidationException` | Lists the rule executions that have occurred in a pipeline configured for conditions with rules. |
-| `ListRuleTypes` | - | - | - | - | `ListRuleTypesOutput` | `InvalidNextTokenException`, `ValidationException` | Lists the rules for the condition. For more information about conditions, see Stage conditions and How do stage conditions work?.For more information about rules, see the CodePipeline rule reference. |
-| `ListTagsForResource` | - | `paginated` | `resourceArn` | - | `ListTagsForResourceOutput` | `InvalidArnException`, `InvalidNextTokenException`, `ResourceNotFoundException`, `ValidationException` | Gets the set of key-value pairs (metadata) that are used to manage the resource. |
-| `ListWebhooks` | - | `paginated` | - | - | `ListWebhooksOutput` | `InvalidNextTokenException`, `ValidationException` | Gets a listing of all the webhooks in this Amazon Web Services Region for this account. The output lists all webhooks and includes the webhook URL and ARN and the configuration for each webhook. |
-| `OverrideStageCondition` | - | - | `conditionType`, `pipelineExecutionId`, `pipelineName`, `stageName` | - | `Unit` | `ConcurrentPipelineExecutionsLimitExceededException`, `ConditionNotOverridableException`, `ConflictException`, `NotLatestPipelineExecutionException`, `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Used to override a stage condition. For more information about conditions, see Stage conditions and How do stage conditions work?. |
-| `PollForJobs` | - | - | `actionTypeId` | - | `PollForJobsOutput` | `ActionTypeNotFoundException`, `ValidationException` | Returns information about any jobs for CodePipeline to act on. `PollForJobs` is valid only for action types with "Custom" in the owner field. |
-| `PollForThirdPartyJobs` | - | - | `actionTypeId` | - | `PollForThirdPartyJobsOutput` | `ActionTypeNotFoundException`, `ValidationException` | Determines whether there are any third party jobs for a job worker to act on. Used for partner actions only. |
-| `PutActionRevision` | - | - | `actionName`, `actionRevision`, `pipelineName`, `stageName` | - | `PutActionRevisionOutput` | `ActionNotFoundException`, `ConcurrentPipelineExecutionsLimitExceededException`, `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Provides information to CodePipeline about new revisions to a source. |
-| `PutApprovalResult` | - | - | `actionName`, `pipelineName`, `result`, `stageName`, `token` | - | `PutApprovalResultOutput` | `ActionNotFoundException`, `ApprovalAlreadyCompletedException`, `InvalidApprovalTokenException`, `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Provides the response to a manual approval request to CodePipeline. Valid responses include Approved and Rejected. |
-| `PutJobFailureResult` | - | - | `failureDetails`, `jobId` | - | `Unit` | `InvalidJobStateException`, `JobNotFoundException`, `ValidationException` | Represents the failure of a job as returned to the pipeline by a job worker. Used for custom actions only. |
-| `PutJobSuccessResult` | - | - | `jobId` | - | `Unit` | `InvalidJobStateException`, `JobNotFoundException`, `OutputVariablesSizeExceededException`, `ValidationException` | Represents the success of a job as returned to the pipeline by a job worker. Used for custom actions only. |
-| `PutThirdPartyJobFailureResult` | - | - | `clientToken`, `failureDetails`, `jobId` | - | `Unit` | `InvalidClientTokenException`, `InvalidJobStateException`, `JobNotFoundException`, `ValidationException` | Represents the failure of a third party job as returned to the pipeline by a job worker. Used for partner actions only. |
-| `PutThirdPartyJobSuccessResult` | - | - | `clientToken`, `jobId` | - | `Unit` | `InvalidClientTokenException`, `InvalidJobStateException`, `JobNotFoundException`, `ValidationException` | Represents the success of a third party job as returned to the pipeline by a job worker. Used for partner actions only. |
-| `PutWebhook` | - | - | `webhook` | - | `PutWebhookOutput` | `ConcurrentModificationException`, `InvalidTagsException`, `InvalidWebhookAuthenticationParametersException`, `InvalidWebhookFilterPatternException`, `LimitExceededException`, `PipelineNotFoundException`, `TooManyTagsException`, `ValidationException` | Defines a webhook and returns a unique webhook URL generated by CodePipeline. This URL can be supplied to third party source hosting providers to call every time there's a code change. |
-| `RegisterWebhookWithThirdParty` | - | - | - | - | `RegisterWebhookWithThirdPartyOutput` | `ValidationException`, `WebhookNotFoundException` | Configures a connection between the webhook that was created and the external tool with events to be detected. |
-| `RetryStageExecution` | - | - | `pipelineExecutionId`, `pipelineName`, `retryMode`, `stageName` | - | `RetryStageExecutionOutput` | `ConcurrentPipelineExecutionsLimitExceededException`, `ConflictException`, `NotLatestPipelineExecutionException`, `PipelineNotFoundException`, `StageNotFoundException`, `StageNotRetryableException`, `ValidationException` | You can retry a stage that has failed without having to run a pipeline again from the beginning. You do this by either retrying the failed actions in a stage or by retrying all actions in the stage starting from the first action in the stage. |
-| `RollbackStage` | - | - | `pipelineName`, `stageName`, `targetPipelineExecutionId` | - | `RollbackStageOutput` | `ConflictException`, `PipelineExecutionNotFoundException`, `PipelineExecutionOutdatedException`, `PipelineNotFoundException`, `StageNotFoundException`, `UnableToRollbackStageException`, `ValidationException` | Rolls back a stage execution. |
-| `StartPipelineExecution` | - | `idempotency-token` | `name` | `clientRequestToken` | `StartPipelineExecutionOutput` | `ConcurrentPipelineExecutionsLimitExceededException`, `ConflictException`, `PipelineNotFoundException`, `ValidationException` | Starts the specified pipeline. Specifically, it begins processing the latest commit to the source location specified as part of the pipeline. |
-| `StopPipelineExecution` | - | - | `pipelineExecutionId`, `pipelineName` | - | `StopPipelineExecutionOutput` | `ConflictException`, `DuplicatedStopRequestException`, `PipelineExecutionNotStoppableException`, `PipelineNotFoundException`, `ValidationException` | Stops the specified pipeline execution. You choose to either stop the pipeline execution by completing in-progress actions without starting subsequent actions, or by abandoning in-progress actions. |
-| `TagResource` | - | - | `resourceArn`, `tags` | - | `TagResourceOutput` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidTagsException`, `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Adds to or modifies the tags of the given resource. Tags are metadata that can be used to manage a resource. |
-| `UntagResource` | - | - | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidTagsException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from an Amazon Web Services resource. |
-| `UpdateActionType` | - | - | `actionType` | - | `Unit` | `ActionTypeNotFoundException`, `RequestFailedException`, `ValidationException` | Updates an action type that was created with any supported integration model, where the action type is to be used by customers of the action type provider. Use a JSON file with the action definition and `UpdateActionType` to provide the full structure. |
-| `UpdatePipeline` | - | - | `pipeline` | - | `UpdatePipelineOutput` | `InvalidActionDeclarationException`, `InvalidBlockerDeclarationException`, `InvalidStageDeclarationException`, `InvalidStructureException`, `LimitExceededException`, `ValidationException` | Updates a specified pipeline with edits or changes to its structure. Use a JSON file with the pipeline structure and `UpdatePipeline` to provide the full structure of the pipeline. |
+| `AcknowledgeJob` | `-` | - | `jobId`, `nonce` | - | `AcknowledgeJobOutput` | `InvalidNonceException`, `JobNotFoundException`, `ValidationException` | Returns information about a specified job and whether that job has been received by the job worker. Used for custom actions only. |
+| `AcknowledgeThirdPartyJob` | `-` | - | `jobId`, `nonce`, `clientToken` | - | `AcknowledgeThirdPartyJobOutput` | `InvalidClientTokenException`, `InvalidNonceException`, `JobNotFoundException`, `ValidationException` | Confirms a job worker has received the specified job. Used for partner actions only. |
+| `CreateCustomActionType` | `-` | - | `category`, `provider`, `version`, `inputArtifactDetails`, `outputArtifactDetails` | - | `CreateCustomActionTypeOutput` | `ConcurrentModificationException`, `InvalidTagsException`, `LimitExceededException`, `TooManyTagsException`, `ValidationException` | Creates a new custom action that can be used in all pipelines associated with the Amazon Web Services account. Only used for custom actions. |
+| `CreatePipeline` | `-` | - | `pipeline` | - | `CreatePipelineOutput` | `ConcurrentModificationException`, `InvalidActionDeclarationException`, `InvalidBlockerDeclarationException`, `InvalidStageDeclarationException`, `InvalidStructureException`, `InvalidTagsException`, `LimitExceededException`, `PipelineNameInUseException`, `TooManyTagsException`, `ValidationException` | Creates a pipeline. In the pipeline structure, you must include either artifactStore or artifactStores in your pipeline, but you cannot use both. If you create a cross-region action in your pipeline, you must use art ... |
+| `DeleteCustomActionType` | `-` | - | `category`, `provider`, `version` | - | `Unit` | `ConcurrentModificationException`, `ValidationException` | Marks a custom action as deleted. PollForJobs for the custom action fails after the action is marked for deletion. Used for custom actions only. To re-create a custom action after it has been deleted you must use a s ... |
+| `DeletePipeline` | `-` | - | `name` | - | `Unit` | `ConcurrentModificationException`, `ValidationException` | Deletes the specified pipeline. |
+| `DeleteWebhook` | `-` | - | `name` | - | `DeleteWebhookOutput` | `ConcurrentModificationException`, `ValidationException` | Deletes a previously created webhook by name. Deleting the webhook stops CodePipeline from starting a pipeline every time an external event occurs. The API returns successfully when trying to delete a webhook that is ... |
+| `DeregisterWebhookWithThirdParty` | `-` | - | - | - | `DeregisterWebhookWithThirdPartyOutput` | `ValidationException`, `WebhookNotFoundException` | Removes the connection between the webhook that was created by CodePipeline and the external tool with events to be detected. Currently supported only for webhooks that target an action type of GitHub. |
+| `DisableStageTransition` | `-` | - | `pipelineName`, `stageName`, `transitionType`, `reason` | - | `Unit` | `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Prevents artifacts in a pipeline from transitioning to the next stage in the pipeline. |
+| `EnableStageTransition` | `-` | - | `pipelineName`, `stageName`, `transitionType` | - | `Unit` | `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Enables artifacts in a pipeline to transition to a stage in a pipeline. |
+| `GetActionType` | `-` | - | `category`, `owner`, `provider`, `version` | - | `GetActionTypeOutput` | `ActionTypeNotFoundException`, `ValidationException` | Returns information about an action type created for an external provider, where the action is to be used by customers of the external provider. The action can be created with any supported integration model. |
+| `GetJobDetails` | `-` | - | `jobId` | - | `GetJobDetailsOutput` | `JobNotFoundException`, `ValidationException` | Returns information about a job. Used for custom actions only. When this API is called, CodePipeline returns temporary credentials for the S3 bucket used to store artifacts for the pipeline, if the action requires ac ... |
+| `GetPipeline` | `-` | - | `name` | - | `GetPipelineOutput` | `PipelineNotFoundException`, `PipelineVersionNotFoundException`, `ValidationException` | Returns the metadata, structure, stages, and actions of a pipeline. Can be used to return the entire structure of a pipeline in JSON format, which can then be modified and used to update the pipeline structure with U ... |
+| `GetPipelineExecution` | `-` | - | `pipelineName`, `pipelineExecutionId` | - | `GetPipelineExecutionOutput` | `PipelineExecutionNotFoundException`, `PipelineNotFoundException`, `ValidationException` | Returns information about an execution of a pipeline, including details about artifacts, the pipeline execution ID, and the name, version, and status of the pipeline. |
+| `GetPipelineState` | `-` | - | `name` | - | `GetPipelineStateOutput` | `PipelineNotFoundException`, `ValidationException` | Returns information about the state of a pipeline, including the stages and actions. Values returned in the revisionId and revisionUrl fields indicate the source revision information, such as the commit ID, for the c ... |
+| `GetThirdPartyJobDetails` | `-` | - | `jobId`, `clientToken` | - | `GetThirdPartyJobDetailsOutput` | `InvalidClientTokenException`, `InvalidJobException`, `JobNotFoundException`, `ValidationException` | Requests the details of a job for a third party action. Used for partner actions only. When this API is called, CodePipeline returns temporary credentials for the S3 bucket used to store artifacts for the pipeline, i ... |
+| `ListActionExecutions` | `-` | `paginated` | `pipelineName` | - | `ListActionExecutionsOutput` | `InvalidNextTokenException`, `PipelineExecutionNotFoundException`, `PipelineNotFoundException`, `ValidationException` | Lists the action executions that have occurred in a pipeline. |
+| `ListActionTypes` | `-` | `paginated` | - | - | `ListActionTypesOutput` | `InvalidNextTokenException`, `ValidationException` | Gets a summary of all CodePipeline action types associated with your account. |
+| `ListDeployActionExecutionTargets` | `-` | `paginated` | `actionExecutionId` | - | `ListDeployActionExecutionTargetsOutput` | `ActionExecutionNotFoundException`, `InvalidNextTokenException`, `PipelineNotFoundException`, `ValidationException` | Lists the targets for the deploy action. |
+| `ListPipelineExecutions` | `-` | `paginated` | `pipelineName` | - | `ListPipelineExecutionsOutput` | `InvalidNextTokenException`, `PipelineNotFoundException`, `ValidationException` | Gets a summary of the most recent executions for a pipeline. When applying the filter for pipeline executions that have succeeded in the stage, the operation returns all executions in the current pipeline version beg ... |
+| `ListPipelines` | `-` | `paginated` | - | - | `ListPipelinesOutput` | `InvalidNextTokenException`, `ValidationException` | Gets a summary of all of the pipelines associated with your account. |
+| `ListRuleExecutions` | `-` | `paginated` | `pipelineName` | - | `ListRuleExecutionsOutput` | `InvalidNextTokenException`, `PipelineExecutionNotFoundException`, `PipelineNotFoundException`, `ValidationException` | Lists the rule executions that have occurred in a pipeline configured for conditions with rules. |
+| `ListRuleTypes` | `-` | - | - | - | `ListRuleTypesOutput` | `InvalidNextTokenException`, `ValidationException` | Lists the rules for the condition. For more information about conditions, see Stage conditions and How do stage conditions work? .For more information about rules, see the CodePipeline rule reference . |
+| `ListTagsForResource` | `-` | `paginated` | `resourceArn` | - | `ListTagsForResourceOutput` | `InvalidArnException`, `InvalidNextTokenException`, `ResourceNotFoundException`, `ValidationException` | Gets the set of key-value pairs (metadata) that are used to manage the resource. |
+| `ListWebhooks` | `-` | `paginated` | - | - | `ListWebhooksOutput` | `InvalidNextTokenException`, `ValidationException` | Gets a listing of all the webhooks in this Amazon Web Services Region for this account. The output lists all webhooks and includes the webhook URL and ARN and the configuration for each webhook. If a secret token was ... |
+| `OverrideStageCondition` | `-` | - | `pipelineName`, `stageName`, `pipelineExecutionId`, `conditionType` | - | `Unit` | `ConcurrentPipelineExecutionsLimitExceededException`, `ConditionNotOverridableException`, `ConflictException`, `NotLatestPipelineExecutionException`, `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Used to override a stage condition. For more information about conditions, see Stage conditions and How do stage conditions work? . |
+| `PollForJobs` | `-` | - | `actionTypeId` | - | `PollForJobsOutput` | `ActionTypeNotFoundException`, `ValidationException` | Returns information about any jobs for CodePipeline to act on. PollForJobs is valid only for action types with "Custom" in the owner field. If the action type contains AWS or ThirdParty in the owner field, the PollFo ... |
+| `PollForThirdPartyJobs` | `-` | - | `actionTypeId` | - | `PollForThirdPartyJobsOutput` | `ActionTypeNotFoundException`, `ValidationException` | Determines whether there are any third party jobs for a job worker to act on. Used for partner actions only. When this API is called, CodePipeline returns temporary credentials for the S3 bucket used to store artifac ... |
+| `PutActionRevision` | `-` | - | `pipelineName`, `stageName`, `actionName`, `actionRevision` | - | `PutActionRevisionOutput` | `ActionNotFoundException`, `ConcurrentPipelineExecutionsLimitExceededException`, `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Provides information to CodePipeline about new revisions to a source. |
+| `PutApprovalResult` | `-` | - | `pipelineName`, `stageName`, `actionName`, `result`, `token` | - | `PutApprovalResultOutput` | `ActionNotFoundException`, `ApprovalAlreadyCompletedException`, `InvalidApprovalTokenException`, `PipelineNotFoundException`, `StageNotFoundException`, `ValidationException` | Provides the response to a manual approval request to CodePipeline. Valid responses include Approved and Rejected. |
+| `PutJobFailureResult` | `-` | - | `jobId`, `failureDetails` | - | `Unit` | `InvalidJobStateException`, `JobNotFoundException`, `ValidationException` | Represents the failure of a job as returned to the pipeline by a job worker. Used for custom actions only. |
+| `PutJobSuccessResult` | `-` | - | `jobId` | - | `Unit` | `InvalidJobStateException`, `JobNotFoundException`, `OutputVariablesSizeExceededException`, `ValidationException` | Represents the success of a job as returned to the pipeline by a job worker. Used for custom actions only. |
+| `PutThirdPartyJobFailureResult` | `-` | - | `jobId`, `clientToken`, `failureDetails` | - | `Unit` | `InvalidClientTokenException`, `InvalidJobStateException`, `JobNotFoundException`, `ValidationException` | Represents the failure of a third party job as returned to the pipeline by a job worker. Used for partner actions only. |
+| `PutThirdPartyJobSuccessResult` | `-` | - | `jobId`, `clientToken` | - | `Unit` | `InvalidClientTokenException`, `InvalidJobStateException`, `JobNotFoundException`, `ValidationException` | Represents the success of a third party job as returned to the pipeline by a job worker. Used for partner actions only. |
+| `PutWebhook` | `-` | - | `webhook` | - | `PutWebhookOutput` | `ConcurrentModificationException`, `InvalidTagsException`, `InvalidWebhookAuthenticationParametersException`, `InvalidWebhookFilterPatternException`, `LimitExceededException`, `PipelineNotFoundException`, `TooManyTagsException`, `ValidationException` | Defines a webhook and returns a unique webhook URL generated by CodePipeline. This URL can be supplied to third party source hosting providers to call every time there's a code change. When CodePipeline receives a PO ... |
+| `RegisterWebhookWithThirdParty` | `-` | - | - | - | `RegisterWebhookWithThirdPartyOutput` | `ValidationException`, `WebhookNotFoundException` | Configures a connection between the webhook that was created and the external tool with events to be detected. |
+| `RetryStageExecution` | `-` | - | `pipelineName`, `stageName`, `pipelineExecutionId`, `retryMode` | - | `RetryStageExecutionOutput` | `ConcurrentPipelineExecutionsLimitExceededException`, `ConflictException`, `NotLatestPipelineExecutionException`, `PipelineNotFoundException`, `StageNotFoundException`, `StageNotRetryableException`, `ValidationException` | You can retry a stage that has failed without having to run a pipeline again from the beginning. You do this by either retrying the failed actions in a stage or by retrying all actions in the stage starting from the ... |
+| `RollbackStage` | `-` | - | `pipelineName`, `stageName`, `targetPipelineExecutionId` | - | `RollbackStageOutput` | `ConflictException`, `PipelineExecutionNotFoundException`, `PipelineExecutionOutdatedException`, `PipelineNotFoundException`, `StageNotFoundException`, `UnableToRollbackStageException`, `ValidationException` | Rolls back a stage execution. |
+| `StartPipelineExecution` | `-` | `idempotency-token` | `name` | `clientRequestToken` | `StartPipelineExecutionOutput` | `ConcurrentPipelineExecutionsLimitExceededException`, `ConflictException`, `PipelineNotFoundException`, `ValidationException` | Starts the specified pipeline. Specifically, it begins processing the latest commit to the source location specified as part of the pipeline. |
+| `StopPipelineExecution` | `-` | - | `pipelineName`, `pipelineExecutionId` | - | `StopPipelineExecutionOutput` | `ConflictException`, `DuplicatedStopRequestException`, `PipelineExecutionNotStoppableException`, `PipelineNotFoundException`, `ValidationException` | Stops the specified pipeline execution. You choose to either stop the pipeline execution by completing in-progress actions without starting subsequent actions, or by abandoning in-progress actions. While completing o ... |
+| `TagResource` | `-` | - | `resourceArn`, `tags` | - | `TagResourceOutput` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidTagsException`, `ResourceNotFoundException`, `TooManyTagsException`, `ValidationException` | Adds to or modifies the tags of the given resource. Tags are metadata that can be used to manage a resource. |
+| `UntagResource` | `-` | - | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `ConcurrentModificationException`, `InvalidArnException`, `InvalidTagsException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from an Amazon Web Services resource. |
+| `UpdateActionType` | `-` | - | `actionType` | - | `Unit` | `ActionTypeNotFoundException`, `RequestFailedException`, `ValidationException` | Updates an action type that was created with any supported integration model, where the action type is to be used by customers of the action type provider. Use a JSON file with the action definition and UpdateActionT ... |
+| `UpdatePipeline` | `-` | - | `pipeline` | - | `UpdatePipelineOutput` | `InvalidActionDeclarationException`, `InvalidBlockerDeclarationException`, `InvalidStageDeclarationException`, `InvalidStructureException`, `LimitExceededException`, `ValidationException` | Updates a specified pipeline with edits or changes to its structure. Use a JSON file with the pipeline structure and UpdatePipeline to provide the full structure of the pipeline. Updating the pipeline increases the v ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ValidationException` | `structure` | `message` | The validation was specified in an invalid format. |
-| `PipelineNotFoundException` | `structure` | `message` | The pipeline was specified in an invalid format or cannot be found. |
-| `InvalidNextTokenException` | `structure` | `message` | The next token was specified in an invalid format. |
-| `JobNotFoundException` | `structure` | `message` | The job was specified in an invalid format or cannot be found. |
-| `ConcurrentModificationException` | `structure` | `message` | Unable to modify the tag due to a simultaneous update request. |
-| `StageNotFoundException` | `structure` | `message` | The stage was specified in an invalid format or cannot be found. |
-| `InvalidTagsException` | `structure` | `message` | The specified resource tags are invalid. |
-| `ConflictException` | `structure` | `message` | Your request cannot be handled because the pipeline is busy handling ongoing activities. |
-| `InvalidClientTokenException` | `structure` | `message` | The client token was specified in an invalid format |
-| `LimitExceededException` | `structure` | `message` | The number of pipelines associated with the Amazon Web Services account has exceeded the limit allowed for the account. |
-| `TooManyTagsException` | `structure` | `message` | The tags limit for a resource has been exceeded. |
-| `ActionTypeNotFoundException` | `structure` | `message` | The specified action type cannot be found. |
-| `PipelineExecutionNotFoundException` | `structure` | `message` | The pipeline execution was specified in an invalid format or cannot be found, or an execution ID does not belong to the specified pipeline. |
-| `ConcurrentPipelineExecutionsLimitExceededException` | `structure` | `message` | The pipeline has reached the limit for concurrent pipeline executions. |
-| `InvalidJobStateException` | `structure` | `message` | The job state was specified in an invalid format. |
-| `InvalidArnException` | `structure` | `message` | The specified resource ARN is invalid. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource was specified in an invalid format. |
-| `InvalidNonceException` | `structure` | `message` | The nonce was specified in an invalid format. |
-| `InvalidActionDeclarationException` | `structure` | `message` | The action declaration was specified in an invalid format. |
-| `InvalidBlockerDeclarationException` | `structure` | `message` | Reserved for future use. |
-| `InvalidStageDeclarationException` | `structure` | `message` | The stage declaration was specified in an invalid format. |
-| `InvalidStructureException` | `structure` | `message` | The structure was specified in an invalid format. |
-| `WebhookNotFoundException` | `structure` | - | The specified webhook was entered in an invalid format or cannot be found. |
-
+| `ActionExecutionNotFoundException` | `structure` | message | The action execution was not found. |
+| `ActionNotFoundException` | `structure` | message | The specified action cannot be found. |
+| `ActionTypeNotFoundException` | `structure` | message | The specified action type cannot be found. |
+| `ApprovalAlreadyCompletedException` | `structure` | message | The approval action has already been approved or rejected. |
+| `ConcurrentModificationException` | `structure` | message | Unable to modify the tag due to a simultaneous update request. |
+| `ConcurrentPipelineExecutionsLimitExceededException` | `structure` | message | The pipeline has reached the limit for concurrent pipeline executions. |
+| `ConditionNotOverridableException` | `structure` | message | Unable to override because the condition does not allow overrides. |
+| `ConflictException` | `structure` | message | Your request cannot be handled because the pipeline is busy handling ongoing activities. Try again later. |
+| `DuplicatedStopRequestException` | `structure` | message | The pipeline execution is already in a Stopping state. If you already chose to stop and wait, you cannot make that request again. You can choose to stop and ... |
+| `InvalidActionDeclarationException` | `structure` | message | The action declaration was specified in an invalid format. |
+| `InvalidApprovalTokenException` | `structure` | message | The approval request already received a response or has expired. |
+| `InvalidArnException` | `structure` | message | The specified resource ARN is invalid. |
+| `InvalidBlockerDeclarationException` | `structure` | message | Reserved for future use. |
+| `InvalidClientTokenException` | `structure` | message | The client token was specified in an invalid format |
+| `InvalidJobException` | `structure` | message | The job was specified in an invalid format or cannot be found. |
+| `InvalidJobStateException` | `structure` | message | The job state was specified in an invalid format. |
+| `InvalidNextTokenException` | `structure` | message | The next token was specified in an invalid format. Make sure that the next token you provide is the token returned by a previous call. |
+| `InvalidNonceException` | `structure` | message | The nonce was specified in an invalid format. |
+| `InvalidStageDeclarationException` | `structure` | message | The stage declaration was specified in an invalid format. |
+| `InvalidStructureException` | `structure` | message | The structure was specified in an invalid format. |
+| `InvalidTagsException` | `structure` | message | The specified resource tags are invalid. |
+| `InvalidWebhookAuthenticationParametersException` | `structure` | message | The specified authentication type is in an invalid format. |
+| `InvalidWebhookFilterPatternException` | `structure` | message | The specified event filter rule is in an invalid format. |
+| `JobNotFoundException` | `structure` | message | The job was specified in an invalid format or cannot be found. |
+| `LimitExceededException` | `structure` | message | The number of pipelines associated with the Amazon Web Services account has exceeded the limit allowed for the account. |
+| `NotLatestPipelineExecutionException` | `structure` | message | The stage has failed in a later run of the pipeline and the pipelineExecutionId associated with the request is out of date. |
+| `OutputVariablesSizeExceededException` | `structure` | message | Exceeded the total size limit for all variables in the pipeline. |
+| `PipelineExecutionNotFoundException` | `structure` | message | The pipeline execution was specified in an invalid format or cannot be found, or an execution ID does not belong to the specified pipeline. |
+| `PipelineExecutionNotStoppableException` | `structure` | message | Unable to stop the pipeline execution. The execution might already be in a Stopped state, or it might no longer be in progress. |
+| `PipelineExecutionOutdatedException` | `structure` | message | The specified pipeline execution is outdated and cannot be used as a target pipeline execution for rollback. |
+| `PipelineNameInUseException` | `structure` | message | The specified pipeline name is already in use. |
+| `PipelineNotFoundException` | `structure` | message | The pipeline was specified in an invalid format or cannot be found. |
+| `PipelineVersionNotFoundException` | `structure` | message | The pipeline version was specified in an invalid format or cannot be found. |
+| `RequestFailedException` | `structure` | message | The request failed because of an unknown error, exception, or failure. |
+| `ResourceNotFoundException` | `structure` | message | The resource was specified in an invalid format. |
+| `StageNotFoundException` | `structure` | message | The stage was specified in an invalid format or cannot be found. |
+| `StageNotRetryableException` | `structure` | message | Unable to retry. The pipeline structure or stage state might have changed while actions awaited retry, or the stage contains no failed actions. |
+| `TooManyTagsException` | `structure` | message | The tags limit for a resource has been exceeded. |
+| `UnableToRollbackStageException` | `structure` | message | Unable to roll back the stage. The cause might be if the pipeline version has changed since the target pipeline execution was deployed, the stage is current ... |
+| `ValidationException` | `structure` | message | The validation was specified in an invalid format. |
+| `WebhookNotFoundException` | `structure` | **empty (no members)** | The specified webhook was entered in an invalid format or cannot be found. |
+| `ActionCategory` | `enum` | Source, Build, Deploy, Test, Invoke, Approval, Compute | - |
+| `ActionConfigurationPropertyType` | `enum` | String, Number, Boolean | - |
+| `ActionExecutionStatus` | `enum` | InProgress, Abandoned, Succeeded, Failed | - |
+| `ActionOwner` | `enum` | AWS, ThirdParty, Custom | - |
+| `ApprovalStatus` | `enum` | Approved, Rejected | - |
+| `ArtifactLocationType` | `enum` | S3 | - |
+| `ArtifactStoreType` | `enum` | S3 | - |
+| `BlockerType` | `enum` | Schedule | - |
+| `ConditionExecutionStatus` | `enum` | InProgress, Failed, Errored, Succeeded, Cancelled, Abandoned, Overridden | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -43,136 +43,161 @@ AWS Data Pipeline configures and manages a data-driven workflow called a pipelin
 
 - Operations: `DescribeObjects`, `DescribePipelines`
 - Traits: `paginated` (1)
-- Common required input members in this group: `objectIds`, `pipelineId`, `pipelineIds`
+- Common required input members in this group: -
 
 ### Report
 
 - Operations: `ReportTaskProgress`, `ReportTaskRunnerHeartbeat`
-- Common required input members in this group: `taskId`, `taskrunnerId`
+- Common required input members in this group: -
 
 ### Set
 
 - Operations: `SetStatus`, `SetTaskStatus`
-- Common required input members in this group: `objectIds`, `pipelineId`, `status`, `taskId`, `taskStatus`
+- Common required input members in this group: -
 
 ### Activate
 
 - Operations: `ActivatePipeline`
-- Common required input members in this group: `pipelineId`
+- Common required input members in this group: -
 
 ### Add
 
 - Operations: `AddTags`
-- Common required input members in this group: `pipelineId`, `tags`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreatePipeline`
-- Common required input members in this group: `name`, `uniqueId`
+- Common required input members in this group: -
 
 ### Deactivate
 
 - Operations: `DeactivatePipeline`
-- Common required input members in this group: `pipelineId`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeletePipeline`
-- Common required input members in this group: `pipelineId`
+- Common required input members in this group: -
 
 ### Evaluate
 
 - Operations: `EvaluateExpression`
-- Common required input members in this group: `expression`, `objectId`, `pipelineId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetPipelineDefinition`
-- Common required input members in this group: `pipelineId`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListPipelines`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Poll
 
 - Operations: `PollForTask`
-- Common required input members in this group: `workerGroup`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutPipelineDefinition`
-- Common required input members in this group: `pipelineId`, `pipelineObjects`
+- Common required input members in this group: -
 
 ### Query
 
 - Operations: `QueryObjects`
 - Traits: `paginated` (1)
-- Common required input members in this group: `pipelineId`, `sphere`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveTags`
-- Common required input members in this group: `pipelineId`, `tagKeys`
+- Common required input members in this group: -
 
 ### Validate
 
 - Operations: `ValidatePipelineDefinition`
-- Common required input members in this group: `pipelineId`, `pipelineObjects`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ActivatePipeline` | - | - | `pipelineId` | - | `ActivatePipelineOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Validates the specified pipeline and starts processing pipeline tasks. If the pipeline does not pass validation, activation fails. |
-| `AddTags` | - | - | `pipelineId`, `tags` | - | `AddTagsOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Adds or modifies tags for the specified pipeline. |
-| `CreatePipeline` | - | - | `name`, `uniqueId` | - | `CreatePipelineOutput` | `InternalServiceError`, `InvalidRequestException` | Creates a new, empty pipeline. Use PutPipelineDefinition to populate the pipeline. |
-| `DeactivatePipeline` | - | - | `pipelineId` | - | `DeactivatePipelineOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Deactivates the specified running pipeline. The pipeline is set to the `DEACTIVATING` state until the deactivation process completes. |
-| `DeletePipeline` | - | - | `pipelineId` | - | `Unit` | `InternalServiceError`, `InvalidRequestException`, `PipelineNotFoundException` | Deletes a pipeline, its pipeline definition, and its run history. AWS Data Pipeline attempts to cancel instances associated with the pipeline that are currently being processed by task runners. |
-| `DescribeObjects` | - | `paginated` | `objectIds`, `pipelineId` | - | `DescribeObjectsOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Gets the object definitions for a set of objects associated with the pipeline. Object definitions are composed of a set of fields that define the properties of the object. |
-| `DescribePipelines` | - | - | `pipelineIds` | - | `DescribePipelinesOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Retrieves metadata about one or more pipelines. The information retrieved includes the name of the pipeline, the pipeline identifier, its current state, and the user account that owns the pipeline. |
-| `EvaluateExpression` | - | - | `expression`, `objectId`, `pipelineId` | - | `EvaluateExpressionOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException`, `TaskNotFoundException` | Task runners call `EvaluateExpression` to evaluate a string in the context of the specified object. For example, a task runner can evaluate SQL queries stored in Amazon S3. |
-| `GetPipelineDefinition` | - | - | `pipelineId` | - | `GetPipelineDefinitionOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Gets the definition of the specified pipeline. You can call `GetPipelineDefinition` to retrieve the pipeline definition that you provided using PutPipelineDefinition. |
-| `ListPipelines` | - | `paginated` | - | - | `ListPipelinesOutput` | `InternalServiceError`, `InvalidRequestException` | Lists the pipeline identifiers for all active pipelines that you have permission to access. POST / HTTP/1.1 Content-Type: application/x-amz-json-1.1 X-Amz-Target: DataPipeline.ListPipelines Content-Length: 14 Host: datapipeline.us-east-1.amazonaws.com... |
-| `PollForTask` | - | - | `workerGroup` | - | `PollForTaskOutput` | `InternalServiceError`, `InvalidRequestException`, `TaskNotFoundException` | Task runners call `PollForTask` to receive a task to perform from AWS Data Pipeline. The task runner specifies which tasks it can perform by setting a value for the `workerGroup` parameter. |
-| `PutPipelineDefinition` | - | - | `pipelineId`, `pipelineObjects` | - | `PutPipelineDefinitionOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Adds tasks, schedules, and preconditions to the specified pipeline. You can use `PutPipelineDefinition` to populate a new pipeline. |
-| `QueryObjects` | - | `paginated` | `pipelineId`, `sphere` | - | `QueryObjectsOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Queries the specified pipeline for the names of objects that match the specified set of conditions. POST / HTTP/1.1 Content-Type: application/x-amz-json-1.1 X-Amz-Target: DataPipeline.QueryObjects Content-Length: 123 Host: datapipeline.us-east-1.amazonaws.com... |
-| `RemoveTags` | - | - | `pipelineId`, `tagKeys` | - | `RemoveTagsOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Removes existing tags from the specified pipeline. |
-| `ReportTaskProgress` | - | - | `taskId` | - | `ReportTaskProgressOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException`, `TaskNotFoundException` | Task runners call `ReportTaskProgress` when assigned a task to acknowledge that it has the task. If the web service does not receive this acknowledgement within 2 minutes, it assigns the task in a subsequent PollForTask call. |
-| `ReportTaskRunnerHeartbeat` | - | - | `taskrunnerId` | - | `ReportTaskRunnerHeartbeatOutput` | `InternalServiceError`, `InvalidRequestException` | Task runners call `ReportTaskRunnerHeartbeat` every 15 minutes to indicate that they are operational. If the AWS Data Pipeline Task Runner is launched on a resource managed by AWS Data Pipeline, the web service can use this call to detect when the task runner... |
-| `SetStatus` | - | - | `objectIds`, `pipelineId`, `status` | - | `Unit` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Requests that the status of the specified physical or logical pipeline objects be updated in the specified pipeline. This update might not occur immediately, but is eventually consistent. |
-| `SetTaskStatus` | - | - | `taskId`, `taskStatus` | - | `SetTaskStatusOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException`, `TaskNotFoundException` | Task runners call `SetTaskStatus` to notify AWS Data Pipeline that a task is completed and provide information about the final status. A task runner makes this call regardless of whether the task was sucessful. |
-| `ValidatePipelineDefinition` | - | - | `pipelineId`, `pipelineObjects` | - | `ValidatePipelineDefinitionOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Validates the specified pipeline definition to ensure that it is well formed and can be run without error. Example 1 This example sets an valid pipeline configuration and returns success. |
+| `ActivatePipeline` | `-` | - | `pipelineId` | - | `ActivatePipelineOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Validates the specified pipeline and starts processing pipeline tasks. If the pipeline does not pass validation, activation fails. If you need to pause the pipeline to investigate an issue with a component, such as a ... |
+| `AddTags` | `-` | - | `pipelineId`, `tags` | - | `AddTagsOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Adds or modifies tags for the specified pipeline. |
+| `CreatePipeline` | `-` | - | `name`, `uniqueId` | - | `CreatePipelineOutput` | `InternalServiceError`, `InvalidRequestException` | Creates a new, empty pipeline. Use PutPipelineDefinition to populate the pipeline. POST / HTTP/1.1 Content-Type: application/x-amz-json-1.1 X-Amz-Target: DataPipeline.CreatePipeline Content-Length: 91 Host: datapipel ... |
+| `DeactivatePipeline` | `-` | - | `pipelineId` | - | `DeactivatePipelineOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Deactivates the specified running pipeline. The pipeline is set to the DEACTIVATING state until the deactivation process completes. To resume a deactivated pipeline, use ActivatePipeline . By default, the pipeline re ... |
+| `DeletePipeline` | `-` | - | `pipelineId` | - | `Unit` | `InternalServiceError`, `InvalidRequestException`, `PipelineNotFoundException` | Deletes a pipeline, its pipeline definition, and its run history. AWS Data Pipeline attempts to cancel instances associated with the pipeline that are currently being processed by task runners. Deleting a pipeline ca ... |
+| `DescribeObjects` | `-` | `paginated` | `pipelineId`, `objectIds` | - | `DescribeObjectsOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Gets the object definitions for a set of objects associated with the pipeline. Object definitions are composed of a set of fields that define the properties of the object. POST / HTTP/1.1 Content-Type: application/x- ... |
+| `DescribePipelines` | `-` | - | `pipelineIds` | - | `DescribePipelinesOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Retrieves metadata about one or more pipelines. The information retrieved includes the name of the pipeline, the pipeline identifier, its current state, and the user account that owns the pipeline. Using account cred ... |
+| `EvaluateExpression` | `-` | - | `pipelineId`, `objectId`, `expression` | - | `EvaluateExpressionOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException`, `TaskNotFoundException` | Task runners call EvaluateExpression to evaluate a string in the context of the specified object. For example, a task runner can evaluate SQL queries stored in Amazon S3. POST / HTTP/1.1 Content-Type: application/x-a ... |
+| `GetPipelineDefinition` | `-` | - | `pipelineId` | - | `GetPipelineDefinitionOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Gets the definition of the specified pipeline. You can call GetPipelineDefinition to retrieve the pipeline definition that you provided using PutPipelineDefinition . POST / HTTP/1.1 Content-Type: application/x-amz-js ... |
+| `ListPipelines` | `-` | `paginated` | - | - | `ListPipelinesOutput` | `InternalServiceError`, `InvalidRequestException` | Lists the pipeline identifiers for all active pipelines that you have permission to access. POST / HTTP/1.1 Content-Type: application/x-amz-json-1.1 X-Amz-Target: DataPipeline.ListPipelines Content-Length: 14 Host: d ... |
+| `PollForTask` | `-` | - | `workerGroup` | - | `PollForTaskOutput` | `InternalServiceError`, `InvalidRequestException`, `TaskNotFoundException` | Task runners call PollForTask to receive a task to perform from AWS Data Pipeline. The task runner specifies which tasks it can perform by setting a value for the workerGroup parameter. The task returned can come fro ... |
+| `PutPipelineDefinition` | `-` | - | `pipelineId`, `pipelineObjects` | - | `PutPipelineDefinitionOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Adds tasks, schedules, and preconditions to the specified pipeline. You can use PutPipelineDefinition to populate a new pipeline. PutPipelineDefinition also validates the configuration as it adds it to the pipeline. ... |
+| `QueryObjects` | `-` | `paginated` | `pipelineId`, `sphere` | - | `QueryObjectsOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Queries the specified pipeline for the names of objects that match the specified set of conditions. POST / HTTP/1.1 Content-Type: application/x-amz-json-1.1 X-Amz-Target: DataPipeline.QueryObjects Content-Length: 123 ... |
+| `RemoveTags` | `-` | - | `pipelineId`, `tagKeys` | - | `RemoveTagsOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Removes existing tags from the specified pipeline. |
+| `ReportTaskProgress` | `-` | - | `taskId` | - | `ReportTaskProgressOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException`, `TaskNotFoundException` | Task runners call ReportTaskProgress when assigned a task to acknowledge that it has the task. If the web service does not receive this acknowledgement within 2 minutes, it assigns the task in a subsequent PollForTas ... |
+| `ReportTaskRunnerHeartbeat` | `-` | - | `taskrunnerId` | - | `ReportTaskRunnerHeartbeatOutput` | `InternalServiceError`, `InvalidRequestException` | Task runners call ReportTaskRunnerHeartbeat every 15 minutes to indicate that they are operational. If the AWS Data Pipeline Task Runner is launched on a resource managed by AWS Data Pipeline, the web service can use ... |
+| `SetStatus` | `-` | - | `pipelineId`, `objectIds`, `status` | - | `Unit` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Requests that the status of the specified physical or logical pipeline objects be updated in the specified pipeline. This update might not occur immediately, but is eventually consistent. The status that can be set d ... |
+| `SetTaskStatus` | `-` | - | `taskId`, `taskStatus` | - | `SetTaskStatusOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException`, `TaskNotFoundException` | Task runners call SetTaskStatus to notify AWS Data Pipeline that a task is completed and provide information about the final status. A task runner makes this call regardless of whether the task was sucessful. A task ... |
+| `ValidatePipelineDefinition` | `-` | - | `pipelineId`, `pipelineObjects` | - | `ValidatePipelineDefinitionOutput` | `InternalServiceError`, `InvalidRequestException`, `PipelineDeletedException`, `PipelineNotFoundException` | Validates the specified pipeline definition to ensure that it is well formed and can be run without error. Example 1 This example sets an valid pipeline configuration and returns success. POST / HTTP/1.1 Content-Type ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServiceError` | `structure` | `message` | An internal service error occurred. |
-| `InvalidRequestException` | `structure` | `message` | The request was not valid. |
-| `PipelineNotFoundException` | `structure` | `message` | The specified pipeline was not found. |
-| `PipelineDeletedException` | `structure` | `message` | The specified pipeline has been deleted. |
-| `TaskNotFoundException` | `structure` | `message` | The specified task was not found. |
-| `ActivatePipelineInput` | `structure` | `parameterValues`, `pipelineId`, `startTimestamp` | Contains the parameters for ActivatePipeline. |
-| `ActivatePipelineOutput` | `structure` | - | Contains the output of ActivatePipeline. |
-| `AddTagsInput` | `structure` | `pipelineId`, `tags` | Contains the parameters for AddTags. |
-| `AddTagsOutput` | `structure` | - | Contains the output of AddTags. |
-| `CreatePipelineInput` | `structure` | `description`, `name`, `tags`, `uniqueId` | Contains the parameters for CreatePipeline. |
-| `CreatePipelineOutput` | `structure` | `pipelineId` | Contains the output of CreatePipeline. |
-| `DeactivatePipelineInput` | `structure` | `cancelActive`, `pipelineId` | Contains the parameters for DeactivatePipeline. |
-| `DeactivatePipelineOutput` | `structure` | - | Contains the output of DeactivatePipeline. |
-| `DeletePipelineInput` | `structure` | `pipelineId` | Contains the parameters for DeletePipeline. |
-| `DescribeObjectsInput` | `structure` | `evaluateExpressions`, `marker`, `objectIds`, `pipelineId` | Contains the parameters for DescribeObjects. |
-| `DescribeObjectsOutput` | `structure` | `hasMoreResults`, `marker`, `pipelineObjects` | Contains the output of DescribeObjects. |
-| `DescribePipelinesInput` | `structure` | `pipelineIds` | Contains the parameters for DescribePipelines. |
-| `DescribePipelinesOutput` | `structure` | `pipelineDescriptionList` | Contains the output of DescribePipelines. |
-| `EvaluateExpressionInput` | `structure` | `expression`, `objectId`, `pipelineId` | Contains the parameters for EvaluateExpression. |
-| `EvaluateExpressionOutput` | `structure` | `evaluatedExpression` | Contains the output of EvaluateExpression. |
-| `GetPipelineDefinitionInput` | `structure` | `pipelineId`, `version` | Contains the parameters for GetPipelineDefinition. |
-| `GetPipelineDefinitionOutput` | `structure` | `parameterObjects`, `parameterValues`, `pipelineObjects` | Contains the output of GetPipelineDefinition. |
-| `ListPipelinesInput` | `structure` | `marker` | Contains the parameters for ListPipelines. |
-
+| `InternalServiceError` | `structure` | message | An internal service error occurred. |
+| `InvalidRequestException` | `structure` | message | The request was not valid. Verify that your request was properly formatted, that the signature was generated with the correct credentials, and that you have ... |
+| `PipelineDeletedException` | `structure` | message | The specified pipeline has been deleted. |
+| `PipelineNotFoundException` | `structure` | message | The specified pipeline was not found. Verify that you used the correct user and account identifiers. |
+| `TaskNotFoundException` | `structure` | message | The specified task was not found. |
+| `ActivatePipelineInput` | `structure` | pipelineId, parameterValues, startTimestamp | Contains the parameters for ActivatePipeline. |
+| `ActivatePipelineOutput` | `structure` | **empty (no members)** | Contains the output of ActivatePipeline. |
+| `AddTagsInput` | `structure` | pipelineId, tags | Contains the parameters for AddTags. |
+| `AddTagsOutput` | `structure` | **empty (no members)** | Contains the output of AddTags. |
+| `CreatePipelineInput` | `structure` | name, uniqueId, description, tags | Contains the parameters for CreatePipeline. |
+| `CreatePipelineOutput` | `structure` | pipelineId | Contains the output of CreatePipeline. |
+| `DeactivatePipelineInput` | `structure` | pipelineId, cancelActive | Contains the parameters for DeactivatePipeline. |
+| `DeactivatePipelineOutput` | `structure` | **empty (no members)** | Contains the output of DeactivatePipeline. |
+| `DeletePipelineInput` | `structure` | pipelineId | Contains the parameters for DeletePipeline. |
+| `DescribeObjectsInput` | `structure` | pipelineId, objectIds, evaluateExpressions, marker | Contains the parameters for DescribeObjects. |
+| `DescribeObjectsOutput` | `structure` | pipelineObjects, marker, hasMoreResults | Contains the output of DescribeObjects. |
+| `DescribePipelinesInput` | `structure` | pipelineIds | Contains the parameters for DescribePipelines. |
+| `DescribePipelinesOutput` | `structure` | pipelineDescriptionList | Contains the output of DescribePipelines. |
+| `EvaluateExpressionInput` | `structure` | pipelineId, objectId, expression | Contains the parameters for EvaluateExpression. |
+| `EvaluateExpressionOutput` | `structure` | evaluatedExpression | Contains the output of EvaluateExpression. |
+| `GetPipelineDefinitionInput` | `structure` | pipelineId, version | Contains the parameters for GetPipelineDefinition. |
+| `GetPipelineDefinitionOutput` | `structure` | pipelineObjects, parameterObjects, parameterValues | Contains the output of GetPipelineDefinition. |
+| `ListPipelinesInput` | `structure` | marker | Contains the parameters for ListPipelines. |
+| `ListPipelinesOutput` | `structure` | pipelineIdList, marker, hasMoreResults | Contains the output of ListPipelines. |
+| `PollForTaskInput` | `structure` | workerGroup, hostname, instanceIdentity | Contains the parameters for PollForTask. |
+| `PollForTaskOutput` | `structure` | taskObject | Contains the output of PollForTask. |
+| `PutPipelineDefinitionInput` | `structure` | pipelineId, pipelineObjects, parameterObjects, parameterValues | Contains the parameters for PutPipelineDefinition. |
+| `PutPipelineDefinitionOutput` | `structure` | validationErrors, validationWarnings, errored | Contains the output of PutPipelineDefinition. |
+| `QueryObjectsInput` | `structure` | pipelineId, query, sphere, marker, limit | Contains the parameters for QueryObjects. |
+| `QueryObjectsOutput` | `structure` | ids, marker, hasMoreResults | Contains the output of QueryObjects. |
+| `RemoveTagsInput` | `structure` | pipelineId, tagKeys | Contains the parameters for RemoveTags. |
+| `RemoveTagsOutput` | `structure` | **empty (no members)** | Contains the output of RemoveTags. |
+| `ReportTaskProgressInput` | `structure` | taskId, fields | Contains the parameters for ReportTaskProgress. |
+| `ReportTaskProgressOutput` | `structure` | canceled | Contains the output of ReportTaskProgress. |
+| `ReportTaskRunnerHeartbeatInput` | `structure` | taskrunnerId, workerGroup, hostname | Contains the parameters for ReportTaskRunnerHeartbeat. |
+| `ReportTaskRunnerHeartbeatOutput` | `structure` | terminate | Contains the output of ReportTaskRunnerHeartbeat. |
+| `SetStatusInput` | `structure` | pipelineId, objectIds, status | Contains the parameters for SetStatus. |
+| `SetTaskStatusInput` | `structure` | taskId, taskStatus, errorId, errorMessage, errorStackTrace | Contains the parameters for SetTaskStatus. |
+| `SetTaskStatusOutput` | `structure` | **empty (no members)** | Contains the output of SetTaskStatus. |
+| `ValidatePipelineDefinitionInput` | `structure` | pipelineId, pipelineObjects, parameterObjects, parameterValues | Contains the parameters for ValidatePipelineDefinition. |
+| `OperatorType` | `enum` | Equal, ReferenceEqual, LessThanOrEqual, GreaterThanOrEqual, Between | - |
+| `TaskStatus` | `enum` | FINISHED, FAILED, FALSE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

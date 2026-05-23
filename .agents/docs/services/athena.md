@@ -70,192 +70,223 @@ Parity implications:
 
 ### Get
 
-- Operations: `GetCalculationExecution`, `GetCalculationExecutionCode`, `GetCalculationExecutionStatus`, `GetCapacityAssignmentConfiguration`, `GetCapacityReservation`, `GetDataCatalog`, `GetDatabase`, `GetNamedQuery`, `GetNotebookMetadata`, `GetPreparedStatement`, `GetQueryExecution`, `GetQueryResults`, `GetQueryRuntimeStatistics`, `GetResourceDashboard`, `GetSession`, `GetSessionEndpoint`, `GetSessionStatus`, `GetTableMetadata`, `GetWorkGroup`
+- Operations: `GetCalculationExecution`, `GetCalculationExecutionCode`, `GetCalculationExecutionStatus`, `GetCapacityAssignmentConfiguration`, `GetCapacityReservation`, `GetDatabase`, `GetDataCatalog`, `GetNamedQuery`, `GetNotebookMetadata`, `GetPreparedStatement`, `GetQueryExecution`, `GetQueryResults`, `GetQueryRuntimeStatistics`, `GetResourceDashboard`, `GetSession`, `GetSessionEndpoint`, `GetSessionStatus`, `GetTableMetadata`, `GetWorkGroup`
 - Traits: `paginated` (1)
-- Common required input members in this group: `CalculationExecutionId`, `CapacityReservationName`, `CatalogName`, `DatabaseName`, `Name`, `NamedQueryId`, `NotebookId`, `QueryExecutionId`, `ResourceARN`, `SessionId`, `StatementName`, `TableName`, `WorkGroup`
+- Common required input members in this group: `CalculationExecutionId`, `Name`, `CatalogName`, `DatabaseName`, `WorkGroup`, `QueryExecutionId`, `SessionId`
 
 ### List
 
-- Operations: `ListApplicationDPUSizes`, `ListCalculationExecutions`, `ListCapacityReservations`, `ListDataCatalogs`, `ListDatabases`, `ListEngineVersions`, `ListExecutors`, `ListNamedQueries`, `ListNotebookMetadata`, `ListNotebookSessions`, `ListPreparedStatements`, `ListQueryExecutions`, `ListSessions`, `ListTableMetadata`, `ListTagsForResource`, `ListWorkGroups`
+- Operations: `ListApplicationDPUSizes`, `ListCalculationExecutions`, `ListCapacityReservations`, `ListDatabases`, `ListDataCatalogs`, `ListEngineVersions`, `ListExecutors`, `ListNamedQueries`, `ListNotebookMetadata`, `ListNotebookSessions`, `ListPreparedStatements`, `ListQueryExecutions`, `ListSessions`, `ListTableMetadata`, `ListTagsForResource`, `ListWorkGroups`
 - Traits: `paginated` (14)
-- Common required input members in this group: `CatalogName`, `DatabaseName`, `NotebookId`, `ResourceARN`, `SessionId`, `WorkGroup`
+- Common required input members in this group: `SessionId`, `CatalogName`, `WorkGroup`
 
 ### Create
 
 - Operations: `CreateCapacityReservation`, `CreateDataCatalog`, `CreateNamedQuery`, `CreateNotebook`, `CreatePreparedStatement`, `CreatePresignedNotebookUrl`, `CreateWorkGroup`
-- Traits: `idempotency-token` (1), `idempotent` (2)
-- Common required input members in this group: `Database`, `Name`, `QueryStatement`, `QueryString`, `SessionId`, `StatementName`, `TargetDpus`, `Type`, `WorkGroup`
+- Traits: `idempotent` (2), `idempotency-token` (1)
+- Common required input members in this group: `Name`, `WorkGroup`
 
 ### Update
 
 - Operations: `UpdateCapacityReservation`, `UpdateDataCatalog`, `UpdateNamedQuery`, `UpdateNotebook`, `UpdateNotebookMetadata`, `UpdatePreparedStatement`, `UpdateWorkGroup`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `Name`, `NamedQueryId`, `NotebookId`, `Payload`, `QueryStatement`, `QueryString`, `StatementName`, `TargetDpus`, `Type`, `WorkGroup`
+- Common required input members in this group: `Name`, `Type`, `NotebookId`, `WorkGroup`
 
 ### Delete
 
 - Operations: `DeleteCapacityReservation`, `DeleteDataCatalog`, `DeleteNamedQuery`, `DeleteNotebook`, `DeletePreparedStatement`, `DeleteWorkGroup`
-- Traits: `idempotency-token` (1), `idempotent` (3)
-- Common required input members in this group: `Name`, `NamedQueryId`, `NotebookId`, `StatementName`, `WorkGroup`
+- Traits: `idempotent` (3), `idempotency-token` (1)
+- Common required input members in this group: `Name`, `WorkGroup`
 
 ### Batch
 
 - Operations: `BatchGetNamedQuery`, `BatchGetPreparedStatement`, `BatchGetQueryExecution`
-- Common required input members in this group: `NamedQueryIds`, `PreparedStatementNames`, `QueryExecutionIds`, `WorkGroup`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartCalculationExecution`, `StartQueryExecution`, `StartSession`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `EngineConfiguration`, `QueryString`, `SessionId`, `WorkGroup`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopCalculationExecution`, `StopQueryExecution`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `CalculationExecutionId`, `QueryExecutionId`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelCapacityReservation`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Export
 
 - Operations: `ExportNotebook`
-- Common required input members in this group: `NotebookId`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportNotebook`
-- Common required input members in this group: `Name`, `Type`, `WorkGroup`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutCapacityAssignmentConfiguration`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `CapacityAssignments`, `CapacityReservationName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Terminate
 
 - Operations: `TerminateSession`
-- Common required input members in this group: `SessionId`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchGetNamedQuery` | - | - | `NamedQueryIds` | - | `BatchGetNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Returns the details of a single named query or a list of up to 50 queries, which you provide as an array of query ID strings. Requires you to have access to the workgroup in which the queries were saved. |
-| `BatchGetPreparedStatement` | - | - | `PreparedStatementNames`, `WorkGroup` | - | `BatchGetPreparedStatementOutput` | `InternalServerException`, `InvalidRequestException` | Returns the details of a single prepared statement or a list of up to 256 prepared statements for the array of prepared statement names that you provide. Requires you to have access to the workgroup to which the prepared statements belong. |
-| `BatchGetQueryExecution` | - | - | `QueryExecutionIds` | - | `BatchGetQueryExecutionOutput` | `InternalServerException`, `InvalidRequestException` | Returns the details of a single query execution or a list of up to 50 query executions, which you provide as an array of query execution ID strings. Requires you to have access to the workgroup in which the queries ran. |
-| `CancelCapacityReservation` | - | `idempotent` | `Name` | - | `CancelCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Cancels the capacity reservation with the specified name. Cancelled reservations remain in your account and will be deleted 45 days after cancellation. |
-| `CreateCapacityReservation` | - | `idempotent` | `Name`, `TargetDpus` | - | `CreateCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Creates a capacity reservation with the specified name and number of requested data processing units. |
-| `CreateDataCatalog` | - | - | `Name`, `Type` | - | `CreateDataCatalogOutput` | `InternalServerException`, `InvalidRequestException` | Creates (registers) a data catalog with the specified name and properties. Catalogs created are visible to all users of the same Amazon Web Services account. |
-| `CreateNamedQuery` | - | `idempotent`, `idempotency-token` | `Database`, `Name`, `QueryString` | `ClientRequestToken` | `CreateNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Creates a named query in the specified workgroup. Requires that you have access to the workgroup. |
-| `CreateNotebook` | - | - | `Name`, `WorkGroup` | - | `CreateNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Creates an empty `ipynb` file in the specified Apache Spark enabled workgroup. Throws an error if a file in the workgroup with the same name already exists. |
-| `CreatePreparedStatement` | - | - | `QueryStatement`, `StatementName`, `WorkGroup` | - | `CreatePreparedStatementOutput` | `InternalServerException`, `InvalidRequestException` | Creates a prepared statement for use with SQL queries in Athena. |
-| `CreatePresignedNotebookUrl` | - | - | `SessionId` | - | `CreatePresignedNotebookUrlResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets an authentication token and the URL at which the notebook can be accessed. During programmatic access, `CreatePresignedNotebookUrl` must be called every 10 minutes to refresh the authentication token. |
-| `CreateWorkGroup` | - | - | `Name` | - | `CreateWorkGroupOutput` | `InternalServerException`, `InvalidRequestException` | Creates a workgroup with the specified name. A workgroup can be an Apache Spark enabled workgroup or an Athena SQL workgroup. |
-| `DeleteCapacityReservation` | - | `idempotent` | `Name` | - | `DeleteCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Deletes a cancelled capacity reservation. A reservation must be cancelled before it can be deleted. |
-| `DeleteDataCatalog` | - | - | `Name` | - | `DeleteDataCatalogOutput` | `InternalServerException`, `InvalidRequestException` | Deletes a data catalog. |
-| `DeleteNamedQuery` | - | `idempotent`, `idempotency-token` | `NamedQueryId` | `NamedQueryId` | `DeleteNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Deletes the named query if you have access to the workgroup in which the query was saved. |
-| `DeleteNotebook` | - | - | `NotebookId` | - | `DeleteNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Deletes the specified notebook. |
-| `DeletePreparedStatement` | - | - | `StatementName`, `WorkGroup` | - | `DeletePreparedStatementOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Deletes the prepared statement with the specified name from the specified workgroup. |
-| `DeleteWorkGroup` | - | `idempotent` | `WorkGroup` | - | `DeleteWorkGroupOutput` | `InternalServerException`, `InvalidRequestException` | Deletes the workgroup with the specified name. The primary workgroup cannot be deleted. |
-| `ExportNotebook` | - | - | `NotebookId` | - | `ExportNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Exports the specified notebook and its metadata. |
-| `GetCalculationExecution` | - | - | `CalculationExecutionId` | - | `GetCalculationExecutionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Describes a previously submitted calculation execution. |
-| `GetCalculationExecutionCode` | - | - | `CalculationExecutionId` | - | `GetCalculationExecutionCodeResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Retrieves the unencrypted code that was executed for the calculation. |
-| `GetCalculationExecutionStatus` | - | - | `CalculationExecutionId` | - | `GetCalculationExecutionStatusResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets the status of a current calculation. |
-| `GetCapacityAssignmentConfiguration` | - | - | `CapacityReservationName` | - | `GetCapacityAssignmentConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Gets the capacity assignment configuration for a capacity reservation, if one exists. |
-| `GetCapacityReservation` | - | - | `Name` | - | `GetCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Returns information about the capacity reservation with the specified name. |
-| `GetDataCatalog` | - | - | `Name` | - | `GetDataCatalogOutput` | `InternalServerException`, `InvalidRequestException` | Returns the specified data catalog. |
-| `GetDatabase` | - | - | `CatalogName`, `DatabaseName` | - | `GetDatabaseOutput` | `InternalServerException`, `InvalidRequestException`, `MetadataException` | Returns a database object for the specified database and data catalog. |
-| `GetNamedQuery` | - | - | `NamedQueryId` | - | `GetNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Returns information about a single query. Requires that you have access to the workgroup in which the query was saved. |
-| `GetNotebookMetadata` | - | - | `NotebookId` | - | `GetNotebookMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Retrieves notebook metadata for the specified notebook ID. |
-| `GetPreparedStatement` | - | - | `StatementName`, `WorkGroup` | - | `GetPreparedStatementOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Retrieves the prepared statement with the specified name from the specified workgroup. |
-| `GetQueryExecution` | - | - | `QueryExecutionId` | - | `GetQueryExecutionOutput` | `InternalServerException`, `InvalidRequestException` | Returns information about a single execution of a query if you have access to the workgroup in which the query ran. Each time a query executes, information about the query execution is saved with a unique ID. |
-| `GetQueryResults` | - | `paginated` | `QueryExecutionId` | - | `GetQueryResultsOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Streams the results of a single query execution specified by `QueryExecutionId` from the Athena query results location in Amazon S3. For more information, see Working with query results, recent queries, and output files in the Amazon Athena User Guide . |
-| `GetQueryRuntimeStatistics` | - | - | `QueryExecutionId` | - | `GetQueryRuntimeStatisticsOutput` | `InternalServerException`, `InvalidRequestException` | Returns query execution runtime statistics related to a single execution of a query if you have access to the workgroup in which the query ran. Statistics from the `Timeline` section of the response object are available as soon as QueryExecutionStatus$State... |
-| `GetResourceDashboard` | - | - | `ResourceARN` | - | `GetResourceDashboardResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets the Live UI/Persistence UI for a session. |
-| `GetSession` | - | - | `SessionId` | - | `GetSessionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets the full details of a previously created session, including the session status and configuration. |
-| `GetSessionEndpoint` | - | - | `SessionId` | - | `GetSessionEndpointResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets a connection endpoint and authentication token for a given session Id. |
-| `GetSessionStatus` | - | - | `SessionId` | - | `GetSessionStatusResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets the current status of a session. |
-| `GetTableMetadata` | - | - | `CatalogName`, `DatabaseName`, `TableName` | - | `GetTableMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `MetadataException` | Returns table metadata for the specified catalog, database, and table. |
-| `GetWorkGroup` | - | - | `WorkGroup` | - | `GetWorkGroupOutput` | `InternalServerException`, `InvalidRequestException` | Returns information about the workgroup with the specified name. |
-| `ImportNotebook` | - | - | `Name`, `Type`, `WorkGroup` | - | `ImportNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Imports a single `ipynb` file to a Spark enabled workgroup. To import the notebook, the request must specify a value for either `Payload` or `NoteBookS3LocationUri`. |
-| `ListApplicationDPUSizes` | - | `paginated` | - | - | `ListApplicationDPUSizesOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Returns the supported DPU sizes for the supported application runtimes (for example, `Athena notebook version 1`). |
-| `ListCalculationExecutions` | - | `paginated` | `SessionId` | - | `ListCalculationExecutionsResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists the calculations that have been submitted to a session in descending order. Newer calculations are listed first; older calculations are listed later. |
-| `ListCapacityReservations` | - | `paginated` | - | - | `ListCapacityReservationsOutput` | `InternalServerException`, `InvalidRequestException` | Lists the capacity reservations for the current account. |
-| `ListDataCatalogs` | - | `paginated` | - | - | `ListDataCatalogsOutput` | `InternalServerException`, `InvalidRequestException` | Lists the data catalogs in the current Amazon Web Services account. In the Athena console, data catalogs are listed as "data sources" on the Data sources page under the Data source name column. |
-| `ListDatabases` | - | `paginated` | `CatalogName` | - | `ListDatabasesOutput` | `InternalServerException`, `InvalidRequestException`, `MetadataException` | Lists the databases in the specified data catalog. |
-| `ListEngineVersions` | - | `paginated` | - | - | `ListEngineVersionsOutput` | `InternalServerException`, `InvalidRequestException` | Returns a list of engine versions that are available to choose from, including the Auto option. |
-| `ListExecutors` | - | `paginated` | `SessionId` | - | `ListExecutorsResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists, in descending order, the executors that joined a session. Newer executors are listed first; older executors are listed later. |
-| `ListNamedQueries` | - | `paginated` | - | - | `ListNamedQueriesOutput` | `InternalServerException`, `InvalidRequestException` | Provides a list of available query IDs only for queries saved in the specified workgroup. Requires that you have access to the specified workgroup. |
-| `ListNotebookMetadata` | - | - | `WorkGroup` | - | `ListNotebookMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Displays the notebook files for the specified workgroup in paginated format. |
-| `ListNotebookSessions` | - | - | `NotebookId` | - | `ListNotebookSessionsResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists, in descending order, the sessions that have been created in a notebook that are in an active state like `CREATING`, `CREATED`, `IDLE` or `BUSY`. Newer sessions are listed first; older sessions are listed later. |
-| `ListPreparedStatements` | - | `paginated` | `WorkGroup` | - | `ListPreparedStatementsOutput` | `InternalServerException`, `InvalidRequestException` | Lists the prepared statements in the specified workgroup. |
-| `ListQueryExecutions` | - | `paginated` | - | - | `ListQueryExecutionsOutput` | `InternalServerException`, `InvalidRequestException` | Provides a list of available query execution IDs for the queries in the specified workgroup. Athena keeps a query history for 45 days. |
-| `ListSessions` | - | `paginated` | `WorkGroup` | - | `ListSessionsResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists the sessions in a workgroup that are in an active state like `CREATING`, `CREATED`, `IDLE`, or `BUSY`. Newer sessions are listed first; older sessions are listed later. |
-| `ListTableMetadata` | - | `paginated` | `CatalogName`, `DatabaseName` | - | `ListTableMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `MetadataException` | Lists the metadata for the tables in the specified data catalog database. |
-| `ListTagsForResource` | - | `paginated` | `ResourceARN` | - | `ListTagsForResourceOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists the tags associated with an Athena resource. |
-| `ListWorkGroups` | - | `paginated` | - | - | `ListWorkGroupsOutput` | `InternalServerException`, `InvalidRequestException` | Lists available workgroups for the account. |
-| `PutCapacityAssignmentConfiguration` | - | `idempotent` | `CapacityAssignments`, `CapacityReservationName` | - | `PutCapacityAssignmentConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Puts a new capacity assignment configuration for a specified capacity reservation. If a capacity assignment configuration already exists for the capacity reservation, replaces the existing capacity assignment configuration. |
-| `StartCalculationExecution` | - | - | `SessionId` | - | `StartCalculationExecutionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Submits calculations for execution within a session. You can supply the code to run as an inline code block within the request. |
-| `StartQueryExecution` | - | `idempotent`, `idempotency-token` | `QueryString` | `ClientRequestToken` | `StartQueryExecutionOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Runs the SQL query statements contained in the `Query`. Requires you to have access to the workgroup in which the query ran. |
-| `StartSession` | - | - | `EngineConfiguration`, `WorkGroup` | - | `StartSessionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `SessionAlreadyExistsException`, `TooManyRequestsException` | Creates a session for running calculations within a workgroup. The session is ready when it reaches an `IDLE` state. |
-| `StopCalculationExecution` | - | - | `CalculationExecutionId` | - | `StopCalculationExecutionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Requests the cancellation of a calculation. A `StopCalculationExecution` call on a calculation that is already in a terminal state (for example, `STOPPED`, `FAILED`, or `COMPLETED`) succeeds but has no effect. |
-| `StopQueryExecution` | - | `idempotent`, `idempotency-token` | `QueryExecutionId` | `QueryExecutionId` | `StopQueryExecutionOutput` | `InternalServerException`, `InvalidRequestException` | Stops a query execution. Requires you to have access to the workgroup in which the query ran. |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Adds one or more tags to an Athena resource. A tag is a label that you assign to a resource. |
-| `TerminateSession` | - | - | `SessionId` | - | `TerminateSessionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Terminates an active session. A `TerminateSession` call on a session that is already inactive (for example, in a `FAILED`, `TERMINATED` or `TERMINATING` state) succeeds but has no effect. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Removes one or more tags from an Athena resource. |
-| `UpdateCapacityReservation` | - | - | `Name`, `TargetDpus` | - | `UpdateCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Updates the number of requested data processing units for the capacity reservation with the specified name. |
-| `UpdateDataCatalog` | - | - | `Name`, `Type` | - | `UpdateDataCatalogOutput` | `InternalServerException`, `InvalidRequestException` | Updates the data catalog that has the specified name. |
-| `UpdateNamedQuery` | - | `idempotent` | `Name`, `NamedQueryId`, `QueryString` | - | `UpdateNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Updates a NamedQuery object. The database or workgroup cannot be updated. |
-| `UpdateNotebook` | - | - | `NotebookId`, `Payload`, `Type` | - | `UpdateNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Updates the contents of a Spark notebook. |
-| `UpdateNotebookMetadata` | - | - | `Name`, `NotebookId` | - | `UpdateNotebookMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Updates the metadata for a notebook. |
-| `UpdatePreparedStatement` | - | - | `QueryStatement`, `StatementName`, `WorkGroup` | - | `UpdatePreparedStatementOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Updates a prepared statement. |
-| `UpdateWorkGroup` | - | - | `WorkGroup` | - | `UpdateWorkGroupOutput` | `InternalServerException`, `InvalidRequestException` | Updates the workgroup with the specified name. The workgroup's name cannot be changed. |
+| `BatchGetNamedQuery` | `-` | - | `NamedQueryIds` | - | `BatchGetNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Returns the details of a single named query or a list of up to 50 queries, which you provide as an array of query ID strings. Requires you to have access to the workgroup in which the queries were saved. Use ListName ... |
+| `BatchGetPreparedStatement` | `-` | - | `PreparedStatementNames`, `WorkGroup` | - | `BatchGetPreparedStatementOutput` | `InternalServerException`, `InvalidRequestException` | Returns the details of a single prepared statement or a list of up to 256 prepared statements for the array of prepared statement names that you provide. Requires you to have access to the workgroup to which the prep ... |
+| `BatchGetQueryExecution` | `-` | - | `QueryExecutionIds` | - | `BatchGetQueryExecutionOutput` | `InternalServerException`, `InvalidRequestException` | Returns the details of a single query execution or a list of up to 50 query executions, which you provide as an array of query execution ID strings. Requires you to have access to the workgroup in which the queries r ... |
+| `CancelCapacityReservation` | `-` | `idempotent` | `Name` | - | `CancelCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Cancels the capacity reservation with the specified name. Cancelled reservations remain in your account and will be deleted 45 days after cancellation. During the 45 days, you cannot re-purpose or reuse a reservation ... |
+| `CreateCapacityReservation` | `-` | `idempotent` | `TargetDpus`, `Name` | - | `CreateCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Creates a capacity reservation with the specified name and number of requested data processing units. |
+| `CreateDataCatalog` | `-` | - | `Name`, `Type` | - | `CreateDataCatalogOutput` | `InternalServerException`, `InvalidRequestException` | Creates (registers) a data catalog with the specified name and properties. Catalogs created are visible to all users of the same Amazon Web Services account. For a FEDERATED catalog, this API operation creates the fo ... |
+| `CreateNamedQuery` | `-` | `idempotent`, `idempotency-token` | `Name`, `Database`, `QueryString` | `ClientRequestToken` | `CreateNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Creates a named query in the specified workgroup. Requires that you have access to the workgroup. |
+| `CreateNotebook` | `-` | - | `WorkGroup`, `Name` | - | `CreateNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Creates an empty ipynb file in the specified Apache Spark enabled workgroup. Throws an error if a file in the workgroup with the same name already exists. |
+| `CreatePreparedStatement` | `-` | - | `StatementName`, `WorkGroup`, `QueryStatement` | - | `CreatePreparedStatementOutput` | `InternalServerException`, `InvalidRequestException` | Creates a prepared statement for use with SQL queries in Athena. |
+| `CreatePresignedNotebookUrl` | `-` | - | `SessionId` | - | `CreatePresignedNotebookUrlResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets an authentication token and the URL at which the notebook can be accessed. During programmatic access, CreatePresignedNotebookUrl must be called every 10 minutes to refresh the authentication token. For informat ... |
+| `CreateWorkGroup` | `-` | - | `Name` | - | `CreateWorkGroupOutput` | `InternalServerException`, `InvalidRequestException` | Creates a workgroup with the specified name. A workgroup can be an Apache Spark enabled workgroup or an Athena SQL workgroup. |
+| `DeleteCapacityReservation` | `-` | `idempotent` | `Name` | - | `DeleteCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Deletes a cancelled capacity reservation. A reservation must be cancelled before it can be deleted. A deleted reservation is immediately removed from your account and can no longer be referenced, including by its ARN ... |
+| `DeleteDataCatalog` | `-` | - | `Name` | - | `DeleteDataCatalogOutput` | `InternalServerException`, `InvalidRequestException` | Deletes a data catalog. |
+| `DeleteNamedQuery` | `-` | `idempotent`, `idempotency-token` | `NamedQueryId` | `NamedQueryId` | `DeleteNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Deletes the named query if you have access to the workgroup in which the query was saved. |
+| `DeleteNotebook` | `-` | - | `NotebookId` | - | `DeleteNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Deletes the specified notebook. |
+| `DeletePreparedStatement` | `-` | - | `StatementName`, `WorkGroup` | - | `DeletePreparedStatementOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Deletes the prepared statement with the specified name from the specified workgroup. |
+| `DeleteWorkGroup` | `-` | `idempotent` | `WorkGroup` | - | `DeleteWorkGroupOutput` | `InternalServerException`, `InvalidRequestException` | Deletes the workgroup with the specified name. The primary workgroup cannot be deleted. |
+| `ExportNotebook` | `-` | - | `NotebookId` | - | `ExportNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Exports the specified notebook and its metadata. |
+| `GetCalculationExecution` | `-` | - | `CalculationExecutionId` | - | `GetCalculationExecutionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Describes a previously submitted calculation execution. |
+| `GetCalculationExecutionCode` | `-` | - | `CalculationExecutionId` | - | `GetCalculationExecutionCodeResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Retrieves the unencrypted code that was executed for the calculation. |
+| `GetCalculationExecutionStatus` | `-` | - | `CalculationExecutionId` | - | `GetCalculationExecutionStatusResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets the status of a current calculation. |
+| `GetCapacityAssignmentConfiguration` | `-` | - | `CapacityReservationName` | - | `GetCapacityAssignmentConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Gets the capacity assignment configuration for a capacity reservation, if one exists. |
+| `GetCapacityReservation` | `-` | - | `Name` | - | `GetCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Returns information about the capacity reservation with the specified name. |
+| `GetDatabase` | `-` | - | `CatalogName`, `DatabaseName` | - | `GetDatabaseOutput` | `InternalServerException`, `InvalidRequestException`, `MetadataException` | Returns a database object for the specified database and data catalog. |
+| `GetDataCatalog` | `-` | - | `Name` | - | `GetDataCatalogOutput` | `InternalServerException`, `InvalidRequestException` | Returns the specified data catalog. |
+| `GetNamedQuery` | `-` | - | `NamedQueryId` | - | `GetNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Returns information about a single query. Requires that you have access to the workgroup in which the query was saved. |
+| `GetNotebookMetadata` | `-` | - | `NotebookId` | - | `GetNotebookMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Retrieves notebook metadata for the specified notebook ID. |
+| `GetPreparedStatement` | `-` | - | `StatementName`, `WorkGroup` | - | `GetPreparedStatementOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Retrieves the prepared statement with the specified name from the specified workgroup. |
+| `GetQueryExecution` | `-` | - | `QueryExecutionId` | - | `GetQueryExecutionOutput` | `InternalServerException`, `InvalidRequestException` | Returns information about a single execution of a query if you have access to the workgroup in which the query ran. Each time a query executes, information about the query execution is saved with a unique ID. |
+| `GetQueryResults` | `-` | `paginated` | `QueryExecutionId` | - | `GetQueryResultsOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Streams the results of a single query execution specified by QueryExecutionId from the Athena query results location in Amazon S3. For more information, see Working with query results, recent queries, and output file ... |
+| `GetQueryRuntimeStatistics` | `-` | - | `QueryExecutionId` | - | `GetQueryRuntimeStatisticsOutput` | `InternalServerException`, `InvalidRequestException` | Returns query execution runtime statistics related to a single execution of a query if you have access to the workgroup in which the query ran. Statistics from the Timeline section of the response object are availabl ... |
+| `GetResourceDashboard` | `-` | - | `ResourceARN` | - | `GetResourceDashboardResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets the Live UI/Persistence UI for a session. |
+| `GetSession` | `-` | - | `SessionId` | - | `GetSessionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets the full details of a previously created session, including the session status and configuration. |
+| `GetSessionEndpoint` | `-` | - | `SessionId` | - | `GetSessionEndpointResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets a connection endpoint and authentication token for a given session Id. |
+| `GetSessionStatus` | `-` | - | `SessionId` | - | `GetSessionStatusResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Gets the current status of a session. |
+| `GetTableMetadata` | `-` | - | `CatalogName`, `DatabaseName`, `TableName` | - | `GetTableMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `MetadataException` | Returns table metadata for the specified catalog, database, and table. |
+| `GetWorkGroup` | `-` | - | `WorkGroup` | - | `GetWorkGroupOutput` | `InternalServerException`, `InvalidRequestException` | Returns information about the workgroup with the specified name. |
+| `ImportNotebook` | `-` | - | `WorkGroup`, `Name`, `Type` | - | `ImportNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Imports a single ipynb file to a Spark enabled workgroup. To import the notebook, the request must specify a value for either Payload or NoteBookS3LocationUri . If neither is specified or both are specified, an Inval ... |
+| `ListApplicationDPUSizes` | `-` | `paginated` | - | - | `ListApplicationDPUSizesOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Returns the supported DPU sizes for the supported application runtimes (for example, Athena notebook version 1 ). |
+| `ListCalculationExecutions` | `-` | `paginated` | `SessionId` | - | `ListCalculationExecutionsResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists the calculations that have been submitted to a session in descending order. Newer calculations are listed first; older calculations are listed later. |
+| `ListCapacityReservations` | `-` | `paginated` | - | - | `ListCapacityReservationsOutput` | `InternalServerException`, `InvalidRequestException` | Lists the capacity reservations for the current account. |
+| `ListDatabases` | `-` | `paginated` | `CatalogName` | - | `ListDatabasesOutput` | `InternalServerException`, `InvalidRequestException`, `MetadataException` | Lists the databases in the specified data catalog. |
+| `ListDataCatalogs` | `-` | `paginated` | - | - | `ListDataCatalogsOutput` | `InternalServerException`, `InvalidRequestException` | Lists the data catalogs in the current Amazon Web Services account. In the Athena console, data catalogs are listed as "data sources" on the Data sources page under the Data source name column. |
+| `ListEngineVersions` | `-` | `paginated` | - | - | `ListEngineVersionsOutput` | `InternalServerException`, `InvalidRequestException` | Returns a list of engine versions that are available to choose from, including the Auto option. |
+| `ListExecutors` | `-` | `paginated` | `SessionId` | - | `ListExecutorsResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists, in descending order, the executors that joined a session. Newer executors are listed first; older executors are listed later. The result can be optionally filtered by state. |
+| `ListNamedQueries` | `-` | `paginated` | - | - | `ListNamedQueriesOutput` | `InternalServerException`, `InvalidRequestException` | Provides a list of available query IDs only for queries saved in the specified workgroup. Requires that you have access to the specified workgroup. If a workgroup is not specified, lists the saved queries for the pri ... |
+| `ListNotebookMetadata` | `-` | - | `WorkGroup` | - | `ListNotebookMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Displays the notebook files for the specified workgroup in paginated format. |
+| `ListNotebookSessions` | `-` | - | `NotebookId` | - | `ListNotebookSessionsResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists, in descending order, the sessions that have been created in a notebook that are in an active state like CREATING , CREATED , IDLE or BUSY . Newer sessions are listed first; older sessions are listed later. |
+| `ListPreparedStatements` | `-` | `paginated` | `WorkGroup` | - | `ListPreparedStatementsOutput` | `InternalServerException`, `InvalidRequestException` | Lists the prepared statements in the specified workgroup. |
+| `ListQueryExecutions` | `-` | `paginated` | - | - | `ListQueryExecutionsOutput` | `InternalServerException`, `InvalidRequestException` | Provides a list of available query execution IDs for the queries in the specified workgroup. Athena keeps a query history for 45 days. If a workgroup is not specified, returns a list of query execution IDs for the pr ... |
+| `ListSessions` | `-` | `paginated` | `WorkGroup` | - | `ListSessionsResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists the sessions in a workgroup that are in an active state like CREATING , CREATED , IDLE , or BUSY . Newer sessions are listed first; older sessions are listed later. |
+| `ListTableMetadata` | `-` | `paginated` | `CatalogName`, `DatabaseName` | - | `ListTableMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `MetadataException` | Lists the metadata for the tables in the specified data catalog database. |
+| `ListTagsForResource` | `-` | `paginated` | `ResourceARN` | - | `ListTagsForResourceOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists the tags associated with an Athena resource. |
+| `ListWorkGroups` | `-` | `paginated` | - | - | `ListWorkGroupsOutput` | `InternalServerException`, `InvalidRequestException` | Lists available workgroups for the account. |
+| `PutCapacityAssignmentConfiguration` | `-` | `idempotent` | `CapacityReservationName`, `CapacityAssignments` | - | `PutCapacityAssignmentConfigurationOutput` | `InternalServerException`, `InvalidRequestException` | Puts a new capacity assignment configuration for a specified capacity reservation. If a capacity assignment configuration already exists for the capacity reservation, replaces the existing capacity assignment configu ... |
+| `StartCalculationExecution` | `-` | - | `SessionId` | - | `StartCalculationExecutionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Submits calculations for execution within a session. You can supply the code to run as an inline code block within the request. The request syntax requires the StartCalculationExecutionRequest$CodeBlock parameter or ... |
+| `StartQueryExecution` | `-` | `idempotent`, `idempotency-token` | `QueryString` | `ClientRequestToken` | `StartQueryExecutionOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Runs the SQL query statements contained in the Query . Requires you to have access to the workgroup in which the query ran. Running queries against an external catalog requires GetDataCatalog permission to the catalo ... |
+| `StartSession` | `-` | - | `WorkGroup`, `EngineConfiguration` | - | `StartSessionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `SessionAlreadyExistsException`, `TooManyRequestsException` | Creates a session for running calculations within a workgroup. The session is ready when it reaches an IDLE state. |
+| `StopCalculationExecution` | `-` | - | `CalculationExecutionId` | - | `StopCalculationExecutionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Requests the cancellation of a calculation. A StopCalculationExecution call on a calculation that is already in a terminal state (for example, STOPPED , FAILED , or COMPLETED ) succeeds but has no effect. Cancelling ... |
+| `StopQueryExecution` | `-` | `idempotent`, `idempotency-token` | `QueryExecutionId` | `QueryExecutionId` | `StopQueryExecutionOutput` | `InternalServerException`, `InvalidRequestException` | Stops a query execution. Requires you to have access to the workgroup in which the query ran. |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Adds one or more tags to an Athena resource. A tag is a label that you assign to a resource. Each tag consists of a key and an optional value, both of which you define. For example, you can use tags to categorize Ath ... |
+| `TerminateSession` | `-` | - | `SessionId` | - | `TerminateSessionResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Terminates an active session. A TerminateSession call on a session that is already inactive (for example, in a FAILED , TERMINATED or TERMINATING state) succeeds but has no effect. Calculations running in the session ... |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Removes one or more tags from an Athena resource. |
+| `UpdateCapacityReservation` | `-` | - | `TargetDpus`, `Name` | - | `UpdateCapacityReservationOutput` | `InternalServerException`, `InvalidRequestException` | Updates the number of requested data processing units for the capacity reservation with the specified name. |
+| `UpdateDataCatalog` | `-` | - | `Name`, `Type` | - | `UpdateDataCatalogOutput` | `InternalServerException`, `InvalidRequestException` | Updates the data catalog that has the specified name. |
+| `UpdateNamedQuery` | `-` | `idempotent` | `NamedQueryId`, `Name`, `QueryString` | - | `UpdateNamedQueryOutput` | `InternalServerException`, `InvalidRequestException` | Updates a NamedQuery object. The database or workgroup cannot be updated. |
+| `UpdateNotebook` | `-` | - | `NotebookId`, `Payload`, `Type` | - | `UpdateNotebookOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Updates the contents of a Spark notebook. |
+| `UpdateNotebookMetadata` | `-` | - | `NotebookId`, `Name` | - | `UpdateNotebookMetadataOutput` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException` | Updates the metadata for a notebook. |
+| `UpdatePreparedStatement` | `-` | - | `StatementName`, `WorkGroup`, `QueryStatement` | - | `UpdatePreparedStatementOutput` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Updates a prepared statement. |
+| `UpdateWorkGroup` | `-` | - | `WorkGroup` | - | `UpdateWorkGroupOutput` | `InternalServerException`, `InvalidRequestException` | Updates the workgroup with the specified name. The workgroup's name cannot be changed. Only ConfigurationUpdates can be specified. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | Indicates a platform issue, which may be due to a transient condition or outage. |
-| `InvalidRequestException` | `structure` | `AthenaErrorCode`, `Message` | Indicates that something is wrong with the input to the request. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceName` | A resource, such as a workgroup, was not found. |
-| `TooManyRequestsException` | `structure` | `Message`, `Reason` | Indicates that the request was throttled. |
-| `MetadataException` | `structure` | `Message` | An exception that Athena received when it called a custom metastore. |
-| `BatchGetNamedQueryInput` | `structure` | `NamedQueryIds` | Contains an array of named query IDs. |
-| `BatchGetNamedQueryOutput` | `structure` | `NamedQueries`, `UnprocessedNamedQueryIds` | - |
-| `BatchGetPreparedStatementInput` | `structure` | `PreparedStatementNames`, `WorkGroup` | - |
-| `BatchGetPreparedStatementOutput` | `structure` | `PreparedStatements`, `UnprocessedPreparedStatementNames` | - |
-| `BatchGetQueryExecutionInput` | `structure` | `QueryExecutionIds` | Contains an array of query execution IDs. |
-| `BatchGetQueryExecutionOutput` | `structure` | `QueryExecutions`, `UnprocessedQueryExecutionIds` | - |
-| `CancelCapacityReservationInput` | `structure` | `Name` | - |
-| `CancelCapacityReservationOutput` | `structure` | - | - |
-| `CreateCapacityReservationInput` | `structure` | `Name`, `Tags`, `TargetDpus` | - |
-| `CreateCapacityReservationOutput` | `structure` | - | - |
-| `CreateDataCatalogInput` | `structure` | `Description`, `Name`, `Parameters`, `Tags`, `Type` | - |
-| `CreateDataCatalogOutput` | `structure` | `DataCatalog` | - |
-| `CreateNamedQueryInput` | `structure` | `ClientRequestToken`, `Database`, `Description`, `Name`, `QueryString`, `WorkGroup` | - |
-| `CreateNamedQueryOutput` | `structure` | `NamedQueryId` | - |
-| `CreateNotebookInput` | `structure` | `ClientRequestToken`, `Name`, `WorkGroup` | - |
-| `CreateNotebookOutput` | `structure` | `NotebookId` | - |
-| `CreatePreparedStatementInput` | `structure` | `Description`, `QueryStatement`, `StatementName`, `WorkGroup` | - |
-| `CreatePreparedStatementOutput` | `structure` | - | - |
-| `CreatePresignedNotebookUrlRequest` | `structure` | `SessionId` | - |
-
+| `InternalServerException` | `structure` | Message | Indicates a platform issue, which may be due to a transient condition or outage. |
+| `InvalidRequestException` | `structure` | AthenaErrorCode, Message | Indicates that something is wrong with the input to the request. For example, a required parameter may be missing or out of range. |
+| `MetadataException` | `structure` | Message | An exception that Athena received when it called a custom metastore. Occurs if the error is not caused by user input ( InvalidRequestException ) or from the ... |
+| `ResourceNotFoundException` | `structure` | Message, ResourceName | A resource, such as a workgroup, was not found. |
+| `SessionAlreadyExistsException` | `structure` | Message | The specified session already exists. |
+| `TooManyRequestsException` | `structure` | Message, Reason | Indicates that the request was throttled. |
+| `BatchGetNamedQueryInput` | `structure` | NamedQueryIds | Contains an array of named query IDs. |
+| `BatchGetNamedQueryOutput` | `structure` | NamedQueries, UnprocessedNamedQueryIds | - |
+| `BatchGetPreparedStatementInput` | `structure` | PreparedStatementNames, WorkGroup | - |
+| `BatchGetPreparedStatementOutput` | `structure` | PreparedStatements, UnprocessedPreparedStatementNames | - |
+| `BatchGetQueryExecutionInput` | `structure` | QueryExecutionIds | Contains an array of query execution IDs. |
+| `BatchGetQueryExecutionOutput` | `structure` | QueryExecutions, UnprocessedQueryExecutionIds | - |
+| `CancelCapacityReservationInput` | `structure` | Name | - |
+| `CancelCapacityReservationOutput` | `structure` | **empty (no members)** | - |
+| `CreateCapacityReservationInput` | `structure` | TargetDpus, Name, Tags | - |
+| `CreateCapacityReservationOutput` | `structure` | **empty (no members)** | - |
+| `CreateDataCatalogInput` | `structure` | Name, Type, Description, Parameters, Tags | - |
+| `CreateDataCatalogOutput` | `structure` | DataCatalog | - |
+| `CreateNamedQueryInput` | `structure` | Name, Description, Database, QueryString, ClientRequestToken, WorkGroup | - |
+| `CreateNamedQueryOutput` | `structure` | NamedQueryId | - |
+| `CreateNotebookInput` | `structure` | WorkGroup, Name, ClientRequestToken | - |
+| `CreateNotebookOutput` | `structure` | NotebookId | - |
+| `CreatePreparedStatementInput` | `structure` | StatementName, WorkGroup, QueryStatement, Description | - |
+| `CreatePreparedStatementOutput` | `structure` | **empty (no members)** | - |
+| `CreatePresignedNotebookUrlRequest` | `structure` | SessionId | - |
+| `CreatePresignedNotebookUrlResponse` | `structure` | NotebookUrl, AuthToken, AuthTokenExpirationTime | - |
+| `CreateWorkGroupInput` | `structure` | Name, Configuration, Description, Tags | - |
+| `CreateWorkGroupOutput` | `structure` | **empty (no members)** | - |
+| `DeleteCapacityReservationInput` | `structure` | Name | - |
+| `DeleteCapacityReservationOutput` | `structure` | **empty (no members)** | - |
+| `DeleteDataCatalogInput` | `structure` | Name, DeleteCatalogOnly | - |
+| `DeleteDataCatalogOutput` | `structure` | DataCatalog | - |
+| `DeleteNamedQueryInput` | `structure` | NamedQueryId | - |
+| `DeleteNamedQueryOutput` | `structure` | **empty (no members)** | - |
+| `DeleteNotebookInput` | `structure` | NotebookId | - |
+| `DeleteNotebookOutput` | `structure` | **empty (no members)** | - |
+| `DeletePreparedStatementInput` | `structure` | StatementName, WorkGroup | - |
+| `DeletePreparedStatementOutput` | `structure` | **empty (no members)** | - |
+| `DeleteWorkGroupInput` | `structure` | WorkGroup, RecursiveDeleteOption | - |
+| `DeleteWorkGroupOutput` | `structure` | **empty (no members)** | - |
+| `AuthenticationType` | `enum` | DIRECTORY_IDENTITY | - |
+| `CalculationExecutionState` | `enum` | CREATING, CREATED, QUEUED, RUNNING, CANCELING, CANCELED, COMPLETED, FAILED | - |
+| `CapacityAllocationStatus` | `enum` | PENDING, SUCCEEDED, FAILED | - |
+| `CapacityReservationStatus` | `enum` | PENDING, ACTIVE, CANCELLING, CANCELLED, FAILED, UPDATE_PENDING | - |
+| `ColumnNullable` | `enum` | NOT_NULL, NULLABLE, UNKNOWN | - |
+| `ConnectionType` | `enum` | DYNAMODB, MYSQL, POSTGRESQL, REDSHIFT, ORACLE, SYNAPSE, SQLSERVER, DB2, OPENSEARCH, BIGQUERY, GOOGLECLOUDSTORAGE, HBASE, ... (+8) | - |
+| `DataCatalogStatus` | `enum` | CREATE_IN_PROGRESS, CREATE_COMPLETE, CREATE_FAILED, CREATE_FAILED_CLEANUP_IN_PROGRESS, CREATE_FAILED_CLEANUP_COMPLETE, CREATE_FAILED_CLEANUP_FAILED, DELETE_IN_PROGRESS, DELETE_COMPLETE, DELETE_FAILED | - |
+| `DataCatalogType` | `enum` | LAMBDA, GLUE, HIVE, FEDERATED | - |
+| `EncryptionOption` | `enum` | SSE_S3, SSE_KMS, CSE_KMS | - |
+| `ExecutorState` | `enum` | CREATING, CREATED, REGISTERED, TERMINATING, TERMINATED, FAILED | - |
 ## Winterbaume LTM Notes
 
 Sources: .agents/docs/LTM/pluggable-backends-and-query-execution-synthesis.md, .agents/docs/LTM/aws-inter-service-integration-priorities.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md.

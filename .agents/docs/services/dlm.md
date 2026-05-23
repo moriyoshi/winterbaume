@@ -59,76 +59,99 @@ Parity implications:
 ### Get
 
 - Operations: `GetLifecyclePolicies`, `GetLifecyclePolicy`
-- Common required input members in this group: `PolicyId`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateLifecyclePolicy`
-- Common required input members in this group: `Description`, `ExecutionRoleArn`, `State`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteLifecyclePolicy`
-- Common required input members in this group: `PolicyId`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateLifecyclePolicy`
-- Common required input members in this group: `PolicyId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateLifecyclePolicy` | `POST /policies` | - | `Description`, `ExecutionRoleArn`, `State` | - | `CreateLifecyclePolicyResponse` | `InternalServerException`, `InvalidRequestException`, `LimitExceededException` | Creates an Amazon Data Lifecycle Manager lifecycle policy. Amazon Data Lifecycle Manager supports the following policy types: Custom EBS snapshot policy Custom EBS-backed AMI policy Cross-account copy event policy Default policy for EBS snapshots Default... |
-| `DeleteLifecyclePolicy` | `DELETE /policies/{PolicyId}` | - | `PolicyId` | - | `DeleteLifecyclePolicyResponse` | `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException` | Deletes the specified lifecycle policy and halts the automated operations that the policy specified. For more information about deleting a policy, see Delete lifecycle policies. |
-| `GetLifecyclePolicies` | `GET /policies` | - | - | - | `GetLifecyclePoliciesResponse` | `InternalServerException`, `InvalidRequestException`, `LimitExceededException`, `ResourceNotFoundException` | Gets summary information about all or the specified data lifecycle policies. To get complete information about a policy, use GetLifecyclePolicy. |
+| `CreateLifecyclePolicy` | `POST /policies` | - | `ExecutionRoleArn`, `Description`, `State` | - | `CreateLifecyclePolicyResponse` | `InternalServerException`, `InvalidRequestException`, `LimitExceededException` | Creates an Amazon Data Lifecycle Manager lifecycle policy. Amazon Data Lifecycle Manager supports the following policy types: Custom EBS snapshot policy Custom EBS-backed AMI policy Cross-account copy event policy De ... |
+| `DeleteLifecyclePolicy` | `DELETE /policies/{PolicyId}` | - | `PolicyId` | - | `DeleteLifecyclePolicyResponse` | `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException` | Deletes the specified lifecycle policy and halts the automated operations that the policy specified. For more information about deleting a policy, see Delete lifecycle policies . |
+| `GetLifecyclePolicies` | `GET /policies` | - | - | - | `GetLifecyclePoliciesResponse` | `InternalServerException`, `InvalidRequestException`, `LimitExceededException`, `ResourceNotFoundException` | Gets summary information about all or the specified data lifecycle policies. To get complete information about a policy, use GetLifecyclePolicy . |
 | `GetLifecyclePolicy` | `GET /policies/{PolicyId}` | - | `PolicyId` | - | `GetLifecyclePolicyResponse` | `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException` | Gets detailed information about the specified lifecycle policy. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Lists the tags for the specified resource. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Adds the specified tags to the specified resource. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Removes the specified tags from the specified resource. |
-| `UpdateLifecyclePolicy` | `PATCH /policies/{PolicyId}` | - | `PolicyId` | - | `UpdateLifecyclePolicyResponse` | `InternalServerException`, `InvalidRequestException`, `LimitExceededException`, `ResourceNotFoundException` | Updates the specified lifecycle policy. For more information about updating a policy, see Modify lifecycle policies. |
+| `UpdateLifecyclePolicy` | `PATCH /policies/{PolicyId}` | - | `PolicyId` | - | `UpdateLifecyclePolicyResponse` | `InternalServerException`, `InvalidRequestException`, `LimitExceededException`, `ResourceNotFoundException` | Updates the specified lifecycle policy. For more information about updating a policy, see Modify lifecycle policies . |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetLifecyclePolicies` | - | `PolicyIds -> policyIds`, `State -> state`, `ResourceTypes -> resourceTypes`, `TargetTags -> targetTags`, `TagsToAdd -> tagsToAdd`, `DefaultPolicyType -> defaultPolicyType` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Code`, `Message` | The service failed in an unexpected way. |
-| `ResourceNotFoundException` | `structure` | `Code`, `Message`, `ResourceIds`, `ResourceType` | A requested resource was not found. |
-| `InvalidRequestException` | `structure` | `Code`, `Message`, `MutuallyExclusiveParameters`, `RequiredParameters` | Bad request. |
-| `LimitExceededException` | `structure` | `Code`, `Message`, `ResourceType` | The request failed because a limit was exceeded. |
-| `CreateLifecyclePolicyRequest` | `structure` | `CopyTags`, `CreateInterval`, `CrossRegionCopyTargets`, `DefaultPolicy`, `Description`, `Exclusions`, `ExecutionRoleArn`, `ExtendDeletion`, `PolicyDetails`, `RetainInterval`, `State`, `Tags` | - |
-| `CreateLifecyclePolicyResponse` | `structure` | `PolicyId` | - |
-| `DeleteLifecyclePolicyRequest` | `structure` | `PolicyId` | - |
-| `DeleteLifecyclePolicyResponse` | `structure` | - | - |
-| `GetLifecyclePoliciesRequest` | `structure` | `DefaultPolicyType`, `PolicyIds`, `ResourceTypes`, `State`, `TagsToAdd`, `TargetTags` | - |
-| `GetLifecyclePoliciesResponse` | `structure` | `Policies` | - |
-| `GetLifecyclePolicyRequest` | `structure` | `PolicyId` | - |
-| `GetLifecyclePolicyResponse` | `structure` | `Policy` | - |
-| `ListTagsForResourceRequest` | `structure` | `ResourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `Tags` | - |
-| `TagResourceRequest` | `structure` | `ResourceArn`, `Tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `ResourceArn`, `TagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-| `UpdateLifecyclePolicyRequest` | `structure` | `CopyTags`, `CreateInterval`, `CrossRegionCopyTargets`, `Description`, `Exclusions`, `ExecutionRoleArn`, `ExtendDeletion`, `PolicyDetails`, `PolicyId`, `RetainInterval`, `State` | - |
-| `UpdateLifecyclePolicyResponse` | `structure` | - | - |
-
+| `InternalServerException` | `structure` | Message, Code | The service failed in an unexpected way. |
+| `InvalidRequestException` | `structure` | Message, Code, RequiredParameters, MutuallyExclusiveParameters | Bad request. The request is missing required parameters or has invalid parameters. |
+| `LimitExceededException` | `structure` | Message, Code, ResourceType | The request failed because a limit was exceeded. |
+| `ResourceNotFoundException` | `structure` | Message, Code, ResourceType, ResourceIds | A requested resource was not found. |
+| `CreateLifecyclePolicyRequest` | `structure` | ExecutionRoleArn, Description, State, PolicyDetails, Tags, DefaultPolicy, CreateInterval, RetainInterval, CopyTags, ExtendDeletion, CrossRegionCopyTargets, Exclusions | - |
+| `CreateLifecyclePolicyResponse` | `structure` | PolicyId | - |
+| `DeleteLifecyclePolicyRequest` | `structure` | PolicyId | - |
+| `DeleteLifecyclePolicyResponse` | `structure` | **empty (no members)** | - |
+| `GetLifecyclePoliciesRequest` | `structure` | PolicyIds, State, ResourceTypes, TargetTags, TagsToAdd, DefaultPolicyType | - |
+| `GetLifecyclePoliciesResponse` | `structure` | Policies | - |
+| `GetLifecyclePolicyRequest` | `structure` | PolicyId | - |
+| `GetLifecyclePolicyResponse` | `structure` | Policy | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateLifecyclePolicyRequest` | `structure` | PolicyId, ExecutionRoleArn, State, Description, PolicyDetails, CreateInterval, RetainInterval, CopyTags, ExtendDeletion, CrossRegionCopyTargets, Exclusions | - |
+| `UpdateLifecyclePolicyResponse` | `structure` | **empty (no members)** | - |
+| `DefaultPoliciesTypeValues` | `enum` | VOLUME, INSTANCE, ALL | - |
+| `DefaultPolicyTypeValues` | `enum` | VOLUME, INSTANCE | - |
+| `EventSourceValues` | `enum` | MANAGED_CWE | - |
+| `EventTypeValues` | `enum` | SHARE_SNAPSHOT | - |
+| `ExecutionHandlerServiceValues` | `enum` | AWS_SYSTEMS_MANAGER | - |
+| `GettablePolicyStateValues` | `enum` | ENABLED, DISABLED, ERROR | - |
+| `IntervalUnitValues` | `enum` | HOURS | - |
+| `LocationValues` | `enum` | CLOUD, OUTPOST_LOCAL, LOCAL_ZONE | - |
+| `PolicyLanguageValues` | `enum` | SIMPLIFIED, STANDARD | - |
+| `PolicyTypeValues` | `enum` | EBS_SNAPSHOT_MANAGEMENT, IMAGE_MANAGEMENT, EVENT_BASED_POLICY | - |
+| `ResourceLocationValues` | `enum` | CLOUD, OUTPOST, LOCAL_ZONE | - |
+| `ResourceTypeValues` | `enum` | VOLUME, INSTANCE | - |
+| `RetentionIntervalUnitValues` | `enum` | DAYS, WEEKS, MONTHS, YEARS | - |
+| `SettablePolicyStateValues` | `enum` | ENABLED, DISABLED | - |
+| `StageValues` | `enum` | PRE, POST | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

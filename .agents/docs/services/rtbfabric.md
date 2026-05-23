@@ -49,121 +49,75 @@ Amazon Web Services RTB Fabric provides secure, low-latency infrastructure for c
 | `ResponderGateway` | `gatewayId` | create: `CreateResponderGateway`; read: `GetResponderGateway`; delete: `DeleteResponderGateway` | `UpdateResponderGateway` | - |
 ## Operation Groups
 
-### Create
-
-- Operations: `CreateInboundExternalLink`, `CreateLink`, `CreateOutboundExternalLink`, `CreateRequesterGateway`, `CreateResponderGateway`
-- Traits: `idempotency-token` (4), `idempotent` (5)
-- Common required input members in this group: `clientToken`, `gatewayId`, `logSettings`, `peerGatewayId`, `port`, `protocol`, `publicEndpoint`, `securityGroupIds`, `subnetIds`, `vpcId`
-
-### Delete
-
-- Operations: `DeleteInboundExternalLink`, `DeleteLink`, `DeleteOutboundExternalLink`, `DeleteRequesterGateway`, `DeleteResponderGateway`
-- Traits: `idempotent` (5)
-- Common required input members in this group: `gatewayId`, `linkId`
-
-### Get
-
-- Operations: `GetInboundExternalLink`, `GetLink`, `GetOutboundExternalLink`, `GetRequesterGateway`, `GetResponderGateway`
-- Traits: `readonly` (5)
-- Common required input members in this group: `gatewayId`, `linkId`
-
 ### List
 
-- Operations: `ListLinks`, `ListRequesterGateways`, `ListResponderGateways`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `gatewayId`, `resourceArn`
-
-### Update
-
-- Operations: `UpdateLink`, `UpdateLinkModuleFlow`, `UpdateRequesterGateway`, `UpdateResponderGateway`
-- Traits: `idempotency-token` (3), `idempotent` (4)
-- Common required input members in this group: `clientToken`, `gatewayId`, `linkId`, `modules`, `port`, `protocol`
-
-### Accept
-
-- Operations: `AcceptLink`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `gatewayId`, `linkId`, `logSettings`
-
-### Reject
-
-- Operations: `RejectLink`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `gatewayId`, `linkId`
+- Operations: `ListRequesterGateways`, `ListResponderGateways`, `ListTagsForResource`
+- Traits: `readonly` (3), `paginated` (2)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptLink` | `POST /gateway/{gatewayId}/link/{linkId}/accept` | `idempotent` | `gatewayId`, `linkId`, `logSettings` | - | `AcceptLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Accepts a link request between gateways. When a requester gateway requests to link with a responder gateway, the responder can use this operation to accept the link request and establish the connection. |
-| `CreateInboundExternalLink` | `POST /responder-gateway/{gatewayId}/inbound-external-link` | `idempotent`, `idempotency-token` | `clientToken`, `gatewayId`, `logSettings` | `clientToken` | `CreateInboundExternalLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an inbound external link. |
-| `CreateLink` | `POST /gateway/{gatewayId}/create-link` | `idempotent` | `gatewayId`, `logSettings`, `peerGatewayId` | - | `CreateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new link between gateways. Establishes a connection that allows gateways to communicate and exchange bid requests and responses. |
-| `CreateOutboundExternalLink` | `POST /requester-gateway/{gatewayId}/outbound-external-link` | `idempotent`, `idempotency-token` | `clientToken`, `gatewayId`, `logSettings`, `publicEndpoint` | `clientToken` | `CreateOutboundExternalLinkResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an outbound external link. |
-| `CreateRequesterGateway` | `POST /requester-gateway` | `idempotent`, `idempotency-token` | `clientToken`, `securityGroupIds`, `subnetIds`, `vpcId` | `clientToken` | `CreateRequesterGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a requester gateway. |
-| `CreateResponderGateway` | `POST /responder-gateway` | `idempotent`, `idempotency-token` | `clientToken`, `port`, `protocol`, `securityGroupIds`, `subnetIds`, `vpcId` | `clientToken` | `CreateResponderGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a responder gateway. A domain name or managed endpoint is required. |
-| `DeleteInboundExternalLink` | `DELETE /responder-gateway/{gatewayId}/inbound-external-link/{linkId}` | `idempotent` | `gatewayId`, `linkId` | - | `DeleteInboundExternalLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an inbound external link. |
-| `DeleteLink` | `DELETE /gateway/{gatewayId}/link/{linkId}` | `idempotent` | `gatewayId`, `linkId` | - | `DeleteLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a link between gateways. Permanently removes the connection between gateways. |
-| `DeleteOutboundExternalLink` | `DELETE /requester-gateway/{gatewayId}/outbound-external-link/{linkId}` | `idempotent` | `gatewayId`, `linkId` | - | `DeleteOutboundExternalLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an outbound external link. |
-| `DeleteRequesterGateway` | `DELETE /requester-gateway/{gatewayId}` | `idempotent` | `gatewayId` | - | `DeleteRequesterGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a requester gateway. |
-| `DeleteResponderGateway` | `DELETE /responder-gateway/{gatewayId}` | `idempotent` | `gatewayId` | - | `DeleteResponderGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a responder gateway. |
-| `GetInboundExternalLink` | `GET /responder-gateway/{gatewayId}/inbound-external-link/{linkId}` | `readonly` | `gatewayId`, `linkId` | - | `GetInboundExternalLinkResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an inbound external link. |
-| `GetLink` | `GET /gateway/{gatewayId}/link/{linkId}` | `readonly` | `gatewayId`, `linkId` | - | `GetLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a link between gateways. Returns detailed information about the link configuration, status, and associated gateways. |
-| `GetOutboundExternalLink` | `GET /requester-gateway/{gatewayId}/outbound-external-link/{linkId}` | `readonly` | `gatewayId`, `linkId` | - | `GetOutboundExternalLinkResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an outbound external link. |
-| `GetRequesterGateway` | `GET /requester-gateway/{gatewayId}` | `readonly` | `gatewayId` | - | `GetRequesterGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a requester gateway. |
-| `GetResponderGateway` | `GET /responder-gateway/{gatewayId}` | `readonly` | `gatewayId` | - | `GetResponderGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a responder gateway. |
-| `ListLinks` | `GET /gateway/{gatewayId}/links/` | `readonly`, `paginated` | `gatewayId` | - | `ListLinksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists links associated with gateways. Returns a list of all links for the specified gateways, including their status and configuration details. |
 | `ListRequesterGateways` | `GET /requester-gateways` | `readonly`, `paginated` | - | - | `ListRequesterGatewaysResponse` | `InternalServerException`, `ValidationException` | Lists requester gateways. |
 | `ListResponderGateways` | `GET /responder-gateways` | `readonly`, `paginated` | - | - | `ListResponderGatewaysResponse` | `InternalServerException`, `ValidationException` | Lists reponder gateways. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists tags for a resource. |
-| `RejectLink` | `POST /gateway/{gatewayId}/link/{linkId}/reject` | `idempotent` | `gatewayId`, `linkId` | - | `RejectLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Rejects a link request between gateways. When a requester gateway requests to link with a responder gateway, the responder can use this operation to decline the link request. |
 | `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Assigns one or more tags (key-value pairs) to the specified resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a tag or tags from a resource. |
-| `UpdateLink` | `PATCH /gateway/{gatewayId}/link/{linkId}` | `idempotent` | `gatewayId`, `linkId` | - | `UpdateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the configuration of a link between gateways. Allows you to modify settings and parameters for an existing link. |
-| `UpdateLinkModuleFlow` | `POST /gateway/{gatewayId}/link/{linkId}/module-flow` | `idempotent`, `idempotency-token` | `clientToken`, `gatewayId`, `linkId`, `modules` | `clientToken` | `UpdateLinkModuleFlowResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a link module flow. |
-| `UpdateRequesterGateway` | `POST /requester-gateway/{gatewayId}/update` | `idempotent`, `idempotency-token` | `clientToken`, `gatewayId` | `clientToken` | `UpdateRequesterGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a requester gateway. |
-| `UpdateResponderGateway` | `POST /responder-gateway/{gatewayId}/update` | `idempotent`, `idempotency-token` | `clientToken`, `gatewayId`, `port`, `protocol` | `clientToken` | `UpdateResponderGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a responder gateway. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListRequesterGateways` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListResponderGateways` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | The request could not be completed because of an internal server error. |
-| `ValidationException` | `structure` | `message` | The request could not be completed because it fails satisfy the constraints specified by the service. |
-| `AccessDeniedException` | `structure` | `message` | The request could not be completed because you do not have sufficient access to perform this action. |
-| `ResourceNotFoundException` | `structure` | `message` | The request could not be completed because the resource does not exist. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ConflictException` | `structure` | `message` | The request could not be completed because of a conflict in the current state of the resource. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request could not be completed because you exceeded a service quota. |
-| `AcceptLinkRequest` | `structure` | `attributes`, `gatewayId`, `linkId`, `logSettings` | - |
-| `AcceptLinkResponse` | `structure` | `attributes`, `createdAt`, `direction`, `flowModules`, `gatewayId`, `linkId`, `peerGatewayId`, `pendingFlowModules`, `status`, `updatedAt` | - |
-| `CreateInboundExternalLinkRequest` | `structure` | `attributes`, `clientToken`, `gatewayId`, `logSettings`, `tags` | - |
-| `CreateInboundExternalLinkResponse` | `structure` | `domainName`, `gatewayId`, `linkId`, `status` | - |
-| `CreateLinkRequest` | `structure` | `attributes`, `gatewayId`, `httpResponderAllowed`, `logSettings`, `peerGatewayId`, `tags` | - |
-| `CreateLinkResponse` | `structure` | `attributes`, `createdAt`, `customerProvidedId`, `direction`, `flowModules`, `gatewayId`, `linkId`, `peerGatewayId`, `pendingFlowModules`, `status`, `updatedAt` | - |
-| `CreateOutboundExternalLinkRequest` | `structure` | `attributes`, `clientToken`, `gatewayId`, `logSettings`, `publicEndpoint`, `tags` | - |
-| `CreateOutboundExternalLinkResponse` | `structure` | `gatewayId`, `linkId`, `status` | - |
-| `CreateRequesterGatewayRequest` | `structure` | `clientToken`, `description`, `securityGroupIds`, `subnetIds`, `tags`, `vpcId` | - |
-| `CreateRequesterGatewayResponse` | `structure` | `domainName`, `gatewayId`, `status` | - |
-| `CreateResponderGatewayRequest` | `structure` | `clientToken`, `description`, `domainName`, `managedEndpointConfiguration`, `port`, `protocol`, `securityGroupIds`, `subnetIds`, `tags`, `trustStoreConfiguration`, `vpcId` | - |
-| `CreateResponderGatewayResponse` | `structure` | `gatewayId`, `status` | - |
-| `DeleteInboundExternalLinkRequest` | `structure` | `gatewayId`, `linkId` | - |
-| `DeleteInboundExternalLinkResponse` | `structure` | `linkId`, `status` | - |
-| `DeleteLinkRequest` | `structure` | `gatewayId`, `linkId` | - |
-| `DeleteLinkResponse` | `structure` | `linkId`, `status` | - |
-| `DeleteOutboundExternalLinkRequest` | `structure` | `gatewayId`, `linkId` | - |
-
+| `AccessDeniedException` | `structure` | message | The request could not be completed because you do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message | The request could not be completed because of a conflict in the current state of the resource. |
+| `InternalServerException` | `structure` | message | The request could not be completed because of an internal server error. Try your call again. |
+| `ResourceNotFoundException` | `structure` | message | The request could not be completed because the resource does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message | The request could not be completed because you exceeded a service quota. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The request could not be completed because it fails satisfy the constraints specified by the service. |
+| `ListRequesterGatewaysRequest` | `structure` | maxResults, nextToken | - |
+| `ListRequesterGatewaysResponse` | `structure` | gatewayIds, nextToken | - |
+| `ListResponderGatewaysRequest` | `structure` | maxResults, nextToken | - |
+| `ListResponderGatewaysResponse` | `structure` | gatewayIds, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `ConnectivityType` | `enum` | DEFAULT, PUBLIC_INGRESS, PUBLIC_EGRESS, EXTERNAL_INBOUND | The connectivity type for a link or gateway. |
+| `FilterType` | `enum` | INCLUDE, EXCLUDE | - |
+| `GatewayType` | `enum` | EXTERNAL, INTERNAL | The type of gateway. |
+| `LinkDirection` | `enum` | RESPONSE, REQUEST | - |
+| `LinkStatus` | `enum` | PENDING_CREATION, PENDING_REQUEST, REQUESTED, ACCEPTED, ACTIVE, REJECTED, FAILED, PENDING_DELETION, DELETED, PENDING_UPDATE, PENDING_ISOLATION, ISOLATED, ... (+1) | - |
+| `Protocol` | `enum` | HTTP, HTTPS | - |
+| `RequesterGatewayStatus` | `enum` | PENDING_CREATION, ACTIVE, PENDING_DELETION, DELETED, ERROR, PENDING_UPDATE, ISOLATED, PENDING_ISOLATION, PENDING_RESTORATION | - |
+| `ResponderErrorMaskingAction` | `enum` | NO_BID, PASSTHROUGH | - |
+| `ResponderErrorMaskingLoggingType` | `enum` | NONE, METRIC, RESPONSE | - |
+| `ResponderGatewayStatus` | `enum` | PENDING_CREATION, ACTIVE, PENDING_DELETION, DELETED, ERROR, PENDING_UPDATE, ISOLATED, PENDING_ISOLATION, PENDING_RESTORATION | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

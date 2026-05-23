@@ -70,113 +70,142 @@ Parity implications:
 
 ### List
 
-- Operations: `ListAuditFindings`, `ListEntityEvents`, `ListGroupingAttributeDefinitions`, `ListServiceDependencies`, `ListServiceDependents`, `ListServiceLevelObjectiveExclusionWindows`, `ListServiceLevelObjectives`, `ListServiceOperations`, `ListServiceStates`, `ListServices`, `ListTagsForResource`
-- Traits: `paginated` (8), `readonly` (10)
-- Common required input members in this group: `AuditTargets`, `EndTime`, `Entity`, `Id`, `KeyAttributes`, `ResourceArn`, `StartTime`
+- Operations: `ListAuditFindings`, `ListEntityEvents`, `ListGroupingAttributeDefinitions`, `ListServiceDependencies`, `ListServiceDependents`, `ListServiceLevelObjectiveExclusionWindows`, `ListServiceOperations`, `ListServices`, `ListServiceStates`, `ListTagsForResource`
+- Traits: `readonly` (9), `paginated` (7)
+- Common required input members in this group: `StartTime`, `EndTime`, `KeyAttributes`
 
 ### Batch
 
 - Operations: `BatchGetServiceLevelObjectiveBudgetReport`, `BatchUpdateExclusionWindows`
-- Common required input members in this group: `SloIds`, `Timestamp`
+- Common required input members in this group: `SloIds`
 
 ### Delete
 
-- Operations: `DeleteGroupingConfiguration`, `DeleteServiceLevelObjective`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `Id`
+- Operations: `DeleteGroupingConfiguration`
+- Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Get
 
-- Operations: `GetService`, `GetServiceLevelObjective`
-- Traits: `readonly` (2)
-- Common required input members in this group: `EndTime`, `Id`, `KeyAttributes`, `StartTime`
-
-### Create
-
-- Operations: `CreateServiceLevelObjective`
-- Common required input members in this group: `Name`
+- Operations: `GetService`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutGroupingConfiguration`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `GroupingAttributeDefinitions`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartDiscovery`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
-
-### Update
-
-- Operations: `UpdateServiceLevelObjective`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchGetServiceLevelObjectiveBudgetReport` | `POST /budget-report` | - | `SloIds`, `Timestamp` | - | `BatchGetServiceLevelObjectiveBudgetReportOutput` | `ThrottlingException`, `ValidationException` | Use this operation to retrieve one or more service level objective (SLO) budget reports . An error budget is the amount of time or requests in an unhealthy state that your service can accumulate during an interval before your overall SLO budget health is... |
+| `BatchGetServiceLevelObjectiveBudgetReport` | `POST /budget-report` | - | `Timestamp`, `SloIds` | - | `BatchGetServiceLevelObjectiveBudgetReportOutput` | `ThrottlingException`, `ValidationException` | Use this operation to retrieve one or more service level objective (SLO) budget reports . An error budget is the amount of time or requests in an unhealthy state that your service can accumulate during an interval be ... |
 | `BatchUpdateExclusionWindows` | `PATCH /exclusion-windows` | - | `SloIds` | - | `BatchUpdateExclusionWindowsOutput` | `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Add or remove time window exclusions for one or more Service Level Objectives (SLOs). |
-| `CreateServiceLevelObjective` | `POST /slo` | - | `Name` | - | `CreateServiceLevelObjectiveOutput` | `AccessDeniedException`, `ConflictException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a service level objective (SLO), which can help you ensure that your critical business operations are meeting customer expectations. Use SLOs to set and track specific target levels for the reliability and availability of your applications and... |
 | `DeleteGroupingConfiguration` | `DELETE /grouping-configuration` | `idempotent` | - | - | `DeleteGroupingConfigurationOutput` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Deletes the grouping configuration for this account. This removes all custom grouping attribute definitions that were previously configured. |
-| `DeleteServiceLevelObjective` | `DELETE /slo/{Id}` | `idempotent` | `Id` | - | `DeleteServiceLevelObjectiveOutput` | `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified service level objective. |
-| `GetService` | `POST /service` | `readonly` | `EndTime`, `KeyAttributes`, `StartTime` | - | `GetServiceOutput` | `ThrottlingException`, `ValidationException` | Returns information about a service discovered by Application Signals. |
-| `GetServiceLevelObjective` | `GET /slo/{Id}` | `readonly` | `Id` | - | `GetServiceLevelObjectiveOutput` | `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about one SLO created in the account. |
-| `ListAuditFindings` | `POST /auditFindings` | `readonly` | `AuditTargets`, `EndTime`, `StartTime` | - | `ListAuditFindingsOutput` | `ThrottlingException`, `ValidationException` | Returns a list of audit findings that provide automated analysis of service behavior and root cause analysis. These findings help identify the most significant observations about your services, including performance issues, anomalies, and potential problems. |
-| `ListEntityEvents` | `POST /events` | `readonly`, `paginated` | `EndTime`, `Entity`, `StartTime` | - | `ListEntityEventsOutput` | `ThrottlingException`, `ValidationException` | Returns a list of change events for a specific entity, such as deployments, configuration changes, or other state-changing activities. This operation helps track the history of changes that may have affected service performance. |
-| `ListGroupingAttributeDefinitions` | `POST /grouping-attribute-definitions` | `readonly` | - | - | `ListGroupingAttributeDefinitionsOutput` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns the current grouping configuration for this account, including all custom grouping attribute definitions that have been configured. These definitions determine how services are logically grouped based on telemetry attributes, Amazon Web Services tags... |
-| `ListServiceDependencies` | `POST /service-dependencies` | `readonly`, `paginated` | `EndTime`, `KeyAttributes`, `StartTime` | - | `ListServiceDependenciesOutput` | `ThrottlingException`, `ValidationException` | Returns a list of service dependencies of the service that you specify. A dependency is an infrastructure component that an operation of this service connects with. |
-| `ListServiceDependents` | `POST /service-dependents` | `readonly`, `paginated` | `EndTime`, `KeyAttributes`, `StartTime` | - | `ListServiceDependentsOutput` | `ThrottlingException`, `ValidationException` | Returns the list of dependents that invoked the specified service during the provided time range. Dependents include other services, CloudWatch Synthetics canaries, and clients that are instrumented with CloudWatch RUM app monitors. |
+| `GetService` | `POST /service` | `readonly` | `StartTime`, `EndTime`, `KeyAttributes` | - | `GetServiceOutput` | `ThrottlingException`, `ValidationException` | Returns information about a service discovered by Application Signals. |
+| `ListAuditFindings` | `POST /auditFindings` | `readonly` | `StartTime`, `EndTime`, `AuditTargets` | - | `ListAuditFindingsOutput` | `ThrottlingException`, `ValidationException` | Returns a list of audit findings that provide automated analysis of service behavior and root cause analysis. These findings help identify the most significant observations about your services, including performance ... |
+| `ListEntityEvents` | `POST /events` | `readonly`, `paginated` | `Entity`, `StartTime`, `EndTime` | - | `ListEntityEventsOutput` | `ThrottlingException`, `ValidationException` | Returns a list of change events for a specific entity, such as deployments, configuration changes, or other state-changing activities. This operation helps track the history of changes that may have affected service ... |
+| `ListGroupingAttributeDefinitions` | `POST /grouping-attribute-definitions` | `readonly` | - | - | `ListGroupingAttributeDefinitionsOutput` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Returns the current grouping configuration for this account, including all custom grouping attribute definitions that have been configured. These definitions determine how services are logically grouped based on tele ... |
+| `ListServiceDependencies` | `POST /service-dependencies` | `readonly`, `paginated` | `StartTime`, `EndTime`, `KeyAttributes` | - | `ListServiceDependenciesOutput` | `ThrottlingException`, `ValidationException` | Returns a list of service dependencies of the service that you specify. A dependency is an infrastructure component that an operation of this service connects with. Dependencies can include Amazon Web Services servic ... |
+| `ListServiceDependents` | `POST /service-dependents` | `readonly`, `paginated` | `StartTime`, `EndTime`, `KeyAttributes` | - | `ListServiceDependentsOutput` | `ThrottlingException`, `ValidationException` | Returns the list of dependents that invoked the specified service during the provided time range. Dependents include other services, CloudWatch Synthetics canaries, and clients that are instrumented with CloudWatch R ... |
 | `ListServiceLevelObjectiveExclusionWindows` | `GET /slo/{Id}/exclusion-windows` | `readonly`, `paginated` | `Id` | - | `ListServiceLevelObjectiveExclusionWindowsOutput` | `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves all exclusion windows configured for a specific SLO. |
-| `ListServiceLevelObjectives` | `POST /slos` | `readonly`, `paginated` | - | - | `ListServiceLevelObjectivesOutput` | `ThrottlingException`, `ValidationException` | Returns a list of SLOs created in this account. |
-| `ListServiceOperations` | `POST /service-operations` | `readonly`, `paginated` | `EndTime`, `KeyAttributes`, `StartTime` | - | `ListServiceOperationsOutput` | `ThrottlingException`, `ValidationException` | Returns a list of the operations of this service that have been discovered by Application Signals. Only the operations that were invoked during the specified time range are returned. |
-| `ListServiceStates` | `POST /service/states` | `paginated` | `EndTime`, `StartTime` | - | `ListServiceStatesOutput` | `ThrottlingException`, `ValidationException` | Returns information about the last deployment and other change states of services. This API provides visibility into recent changes that may have affected service performance, helping with troubleshooting and change correlation. |
-| `ListServices` | `GET /services` | `readonly`, `paginated` | `EndTime`, `StartTime` | - | `ListServicesOutput` | `ThrottlingException`, `ValidationException` | Returns a list of services that have been discovered by Application Signals. A service represents a minimum logical and transactional unit that completes a business function. |
+| `ListServiceOperations` | `POST /service-operations` | `readonly`, `paginated` | `StartTime`, `EndTime`, `KeyAttributes` | - | `ListServiceOperationsOutput` | `ThrottlingException`, `ValidationException` | Returns a list of the operations of this service that have been discovered by Application Signals. Only the operations that were invoked during the specified time range are returned. |
+| `ListServices` | `GET /services` | `readonly`, `paginated` | `StartTime`, `EndTime` | - | `ListServicesOutput` | `ThrottlingException`, `ValidationException` | Returns a list of services that have been discovered by Application Signals. A service represents a minimum logical and transactional unit that completes a business function. Services are discovered through Applicati ... |
+| `ListServiceStates` | `POST /service/states` | `paginated` | `StartTime`, `EndTime` | - | `ListServiceStatesOutput` | `ThrottlingException`, `ValidationException` | Returns information about the last deployment and other change states of services. This API provides visibility into recent changes that may have affected service performance, helping with troubleshooting and change ... |
 | `ListTagsForResource` | `GET /tags` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException`, `ThrottlingException` | Displays the tags associated with a CloudWatch resource. Tags can be assigned to service level objectives. |
-| `PutGroupingConfiguration` | `PUT /grouping-configuration` | `idempotent` | `GroupingAttributeDefinitions` | - | `PutGroupingConfigurationOutput` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Creates or updates the grouping configuration for this account. This operation allows you to define custom grouping attributes that determine how services are logically grouped based on telemetry attributes, Amazon Web Services tags, or predefined mappings. |
-| `StartDiscovery` | `POST /start-discovery` | - | - | - | `StartDiscoveryOutput` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Enables this Amazon Web Services account to be able to use CloudWatch Application Signals by creating the AWSServiceRoleForCloudWatchApplicationSignals service-linked role. This service- linked role has the following permissions: `xray:GetServiceGraph`... |
-| `TagResource` | `POST /tag-resource` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Assigns one or more tags (key-value pairs) to the specified CloudWatch resource, such as a service level objective. Tags can help you organize and categorize your resources. |
+| `PutGroupingConfiguration` | `PUT /grouping-configuration` | `idempotent` | `GroupingAttributeDefinitions` | - | `PutGroupingConfigurationOutput` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Creates or updates the grouping configuration for this account. This operation allows you to define custom grouping attributes that determine how services are logically grouped based on telemetry attributes, Amazon W ... |
+| `StartDiscovery` | `POST /start-discovery` | - | - | - | `StartDiscoveryOutput` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Enables this Amazon Web Services account to be able to use CloudWatch Application Signals by creating the AWSServiceRoleForCloudWatchApplicationSignals service-linked role. This service- linked role has the following ... |
+| `TagResource` | `POST /tag-resource` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException` | Assigns one or more tags (key-value pairs) to the specified CloudWatch resource, such as a service level objective. Tags can help you organize and categorize your resources. You can also use them to scope user permis ... |
 | `UntagResource` | `POST /untag-resource` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ThrottlingException` | Removes one or more tags from the specified resource. |
-| `UpdateServiceLevelObjective` | `PATCH /slo/{Id}` | - | `Id` | - | `UpdateServiceLevelObjectiveOutput` | `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing service level objective (SLO). If you omit parameters, the previous values of those parameters are retained. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetService` | - | `StartTime -> StartTime`, `EndTime -> EndTime` | - | - |
+| `ListAuditFindings` | - | `StartTime -> StartTime`, `EndTime -> EndTime` | - | - |
+| `ListEntityEvents` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListGroupingAttributeDefinitions` | - | `NextToken -> NextToken`, `AwsAccountId -> AwsAccountId`, `IncludeLinkedAccounts -> IncludeLinkedAccounts` | - | - |
+| `ListServiceDependencies` | - | `StartTime -> StartTime`, `EndTime -> EndTime`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListServiceDependents` | - | `StartTime -> StartTime`, `EndTime -> EndTime`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListServiceLevelObjectiveExclusionWindows` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListServiceOperations` | - | `StartTime -> StartTime`, `EndTime -> EndTime`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListServices` | - | `StartTime -> StartTime`, `EndTime -> EndTime`, `MaxResults -> MaxResults`, `NextToken -> NextToken`, `IncludeLinkedAccounts -> IncludeLinkedAccounts`, `AwsAccountId -> AwsAccountId` | - | - |
+| `ListTagsForResource` | - | `ResourceArn -> ResourceArn` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ThrottlingException` | `structure` | `Message` | The request was throttled because of quota limits. |
-| `ValidationException` | `structure` | `message` | The resource is not valid. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | Resource not found. |
-| `AccessDeniedException` | `structure` | `Message` | You don't have sufficient permissions to perform this action. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | This request exceeds a service quota. |
-| `BatchGetServiceLevelObjectiveBudgetReportInput` | `structure` | `SloIds`, `Timestamp` | - |
-| `BatchGetServiceLevelObjectiveBudgetReportOutput` | `structure` | `Errors`, `Reports`, `Timestamp` | - |
-| `BatchUpdateExclusionWindowsInput` | `structure` | `AddExclusionWindows`, `RemoveExclusionWindows`, `SloIds` | - |
-| `BatchUpdateExclusionWindowsOutput` | `structure` | `Errors`, `SloIds` | - |
-| `CreateServiceLevelObjectiveInput` | `structure` | `BurnRateConfigurations`, `Description`, `Goal`, `Name`, `RequestBasedSliConfig`, `SliConfig`, `Tags` | - |
-| `CreateServiceLevelObjectiveOutput` | `structure` | `Slo` | - |
-| `ConflictException` | `structure` | `Message` | This operation attempted to create a resource that already exists. |
-| `DeleteGroupingConfigurationOutput` | `structure` | - | - |
-| `DeleteServiceLevelObjectiveInput` | `structure` | `Id` | - |
-| `DeleteServiceLevelObjectiveOutput` | `structure` | - | - |
-| `GetServiceInput` | `structure` | `EndTime`, `KeyAttributes`, `StartTime` | - |
-| `GetServiceOutput` | `structure` | `EndTime`, `LogGroupReferences`, `Service`, `StartTime` | - |
-| `GetServiceLevelObjectiveInput` | `structure` | `Id` | - |
-| `GetServiceLevelObjectiveOutput` | `structure` | `Slo` | - |
-| `ListAuditFindingsInput` | `structure` | `AuditTargets`, `Auditors`, `DetailLevel`, `EndTime`, `MaxResults`, `NextToken`, `StartTime` | - |
-| `ListAuditFindingsOutput` | `structure` | `AuditFindings`, `EndTime`, `NextToken`, `StartTime` | - |
-| `ListEntityEventsInput` | `structure` | `EndTime`, `Entity`, `MaxResults`, `NextToken`, `StartTime` | - |
-| `ListEntityEventsOutput` | `structure` | `ChangeEvents`, `EndTime`, `NextToken`, `StartTime` | - |
-
+| `AccessDeniedException` | `structure` | Message | You don't have sufficient permissions to perform this action. |
+| `ConflictException` | `structure` | Message | This operation attempted to create a resource that already exists. |
+| `ResourceNotFoundException` | `structure` | ResourceType, ResourceId, Message | Resource not found. |
+| `ServiceQuotaExceededException` | `structure` | Message | This request exceeds a service quota. |
+| `ThrottlingException` | `structure` | Message | The request was throttled because of quota limits. |
+| `ValidationException` | `structure` | message | The resource is not valid. |
+| `BatchGetServiceLevelObjectiveBudgetReportInput` | `structure` | Timestamp, SloIds | - |
+| `BatchGetServiceLevelObjectiveBudgetReportOutput` | `structure` | Timestamp, Reports, Errors | - |
+| `BatchUpdateExclusionWindowsInput` | `structure` | SloIds, AddExclusionWindows, RemoveExclusionWindows | - |
+| `BatchUpdateExclusionWindowsOutput` | `structure` | SloIds, Errors | - |
+| `DeleteGroupingConfigurationOutput` | `structure` | **empty (no members)** | - |
+| `GetServiceInput` | `structure` | StartTime, EndTime, KeyAttributes | - |
+| `GetServiceOutput` | `structure` | Service, StartTime, EndTime, LogGroupReferences | - |
+| `ListAuditFindingsInput` | `structure` | StartTime, EndTime, Auditors, AuditTargets, DetailLevel, NextToken, MaxResults | - |
+| `ListAuditFindingsOutput` | `structure` | StartTime, EndTime, AuditFindings, NextToken | - |
+| `ListEntityEventsInput` | `structure` | Entity, StartTime, EndTime, MaxResults, NextToken | - |
+| `ListEntityEventsOutput` | `structure` | StartTime, EndTime, ChangeEvents, NextToken | - |
+| `ListGroupingAttributeDefinitionsInput` | `structure` | NextToken, AwsAccountId, IncludeLinkedAccounts | - |
+| `ListGroupingAttributeDefinitionsOutput` | `structure` | GroupingAttributeDefinitions, UpdatedAt, NextToken | - |
+| `ListServiceDependenciesInput` | `structure` | StartTime, EndTime, KeyAttributes, MaxResults, NextToken | - |
+| `ListServiceDependenciesOutput` | `structure` | StartTime, EndTime, ServiceDependencies, NextToken | - |
+| `ListServiceDependentsInput` | `structure` | StartTime, EndTime, KeyAttributes, MaxResults, NextToken | - |
+| `ListServiceDependentsOutput` | `structure` | StartTime, EndTime, ServiceDependents, NextToken | - |
+| `ListServiceLevelObjectiveExclusionWindowsInput` | `structure` | Id, MaxResults, NextToken | - |
+| `ListServiceLevelObjectiveExclusionWindowsOutput` | `structure` | ExclusionWindows, NextToken | - |
+| `ListServiceOperationsInput` | `structure` | StartTime, EndTime, KeyAttributes, MaxResults, NextToken | - |
+| `ListServiceOperationsOutput` | `structure` | StartTime, EndTime, ServiceOperations, NextToken | - |
+| `ListServicesInput` | `structure` | StartTime, EndTime, MaxResults, NextToken, IncludeLinkedAccounts, AwsAccountId | - |
+| `ListServicesOutput` | `structure` | StartTime, EndTime, ServiceSummaries, NextToken | - |
+| `ListServiceStatesInput` | `structure` | StartTime, EndTime, MaxResults, NextToken, IncludeLinkedAccounts, AwsAccountId, AttributeFilters | - |
+| `ListServiceStatesOutput` | `structure` | StartTime, EndTime, ServiceStates, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `PutGroupingConfigurationInput` | `structure` | GroupingAttributeDefinitions | - |
+| `PutGroupingConfigurationOutput` | `structure` | GroupingConfiguration | - |
+| `StartDiscoveryInput` | `structure` | **empty (no members)** | - |
+| `StartDiscoveryOutput` | `structure` | **empty (no members)** | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `ChangeEventType` | `enum` | DEPLOYMENT, CONFIGURATION | - |
+| `ConnectionType` | `enum` | INDIRECT, DIRECT | - |
+| `DetailLevel` | `enum` | BRIEF, DETAILED | - |
+| `DurationUnit` | `enum` | MINUTE, HOUR, DAY, MONTH | - |
+| `EvaluationType` | `enum` | PERIOD_BASED, REQUEST_BASED | - |
+| `MetricSourceType` | `enum` | SERVICE_OPERATION, CLOUDWATCH_METRIC, SERVICE_DEPENDENCY, APPMONITOR, CANARY, SERVICE | - |
+| `SelectionType` | `enum` | EXPLICIT, PREFIX, REGEX | The strategy for selecting operations to include in a service-level SLO. EXPLICIT — You provide a specific list of operations in the Components field of Com ... |
+| `ServiceLevelIndicatorComparisonOperator` | `enum` | GREATER_THAN_OR_EQUAL_TO, GREATER_THAN, LESS_THAN, LESS_THAN_OR_EQUAL_TO | - |
+| `ServiceLevelIndicatorMetricType` | `enum` | LATENCY, AVAILABILITY | - |
+| `ServiceLevelObjectiveBudgetStatus` | `enum` | OK, WARNING, BREACHED, INSUFFICIENT_DATA | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

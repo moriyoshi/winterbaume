@@ -51,102 +51,71 @@ Amazon Web Services Private CA Connector for Active Directory creates a connecto
 
 ### List
 
-- Operations: `ListConnectors`, `ListDirectoryRegistrations`, `ListServicePrincipalNames`, `ListTagsForResource`, `ListTemplateGroupAccessControlEntries`, `ListTemplates`
-- Traits: `paginated` (5), `readonly` (6)
-- Common required input members in this group: `ConnectorArn`, `DirectoryRegistrationArn`, `ResourceArn`, `TemplateArn`
-
-### Create
-
-- Operations: `CreateConnector`, `CreateDirectoryRegistration`, `CreateServicePrincipalName`, `CreateTemplate`, `CreateTemplateGroupAccessControlEntry`
-- Traits: `idempotency-token` (5), `idempotent` (2)
-- Common required input members in this group: `AccessRights`, `CertificateAuthorityArn`, `ConnectorArn`, `Definition`, `DirectoryId`, `DirectoryRegistrationArn`, `GroupDisplayName`, `GroupSecurityIdentifier`, `Name`, `TemplateArn`, `VpcInformation`
-
-### Delete
-
-- Operations: `DeleteConnector`, `DeleteDirectoryRegistration`, `DeleteServicePrincipalName`, `DeleteTemplate`, `DeleteTemplateGroupAccessControlEntry`
-- Traits: `idempotent` (5)
-- Common required input members in this group: `ConnectorArn`, `DirectoryRegistrationArn`, `GroupSecurityIdentifier`, `TemplateArn`
-
-### Get
-
-- Operations: `GetConnector`, `GetDirectoryRegistration`, `GetServicePrincipalName`, `GetTemplate`, `GetTemplateGroupAccessControlEntry`
-- Traits: `readonly` (5)
-- Common required input members in this group: `ConnectorArn`, `DirectoryRegistrationArn`, `GroupSecurityIdentifier`, `TemplateArn`
-
-### Update
-
-- Operations: `UpdateTemplate`, `UpdateTemplateGroupAccessControlEntry`
-- Common required input members in this group: `GroupSecurityIdentifier`, `TemplateArn`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateConnector` | `POST /connectors` | `idempotency-token` | `CertificateAuthorityArn`, `DirectoryId`, `VpcInformation` | `ClientToken` | `CreateConnectorResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a connector between Amazon Web Services Private CA and an Active Directory. You must specify the private CA, directory ID, and security groups. |
-| `CreateDirectoryRegistration` | `POST /directoryRegistrations` | `idempotency-token` | `DirectoryId` | `ClientToken` | `CreateDirectoryRegistrationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a directory registration that authorizes communication between Amazon Web Services Private CA and an Active Directory |
-| `CreateServicePrincipalName` | `POST /directoryRegistrations/{DirectoryRegistrationArn}/servicePrincipalNames/{ConnectorArn}` | `idempotent`, `idempotency-token` | `ConnectorArn`, `DirectoryRegistrationArn` | `ClientToken` | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a service principal name (SPN) for the service account in Active Directory. Kerberos authentication uses SPNs to associate a service instance with a service sign-in account. |
-| `CreateTemplate` | `POST /templates` | `idempotency-token` | `ConnectorArn`, `Definition`, `Name` | `ClientToken` | `CreateTemplateResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an Active Directory compatible certificate template. The connectors issues certificates using these templates based on the requester’s Active Directory group membership. |
-| `CreateTemplateGroupAccessControlEntry` | `POST /templates/{TemplateArn}/accessControlEntries` | `idempotent`, `idempotency-token` | `AccessRights`, `GroupDisplayName`, `GroupSecurityIdentifier`, `TemplateArn` | `ClientToken` | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Create a group access control entry. Allow or deny Active Directory groups from enrolling and/or autoenrolling with the template based on the group security identifiers (SIDs). |
-| `DeleteConnector` | `DELETE /connectors/{ConnectorArn}` | `idempotent` | `ConnectorArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a connector for Active Directory. You must provide the Amazon Resource Name (ARN) of the connector that you want to delete. |
-| `DeleteDirectoryRegistration` | `DELETE /directoryRegistrations/{DirectoryRegistrationArn}` | `idempotent` | `DirectoryRegistrationArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a directory registration. Deleting a directory registration deauthorizes Amazon Web Services Private CA with the directory. |
-| `DeleteServicePrincipalName` | `DELETE /directoryRegistrations/{DirectoryRegistrationArn}/servicePrincipalNames/{ConnectorArn}` | `idempotent` | `ConnectorArn`, `DirectoryRegistrationArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes the service principal name (SPN) used by a connector to authenticate with your Active Directory. |
-| `DeleteTemplate` | `DELETE /templates/{TemplateArn}` | `idempotent` | `TemplateArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a template. Certificates issued using the template are still valid until they are revoked or expired. |
-| `DeleteTemplateGroupAccessControlEntry` | `DELETE /templates/{TemplateArn}/accessControlEntries/{GroupSecurityIdentifier}` | `idempotent` | `GroupSecurityIdentifier`, `TemplateArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a group access control entry. |
-| `GetConnector` | `GET /connectors/{ConnectorArn}` | `readonly` | `ConnectorArn` | - | `GetConnectorResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists information about your connector. You specify the connector on input by its ARN (Amazon Resource Name). |
-| `GetDirectoryRegistration` | `GET /directoryRegistrations/{DirectoryRegistrationArn}` | `readonly` | `DirectoryRegistrationArn` | - | `GetDirectoryRegistrationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | A structure that contains information about your directory registration. |
-| `GetServicePrincipalName` | `GET /directoryRegistrations/{DirectoryRegistrationArn}/servicePrincipalNames/{ConnectorArn}` | `readonly` | `ConnectorArn`, `DirectoryRegistrationArn` | - | `GetServicePrincipalNameResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the service principal name that the connector uses to authenticate with Active Directory. |
-| `GetTemplate` | `GET /templates/{TemplateArn}` | `readonly` | `TemplateArn` | - | `GetTemplateResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a certificate template that the connector uses to issue certificates from a private CA. |
-| `GetTemplateGroupAccessControlEntry` | `GET /templates/{TemplateArn}/accessControlEntries/{GroupSecurityIdentifier}` | `readonly` | `GroupSecurityIdentifier`, `TemplateArn` | - | `GetTemplateGroupAccessControlEntryResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the group access control entries for a template. |
-| `ListConnectors` | `GET /connectors` | `readonly`, `paginated` | - | - | `ListConnectorsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the connectors that you created by using the https://docs.aws.amazon.com/pca-connector-ad/latest/APIReference/API_CreateConnector action. |
-| `ListDirectoryRegistrations` | `GET /directoryRegistrations` | `readonly`, `paginated` | - | - | `ListDirectoryRegistrationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the directory registrations that you created by using the https://docs.aws.amazon.com/pca-connector-ad/latest/APIReference/API_CreateDirectoryRegistration action. |
-| `ListServicePrincipalNames` | `GET /directoryRegistrations/{DirectoryRegistrationArn}/servicePrincipalNames` | `readonly`, `paginated` | `DirectoryRegistrationArn` | - | `ListServicePrincipalNamesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the service principal names that the connector uses to authenticate with Active Directory. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags, if any, that are associated with your resource. |
-| `ListTemplateGroupAccessControlEntries` | `GET /templates/{TemplateArn}/accessControlEntries` | `readonly`, `paginated` | `TemplateArn` | - | `ListTemplateGroupAccessControlEntriesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists group access control entries you created. |
-| `ListTemplates` | `GET /templates` | `readonly`, `paginated` | `ConnectorArn` | - | `ListTemplatesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the templates, if any, that are associated with a connector. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds one or more tags to your resource. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes one or more tags from your resource. |
-| `UpdateTemplate` | `PATCH /templates/{TemplateArn}` | - | `TemplateArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update template configuration to define the information included in certificates. |
-| `UpdateTemplateGroupAccessControlEntry` | `PATCH /templates/{TemplateArn}/accessControlEntries/{GroupSecurityIdentifier}` | - | `GroupSecurityIdentifier`, `TemplateArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update a group access control entry you created using CreateTemplateGroupAccessControlEntry. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You can receive this error if you attempt to create a resource share when you don't have the required permissions. |
-| `InternalServerException` | `structure` | `Message` | The request processing has failed because of an unknown error, exception or failure with an internal server. |
-| `ThrottlingException` | `structure` | `Message`, `QuotaCode`, `ServiceCode` | The limit on the number of requests per second was exceeded. |
-| `ValidationException` | `structure` | `Message`, `Reason` | An input validation error occurred. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | The operation tried to access a nonexistent resource. |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | This request cannot be completed for one of the following reasons because the requested resource was being concurrently modified by another request. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `QuotaCode`, `ResourceId`, `ResourceType`, `ServiceCode` | Request would cause a service quota to be exceeded. |
-| `CreateConnectorRequest` | `structure` | `CertificateAuthorityArn`, `ClientToken`, `DirectoryId`, `Tags`, `VpcInformation` | - |
-| `CreateConnectorResponse` | `structure` | `ConnectorArn` | - |
-| `CreateDirectoryRegistrationRequest` | `structure` | `ClientToken`, `DirectoryId`, `Tags` | - |
-| `CreateDirectoryRegistrationResponse` | `structure` | `DirectoryRegistrationArn` | - |
-| `CreateServicePrincipalNameRequest` | `structure` | `ClientToken`, `ConnectorArn`, `DirectoryRegistrationArn` | - |
-| `CreateTemplateRequest` | `structure` | `ClientToken`, `ConnectorArn`, `Definition`, `Name`, `Tags` | - |
-| `CreateTemplateResponse` | `structure` | `TemplateArn` | - |
-| `CreateTemplateGroupAccessControlEntryRequest` | `structure` | `AccessRights`, `ClientToken`, `GroupDisplayName`, `GroupSecurityIdentifier`, `TemplateArn` | - |
-| `DeleteConnectorRequest` | `structure` | `ConnectorArn` | - |
-| `DeleteDirectoryRegistrationRequest` | `structure` | `DirectoryRegistrationArn` | - |
-| `DeleteServicePrincipalNameRequest` | `structure` | `ConnectorArn`, `DirectoryRegistrationArn` | - |
-| `DeleteTemplateRequest` | `structure` | `TemplateArn` | - |
-| `DeleteTemplateGroupAccessControlEntryRequest` | `structure` | `GroupSecurityIdentifier`, `TemplateArn` | - |
-| `GetConnectorRequest` | `structure` | `ConnectorArn` | - |
-| `GetConnectorResponse` | `structure` | `Connector` | - |
-| `GetDirectoryRegistrationRequest` | `structure` | `DirectoryRegistrationArn` | - |
-
+| `AccessDeniedException` | `structure` | Message | You can receive this error if you attempt to create a resource share when you don't have the required permissions. This can be caused by insufficient permis ... |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | This request cannot be completed for one of the following reasons because the requested resource was being concurrently modified by another request. |
+| `InternalServerException` | `structure` | Message | The request processing has failed because of an unknown error, exception or failure with an internal server. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | The operation tried to access a nonexistent resource. The resource might not be specified correctly, or its status might not be ACTIVE. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, ServiceCode, QuotaCode | Request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | Message, ServiceCode, QuotaCode | The limit on the number of requests per second was exceeded. |
+| `ValidationException` | `structure` | Message, Reason | An input validation error occurred. For example, invalid characters in a template name, or if a pagination token is invalid. |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `AccessRight` | `enum` | ALLOW, DENY | - |
+| `ApplicationPolicyType` | `enum` | ALL_APPLICATION_POLICIES, ANY_PURPOSE, ATTESTATION_IDENTITY_KEY_CERTIFICATE, CERTIFICATE_REQUEST_AGENT, CLIENT_AUTHENTICATION, CODE_SIGNING, CTL_USAGE, DIGITAL_RIGHTS, DIRECTORY_SERVICE_EMAIL_REPLICATION, DISALLOWED_LIST, DNS_SERVER_TRUST, DOCUMENT_ENCRYPTION, ... (+55) | - |
+| `ClientCompatibilityV2` | `enum` | WINDOWS_SERVER_2003, WINDOWS_SERVER_2008, WINDOWS_SERVER_2008_R2, WINDOWS_SERVER_2012, WINDOWS_SERVER_2012_R2, WINDOWS_SERVER_2016 | - |
+| `ClientCompatibilityV3` | `enum` | WINDOWS_SERVER_2008, WINDOWS_SERVER_2008_R2, WINDOWS_SERVER_2012, WINDOWS_SERVER_2012_R2, WINDOWS_SERVER_2016 | - |
+| `ClientCompatibilityV4` | `enum` | WINDOWS_SERVER_2012, WINDOWS_SERVER_2012_R2, WINDOWS_SERVER_2016 | - |
+| `ConnectorStatus` | `enum` | CREATING, ACTIVE, DELETING, FAILED | - |
+| `ConnectorStatusReason` | `enum` | CA_CERTIFICATE_REGISTRATION_FAILED, DIRECTORY_ACCESS_DENIED, INTERNAL_FAILURE, INSUFFICIENT_FREE_ADDRESSES, INVALID_SUBNET_IP_PROTOCOL, PRIVATECA_ACCESS_DENIED, PRIVATECA_RESOURCE_NOT_FOUND, SECURITY_GROUP_NOT_IN_VPC, VPC_ACCESS_DENIED, VPC_ENDPOINT_LIMIT_EXCEEDED, VPC_RESOURCE_NOT_FOUND | - |
+| `DirectoryRegistrationStatus` | `enum` | CREATING, ACTIVE, DELETING, FAILED | - |
+| `DirectoryRegistrationStatusReason` | `enum` | DIRECTORY_ACCESS_DENIED, DIRECTORY_RESOURCE_NOT_FOUND, DIRECTORY_NOT_ACTIVE, DIRECTORY_NOT_REACHABLE, DIRECTORY_TYPE_NOT_SUPPORTED, INTERNAL_FAILURE | - |
+| `HashAlgorithm` | `enum` | SHA256, SHA384, SHA512 | - |
+| `IpAddressType` | `enum` | IPV4, DUALSTACK | - |
+| `KeySpec` | `enum` | KEY_EXCHANGE, SIGNATURE | - |
+| `KeyUsagePropertyType` | `enum` | ALL | - |
+| `PrivateKeyAlgorithm` | `enum` | RSA, ECDH_P256, ECDH_P384, ECDH_P521 | - |
+| `ServicePrincipalNameStatus` | `enum` | CREATING, ACTIVE, DELETING, FAILED | - |
+| `ServicePrincipalNameStatusReason` | `enum` | DIRECTORY_ACCESS_DENIED, DIRECTORY_NOT_REACHABLE, DIRECTORY_RESOURCE_NOT_FOUND, SPN_EXISTS_ON_DIFFERENT_AD_OBJECT, SPN_LIMIT_EXCEEDED, INTERNAL_FAILURE | - |
+| `TemplateStatus` | `enum` | ACTIVE, DELETING | - |
+| `ValidationExceptionReason` | `enum` | FIELD_VALIDATION_FAILED, INVALID_CA_SUBJECT, INVALID_PERMISSION, INVALID_STATE, MISMATCHED_CONNECTOR, MISMATCHED_VPC, NO_CLIENT_TOKEN, UNKNOWN_OPERATION, OTHER | - |
+| `ValidityPeriodType` | `enum` | HOURS, DAYS, WEEKS, MONTHS, YEARS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

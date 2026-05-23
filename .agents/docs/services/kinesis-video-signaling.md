@@ -36,35 +36,41 @@ Kinesis Video Streams Signaling Service is a intermediate service that establish
 ### Get
 
 - Operations: `GetIceServerConfig`
-- Common required input members in this group: `ChannelARN`
+- Common required input members in this group: -
 
 ### Send
 
 - Operations: `SendAlexaOfferToMaster`
-- Common required input members in this group: `ChannelARN`, `MessagePayload`, `SenderClientId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetIceServerConfig` | `POST /v1/get-ice-server-config` | - | `ChannelARN` | - | `GetIceServerConfigResponse` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidClientException`, `NotAuthorizedException`, `ResourceNotFoundException`, `SessionExpiredException` | Gets the Interactive Connectivity Establishment (ICE) server configuration information, including URIs, username, and password which can be used to configure the WebRTC connection. The ICE component uses this configuration information to setup the WebRTC... |
-| `SendAlexaOfferToMaster` | `POST /v1/send-alexa-offer-to-master` | - | `ChannelARN`, `MessagePayload`, `SenderClientId` | - | `SendAlexaOfferToMasterResponse` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | This API allows you to connect WebRTC-enabled devices with Alexa display devices. When invoked, it sends the Alexa Session Description Protocol (SDP) offer to the master peer. |
+| `GetIceServerConfig` | `POST /v1/get-ice-server-config` | - | `ChannelARN` | - | `GetIceServerConfigResponse` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidClientException`, `NotAuthorizedException`, `ResourceNotFoundException`, `SessionExpiredException` | Gets the Interactive Connectivity Establishment (ICE) server configuration information, including URIs, username, and password which can be used to configure the WebRTC connection. The ICE component uses this configu ... |
+| `SendAlexaOfferToMaster` | `POST /v1/send-alexa-offer-to-master` | - | `ChannelARN`, `SenderClientId`, `MessagePayload` | - | `SendAlexaOfferToMasterResponse` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | This API allows you to connect WebRTC-enabled devices with Alexa display devices. When invoked, it sends the Alexa Session Description Protocol (SDP) offer to the master peer. The offer is delivered as soon as the ma ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ClientLimitExceededException` | `structure` | `Message` | Your request was throttled because you have exceeded the limit of allowed client calls. |
-| `InvalidArgumentException` | `structure` | `Message` | The value for this input parameter is invalid. |
-| `NotAuthorizedException` | `structure` | `Message` | The caller is not authorized to perform this operation. |
-| `ResourceNotFoundException` | `structure` | `Message` | The specified resource is not found. |
-| `GetIceServerConfigRequest` | `structure` | `ChannelARN`, `ClientId`, `Service`, `Username` | - |
-| `GetIceServerConfigResponse` | `structure` | `IceServerList` | - |
-| `InvalidClientException` | `structure` | `message` | The specified client is invalid. |
-| `SessionExpiredException` | `structure` | `message` | If the client session is expired. |
-| `SendAlexaOfferToMasterRequest` | `structure` | `ChannelARN`, `MessagePayload`, `SenderClientId` | - |
-| `SendAlexaOfferToMasterResponse` | `structure` | `Answer` | - |
-
+| `ClientLimitExceededException` | `structure` | Message | Your request was throttled because you have exceeded the limit of allowed client calls. Try making the call later. |
+| `InvalidArgumentException` | `structure` | Message | The value for this input parameter is invalid. |
+| `InvalidClientException` | `structure` | message | The specified client is invalid. |
+| `NotAuthorizedException` | `structure` | Message | The caller is not authorized to perform this operation. |
+| `ResourceNotFoundException` | `structure` | Message | The specified resource is not found. |
+| `SessionExpiredException` | `structure` | message | If the client session is expired. Once the client is connected, the session is valid for 45 minutes. Client should reconnect to the channel to continue send ... |
+| `GetIceServerConfigRequest` | `structure` | ChannelARN, ClientId, Service, Username | - |
+| `GetIceServerConfigResponse` | `structure` | IceServerList | - |
+| `SendAlexaOfferToMasterRequest` | `structure` | ChannelARN, SenderClientId, MessagePayload | - |
+| `SendAlexaOfferToMasterResponse` | `structure` | Answer | - |
+| `Service` | `enum` | TURN | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -39,43 +39,53 @@ AWS IAM Identity Center (successor to AWS Single Sign-On) Portal is a web servic
 
 - Operations: `ListAccountRoles`, `ListAccounts`
 - Traits: `paginated` (2)
-- Common required input members in this group: `accessToken`, `accountId`
+- Common required input members in this group: `accessToken`
 
 ### Get
 
 - Operations: `GetRoleCredentials`
-- Common required input members in this group: `accessToken`, `accountId`, `roleName`
+- Common required input members in this group: -
 
 ### Logout
 
 - Operations: `Logout`
-- Common required input members in this group: `accessToken`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetRoleCredentials` | `GET /federation/credentials` | - | `accessToken`, `accountId`, `roleName` | - | `GetRoleCredentialsResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Returns the STS short-term credentials for a given role name that is assigned to the user. |
+| `GetRoleCredentials` | `GET /federation/credentials` | - | `roleName`, `accountId`, `accessToken` | - | `GetRoleCredentialsResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Returns the STS short-term credentials for a given role name that is assigned to the user. |
 | `ListAccountRoles` | `GET /assignment/roles` | `paginated` | `accessToken`, `accountId` | - | `ListAccountRolesResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Lists all roles that are assigned to the user for a given AWS account. |
-| `ListAccounts` | `GET /assignment/accounts` | `paginated` | `accessToken` | - | `ListAccountsResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Lists all AWS accounts assigned to the user. These AWS accounts are assigned by the administrator of the account. |
-| `Logout` | `POST /logout` | - | `accessToken` | - | `Unit` | `InvalidRequestException`, `TooManyRequestsException`, `UnauthorizedException` | Removes the locally stored SSO tokens from the client-side cache and sends an API call to the IAM Identity Center service to invalidate the corresponding server-side IAM Identity Center sign in session. If a user uses IAM Identity Center to access the AWS... |
+| `ListAccounts` | `GET /assignment/accounts` | `paginated` | `accessToken` | - | `ListAccountsResponse` | `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Lists all AWS accounts assigned to the user. These AWS accounts are assigned by the administrator of the account. For more information, see Assign User Access in the IAM Identity Center User Guide . This operation re ... |
+| `Logout` | `POST /logout` | - | `accessToken` | - | `Unit` | `InvalidRequestException`, `TooManyRequestsException`, `UnauthorizedException` | Removes the locally stored SSO tokens from the client-side cache and sends an API call to the IAM Identity Center service to invalidate the corresponding server-side IAM Identity Center sign in session. If a user use ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetRoleCredentials` | `accessToken -> x-amz-sso_bearer_token` | `roleName -> role_name`, `accountId -> account_id` | - | - |
+| `ListAccountRoles` | `accessToken -> x-amz-sso_bearer_token` | `nextToken -> next_token`, `maxResults -> max_result`, `accountId -> account_id` | - | - |
+| `ListAccounts` | `accessToken -> x-amz-sso_bearer_token` | `nextToken -> next_token`, `maxResults -> max_result` | - | - |
+| `Logout` | `accessToken -> x-amz-sso_bearer_token` | - | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidRequestException` | `structure` | `message` | Indicates that a problem occurred with the input to the request. |
-| `TooManyRequestsException` | `structure` | `message` | Indicates that the request is being made too frequently and is more than what the server can handle. |
-| `UnauthorizedException` | `structure` | `message` | Indicates that the request is not authorized. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource doesn't exist. |
-| `GetRoleCredentialsRequest` | `structure` | `accessToken`, `accountId`, `roleName` | - |
-| `GetRoleCredentialsResponse` | `structure` | `roleCredentials` | - |
-| `ListAccountRolesRequest` | `structure` | `accessToken`, `accountId`, `maxResults`, `nextToken` | - |
-| `ListAccountRolesResponse` | `structure` | `nextToken`, `roleList` | - |
-| `ListAccountsRequest` | `structure` | `accessToken`, `maxResults`, `nextToken` | - |
-| `ListAccountsResponse` | `structure` | `accountList`, `nextToken` | - |
-| `LogoutRequest` | `structure` | `accessToken` | - |
-
+| `InvalidRequestException` | `structure` | message | Indicates that a problem occurred with the input to the request. For example, a required parameter might be missing or out of range. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource doesn't exist. |
+| `TooManyRequestsException` | `structure` | message | Indicates that the request is being made too frequently and is more than what the server can handle. |
+| `UnauthorizedException` | `structure` | message | Indicates that the request is not authorized. This can happen due to an invalid access token in the request. |
+| `GetRoleCredentialsRequest` | `structure` | roleName, accountId, accessToken | - |
+| `GetRoleCredentialsResponse` | `structure` | roleCredentials | - |
+| `ListAccountRolesRequest` | `structure` | nextToken, maxResults, accessToken, accountId | - |
+| `ListAccountRolesResponse` | `structure` | nextToken, roleList | - |
+| `ListAccountsRequest` | `structure` | nextToken, maxResults, accessToken | - |
+| `ListAccountsResponse` | `structure` | nextToken, accountList | - |
+| `LogoutRequest` | `structure` | accessToken | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

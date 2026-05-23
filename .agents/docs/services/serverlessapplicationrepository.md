@@ -39,38 +39,38 @@ The AWS Serverless Application Repository makes it easy for developers and enter
 ### Create
 
 - Operations: `CreateApplication`, `CreateApplicationVersion`, `CreateCloudFormationChangeSet`, `CreateCloudFormationTemplate`
-- Common required input members in this group: `ApplicationId`, `Author`, `Description`, `Name`, `SemanticVersion`, `StackName`
+- Common required input members in this group: `ApplicationId`
 
 ### Get
 
 - Operations: `GetApplication`, `GetApplicationPolicy`, `GetCloudFormationTemplate`
-- Common required input members in this group: `ApplicationId`, `TemplateId`
+- Common required input members in this group: `ApplicationId`
 
 ### List
 
-- Operations: `ListApplicationDependencies`, `ListApplicationVersions`, `ListApplications`
+- Operations: `ListApplicationDependencies`, `ListApplications`, `ListApplicationVersions`
 - Traits: `paginated` (3)
 - Common required input members in this group: `ApplicationId`
 
 ### Delete
 
 - Operations: `DeleteApplication`
-- Common required input members in this group: `ApplicationId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutApplicationPolicy`
-- Common required input members in this group: `ApplicationId`, `Statements`
+- Common required input members in this group: -
 
 ### Unshare
 
 - Operations: `UnshareApplication`
-- Common required input members in this group: `ApplicationId`, `OrganizationId`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateApplication`
-- Common required input members in this group: `ApplicationId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -85,40 +85,61 @@ The AWS Serverless Application Repository makes it easy for developers and enter
 | `GetApplicationPolicy` | `GET /applications/{ApplicationId}/policy` | - | `ApplicationId` | - | `GetApplicationPolicyResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Retrieves the policy for the application. |
 | `GetCloudFormationTemplate` | `GET /applications/{ApplicationId}/templates/{TemplateId}` | - | `ApplicationId`, `TemplateId` | - | `GetCloudFormationTemplateResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Gets the specified AWS CloudFormation template. |
 | `ListApplicationDependencies` | `GET /applications/{ApplicationId}/dependencies` | `paginated` | `ApplicationId` | - | `ListApplicationDependenciesResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Retrieves the list of applications nested in the containing application. |
-| `ListApplicationVersions` | `GET /applications/{ApplicationId}/versions` | `paginated` | `ApplicationId` | - | `ListApplicationVersionsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Lists versions for the specified application. |
 | `ListApplications` | `GET /applications` | `paginated` | - | - | `ListApplicationsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Lists applications owned by the requester. |
+| `ListApplicationVersions` | `GET /applications/{ApplicationId}/versions` | `paginated` | `ApplicationId` | - | `ListApplicationVersionsResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Lists versions for the specified application. |
 | `PutApplicationPolicy` | `PUT /applications/{ApplicationId}/policy` | - | `ApplicationId`, `Statements` | - | `PutApplicationPolicyResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Sets the permission policy for an application. For the list of actions supported for this operation, see Application Permissions . |
 | `UnshareApplication` | `POST /applications/{ApplicationId}/unshare` | - | `ApplicationId`, `OrganizationId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Unshares an application from an AWS Organization. This operation can be called only from the organization's master account. |
 | `UpdateApplication` | `PATCH /applications/{ApplicationId}` | - | `ApplicationId` | - | `UpdateApplicationResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Updates the specified application. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetApplication` | - | `SemanticVersion -> semanticVersion` | - | - |
+| `ListApplicationDependencies` | - | `MaxItems -> maxItems`, `NextToken -> nextToken`, `SemanticVersion -> semanticVersion` | - | - |
+| `ListApplications` | - | `MaxItems -> maxItems`, `NextToken -> nextToken` | - | - |
+| `ListApplicationVersions` | - | `MaxItems -> maxItems`, `NextToken -> nextToken` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `ErrorCode`, `Message` | One of the parameters in the request is invalid. |
-| `ForbiddenException` | `structure` | `ErrorCode`, `Message` | The client is not authenticated. |
-| `InternalServerErrorException` | `structure` | `ErrorCode`, `Message` | The AWS Serverless Application Repository service encountered an internal error. |
-| `TooManyRequestsException` | `structure` | `ErrorCode`, `Message` | The client is sending more than the allowed number of requests per unit of time. |
-| `NotFoundException` | `structure` | `ErrorCode`, `Message` | The resource (for example, an access policy statement) specified in the request doesn't exist. |
-| `ConflictException` | `structure` | `ErrorCode`, `Message` | The resource already exists. |
-| `CreateApplicationRequest` | `structure` | `Author`, `Description`, `HomePageUrl`, `Labels`, `LicenseBody`, `LicenseUrl`, `Name`, `ReadmeBody`, `ReadmeUrl`, `SemanticVersion`, `SourceCodeArchiveUrl`, `SourceCodeUrl`, ... (+3) | - |
-| `CreateApplicationResponse` | `structure` | `ApplicationId`, `Author`, `CreationTime`, `Description`, `HomePageUrl`, `IsVerifiedAuthor`, `Labels`, `LicenseUrl`, `Name`, `ReadmeUrl`, `SpdxLicenseId`, `VerifiedAuthorUrl`, ... (+1) | - |
-| `CreateApplicationVersionRequest` | `structure` | `ApplicationId`, `SemanticVersion`, `SourceCodeArchiveUrl`, `SourceCodeUrl`, `TemplateBody`, `TemplateUrl` | - |
-| `CreateApplicationVersionResponse` | `structure` | `ApplicationId`, `CreationTime`, `ParameterDefinitions`, `RequiredCapabilities`, `ResourcesSupported`, `SemanticVersion`, `SourceCodeArchiveUrl`, `SourceCodeUrl`, `TemplateUrl` | - |
-| `CreateCloudFormationChangeSetRequest` | `structure` | `ApplicationId`, `Capabilities`, `ChangeSetName`, `ClientToken`, `Description`, `NotificationArns`, `ParameterOverrides`, `ResourceTypes`, `RollbackConfiguration`, `SemanticVersion`, `StackName`, `Tags`, ... (+1) | - |
-| `CreateCloudFormationChangeSetResponse` | `structure` | `ApplicationId`, `ChangeSetId`, `SemanticVersion`, `StackId` | - |
-| `CreateCloudFormationTemplateRequest` | `structure` | `ApplicationId`, `SemanticVersion` | - |
-| `CreateCloudFormationTemplateResponse` | `structure` | `ApplicationId`, `CreationTime`, `ExpirationTime`, `SemanticVersion`, `Status`, `TemplateId`, `TemplateUrl` | - |
-| `DeleteApplicationRequest` | `structure` | `ApplicationId` | - |
-| `GetApplicationRequest` | `structure` | `ApplicationId`, `SemanticVersion` | - |
-| `GetApplicationResponse` | `structure` | `ApplicationId`, `Author`, `CreationTime`, `Description`, `HomePageUrl`, `IsVerifiedAuthor`, `Labels`, `LicenseUrl`, `Name`, `ReadmeUrl`, `SpdxLicenseId`, `VerifiedAuthorUrl`, ... (+1) | - |
-| `GetApplicationPolicyRequest` | `structure` | `ApplicationId` | - |
-| `GetApplicationPolicyResponse` | `structure` | `Statements` | - |
-| `GetCloudFormationTemplateRequest` | `structure` | `ApplicationId`, `TemplateId` | - |
-| `GetCloudFormationTemplateResponse` | `structure` | `ApplicationId`, `CreationTime`, `ExpirationTime`, `SemanticVersion`, `Status`, `TemplateId`, `TemplateUrl` | - |
-| `ListApplicationDependenciesRequest` | `structure` | `ApplicationId`, `MaxItems`, `NextToken`, `SemanticVersion` | - |
-| `ListApplicationDependenciesResponse` | `structure` | `Dependencies`, `NextToken` | - |
-
+| `BadRequestException` | `structure` | ErrorCode, Message | One of the parameters in the request is invalid. |
+| `ConflictException` | `structure` | ErrorCode, Message | The resource already exists. |
+| `ForbiddenException` | `structure` | ErrorCode, Message | The client is not authenticated. |
+| `InternalServerErrorException` | `structure` | ErrorCode, Message | The AWS Serverless Application Repository service encountered an internal error. |
+| `NotFoundException` | `structure` | ErrorCode, Message | The resource (for example, an access policy statement) specified in the request doesn't exist. |
+| `TooManyRequestsException` | `structure` | ErrorCode, Message | The client is sending more than the allowed number of requests per unit of time. |
+| `CreateApplicationRequest` | `structure` | Author, Description, HomePageUrl, Labels, LicenseBody, LicenseUrl, Name, ReadmeBody, ReadmeUrl, SemanticVersion, SourceCodeArchiveUrl, SourceCodeUrl, ... (+3) | - |
+| `CreateApplicationResponse` | `structure` | ApplicationId, Author, CreationTime, Description, HomePageUrl, IsVerifiedAuthor, Labels, LicenseUrl, Name, ReadmeUrl, SpdxLicenseId, VerifiedAuthorUrl, ... (+1) | - |
+| `CreateApplicationVersionRequest` | `structure` | ApplicationId, SemanticVersion, SourceCodeArchiveUrl, SourceCodeUrl, TemplateBody, TemplateUrl | - |
+| `CreateApplicationVersionResponse` | `structure` | ApplicationId, CreationTime, ParameterDefinitions, RequiredCapabilities, ResourcesSupported, SemanticVersion, SourceCodeArchiveUrl, SourceCodeUrl, TemplateUrl | - |
+| `CreateCloudFormationChangeSetRequest` | `structure` | ApplicationId, Capabilities, ChangeSetName, ClientToken, Description, NotificationArns, ParameterOverrides, ResourceTypes, RollbackConfiguration, SemanticVersion, StackName, Tags, ... (+1) | - |
+| `CreateCloudFormationChangeSetResponse` | `structure` | ApplicationId, ChangeSetId, SemanticVersion, StackId | - |
+| `CreateCloudFormationTemplateRequest` | `structure` | ApplicationId, SemanticVersion | - |
+| `CreateCloudFormationTemplateResponse` | `structure` | ApplicationId, CreationTime, ExpirationTime, SemanticVersion, Status, TemplateId, TemplateUrl | - |
+| `DeleteApplicationRequest` | `structure` | ApplicationId | - |
+| `GetApplicationRequest` | `structure` | ApplicationId, SemanticVersion | - |
+| `GetApplicationResponse` | `structure` | ApplicationId, Author, CreationTime, Description, HomePageUrl, IsVerifiedAuthor, Labels, LicenseUrl, Name, ReadmeUrl, SpdxLicenseId, VerifiedAuthorUrl, ... (+1) | - |
+| `GetApplicationPolicyRequest` | `structure` | ApplicationId | - |
+| `GetApplicationPolicyResponse` | `structure` | Statements | - |
+| `GetCloudFormationTemplateRequest` | `structure` | ApplicationId, TemplateId | - |
+| `GetCloudFormationTemplateResponse` | `structure` | ApplicationId, CreationTime, ExpirationTime, SemanticVersion, Status, TemplateId, TemplateUrl | - |
+| `ListApplicationDependenciesRequest` | `structure` | ApplicationId, MaxItems, NextToken, SemanticVersion | - |
+| `ListApplicationDependenciesResponse` | `structure` | Dependencies, NextToken | - |
+| `ListApplicationsRequest` | `structure` | MaxItems, NextToken | - |
+| `ListApplicationsResponse` | `structure` | Applications, NextToken | - |
+| `ListApplicationVersionsRequest` | `structure` | ApplicationId, MaxItems, NextToken | - |
+| `ListApplicationVersionsResponse` | `structure` | NextToken, Versions | - |
+| `PutApplicationPolicyRequest` | `structure` | ApplicationId, Statements | - |
+| `PutApplicationPolicyResponse` | `structure` | Statements | - |
+| `UnshareApplicationRequest` | `structure` | ApplicationId, OrganizationId | - |
+| `UpdateApplicationRequest` | `structure` | ApplicationId, Author, Description, HomePageUrl, Labels, ReadmeBody, ReadmeUrl | - |
+| `UpdateApplicationResponse` | `structure` | ApplicationId, Author, CreationTime, Description, HomePageUrl, IsVerifiedAuthor, Labels, LicenseUrl, Name, ReadmeUrl, SpdxLicenseId, VerifiedAuthorUrl, ... (+1) | - |
+| `Capability` | `enum` | CAPABILITY_IAM, CAPABILITY_NAMED_IAM, CAPABILITY_AUTO_EXPAND, CAPABILITY_RESOURCE_POLICY | Values that must be specified in order to deploy some applications. |
+| `Status` | `enum` | PREPARING, ACTIVE, EXPIRED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

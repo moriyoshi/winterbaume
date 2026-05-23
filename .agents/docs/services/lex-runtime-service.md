@@ -38,59 +38,74 @@ Amazon Lex provides both build and runtime endpoints. Each endpoint provides a s
 ### Post
 
 - Operations: `PostContent`, `PostText`
-- Common required input members in this group: `botAlias`, `botName`, `contentType`, `inputStream`, `inputText`, `userId`
+- Common required input members in this group: `botName`, `botAlias`, `userId`
 
 ### Delete
 
 - Operations: `DeleteSession`
-- Common required input members in this group: `botAlias`, `botName`, `userId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetSession`
-- Common required input members in this group: `botAlias`, `botName`, `userId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutSession`
-- Common required input members in this group: `botAlias`, `botName`, `userId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DeleteSession` | `DELETE /bot/{botName}/alias/{botAlias}/user/{userId}/session` | - | `botAlias`, `botName`, `userId` | - | `DeleteSessionResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException` | Removes session information for a specified bot, alias, and user ID. |
-| `GetSession` | `GET /bot/{botName}/alias/{botAlias}/user/{userId}/session` | - | `botAlias`, `botName`, `userId` | - | `GetSessionResponse` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException` | Returns session information for a specified bot, alias, and user ID. |
-| `PostContent` | `POST /bot/{botName}/alias/{botAlias}/user/{userId}/content` | - | `botAlias`, `botName`, `contentType`, `inputStream`, `userId` | - | `PostContentResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `DependencyFailedException`, `InternalFailureException`, `LimitExceededException`, `LoopDetectedException`, `NotAcceptableException`, ... (+3) | Sends user input (text or speech) to Amazon Lex. Clients use this API to send text and audio requests to Amazon Lex at runtime. |
-| `PostText` | `POST /bot/{botName}/alias/{botAlias}/user/{userId}/text` | - | `botAlias`, `botName`, `inputText`, `userId` | - | `PostTextResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `DependencyFailedException`, `InternalFailureException`, `LimitExceededException`, `LoopDetectedException`, `NotFoundException` | Sends user input to Amazon Lex. Client applications can use this API to send requests to Amazon Lex at runtime. |
-| `PutSession` | `POST /bot/{botName}/alias/{botAlias}/user/{userId}/session` | - | `botAlias`, `botName`, `userId` | - | `PutSessionResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `DependencyFailedException`, `InternalFailureException`, `LimitExceededException`, `NotAcceptableException`, `NotFoundException` | Creates a new session or modifies an existing session with an Amazon Lex bot. Use this operation to enable your application to set the state of the bot. |
+| `DeleteSession` | `DELETE /bot/{botName}/alias/{botAlias}/user/{userId}/session` | - | `botName`, `botAlias`, `userId` | - | `DeleteSessionResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException` | Removes session information for a specified bot, alias, and user ID. |
+| `GetSession` | `GET /bot/{botName}/alias/{botAlias}/user/{userId}/session` | - | `botName`, `botAlias`, `userId` | - | `GetSessionResponse` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException` | Returns session information for a specified bot, alias, and user ID. |
+| `PostContent` | `POST /bot/{botName}/alias/{botAlias}/user/{userId}/content` | - | `botName`, `botAlias`, `userId`, `contentType`, `inputStream` | - | `PostContentResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `DependencyFailedException`, `InternalFailureException`, `LimitExceededException`, `LoopDetectedException`, `NotAcceptableException`, `NotFoundException`, `RequestTimeoutException`, `UnsupportedMediaTypeException` | Sends user input (text or speech) to Amazon Lex. Clients use this API to send text and audio requests to Amazon Lex at runtime. Amazon Lex interprets the user input using the machine learning model that it built for ... |
+| `PostText` | `POST /bot/{botName}/alias/{botAlias}/user/{userId}/text` | - | `botName`, `botAlias`, `userId`, `inputText` | - | `PostTextResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `DependencyFailedException`, `InternalFailureException`, `LimitExceededException`, `LoopDetectedException`, `NotFoundException` | Sends user input to Amazon Lex. Client applications can use this API to send requests to Amazon Lex at runtime. Amazon Lex then interprets the user input using the machine learning model it built for the bot. In resp ... |
+| `PutSession` | `POST /bot/{botName}/alias/{botAlias}/user/{userId}/session` | - | `botName`, `botAlias`, `userId` | - | `PutSessionResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `DependencyFailedException`, `InternalFailureException`, `LimitExceededException`, `NotAcceptableException`, `NotFoundException` | Creates a new session or modifies an existing session with an Amazon Lex bot. Use this operation to enable your application to set the state of the bot. For more information, see Managing Sessions . |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetSession` | - | `checkpointLabelFilter -> checkpointLabelFilter` | - | - |
+| `PostContent` | `sessionAttributes -> x-amz-lex-session-attributes`, `requestAttributes -> x-amz-lex-request-attributes`, `contentType -> Content-Type`, `accept -> Accept`, `activeContexts -> x-amz-lex-active-contexts` | - | - | `inputStream` |
+| `PutSession` | `accept -> Accept` | - | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `message` | Request validation failed, there is no usable message in the context, or the bot build failed, is still in progress, or contains unbuilt changes. |
-| `InternalFailureException` | `structure` | `message` | Internal service error. |
-| `LimitExceededException` | `structure` | `message`, `retryAfterSeconds` | Exceeded a limit. |
-| `NotFoundException` | `structure` | `message` | The resource (such as the Amazon Lex bot or an alias) that is referred to is not found. |
-| `ConflictException` | `structure` | `message` | Two clients are using the same AWS account, Amazon Lex bot, and user ID. |
-| `BadGatewayException` | `structure` | `Message` | Either the Amazon Lex bot is still building, or one of the dependent services (Amazon Polly, AWS Lambda) failed with an internal service error. |
-| `DependencyFailedException` | `structure` | `Message` | One of the dependencies, such as AWS Lambda or Amazon Polly, threw an exception. |
-| `LoopDetectedException` | `structure` | `Message` | This exception is not used. |
-| `NotAcceptableException` | `structure` | `message` | The accept header in the request does not have a valid value. |
-| `DeleteSessionRequest` | `structure` | `botAlias`, `botName`, `userId` | - |
-| `DeleteSessionResponse` | `structure` | `botAlias`, `botName`, `sessionId`, `userId` | - |
-| `GetSessionRequest` | `structure` | `botAlias`, `botName`, `checkpointLabelFilter`, `userId` | - |
-| `GetSessionResponse` | `structure` | `activeContexts`, `dialogAction`, `recentIntentSummaryView`, `sessionAttributes`, `sessionId` | - |
-| `PostContentRequest` | `structure` | `accept`, `activeContexts`, `botAlias`, `botName`, `contentType`, `inputStream`, `requestAttributes`, `sessionAttributes`, `userId` | - |
-| `PostContentResponse` | `structure` | `activeContexts`, `alternativeIntents`, `audioStream`, `botVersion`, `contentType`, `dialogState`, `encodedInputTranscript`, `encodedMessage`, `inputTranscript`, `intentName`, `message`, `messageFormat`, ... (+6) | - |
-| `RequestTimeoutException` | `structure` | `message` | The input speech is too long. |
-| `UnsupportedMediaTypeException` | `structure` | `message` | The Content-Type header (`PostContent` API) has an invalid value. |
-| `PostTextRequest` | `structure` | `activeContexts`, `botAlias`, `botName`, `inputText`, `requestAttributes`, `sessionAttributes`, `userId` | - |
-| `PostTextResponse` | `structure` | `activeContexts`, `alternativeIntents`, `botVersion`, `dialogState`, `intentName`, `message`, `messageFormat`, `nluIntentConfidence`, `responseCard`, `sentimentResponse`, `sessionAttributes`, `sessionId`, ... (+2) | - |
-| `PutSessionRequest` | `structure` | `accept`, `activeContexts`, `botAlias`, `botName`, `dialogAction`, `recentIntentSummaryView`, `sessionAttributes`, `userId` | - |
-| `PutSessionResponse` | `structure` | `activeContexts`, `audioStream`, `contentType`, `dialogState`, `encodedMessage`, `intentName`, `message`, `messageFormat`, `sessionAttributes`, `sessionId`, `slotToElicit`, `slots` | - |
-
+| `BadGatewayException` | `structure` | Message | Either the Amazon Lex bot is still building, or one of the dependent services (Amazon Polly, AWS Lambda) failed with an internal service error. |
+| `BadRequestException` | `structure` | message | Request validation failed, there is no usable message in the context, or the bot build failed, is still in progress, or contains unbuilt changes. |
+| `ConflictException` | `structure` | message | Two clients are using the same AWS account, Amazon Lex bot, and user ID. |
+| `DependencyFailedException` | `structure` | Message | One of the dependencies, such as AWS Lambda or Amazon Polly, threw an exception. For example, If Amazon Lex does not have sufficient permissions to call a L ... |
+| `InternalFailureException` | `structure` | message | Internal service error. Retry the call. |
+| `LimitExceededException` | `structure` | retryAfterSeconds, message | Exceeded a limit. |
+| `LoopDetectedException` | `structure` | Message | This exception is not used. |
+| `NotAcceptableException` | `structure` | message | The accept header in the request does not have a valid value. |
+| `NotFoundException` | `structure` | message | The resource (such as the Amazon Lex bot or an alias) that is referred to is not found. |
+| `RequestTimeoutException` | `structure` | message | The input speech is too long. |
+| `UnsupportedMediaTypeException` | `structure` | message | The Content-Type header ( PostContent API) has an invalid value. |
+| `DeleteSessionRequest` | `structure` | botName, botAlias, userId | - |
+| `DeleteSessionResponse` | `structure` | botName, botAlias, userId, sessionId | - |
+| `GetSessionRequest` | `structure` | botName, botAlias, userId, checkpointLabelFilter | - |
+| `GetSessionResponse` | `structure` | recentIntentSummaryView, sessionAttributes, sessionId, dialogAction, activeContexts | - |
+| `PostContentRequest` | `structure` | botName, botAlias, userId, sessionAttributes, requestAttributes, contentType, accept, inputStream, activeContexts | - |
+| `PostContentResponse` | `structure` | contentType, intentName, nluIntentConfidence, alternativeIntents, slots, sessionAttributes, sentimentResponse, message, encodedMessage, messageFormat, dialogState, slotToElicit, ... (+6) | - |
+| `PostTextRequest` | `structure` | botName, botAlias, userId, sessionAttributes, requestAttributes, inputText, activeContexts | - |
+| `PostTextResponse` | `structure` | intentName, nluIntentConfidence, alternativeIntents, slots, sessionAttributes, message, sentimentResponse, messageFormat, dialogState, slotToElicit, responseCard, sessionId, ... (+2) | - |
+| `PutSessionRequest` | `structure` | botName, botAlias, userId, sessionAttributes, dialogAction, recentIntentSummaryView, accept, activeContexts | - |
+| `PutSessionResponse` | `structure` | contentType, intentName, slots, sessionAttributes, message, encodedMessage, messageFormat, dialogState, slotToElicit, audioStream, sessionId, activeContexts | - |
+| `ConfirmationStatus` | `enum` | NONE, CONFIRMED, DENIED | - |
+| `ContentType` | `enum` | GENERIC | - |
+| `DialogActionType` | `enum` | ELICIT_INTENT, CONFIRM_INTENT, ELICIT_SLOT, CLOSE, DELEGATE | - |
+| `DialogState` | `enum` | ELICIT_INTENT, CONFIRM_INTENT, ELICIT_SLOT, FULFILLED, READY_FOR_FULFILLMENT, FAILED | - |
+| `FulfillmentState` | `enum` | FULFILLED, FAILED, READY_FOR_FULFILLMENT | - |
+| `MessageFormatType` | `enum` | PLAIN_TEXT, CUSTOM_PAYLOAD, SSML, COMPOSITE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

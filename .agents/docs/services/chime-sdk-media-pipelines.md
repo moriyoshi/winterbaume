@@ -65,61 +65,61 @@ Parity implications:
 
 - Operations: `CreateMediaCapturePipeline`, `CreateMediaConcatenationPipeline`, `CreateMediaInsightsPipeline`, `CreateMediaInsightsPipelineConfiguration`, `CreateMediaLiveConnectorPipeline`, `CreateMediaPipelineKinesisVideoStreamPool`, `CreateMediaStreamPipeline`
 - Traits: `idempotency-token` (7)
-- Common required input members in this group: `Elements`, `MediaInsightsPipelineConfigurationArn`, `MediaInsightsPipelineConfigurationName`, `PoolName`, `ResourceAccessRoleArn`, `SinkArn`, `SinkType`, `Sinks`, `SourceArn`, `SourceType`, `Sources`, `StreamConfiguration`
+- Common required input members in this group: `Sources`, `Sinks`
 
 ### Get
 
 - Operations: `GetMediaCapturePipeline`, `GetMediaInsightsPipelineConfiguration`, `GetMediaPipeline`, `GetMediaPipelineKinesisVideoStreamPool`, `GetSpeakerSearchTask`, `GetVoiceToneAnalysisTask`
-- Common required input members in this group: `Identifier`, `MediaPipelineId`, `SpeakerSearchTaskId`, `VoiceToneAnalysisTaskId`
+- Common required input members in this group: `MediaPipelineId`, `Identifier`
 
 ### List
 
 - Operations: `ListMediaCapturePipelines`, `ListMediaInsightsPipelineConfigurations`, `ListMediaPipelineKinesisVideoStreamPools`, `ListMediaPipelines`, `ListTagsForResource`
 - Traits: `paginated` (4)
-- Common required input members in this group: `ResourceARN`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteMediaCapturePipeline`, `DeleteMediaInsightsPipelineConfiguration`, `DeleteMediaPipeline`, `DeleteMediaPipelineKinesisVideoStreamPool`
-- Common required input members in this group: `Identifier`, `MediaPipelineId`
+- Common required input members in this group: `MediaPipelineId`, `Identifier`
 
 ### Update
 
 - Operations: `UpdateMediaInsightsPipelineConfiguration`, `UpdateMediaInsightsPipelineStatus`, `UpdateMediaPipelineKinesisVideoStreamPool`
-- Common required input members in this group: `Elements`, `Identifier`, `ResourceAccessRoleArn`, `UpdateStatus`
+- Common required input members in this group: `Identifier`
 
 ### Start
 
 - Operations: `StartSpeakerSearchTask`, `StartVoiceToneAnalysisTask`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `Identifier`, `LanguageCode`, `VoiceProfileDomainArn`
+- Common required input members in this group: `Identifier`
 
 ### Stop
 
 - Operations: `StopSpeakerSearchTask`, `StopVoiceToneAnalysisTask`
-- Common required input members in this group: `Identifier`, `SpeakerSearchTaskId`, `VoiceToneAnalysisTaskId`
+- Common required input members in this group: `Identifier`
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateMediaCapturePipeline` | `POST /sdk-media-capture-pipelines` | `idempotency-token` | `SinkArn`, `SinkType`, `SourceArn`, `SourceType` | `ClientRequestToken` | `CreateMediaCapturePipelineResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a media pipeline. |
-| `CreateMediaConcatenationPipeline` | `POST /sdk-media-concatenation-pipelines` | `idempotency-token` | `Sinks`, `Sources` | `ClientRequestToken` | `CreateMediaConcatenationPipelineResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a media concatenation pipeline. |
+| `CreateMediaCapturePipeline` | `POST /sdk-media-capture-pipelines` | `idempotency-token` | `SourceType`, `SourceArn`, `SinkType`, `SinkArn` | `ClientRequestToken` | `CreateMediaCapturePipelineResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a media pipeline. |
+| `CreateMediaConcatenationPipeline` | `POST /sdk-media-concatenation-pipelines` | `idempotency-token` | `Sources`, `Sinks` | `ClientRequestToken` | `CreateMediaConcatenationPipelineResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a media concatenation pipeline. |
 | `CreateMediaInsightsPipeline` | `POST /media-insights-pipelines` | `idempotency-token` | `MediaInsightsPipelineConfigurationArn` | `ClientRequestToken` | `CreateMediaInsightsPipelineResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a media insights pipeline. |
-| `CreateMediaInsightsPipelineConfiguration` | `POST /media-insights-pipeline-configurations` | `idempotency-token` | `Elements`, `MediaInsightsPipelineConfigurationName`, `ResourceAccessRoleArn` | `ClientRequestToken` | `CreateMediaInsightsPipelineConfigurationResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | A structure that contains the static configurations for a media insights pipeline. |
-| `CreateMediaLiveConnectorPipeline` | `POST /sdk-media-live-connector-pipelines` | `idempotency-token` | `Sinks`, `Sources` | `ClientRequestToken` | `CreateMediaLiveConnectorPipelineResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a media live connector pipeline in an Amazon Chime SDK meeting. |
-| `CreateMediaPipelineKinesisVideoStreamPool` | `POST /media-pipeline-kinesis-video-stream-pools` | `idempotency-token` | `PoolName`, `StreamConfiguration` | `ClientRequestToken` | `CreateMediaPipelineKinesisVideoStreamPoolResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates an Amazon Kinesis Video Stream pool for use with media stream pipelines. If a meeting uses an opt-in Region as its MediaRegion, the KVS stream must be in that same Region. |
-| `CreateMediaStreamPipeline` | `POST /sdk-media-stream-pipelines` | `idempotency-token` | `Sinks`, `Sources` | `ClientRequestToken` | `CreateMediaStreamPipelineResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a streaming media pipeline. |
+| `CreateMediaInsightsPipelineConfiguration` | `POST /media-insights-pipeline-configurations` | `idempotency-token` | `MediaInsightsPipelineConfigurationName`, `ResourceAccessRoleArn`, `Elements` | `ClientRequestToken` | `CreateMediaInsightsPipelineConfigurationResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | A structure that contains the static configurations for a media insights pipeline. |
+| `CreateMediaLiveConnectorPipeline` | `POST /sdk-media-live-connector-pipelines` | `idempotency-token` | `Sources`, `Sinks` | `ClientRequestToken` | `CreateMediaLiveConnectorPipelineResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a media live connector pipeline in an Amazon Chime SDK meeting. |
+| `CreateMediaPipelineKinesisVideoStreamPool` | `POST /media-pipeline-kinesis-video-stream-pools` | `idempotency-token` | `StreamConfiguration`, `PoolName` | `ClientRequestToken` | `CreateMediaPipelineKinesisVideoStreamPoolResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates an Amazon Kinesis Video Stream pool for use with media stream pipelines. If a meeting uses an opt-in Region as its MediaRegion , the KVS stream must be in that same Region. For example, if a meeting uses the ... |
+| `CreateMediaStreamPipeline` | `POST /sdk-media-stream-pipelines` | `idempotency-token` | `Sources`, `Sinks` | `ClientRequestToken` | `CreateMediaStreamPipelineResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Creates a streaming media pipeline. |
 | `DeleteMediaCapturePipeline` | `DELETE /sdk-media-capture-pipelines/{MediaPipelineId}` | - | `MediaPipelineId` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes the media pipeline. |
 | `DeleteMediaInsightsPipelineConfiguration` | `DELETE /media-insights-pipeline-configurations/{Identifier}` | - | `Identifier` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes the specified configuration settings. |
 | `DeleteMediaPipeline` | `DELETE /sdk-media-pipelines/{MediaPipelineId}` | - | `MediaPipelineId` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Deletes the media pipeline. |
@@ -135,44 +135,82 @@ Parity implications:
 | `ListMediaPipelineKinesisVideoStreamPools` | `GET /media-pipeline-kinesis-video-stream-pools` | `paginated` | - | - | `ListMediaPipelineKinesisVideoStreamPoolsResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the video stream pools in the media pipeline. |
 | `ListMediaPipelines` | `GET /sdk-media-pipelines` | `paginated` | - | - | `ListMediaPipelinesResponse` | `BadRequestException`, `ForbiddenException`, `ResourceLimitExceededException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Returns a list of media pipelines. |
 | `ListTagsForResource` | `GET /tags` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Lists the tags available for a media pipeline. |
-| `StartSpeakerSearchTask` | `POST /media-insights-pipelines/{Identifier}/speaker-search-tasks?operation=start` | `idempotency-token` | `Identifier`, `VoiceProfileDomainArn` | `ClientRequestToken` | `StartSpeakerSearchTaskResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Starts a speaker search task. Before starting any speaker search tasks, you must provide all notices and obtain all consents from the speaker as required under applicable privacy and biometrics laws, and as required under the AWS service terms for the Amazon... |
-| `StartVoiceToneAnalysisTask` | `POST /media-insights-pipelines/{Identifier}/voice-tone-analysis-tasks?operation=start` | `idempotency-token` | `Identifier`, `LanguageCode` | `ClientRequestToken` | `StartVoiceToneAnalysisTaskResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Starts a voice tone analysis task. For more information about voice tone analysis, see Using Amazon Chime SDK voice analytics in the Amazon Chime SDK Developer Guide . |
+| `StartSpeakerSearchTask` | `POST /media-insights-pipelines/{Identifier}/speaker-search-tasks?operation=start` | `idempotency-token` | `Identifier`, `VoiceProfileDomainArn` | `ClientRequestToken` | `StartSpeakerSearchTaskResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Starts a speaker search task. Before starting any speaker search tasks, you must provide all notices and obtain all consents from the speaker as required under applicable privacy and biometrics laws, and as required ... |
+| `StartVoiceToneAnalysisTask` | `POST /media-insights-pipelines/{Identifier}/voice-tone-analysis-tasks?operation=start` | `idempotency-token` | `Identifier`, `LanguageCode` | `ClientRequestToken` | `StartVoiceToneAnalysisTaskResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Starts a voice tone analysis task. For more information about voice tone analysis, see Using Amazon Chime SDK voice analytics in the Amazon Chime SDK Developer Guide . Before starting any voice tone analysis tasks, y ... |
 | `StopSpeakerSearchTask` | `POST /media-insights-pipelines/{Identifier}/speaker-search-tasks/{SpeakerSearchTaskId}?operation=stop` | - | `Identifier`, `SpeakerSearchTaskId` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Stops a speaker search task. |
 | `StopVoiceToneAnalysisTask` | `POST /media-insights-pipelines/{Identifier}/voice-tone-analysis-tasks/{VoiceToneAnalysisTaskId}?operation=stop` | - | `Identifier`, `VoiceToneAnalysisTaskId` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Stops a voice tone analysis task. |
 | `TagResource` | `POST /tags?operation=tag-resource` | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | The ARN of the media pipeline that you want to tag. Consists of the pipeline's endpoint region, resource ID, and pipeline ID. |
 | `UntagResource` | `POST /tags?operation=untag-resource` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Removes any tags from a media pipeline. |
-| `UpdateMediaInsightsPipelineConfiguration` | `PUT /media-insights-pipeline-configurations/{Identifier}` | - | `Elements`, `Identifier`, `ResourceAccessRoleArn` | - | `UpdateMediaInsightsPipelineConfigurationResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the media insights pipeline's configuration settings. |
+| `UpdateMediaInsightsPipelineConfiguration` | `PUT /media-insights-pipeline-configurations/{Identifier}` | - | `Identifier`, `ResourceAccessRoleArn`, `Elements` | - | `UpdateMediaInsightsPipelineConfigurationResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the media insights pipeline's configuration settings. |
 | `UpdateMediaInsightsPipelineStatus` | `PUT /media-insights-pipeline-status/{Identifier}` | - | `Identifier`, `UpdateStatus` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the status of a media insights pipeline. |
 | `UpdateMediaPipelineKinesisVideoStreamPool` | `PUT /media-pipeline-kinesis-video-stream-pools/{Identifier}` | - | `Identifier` | - | `UpdateMediaPipelineKinesisVideoStreamPoolResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates an Amazon Kinesis Video Stream pool in a media pipeline. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListMediaCapturePipelines` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListMediaInsightsPipelineConfigurations` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListMediaPipelineKinesisVideoStreamPools` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListMediaPipelines` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListTagsForResource` | - | `ResourceARN -> arn` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Code`, `Message`, `RequestId` | The input parameters don't match the service's restrictions. |
-| `ForbiddenException` | `structure` | `Code`, `Message`, `RequestId` | The client is permanently forbidden from making the request. |
-| `ServiceFailureException` | `structure` | `Code`, `Message`, `RequestId` | The service encountered an unexpected error. |
-| `ServiceUnavailableException` | `structure` | `Code`, `Message`, `RequestId` | The service is currently unavailable. |
-| `ThrottledClientException` | `structure` | `Code`, `Message`, `RequestId` | The client exceeded its request rate limit. |
-| `UnauthorizedClientException` | `structure` | `Code`, `Message`, `RequestId` | The client is not currently authorized to make the request. |
-| `NotFoundException` | `structure` | `Code`, `Message`, `RequestId` | One or more of the resources in the request does not exist in the system. |
-| `ResourceLimitExceededException` | `structure` | `Code`, `Message`, `RequestId` | The request exceeds the resource limit. |
-| `ConflictException` | `structure` | `Code`, `Message`, `RequestId` | The request could not be processed because of conflict in the current state of the resource. |
-| `CreateMediaCapturePipelineRequest` | `structure` | `ChimeSdkMeetingConfiguration`, `ClientRequestToken`, `SinkArn`, `SinkIamRoleArn`, `SinkType`, `SourceArn`, `SourceType`, `SseAwsKeyManagementParams`, `Tags` | - |
-| `CreateMediaCapturePipelineResponse` | `structure` | `MediaCapturePipeline` | - |
-| `CreateMediaConcatenationPipelineRequest` | `structure` | `ClientRequestToken`, `Sinks`, `Sources`, `Tags` | - |
-| `CreateMediaConcatenationPipelineResponse` | `structure` | `MediaConcatenationPipeline` | - |
-| `CreateMediaInsightsPipelineRequest` | `structure` | `ClientRequestToken`, `KinesisVideoStreamRecordingSourceRuntimeConfiguration`, `KinesisVideoStreamSourceRuntimeConfiguration`, `MediaInsightsPipelineConfigurationArn`, `MediaInsightsRuntimeMetadata`, `S3RecordingSinkRuntimeConfiguration`, `Tags` | - |
-| `CreateMediaInsightsPipelineResponse` | `structure` | `MediaInsightsPipeline` | - |
-| `CreateMediaInsightsPipelineConfigurationRequest` | `structure` | `ClientRequestToken`, `Elements`, `MediaInsightsPipelineConfigurationName`, `RealTimeAlertConfiguration`, `ResourceAccessRoleArn`, `Tags` | - |
-| `CreateMediaInsightsPipelineConfigurationResponse` | `structure` | `MediaInsightsPipelineConfiguration` | - |
-| `CreateMediaLiveConnectorPipelineRequest` | `structure` | `ClientRequestToken`, `Sinks`, `Sources`, `Tags` | - |
-| `CreateMediaLiveConnectorPipelineResponse` | `structure` | `MediaLiveConnectorPipeline` | - |
-| `CreateMediaPipelineKinesisVideoStreamPoolRequest` | `structure` | `ClientRequestToken`, `PoolName`, `StreamConfiguration`, `Tags` | - |
-| `CreateMediaPipelineKinesisVideoStreamPoolResponse` | `structure` | `KinesisVideoStreamPoolConfiguration` | - |
-| `CreateMediaStreamPipelineRequest` | `structure` | `ClientRequestToken`, `Sinks`, `Sources`, `Tags` | - |
-| `CreateMediaStreamPipelineResponse` | `structure` | `MediaStreamPipeline` | - |
-
+| `BadRequestException` | `structure` | Code, Message, RequestId | The input parameters don't match the service's restrictions. |
+| `ConflictException` | `structure` | Code, Message, RequestId | The request could not be processed because of conflict in the current state of the resource. |
+| `ForbiddenException` | `structure` | Code, Message, RequestId | The client is permanently forbidden from making the request. |
+| `NotFoundException` | `structure` | Code, Message, RequestId | One or more of the resources in the request does not exist in the system. |
+| `ResourceLimitExceededException` | `structure` | Code, Message, RequestId | The request exceeds the resource limit. |
+| `ServiceFailureException` | `structure` | Code, Message, RequestId | The service encountered an unexpected error. |
+| `ServiceUnavailableException` | `structure` | Code, Message, RequestId | The service is currently unavailable. |
+| `ThrottledClientException` | `structure` | Code, Message, RequestId | The client exceeded its request rate limit. |
+| `UnauthorizedClientException` | `structure` | Code, Message, RequestId | The client is not currently authorized to make the request. |
+| `CreateMediaCapturePipelineRequest` | `structure` | SourceType, SourceArn, SinkType, SinkArn, ClientRequestToken, ChimeSdkMeetingConfiguration, SseAwsKeyManagementParams, SinkIamRoleArn, Tags | - |
+| `CreateMediaCapturePipelineResponse` | `structure` | MediaCapturePipeline | - |
+| `CreateMediaConcatenationPipelineRequest` | `structure` | Sources, Sinks, ClientRequestToken, Tags | - |
+| `CreateMediaConcatenationPipelineResponse` | `structure` | MediaConcatenationPipeline | - |
+| `CreateMediaInsightsPipelineRequest` | `structure` | MediaInsightsPipelineConfigurationArn, KinesisVideoStreamSourceRuntimeConfiguration, MediaInsightsRuntimeMetadata, KinesisVideoStreamRecordingSourceRuntimeConfiguration, S3RecordingSinkRuntimeConfiguration, Tags, ClientRequestToken | - |
+| `CreateMediaInsightsPipelineResponse` | `structure` | MediaInsightsPipeline | - |
+| `CreateMediaInsightsPipelineConfigurationRequest` | `structure` | MediaInsightsPipelineConfigurationName, ResourceAccessRoleArn, RealTimeAlertConfiguration, Elements, Tags, ClientRequestToken | - |
+| `CreateMediaInsightsPipelineConfigurationResponse` | `structure` | MediaInsightsPipelineConfiguration | - |
+| `CreateMediaLiveConnectorPipelineRequest` | `structure` | Sources, Sinks, ClientRequestToken, Tags | - |
+| `CreateMediaLiveConnectorPipelineResponse` | `structure` | MediaLiveConnectorPipeline | - |
+| `CreateMediaPipelineKinesisVideoStreamPoolRequest` | `structure` | StreamConfiguration, PoolName, ClientRequestToken, Tags | - |
+| `CreateMediaPipelineKinesisVideoStreamPoolResponse` | `structure` | KinesisVideoStreamPoolConfiguration | - |
+| `CreateMediaStreamPipelineRequest` | `structure` | Sources, Sinks, ClientRequestToken, Tags | - |
+| `CreateMediaStreamPipelineResponse` | `structure` | MediaStreamPipeline | - |
+| `DeleteMediaCapturePipelineRequest` | `structure` | MediaPipelineId | - |
+| `DeleteMediaInsightsPipelineConfigurationRequest` | `structure` | Identifier | - |
+| `DeleteMediaPipelineRequest` | `structure` | MediaPipelineId | - |
+| `DeleteMediaPipelineKinesisVideoStreamPoolRequest` | `structure` | Identifier | - |
+| `GetMediaCapturePipelineRequest` | `structure` | MediaPipelineId | - |
+| `GetMediaCapturePipelineResponse` | `structure` | MediaCapturePipeline | - |
+| `GetMediaInsightsPipelineConfigurationRequest` | `structure` | Identifier | - |
+| `GetMediaInsightsPipelineConfigurationResponse` | `structure` | MediaInsightsPipelineConfiguration | - |
+| `GetMediaPipelineRequest` | `structure` | MediaPipelineId | - |
+| `GetMediaPipelineResponse` | `structure` | MediaPipeline | - |
+| `GetMediaPipelineKinesisVideoStreamPoolRequest` | `structure` | Identifier | - |
+| `GetMediaPipelineKinesisVideoStreamPoolResponse` | `structure` | KinesisVideoStreamPoolConfiguration | - |
+| `GetSpeakerSearchTaskRequest` | `structure` | Identifier, SpeakerSearchTaskId | - |
+| `GetSpeakerSearchTaskResponse` | `structure` | SpeakerSearchTask | - |
+| `GetVoiceToneAnalysisTaskRequest` | `structure` | Identifier, VoiceToneAnalysisTaskId | - |
+| `GetVoiceToneAnalysisTaskResponse` | `structure` | VoiceToneAnalysisTask | - |
+| `ListMediaCapturePipelinesRequest` | `structure` | NextToken, MaxResults | - |
+| `ActiveSpeakerPosition` | `enum` | TopLeft, TopRight, BottomLeft, BottomRight | - |
+| `ArtifactsConcatenationState` | `enum` | Enabled, Disabled | - |
+| `ArtifactsState` | `enum` | Enabled, Disabled | - |
+| `AudioArtifactsConcatenationState` | `enum` | Enabled | - |
+| `AudioChannelsOption` | `enum` | Stereo, Mono | - |
+| `AudioMuxType` | `enum` | AudioOnly, AudioWithActiveSpeakerVideo, AudioWithCompositedVideo | - |
+| `BorderColor` | `enum` | Black, Blue, Red, Green, White, Yellow | - |
+| `CallAnalyticsLanguageCode` | `enum` | EN_US, EN_GB, ES_US, FR_CA, FR_FR, EN_AU, IT_IT, DE_DE, PT_BR | - |
+| `CanvasOrientation` | `enum` | Landscape, Portrait | - |
+| `ConcatenationSinkType` | `enum` | S3Bucket | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

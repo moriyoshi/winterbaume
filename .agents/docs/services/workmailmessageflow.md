@@ -38,33 +38,38 @@ The WorkMail Message Flow API provides access to email messages as they are bein
 ### Get
 
 - Operations: `GetRawMessageContent`
-- Common required input members in this group: `messageId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutRawMessageContent`
-- Common required input members in this group: `content`, `messageId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `GetRawMessageContent` | `GET /messages/{messageId}` | - | `messageId` | - | `GetRawMessageContentResponse` | `ResourceNotFoundException` | Retrieves the raw content of an in-transit email message, in MIME format. |
-| `PutRawMessageContent` | `POST /messages/{messageId}` | - | `content`, `messageId` | - | `PutRawMessageContentResponse` | `InvalidContentLocation`, `MessageFrozen`, `MessageRejected`, `ResourceNotFoundException` | Updates the raw content of an in-transit email message, in MIME format. This example describes how to update in-transit email message. |
+| `PutRawMessageContent` | `POST /messages/{messageId}` | - | `messageId`, `content` | - | `PutRawMessageContentResponse` | `InvalidContentLocation`, `MessageFrozen`, `MessageRejected`, `ResourceNotFoundException` | Updates the raw content of an in-transit email message, in MIME format. This example describes how to update in-transit email message. For more information and examples for using this API, see Updating message conten ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message` | The requested email message is not found. |
-| `GetRawMessageContentRequest` | `structure` | `messageId` | - |
-| `GetRawMessageContentResponse` | `structure` | `messageContent` | - |
-| `PutRawMessageContentRequest` | `structure` | `content`, `messageId` | - |
-| `PutRawMessageContentResponse` | `structure` | - | - |
-| `InvalidContentLocation` | `structure` | `message` | WorkMail could not access the updated email content. |
-| `MessageFrozen` | `structure` | `message` | The requested email is not eligible for update. |
-| `MessageRejected` | `structure` | `message` | The requested email could not be updated due to an error in the MIME content. |
-
+| `InvalidContentLocation` | `structure` | message | WorkMail could not access the updated email content. Possible reasons: You made the request in a region other than your S3 bucket region. The S3 bucket owne ... |
+| `MessageFrozen` | `structure` | message | The requested email is not eligible for update. This is usually the case for a redirected email. |
+| `MessageRejected` | `structure` | message | The requested email could not be updated due to an error in the MIME content. Check the error message for more information about what caused the error. |
+| `ResourceNotFoundException` | `structure` | message | The requested email message is not found. |
+| `GetRawMessageContentRequest` | `structure` | messageId | - |
+| `GetRawMessageContentResponse` | `structure` | messageContent | - |
+| `PutRawMessageContentRequest` | `structure` | messageId, content | - |
+| `PutRawMessageContentResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

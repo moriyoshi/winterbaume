@@ -61,128 +61,154 @@ Parity implications:
 
 ### List
 
-- Operations: `ListClusterSnapshots`, `ListClusters`, `ListPendingMaintenanceActions`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `resourceArn`
+- Operations: `ListClusters`, `ListClusterSnapshots`, `ListPendingMaintenanceActions`, `ListTagsForResource`
+- Traits: `readonly` (4), `paginated` (3)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetCluster`, `GetClusterSnapshot`, `GetPendingMaintenanceAction`
 - Traits: `readonly` (3)
-- Common required input members in this group: `clusterArn`, `resourceArn`, `snapshotArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateCluster`, `CreateClusterSnapshot`
-- Traits: `idempotency-token` (1), `idempotent` (2)
-- Common required input members in this group: `adminUserName`, `adminUserPassword`, `authType`, `clusterArn`, `clusterName`, `shardCapacity`, `shardCount`, `snapshotName`
+- Traits: `idempotent` (2), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteCluster`, `DeleteClusterSnapshot`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `clusterArn`, `snapshotArn`
+- Common required input members in this group: -
 
 ### Apply
 
 - Operations: `ApplyPendingMaintenanceAction`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `applyAction`, `optInType`, `resourceArn`
+- Common required input members in this group: -
 
 ### Copy
 
 - Operations: `CopyClusterSnapshot`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `snapshotArn`, `targetSnapshotName`
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestoreClusterFromSnapshot`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `clusterName`, `snapshotArn`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartCluster`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `clusterArn`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopCluster`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `clusterArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateCluster`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `clusterArn`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ApplyPendingMaintenanceAction` | `POST /pending-action` | `idempotent` | `applyAction`, `optInType`, `resourceArn` | - | `ApplyPendingMaintenanceActionOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | The type of pending maintenance action to be applied to the resource. |
+| `ApplyPendingMaintenanceAction` | `POST /pending-action` | `idempotent` | `resourceArn`, `applyAction`, `optInType` | - | `ApplyPendingMaintenanceActionOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | The type of pending maintenance action to be applied to the resource. |
 | `CopyClusterSnapshot` | `POST /cluster-snapshot/{snapshotArn}/copy` | `idempotent` | `snapshotArn`, `targetSnapshotName` | - | `CopyClusterSnapshotOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Copies a snapshot of an elastic cluster. |
-| `CreateCluster` | `POST /cluster` | `idempotent`, `idempotency-token` | `adminUserName`, `adminUserPassword`, `authType`, `clusterName`, `shardCapacity`, `shardCount` | `clientToken` | `CreateClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new Amazon DocumentDB elastic cluster and returns its cluster structure. |
+| `CreateCluster` | `POST /cluster` | `idempotent`, `idempotency-token` | `clusterName`, `authType`, `adminUserName`, `adminUserPassword`, `shardCapacity`, `shardCount` | `clientToken` | `CreateClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new Amazon DocumentDB elastic cluster and returns its cluster structure. |
 | `CreateClusterSnapshot` | `POST /cluster-snapshot` | `idempotent` | `clusterArn`, `snapshotName` | - | `CreateClusterSnapshotOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a snapshot of an elastic cluster. |
 | `DeleteCluster` | `DELETE /cluster/{clusterArn}` | `idempotent` | `clusterArn` | - | `DeleteClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete an elastic cluster. |
 | `DeleteClusterSnapshot` | `DELETE /cluster-snapshot/{snapshotArn}` | `idempotent` | `snapshotArn` | - | `DeleteClusterSnapshotOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete an elastic cluster snapshot. |
 | `GetCluster` | `GET /cluster/{clusterArn}` | `readonly` | `clusterArn` | - | `GetClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a specific elastic cluster. |
 | `GetClusterSnapshot` | `GET /cluster-snapshot/{snapshotArn}` | `readonly` | `snapshotArn` | - | `GetClusterSnapshotOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a specific elastic cluster snapshot |
 | `GetPendingMaintenanceAction` | `GET /pending-action/{resourceArn}` | `readonly` | `resourceArn` | - | `GetPendingMaintenanceActionOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves all maintenance actions that are pending. |
-| `ListClusterSnapshots` | `GET /cluster-snapshots` | `readonly`, `paginated` | - | - | `ListClusterSnapshotsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about snapshots for a specified elastic cluster. |
 | `ListClusters` | `GET /clusters` | `readonly`, `paginated` | - | - | `ListClustersOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about provisioned Amazon DocumentDB elastic clusters. |
+| `ListClusterSnapshots` | `GET /cluster-snapshots` | `readonly`, `paginated` | - | - | `ListClusterSnapshotsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about snapshots for a specified elastic cluster. |
 | `ListPendingMaintenanceActions` | `GET /pending-actions` | `readonly`, `paginated` | - | - | `ListPendingMaintenanceActionsOutput` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of all maintenance actions that are pending. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all tags on a elastic cluster resource |
 | `RestoreClusterFromSnapshot` | `POST /cluster-snapshot/{snapshotArn}/restore` | `idempotent` | `clusterName`, `snapshotArn` | - | `RestoreClusterFromSnapshotOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Restores an elastic cluster from a snapshot. |
-| `StartCluster` | `POST /cluster/{clusterArn}/start` | `idempotent` | `clusterArn` | - | `StartClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Restarts the stopped elastic cluster that is specified by `clusterARN`. |
-| `StopCluster` | `POST /cluster/{clusterArn}/stop` | `idempotent` | `clusterArn` | - | `StopClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops the running elastic cluster that is specified by `clusterArn`. The elastic cluster must be in the available state. |
+| `StartCluster` | `POST /cluster/{clusterArn}/start` | `idempotent` | `clusterArn` | - | `StartClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Restarts the stopped elastic cluster that is specified by clusterARN . |
+| `StopCluster` | `POST /cluster/{clusterArn}/stop` | `idempotent` | `clusterArn` | - | `StopClusterOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops the running elastic cluster that is specified by clusterArn . The elastic cluster must be in the available state. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds metadata tags to an elastic cluster resource |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes metadata tags from an elastic cluster resource |
 | `UpdateCluster` | `PUT /cluster/{clusterArn}` | `idempotent`, `idempotency-token` | `clusterArn` | `clientToken` | `UpdateClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies an elastic cluster. This includes updating admin-username/password, upgrading the API version, and setting up a backup window and maintenance window |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListClusters` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListClusterSnapshots` | - | `clusterArn -> clusterArn`, `nextToken -> nextToken`, `maxResults -> maxResults`, `snapshotType -> snapshotType` | - | - |
+| `ListPendingMaintenanceActions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | There was an internal server error. |
-| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | ThrottlingException will be thrown when request was denied due to request throttling. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | A structure defining a validation exception. |
-| `AccessDeniedException` | `structure` | `message` | An exception that occurs when there are not sufficient permissions to perform an action. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The specified resource could not be located. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | There was an access conflict. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The service quota for the action was exceeded. |
-| `ApplyPendingMaintenanceActionInput` | `structure` | `applyAction`, `applyOn`, `optInType`, `resourceArn` | - |
-| `ApplyPendingMaintenanceActionOutput` | `structure` | `resourcePendingMaintenanceAction` | - |
-| `CopyClusterSnapshotInput` | `structure` | `copyTags`, `kmsKeyId`, `snapshotArn`, `tags`, `targetSnapshotName` | - |
-| `CopyClusterSnapshotOutput` | `structure` | `snapshot` | - |
-| `CreateClusterInput` | `structure` | `adminUserName`, `adminUserPassword`, `authType`, `backupRetentionPeriod`, `clientToken`, `clusterName`, `kmsKeyId`, `preferredBackupWindow`, `preferredMaintenanceWindow`, `shardCapacity`, `shardCount`, `shardInstanceCount`, ... (+3) | - |
-| `CreateClusterOutput` | `structure` | `cluster` | - |
-| `CreateClusterSnapshotInput` | `structure` | `clusterArn`, `snapshotName`, `tags` | - |
-| `CreateClusterSnapshotOutput` | `structure` | `snapshot` | - |
-| `DeleteClusterInput` | `structure` | `clusterArn` | - |
-| `DeleteClusterOutput` | `structure` | `cluster` | - |
-| `DeleteClusterSnapshotInput` | `structure` | `snapshotArn` | - |
-| `DeleteClusterSnapshotOutput` | `structure` | `snapshot` | - |
-| `GetClusterInput` | `structure` | `clusterArn` | - |
-| `GetClusterOutput` | `structure` | `cluster` | - |
-| `GetClusterSnapshotInput` | `structure` | `snapshotArn` | - |
-| `GetClusterSnapshotOutput` | `structure` | `snapshot` | - |
-| `GetPendingMaintenanceActionInput` | `structure` | `resourceArn` | - |
-
+| `AccessDeniedException` | `structure` | message | An exception that occurs when there are not sufficient permissions to perform an action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | There was an access conflict. |
+| `InternalServerException` | `structure` | message | There was an internal server error. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The specified resource could not be located. |
+| `ServiceQuotaExceededException` | `structure` | message | The service quota for the action was exceeded. |
+| `ThrottlingException` | `structure` | message, retryAfterSeconds | ThrottlingException will be thrown when request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | A structure defining a validation exception. |
+| `ApplyPendingMaintenanceActionInput` | `structure` | resourceArn, applyAction, optInType, applyOn | - |
+| `ApplyPendingMaintenanceActionOutput` | `structure` | resourcePendingMaintenanceAction | - |
+| `CopyClusterSnapshotInput` | `structure` | snapshotArn, targetSnapshotName, kmsKeyId, copyTags, tags | - |
+| `CopyClusterSnapshotOutput` | `structure` | snapshot | - |
+| `CreateClusterInput` | `structure` | clusterName, authType, adminUserName, adminUserPassword, shardCapacity, shardCount, vpcSecurityGroupIds, subnetIds, kmsKeyId, clientToken, preferredMaintenanceWindow, tags, ... (+3) | - |
+| `CreateClusterOutput` | `structure` | cluster | - |
+| `CreateClusterSnapshotInput` | `structure` | clusterArn, snapshotName, tags | - |
+| `CreateClusterSnapshotOutput` | `structure` | snapshot | - |
+| `DeleteClusterInput` | `structure` | clusterArn | - |
+| `DeleteClusterOutput` | `structure` | cluster | - |
+| `DeleteClusterSnapshotInput` | `structure` | snapshotArn | - |
+| `DeleteClusterSnapshotOutput` | `structure` | snapshot | - |
+| `GetClusterInput` | `structure` | clusterArn | - |
+| `GetClusterOutput` | `structure` | cluster | - |
+| `GetClusterSnapshotInput` | `structure` | snapshotArn | - |
+| `GetClusterSnapshotOutput` | `structure` | snapshot | - |
+| `GetPendingMaintenanceActionInput` | `structure` | resourceArn | - |
+| `GetPendingMaintenanceActionOutput` | `structure` | resourcePendingMaintenanceAction | - |
+| `ListClustersInput` | `structure` | nextToken, maxResults | - |
+| `ListClustersOutput` | `structure` | clusters, nextToken | - |
+| `ListClusterSnapshotsInput` | `structure` | clusterArn, nextToken, maxResults, snapshotType | - |
+| `ListClusterSnapshotsOutput` | `structure` | snapshots, nextToken | - |
+| `ListPendingMaintenanceActionsInput` | `structure` | nextToken, maxResults | - |
+| `ListPendingMaintenanceActionsOutput` | `structure` | resourcePendingMaintenanceActions, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `RestoreClusterFromSnapshotInput` | `structure` | clusterName, snapshotArn, vpcSecurityGroupIds, subnetIds, kmsKeyId, tags, shardCapacity, shardInstanceCount | - |
+| `RestoreClusterFromSnapshotOutput` | `structure` | cluster | - |
+| `StartClusterInput` | `structure` | clusterArn | - |
+| `StartClusterOutput` | `structure` | cluster | - |
+| `StopClusterInput` | `structure` | clusterArn | - |
+| `StopClusterOutput` | `structure` | cluster | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

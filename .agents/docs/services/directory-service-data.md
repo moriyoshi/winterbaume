@@ -43,7 +43,7 @@ Amazon Web Services Directory Service Data is an extension of Directory Service.
 ### List
 
 - Operations: `ListGroupMembers`, `ListGroups`, `ListGroupsForMember`, `ListUsers`
-- Traits: `paginated` (4), `readonly` (4)
+- Traits: `readonly` (4), `paginated` (4)
 - Common required input members in this group: `DirectoryId`, `SAMAccountName`
 
 ### Create
@@ -67,8 +67,8 @@ Amazon Web Services Directory Service Data is an extension of Directory Service.
 ### Search
 
 - Operations: `SearchGroups`, `SearchUsers`
-- Traits: `paginated` (2), `readonly` (2)
-- Common required input members in this group: `DirectoryId`, `SearchAttributes`, `SearchString`
+- Traits: `readonly` (2), `paginated` (2)
+- Common required input members in this group: `DirectoryId`, `SearchString`, `SearchAttributes`
 
 ### Update
 
@@ -80,19 +80,19 @@ Amazon Web Services Directory Service Data is an extension of Directory Service.
 
 - Operations: `AddGroupMember`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `DirectoryId`, `GroupName`, `MemberName`
+- Common required input members in this group: -
 
 ### Disable
 
 - Operations: `DisableUser`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `DirectoryId`, `SAMAccountName`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveGroupMember`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `DirectoryId`, `GroupName`, `MemberName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -106,45 +106,91 @@ Amazon Web Services Directory Service Data is an extension of Directory Service.
 | `DescribeGroup` | `POST /Groups/DescribeGroup` | `readonly` | `DirectoryId`, `SAMAccountName` | - | `DescribeGroupResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a specific group. |
 | `DescribeUser` | `POST /Users/DescribeUser` | `readonly` | `DirectoryId`, `SAMAccountName` | - | `DescribeUserResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a specific user. |
 | `DisableUser` | `POST /Users/DisableUser` | `idempotency-token` | `DirectoryId`, `SAMAccountName` | `ClientToken` | `DisableUserResult` | `AccessDeniedException`, `ConflictException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deactivates an active user account. For information about how to enable an inactive user account, see ResetUserPassword in the Directory Service API Reference . |
-| `ListGroupMembers` | `POST /GroupMemberships/ListGroupMembers` | `readonly`, `paginated` | `DirectoryId`, `SAMAccountName` | - | `ListGroupMembersResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns member information for the specified group. This operation supports pagination with the use of the `NextToken` request and response parameters. |
-| `ListGroups` | `POST /Groups/ListGroups` | `readonly`, `paginated` | `DirectoryId` | - | `ListGroupsResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns group information for the specified directory. This operation supports pagination with the use of the `NextToken` request and response parameters. |
-| `ListGroupsForMember` | `POST /GroupMemberships/ListGroupsForMember` | `readonly`, `paginated` | `DirectoryId`, `SAMAccountName` | - | `ListGroupsForMemberResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns group information for the specified member. This operation supports pagination with the use of the `NextToken` request and response parameters. |
-| `ListUsers` | `POST /Users/ListUsers` | `readonly`, `paginated` | `DirectoryId` | - | `ListUsersResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns user information for the specified directory. This operation supports pagination with the use of the `NextToken` request and response parameters. |
+| `ListGroupMembers` | `POST /GroupMemberships/ListGroupMembers` | `readonly`, `paginated` | `DirectoryId`, `SAMAccountName` | - | `ListGroupMembersResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns member information for the specified group. This operation supports pagination with the use of the NextToken request and response parameters. If more results are available, the ListGroupMembers.NextToken memb ... |
+| `ListGroups` | `POST /Groups/ListGroups` | `readonly`, `paginated` | `DirectoryId` | - | `ListGroupsResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns group information for the specified directory. This operation supports pagination with the use of the NextToken request and response parameters. If more results are available, the ListGroups.NextToken member ... |
+| `ListGroupsForMember` | `POST /GroupMemberships/ListGroupsForMember` | `readonly`, `paginated` | `DirectoryId`, `SAMAccountName` | - | `ListGroupsForMemberResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns group information for the specified member. This operation supports pagination with the use of the NextToken request and response parameters. If more results are available, the ListGroupsForMember.NextToken m ... |
+| `ListUsers` | `POST /Users/ListUsers` | `readonly`, `paginated` | `DirectoryId` | - | `ListUsersResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns user information for the specified directory. This operation supports pagination with the use of the NextToken request and response parameters. If more results are available, the ListUsers.NextToken member co ... |
 | `RemoveGroupMember` | `POST /GroupMemberships/RemoveGroupMember` | `idempotency-token` | `DirectoryId`, `GroupName`, `MemberName` | `ClientToken` | `RemoveGroupMemberResult` | `AccessDeniedException`, `ConflictException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a member from a group. |
-| `SearchGroups` | `POST /Groups/SearchGroups` | `readonly`, `paginated` | `DirectoryId`, `SearchAttributes`, `SearchString` | - | `SearchGroupsResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Searches the specified directory for a group. You can find groups that match the `SearchString` parameter with the value of their attributes included in the `SearchString` parameter. |
-| `SearchUsers` | `POST /Users/SearchUsers` | `readonly`, `paginated` | `DirectoryId`, `SearchAttributes`, `SearchString` | - | `SearchUsersResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Searches the specified directory for a user. You can find users that match the `SearchString` parameter with the value of their attributes included in the `SearchString` parameter. |
+| `SearchGroups` | `POST /Groups/SearchGroups` | `readonly`, `paginated` | `DirectoryId`, `SearchString`, `SearchAttributes` | - | `SearchGroupsResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Searches the specified directory for a group. You can find groups that match the SearchString parameter with the value of their attributes included in the SearchString parameter. This operation supports pagination wi ... |
+| `SearchUsers` | `POST /Users/SearchUsers` | `readonly`, `paginated` | `DirectoryId`, `SearchString`, `SearchAttributes` | - | `SearchUsersResult` | `AccessDeniedException`, `DirectoryUnavailableException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Searches the specified directory for a user. You can find users that match the SearchString parameter with the value of their attributes included in the SearchString parameter. This operation supports pagination with ... |
 | `UpdateGroup` | `POST /Groups/UpdateGroup` | `idempotency-token` | `DirectoryId`, `SAMAccountName` | `ClientToken` | `UpdateGroupResult` | `AccessDeniedException`, `ConflictException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates group information. |
 | `UpdateUser` | `POST /Users/UpdateUser` | `idempotency-token` | `DirectoryId`, `SAMAccountName` | `ClientToken` | `UpdateUserResult` | `AccessDeniedException`, `ConflictException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates user information. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AddGroupMember` | - | `DirectoryId -> DirectoryId` | - | - |
+| `CreateGroup` | - | `DirectoryId -> DirectoryId` | - | - |
+| `CreateUser` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DeleteGroup` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DeleteUser` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DescribeGroup` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DescribeUser` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DisableUser` | - | `DirectoryId -> DirectoryId` | - | - |
+| `ListGroupMembers` | - | `DirectoryId -> DirectoryId` | - | - |
+| `ListGroups` | - | `DirectoryId -> DirectoryId` | - | - |
+| `ListGroupsForMember` | - | `DirectoryId -> DirectoryId` | - | - |
+| `ListUsers` | - | `DirectoryId -> DirectoryId` | - | - |
+| `RemoveGroupMember` | - | `DirectoryId -> DirectoryId` | - | - |
+| `SearchGroups` | - | `DirectoryId -> DirectoryId` | - | - |
+| `SearchUsers` | - | `DirectoryId -> DirectoryId` | - | - |
+| `UpdateGroup` | - | `DirectoryId -> DirectoryId` | - | - |
+| `UpdateUser` | - | `DirectoryId -> DirectoryId` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message`, `Reason` | You don't have permission to perform the request or access the directory. |
-| `DirectoryUnavailableException` | `structure` | `Message`, `Reason` | The request could not be completed due to a problem in the configuration or current state of the specified directory. |
-| `InternalServerException` | `structure` | `Message` | The operation didn't succeed because an internal error occurred. |
-| `ThrottlingException` | `structure` | `Message`, `RetryAfterSeconds` | The limit on the number of requests per second has been exceeded. |
-| `ValidationException` | `structure` | `Message`, `Reason` | The request isn't valid. |
-| `ResourceNotFoundException` | `structure` | `Message` | The resource couldn't be found. |
-| `ConflictException` | `structure` | `Message` | This error will occur when you try to create a resource that conflicts with an existing object. |
-| `AddGroupMemberRequest` | `structure` | `ClientToken`, `DirectoryId`, `GroupName`, `MemberName`, `MemberRealm` | - |
-| `AddGroupMemberResult` | `structure` | - | - |
-| `CreateGroupRequest` | `structure` | `ClientToken`, `DirectoryId`, `GroupScope`, `GroupType`, `OtherAttributes`, `SAMAccountName` | - |
-| `CreateGroupResult` | `structure` | `DirectoryId`, `SAMAccountName`, `SID` | - |
-| `CreateUserRequest` | `structure` | `ClientToken`, `DirectoryId`, `EmailAddress`, `GivenName`, `OtherAttributes`, `SAMAccountName`, `Surname` | - |
-| `CreateUserResult` | `structure` | `DirectoryId`, `SAMAccountName`, `SID` | - |
-| `DeleteGroupRequest` | `structure` | `ClientToken`, `DirectoryId`, `SAMAccountName` | - |
-| `DeleteGroupResult` | `structure` | - | - |
-| `DeleteUserRequest` | `structure` | `ClientToken`, `DirectoryId`, `SAMAccountName` | - |
-| `DeleteUserResult` | `structure` | - | - |
-| `DescribeGroupRequest` | `structure` | `DirectoryId`, `OtherAttributes`, `Realm`, `SAMAccountName` | - |
-| `DescribeGroupResult` | `structure` | `DirectoryId`, `DistinguishedName`, `GroupScope`, `GroupType`, `OtherAttributes`, `Realm`, `SAMAccountName`, `SID` | - |
-| `DescribeUserRequest` | `structure` | `DirectoryId`, `OtherAttributes`, `Realm`, `SAMAccountName` | - |
-| `DescribeUserResult` | `structure` | `DirectoryId`, `DistinguishedName`, `EmailAddress`, `Enabled`, `GivenName`, `OtherAttributes`, `Realm`, `SAMAccountName`, `SID`, `Surname`, `UserPrincipalName` | - |
-| `DisableUserRequest` | `structure` | `ClientToken`, `DirectoryId`, `SAMAccountName` | - |
-| `DisableUserResult` | `structure` | - | - |
-| `ListGroupMembersRequest` | `structure` | `DirectoryId`, `MaxResults`, `MemberRealm`, `NextToken`, `Realm`, `SAMAccountName` | - |
-
+| `AccessDeniedException` | `structure` | Message, Reason | You don't have permission to perform the request or access the directory. It can also occur when the DirectoryId doesn't exist or the user, member, or group ... |
+| `ConflictException` | `structure` | Message | This error will occur when you try to create a resource that conflicts with an existing object. It can also occur when adding a member to a group that the m ... |
+| `DirectoryUnavailableException` | `structure` | Message, Reason | The request could not be completed due to a problem in the configuration or current state of the specified directory. |
+| `InternalServerException` | `structure` | Message | The operation didn't succeed because an internal error occurred. Try again later. |
+| `ResourceNotFoundException` | `structure` | Message | The resource couldn't be found. |
+| `ThrottlingException` | `structure` | Message, RetryAfterSeconds | The limit on the number of requests per second has been exceeded. |
+| `ValidationException` | `structure` | Message, Reason | The request isn't valid. Review the details in the error message to update the invalid parameters or values in your request. |
+| `AddGroupMemberRequest` | `structure` | DirectoryId, GroupName, MemberName, MemberRealm, ClientToken | - |
+| `AddGroupMemberResult` | `structure` | **empty (no members)** | - |
+| `CreateGroupRequest` | `structure` | DirectoryId, SAMAccountName, GroupType, GroupScope, OtherAttributes, ClientToken | - |
+| `CreateGroupResult` | `structure` | DirectoryId, SAMAccountName, SID | - |
+| `CreateUserRequest` | `structure` | DirectoryId, SAMAccountName, EmailAddress, GivenName, Surname, OtherAttributes, ClientToken | - |
+| `CreateUserResult` | `structure` | DirectoryId, SID, SAMAccountName | - |
+| `DeleteGroupRequest` | `structure` | DirectoryId, SAMAccountName, ClientToken | - |
+| `DeleteGroupResult` | `structure` | **empty (no members)** | - |
+| `DeleteUserRequest` | `structure` | DirectoryId, SAMAccountName, ClientToken | - |
+| `DeleteUserResult` | `structure` | **empty (no members)** | - |
+| `DescribeGroupRequest` | `structure` | DirectoryId, Realm, SAMAccountName, OtherAttributes | - |
+| `DescribeGroupResult` | `structure` | DirectoryId, Realm, SID, SAMAccountName, DistinguishedName, GroupType, GroupScope, OtherAttributes | - |
+| `DescribeUserRequest` | `structure` | DirectoryId, SAMAccountName, OtherAttributes, Realm | - |
+| `DescribeUserResult` | `structure` | DirectoryId, Realm, SID, SAMAccountName, DistinguishedName, UserPrincipalName, EmailAddress, GivenName, Surname, Enabled, OtherAttributes | - |
+| `DisableUserRequest` | `structure` | DirectoryId, SAMAccountName, ClientToken | - |
+| `DisableUserResult` | `structure` | **empty (no members)** | - |
+| `ListGroupMembersRequest` | `structure` | DirectoryId, Realm, MemberRealm, SAMAccountName, NextToken, MaxResults | - |
+| `ListGroupMembersResult` | `structure` | DirectoryId, Realm, MemberRealm, Members, NextToken | - |
+| `ListGroupsRequest` | `structure` | DirectoryId, Realm, NextToken, MaxResults | - |
+| `ListGroupsResult` | `structure` | DirectoryId, Realm, Groups, NextToken | - |
+| `ListGroupsForMemberRequest` | `structure` | DirectoryId, Realm, MemberRealm, SAMAccountName, NextToken, MaxResults | - |
+| `ListGroupsForMemberResult` | `structure` | DirectoryId, Realm, MemberRealm, Groups, NextToken | - |
+| `ListUsersRequest` | `structure` | DirectoryId, Realm, NextToken, MaxResults | - |
+| `ListUsersResult` | `structure` | DirectoryId, Realm, Users, NextToken | - |
+| `RemoveGroupMemberRequest` | `structure` | DirectoryId, GroupName, MemberName, MemberRealm, ClientToken | - |
+| `RemoveGroupMemberResult` | `structure` | **empty (no members)** | - |
+| `SearchGroupsRequest` | `structure` | DirectoryId, SearchString, SearchAttributes, Realm, NextToken, MaxResults | - |
+| `SearchGroupsResult` | `structure` | DirectoryId, Realm, Groups, NextToken | - |
+| `SearchUsersRequest` | `structure` | DirectoryId, Realm, SearchString, SearchAttributes, NextToken, MaxResults | - |
+| `SearchUsersResult` | `structure` | DirectoryId, Realm, Users, NextToken | - |
+| `UpdateGroupRequest` | `structure` | DirectoryId, SAMAccountName, GroupType, GroupScope, OtherAttributes, UpdateType, ClientToken | - |
+| `UpdateGroupResult` | `structure` | **empty (no members)** | - |
+| `UpdateUserRequest` | `structure` | DirectoryId, SAMAccountName, EmailAddress, GivenName, Surname, OtherAttributes, UpdateType, ClientToken | - |
+| `AccessDeniedReason` | `enum` | IAM_AUTH, DIRECTORY_AUTH, DATA_DISABLED | - |
+| `DirectoryUnavailableReason` | `enum` | INVALID_DIRECTORY_STATE, DIRECTORY_TIMEOUT, DIRECTORY_RESOURCES_EXCEEDED, NO_DISK_SPACE, TRUST_AUTH_FAILURE | - |
+| `GroupScope` | `enum` | DOMAIN_LOCAL, GLOBAL, UNIVERSAL, BUILTIN_LOCAL | - |
+| `GroupType` | `enum` | DISTRIBUTION, SECURITY | - |
+| `MemberType` | `enum` | USER, GROUP, COMPUTER | - |
+| `UpdateType` | `enum` | ADD, REPLACE, REMOVE | - |
+| `ValidationExceptionReason` | `enum` | INVALID_REALM, INVALID_DIRECTORY_TYPE, INVALID_SECONDARY_REGION, INVALID_NEXT_TOKEN, INVALID_ATTRIBUTE_VALUE, INVALID_ATTRIBUTE_NAME, INVALID_ATTRIBUTE_FOR_USER, INVALID_ATTRIBUTE_FOR_GROUP, INVALID_ATTRIBUTE_FOR_SEARCH, INVALID_ATTRIBUTE_FOR_MODIFY, DUPLICATE_ATTRIBUTE, MISSING_ATTRIBUTE, ... (+3) | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

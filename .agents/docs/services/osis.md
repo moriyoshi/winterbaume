@@ -53,122 +53,157 @@ OSIS currently exposes VPC option shapes but does not persist detailed networkin
 
 - Operations: `ListPipelineBlueprints`, `ListPipelineEndpointConnections`, `ListPipelineEndpoints`, `ListPipelines`, `ListTagsForResource`
 - Traits: `paginated` (3)
-- Common required input members in this group: `Arn`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetPipeline`, `GetPipelineBlueprint`, `GetPipelineChangeProgress`, `GetResourcePolicy`
-- Common required input members in this group: `BlueprintName`, `PipelineName`, `ResourceArn`
+- Common required input members in this group: `PipelineName`
 
 ### Delete
 
 - Operations: `DeletePipeline`, `DeletePipelineEndpoint`, `DeleteResourcePolicy`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `EndpointId`, `PipelineName`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreatePipeline`, `CreatePipelineEndpoint`
-- Common required input members in this group: `MaxUnits`, `MinUnits`, `PipelineArn`, `PipelineConfigurationBody`, `PipelineName`, `VpcOptions`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutResourcePolicy`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `Policy`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Revoke
 
 - Operations: `RevokePipelineEndpointConnections`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `EndpointIds`, `PipelineArn`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartPipeline`
-- Common required input members in this group: `PipelineName`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopPipeline`
-- Common required input members in this group: `PipelineName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `Arn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `Arn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdatePipeline`
-- Common required input members in this group: `PipelineName`
+- Common required input members in this group: -
 
 ### Validate
 
 - Operations: `ValidatePipeline`
-- Common required input members in this group: `PipelineConfigurationBody`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreatePipeline` | `POST /2022-01-01/osis/createPipeline` | - | `MaxUnits`, `MinUnits`, `PipelineConfigurationBody`, `PipelineName` | - | `CreatePipelineResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException`, `ValidationException` | Creates an OpenSearch Ingestion pipeline. For more information, see Creating Amazon OpenSearch Ingestion pipelines. |
+| `CreatePipeline` | `POST /2022-01-01/osis/createPipeline` | - | `PipelineName`, `MinUnits`, `MaxUnits`, `PipelineConfigurationBody` | - | `CreatePipelineResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException`, `ValidationException` | Creates an OpenSearch Ingestion pipeline. For more information, see Creating Amazon OpenSearch Ingestion pipelines . |
 | `CreatePipelineEndpoint` | `POST /2022-01-01/osis/createPipelineEndpoint` | - | `PipelineArn`, `VpcOptions` | - | `CreatePipelineEndpointResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Creates a VPC endpoint for an OpenSearch Ingestion pipeline. Pipeline endpoints allow you to ingest data from your VPC into pipelines that you have access to. |
-| `DeletePipeline` | `DELETE /2022-01-01/osis/deletePipeline/{PipelineName}` | - | `PipelineName` | - | `DeletePipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Deletes an OpenSearch Ingestion pipeline. For more information, see Deleting Amazon OpenSearch Ingestion pipelines. |
+| `DeletePipeline` | `DELETE /2022-01-01/osis/deletePipeline/{PipelineName}` | - | `PipelineName` | - | `DeletePipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Deletes an OpenSearch Ingestion pipeline. For more information, see Deleting Amazon OpenSearch Ingestion pipelines . |
 | `DeletePipelineEndpoint` | `DELETE /2022-01-01/osis/deletePipelineEndpoint/{EndpointId}` | `idempotent` | `EndpointId` | - | `DeletePipelineEndpointResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ValidationException` | Deletes a VPC endpoint for an OpenSearch Ingestion pipeline. |
 | `DeleteResourcePolicy` | `DELETE /2022-01-01/osis/resourcePolicy/{ResourceArn}` | `idempotent` | `ResourceArn` | - | `DeleteResourcePolicyResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Deletes a resource-based policy from an OpenSearch Ingestion resource. |
 | `GetPipeline` | `GET /2022-01-01/osis/getPipeline/{PipelineName}` | - | `PipelineName` | - | `GetPipelineResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Retrieves information about an OpenSearch Ingestion pipeline. |
-| `GetPipelineBlueprint` | `GET /2022-01-01/osis/getPipelineBlueprint/{BlueprintName}` | - | `BlueprintName` | - | `GetPipelineBlueprintResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Retrieves information about a specific blueprint for OpenSearch Ingestion. Blueprints are templates for the configuration needed for a `CreatePipeline` request. |
-| `GetPipelineChangeProgress` | `GET /2022-01-01/osis/getPipelineChangeProgress/{PipelineName}` | - | `PipelineName` | - | `GetPipelineChangeProgressResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Returns progress information for the current change happening on an OpenSearch Ingestion pipeline. Currently, this operation only returns information when a pipeline is being created. |
+| `GetPipelineBlueprint` | `GET /2022-01-01/osis/getPipelineBlueprint/{BlueprintName}` | - | `BlueprintName` | - | `GetPipelineBlueprintResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Retrieves information about a specific blueprint for OpenSearch Ingestion. Blueprints are templates for the configuration needed for a CreatePipeline request. For more information, see Using blueprints to create a pi ... |
+| `GetPipelineChangeProgress` | `GET /2022-01-01/osis/getPipelineChangeProgress/{PipelineName}` | - | `PipelineName` | - | `GetPipelineChangeProgressResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Returns progress information for the current change happening on an OpenSearch Ingestion pipeline. Currently, this operation only returns information when a pipeline is being created. For more information, see Tracki ... |
 | `GetResourcePolicy` | `GET /2022-01-01/osis/resourcePolicy/{ResourceArn}` | - | `ResourceArn` | - | `GetResourcePolicyResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Retrieves the resource-based policy attached to an OpenSearch Ingestion resource. |
-| `ListPipelineBlueprints` | `POST /2022-01-01/osis/listPipelineBlueprints` | - | - | - | `ListPipelineBlueprintsResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `InvalidPaginationTokenException`, `ValidationException` | Retrieves a list of all available blueprints for Data Prepper. For more information, see Using blueprints to create a pipeline. |
+| `ListPipelineBlueprints` | `POST /2022-01-01/osis/listPipelineBlueprints` | - | - | - | `ListPipelineBlueprintsResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `InvalidPaginationTokenException`, `ValidationException` | Retrieves a list of all available blueprints for Data Prepper. For more information, see Using blueprints to create a pipeline . |
 | `ListPipelineEndpointConnections` | `GET /2022-01-01/osis/listPipelineEndpointConnections` | `paginated` | - | - | `ListPipelineEndpointConnectionsResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ValidationException` | Lists the pipeline endpoints connected to pipelines in your account. |
 | `ListPipelineEndpoints` | `GET /2022-01-01/osis/listPipelineEndpoints` | `paginated` | - | - | `ListPipelineEndpointsResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ValidationException` | Lists all pipeline endpoints in your account. |
-| `ListPipelines` | `GET /2022-01-01/osis/listPipelines` | `paginated` | - | - | `ListPipelinesResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `InvalidPaginationTokenException`, `ValidationException` | Lists all OpenSearch Ingestion pipelines in the current Amazon Web Services account and Region. For more information, see Viewing Amazon OpenSearch Ingestion pipelines. |
-| `ListTagsForResource` | `GET /2022-01-01/osis/listTagsForResource` | - | `Arn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Lists all resource tags associated with an OpenSearch Ingestion pipeline. For more information, see Tagging Amazon OpenSearch Ingestion pipelines. |
-| `PutResourcePolicy` | `PUT /2022-01-01/osis/resourcePolicy/{ResourceArn}` | `idempotent` | `Policy`, `ResourceArn` | - | `PutResourcePolicyResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Attaches a resource-based policy to an OpenSearch Ingestion resource. Resource-based policies grant permissions to principals to perform actions on the resource. |
-| `RevokePipelineEndpointConnections` | `POST /2022-01-01/osis/revokePipelineEndpointConnections` | `idempotent` | `EndpointIds`, `PipelineArn` | - | `RevokePipelineEndpointConnectionsResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ValidationException` | Revokes pipeline endpoints from specified endpoint IDs. |
-| `StartPipeline` | `PUT /2022-01-01/osis/startPipeline/{PipelineName}` | - | `PipelineName` | - | `StartPipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Starts an OpenSearch Ingestion pipeline. For more information, see Starting an OpenSearch Ingestion pipeline. |
-| `StopPipeline` | `PUT /2022-01-01/osis/stopPipeline/{PipelineName}` | - | `PipelineName` | - | `StopPipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Stops an OpenSearch Ingestion pipeline. For more information, see Stopping an OpenSearch Ingestion pipeline. |
-| `TagResource` | `POST /2022-01-01/osis/tagResource` | - | `Arn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Tags an OpenSearch Ingestion pipeline. For more information, see Tagging Amazon OpenSearch Ingestion pipelines. |
-| `UntagResource` | `POST /2022-01-01/osis/untagResource` | - | `Arn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Removes one or more tags from an OpenSearch Ingestion pipeline. For more information, see Tagging Amazon OpenSearch Ingestion pipelines. |
-| `UpdatePipeline` | `PUT /2022-01-01/osis/updatePipeline/{PipelineName}` | - | `PipelineName` | - | `UpdatePipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Updates an OpenSearch Ingestion pipeline. For more information, see Updating Amazon OpenSearch Ingestion pipelines. |
-| `ValidatePipeline` | `POST /2022-01-01/osis/validatePipeline` | - | `PipelineConfigurationBody` | - | `ValidatePipelineResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ValidationException` | Checks whether an OpenSearch Ingestion pipeline configuration is valid prior to creation. For more information, see Creating Amazon OpenSearch Ingestion pipelines. |
+| `ListPipelines` | `GET /2022-01-01/osis/listPipelines` | `paginated` | - | - | `ListPipelinesResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `InvalidPaginationTokenException`, `ValidationException` | Lists all OpenSearch Ingestion pipelines in the current Amazon Web Services account and Region. For more information, see Viewing Amazon OpenSearch Ingestion pipelines . |
+| `ListTagsForResource` | `GET /2022-01-01/osis/listTagsForResource` | - | `Arn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Lists all resource tags associated with an OpenSearch Ingestion pipeline. For more information, see Tagging Amazon OpenSearch Ingestion pipelines . |
+| `PutResourcePolicy` | `PUT /2022-01-01/osis/resourcePolicy/{ResourceArn}` | `idempotent` | `ResourceArn`, `Policy` | - | `PutResourcePolicyResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Attaches a resource-based policy to an OpenSearch Ingestion resource. Resource-based policies grant permissions to principals to perform actions on the resource. |
+| `RevokePipelineEndpointConnections` | `POST /2022-01-01/osis/revokePipelineEndpointConnections` | `idempotent` | `PipelineArn`, `EndpointIds` | - | `RevokePipelineEndpointConnectionsResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ValidationException` | Revokes pipeline endpoints from specified endpoint IDs. |
+| `StartPipeline` | `PUT /2022-01-01/osis/startPipeline/{PipelineName}` | - | `PipelineName` | - | `StartPipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Starts an OpenSearch Ingestion pipeline. For more information, see Starting an OpenSearch Ingestion pipeline . |
+| `StopPipeline` | `PUT /2022-01-01/osis/stopPipeline/{PipelineName}` | - | `PipelineName` | - | `StopPipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Stops an OpenSearch Ingestion pipeline. For more information, see Stopping an OpenSearch Ingestion pipeline . |
+| `TagResource` | `POST /2022-01-01/osis/tagResource` | - | `Arn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Tags an OpenSearch Ingestion pipeline. For more information, see Tagging Amazon OpenSearch Ingestion pipelines . |
+| `UntagResource` | `POST /2022-01-01/osis/untagResource` | - | `Arn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Removes one or more tags from an OpenSearch Ingestion pipeline. For more information, see Tagging Amazon OpenSearch Ingestion pipelines . |
+| `UpdatePipeline` | `PUT /2022-01-01/osis/updatePipeline/{PipelineName}` | - | `PipelineName` | - | `UpdatePipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Updates an OpenSearch Ingestion pipeline. For more information, see Updating Amazon OpenSearch Ingestion pipelines . |
+| `ValidatePipeline` | `POST /2022-01-01/osis/validatePipeline` | - | `PipelineConfigurationBody` | - | `ValidatePipelineResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ValidationException` | Checks whether an OpenSearch Ingestion pipeline configuration is valid prior to creation. For more information, see Creating Amazon OpenSearch Ingestion pipelines . |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetPipelineBlueprint` | - | `Format -> format` | - | - |
+| `ListPipelineEndpointConnections` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPipelineEndpoints` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPipelines` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListTagsForResource` | - | `Arn -> arn` | - | - |
+| `TagResource` | - | `Arn -> arn` | - | - |
+| `UntagResource` | - | `Arn -> arn` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have permissions to access the resource. |
-| `DisabledOperationException` | `structure` | `message` | Exception is thrown when an operation has been disabled. |
-| `InternalException` | `structure` | `message` | The request failed because of an unknown error, exception, or failure (the failure is internal to the service). |
-| `ValidationException` | `structure` | `message` | An exception for missing or invalid input fields. |
-| `ResourceNotFoundException` | `structure` | `message` | You attempted to access or delete a resource that does not exist. |
-| `LimitExceededException` | `structure` | `message` | You attempted to create more than the allowed number of tags. |
-| `ConflictException` | `structure` | `message` | The client attempted to remove a resource that is currently in use. |
-| `InvalidPaginationTokenException` | `structure` | `message` | An invalid pagination token provided in the request. |
-| `CreatePipelineRequest` | `structure` | `BufferOptions`, `EncryptionAtRestOptions`, `LogPublishingOptions`, `MaxUnits`, `MinUnits`, `PipelineConfigurationBody`, `PipelineName`, `PipelineRoleArn`, `Tags`, `VpcOptions` | - |
-| `CreatePipelineResponse` | `structure` | `Pipeline` | - |
-| `ResourceAlreadyExistsException` | `structure` | `message` | You attempted to create a resource that already exists. |
-| `CreatePipelineEndpointRequest` | `structure` | `PipelineArn`, `VpcOptions` | - |
-| `CreatePipelineEndpointResponse` | `structure` | `EndpointId`, `PipelineArn`, `Status`, `VpcId` | - |
-| `DeletePipelineRequest` | `structure` | `PipelineName` | - |
-| `DeletePipelineResponse` | `structure` | - | - |
-| `DeletePipelineEndpointRequest` | `structure` | `EndpointId` | - |
-| `DeletePipelineEndpointResponse` | `structure` | - | - |
-| `DeleteResourcePolicyRequest` | `structure` | `ResourceArn` | - |
-| `DeleteResourcePolicyResponse` | `structure` | - | - |
-| `GetPipelineRequest` | `structure` | `PipelineName` | - |
-| `GetPipelineResponse` | `structure` | `Pipeline` | - |
-| `GetPipelineBlueprintRequest` | `structure` | `BlueprintName`, `Format` | - |
-| `GetPipelineBlueprintResponse` | `structure` | `Blueprint`, `Format` | - |
-| `GetPipelineChangeProgressRequest` | `structure` | `PipelineName` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have permissions to access the resource. |
+| `ConflictException` | `structure` | message | The client attempted to remove a resource that is currently in use. |
+| `DisabledOperationException` | `structure` | message | Exception is thrown when an operation has been disabled. |
+| `InternalException` | `structure` | message | The request failed because of an unknown error, exception, or failure (the failure is internal to the service). |
+| `InvalidPaginationTokenException` | `structure` | message | An invalid pagination token provided in the request. |
+| `LimitExceededException` | `structure` | message | You attempted to create more than the allowed number of tags. |
+| `ResourceAlreadyExistsException` | `structure` | message | You attempted to create a resource that already exists. |
+| `ResourceNotFoundException` | `structure` | message | You attempted to access or delete a resource that does not exist. |
+| `ValidationException` | `structure` | message | An exception for missing or invalid input fields. |
+| `CreatePipelineRequest` | `structure` | PipelineName, MinUnits, MaxUnits, PipelineConfigurationBody, LogPublishingOptions, VpcOptions, BufferOptions, EncryptionAtRestOptions, Tags, PipelineRoleArn | - |
+| `CreatePipelineResponse` | `structure` | Pipeline | - |
+| `CreatePipelineEndpointRequest` | `structure` | PipelineArn, VpcOptions | - |
+| `CreatePipelineEndpointResponse` | `structure` | PipelineArn, EndpointId, Status, VpcId | - |
+| `DeletePipelineRequest` | `structure` | PipelineName | - |
+| `DeletePipelineResponse` | `structure` | **empty (no members)** | - |
+| `DeletePipelineEndpointRequest` | `structure` | EndpointId | - |
+| `DeletePipelineEndpointResponse` | `structure` | **empty (no members)** | - |
+| `DeleteResourcePolicyRequest` | `structure` | ResourceArn | - |
+| `DeleteResourcePolicyResponse` | `structure` | **empty (no members)** | - |
+| `GetPipelineRequest` | `structure` | PipelineName | - |
+| `GetPipelineResponse` | `structure` | Pipeline | - |
+| `GetPipelineBlueprintRequest` | `structure` | BlueprintName, Format | - |
+| `GetPipelineBlueprintResponse` | `structure` | Blueprint, Format | - |
+| `GetPipelineChangeProgressRequest` | `structure` | PipelineName | - |
+| `GetPipelineChangeProgressResponse` | `structure` | ChangeProgressStatuses | - |
+| `GetResourcePolicyRequest` | `structure` | ResourceArn | - |
+| `GetResourcePolicyResponse` | `structure` | ResourceArn, Policy | - |
+| `ListPipelineBlueprintsRequest` | `structure` | **empty (no members)** | - |
+| `ListPipelineBlueprintsResponse` | `structure` | Blueprints | - |
+| `ListPipelineEndpointConnectionsRequest` | `structure` | MaxResults, NextToken | - |
+| `ListPipelineEndpointConnectionsResponse` | `structure` | NextToken, PipelineEndpointConnections | - |
+| `ListPipelineEndpointsRequest` | `structure` | MaxResults, NextToken | - |
+| `ListPipelineEndpointsResponse` | `structure` | NextToken, PipelineEndpoints | - |
+| `ListPipelinesRequest` | `structure` | MaxResults, NextToken | - |
+| `ListPipelinesResponse` | `structure` | NextToken, Pipelines | - |
+| `ListTagsForResourceRequest` | `structure` | Arn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `PutResourcePolicyRequest` | `structure` | ResourceArn, Policy | - |
+| `PutResourcePolicyResponse` | `structure` | ResourceArn, Policy | - |
+| `RevokePipelineEndpointConnectionsRequest` | `structure` | PipelineArn, EndpointIds | - |
+| `ChangeProgressStageStatuses` | `enum` | PENDING, IN_PROGRESS, COMPLETED, FAILED | - |
+| `ChangeProgressStatuses` | `enum` | PENDING, IN_PROGRESS, COMPLETED, FAILED | - |
+| `PipelineEndpointStatus` | `enum` | CREATING, ACTIVE, CREATE_FAILED, DELETING, REVOKING, REVOKED | - |
+| `PipelineStatus` | `enum` | CREATING, ACTIVE, UPDATING, DELETING, CREATE_FAILED, UPDATE_FAILED, STARTING, START_FAILED, STOPPING, STOPPED | - |
+| `VpcEndpointManagement` | `enum` | CUSTOMER, SERVICE | - |
+| `VpcEndpointServiceName` | `enum` | OPENSEARCH_SERVERLESS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

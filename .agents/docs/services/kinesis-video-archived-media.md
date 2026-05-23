@@ -44,50 +44,71 @@ No high-level service documentation is embedded in the AWS API model.
 
 - Operations: `GetClip`, `GetDASHStreamingSessionURL`, `GetHLSStreamingSessionURL`, `GetImages`, `GetMediaForFragmentList`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ClipFragmentSelector`, `EndTimestamp`, `Format`, `Fragments`, `ImageSelectorType`, `StartTimestamp`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListFragments`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetClip` | `POST /getClip` | - | `ClipFragmentSelector` | - | `GetClipOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidCodecPrivateDataException`, `InvalidMediaFrameException`, `MissingCodecPrivateDataException`, `NoDataRetentionException`, `NotAuthorizedException`, `ResourceNotFoundException`, ... (+1) | Downloads an MP4 file (clip) containing the archived, on-demand media from the specified video stream over the specified time range. Both the StreamName and the StreamARN parameters are optional, but you must specify either the StreamName or the StreamARN... |
-| `GetDASHStreamingSessionURL` | `POST /getDASHStreamingSessionURL` | - | - | - | `GetDASHStreamingSessionURLOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidCodecPrivateDataException`, `MissingCodecPrivateDataException`, `NoDataRetentionException`, `NotAuthorizedException`, `ResourceNotFoundException`, `UnsupportedStreamMediaTypeException` | Retrieves an MPEG Dynamic Adaptive Streaming over HTTP (DASH) URL for the stream. You can then open the URL in a media player to view the stream contents. |
-| `GetHLSStreamingSessionURL` | `POST /getHLSStreamingSessionURL` | - | - | - | `GetHLSStreamingSessionURLOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidCodecPrivateDataException`, `MissingCodecPrivateDataException`, `NoDataRetentionException`, `NotAuthorizedException`, `ResourceNotFoundException`, `UnsupportedStreamMediaTypeException` | Retrieves an HTTP Live Streaming (HLS) URL for the stream. You can then open the URL in a browser or media player to view the stream contents. |
-| `GetImages` | `POST /getImages` | `paginated` | `EndTimestamp`, `Format`, `ImageSelectorType`, `StartTimestamp` | - | `GetImagesOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `NotAuthorizedException`, `ResourceNotFoundException` | Retrieves a list of images corresponding to each timestamp for a given time range, sampling interval, and image format configuration. |
-| `GetMediaForFragmentList` | `POST /getMediaForFragmentList` | - | `Fragments` | - | `GetMediaForFragmentListOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Gets media for a list of fragments (specified by fragment number) from the archived data in an Amazon Kinesis video stream. You must first call the `GetDataEndpoint` API to get an endpoint. |
-| `ListFragments` | `POST /listFragments` | `paginated` | - | - | `ListFragmentsOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Returns a list of Fragment objects from the specified stream and timestamp range within the archived data. Listing fragments is eventually consistent. |
+| `GetClip` | `POST /getClip` | - | `ClipFragmentSelector` | - | `GetClipOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidCodecPrivateDataException`, `InvalidMediaFrameException`, `MissingCodecPrivateDataException`, `NoDataRetentionException`, `NotAuthorizedException`, `ResourceNotFoundException`, `UnsupportedStreamMediaTypeException` | Downloads an MP4 file (clip) containing the archived, on-demand media from the specified video stream over the specified time range. Both the StreamName and the StreamARN parameters are optional, but you must specify ... |
+| `GetDASHStreamingSessionURL` | `POST /getDASHStreamingSessionURL` | - | - | - | `GetDASHStreamingSessionURLOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidCodecPrivateDataException`, `MissingCodecPrivateDataException`, `NoDataRetentionException`, `NotAuthorizedException`, `ResourceNotFoundException`, `UnsupportedStreamMediaTypeException` | Retrieves an MPEG Dynamic Adaptive Streaming over HTTP (DASH) URL for the stream. You can then open the URL in a media player to view the stream contents. Both the StreamName and the StreamARN parameters are optional ... |
+| `GetHLSStreamingSessionURL` | `POST /getHLSStreamingSessionURL` | - | - | - | `GetHLSStreamingSessionURLOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidCodecPrivateDataException`, `MissingCodecPrivateDataException`, `NoDataRetentionException`, `NotAuthorizedException`, `ResourceNotFoundException`, `UnsupportedStreamMediaTypeException` | Retrieves an HTTP Live Streaming (HLS) URL for the stream. You can then open the URL in a browser or media player to view the stream contents. Both the StreamName and the StreamARN parameters are optional, but you mu ... |
+| `GetImages` | `POST /getImages` | `paginated` | `ImageSelectorType`, `StartTimestamp`, `EndTimestamp`, `Format` | - | `GetImagesOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NoDataRetentionException`, `NotAuthorizedException`, `ResourceNotFoundException` | Retrieves a list of images corresponding to each timestamp for a given time range, sampling interval, and image format configuration. |
+| `GetMediaForFragmentList` | `POST /getMediaForFragmentList` | - | `Fragments` | - | `GetMediaForFragmentListOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Gets media for a list of fragments (specified by fragment number) from the archived data in an Amazon Kinesis video stream. You must first call the GetDataEndpoint API to get an endpoint. Then send the GetMediaForFra ... |
+| `ListFragments` | `POST /listFragments` | `paginated` | - | - | `ListFragmentsOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Returns a list of Fragment objects from the specified stream and timestamp range within the archived data. Listing fragments is eventually consistent. This means that even if the producer receives an acknowledgment t ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ClientLimitExceededException` | `structure` | `Message` | Kinesis Video Streams has throttled the request because you have exceeded a limit. |
-| `InvalidArgumentException` | `structure` | `Message` | A specified parameter exceeds its restrictions, is not supported, or can't be used. |
-| `NotAuthorizedException` | `structure` | `Message` | Status Code: 403, The caller is not authorized to perform an operation on the given stream, or the token has expired. |
-| `ResourceNotFoundException` | `structure` | `Message` | `GetImages` will throw this error when Kinesis Video Streams can't find the stream that you specified. |
-| `NoDataRetentionException` | `structure` | `Message` | `GetImages` was requested for a stream that does not retain data (that is, has a `DataRetentionInHours` of 0). |
-| `InvalidCodecPrivateDataException` | `structure` | `Message` | The codec private data in at least one of the tracks of the video stream is not valid for this operation. |
-| `MissingCodecPrivateDataException` | `structure` | `Message` | No codec private data was found in at least one of tracks of the video stream. |
-| `UnsupportedStreamMediaTypeException` | `structure` | `Message` | The type of the media (for example, h.264 or h.265 video or ACC or G.711 audio) could not be determined from the codec IDs of the tracks in the first fragment for a playback... |
-| `GetClipInput` | `structure` | `ClipFragmentSelector`, `StreamARN`, `StreamName` | - |
-| `GetClipOutput` | `structure` | `ContentType`, `Payload` | - |
-| `InvalidMediaFrameException` | `structure` | `Message` | One or more frames in the requested clip could not be parsed based on the specified codec. |
-| `GetDASHStreamingSessionURLInput` | `structure` | `DASHFragmentSelector`, `DisplayFragmentNumber`, `DisplayFragmentTimestamp`, `Expires`, `MaxManifestFragmentResults`, `PlaybackMode`, `StreamARN`, `StreamName` | - |
-| `GetDASHStreamingSessionURLOutput` | `structure` | `DASHStreamingSessionURL` | - |
-| `GetHLSStreamingSessionURLInput` | `structure` | `ContainerFormat`, `DiscontinuityMode`, `DisplayFragmentTimestamp`, `Expires`, `HLSFragmentSelector`, `MaxMediaPlaylistFragmentResults`, `PlaybackMode`, `StreamARN`, `StreamName` | - |
-| `GetHLSStreamingSessionURLOutput` | `structure` | `HLSStreamingSessionURL` | - |
-| `GetImagesInput` | `structure` | `EndTimestamp`, `Format`, `FormatConfig`, `HeightPixels`, `ImageSelectorType`, `MaxResults`, `NextToken`, `SamplingInterval`, `StartTimestamp`, `StreamARN`, `StreamName`, `WidthPixels` | - |
-| `GetImagesOutput` | `structure` | `Images`, `NextToken` | - |
-| `GetMediaForFragmentListInput` | `structure` | `Fragments`, `StreamARN`, `StreamName` | - |
-| `GetMediaForFragmentListOutput` | `structure` | `ContentType`, `Payload` | - |
-| `ListFragmentsInput` | `structure` | `FragmentSelector`, `MaxResults`, `NextToken`, `StreamARN`, `StreamName` | - |
-| `ListFragmentsOutput` | `structure` | `Fragments`, `NextToken` | - |
-
+| `ClientLimitExceededException` | `structure` | Message | Kinesis Video Streams has throttled the request because you have exceeded a limit. Try making the call later. For information about limits, see Kinesis Vide ... |
+| `InvalidArgumentException` | `structure` | Message | A specified parameter exceeds its restrictions, is not supported, or can't be used. |
+| `InvalidCodecPrivateDataException` | `structure` | Message | The codec private data in at least one of the tracks of the video stream is not valid for this operation. |
+| `InvalidMediaFrameException` | `structure` | Message | One or more frames in the requested clip could not be parsed based on the specified codec. |
+| `MissingCodecPrivateDataException` | `structure` | Message | No codec private data was found in at least one of tracks of the video stream. |
+| `NoDataRetentionException` | `structure` | Message | GetImages was requested for a stream that does not retain data (that is, has a DataRetentionInHours of 0). |
+| `NotAuthorizedException` | `structure` | Message | Status Code: 403, The caller is not authorized to perform an operation on the given stream, or the token has expired. |
+| `ResourceNotFoundException` | `structure` | Message | GetImages will throw this error when Kinesis Video Streams can't find the stream that you specified. GetHLSStreamingSessionURL and GetDASHStreamingSessionUR ... |
+| `UnsupportedStreamMediaTypeException` | `structure` | Message | The type of the media (for example, h.264 or h.265 video or ACC or G.711 audio) could not be determined from the codec IDs of the tracks in the first fragme ... |
+| `GetClipInput` | `structure` | StreamName, StreamARN, ClipFragmentSelector | - |
+| `GetClipOutput` | `structure` | ContentType, Payload | - |
+| `GetDASHStreamingSessionURLInput` | `structure` | StreamName, StreamARN, PlaybackMode, DisplayFragmentTimestamp, DisplayFragmentNumber, DASHFragmentSelector, Expires, MaxManifestFragmentResults | - |
+| `GetDASHStreamingSessionURLOutput` | `structure` | DASHStreamingSessionURL | - |
+| `GetHLSStreamingSessionURLInput` | `structure` | StreamName, StreamARN, PlaybackMode, HLSFragmentSelector, ContainerFormat, DiscontinuityMode, DisplayFragmentTimestamp, Expires, MaxMediaPlaylistFragmentResults | - |
+| `GetHLSStreamingSessionURLOutput` | `structure` | HLSStreamingSessionURL | - |
+| `GetImagesInput` | `structure` | StreamName, StreamARN, ImageSelectorType, StartTimestamp, EndTimestamp, SamplingInterval, Format, FormatConfig, WidthPixels, HeightPixels, MaxResults, NextToken | - |
+| `GetImagesOutput` | `structure` | Images, NextToken | - |
+| `GetMediaForFragmentListInput` | `structure` | StreamName, StreamARN, Fragments | - |
+| `GetMediaForFragmentListOutput` | `structure` | ContentType, Payload | - |
+| `ListFragmentsInput` | `structure` | StreamName, StreamARN, MaxResults, NextToken, FragmentSelector | - |
+| `ListFragmentsOutput` | `structure` | Fragments, NextToken | - |
+| `ClipFragmentSelectorType` | `enum` | PRODUCER_TIMESTAMP, SERVER_TIMESTAMP | - |
+| `ContainerFormat` | `enum` | FRAGMENTED_MP4, MPEG_TS | - |
+| `DASHDisplayFragmentNumber` | `enum` | ALWAYS, NEVER | - |
+| `DASHDisplayFragmentTimestamp` | `enum` | ALWAYS, NEVER | - |
+| `DASHFragmentSelectorType` | `enum` | PRODUCER_TIMESTAMP, SERVER_TIMESTAMP | - |
+| `DASHPlaybackMode` | `enum` | LIVE, LIVE_REPLAY, ON_DEMAND | - |
+| `Format` | `enum` | JPEG, PNG | - |
+| `FormatConfigKey` | `enum` | JPEGQuality | - |
+| `FragmentSelectorType` | `enum` | PRODUCER_TIMESTAMP, SERVER_TIMESTAMP | - |
+| `HLSDiscontinuityMode` | `enum` | ALWAYS, NEVER, ON_DISCONTINUITY | - |
+| `HLSDisplayFragmentTimestamp` | `enum` | ALWAYS, NEVER | - |
+| `HLSFragmentSelectorType` | `enum` | PRODUCER_TIMESTAMP, SERVER_TIMESTAMP | - |
+| `HLSPlaybackMode` | `enum` | LIVE, LIVE_REPLAY, ON_DEMAND | - |
+| `ImageError` | `enum` | NO_MEDIA, MEDIA_ERROR | - |
+| `ImageSelectorType` | `enum` | PRODUCER_TIMESTAMP, SERVER_TIMESTAMP | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

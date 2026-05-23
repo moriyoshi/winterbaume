@@ -55,122 +55,96 @@ You can use the Pricing Calculator API to programmatically create estimates for 
 | `WorkloadEstimateUsage` | `id`, `workloadEstimateId` | list: `ListWorkloadEstimateUsage` | `BatchCreateWorkloadEstimateUsage`, `BatchDeleteWorkloadEstimateUsage`, `BatchUpdateWorkloadEstimateUsage` | - |
 ## Operation Groups
 
-### List
-
-- Operations: `ListBillEstimateCommitments`, `ListBillEstimateInputCommitmentModifications`, `ListBillEstimateInputUsageModifications`, `ListBillEstimateLineItems`, `ListBillEstimates`, `ListBillScenarioCommitmentModifications`, `ListBillScenarioUsageModifications`, `ListBillScenarios`, `ListTagsForResource`, `ListWorkloadEstimateUsage`, `ListWorkloadEstimates`
-- Traits: `paginated` (10), `readonly` (11)
-- Common required input members in this group: `arn`, `billEstimateId`, `billScenarioId`, `workloadEstimateId`
-
-### Batch
-
-- Operations: `BatchCreateBillScenarioCommitmentModification`, `BatchCreateBillScenarioUsageModification`, `BatchCreateWorkloadEstimateUsage`, `BatchDeleteBillScenarioCommitmentModification`, `BatchDeleteBillScenarioUsageModification`, `BatchDeleteWorkloadEstimateUsage`, `BatchUpdateBillScenarioCommitmentModification`, `BatchUpdateBillScenarioUsageModification`, `BatchUpdateWorkloadEstimateUsage`
-- Traits: `idempotency-token` (3), `idempotent` (9)
-- Common required input members in this group: `billScenarioId`, `commitmentModifications`, `ids`, `usage`, `usageModifications`, `workloadEstimateId`
-
 ### Get
 
-- Operations: `GetBillEstimate`, `GetBillScenario`, `GetPreferences`, `GetWorkloadEstimate`
-- Traits: `readonly` (4)
-- Common required input members in this group: `identifier`
+- Operations: `GetPreferences`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
-### Update
+### List
 
-- Operations: `UpdateBillEstimate`, `UpdateBillScenario`, `UpdatePreferences`, `UpdateWorkloadEstimate`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `identifier`
-
-### Create
-
-- Operations: `CreateBillEstimate`, `CreateBillScenario`, `CreateWorkloadEstimate`
-- Traits: `idempotency-token` (3), `idempotent` (3)
-- Common required input members in this group: `billScenarioId`, `name`
-
-### Delete
-
-- Operations: `DeleteBillEstimate`, `DeleteBillScenario`, `DeleteWorkloadEstimate`
-- Traits: `idempotent` (3)
-- Common required input members in this group: `identifier`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `arn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `arn`, `tagKeys`
+- Common required input members in this group: -
+
+### Update
+
+- Operations: `UpdatePreferences`
+- Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchCreateBillScenarioCommitmentModification` | - | `idempotent`, `idempotency-token` | `billScenarioId`, `commitmentModifications` | `clientToken` | `BatchCreateBillScenarioCommitmentModificationResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException` | Create Compute Savings Plans, EC2 Instance Savings Plans, or EC2 Reserved Instances commitments that you want to model in a Bill Scenario. The `BatchCreateBillScenarioCommitmentModification` operation doesn't have its own IAM permission. |
-| `BatchCreateBillScenarioUsageModification` | - | `idempotent`, `idempotency-token` | `billScenarioId`, `usageModifications` | `clientToken` | `BatchCreateBillScenarioUsageModificationResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Create Amazon Web Services service usage that you want to model in a Bill Scenario. The `BatchCreateBillScenarioUsageModification` operation doesn't have its own IAM permission. |
-| `BatchCreateWorkloadEstimateUsage` | - | `idempotent`, `idempotency-token` | `usage`, `workloadEstimateId` | `clientToken` | `BatchCreateWorkloadEstimateUsageResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Create Amazon Web Services service usage that you want to model in a Workload Estimate. The `BatchCreateWorkloadEstimateUsage` operation doesn't have its own IAM permission. |
-| `BatchDeleteBillScenarioCommitmentModification` | - | `idempotent` | `billScenarioId`, `ids` | - | `BatchDeleteBillScenarioCommitmentModificationResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException` | Delete commitment that you have created in a Bill Scenario. You can only delete a commitment that you had added and cannot model deletion (or removal) of a existing commitment. |
-| `BatchDeleteBillScenarioUsageModification` | - | `idempotent` | `billScenarioId`, `ids` | - | `BatchDeleteBillScenarioUsageModificationResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Delete usage that you have created in a Bill Scenario. You can only delete usage that you had added and cannot model deletion (or removal) of a existing usage. |
-| `BatchDeleteWorkloadEstimateUsage` | - | `idempotent` | `ids`, `workloadEstimateId` | - | `BatchDeleteWorkloadEstimateUsageResponse` | `DataUnavailableException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Delete usage that you have created in a Workload estimate. You can only delete usage that you had added and cannot model deletion (or removal) of a existing usage. |
-| `BatchUpdateBillScenarioCommitmentModification` | - | `idempotent` | `billScenarioId`, `commitmentModifications` | - | `BatchUpdateBillScenarioCommitmentModificationResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException` | Update a newly added or existing commitment. You can update the commitment group based on a commitment ID and a Bill scenario ID. |
-| `BatchUpdateBillScenarioUsageModification` | - | `idempotent` | `billScenarioId`, `usageModifications` | - | `BatchUpdateBillScenarioUsageModificationResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Update a newly added or existing usage lines. You can update the usage amounts, usage hour, and usage group based on a usage ID and a Bill scenario ID. |
-| `BatchUpdateWorkloadEstimateUsage` | - | `idempotent` | `usage`, `workloadEstimateId` | - | `BatchUpdateWorkloadEstimateUsageResponse` | `DataUnavailableException`, `ResourceNotFoundException`, `ServiceQuotaExceededException` | Update a newly added or existing usage lines. You can update the usage amounts and usage group based on a usage ID and a Workload estimate ID. |
-| `CreateBillEstimate` | - | `idempotent`, `idempotency-token` | `billScenarioId`, `name` | `clientToken` | `CreateBillEstimateResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException` | Create a Bill estimate from a Bill scenario. In the Bill scenario you can model usage addition, usage changes, and usage removal. |
-| `CreateBillScenario` | - | `idempotent`, `idempotency-token` | `name` | `clientToken` | `CreateBillScenarioResponse` | `ConflictException`, `DataUnavailableException`, `ServiceQuotaExceededException` | Creates a new bill scenario to model potential changes to Amazon Web Services usage and costs. |
-| `CreateWorkloadEstimate` | - | `idempotent`, `idempotency-token` | `name` | `clientToken` | `CreateWorkloadEstimateResponse` | `ConflictException`, `DataUnavailableException`, `ServiceQuotaExceededException` | Creates a new workload estimate to model costs for a specific workload. |
-| `DeleteBillEstimate` | - | `idempotent` | `identifier` | - | `DeleteBillEstimateResponse` | `ConflictException`, `DataUnavailableException` | Deletes an existing bill estimate. |
-| `DeleteBillScenario` | - | `idempotent` | `identifier` | - | `DeleteBillScenarioResponse` | `ConflictException`, `DataUnavailableException` | Deletes an existing bill scenario. |
-| `DeleteWorkloadEstimate` | - | `idempotent` | `identifier` | - | `DeleteWorkloadEstimateResponse` | `DataUnavailableException` | Deletes an existing workload estimate. |
-| `GetBillEstimate` | - | `readonly` | `identifier` | - | `GetBillEstimateResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Retrieves details of a specific bill estimate. |
-| `GetBillScenario` | - | `readonly` | `identifier` | - | `GetBillScenarioResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Retrieves details of a specific bill scenario. |
-| `GetPreferences` | - | `readonly` | - | - | `GetPreferencesResponse` | `DataUnavailableException` | Retrieves the current preferences for Pricing Calculator. |
-| `GetWorkloadEstimate` | - | `readonly` | `identifier` | - | `GetWorkloadEstimateResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Retrieves details of a specific workload estimate. |
-| `ListBillEstimateCommitments` | - | `readonly`, `paginated` | `billEstimateId` | - | `ListBillEstimateCommitmentsResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Lists the commitments associated with a bill estimate. |
-| `ListBillEstimateInputCommitmentModifications` | - | `readonly`, `paginated` | `billEstimateId` | - | `ListBillEstimateInputCommitmentModificationsResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Lists the input commitment modifications associated with a bill estimate. |
-| `ListBillEstimateInputUsageModifications` | - | `readonly`, `paginated` | `billEstimateId` | - | `ListBillEstimateInputUsageModificationsResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Lists the input usage modifications associated with a bill estimate. |
-| `ListBillEstimateLineItems` | - | `readonly`, `paginated` | `billEstimateId` | - | `ListBillEstimateLineItemsResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Lists the line items associated with a bill estimate. |
-| `ListBillEstimates` | - | `readonly`, `paginated` | - | - | `ListBillEstimatesResponse` | `DataUnavailableException` | Lists all bill estimates for the account. |
-| `ListBillScenarioCommitmentModifications` | - | `readonly`, `paginated` | `billScenarioId` | - | `ListBillScenarioCommitmentModificationsResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Lists the commitment modifications associated with a bill scenario. |
-| `ListBillScenarioUsageModifications` | - | `readonly`, `paginated` | `billScenarioId` | - | `ListBillScenarioUsageModificationsResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Lists the usage modifications associated with a bill scenario. |
-| `ListBillScenarios` | - | `readonly`, `paginated` | - | - | `ListBillScenariosResponse` | `DataUnavailableException` | Lists all bill scenarios for the account. |
-| `ListTagsForResource` | - | `readonly` | `arn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Lists all tags associated with a specified resource. |
-| `ListWorkloadEstimateUsage` | - | `readonly`, `paginated` | `workloadEstimateId` | - | `ListWorkloadEstimateUsageResponse` | `DataUnavailableException`, `ResourceNotFoundException` | Lists the usage associated with a workload estimate. |
-| `ListWorkloadEstimates` | - | `readonly`, `paginated` | - | - | `ListWorkloadEstimatesResponse` | `DataUnavailableException` | Lists all workload estimates for the account. |
-| `TagResource` | - | - | `arn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Adds one or more tags to a specified resource. |
-| `UntagResource` | - | - | `arn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException` | Removes one or more tags from a specified resource. |
-| `UpdateBillEstimate` | - | `idempotent` | `identifier` | - | `UpdateBillEstimateResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException` | Updates an existing bill estimate. |
-| `UpdateBillScenario` | - | `idempotent` | `identifier` | - | `UpdateBillScenarioResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException` | Updates an existing bill scenario. |
-| `UpdatePreferences` | - | `idempotent` | - | - | `UpdatePreferencesResponse` | `DataUnavailableException`, `ServiceQuotaExceededException` | Updates the preferences for Pricing Calculator. |
-| `UpdateWorkloadEstimate` | - | `idempotent` | `identifier` | - | `UpdateWorkloadEstimateResponse` | `ConflictException`, `DataUnavailableException`, `ResourceNotFoundException` | Updates an existing workload estimate. |
+| `GetPreferences` | `-` | `readonly` | - | - | `GetPreferencesResponse` | `DataUnavailableException` | Retrieves the current preferences for Pricing Calculator. |
+| `ListTagsForResource` | `-` | `readonly` | `arn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Lists all tags associated with a specified resource. |
+| `TagResource` | `-` | - | `arn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Adds one or more tags to a specified resource. |
+| `UntagResource` | `-` | - | `arn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException` | Removes one or more tags from a specified resource. |
+| `UpdatePreferences` | `-` | `idempotent` | - | - | `UpdatePreferencesResponse` | `DataUnavailableException`, `ServiceQuotaExceededException` | Updates the preferences for Pricing Calculator. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `DataUnavailableException` | `structure` | `message` | The requested data is currently unavailable. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The specified resource was not found. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The request could not be processed because of conflict in the current state of the resource. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | The request would cause you to exceed your service quota. |
-| `BatchCreateBillScenarioCommitmentModificationRequest` | `structure` | `billScenarioId`, `clientToken`, `commitmentModifications` | - |
-| `BatchCreateBillScenarioCommitmentModificationResponse` | `structure` | `errors`, `items` | - |
-| `BatchCreateBillScenarioUsageModificationRequest` | `structure` | `billScenarioId`, `clientToken`, `usageModifications` | - |
-| `BatchCreateBillScenarioUsageModificationResponse` | `structure` | `errors`, `items` | - |
-| `BatchCreateWorkloadEstimateUsageRequest` | `structure` | `clientToken`, `usage`, `workloadEstimateId` | - |
-| `BatchCreateWorkloadEstimateUsageResponse` | `structure` | `errors`, `items` | - |
-| `BatchDeleteBillScenarioCommitmentModificationRequest` | `structure` | `billScenarioId`, `ids` | - |
-| `BatchDeleteBillScenarioCommitmentModificationResponse` | `structure` | `errors` | - |
-| `BatchDeleteBillScenarioUsageModificationRequest` | `structure` | `billScenarioId`, `ids` | - |
-| `BatchDeleteBillScenarioUsageModificationResponse` | `structure` | `errors` | - |
-| `BatchDeleteWorkloadEstimateUsageRequest` | `structure` | `ids`, `workloadEstimateId` | - |
-| `BatchDeleteWorkloadEstimateUsageResponse` | `structure` | `errors` | - |
-| `BatchUpdateBillScenarioCommitmentModificationRequest` | `structure` | `billScenarioId`, `commitmentModifications` | - |
-| `BatchUpdateBillScenarioCommitmentModificationResponse` | `structure` | `errors`, `items` | - |
-| `BatchUpdateBillScenarioUsageModificationRequest` | `structure` | `billScenarioId`, `usageModifications` | - |
-| `BatchUpdateBillScenarioUsageModificationResponse` | `structure` | `errors`, `items` | - |
-| `BatchUpdateWorkloadEstimateUsageRequest` | `structure` | `usage`, `workloadEstimateId` | - |
-| `BatchUpdateWorkloadEstimateUsageResponse` | `structure` | `errors`, `items` | - |
-| `CreateBillEstimateRequest` | `structure` | `billScenarioId`, `clientToken`, `name`, `tags` | - |
-| `CreateBillEstimateResponse` | `structure` | `billInterval`, `costCategoryGroupSharingPreferenceArn`, `costCategoryGroupSharingPreferenceEffectiveDate`, `costSummary`, `createdAt`, `expiresAt`, `failureMessage`, `groupSharingPreference`, `id`, `name`, `status` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The request could not be processed because of conflict in the current state of the resource. |
+| `DataUnavailableException` | `structure` | message | The requested data is currently unavailable. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | An internal error has occurred. Retry your request, but if the problem persists, contact Amazon Web Services support. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | The request would cause you to exceed your service quota. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input provided fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `GetPreferencesRequest` | `structure` | **empty (no members)** | - |
+| `GetPreferencesResponse` | `structure` | managementAccountRateTypeSelections, memberAccountRateTypeSelections, standaloneAccountRateTypeSelections | - |
+| `ListTagsForResourceRequest` | `structure` | arn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | arn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | arn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdatePreferencesRequest` | `structure` | managementAccountRateTypeSelections, memberAccountRateTypeSelections, standaloneAccountRateTypeSelections | - |
+| `UpdatePreferencesResponse` | `structure` | managementAccountRateTypeSelections, memberAccountRateTypeSelections, standaloneAccountRateTypeSelections | - |
+| `BatchCreateBillScenarioCommitmentModificationErrorCode` | `enum` | CONFLICT, INTERNAL_SERVER_ERROR, INVALID_ACCOUNT | - |
+| `BatchCreateBillScenarioUsageModificationErrorCode` | `enum` | BAD_REQUEST, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR | - |
+| `BatchCreateWorkloadEstimateUsageCode` | `enum` | BAD_REQUEST, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR | - |
+| `BatchDeleteBillScenarioCommitmentModificationErrorCode` | `enum` | BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR | - |
+| `BatchDeleteBillScenarioUsageModificationErrorCode` | `enum` | BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR | - |
+| `BatchUpdateBillScenarioCommitmentModificationErrorCode` | `enum` | BAD_REQUEST, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR | - |
+| `BatchUpdateBillScenarioUsageModificationErrorCode` | `enum` | BAD_REQUEST, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR | - |
+| `BillEstimateStatus` | `enum` | IN_PROGRESS, COMPLETE, FAILED | - |
+| `BillScenarioStatus` | `enum` | READY, LOCKED, FAILED, STALE | - |
+| `CurrencyCode` | `enum` | USD | - |
+| `GroupSharingPreferenceEnum` | `enum` | OPEN, PRIORITIZED, RESTRICTED | - |
+| `ListBillEstimateLineItemsFilterName` | `enum` | USAGE_ACCOUNT_ID, SERVICE_CODE, USAGE_TYPE, OPERATION, LOCATION, LINE_ITEM_TYPE | - |
+| `ListBillEstimatesFilterName` | `enum` | STATUS, NAME | - |
+| `ListBillScenariosFilterName` | `enum` | STATUS, NAME, GROUP_SHARING_PREFERENCE, COST_CATEGORY_ARN | - |
+| `ListUsageFilterName` | `enum` | USAGE_ACCOUNT_ID, SERVICE_CODE, USAGE_TYPE, OPERATION, LOCATION, USAGE_GROUP, HISTORICAL_USAGE_ACCOUNT_ID, HISTORICAL_SERVICE_CODE, HISTORICAL_USAGE_TYPE, HISTORICAL_OPERATION, HISTORICAL_LOCATION | - |
+| `ListWorkloadEstimatesFilterName` | `enum` | STATUS, NAME | - |
+| `MatchOption` | `enum` | EQUALS, STARTS_WITH, CONTAINS | - |
+| `PurchaseAgreementType` | `enum` | SAVINGS_PLANS, RESERVED_INSTANCE | - |
+| `RateType` | `enum` | BEFORE_DISCOUNTS, AFTER_DISCOUNTS, AFTER_DISCOUNTS_AND_COMMITMENTS | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, INVALID_REQUEST_FROM_MEMBER, DISALLOWED_RATE, OTHER | - |
+| `WorkloadEstimateCostStatus` | `enum` | VALID, INVALID, STALE | - |
+| `WorkloadEstimateRateType` | `enum` | BEFORE_DISCOUNTS, AFTER_DISCOUNTS, AFTER_DISCOUNTS_AND_COMMITMENTS | - |
+| `WorkloadEstimateStatus` | `enum` | UPDATING, VALID, INVALID, ACTION_NEEDED | - |
+| `WorkloadEstimateUpdateUsageErrorCode` | `enum` | BAD_REQUEST, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

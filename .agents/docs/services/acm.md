@@ -66,123 +66,162 @@ Parity implications:
 ### Get
 
 - Operations: `GetAccountConfiguration`, `GetCertificate`
-- Common required input members in this group: `CertificateArn`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListCertificates`, `ListTagsForCertificate`
 - Traits: `paginated` (1)
-- Common required input members in this group: `CertificateArn`
+- Common required input members in this group: -
 
 ### Add
 
 - Operations: `AddTagsToCertificate`
-- Common required input members in this group: `CertificateArn`, `Tags`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteCertificate`
-- Common required input members in this group: `CertificateArn`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeCertificate`
-- Common required input members in this group: `CertificateArn`
+- Common required input members in this group: -
 
 ### Export
 
 - Operations: `ExportCertificate`
-- Common required input members in this group: `CertificateArn`, `Passphrase`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportCertificate`
-- Common required input members in this group: `Certificate`, `PrivateKey`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutAccountConfiguration`
-- Common required input members in this group: `IdempotencyToken`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveTagsFromCertificate`
-- Common required input members in this group: `CertificateArn`, `Tags`
+- Common required input members in this group: -
 
 ### Renew
 
 - Operations: `RenewCertificate`
-- Common required input members in this group: `CertificateArn`
+- Common required input members in this group: -
 
 ### Request
 
 - Operations: `RequestCertificate`
-- Common required input members in this group: `DomainName`
+- Common required input members in this group: -
 
 ### Resend
 
 - Operations: `ResendValidationEmail`
-- Common required input members in this group: `CertificateArn`, `Domain`, `ValidationDomain`
+- Common required input members in this group: -
 
 ### Revoke
 
 - Operations: `RevokeCertificate`
-- Common required input members in this group: `CertificateArn`, `RevocationReason`
+- Common required input members in this group: -
+
+### Search
+
+- Operations: `SearchCertificates`
+- Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateCertificateOptions`
-- Common required input members in this group: `CertificateArn`, `Options`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddTagsToCertificate` | - | - | `CertificateArn`, `Tags` | - | `Unit` | `InvalidArnException`, `InvalidParameterException`, `InvalidTagException`, `ResourceNotFoundException`, `TagPolicyException`, `ThrottlingException`, `TooManyTagsException` | Adds one or more tags to an ACM certificate. Tags are labels that you can use to identify and organize your Amazon Web Services resources. |
-| `DeleteCertificate` | - | - | `CertificateArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InvalidArnException`, `ResourceInUseException`, `ResourceNotFoundException`, `ThrottlingException` | Deletes a certificate and its associated private key. If this action succeeds, the certificate no longer appears in the list that can be displayed by calling the ListCertificates action or be retrieved by calling the GetCertificate action. |
-| `DescribeCertificate` | - | - | `CertificateArn` | - | `DescribeCertificateResponse` | `InvalidArnException`, `ResourceNotFoundException` | Returns detailed metadata about the specified ACM certificate. If you have just created a certificate using the `RequestCertificate` action, there is a delay of several seconds before you can retrieve information about it. |
-| `ExportCertificate` | - | - | `CertificateArn`, `Passphrase` | - | `ExportCertificateResponse` | `InvalidArnException`, `RequestInProgressException`, `ResourceNotFoundException` | Exports a private certificate issued by a private certificate authority (CA) or public certificate for use anywhere. The exported file contains the certificate, the certificate chain, and the encrypted private key associated with the public key that is... |
-| `GetAccountConfiguration` | - | - | - | - | `GetAccountConfigurationResponse` | `AccessDeniedException`, `ThrottlingException` | Returns the account configuration options associated with an Amazon Web Services account. |
-| `GetCertificate` | - | - | `CertificateArn` | - | `GetCertificateResponse` | `InvalidArnException`, `RequestInProgressException`, `ResourceNotFoundException` | Retrieves a certificate and its certificate chain. The certificate may be either a public or private certificate issued using the ACM `RequestCertificate` action, or a certificate imported into ACM using the `ImportCertificate` action. |
-| `ImportCertificate` | - | - | `Certificate`, `PrivateKey` | - | `ImportCertificateResponse` | `InvalidArnException`, `InvalidParameterException`, `InvalidTagException`, `LimitExceededException`, `ResourceNotFoundException`, `TagPolicyException`, `TooManyTagsException` | Imports a certificate into Certificate Manager (ACM) to use with services that are integrated with ACM. Note that integrated services allow only certificate types and keys they support to be associated with their resources. |
-| `ListCertificates` | - | `paginated` | - | - | `ListCertificatesResponse` | `InvalidArgsException`, `ValidationException` | Retrieves a list of certificate ARNs and domain names. You can request that only certificates that match a specific status be listed. |
-| `ListTagsForCertificate` | - | - | `CertificateArn` | - | `ListTagsForCertificateResponse` | `InvalidArnException`, `ResourceNotFoundException` | Lists the tags that have been applied to the ACM certificate. Use the certificate's Amazon Resource Name (ARN) to specify the certificate. |
-| `PutAccountConfiguration` | - | - | `IdempotencyToken` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ThrottlingException`, `ValidationException` | Adds or modifies account-level configurations in ACM. The supported configuration option is `DaysBeforeExpiry`. |
-| `RemoveTagsFromCertificate` | - | - | `CertificateArn`, `Tags` | - | `Unit` | `InvalidArnException`, `InvalidParameterException`, `InvalidTagException`, `ResourceNotFoundException`, `TagPolicyException`, `ThrottlingException` | Remove one or more tags from an ACM certificate. A tag consists of a key-value pair. |
-| `RenewCertificate` | - | - | `CertificateArn` | - | `Unit` | `InvalidArnException`, `RequestInProgressException`, `ResourceNotFoundException` | Renews an eligible ACM certificate. In order to renew your Amazon Web Services Private CA certificates with ACM, you must first grant the ACM service principal permission to do so. |
-| `RequestCertificate` | - | - | `DomainName` | - | `RequestCertificateResponse` | `InvalidArnException`, `InvalidDomainValidationOptionsException`, `InvalidParameterException`, `InvalidTagException`, `LimitExceededException`, `TagPolicyException`, `TooManyTagsException` | Requests an ACM certificate for use with other Amazon Web Services services. To request an ACM certificate, you must specify a fully qualified domain name (FQDN) in the `DomainName` parameter. |
-| `ResendValidationEmail` | - | - | `CertificateArn`, `Domain`, `ValidationDomain` | - | `Unit` | `InvalidArnException`, `InvalidDomainValidationOptionsException`, `InvalidStateException`, `ResourceNotFoundException` | Resends the email that requests domain ownership validation. The domain owner or an authorized representative must approve the ACM certificate before it can be issued. |
-| `RevokeCertificate` | - | - | `CertificateArn`, `RevocationReason` | - | `RevokeCertificateResponse` | `AccessDeniedException`, `ConflictException`, `InvalidArnException`, `ResourceInUseException`, `ResourceNotFoundException`, `ThrottlingException` | Revokes a public ACM certificate. You can only revoke certificates that have been previously exported. |
-| `UpdateCertificateOptions` | - | - | `CertificateArn`, `Options` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `LimitExceededException`, `ResourceNotFoundException` | Updates a certificate. You can use this function to specify whether to opt in to or out of recording your certificate in a certificate transparency log and exporting. |
+| `AddTagsToCertificate` | `-` | - | `CertificateArn`, `Tags` | - | `Unit` | `InvalidArnException`, `InvalidParameterException`, `InvalidTagException`, `ResourceNotFoundException`, `TagPolicyException`, `ThrottlingException`, `TooManyTagsException` | Adds one or more tags to an ACM certificate. Tags are labels that you can use to identify and organize your Amazon Web Services resources. Each tag consists of a key and an optional value . You specify the certificat ... |
+| `DeleteCertificate` | `-` | - | `CertificateArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InvalidArnException`, `ResourceInUseException`, `ResourceNotFoundException`, `ThrottlingException` | Deletes a certificate and its associated private key. If this action succeeds, the certificate is not available for use by Amazon Web Services services integrated with ACM. Deleting a certificate is eventually consis ... |
+| `DescribeCertificate` | `-` | - | `CertificateArn` | - | `DescribeCertificateResponse` | `InvalidArnException`, `ResourceNotFoundException` | Returns detailed metadata about the specified ACM certificate. If you have just created a certificate using the RequestCertificate action, there is a delay of several seconds before you can retrieve information about it. |
+| `ExportCertificate` | `-` | - | `CertificateArn`, `Passphrase` | - | `ExportCertificateResponse` | `InvalidArnException`, `RequestInProgressException`, `ResourceNotFoundException`, `ThrottlingException` | Exports a private certificate issued by a private certificate authority (CA) or a public certificate for use anywhere. The exported file contains the certificate, the certificate chain, and the encrypted private key ... |
+| `GetAccountConfiguration` | `-` | - | - | - | `GetAccountConfigurationResponse` | `AccessDeniedException`, `ThrottlingException` | Returns the account configuration options associated with an Amazon Web Services account. |
+| `GetCertificate` | `-` | - | `CertificateArn` | - | `GetCertificateResponse` | `InvalidArnException`, `RequestInProgressException`, `ResourceNotFoundException` | Retrieves a certificate and its certificate chain. The certificate may be either a public or private certificate issued using the ACM RequestCertificate action, or a certificate imported into ACM using the ImportCert ... |
+| `ImportCertificate` | `-` | - | `Certificate`, `PrivateKey` | - | `ImportCertificateResponse` | `ConflictException`, `InvalidArnException`, `InvalidParameterException`, `InvalidTagException`, `LimitExceededException`, `ResourceNotFoundException`, `TagPolicyException`, `TooManyTagsException` | Imports a certificate into Certificate Manager (ACM) to use with services that are integrated with ACM. Note that integrated services allow only certificate types and keys they support to be associated with their res ... |
+| `ListCertificates` | `-` | `paginated` | - | - | `ListCertificatesResponse` | `InvalidArgsException`, `ValidationException` | Retrieves a list of certificate ARNs and domain names. You can request that only certificates that match a specific status be listed. You can also filter by specific attributes of the certificate. Default filtering r ... |
+| `ListTagsForCertificate` | `-` | - | `CertificateArn` | - | `ListTagsForCertificateResponse` | `InvalidArnException`, `ResourceNotFoundException` | Lists the tags that have been applied to the ACM certificate. Use the certificate's Amazon Resource Name (ARN) to specify the certificate. To add a tag to an ACM certificate, use the AddTagsToCertificate action. To d ... |
+| `PutAccountConfiguration` | `-` | - | `IdempotencyToken` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `ThrottlingException`, `ValidationException` | Adds or modifies account-level configurations in ACM. The supported configuration option is DaysBeforeExpiry . This option specifies the number of days prior to certificate expiration when ACM starts generating Event ... |
+| `RemoveTagsFromCertificate` | `-` | - | `CertificateArn`, `Tags` | - | `Unit` | `InvalidArnException`, `InvalidParameterException`, `InvalidTagException`, `ResourceNotFoundException`, `TagPolicyException`, `ThrottlingException` | Remove one or more tags from an ACM certificate. A tag consists of a key-value pair. If you do not specify the value portion of the tag when calling this function, the tag will be removed regardless of value. If you ... |
+| `RenewCertificate` | `-` | - | `CertificateArn` | - | `Unit` | `InvalidArnException`, `RequestInProgressException`, `ResourceNotFoundException` | Renews an eligible ACM certificate . In order to renew your Amazon Web Services Private CA certificates with ACM, you must first grant the ACM service principal permission to do so . For more information, see Testing ... |
+| `RequestCertificate` | `-` | - | `DomainName` | - | `RequestCertificateResponse` | `InvalidArnException`, `InvalidDomainValidationOptionsException`, `InvalidParameterException`, `InvalidTagException`, `LimitExceededException`, `TagPolicyException`, `TooManyTagsException` | Requests an ACM certificate for use with other Amazon Web Services services. To request an ACM certificate, you must specify a fully qualified domain name (FQDN) in the DomainName parameter. You can also specify addi ... |
+| `ResendValidationEmail` | `-` | - | `CertificateArn`, `Domain`, `ValidationDomain` | - | `Unit` | `InvalidArnException`, `InvalidDomainValidationOptionsException`, `InvalidStateException`, `ResourceNotFoundException` | Resends the email that requests domain ownership validation. The domain owner or an authorized representative must approve the ACM certificate before it can be issued. The certificate can be approved by clicking a li ... |
+| `RevokeCertificate` | `-` | - | `CertificateArn`, `RevocationReason` | - | `RevokeCertificateResponse` | `AccessDeniedException`, `ConflictException`, `InvalidArnException`, `ResourceInUseException`, `ResourceNotFoundException`, `ThrottlingException` | Revokes a public ACM certificate. You can only revoke certificates that have been previously exported. Once a certificate is revoked, you cannot reuse the certificate. Revoking a certificate is permanent. |
+| `SearchCertificates` | `-` | `paginated` | - | - | `SearchCertificatesResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Retrieves a list of certificates matching search criteria. You can filter certificates by X.509 attributes and ACM specific properties like certificate status, type and renewal eligibility. This operation provides mo ... |
+| `UpdateCertificateOptions` | `-` | - | `CertificateArn`, `Options` | - | `Unit` | `InvalidArnException`, `InvalidStateException`, `LimitExceededException`, `ResourceNotFoundException` | Updates a certificate. You can use this function to specify whether to opt in to or out of recording your certificate in a certificate transparency log and exporting. For more information, see Opting Out of Certifica ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidArnException` | `structure` | `message` | The requested Amazon Resource Name (ARN) does not refer to an existing resource. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified certificate cannot be found in the caller's account or the caller's account cannot be found. |
-| `ThrottlingException` | `structure` | `message` | The request was denied because it exceeded a quota. |
-| `InvalidParameterException` | `structure` | `message` | An input parameter was invalid. |
-| `InvalidTagException` | `structure` | `message` | One or both of the values that make up the key-value pair is not valid. |
-| `TagPolicyException` | `structure` | `message` | A specified tag did not comply with an existing tag policy and was rejected. |
-| `AccessDeniedException` | `structure` | `Message` | You do not have access required to perform this action. |
-| `TooManyTagsException` | `structure` | `message` | The request contains too many tags. |
-| `ConflictException` | `structure` | `message` | You are trying to update a resource or configuration that is already being created or updated. |
-| `RequestInProgressException` | `structure` | `message` | The certificate request is in process and the certificate in your account has not yet been issued. |
-| `LimitExceededException` | `structure` | `message` | An ACM quota has been exceeded. |
-| `ResourceInUseException` | `structure` | `message` | The certificate is in use by another Amazon Web Services service in the caller's account. |
-| `ValidationException` | `structure` | `message` | The supplied input failed to satisfy constraints of an Amazon Web Services service. |
-| `InvalidDomainValidationOptionsException` | `structure` | `message` | One or more values in the DomainValidationOption structure is incorrect. |
-| `InvalidStateException` | `structure` | `message` | Processing has reached an invalid state. |
-| `AddTagsToCertificateRequest` | `structure` | `CertificateArn`, `Tags` | - |
-| `DeleteCertificateRequest` | `structure` | `CertificateArn` | - |
-| `DescribeCertificateRequest` | `structure` | `CertificateArn` | - |
-| `DescribeCertificateResponse` | `structure` | `Certificate` | - |
-| `ExportCertificateRequest` | `structure` | `CertificateArn`, `Passphrase` | - |
-| `ExportCertificateResponse` | `structure` | `Certificate`, `CertificateChain`, `PrivateKey` | - |
-| `GetAccountConfigurationResponse` | `structure` | `ExpiryEvents` | - |
-| `GetCertificateRequest` | `structure` | `CertificateArn` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have access required to perform this action. |
+| `ConflictException` | `structure` | message | You are trying to update a resource or configuration that is already being created or updated. Wait for the previous operation to finish and try again. |
+| `InvalidArgsException` | `structure` | message | One or more of request parameters specified is not valid. |
+| `InvalidArnException` | `structure` | message | The requested Amazon Resource Name (ARN) does not refer to an existing resource. |
+| `InvalidDomainValidationOptionsException` | `structure` | message | One or more values in the DomainValidationOption structure is incorrect. |
+| `InvalidParameterException` | `structure` | message | An input parameter was invalid. |
+| `InvalidStateException` | `structure` | message | Processing has reached an invalid state. |
+| `InvalidTagException` | `structure` | message | One or both of the values that make up the key-value pair is not valid. For example, you cannot specify a tag value that begins with aws: . |
+| `LimitExceededException` | `structure` | message | An ACM quota has been exceeded. |
+| `RequestInProgressException` | `structure` | message | The certificate request is in process and the certificate in your account has not yet been issued. |
+| `ResourceInUseException` | `structure` | message | The certificate is in use by another Amazon Web Services service in the caller's account. Remove the association and try again. |
+| `ResourceNotFoundException` | `structure` | message | The specified certificate cannot be found in the caller's account or the caller's account cannot be found. |
+| `TagPolicyException` | `structure` | message | A specified tag did not comply with an existing tag policy and was rejected. |
+| `ThrottlingException` | `structure` | message, throttlingReasons | The request was denied because it exceeded a quota. |
+| `TooManyTagsException` | `structure` | message | The request contains too many tags. Try the request again with fewer tags. |
+| `ValidationException` | `structure` | message | The supplied input failed to satisfy constraints of an Amazon Web Services service. |
+| `AddTagsToCertificateRequest` | `structure` | CertificateArn, Tags | - |
+| `DeleteCertificateRequest` | `structure` | CertificateArn | - |
+| `DescribeCertificateRequest` | `structure` | CertificateArn | - |
+| `DescribeCertificateResponse` | `structure` | Certificate | - |
+| `ExportCertificateRequest` | `structure` | CertificateArn, Passphrase | - |
+| `ExportCertificateResponse` | `structure` | Certificate, CertificateChain, PrivateKey | - |
+| `GetAccountConfigurationResponse` | `structure` | ExpiryEvents | - |
+| `GetCertificateRequest` | `structure` | CertificateArn | - |
+| `GetCertificateResponse` | `structure` | Certificate, CertificateChain | - |
+| `ImportCertificateRequest` | `structure` | CertificateArn, Certificate, PrivateKey, CertificateChain, Tags | - |
+| `ImportCertificateResponse` | `structure` | CertificateArn | - |
+| `ListCertificatesRequest` | `structure` | CertificateStatuses, Includes, NextToken, MaxItems, SortBy, SortOrder | - |
+| `ListCertificatesResponse` | `structure` | NextToken, CertificateSummaryList | - |
+| `ListTagsForCertificateRequest` | `structure` | CertificateArn | - |
+| `ListTagsForCertificateResponse` | `structure` | Tags | - |
+| `PutAccountConfigurationRequest` | `structure` | ExpiryEvents, IdempotencyToken | - |
+| `RemoveTagsFromCertificateRequest` | `structure` | CertificateArn, Tags | - |
+| `RenewCertificateRequest` | `structure` | CertificateArn | - |
+| `RequestCertificateRequest` | `structure` | DomainName, ValidationMethod, SubjectAlternativeNames, IdempotencyToken, DomainValidationOptions, Options, CertificateAuthorityArn, Tags, KeyAlgorithm, ManagedBy | - |
+| `RequestCertificateResponse` | `structure` | CertificateArn | - |
+| `ResendValidationEmailRequest` | `structure` | CertificateArn, Domain, ValidationDomain | - |
+| `RevokeCertificateRequest` | `structure` | CertificateArn, RevocationReason | - |
+| `RevokeCertificateResponse` | `structure` | CertificateArn | - |
+| `SearchCertificatesRequest` | `structure` | FilterStatement, MaxResults, NextToken, SortBy, SortOrder | - |
+| `CertificateExport` | `enum` | ENABLED, DISABLED | - |
+| `CertificateManagedBy` | `enum` | CLOUDFRONT | - |
+| `CertificateStatus` | `enum` | PENDING_VALIDATION, ISSUED, INACTIVE, EXPIRED, VALIDATION_TIMED_OUT, REVOKED, FAILED | - |
+| `CertificateTransparencyLoggingPreference` | `enum` | ENABLED, DISABLED | - |
+| `CertificateType` | `enum` | IMPORTED, AMAZON_ISSUED, PRIVATE | - |
+| `ComparisonOperator` | `enum` | CONTAINS, EQUALS | The comparison operator to use for string filters. Valid values are CONTAINS and EQUALS . |
+| `DomainStatus` | `enum` | PENDING_VALIDATION, SUCCESS, FAILED | - |
+| `ExtendedKeyUsageName` | `enum` | TLS_WEB_SERVER_AUTHENTICATION, TLS_WEB_CLIENT_AUTHENTICATION, CODE_SIGNING, EMAIL_PROTECTION, TIME_STAMPING, OCSP_SIGNING, IPSEC_END_SYSTEM, IPSEC_TUNNEL, IPSEC_USER, ANY, NONE, CUSTOM | - |
+| `FailureReason` | `enum` | NO_AVAILABLE_CONTACTS, ADDITIONAL_VERIFICATION_REQUIRED, DOMAIN_NOT_ALLOWED, INVALID_PUBLIC_DOMAIN, DOMAIN_VALIDATION_DENIED, CAA_ERROR, PCA_LIMIT_EXCEEDED, PCA_INVALID_ARN, PCA_INVALID_STATE, PCA_REQUEST_FAILED, PCA_NAME_CONSTRAINTS_VALIDATION, PCA_RESOURCE_NOT_FOUND, ... (+5) | - |
+| `KeyAlgorithm` | `enum` | RSA_1024, RSA_2048, RSA_3072, RSA_4096, EC_prime256v1, EC_secp384r1, EC_secp521r1 | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

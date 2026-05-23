@@ -44,82 +44,82 @@ Provide APIs to create and manage Amazon Connect Campaigns.
 
 - Operations: `GetCampaignState`, `GetCampaignStateBatch`, `GetConnectInstanceConfig`, `GetInstanceOnboardingJobStatus`
 - Traits: `readonly` (2)
-- Common required input members in this group: `campaignIds`, `connectInstanceId`, `id`
+- Common required input members in this group: `connectInstanceId`
 
 ### Delete
 
 - Operations: `DeleteCampaign`, `DeleteConnectInstanceConfig`, `DeleteInstanceOnboardingJob`
 - Traits: `idempotent` (3)
-- Common required input members in this group: `connectInstanceId`, `id`
+- Common required input members in this group: `connectInstanceId`
 
 ### Update
 
 - Operations: `UpdateCampaignDialerConfig`, `UpdateCampaignName`, `UpdateCampaignOutboundCallConfig`
 - Traits: `idempotent` (3)
-- Common required input members in this group: `dialerConfig`, `id`, `name`
+- Common required input members in this group: `id`
 
 ### List
 
 - Operations: `ListCampaigns`, `ListTagsForResource`
-- Traits: `idempotent` (1), `paginated` (1), `readonly` (1)
-- Common required input members in this group: `arn`
+- Traits: `readonly` (1), `paginated` (1), `idempotent` (1)
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartCampaign`, `StartInstanceOnboardingJob`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `connectInstanceId`, `encryptionConfig`, `id`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateCampaign`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `connectInstanceId`, `dialerConfig`, `name`, `outboundCallConfig`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeCampaign`
 - Traits: `readonly` (1)
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Pause
 
 - Operations: `PauseCampaign`
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutDialRequestBatch`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `dialRequests`, `id`
+- Common required input members in this group: -
 
 ### Resume
 
 - Operations: `ResumeCampaign`
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopCampaign`
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateCampaign` | `PUT /campaigns` | `idempotent` | `connectInstanceId`, `dialerConfig`, `name`, `outboundCallConfig` | - | `CreateCampaignResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a campaign for the specified Amazon Connect account. This API is idempotent. |
+| `CreateCampaign` | `PUT /campaigns` | `idempotent` | `name`, `connectInstanceId`, `dialerConfig`, `outboundCallConfig` | - | `CreateCampaignResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a campaign for the specified Amazon Connect account. This API is idempotent. |
 | `DeleteCampaign` | `DELETE /campaigns/{id}` | `idempotent` | `id` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a campaign from the specified Amazon Connect account. |
 | `DeleteConnectInstanceConfig` | `DELETE /connect-instance/{connectInstanceId}/config` | `idempotent` | `connectInstanceId` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `InvalidStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a connect instance config from the specified AWS account. |
 | `DeleteInstanceOnboardingJob` | `DELETE /connect-instance/{connectInstanceId}/onboarding` | `idempotent` | `connectInstanceId` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `InvalidStateException`, `ResourceNotFoundException`, `ValidationException` | Delete the Connect Campaigns onboarding job for the specified Amazon Connect instance. |
@@ -131,45 +131,69 @@ Provide APIs to create and manage Amazon Connect Campaigns.
 | `ListCampaigns` | `POST /campaigns-summary` | `readonly`, `paginated` | - | - | `ListCampaignsResponse` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Provides summary information about the campaigns under the specified Amazon Connect account. |
 | `ListTagsForResource` | `GET /tags/{arn}` | `idempotent` | `arn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List tags for a resource. |
 | `PauseCampaign` | `POST /campaigns/{id}/pause` | - | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Pauses a campaign for the specified Amazon Connect account. |
-| `PutDialRequestBatch` | `PUT /campaigns/{id}/dial-requests` | `idempotent` | `dialRequests`, `id` | - | `PutDialRequestBatchResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates dials requests for the specified campaign Amazon Connect account. This API is idempotent. |
+| `PutDialRequestBatch` | `PUT /campaigns/{id}/dial-requests` | `idempotent` | `id`, `dialRequests` | - | `PutDialRequestBatchResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates dials requests for the specified campaign Amazon Connect account. This API is idempotent. |
 | `ResumeCampaign` | `POST /campaigns/{id}/resume` | - | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops a campaign for the specified Amazon Connect account. |
 | `StartCampaign` | `POST /campaigns/{id}/start` | - | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a campaign for the specified Amazon Connect account. |
 | `StartInstanceOnboardingJob` | `PUT /connect-instance/{connectInstanceId}/onboarding` | `idempotent` | `connectInstanceId`, `encryptionConfig` | - | `StartInstanceOnboardingJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Onboard the specific Amazon Connect instance to Connect Campaigns. |
 | `StopCampaign` | `POST /campaigns/{id}/stop` | - | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops a campaign for the specified Amazon Connect account. |
 | `TagResource` | `POST /tags/{arn}` | `idempotent` | `arn`, `tags` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Tag a resource. |
 | `UntagResource` | `DELETE /tags/{arn}` | `idempotent` | `arn`, `tagKeys` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Untag a resource. |
-| `UpdateCampaignDialerConfig` | `POST /campaigns/{id}/dialer-config` | `idempotent` | `dialerConfig`, `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the dialer config of a campaign. This API is idempotent. |
+| `UpdateCampaignDialerConfig` | `POST /campaigns/{id}/dialer-config` | `idempotent` | `id`, `dialerConfig` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the dialer config of a campaign. This API is idempotent. |
 | `UpdateCampaignName` | `POST /campaigns/{id}/name` | `idempotent` | `id`, `name` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the name of a campaign. This API is idempotent. |
 | `UpdateCampaignOutboundCallConfig` | `POST /campaigns/{id}/outbound-call-config` | `idempotent` | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the outbound call config of a campaign. This API is idempotent. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message`, `xAmzErrorType` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message`, `xAmzErrorType` | Request processing failed because of an error or failure with the service. |
-| `ValidationException` | `structure` | `message`, `xAmzErrorType` | The input fails to satisfy the constraints specified by an AWS service. |
-| `ResourceNotFoundException` | `structure` | `message`, `xAmzErrorType` | The specified resource was not found. |
-| `ThrottlingException` | `structure` | `message`, `xAmzErrorType` | The request was denied due to request throttling. |
-| `ConflictException` | `structure` | `message`, `xAmzErrorType` | The request could not be processed because of conflict in the current state of the resource. |
-| `InvalidCampaignStateException` | `structure` | `message`, `state`, `xAmzErrorType` | The request could not be processed because of conflict in the current state of the campaign. |
-| `InvalidStateException` | `structure` | `message`, `xAmzErrorType` | The request could not be processed because of conflict in the current state. |
-| `CreateCampaignRequest` | `structure` | `connectInstanceId`, `dialerConfig`, `name`, `outboundCallConfig`, `tags` | The request for Create Campaign API. |
-| `CreateCampaignResponse` | `structure` | `arn`, `id`, `tags` | The response for Create Campaign API |
-| `ServiceQuotaExceededException` | `structure` | `message`, `xAmzErrorType` | Request would cause a service quota to be exceeded. |
-| `DeleteCampaignRequest` | `structure` | `id` | DeleteCampaignRequest |
-| `DeleteConnectInstanceConfigRequest` | `structure` | `connectInstanceId` | DeleteCampaignRequest |
-| `DeleteInstanceOnboardingJobRequest` | `structure` | `connectInstanceId` | The request for DeleteInstanceOnboardingJob API. |
-| `DescribeCampaignRequest` | `structure` | `id` | DescribeCampaignRequests |
-| `DescribeCampaignResponse` | `structure` | `campaign` | DescribeCampaignResponse |
-| `GetCampaignStateRequest` | `structure` | `id` | GetCampaignStateRequest |
-| `GetCampaignStateResponse` | `structure` | `state` | GetCampaignStateResponse |
-| `GetCampaignStateBatchRequest` | `structure` | `campaignIds` | GetCampaignStateBatchRequest |
-| `GetCampaignStateBatchResponse` | `structure` | `failedRequests`, `successfulRequests` | GetCampaignStateBatchResponse |
-| `GetConnectInstanceConfigRequest` | `structure` | `connectInstanceId` | GetConnectInstanceConfigRequest |
-| `GetConnectInstanceConfigResponse` | `structure` | `connectInstanceConfig` | GetConnectInstanceConfigResponse |
-| `GetInstanceOnboardingJobStatusRequest` | `structure` | `connectInstanceId` | GetInstanceOnboardingJobStatusRequest |
-
+| `AccessDeniedException` | `structure` | message, xAmzErrorType | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, xAmzErrorType | The request could not be processed because of conflict in the current state of the resource. |
+| `InternalServerException` | `structure` | message, xAmzErrorType | Request processing failed because of an error or failure with the service. |
+| `InvalidCampaignStateException` | `structure` | state, message, xAmzErrorType | The request could not be processed because of conflict in the current state of the campaign. |
+| `InvalidStateException` | `structure` | message, xAmzErrorType | The request could not be processed because of conflict in the current state. |
+| `ResourceNotFoundException` | `structure` | message, xAmzErrorType | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message, xAmzErrorType | Request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | message, xAmzErrorType | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, xAmzErrorType | The input fails to satisfy the constraints specified by an AWS service. |
+| `CreateCampaignRequest` | `structure` | name, connectInstanceId, dialerConfig, outboundCallConfig, tags | The request for Create Campaign API. |
+| `CreateCampaignResponse` | `structure` | id, arn, tags | The response for Create Campaign API |
+| `DeleteCampaignRequest` | `structure` | id | DeleteCampaignRequest |
+| `DeleteConnectInstanceConfigRequest` | `structure` | connectInstanceId | DeleteCampaignRequest |
+| `DeleteInstanceOnboardingJobRequest` | `structure` | connectInstanceId | The request for DeleteInstanceOnboardingJob API. |
+| `DescribeCampaignRequest` | `structure` | id | DescribeCampaignRequests |
+| `DescribeCampaignResponse` | `structure` | campaign | DescribeCampaignResponse |
+| `GetCampaignStateRequest` | `structure` | id | GetCampaignStateRequest |
+| `GetCampaignStateResponse` | `structure` | state | GetCampaignStateResponse |
+| `GetCampaignStateBatchRequest` | `structure` | campaignIds | GetCampaignStateBatchRequest |
+| `GetCampaignStateBatchResponse` | `structure` | successfulRequests, failedRequests | GetCampaignStateBatchResponse |
+| `GetConnectInstanceConfigRequest` | `structure` | connectInstanceId | GetConnectInstanceConfigRequest |
+| `GetConnectInstanceConfigResponse` | `structure` | connectInstanceConfig | GetConnectInstanceConfigResponse |
+| `GetInstanceOnboardingJobStatusRequest` | `structure` | connectInstanceId | GetInstanceOnboardingJobStatusRequest |
+| `GetInstanceOnboardingJobStatusResponse` | `structure` | connectInstanceOnboardingJobStatus | GetInstanceOnboardingJobStatusResponse |
+| `ListCampaignsRequest` | `structure` | maxResults, nextToken, filters | ListCampaignsRequest |
+| `ListCampaignsResponse` | `structure` | nextToken, campaignSummaryList | ListCampaignsResponse |
+| `ListTagsForResourceRequest` | `structure` | arn | ListTagsForResource |
+| `ListTagsForResourceResponse` | `structure` | tags | ListTagsForResponse |
+| `PauseCampaignRequest` | `structure` | id | PauseCampaignRequest |
+| `PutDialRequestBatchRequest` | `structure` | id, dialRequests | PutDialRequestBatchRequest |
+| `PutDialRequestBatchResponse` | `structure` | successfulRequests, failedRequests | PutDialRequestBatchResponse |
+| `ResumeCampaignRequest` | `structure` | id | ResumeCampaignRequest |
+| `StartCampaignRequest` | `structure` | id | StartCampaignRequest |
+| `StartInstanceOnboardingJobRequest` | `structure` | connectInstanceId, encryptionConfig | The request for StartInstanceOnboardingJob API. |
+| `StartInstanceOnboardingJobResponse` | `structure` | connectInstanceOnboardingJobStatus | The response for StartInstanceOnboardingJob API. |
+| `StopCampaignRequest` | `structure` | id | StopCampaignRequest |
+| `TagResourceRequest` | `structure` | arn, tags | TagResourceRequest |
+| `UntagResourceRequest` | `structure` | arn, tagKeys | UntagResourceRequest |
+| `UpdateCampaignDialerConfigRequest` | `structure` | id, dialerConfig | UpdateCampaignDialerConfigRequest |
+| `UpdateCampaignNameRequest` | `structure` | id, name | UpdateCampaignNameRequest |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

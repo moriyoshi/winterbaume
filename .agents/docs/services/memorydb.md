@@ -52,142 +52,180 @@ MemoryDB currently models subnet groups and security groups inside MemoryDB stat
 
 - Operations: `DescribeACLs`, `DescribeClusters`, `DescribeEngineVersions`, `DescribeEvents`, `DescribeMultiRegionClusters`, `DescribeMultiRegionParameterGroups`, `DescribeMultiRegionParameters`, `DescribeParameterGroups`, `DescribeParameters`, `DescribeReservedNodes`, `DescribeReservedNodesOfferings`, `DescribeServiceUpdates`, `DescribeSnapshots`, `DescribeSubnetGroups`, `DescribeUsers`
 - Traits: `paginated` (13)
-- Common required input members in this group: `MultiRegionParameterGroupName`, `ParameterGroupName`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateACL`, `CreateCluster`, `CreateMultiRegionCluster`, `CreateParameterGroup`, `CreateSnapshot`, `CreateSubnetGroup`, `CreateUser`
-- Common required input members in this group: `ACLName`, `AccessString`, `AuthenticationMode`, `ClusterName`, `Family`, `MultiRegionClusterNameSuffix`, `NodeType`, `ParameterGroupName`, `SnapshotName`, `SubnetGroupName`, `SubnetIds`, `UserName`
+- Common required input members in this group: `ACLName`, `ClusterName`, `NodeType`
 
 ### Delete
 
 - Operations: `DeleteACL`, `DeleteCluster`, `DeleteMultiRegionCluster`, `DeleteParameterGroup`, `DeleteSnapshot`, `DeleteSubnetGroup`, `DeleteUser`
-- Common required input members in this group: `ACLName`, `ClusterName`, `MultiRegionClusterName`, `ParameterGroupName`, `SnapshotName`, `SubnetGroupName`, `UserName`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateACL`, `UpdateCluster`, `UpdateMultiRegionCluster`, `UpdateParameterGroup`, `UpdateSubnetGroup`, `UpdateUser`
-- Common required input members in this group: `ACLName`, `ClusterName`, `MultiRegionClusterName`, `ParameterGroupName`, `ParameterNameValues`, `SubnetGroupName`, `UserName`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListAllowedMultiRegionClusterUpdates`, `ListAllowedNodeTypeUpdates`, `ListTags`
-- Common required input members in this group: `ClusterName`, `MultiRegionClusterName`, `ResourceArn`
+- Common required input members in this group: -
 
 ### Batch
 
 - Operations: `BatchUpdateCluster`
-- Common required input members in this group: `ClusterNames`
+- Common required input members in this group: -
 
 ### Copy
 
 - Operations: `CopySnapshot`
-- Common required input members in this group: `SourceSnapshotName`, `TargetSnapshotName`
+- Common required input members in this group: -
 
 ### Failover
 
 - Operations: `FailoverShard`
-- Common required input members in this group: `ClusterName`, `ShardName`
+- Common required input members in this group: -
 
 ### Purchase
 
 - Operations: `PurchaseReservedNodesOffering`
-- Common required input members in this group: `ReservedNodesOfferingId`
+- Common required input members in this group: -
 
 ### Reset
 
 - Operations: `ResetParameterGroup`
-- Common required input members in this group: `ParameterGroupName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BatchUpdateCluster` | - | - | `ClusterNames` | - | `BatchUpdateClusterResponse` | `InvalidParameterValueException`, `ServiceUpdateNotFoundFault` | Apply the service update to a list of clusters supplied. For more information on service updates and applying them, see Applying the service updates. |
-| `CopySnapshot` | - | - | `SourceSnapshotName`, `TargetSnapshotName` | - | `CopySnapshotResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `InvalidSnapshotStateFault`, `ServiceLinkedRoleNotFoundFault`, `SnapshotAlreadyExistsFault`, `SnapshotNotFoundFault`, `SnapshotQuotaExceededFault`, `TagQuotaPerResourceExceeded` | Makes a copy of an existing snapshot. |
-| `CreateACL` | - | - | `ACLName` | - | `CreateACLResponse` | `ACLAlreadyExistsFault`, `ACLQuotaExceededFault`, `DefaultUserRequired`, `DuplicateUserNameFault`, `InvalidParameterValueException`, `TagQuotaPerResourceExceeded`, `UserNotFoundFault` | Creates an Access Control List. For more information, see Authenticating users with Access Contol Lists (ACLs). |
-| `CreateCluster` | - | - | `ACLName`, `ClusterName`, `NodeType` | - | `CreateClusterResponse` | `ACLNotFoundFault`, `ClusterAlreadyExistsFault`, `ClusterQuotaForCustomerExceededFault`, `InsufficientClusterCapacityFault`, `InvalidACLStateFault`, `InvalidCredentialsException`, `InvalidMultiRegionClusterStateFault`, `InvalidParameterCombinationException`, ... (+10) | Creates a cluster. All nodes in the cluster run the same protocol-compliant engine software. |
-| `CreateMultiRegionCluster` | - | - | `MultiRegionClusterNameSuffix`, `NodeType` | - | `CreateMultiRegionClusterResponse` | `ClusterQuotaForCustomerExceededFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionClusterAlreadyExistsFault`, `MultiRegionParameterGroupNotFoundFault`, `TagQuotaPerResourceExceeded` | Creates a new multi-Region cluster. |
-| `CreateParameterGroup` | - | - | `Family`, `ParameterGroupName` | - | `CreateParameterGroupResponse` | `InvalidParameterCombinationException`, `InvalidParameterGroupStateFault`, `InvalidParameterValueException`, `ParameterGroupAlreadyExistsFault`, `ParameterGroupQuotaExceededFault`, `ServiceLinkedRoleNotFoundFault`, `TagQuotaPerResourceExceeded` | Creates a new MemoryDB parameter group. A parameter group is a collection of parameters and their values that are applied to all of the nodes in any cluster. |
-| `CreateSnapshot` | - | - | `ClusterName`, `SnapshotName` | - | `CreateSnapshotResponse` | `ClusterNotFoundFault`, `InvalidClusterStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault`, `SnapshotAlreadyExistsFault`, `SnapshotQuotaExceededFault`, `TagQuotaPerResourceExceeded` | Creates a copy of an entire cluster at a specific moment in time. |
-| `CreateSubnetGroup` | - | - | `SubnetGroupName`, `SubnetIds` | - | `CreateSubnetGroupResponse` | `InvalidSubnet`, `ServiceLinkedRoleNotFoundFault`, `SubnetGroupAlreadyExistsFault`, `SubnetGroupQuotaExceededFault`, `SubnetNotAllowedFault`, `SubnetQuotaExceededFault`, `TagQuotaPerResourceExceeded` | Creates a subnet group. A subnet group is a collection of subnets (typically private) that you can designate for your clusters running in an Amazon Virtual Private Cloud (VPC) environment. |
-| `CreateUser` | - | - | `AccessString`, `AuthenticationMode`, `UserName` | - | `CreateUserResponse` | `DuplicateUserNameFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `TagQuotaPerResourceExceeded`, `UserAlreadyExistsFault`, `UserQuotaExceededFault` | Creates a MemoryDB user. For more information, see Authenticating users with Access Contol Lists (ACLs). |
-| `DeleteACL` | - | - | `ACLName` | - | `DeleteACLResponse` | `ACLNotFoundFault`, `InvalidACLStateFault`, `InvalidParameterValueException` | Deletes an Access Control List. The ACL must first be disassociated from the cluster before it can be deleted. |
-| `DeleteCluster` | - | - | `ClusterName` | - | `DeleteClusterResponse` | `ClusterNotFoundFault`, `InvalidClusterStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault`, `SnapshotAlreadyExistsFault` | Deletes a cluster. It also deletes all associated nodes and node endpoints. |
-| `DeleteMultiRegionCluster` | - | - | `MultiRegionClusterName` | - | `DeleteMultiRegionClusterResponse` | `InvalidMultiRegionClusterStateFault`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault` | Deletes an existing multi-Region cluster. |
-| `DeleteParameterGroup` | - | - | `ParameterGroupName` | - | `DeleteParameterGroupResponse` | `InvalidParameterCombinationException`, `InvalidParameterGroupStateFault`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Deletes the specified parameter group. You cannot delete a parameter group if it is associated with any clusters. |
-| `DeleteSnapshot` | - | - | `SnapshotName` | - | `DeleteSnapshotResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `InvalidSnapshotStateFault`, `ServiceLinkedRoleNotFoundFault`, `SnapshotNotFoundFault` | Deletes an existing snapshot. When you receive a successful response from this operation, MemoryDB immediately begins deleting the snapshot; you cannot cancel or revert this operation. |
-| `DeleteSubnetGroup` | - | - | `SubnetGroupName` | - | `DeleteSubnetGroupResponse` | `ServiceLinkedRoleNotFoundFault`, `SubnetGroupInUseFault`, `SubnetGroupNotFoundFault` | Deletes a subnet group. You cannot delete a default subnet group or one that is associated with any clusters. |
-| `DeleteUser` | - | - | `UserName` | - | `DeleteUserResponse` | `InvalidParameterValueException`, `InvalidUserStateFault`, `UserNotFoundFault` | Deletes a user. The user will be removed from all ACLs and in turn removed from all clusters. |
-| `DescribeACLs` | - | `paginated` | - | - | `DescribeACLsResponse` | `ACLNotFoundFault`, `InvalidParameterCombinationException` | Returns a list of ACLs. |
-| `DescribeClusters` | - | `paginated` | - | - | `DescribeClustersResponse` | `ClusterNotFoundFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault` | Returns information about all provisioned clusters if no cluster identifier is specified, or about a specific cluster if a cluster name is supplied. |
-| `DescribeEngineVersions` | - | `paginated` | - | - | `DescribeEngineVersionsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault` | Returns a list of the available Redis OSS engine versions. |
-| `DescribeEvents` | - | `paginated` | - | - | `DescribeEventsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault` | Returns events related to clusters, security groups, and parameter groups. You can obtain events specific to a particular cluster, security group, or parameter group by providing the name as a parameter. |
-| `DescribeMultiRegionClusters` | - | `paginated` | - | - | `DescribeMultiRegionClustersResponse` | `ClusterNotFoundFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault` | Returns details about one or more multi-Region clusters. |
-| `DescribeMultiRegionParameterGroups` | - | - | - | - | `DescribeMultiRegionParameterGroupsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns a list of multi-region parameter groups. |
-| `DescribeMultiRegionParameters` | - | - | `MultiRegionParameterGroupName` | - | `DescribeMultiRegionParametersResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns the detailed parameter list for a particular multi-region parameter group. |
-| `DescribeParameterGroups` | - | `paginated` | - | - | `DescribeParameterGroupsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns a list of parameter group descriptions. If a parameter group name is specified, the list contains only the descriptions for that group. |
-| `DescribeParameters` | - | `paginated` | `ParameterGroupName` | - | `DescribeParametersResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns the detailed parameter list for a particular parameter group. |
-| `DescribeReservedNodes` | - | `paginated` | - | - | `DescribeReservedNodesResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ReservedNodeNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns information about reserved nodes for this account, or about a specified reserved node. |
-| `DescribeReservedNodesOfferings` | - | `paginated` | - | - | `DescribeReservedNodesOfferingsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ReservedNodesOfferingNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Lists available reserved node offerings. |
-| `DescribeServiceUpdates` | - | `paginated` | - | - | `DescribeServiceUpdatesResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException` | Returns details of the service updates. |
-| `DescribeSnapshots` | - | `paginated` | - | - | `DescribeSnapshotsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault`, `SnapshotNotFoundFault` | Returns information about cluster snapshots. By default, DescribeSnapshots lists all of your snapshots; it can optionally describe a single snapshot, or just the snapshots associated with a particular cluster. |
-| `DescribeSubnetGroups` | - | `paginated` | - | - | `DescribeSubnetGroupsResponse` | `ServiceLinkedRoleNotFoundFault`, `SubnetGroupNotFoundFault` | Returns a list of subnet group descriptions. If a subnet group name is specified, the list contains only the description of that group. |
-| `DescribeUsers` | - | `paginated` | - | - | `DescribeUsersResponse` | `InvalidParameterCombinationException`, `UserNotFoundFault` | Returns a list of users. |
-| `FailoverShard` | - | - | `ClusterName`, `ShardName` | - | `FailoverShardResponse` | `APICallRateForCustomerExceededFault`, `ClusterNotFoundFault`, `InvalidClusterStateFault`, `InvalidKMSKeyFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ShardNotFoundFault`, `TestFailoverNotAvailableFault` | Used to failover a shard. This API is designed for testing the behavior of your application in case of MemoryDB failover. |
-| `ListAllowedMultiRegionClusterUpdates` | - | - | `MultiRegionClusterName` | - | `ListAllowedMultiRegionClusterUpdatesResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault` | Lists the allowed updates for a multi-Region cluster. |
-| `ListAllowedNodeTypeUpdates` | - | - | `ClusterName` | - | `ListAllowedNodeTypeUpdatesResponse` | `ClusterNotFoundFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault` | Lists all available node types that you can scale to from your cluster's current node type. When you use the UpdateCluster operation to scale your cluster, the value of the NodeType parameter must be one of the node types returned by this operation. |
-| `ListTags` | - | - | `ResourceArn` | - | `ListTagsResponse` | `ACLNotFoundFault`, `ClusterNotFoundFault`, `InvalidARNFault`, `InvalidClusterStateFault`, `MultiRegionClusterNotFoundFault`, `MultiRegionParameterGroupNotFoundFault`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault`, ... (+3) | Lists all tags currently on a named resource. A tag is a key-value pair where the key and value are case-sensitive. |
-| `PurchaseReservedNodesOffering` | - | - | `ReservedNodesOfferingId` | - | `PurchaseReservedNodesOfferingResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ReservedNodeAlreadyExistsFault`, `ReservedNodeQuotaExceededFault`, `ReservedNodesOfferingNotFoundFault`, `ServiceLinkedRoleNotFoundFault`, `TagQuotaPerResourceExceeded` | Allows you to purchase a reserved node offering. Reserved nodes are not eligible for cancellation and are non-refundable. |
-| `ResetParameterGroup` | - | - | `ParameterGroupName` | - | `ResetParameterGroupResponse` | `InvalidParameterCombinationException`, `InvalidParameterGroupStateFault`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Modifies the parameters of a parameter group to the engine or system default value. You can reset specific parameters by submitting a list of parameter names. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `ACLNotFoundFault`, `ClusterNotFoundFault`, `InvalidARNFault`, `InvalidClusterStateFault`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault`, `MultiRegionParameterGroupNotFoundFault`, `ParameterGroupNotFoundFault`, ... (+5) | Use this operation to add tags to a resource. A tag is a key-value pair where the key and value are case-sensitive. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `ACLNotFoundFault`, `ClusterNotFoundFault`, `InvalidARNFault`, `InvalidClusterStateFault`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault`, `MultiRegionParameterGroupNotFoundFault`, `ParameterGroupNotFoundFault`, ... (+5) | Use this operation to remove tags on a resource. A tag is a key-value pair where the key and value are case-sensitive. |
-| `UpdateACL` | - | - | `ACLName` | - | `UpdateACLResponse` | `ACLNotFoundFault`, `DefaultUserRequired`, `DuplicateUserNameFault`, `InvalidACLStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `UserNotFoundFault` | Changes the list of users that belong to the Access Control List. |
-| `UpdateCluster` | - | - | `ClusterName` | - | `UpdateClusterResponse` | `ACLNotFoundFault`, `ClusterNotFoundFault`, `ClusterQuotaForCustomerExceededFault`, `InvalidACLStateFault`, `InvalidClusterStateFault`, `InvalidKMSKeyFault`, `InvalidNodeStateFault`, `InvalidParameterCombinationException`, ... (+8) | Modifies the settings for a cluster. You can use this operation to change one or more cluster configuration settings by specifying the settings and the new values. |
-| `UpdateMultiRegionCluster` | - | - | `MultiRegionClusterName` | - | `UpdateMultiRegionClusterResponse` | `InvalidMultiRegionClusterStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault`, `MultiRegionParameterGroupNotFoundFault` | Updates the configuration of an existing multi-Region cluster. |
-| `UpdateParameterGroup` | - | - | `ParameterGroupName`, `ParameterNameValues` | - | `UpdateParameterGroupResponse` | `InvalidParameterCombinationException`, `InvalidParameterGroupStateFault`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Updates the parameters of a parameter group. You can modify up to 20 parameters in a single request by submitting a list parameter name and value pairs. |
-| `UpdateSubnetGroup` | - | - | `SubnetGroupName` | - | `UpdateSubnetGroupResponse` | `InvalidSubnet`, `ServiceLinkedRoleNotFoundFault`, `SubnetGroupNotFoundFault`, `SubnetInUse`, `SubnetNotAllowedFault`, `SubnetQuotaExceededFault` | Updates a subnet group. For more information, see Updating a subnet group |
-| `UpdateUser` | - | - | `UserName` | - | `UpdateUserResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `InvalidUserStateFault`, `UserNotFoundFault` | Changes user password(s) and/or access string. |
+| `BatchUpdateCluster` | `-` | - | `ClusterNames` | - | `BatchUpdateClusterResponse` | `InvalidParameterValueException`, `ServiceUpdateNotFoundFault` | Apply the service update to a list of clusters supplied. For more information on service updates and applying them, see Applying the service updates . |
+| `CopySnapshot` | `-` | - | `SourceSnapshotName`, `TargetSnapshotName` | - | `CopySnapshotResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `InvalidSnapshotStateFault`, `ServiceLinkedRoleNotFoundFault`, `SnapshotAlreadyExistsFault`, `SnapshotNotFoundFault`, `SnapshotQuotaExceededFault`, `TagQuotaPerResourceExceeded` | Makes a copy of an existing snapshot. |
+| `CreateACL` | `-` | - | `ACLName` | - | `CreateACLResponse` | `ACLAlreadyExistsFault`, `ACLQuotaExceededFault`, `DefaultUserRequired`, `DuplicateUserNameFault`, `InvalidParameterValueException`, `TagQuotaPerResourceExceeded`, `UserNotFoundFault` | Creates an Access Control List. For more information, see Authenticating users with Access Contol Lists (ACLs) . |
+| `CreateCluster` | `-` | - | `ClusterName`, `NodeType`, `ACLName` | - | `CreateClusterResponse` | `ACLNotFoundFault`, `ClusterAlreadyExistsFault`, `ClusterQuotaForCustomerExceededFault`, `InsufficientClusterCapacityFault`, `InvalidACLStateFault`, `InvalidCredentialsException`, `InvalidMultiRegionClusterStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `InvalidVPCNetworkStateFault`, `MultiRegionClusterNotFoundFault`, `NodeQuotaForClusterExceededFault`, `NodeQuotaForCustomerExceededFault`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault`, `ShardsPerClusterQuotaExceededFault`, `SubnetGroupNotFoundFault`, `TagQuotaPerResourceExceeded` | Creates a cluster. All nodes in the cluster run the same protocol-compliant engine software. |
+| `CreateMultiRegionCluster` | `-` | - | `MultiRegionClusterNameSuffix`, `NodeType` | - | `CreateMultiRegionClusterResponse` | `ClusterQuotaForCustomerExceededFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionClusterAlreadyExistsFault`, `MultiRegionParameterGroupNotFoundFault`, `TagQuotaPerResourceExceeded` | Creates a new multi-Region cluster. |
+| `CreateParameterGroup` | `-` | - | `ParameterGroupName`, `Family` | - | `CreateParameterGroupResponse` | `InvalidParameterCombinationException`, `InvalidParameterGroupStateFault`, `InvalidParameterValueException`, `ParameterGroupAlreadyExistsFault`, `ParameterGroupQuotaExceededFault`, `ServiceLinkedRoleNotFoundFault`, `TagQuotaPerResourceExceeded` | Creates a new MemoryDB parameter group. A parameter group is a collection of parameters and their values that are applied to all of the nodes in any cluster. For more information, see Configuring engine parameters us ... |
+| `CreateSnapshot` | `-` | - | `ClusterName`, `SnapshotName` | - | `CreateSnapshotResponse` | `ClusterNotFoundFault`, `InvalidClusterStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault`, `SnapshotAlreadyExistsFault`, `SnapshotQuotaExceededFault`, `TagQuotaPerResourceExceeded` | Creates a copy of an entire cluster at a specific moment in time. |
+| `CreateSubnetGroup` | `-` | - | `SubnetGroupName`, `SubnetIds` | - | `CreateSubnetGroupResponse` | `InvalidSubnet`, `ServiceLinkedRoleNotFoundFault`, `SubnetGroupAlreadyExistsFault`, `SubnetGroupQuotaExceededFault`, `SubnetNotAllowedFault`, `SubnetQuotaExceededFault`, `TagQuotaPerResourceExceeded` | Creates a subnet group. A subnet group is a collection of subnets (typically private) that you can designate for your clusters running in an Amazon Virtual Private Cloud (VPC) environment. When you create a cluster i ... |
+| `CreateUser` | `-` | - | `UserName`, `AuthenticationMode`, `AccessString` | - | `CreateUserResponse` | `DuplicateUserNameFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `TagQuotaPerResourceExceeded`, `UserAlreadyExistsFault`, `UserQuotaExceededFault` | Creates a MemoryDB user. For more information, see Authenticating users with Access Contol Lists (ACLs) . |
+| `DeleteACL` | `-` | - | `ACLName` | - | `DeleteACLResponse` | `ACLNotFoundFault`, `InvalidACLStateFault`, `InvalidParameterValueException` | Deletes an Access Control List. The ACL must first be disassociated from the cluster before it can be deleted. For more information, see Authenticating users with Access Contol Lists (ACLs) . |
+| `DeleteCluster` | `-` | - | `ClusterName` | - | `DeleteClusterResponse` | `ClusterNotFoundFault`, `InvalidClusterStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault`, `SnapshotAlreadyExistsFault` | Deletes a cluster. It also deletes all associated nodes and node endpoints. CreateSnapshot permission is required to create a final snapshot. Without this permission, the API call will fail with an Access Denied exce ... |
+| `DeleteMultiRegionCluster` | `-` | - | `MultiRegionClusterName` | - | `DeleteMultiRegionClusterResponse` | `InvalidMultiRegionClusterStateFault`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault` | Deletes an existing multi-Region cluster. |
+| `DeleteParameterGroup` | `-` | - | `ParameterGroupName` | - | `DeleteParameterGroupResponse` | `InvalidParameterCombinationException`, `InvalidParameterGroupStateFault`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Deletes the specified parameter group. You cannot delete a parameter group if it is associated with any clusters. You cannot delete the default parameter groups in your account. |
+| `DeleteSnapshot` | `-` | - | `SnapshotName` | - | `DeleteSnapshotResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `InvalidSnapshotStateFault`, `ServiceLinkedRoleNotFoundFault`, `SnapshotNotFoundFault` | Deletes an existing snapshot. When you receive a successful response from this operation, MemoryDB immediately begins deleting the snapshot; you cannot cancel or revert this operation. |
+| `DeleteSubnetGroup` | `-` | - | `SubnetGroupName` | - | `DeleteSubnetGroupResponse` | `ServiceLinkedRoleNotFoundFault`, `SubnetGroupInUseFault`, `SubnetGroupNotFoundFault` | Deletes a subnet group. You cannot delete a default subnet group or one that is associated with any clusters. |
+| `DeleteUser` | `-` | - | `UserName` | - | `DeleteUserResponse` | `InvalidParameterValueException`, `InvalidUserStateFault`, `UserNotFoundFault` | Deletes a user. The user will be removed from all ACLs and in turn removed from all clusters. |
+| `DescribeACLs` | `-` | `paginated` | - | - | `DescribeACLsResponse` | `ACLNotFoundFault`, `InvalidParameterCombinationException` | Returns a list of ACLs. |
+| `DescribeClusters` | `-` | `paginated` | - | - | `DescribeClustersResponse` | `ClusterNotFoundFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault` | Returns information about all provisioned clusters if no cluster identifier is specified, or about a specific cluster if a cluster name is supplied. |
+| `DescribeEngineVersions` | `-` | `paginated` | - | - | `DescribeEngineVersionsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault` | Returns a list of the available Redis OSS engine versions. |
+| `DescribeEvents` | `-` | `paginated` | - | - | `DescribeEventsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault` | Returns events related to clusters, security groups, and parameter groups. You can obtain events specific to a particular cluster, security group, or parameter group by providing the name as a parameter. By default, ... |
+| `DescribeMultiRegionClusters` | `-` | `paginated` | - | - | `DescribeMultiRegionClustersResponse` | `ClusterNotFoundFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault` | Returns details about one or more multi-Region clusters. |
+| `DescribeMultiRegionParameterGroups` | `-` | - | - | - | `DescribeMultiRegionParameterGroupsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns a list of multi-region parameter groups. |
+| `DescribeMultiRegionParameters` | `-` | - | `MultiRegionParameterGroupName` | - | `DescribeMultiRegionParametersResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns the detailed parameter list for a particular multi-region parameter group. |
+| `DescribeParameterGroups` | `-` | `paginated` | - | - | `DescribeParameterGroupsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns a list of parameter group descriptions. If a parameter group name is specified, the list contains only the descriptions for that group. |
+| `DescribeParameters` | `-` | `paginated` | `ParameterGroupName` | - | `DescribeParametersResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns the detailed parameter list for a particular parameter group. |
+| `DescribeReservedNodes` | `-` | `paginated` | - | - | `DescribeReservedNodesResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ReservedNodeNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Returns information about reserved nodes for this account, or about a specified reserved node. |
+| `DescribeReservedNodesOfferings` | `-` | `paginated` | - | - | `DescribeReservedNodesOfferingsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ReservedNodesOfferingNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Lists available reserved node offerings. |
+| `DescribeServiceUpdates` | `-` | `paginated` | - | - | `DescribeServiceUpdatesResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException` | Returns details of the service updates. |
+| `DescribeSnapshots` | `-` | `paginated` | - | - | `DescribeSnapshotsResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault`, `SnapshotNotFoundFault` | Returns information about cluster snapshots. By default, DescribeSnapshots lists all of your snapshots; it can optionally describe a single snapshot, or just the snapshots associated with a particular cluster. |
+| `DescribeSubnetGroups` | `-` | `paginated` | - | - | `DescribeSubnetGroupsResponse` | `ServiceLinkedRoleNotFoundFault`, `SubnetGroupNotFoundFault` | Returns a list of subnet group descriptions. If a subnet group name is specified, the list contains only the description of that group. |
+| `DescribeUsers` | `-` | `paginated` | - | - | `DescribeUsersResponse` | `InvalidParameterCombinationException`, `UserNotFoundFault` | Returns a list of users. |
+| `FailoverShard` | `-` | - | `ClusterName`, `ShardName` | - | `FailoverShardResponse` | `APICallRateForCustomerExceededFault`, `ClusterNotFoundFault`, `InvalidClusterStateFault`, `InvalidKMSKeyFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ShardNotFoundFault`, `TestFailoverNotAvailableFault` | Used to failover a shard. This API is designed for testing the behavior of your application in case of MemoryDB failover. It is not designed to be used as a production-level tool for initiating a failover to overcome ... |
+| `ListAllowedMultiRegionClusterUpdates` | `-` | - | `MultiRegionClusterName` | - | `ListAllowedMultiRegionClusterUpdatesResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault` | Lists the allowed updates for a multi-Region cluster. |
+| `ListAllowedNodeTypeUpdates` | `-` | - | `ClusterName` | - | `ListAllowedNodeTypeUpdatesResponse` | `ClusterNotFoundFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ServiceLinkedRoleNotFoundFault` | Lists all available node types that you can scale to from your cluster's current node type. When you use the UpdateCluster operation to scale your cluster, the value of the NodeType parameter must be one of the node ... |
+| `ListTags` | `-` | - | `ResourceArn` | - | `ListTagsResponse` | `ACLNotFoundFault`, `ClusterNotFoundFault`, `InvalidARNFault`, `InvalidClusterStateFault`, `MultiRegionClusterNotFoundFault`, `MultiRegionParameterGroupNotFoundFault`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault`, `SnapshotNotFoundFault`, `SubnetGroupNotFoundFault`, `UserNotFoundFault` | Lists all tags currently on a named resource. A tag is a key-value pair where the key and value are case-sensitive. You can use tags to categorize and track your MemoryDB resources. For more information, see Tagging ... |
+| `PurchaseReservedNodesOffering` | `-` | - | `ReservedNodesOfferingId` | - | `PurchaseReservedNodesOfferingResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `ReservedNodeAlreadyExistsFault`, `ReservedNodeQuotaExceededFault`, `ReservedNodesOfferingNotFoundFault`, `ServiceLinkedRoleNotFoundFault`, `TagQuotaPerResourceExceeded` | Allows you to purchase a reserved node offering. Reserved nodes are not eligible for cancellation and are non-refundable. |
+| `ResetParameterGroup` | `-` | - | `ParameterGroupName` | - | `ResetParameterGroupResponse` | `InvalidParameterCombinationException`, `InvalidParameterGroupStateFault`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Modifies the parameters of a parameter group to the engine or system default value. You can reset specific parameters by submitting a list of parameter names. To reset the entire parameter group, specify the AllParam ... |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `ACLNotFoundFault`, `ClusterNotFoundFault`, `InvalidARNFault`, `InvalidClusterStateFault`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault`, `MultiRegionParameterGroupNotFoundFault`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault`, `SnapshotNotFoundFault`, `SubnetGroupNotFoundFault`, `TagQuotaPerResourceExceeded`, `UserNotFoundFault` | Use this operation to add tags to a resource. A tag is a key-value pair where the key and value are case-sensitive. You can use tags to categorize and track all your MemoryDB resources. For more information, see Tagg ... |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `ACLNotFoundFault`, `ClusterNotFoundFault`, `InvalidARNFault`, `InvalidClusterStateFault`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault`, `MultiRegionParameterGroupNotFoundFault`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault`, `SnapshotNotFoundFault`, `SubnetGroupNotFoundFault`, `TagNotFoundFault`, `UserNotFoundFault` | Use this operation to remove tags on a resource. A tag is a key-value pair where the key and value are case-sensitive. You can use tags to categorize and track all your MemoryDB resources. For more information, see T ... |
+| `UpdateACL` | `-` | - | `ACLName` | - | `UpdateACLResponse` | `ACLNotFoundFault`, `DefaultUserRequired`, `DuplicateUserNameFault`, `InvalidACLStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `UserNotFoundFault` | Changes the list of users that belong to the Access Control List. |
+| `UpdateCluster` | `-` | - | `ClusterName` | - | `UpdateClusterResponse` | `ACLNotFoundFault`, `ClusterNotFoundFault`, `ClusterQuotaForCustomerExceededFault`, `InvalidACLStateFault`, `InvalidClusterStateFault`, `InvalidKMSKeyFault`, `InvalidNodeStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `InvalidVPCNetworkStateFault`, `NodeQuotaForClusterExceededFault`, `NodeQuotaForCustomerExceededFault`, `NoOperationFault`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault`, `ShardsPerClusterQuotaExceededFault` | Modifies the settings for a cluster. You can use this operation to change one or more cluster configuration settings by specifying the settings and the new values. |
+| `UpdateMultiRegionCluster` | `-` | - | `MultiRegionClusterName` | - | `UpdateMultiRegionClusterResponse` | `InvalidMultiRegionClusterStateFault`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `MultiRegionClusterNotFoundFault`, `MultiRegionParameterGroupNotFoundFault` | Updates the configuration of an existing multi-Region cluster. |
+| `UpdateParameterGroup` | `-` | - | `ParameterGroupName`, `ParameterNameValues` | - | `UpdateParameterGroupResponse` | `InvalidParameterCombinationException`, `InvalidParameterGroupStateFault`, `InvalidParameterValueException`, `ParameterGroupNotFoundFault`, `ServiceLinkedRoleNotFoundFault` | Updates the parameters of a parameter group. You can modify up to 20 parameters in a single request by submitting a list parameter name and value pairs. |
+| `UpdateSubnetGroup` | `-` | - | `SubnetGroupName` | - | `UpdateSubnetGroupResponse` | `InvalidSubnet`, `ServiceLinkedRoleNotFoundFault`, `SubnetGroupNotFoundFault`, `SubnetInUse`, `SubnetNotAllowedFault`, `SubnetQuotaExceededFault` | Updates a subnet group. For more information, see Updating a subnet group |
+| `UpdateUser` | `-` | - | `UserName` | - | `UpdateUserResponse` | `InvalidParameterCombinationException`, `InvalidParameterValueException`, `InvalidUserStateFault`, `UserNotFoundFault` | Changes user password(s) and/or access string. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidParameterValueException` | `structure` | `message` | The specified parameter value is not valid. |
-| `InvalidParameterCombinationException` | `structure` | `message` | The specified parameter combination is not valid. |
-| `ServiceLinkedRoleNotFoundFault` | `structure` | `message` | The required service-linked role was not found. |
-| `TagQuotaPerResourceExceeded` | `structure` | `message` | The request cannot be processed because it would exceed the maximum number of tags allowed per resource. |
-| `ParameterGroupNotFoundFault` | `structure` | `message` | The specified parameter group does not exist. |
-| `ClusterNotFoundFault` | `structure` | `message` | The specified cluster does not exist. |
-| `UserNotFoundFault` | `structure` | `message` | The specified user does not exist. |
-| `ACLNotFoundFault` | `structure` | `message` | The specified ACL does not exist. |
-| `MultiRegionClusterNotFoundFault` | `structure` | `message` | The specified multi-Region cluster does not exist. |
-| `SubnetGroupNotFoundFault` | `structure` | `message` | The specified subnet group does not exist. |
-| `MultiRegionParameterGroupNotFoundFault` | `structure` | `message` | The specified multi-Region parameter group does not exist. |
-| `InvalidClusterStateFault` | `structure` | `message` | The cluster is not in a valid state for the requested operation. |
-| `SnapshotNotFoundFault` | `structure` | `message` | The specified snapshot does not exist. |
-| `InvalidACLStateFault` | `structure` | `message` | The ACL is not in a valid state for the requested operation. |
-| `InvalidParameterGroupStateFault` | `structure` | `message` | The parameter group is not in a valid state for the requested operation. |
-| `SnapshotAlreadyExistsFault` | `structure` | `message` | A snapshot with the specified name already exists. |
-| `DuplicateUserNameFault` | `structure` | `message` | A user with the specified name already exists. |
-| `ClusterQuotaForCustomerExceededFault` | `structure` | `message` | The request cannot be processed because it would exceed the maximum number of clusters allowed for this customer. |
-| `InvalidMultiRegionClusterStateFault` | `structure` | `message` | The requested operation cannot be performed on the multi-Region cluster in its current state. |
-| `InvalidARNFault` | `structure` | `message` | The specified Amazon Resource Name (ARN) is not valid. |
-| `InvalidSnapshotStateFault` | `structure` | `message` | The snapshot is not in a valid state for the requested operation. |
-| `SnapshotQuotaExceededFault` | `structure` | `message` | The request cannot be processed because it would exceed the maximum number of snapshots allowed. |
-| `DefaultUserRequired` | `structure` | `message` | A default user is required and must be specified. |
-| `InvalidVPCNetworkStateFault` | `structure` | `message` | The VPC network is not in a valid state for the requested operation. |
-
+| `ACLAlreadyExistsFault` | `structure` | message | An ACL with the specified name already exists. |
+| `ACLNotFoundFault` | `structure` | message | The specified ACL does not exist. |
+| `ACLQuotaExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of ACLs allowed. |
+| `APICallRateForCustomerExceededFault` | `structure` | message | The customer has exceeded the maximum number of API requests allowed per time period. |
+| `ClusterAlreadyExistsFault` | `structure` | message | A cluster with the specified name already exists. |
+| `ClusterNotFoundFault` | `structure` | message | The specified cluster does not exist. |
+| `ClusterQuotaForCustomerExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of clusters allowed for this customer. |
+| `DefaultUserRequired` | `structure` | message | A default user is required and must be specified. |
+| `DuplicateUserNameFault` | `structure` | message | A user with the specified name already exists. |
+| `InsufficientClusterCapacityFault` | `structure` | message | The cluster does not have sufficient capacity to perform the requested operation. |
+| `InvalidACLStateFault` | `structure` | message | The ACL is not in a valid state for the requested operation. |
+| `InvalidARNFault` | `structure` | message | The specified Amazon Resource Name (ARN) is not valid. |
+| `InvalidClusterStateFault` | `structure` | message | The cluster is not in a valid state for the requested operation. |
+| `InvalidCredentialsException` | `structure` | message | The provided credentials are not valid. |
+| `InvalidKMSKeyFault` | `structure` | message | The specified KMS key is not valid or accessible. |
+| `InvalidMultiRegionClusterStateFault` | `structure` | message | The requested operation cannot be performed on the multi-Region cluster in its current state. |
+| `InvalidNodeStateFault` | `structure` | message | The node is not in a valid state for the requested operation. |
+| `InvalidParameterCombinationException` | `structure` | message | The specified parameter combination is not valid. |
+| `InvalidParameterGroupStateFault` | `structure` | message | The parameter group is not in a valid state for the requested operation. |
+| `InvalidParameterValueException` | `structure` | message | The specified parameter value is not valid. |
+| `InvalidSnapshotStateFault` | `structure` | message | The snapshot is not in a valid state for the requested operation. |
+| `InvalidSubnet` | `structure` | message | The specified subnet is not valid. |
+| `InvalidUserStateFault` | `structure` | message | The user is not in a valid state for the requested operation. |
+| `InvalidVPCNetworkStateFault` | `structure` | message | The VPC network is not in a valid state for the requested operation. |
+| `MultiRegionClusterAlreadyExistsFault` | `structure` | message | A multi-Region cluster with the specified name already exists. |
+| `MultiRegionClusterNotFoundFault` | `structure` | message | The specified multi-Region cluster does not exist. |
+| `MultiRegionParameterGroupNotFoundFault` | `structure` | message | The specified multi-Region parameter group does not exist. |
+| `NoOperationFault` | `structure` | message | The requested operation would result in no changes. |
+| `NodeQuotaForClusterExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of nodes allowed for this cluster. |
+| `NodeQuotaForCustomerExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of nodes allowed for this customer. |
+| `ParameterGroupAlreadyExistsFault` | `structure` | message | A parameter group with the specified name already exists. |
+| `ParameterGroupNotFoundFault` | `structure` | message | The specified parameter group does not exist. |
+| `ParameterGroupQuotaExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of parameter groups allowed. |
+| `ReservedNodeAlreadyExistsFault` | `structure` | message | You already have a reservation with the given identifier. |
+| `ReservedNodeNotFoundFault` | `structure` | message | The requested node does not exist. |
+| `ReservedNodeQuotaExceededFault` | `structure` | message | The request cannot be processed because it would exceed the user's node quota. |
+| `ReservedNodesOfferingNotFoundFault` | `structure` | message | The requested node offering does not exist. |
+| `ServiceLinkedRoleNotFoundFault` | `structure` | message | The required service-linked role was not found. |
+| `ServiceUpdateNotFoundFault` | `structure` | message | The specified service update does not exist. |
+| `ShardNotFoundFault` | `structure` | message | The specified shard does not exist. |
+| `ShardsPerClusterQuotaExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of shards allowed per cluster. |
+| `SnapshotAlreadyExistsFault` | `structure` | message | A snapshot with the specified name already exists. |
+| `SnapshotNotFoundFault` | `structure` | message | The specified snapshot does not exist. |
+| `SnapshotQuotaExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of snapshots allowed. |
+| `SubnetGroupAlreadyExistsFault` | `structure` | message | A subnet group with the specified name already exists. |
+| `SubnetGroupInUseFault` | `structure` | message | The subnet group is currently in use and cannot be deleted. |
+| `SubnetGroupNotFoundFault` | `structure` | message | The specified subnet group does not exist. |
+| `SubnetGroupQuotaExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of subnet groups allowed. |
+| `SubnetInUse` | `structure` | message | The subnet is currently in use and cannot be deleted. |
+| `SubnetNotAllowedFault` | `structure` | message | The specified subnet is not allowed for this operation. |
+| `SubnetQuotaExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of subnets allowed. |
+| `TagNotFoundFault` | `structure` | message | The specified tag does not exist. |
+| `TagQuotaPerResourceExceeded` | `structure` | message | The request cannot be processed because it would exceed the maximum number of tags allowed per resource. |
+| `TestFailoverNotAvailableFault` | `structure` | message | Test failover is not available for this cluster configuration. |
+| `UserAlreadyExistsFault` | `structure` | message | A user with the specified name already exists. |
+| `UserNotFoundFault` | `structure` | message | The specified user does not exist. |
+| `UserQuotaExceededFault` | `structure` | message | The request cannot be processed because it would exceed the maximum number of users allowed. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

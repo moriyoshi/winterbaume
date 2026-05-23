@@ -66,175 +66,89 @@ WorkSpaces Web currently stores portal networking as portal/resource metadata.
 
 ## Operation Groups
 
-### Get
-
-- Operations: `GetBrowserSettings`, `GetDataProtectionSettings`, `GetIdentityProvider`, `GetIpAccessSettings`, `GetNetworkSettings`, `GetPortal`, `GetPortalServiceProviderMetadata`, `GetSession`, `GetSessionLogger`, `GetTrustStore`, `GetTrustStoreCertificate`, `GetUserAccessLoggingSettings`, `GetUserSettings`
-- Traits: `readonly` (13)
-- Common required input members in this group: `browserSettingsArn`, `dataProtectionSettingsArn`, `identityProviderArn`, `ipAccessSettingsArn`, `networkSettingsArn`, `portalArn`, `portalId`, `sessionId`, `sessionLoggerArn`, `thumbprint`, `trustStoreArn`, `userAccessLoggingSettingsArn`, `userSettingsArn`
-
 ### List
 
-- Operations: `ListBrowserSettings`, `ListDataProtectionSettings`, `ListIdentityProviders`, `ListIpAccessSettings`, `ListNetworkSettings`, `ListPortals`, `ListSessionLoggers`, `ListSessions`, `ListTagsForResource`, `ListTrustStoreCertificates`, `ListTrustStores`, `ListUserAccessLoggingSettings`, `ListUserSettings`
-- Traits: `paginated` (12), `readonly` (13)
-- Common required input members in this group: `portalArn`, `portalId`, `resourceArn`, `trustStoreArn`
-
-### Create
-
-- Operations: `CreateBrowserSettings`, `CreateDataProtectionSettings`, `CreateIdentityProvider`, `CreateIpAccessSettings`, `CreateNetworkSettings`, `CreatePortal`, `CreateSessionLogger`, `CreateTrustStore`, `CreateUserAccessLoggingSettings`, `CreateUserSettings`
-- Traits: `idempotency-token` (10)
-- Common required input members in this group: `certificateList`, `copyAllowed`, `downloadAllowed`, `eventFilter`, `identityProviderDetails`, `identityProviderName`, `identityProviderType`, `ipRules`, `kinesisStreamArn`, `logConfiguration`, `pasteAllowed`, `portalArn`, `printAllowed`, `securityGroupIds`, `subnetIds`, `uploadAllowed`, `vpcId`
-
-### Delete
-
-- Operations: `DeleteBrowserSettings`, `DeleteDataProtectionSettings`, `DeleteIdentityProvider`, `DeleteIpAccessSettings`, `DeleteNetworkSettings`, `DeletePortal`, `DeleteSessionLogger`, `DeleteTrustStore`, `DeleteUserAccessLoggingSettings`, `DeleteUserSettings`
-- Traits: `idempotent` (10)
-- Common required input members in this group: `browserSettingsArn`, `dataProtectionSettingsArn`, `identityProviderArn`, `ipAccessSettingsArn`, `networkSettingsArn`, `portalArn`, `sessionLoggerArn`, `trustStoreArn`, `userAccessLoggingSettingsArn`, `userSettingsArn`
-
-### Update
-
-- Operations: `UpdateBrowserSettings`, `UpdateDataProtectionSettings`, `UpdateIdentityProvider`, `UpdateIpAccessSettings`, `UpdateNetworkSettings`, `UpdatePortal`, `UpdateSessionLogger`, `UpdateTrustStore`, `UpdateUserAccessLoggingSettings`, `UpdateUserSettings`
-- Traits: `idempotency-token` (8), `idempotent` (1)
-- Common required input members in this group: `browserSettingsArn`, `dataProtectionSettingsArn`, `identityProviderArn`, `ipAccessSettingsArn`, `networkSettingsArn`, `portalArn`, `sessionLoggerArn`, `trustStoreArn`, `userAccessLoggingSettingsArn`, `userSettingsArn`
-
-### Associate
-
-- Operations: `AssociateBrowserSettings`, `AssociateDataProtectionSettings`, `AssociateIpAccessSettings`, `AssociateNetworkSettings`, `AssociateSessionLogger`, `AssociateTrustStore`, `AssociateUserAccessLoggingSettings`, `AssociateUserSettings`
-- Traits: `idempotent` (8)
-- Common required input members in this group: `browserSettingsArn`, `dataProtectionSettingsArn`, `ipAccessSettingsArn`, `networkSettingsArn`, `portalArn`, `sessionLoggerArn`, `trustStoreArn`, `userAccessLoggingSettingsArn`, `userSettingsArn`
-
-### Disassociate
-
-- Operations: `DisassociateBrowserSettings`, `DisassociateDataProtectionSettings`, `DisassociateIpAccessSettings`, `DisassociateNetworkSettings`, `DisassociateSessionLogger`, `DisassociateTrustStore`, `DisassociateUserAccessLoggingSettings`, `DisassociateUserSettings`
-- Traits: `idempotent` (8)
-- Common required input members in this group: `portalArn`
+- Operations: `ListSessions`, `ListTagsForResource`
+- Traits: `readonly` (2), `paginated` (1)
+- Common required input members in this group: -
 
 ### Expire
 
 - Operations: `ExpireSession`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `portalId`, `sessionId`
+- Common required input members in this group: -
+
+### Get
+
+- Operations: `GetSession`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateBrowserSettings` | `PUT /portals/{portalArn+}/browserSettings` | `idempotent` | `browserSettingsArn`, `portalArn` | - | `AssociateBrowserSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a browser settings resource with a web portal. |
-| `AssociateDataProtectionSettings` | `PUT /portals/{portalArn+}/dataProtectionSettings` | `idempotent` | `dataProtectionSettingsArn`, `portalArn` | - | `AssociateDataProtectionSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a data protection settings resource with a web portal. |
-| `AssociateIpAccessSettings` | `PUT /portals/{portalArn+}/ipAccessSettings` | `idempotent` | `ipAccessSettingsArn`, `portalArn` | - | `AssociateIpAccessSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates an IP access settings resource with a web portal. |
-| `AssociateNetworkSettings` | `PUT /portals/{portalArn+}/networkSettings` | `idempotent` | `networkSettingsArn`, `portalArn` | - | `AssociateNetworkSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a network settings resource with a web portal. |
-| `AssociateSessionLogger` | `PUT /portals/{portalArn+}/sessionLogger` | `idempotent` | `portalArn`, `sessionLoggerArn` | - | `AssociateSessionLoggerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a session logger with a portal. |
-| `AssociateTrustStore` | `PUT /portals/{portalArn+}/trustStores` | `idempotent` | `portalArn`, `trustStoreArn` | - | `AssociateTrustStoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a trust store with a web portal. |
-| `AssociateUserAccessLoggingSettings` | `PUT /portals/{portalArn+}/userAccessLoggingSettings` | `idempotent` | `portalArn`, `userAccessLoggingSettingsArn` | - | `AssociateUserAccessLoggingSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a user access logging settings resource with a web portal. |
-| `AssociateUserSettings` | `PUT /portals/{portalArn+}/userSettings` | `idempotent` | `portalArn`, `userSettingsArn` | - | `AssociateUserSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a user settings resource with a web portal. |
-| `CreateBrowserSettings` | `POST /browserSettings` | `idempotency-token` | - | `clientToken` | `CreateBrowserSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a browser settings resource that can be associated with a web portal. Once associated with a web portal, browser settings control how the browser will behave once a user starts a streaming session for the web portal. |
-| `CreateDataProtectionSettings` | `POST /dataProtectionSettings` | `idempotency-token` | - | `clientToken` | `CreateDataProtectionSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a data protection settings resource that can be associated with a web portal. |
-| `CreateIdentityProvider` | `POST /identityProviders` | `idempotency-token` | `identityProviderDetails`, `identityProviderName`, `identityProviderType`, `portalArn` | `clientToken` | `CreateIdentityProviderResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an identity provider resource that is then associated with a web portal. |
-| `CreateIpAccessSettings` | `POST /ipAccessSettings` | `idempotency-token` | `ipRules` | `clientToken` | `CreateIpAccessSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an IP access settings resource that can be associated with a web portal. |
-| `CreateNetworkSettings` | `POST /networkSettings` | `idempotency-token` | `securityGroupIds`, `subnetIds`, `vpcId` | `clientToken` | `CreateNetworkSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a network settings resource that can be associated with a web portal. Once associated with a web portal, network settings define how streaming instances will connect with your specified VPC. |
-| `CreatePortal` | `POST /portals` | `idempotency-token` | - | `clientToken` | `CreatePortalResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a web portal. |
-| `CreateSessionLogger` | `POST /sessionLoggers` | `idempotency-token` | `eventFilter`, `logConfiguration` | `clientToken` | `CreateSessionLoggerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a session logger. |
-| `CreateTrustStore` | `POST /trustStores` | `idempotency-token` | `certificateList` | `clientToken` | `CreateTrustStoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a trust store that can be associated with a web portal. A trust store contains certificate authority (CA) certificates. |
-| `CreateUserAccessLoggingSettings` | `POST /userAccessLoggingSettings` | `idempotency-token` | `kinesisStreamArn` | `clientToken` | `CreateUserAccessLoggingSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a user access logging settings resource that can be associated with a web portal. |
-| `CreateUserSettings` | `POST /userSettings` | `idempotency-token` | `copyAllowed`, `downloadAllowed`, `pasteAllowed`, `printAllowed`, `uploadAllowed` | `clientToken` | `CreateUserSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a user settings resource that can be associated with a web portal. Once associated with a web portal, user settings control how users can transfer data between a streaming session and the their local devices. |
-| `DeleteBrowserSettings` | `DELETE /browserSettings/{browserSettingsArn+}` | `idempotent` | `browserSettingsArn` | - | `DeleteBrowserSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes browser settings. |
-| `DeleteDataProtectionSettings` | `DELETE /dataProtectionSettings/{dataProtectionSettingsArn+}` | `idempotent` | `dataProtectionSettingsArn` | - | `DeleteDataProtectionSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes data protection settings. |
-| `DeleteIdentityProvider` | `DELETE /identityProviders/{identityProviderArn+}` | `idempotent` | `identityProviderArn` | - | `DeleteIdentityProviderResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes the identity provider. |
-| `DeleteIpAccessSettings` | `DELETE /ipAccessSettings/{ipAccessSettingsArn+}` | `idempotent` | `ipAccessSettingsArn` | - | `DeleteIpAccessSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes IP access settings. |
-| `DeleteNetworkSettings` | `DELETE /networkSettings/{networkSettingsArn+}` | `idempotent` | `networkSettingsArn` | - | `DeleteNetworkSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes network settings. |
-| `DeletePortal` | `DELETE /portals/{portalArn+}` | `idempotent` | `portalArn` | - | `DeletePortalResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a web portal. |
-| `DeleteSessionLogger` | `DELETE /sessionLoggers/{sessionLoggerArn+}` | `idempotent` | `sessionLoggerArn` | - | `DeleteSessionLoggerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a session logger resource. |
-| `DeleteTrustStore` | `DELETE /trustStores/{trustStoreArn+}` | `idempotent` | `trustStoreArn` | - | `DeleteTrustStoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes the trust store. |
-| `DeleteUserAccessLoggingSettings` | `DELETE /userAccessLoggingSettings/{userAccessLoggingSettingsArn+}` | `idempotent` | `userAccessLoggingSettingsArn` | - | `DeleteUserAccessLoggingSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes user access logging settings. |
-| `DeleteUserSettings` | `DELETE /userSettings/{userSettingsArn+}` | `idempotent` | `userSettingsArn` | - | `DeleteUserSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes user settings. |
-| `DisassociateBrowserSettings` | `DELETE /portals/{portalArn+}/browserSettings` | `idempotent` | `portalArn` | - | `DisassociateBrowserSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates browser settings from a web portal. |
-| `DisassociateDataProtectionSettings` | `DELETE /portals/{portalArn+}/dataProtectionSettings` | `idempotent` | `portalArn` | - | `DisassociateDataProtectionSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates data protection settings from a web portal. |
-| `DisassociateIpAccessSettings` | `DELETE /portals/{portalArn+}/ipAccessSettings` | `idempotent` | `portalArn` | - | `DisassociateIpAccessSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates IP access settings from a web portal. |
-| `DisassociateNetworkSettings` | `DELETE /portals/{portalArn+}/networkSettings` | `idempotent` | `portalArn` | - | `DisassociateNetworkSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates network settings from a web portal. |
-| `DisassociateSessionLogger` | `DELETE /portals/{portalArn+}/sessionLogger` | `idempotent` | `portalArn` | - | `DisassociateSessionLoggerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a session logger from a portal. |
-| `DisassociateTrustStore` | `DELETE /portals/{portalArn+}/trustStores` | `idempotent` | `portalArn` | - | `DisassociateTrustStoreResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a trust store from a web portal. |
-| `DisassociateUserAccessLoggingSettings` | `DELETE /portals/{portalArn+}/userAccessLoggingSettings` | `idempotent` | `portalArn` | - | `DisassociateUserAccessLoggingSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates user access logging settings from a web portal. |
-| `DisassociateUserSettings` | `DELETE /portals/{portalArn+}/userSettings` | `idempotent` | `portalArn` | - | `DisassociateUserSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates user settings from a web portal. |
 | `ExpireSession` | `DELETE /portals/{portalId}/sessions/{sessionId}` | `idempotent` | `portalId`, `sessionId` | - | `ExpireSessionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Expires an active secure browser session. |
-| `GetBrowserSettings` | `GET /browserSettings/{browserSettingsArn+}` | `readonly` | `browserSettingsArn` | - | `GetBrowserSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets browser settings. |
-| `GetDataProtectionSettings` | `GET /dataProtectionSettings/{dataProtectionSettingsArn+}` | `readonly` | `dataProtectionSettingsArn` | - | `GetDataProtectionSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the data protection settings. |
-| `GetIdentityProvider` | `GET /identityProviders/{identityProviderArn+}` | `readonly` | `identityProviderArn` | - | `GetIdentityProviderResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the identity provider. |
-| `GetIpAccessSettings` | `GET /ipAccessSettings/{ipAccessSettingsArn+}` | `readonly` | `ipAccessSettingsArn` | - | `GetIpAccessSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the IP access settings. |
-| `GetNetworkSettings` | `GET /networkSettings/{networkSettingsArn+}` | `readonly` | `networkSettingsArn` | - | `GetNetworkSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the network settings. |
-| `GetPortal` | `GET /portals/{portalArn+}` | `readonly` | `portalArn` | - | `GetPortalResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the web portal. |
-| `GetPortalServiceProviderMetadata` | `GET /portalIdp/{portalArn+}` | `readonly` | `portalArn` | - | `GetPortalServiceProviderMetadataResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the service provider metadata. |
 | `GetSession` | `GET /portals/{portalId}/sessions/{sessionId}` | `readonly` | `portalId`, `sessionId` | - | `GetSessionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information for a secure browser session. |
-| `GetSessionLogger` | `GET /sessionLoggers/{sessionLoggerArn+}` | `readonly` | `sessionLoggerArn` | - | `GetSessionLoggerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets details about a specific session logger resource. |
-| `GetTrustStore` | `GET /trustStores/{trustStoreArn+}` | `readonly` | `trustStoreArn` | - | `GetTrustStoreResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the trust store. |
-| `GetTrustStoreCertificate` | `GET /trustStores/{trustStoreArn+}/certificate` | `readonly` | `thumbprint`, `trustStoreArn` | - | `GetTrustStoreCertificateResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the trust store certificate. |
-| `GetUserAccessLoggingSettings` | `GET /userAccessLoggingSettings/{userAccessLoggingSettingsArn+}` | `readonly` | `userAccessLoggingSettingsArn` | - | `GetUserAccessLoggingSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets user access logging settings. |
-| `GetUserSettings` | `GET /userSettings/{userSettingsArn+}` | `readonly` | `userSettingsArn` | - | `GetUserSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets user settings. |
-| `ListBrowserSettings` | `GET /browserSettings` | `readonly`, `paginated` | - | - | `ListBrowserSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of browser settings. |
-| `ListDataProtectionSettings` | `GET /dataProtectionSettings` | `readonly`, `paginated` | - | - | `ListDataProtectionSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of data protection settings. |
-| `ListIdentityProviders` | `GET /portals/{portalArn+}/identityProviders` | `readonly`, `paginated` | `portalArn` | - | `ListIdentityProvidersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of identity providers for a specific web portal. |
-| `ListIpAccessSettings` | `GET /ipAccessSettings` | `readonly`, `paginated` | - | - | `ListIpAccessSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of IP access settings. |
-| `ListNetworkSettings` | `GET /networkSettings` | `readonly`, `paginated` | - | - | `ListNetworkSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of network settings. |
-| `ListPortals` | `GET /portals` | `readonly`, `paginated` | - | - | `ListPortalsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list or web portals. |
-| `ListSessionLoggers` | `GET /sessionLoggers` | `readonly`, `paginated` | - | - | `ListSessionLoggersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all available session logger resources. |
 | `ListSessions` | `GET /portals/{portalId}/sessions` | `readonly`, `paginated` | `portalId` | - | `ListSessionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists information for multiple secure browser sessions from a specific portal. |
 | `ListTagsForResource` | `GET /tags/{resourceArn+}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a list of tags for a resource. |
-| `ListTrustStoreCertificates` | `GET /trustStores/{trustStoreArn+}/certificates` | `readonly`, `paginated` | `trustStoreArn` | - | `ListTrustStoreCertificatesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a list of trust store certificates. |
-| `ListTrustStores` | `GET /trustStores` | `readonly`, `paginated` | - | - | `ListTrustStoresResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of trust stores. |
-| `ListUserAccessLoggingSettings` | `GET /userAccessLoggingSettings` | `readonly`, `paginated` | - | - | `ListUserAccessLoggingSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of user access logging settings. |
-| `ListUserSettings` | `GET /userSettings` | `readonly`, `paginated` | - | - | `ListUserSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of user settings. |
 | `TagResource` | `POST /tags/{resourceArn+}` | `idempotency-token` | `resourceArn`, `tags` | `clientToken` | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `TooManyTagsException`, `ValidationException` | Adds or overwrites one or more tags for the specified resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn+}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes one or more tags from the specified resource. |
-| `UpdateBrowserSettings` | `PATCH /browserSettings/{browserSettingsArn+}` | `idempotency-token` | `browserSettingsArn` | `clientToken` | `UpdateBrowserSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates browser settings. |
-| `UpdateDataProtectionSettings` | `PATCH /dataProtectionSettings/{dataProtectionSettingsArn+}` | `idempotency-token` | `dataProtectionSettingsArn` | `clientToken` | `UpdateDataProtectionSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates data protection settings. |
-| `UpdateIdentityProvider` | `PATCH /identityProviders/{identityProviderArn+}` | `idempotency-token` | `identityProviderArn` | `clientToken` | `UpdateIdentityProviderResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the identity provider. |
-| `UpdateIpAccessSettings` | `PATCH /ipAccessSettings/{ipAccessSettingsArn+}` | `idempotency-token` | `ipAccessSettingsArn` | `clientToken` | `UpdateIpAccessSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates IP access settings. |
-| `UpdateNetworkSettings` | `PATCH /networkSettings/{networkSettingsArn+}` | `idempotency-token` | `networkSettingsArn` | `clientToken` | `UpdateNetworkSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates network settings. |
-| `UpdatePortal` | `PUT /portals/{portalArn+}` | `idempotent` | `portalArn` | - | `UpdatePortalResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a web portal. |
-| `UpdateSessionLogger` | `POST /sessionLoggers/{sessionLoggerArn+}` | - | `sessionLoggerArn` | - | `UpdateSessionLoggerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the details of a session logger. |
-| `UpdateTrustStore` | `PATCH /trustStores/{trustStoreArn+}` | `idempotency-token` | `trustStoreArn` | `clientToken` | `UpdateTrustStoreResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the trust store. |
-| `UpdateUserAccessLoggingSettings` | `PATCH /userAccessLoggingSettings/{userAccessLoggingSettingsArn+}` | `idempotency-token` | `userAccessLoggingSettingsArn` | `clientToken` | `UpdateUserAccessLoggingSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the user access logging settings. |
-| `UpdateUserSettings` | `PATCH /userSettings/{userSettingsArn+}` | `idempotency-token` | `userSettingsArn` | `clientToken` | `UpdateUserSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the user settings. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListSessions` | - | `username -> username`, `sessionId -> sessionId`, `sortBy -> sortBy`, `status -> status`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | Access is denied. |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | There is an internal server error. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | There is a throttling error. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | There is a validation error. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The resource cannot be found. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | There is a conflict. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | The service quota has been exceeded. |
-| `AssociateBrowserSettingsRequest` | `structure` | `browserSettingsArn`, `portalArn` | - |
-| `AssociateBrowserSettingsResponse` | `structure` | `browserSettingsArn`, `portalArn` | - |
-| `AssociateDataProtectionSettingsRequest` | `structure` | `dataProtectionSettingsArn`, `portalArn` | - |
-| `AssociateDataProtectionSettingsResponse` | `structure` | `dataProtectionSettingsArn`, `portalArn` | - |
-| `AssociateIpAccessSettingsRequest` | `structure` | `ipAccessSettingsArn`, `portalArn` | - |
-| `AssociateIpAccessSettingsResponse` | `structure` | `ipAccessSettingsArn`, `portalArn` | - |
-| `AssociateNetworkSettingsRequest` | `structure` | `networkSettingsArn`, `portalArn` | - |
-| `AssociateNetworkSettingsResponse` | `structure` | `networkSettingsArn`, `portalArn` | - |
-| `AssociateSessionLoggerRequest` | `structure` | `portalArn`, `sessionLoggerArn` | - |
-| `AssociateSessionLoggerResponse` | `structure` | `portalArn`, `sessionLoggerArn` | - |
-| `AssociateTrustStoreRequest` | `structure` | `portalArn`, `trustStoreArn` | - |
-| `AssociateTrustStoreResponse` | `structure` | `portalArn`, `trustStoreArn` | - |
-| `AssociateUserAccessLoggingSettingsRequest` | `structure` | `portalArn`, `userAccessLoggingSettingsArn` | - |
-| `AssociateUserAccessLoggingSettingsResponse` | `structure` | `portalArn`, `userAccessLoggingSettingsArn` | - |
-| `AssociateUserSettingsRequest` | `structure` | `portalArn`, `userSettingsArn` | - |
-| `AssociateUserSettingsResponse` | `structure` | `portalArn`, `userSettingsArn` | - |
-| `CreateBrowserSettingsRequest` | `structure` | `additionalEncryptionContext`, `browserPolicy`, `clientToken`, `customerManagedKey`, `tags`, `webContentFilteringPolicy` | - |
-
+| `AccessDeniedException` | `structure` | message | Access is denied. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | There is a conflict. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | There is an internal server error. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The resource cannot be found. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | The service quota has been exceeded. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | There is a throttling error. |
+| `TooManyTagsException` | `structure` | message, resourceName | There are too many tags. |
+| `ValidationException` | `structure` | message, reason, fieldList | There is a validation error. |
+| `ExpireSessionRequest` | `structure` | portalId, sessionId | - |
+| `ExpireSessionResponse` | `structure` | **empty (no members)** | - |
+| `GetSessionRequest` | `structure` | portalId, sessionId | - |
+| `GetSessionResponse` | `structure` | session | - |
+| `ListSessionsRequest` | `structure` | portalId, username, sessionId, sortBy, status, maxResults, nextToken | - |
+| `ListSessionsResponse` | `structure` | sessions, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags, clientToken | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `Category` | `enum` | CULTS, GAMBLING, NUDITY, PORNOGRAPHY, SEX_EDUCATION, TASTELESS, VIOLENCE, DOWNLOAD_SITES, IMAGE_SHARING, PEER_TO_PEER, STREAMING_MEDIA_AND_DOWNLOADS, GENERATIVE_AI, ... (+15) | - |
+| `ColorTheme` | `enum` | LIGHT, DARK | - |
+| `Event` | `enum` | WEBSITE_INTERACT, FILE_DOWNLOAD_FROM_SECURE_BROWSER_TO_REMOTE_DISK, FILE_TRANSFER_FROM_REMOTE_TO_LOCAL_DISK, FILE_TRANSFER_FROM_LOCAL_TO_REMOTE_DISK, FILE_UPLOAD_FROM_REMOTE_DISK_TO_SECURE_BROWSER, CONTENT_PASTE_TO_WEBSITE, CONTENT_TRANSFER_FROM_LOCAL_TO_REMOTE_CLIPBOARD, CONTENT_COPY_FROM_WEBSITE, URL_LOAD, TAB_OPEN, TAB_CLOSE, PRINT_JOB_SUBMIT, ... (+5) | - |
+| `FolderStructure` | `enum` | FLAT, NESTED_BY_DATE | - |
+| `Locale` | `enum` | DE, EN, ES, FR, ID, IT, JP, KR, BR, CN, TW | - |
+| `LogFileFormat` | `enum` | JSON_LINES, JSON | - |
+| `MimeType` | `enum` | PNG, JPEG, ICO | - |
+| `SessionSortBy` | `enum` | START_TIME_ASCENDING, START_TIME_DESCENDING | - |
+| `SessionStatus` | `enum` | ACTIVE, TERMINATED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

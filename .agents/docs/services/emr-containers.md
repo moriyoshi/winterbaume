@@ -44,7 +44,7 @@ Amazon EMR on EKS provides a deployment option for Amazon EMR that allows you to
 
 - Operations: `ListJobRuns`, `ListJobTemplates`, `ListManagedEndpoints`, `ListSecurityConfigurations`, `ListTagsForResource`, `ListVirtualClusters`
 - Traits: `paginated` (5)
-- Common required input members in this group: `resourceArn`, `virtualClusterId`
+- Common required input members in this group: `virtualClusterId`
 
 ### Describe
 
@@ -55,97 +55,134 @@ Amazon EMR on EKS provides a deployment option for Amazon EMR that allows you to
 
 - Operations: `CreateJobTemplate`, `CreateManagedEndpoint`, `CreateSecurityConfiguration`, `CreateVirtualCluster`
 - Traits: `idempotency-token` (4)
-- Common required input members in this group: `clientToken`, `containerProvider`, `executionRoleArn`, `jobTemplateData`, `name`, `releaseLabel`, `securityConfigurationData`, `type`, `virtualClusterId`
+- Common required input members in this group: `name`, `clientToken`
 
 ### Delete
 
 - Operations: `DeleteJobTemplate`, `DeleteManagedEndpoint`, `DeleteVirtualCluster`
-- Common required input members in this group: `id`, `virtualClusterId`
+- Common required input members in this group: `id`
 
 ### Cancel
 
 - Operations: `CancelJobRun`
-- Common required input members in this group: `id`, `virtualClusterId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetManagedEndpointSessionCredentials`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `credentialType`, `endpointIdentifier`, `executionRoleArn`, `virtualClusterIdentifier`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartJobRun`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `clientToken`, `virtualClusterId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `CancelJobRun` | `DELETE /virtualclusters/{virtualClusterId}/jobruns/{id}` | - | `id`, `virtualClusterId` | - | `CancelJobRunResponse` | `InternalServerException`, `ValidationException` | Cancels a job run. A job run is a unit of work, such as a Spark jar, PySpark script, or SparkSQL query, that you submit to Amazon EMR on EKS. |
-| `CreateJobTemplate` | `POST /jobtemplates` | `idempotency-token` | `clientToken`, `jobTemplateData`, `name` | `clientToken` | `CreateJobTemplateResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a job template. Job template stores values of StartJobRun API request in a template and can be used to start a job run. |
-| `CreateManagedEndpoint` | `POST /virtualclusters/{virtualClusterId}/endpoints` | `idempotency-token` | `clientToken`, `executionRoleArn`, `name`, `releaseLabel`, `type`, `virtualClusterId` | `clientToken` | `CreateManagedEndpointResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a managed endpoint. A managed endpoint is a gateway that connects Amazon EMR Studio to Amazon EMR on EKS so that Amazon EMR Studio can communicate with your virtual cluster. |
-| `CreateSecurityConfiguration` | `POST /securityconfigurations` | `idempotency-token` | `clientToken`, `name`, `securityConfigurationData` | `clientToken` | `CreateSecurityConfigurationResponse` | `InternalServerException`, `ValidationException` | Creates a security configuration. Security configurations in Amazon EMR on EKS are templates for different security setups. |
-| `CreateVirtualCluster` | `POST /virtualclusters` | `idempotency-token` | `clientToken`, `containerProvider`, `name` | `clientToken` | `CreateVirtualClusterResponse` | `EKSRequestThrottledException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a virtual cluster. Virtual cluster is a managed entity on Amazon EMR on EKS. |
-| `DeleteJobTemplate` | `DELETE /jobtemplates/{id}` | - | `id` | - | `DeleteJobTemplateResponse` | `InternalServerException`, `ValidationException` | Deletes a job template. Job template stores values of StartJobRun API request in a template and can be used to start a job run. |
+| `CreateJobTemplate` | `POST /jobtemplates` | `idempotency-token` | `name`, `clientToken`, `jobTemplateData` | `clientToken` | `CreateJobTemplateResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a job template. Job template stores values of StartJobRun API request in a template and can be used to start a job run. Job template allows two use cases: avoid repeating recurring StartJobRun API request val ... |
+| `CreateManagedEndpoint` | `POST /virtualclusters/{virtualClusterId}/endpoints` | `idempotency-token` | `name`, `virtualClusterId`, `type`, `releaseLabel`, `executionRoleArn`, `clientToken` | `clientToken` | `CreateManagedEndpointResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a managed endpoint. A managed endpoint is a gateway that connects Amazon EMR Studio to Amazon EMR on EKS so that Amazon EMR Studio can communicate with your virtual cluster. |
+| `CreateSecurityConfiguration` | `POST /securityconfigurations` | `idempotency-token` | `clientToken`, `name`, `securityConfigurationData` | `clientToken` | `CreateSecurityConfigurationResponse` | `InternalServerException`, `ValidationException` | Creates a security configuration. Security configurations in Amazon EMR on EKS are templates for different security setups. You can use security configurations to configure the Lake Formation integration setup. You c ... |
+| `CreateVirtualCluster` | `POST /virtualclusters` | `idempotency-token` | `name`, `containerProvider`, `clientToken` | `clientToken` | `CreateVirtualClusterResponse` | `EKSRequestThrottledException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates a virtual cluster. Virtual cluster is a managed entity on Amazon EMR on EKS. You can create, describe, list and delete virtual clusters. They do not consume any additional resource in your system. A single vi ... |
+| `DeleteJobTemplate` | `DELETE /jobtemplates/{id}` | - | `id` | - | `DeleteJobTemplateResponse` | `InternalServerException`, `ValidationException` | Deletes a job template. Job template stores values of StartJobRun API request in a template and can be used to start a job run. Job template allows two use cases: avoid repeating recurring StartJobRun API request val ... |
 | `DeleteManagedEndpoint` | `DELETE /virtualclusters/{virtualClusterId}/endpoints/{id}` | - | `id`, `virtualClusterId` | - | `DeleteManagedEndpointResponse` | `InternalServerException`, `ValidationException` | Deletes a managed endpoint. A managed endpoint is a gateway that connects Amazon EMR Studio to Amazon EMR on EKS so that Amazon EMR Studio can communicate with your virtual cluster. |
-| `DeleteVirtualCluster` | `DELETE /virtualclusters/{id}` | - | `id` | - | `DeleteVirtualClusterResponse` | `InternalServerException`, `ValidationException` | Deletes a virtual cluster. Virtual cluster is a managed entity on Amazon EMR on EKS. |
+| `DeleteVirtualCluster` | `DELETE /virtualclusters/{id}` | - | `id` | - | `DeleteVirtualClusterResponse` | `InternalServerException`, `ValidationException` | Deletes a virtual cluster. Virtual cluster is a managed entity on Amazon EMR on EKS. You can create, describe, list and delete virtual clusters. They do not consume any additional resource in your system. A single vi ... |
 | `DescribeJobRun` | `GET /virtualclusters/{virtualClusterId}/jobruns/{id}` | - | `id`, `virtualClusterId` | - | `DescribeJobRunResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a job run. A job run is a unit of work, such as a Spark jar, PySpark script, or SparkSQL query, that you submit to Amazon EMR on EKS. |
-| `DescribeJobTemplate` | `GET /jobtemplates/{id}` | - | `id` | - | `DescribeJobTemplateResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a specified job template. Job template stores values of StartJobRun API request in a template and can be used to start a job run. |
+| `DescribeJobTemplate` | `GET /jobtemplates/{id}` | - | `id` | - | `DescribeJobTemplateResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a specified job template. Job template stores values of StartJobRun API request in a template and can be used to start a job run. Job template allows two use cases: avoid repeating ... |
 | `DescribeManagedEndpoint` | `GET /virtualclusters/{virtualClusterId}/endpoints/{id}` | - | `id`, `virtualClusterId` | - | `DescribeManagedEndpointResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a managed endpoint. A managed endpoint is a gateway that connects Amazon EMR Studio to Amazon EMR on EKS so that Amazon EMR Studio can communicate with your virtual cluster. |
-| `DescribeSecurityConfiguration` | `GET /securityconfigurations/{id}` | - | `id` | - | `DescribeSecurityConfigurationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a specified security configuration. Security configurations in Amazon EMR on EKS are templates for different security setups. |
-| `DescribeVirtualCluster` | `GET /virtualclusters/{id}` | - | `id` | - | `DescribeVirtualClusterResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a specified virtual cluster. Virtual cluster is a managed entity on Amazon EMR on EKS. |
-| `GetManagedEndpointSessionCredentials` | `POST /virtualclusters/{virtualClusterIdentifier}/endpoints/{endpointIdentifier}/credentials` | `idempotency-token` | `credentialType`, `endpointIdentifier`, `executionRoleArn`, `virtualClusterIdentifier` | `clientToken` | `GetManagedEndpointSessionCredentialsResponse` | `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ValidationException` | Generate a session token to connect to a managed endpoint. |
+| `DescribeSecurityConfiguration` | `GET /securityconfigurations/{id}` | - | `id` | - | `DescribeSecurityConfigurationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a specified security configuration. Security configurations in Amazon EMR on EKS are templates for different security setups. You can use security configurations to configure the L ... |
+| `DescribeVirtualCluster` | `GET /virtualclusters/{id}` | - | `id` | - | `DescribeVirtualClusterResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Displays detailed information about a specified virtual cluster. Virtual cluster is a managed entity on Amazon EMR on EKS. You can create, describe, list and delete virtual clusters. They do not consume any additiona ... |
+| `GetManagedEndpointSessionCredentials` | `POST /virtualclusters/{virtualClusterIdentifier}/endpoints/{endpointIdentifier}/credentials` | `idempotency-token` | `endpointIdentifier`, `virtualClusterIdentifier`, `executionRoleArn`, `credentialType` | `clientToken` | `GetManagedEndpointSessionCredentialsResponse` | `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ValidationException` | Generate a session token to connect to a managed endpoint. |
 | `ListJobRuns` | `GET /virtualclusters/{virtualClusterId}/jobruns` | `paginated` | `virtualClusterId` | - | `ListJobRunsResponse` | `InternalServerException`, `ValidationException` | Lists job runs based on a set of parameters. A job run is a unit of work, such as a Spark jar, PySpark script, or SparkSQL query, that you submit to Amazon EMR on EKS. |
-| `ListJobTemplates` | `GET /jobtemplates` | `paginated` | - | - | `ListJobTemplatesResponse` | `InternalServerException`, `ValidationException` | Lists job templates based on a set of parameters. Job template stores values of StartJobRun API request in a template and can be used to start a job run. |
+| `ListJobTemplates` | `GET /jobtemplates` | `paginated` | - | - | `ListJobTemplatesResponse` | `InternalServerException`, `ValidationException` | Lists job templates based on a set of parameters. Job template stores values of StartJobRun API request in a template and can be used to start a job run. Job template allows two use cases: avoid repeating recurring S ... |
 | `ListManagedEndpoints` | `GET /virtualclusters/{virtualClusterId}/endpoints` | `paginated` | `virtualClusterId` | - | `ListManagedEndpointsResponse` | `InternalServerException`, `ValidationException` | Lists managed endpoints based on a set of parameters. A managed endpoint is a gateway that connects Amazon EMR Studio to Amazon EMR on EKS so that Amazon EMR Studio can communicate with your virtual cluster. |
-| `ListSecurityConfigurations` | `GET /securityconfigurations` | `paginated` | - | - | `ListSecurityConfigurationsResponse` | `InternalServerException`, `ValidationException` | Lists security configurations based on a set of parameters. Security configurations in Amazon EMR on EKS are templates for different security setups. |
+| `ListSecurityConfigurations` | `GET /securityconfigurations` | `paginated` | - | - | `ListSecurityConfigurationsResponse` | `InternalServerException`, `ValidationException` | Lists security configurations based on a set of parameters. Security configurations in Amazon EMR on EKS are templates for different security setups. You can use security configurations to configure the Lake Formatio ... |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | - | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags assigned to the resources. |
-| `ListVirtualClusters` | `GET /virtualclusters` | `paginated` | - | - | `ListVirtualClustersResponse` | `InternalServerException`, `ValidationException` | Lists information about the specified virtual cluster. Virtual cluster is a managed entity on Amazon EMR on EKS. |
-| `StartJobRun` | `POST /virtualclusters/{virtualClusterId}/jobruns` | `idempotency-token` | `clientToken`, `virtualClusterId` | `clientToken` | `StartJobRunResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Starts a job run. A job run is a unit of work, such as a Spark jar, PySpark script, or SparkSQL query, that you submit to Amazon EMR on EKS. |
-| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Assigns tags to resources. A tag is a label that you assign to an Amazon Web Services resource. |
+| `ListVirtualClusters` | `GET /virtualclusters` | `paginated` | - | - | `ListVirtualClustersResponse` | `InternalServerException`, `ValidationException` | Lists information about the specified virtual cluster. Virtual cluster is a managed entity on Amazon EMR on EKS. You can create, describe, list and delete virtual clusters. They do not consume any additional resource ... |
+| `StartJobRun` | `POST /virtualclusters/{virtualClusterId}/jobruns` | `idempotency-token` | `virtualClusterId`, `clientToken` | `clientToken` | `StartJobRunResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Starts a job run. A job run is a unit of work, such as a Spark jar, PySpark script, or SparkSQL query, that you submit to Amazon EMR on EKS. |
+| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Assigns tags to resources. A tag is a label that you assign to an Amazon Web Services resource. Each tag consists of a key and an optional value, both of which you define. Tags enable you to categorize your Amazon We ... |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from resources. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListJobRuns` | - | `createdBefore -> createdBefore`, `createdAfter -> createdAfter`, `name -> name`, `states -> states`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListJobTemplates` | - | `createdAfter -> createdAfter`, `createdBefore -> createdBefore`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListManagedEndpoints` | - | `createdBefore -> createdBefore`, `createdAfter -> createdAfter`, `types -> types`, `states -> states`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListSecurityConfigurations` | - | `createdAfter -> createdAfter`, `createdBefore -> createdBefore`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListVirtualClusters` | - | `containerProviderId -> containerProviderId`, `containerProviderType -> containerProviderType`, `createdAfter -> createdAfter`, `createdBefore -> createdBefore`, `states -> states`, `maxResults -> maxResults`, `nextToken -> nextToken`, `eksAccessEntryIntegrated -> eksAccessEntryIntegrated` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | This is an internal server exception. |
-| `ValidationException` | `structure` | `message` | There are invalid parameters in the client request. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource was not found. |
-| `CancelJobRunRequest` | `structure` | `id`, `virtualClusterId` | - |
-| `CancelJobRunResponse` | `structure` | `id`, `virtualClusterId` | - |
-| `CreateJobTemplateRequest` | `structure` | `clientToken`, `jobTemplateData`, `kmsKeyArn`, `name`, `tags` | - |
-| `CreateJobTemplateResponse` | `structure` | `arn`, `createdAt`, `id`, `name` | - |
-| `CreateManagedEndpointRequest` | `structure` | `certificateArn`, `clientToken`, `configurationOverrides`, `executionRoleArn`, `name`, `releaseLabel`, `tags`, `type`, `virtualClusterId` | - |
-| `CreateManagedEndpointResponse` | `structure` | `arn`, `id`, `name`, `virtualClusterId` | - |
-| `CreateSecurityConfigurationRequest` | `structure` | `clientToken`, `containerProvider`, `name`, `securityConfigurationData`, `tags` | - |
-| `CreateSecurityConfigurationResponse` | `structure` | `arn`, `id`, `name` | - |
-| `CreateVirtualClusterRequest` | `structure` | `clientToken`, `containerProvider`, `name`, `securityConfigurationId`, `tags` | - |
-| `CreateVirtualClusterResponse` | `structure` | `arn`, `id`, `name` | - |
-| `EKSRequestThrottledException` | `structure` | `message` | The request exceeded the Amazon EKS API operation limits. |
-| `DeleteJobTemplateRequest` | `structure` | `id` | - |
-| `DeleteJobTemplateResponse` | `structure` | `id` | - |
-| `DeleteManagedEndpointRequest` | `structure` | `id`, `virtualClusterId` | - |
-| `DeleteManagedEndpointResponse` | `structure` | `id`, `virtualClusterId` | - |
-| `DeleteVirtualClusterRequest` | `structure` | `id` | - |
-| `DeleteVirtualClusterResponse` | `structure` | `id` | - |
-| `DescribeJobRunRequest` | `structure` | `id`, `virtualClusterId` | - |
-| `DescribeJobRunResponse` | `structure` | `jobRun` | - |
-| `DescribeJobTemplateRequest` | `structure` | `id` | - |
-| `DescribeJobTemplateResponse` | `structure` | `jobTemplate` | - |
-
+| `EKSRequestThrottledException` | `structure` | message | The request exceeded the Amazon EKS API operation limits. |
+| `InternalServerException` | `structure` | message | This is an internal server exception. |
+| `RequestThrottledException` | `structure` | message | The request throttled. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource was not found. |
+| `ValidationException` | `structure` | message | There are invalid parameters in the client request. |
+| `CancelJobRunRequest` | `structure` | id, virtualClusterId | - |
+| `CancelJobRunResponse` | `structure` | id, virtualClusterId | - |
+| `CreateJobTemplateRequest` | `structure` | name, clientToken, jobTemplateData, tags, kmsKeyArn | - |
+| `CreateJobTemplateResponse` | `structure` | id, name, arn, createdAt | - |
+| `CreateManagedEndpointRequest` | `structure` | name, virtualClusterId, type, releaseLabel, executionRoleArn, certificateArn, configurationOverrides, clientToken, tags | - |
+| `CreateManagedEndpointResponse` | `structure` | id, name, arn, virtualClusterId | - |
+| `CreateSecurityConfigurationRequest` | `structure` | clientToken, name, containerProvider, securityConfigurationData, tags | - |
+| `CreateSecurityConfigurationResponse` | `structure` | id, name, arn | - |
+| `CreateVirtualClusterRequest` | `structure` | name, containerProvider, clientToken, tags, securityConfigurationId | - |
+| `CreateVirtualClusterResponse` | `structure` | id, name, arn | - |
+| `DeleteJobTemplateRequest` | `structure` | id | - |
+| `DeleteJobTemplateResponse` | `structure` | id | - |
+| `DeleteManagedEndpointRequest` | `structure` | id, virtualClusterId | - |
+| `DeleteManagedEndpointResponse` | `structure` | id, virtualClusterId | - |
+| `DeleteVirtualClusterRequest` | `structure` | id | - |
+| `DeleteVirtualClusterResponse` | `structure` | id | - |
+| `DescribeJobRunRequest` | `structure` | id, virtualClusterId | - |
+| `DescribeJobRunResponse` | `structure` | jobRun | - |
+| `DescribeJobTemplateRequest` | `structure` | id | - |
+| `DescribeJobTemplateResponse` | `structure` | jobTemplate | - |
+| `DescribeManagedEndpointRequest` | `structure` | id, virtualClusterId | - |
+| `DescribeManagedEndpointResponse` | `structure` | endpoint | - |
+| `DescribeSecurityConfigurationRequest` | `structure` | id | - |
+| `DescribeSecurityConfigurationResponse` | `structure` | securityConfiguration | - |
+| `DescribeVirtualClusterRequest` | `structure` | id | - |
+| `DescribeVirtualClusterResponse` | `structure` | virtualCluster | - |
+| `GetManagedEndpointSessionCredentialsRequest` | `structure` | endpointIdentifier, virtualClusterIdentifier, executionRoleArn, credentialType, durationInSeconds, logContext, clientToken | - |
+| `GetManagedEndpointSessionCredentialsResponse` | `structure` | id, credentials, expiresAt | - |
+| `ListJobRunsRequest` | `structure` | virtualClusterId, createdBefore, createdAfter, name, states, maxResults, nextToken | - |
+| `ListJobRunsResponse` | `structure` | jobRuns, nextToken | - |
+| `ListJobTemplatesRequest` | `structure` | createdAfter, createdBefore, maxResults, nextToken | - |
+| `ListJobTemplatesResponse` | `structure` | templates, nextToken | - |
+| `ListManagedEndpointsRequest` | `structure` | virtualClusterId, createdBefore, createdAfter, types, states, maxResults, nextToken | - |
+| `ListManagedEndpointsResponse` | `structure` | endpoints, nextToken | - |
+| `ListSecurityConfigurationsRequest` | `structure` | createdAfter, createdBefore, maxResults, nextToken | - |
+| `AllowAWSToRetainLogs` | `enum` | ENABLED, DISABLED | - |
+| `CertificateProviderType` | `enum` | PEM | - |
+| `ContainerProviderType` | `enum` | EKS | - |
+| `EndpointState` | `enum` | CREATING, ACTIVE, TERMINATING, TERMINATED, TERMINATED_WITH_ERRORS | - |
+| `FailureReason` | `enum` | INTERNAL_ERROR, USER_ERROR, VALIDATION_ERROR, CLUSTER_UNAVAILABLE | - |
+| `JobRunState` | `enum` | PENDING, SUBMITTED, RUNNING, FAILED, CANCELLED, CANCEL_PENDING, COMPLETED | - |
+| `PersistentAppUI` | `enum` | ENABLED, DISABLED | - |
+| `TemplateParameterDataType` | `enum` | NUMBER, STRING | - |
+| `VirtualClusterState` | `enum` | RUNNING, TERMINATING, TERMINATED, ARRESTED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

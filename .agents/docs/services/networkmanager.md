@@ -55,149 +55,150 @@ Network Manager currently stores VPC attachments by ARN and subnet ARN metadata.
 
 ### Get
 
-- Operations: `GetConnectAttachment`, `GetConnectPeer`, `GetConnectPeerAssociations`, `GetConnections`, `GetCoreNetwork`, `GetCoreNetworkChangeEvents`, `GetCoreNetworkChangeSet`, `GetCoreNetworkPolicy`, `GetCustomerGatewayAssociations`, `GetDevices`, `GetDirectConnectGatewayAttachment`, `GetLinkAssociations`, `GetLinks`, `GetNetworkResourceCounts`, `GetNetworkResourceRelationships`, `GetNetworkResources`, `GetNetworkRoutes`, `GetNetworkTelemetry`, `GetResourcePolicy`, `GetRouteAnalysis`, `GetSiteToSiteVpnAttachment`, `GetSites`, `GetTransitGatewayConnectPeerAssociations`, `GetTransitGatewayPeering`, `GetTransitGatewayRegistrations`, `GetTransitGatewayRouteTableAttachment`, `GetVpcAttachment`
+- Operations: `GetConnectAttachment`, `GetConnections`, `GetConnectPeer`, `GetConnectPeerAssociations`, `GetCoreNetwork`, `GetCoreNetworkChangeEvents`, `GetCoreNetworkChangeSet`, `GetCoreNetworkPolicy`, `GetCustomerGatewayAssociations`, `GetDevices`, `GetDirectConnectGatewayAttachment`, `GetLinkAssociations`, `GetLinks`, `GetNetworkResourceCounts`, `GetNetworkResourceRelationships`, `GetNetworkResources`, `GetNetworkRoutes`, `GetNetworkTelemetry`, `GetResourcePolicy`, `GetRouteAnalysis`, `GetSites`, `GetSiteToSiteVpnAttachment`, `GetTransitGatewayConnectPeerAssociations`, `GetTransitGatewayPeering`, `GetTransitGatewayRegistrations`, `GetTransitGatewayRouteTableAttachment`, `GetVpcAttachment`
 - Traits: `paginated` (15)
-- Common required input members in this group: `AttachmentId`, `ConnectPeerId`, `CoreNetworkId`, `GlobalNetworkId`, `PeeringId`, `PolicyVersionId`, `ResourceArn`, `RouteAnalysisId`, `RouteTableIdentifier`
+- Common required input members in this group: `AttachmentId`, `GlobalNetworkId`, `CoreNetworkId`, `PolicyVersionId`
 
 ### Create
 
-- Operations: `CreateConnectAttachment`, `CreateConnectPeer`, `CreateConnection`, `CreateCoreNetwork`, `CreateCoreNetworkPrefixListAssociation`, `CreateDevice`, `CreateDirectConnectGatewayAttachment`, `CreateGlobalNetwork`, `CreateLink`, `CreateSite`, `CreateSiteToSiteVpnAttachment`, `CreateTransitGatewayPeering`, `CreateTransitGatewayRouteTableAttachment`, `CreateVpcAttachment`
+- Operations: `CreateConnectAttachment`, `CreateConnection`, `CreateConnectPeer`, `CreateCoreNetwork`, `CreateCoreNetworkPrefixListAssociation`, `CreateDevice`, `CreateDirectConnectGatewayAttachment`, `CreateGlobalNetwork`, `CreateLink`, `CreateSite`, `CreateSiteToSiteVpnAttachment`, `CreateTransitGatewayPeering`, `CreateTransitGatewayRouteTableAttachment`, `CreateVpcAttachment`
 - Traits: `idempotency-token` (9)
-- Common required input members in this group: `Bandwidth`, `ConnectAttachmentId`, `ConnectedDeviceId`, `CoreNetworkId`, `DeviceId`, `DirectConnectGatewayArn`, `EdgeLocation`, `EdgeLocations`, `GlobalNetworkId`, `Options`, `PeerAddress`, `PeeringId`, `PrefixListAlias`, `PrefixListArn`, `SiteId`, `SubnetArns`, `TransitGatewayArn`, `TransitGatewayRouteTableArn`, `TransportAttachmentId`, `VpcArn`, `VpnConnectionArn`
+- Common required input members in this group: `CoreNetworkId`, `GlobalNetworkId`
 
 ### Delete
 
-- Operations: `DeleteAttachment`, `DeleteConnectPeer`, `DeleteConnection`, `DeleteCoreNetwork`, `DeleteCoreNetworkPolicyVersion`, `DeleteCoreNetworkPrefixListAssociation`, `DeleteDevice`, `DeleteGlobalNetwork`, `DeleteLink`, `DeletePeering`, `DeleteResourcePolicy`, `DeleteSite`
-- Common required input members in this group: `AttachmentId`, `ConnectPeerId`, `ConnectionId`, `CoreNetworkId`, `DeviceId`, `GlobalNetworkId`, `LinkId`, `PeeringId`, `PolicyVersionId`, `PrefixListArn`, `ResourceArn`, `SiteId`
+- Operations: `DeleteAttachment`, `DeleteConnection`, `DeleteConnectPeer`, `DeleteCoreNetwork`, `DeleteCoreNetworkPolicyVersion`, `DeleteCoreNetworkPrefixListAssociation`, `DeleteDevice`, `DeleteGlobalNetwork`, `DeleteLink`, `DeletePeering`, `DeleteResourcePolicy`, `DeleteSite`
+- Common required input members in this group: `GlobalNetworkId`, `CoreNetworkId`
 
 ### List
 
 - Operations: `ListAttachmentRoutingPolicyAssociations`, `ListAttachments`, `ListConnectPeers`, `ListCoreNetworkPolicyVersions`, `ListCoreNetworkPrefixListAssociations`, `ListCoreNetworkRoutingInformation`, `ListCoreNetworks`, `ListOrganizationServiceAccessStatus`, `ListPeerings`, `ListTagsForResource`
 - Traits: `paginated` (8)
-- Common required input members in this group: `CoreNetworkId`, `EdgeLocation`, `ResourceArn`, `SegmentName`
+- Common required input members in this group: `CoreNetworkId`
 
 ### Update
 
 - Operations: `UpdateConnection`, `UpdateCoreNetwork`, `UpdateDevice`, `UpdateDirectConnectGatewayAttachment`, `UpdateGlobalNetwork`, `UpdateLink`, `UpdateNetworkResourceMetadata`, `UpdateSite`, `UpdateVpcAttachment`
-- Common required input members in this group: `AttachmentId`, `ConnectionId`, `CoreNetworkId`, `DeviceId`, `GlobalNetworkId`, `LinkId`, `Metadata`, `ResourceArn`, `SiteId`
+- Common required input members in this group: `GlobalNetworkId`, `AttachmentId`
 
 ### Associate
 
 - Operations: `AssociateConnectPeer`, `AssociateCustomerGateway`, `AssociateLink`, `AssociateTransitGatewayConnectPeer`
-- Common required input members in this group: `ConnectPeerId`, `CustomerGatewayArn`, `DeviceId`, `GlobalNetworkId`, `LinkId`, `TransitGatewayConnectPeerArn`
+- Common required input members in this group: `GlobalNetworkId`, `DeviceId`
 
 ### Disassociate
 
 - Operations: `DisassociateConnectPeer`, `DisassociateCustomerGateway`, `DisassociateLink`, `DisassociateTransitGatewayConnectPeer`
-- Common required input members in this group: `ConnectPeerId`, `CustomerGatewayArn`, `DeviceId`, `GlobalNetworkId`, `LinkId`, `TransitGatewayConnectPeerArn`
+- Common required input members in this group: `GlobalNetworkId`
 
 ### Put
 
 - Operations: `PutAttachmentRoutingPolicyLabel`, `PutCoreNetworkPolicy`, `PutResourcePolicy`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `AttachmentId`, `CoreNetworkId`, `PolicyDocument`, `ResourceArn`, `RoutingPolicyLabel`
+- Common required input members in this group: `CoreNetworkId`, `PolicyDocument`
 
 ### Start
 
 - Operations: `StartOrganizationServiceAccessUpdate`, `StartRouteAnalysis`
-- Common required input members in this group: `Action`, `Destination`, `GlobalNetworkId`, `Source`
+- Common required input members in this group: -
 
 ### Accept
 
 - Operations: `AcceptAttachment`
-- Common required input members in this group: `AttachmentId`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterTransitGateway`
-- Common required input members in this group: `GlobalNetworkId`, `TransitGatewayArn`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeGlobalNetworks`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### Execute
 
 - Operations: `ExecuteCoreNetworkChangeSet`
-- Common required input members in this group: `CoreNetworkId`, `PolicyVersionId`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterTransitGateway`
-- Common required input members in this group: `GlobalNetworkId`, `TransitGatewayArn`
+- Common required input members in this group: -
 
 ### Reject
 
 - Operations: `RejectAttachment`
-- Common required input members in this group: `AttachmentId`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveAttachmentRoutingPolicyLabel`
-- Common required input members in this group: `AttachmentId`, `CoreNetworkId`
+- Common required input members in this group: -
 
 ### Restore
 
 - Operations: `RestoreCoreNetworkPolicyVersion`
-- Common required input members in this group: `CoreNetworkId`, `PolicyVersionId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `AcceptAttachment` | `POST /attachments/{AttachmentId}/accept` | - | `AttachmentId` | - | `AcceptAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Accepts a core network attachment request. Once the attachment request is accepted by a core network owner, the attachment is created and connected to a core network. |
-| `AssociateConnectPeer` | `POST /global-networks/{GlobalNetworkId}/connect-peer-associations` | - | `ConnectPeerId`, `DeviceId`, `GlobalNetworkId` | - | `AssociateConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a core network Connect peer with a device and optionally, with a link. If you specify a link, it must be associated with the specified device. |
-| `AssociateCustomerGateway` | `POST /global-networks/{GlobalNetworkId}/customer-gateway-associations` | - | `CustomerGatewayArn`, `DeviceId`, `GlobalNetworkId` | - | `AssociateCustomerGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a customer gateway with a device and optionally, with a link. If you specify a link, it must be associated with the specified device. |
-| `AssociateLink` | `POST /global-networks/{GlobalNetworkId}/link-associations` | - | `DeviceId`, `GlobalNetworkId`, `LinkId` | - | `AssociateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a link to a device. A device can be associated to multiple links and a link can be associated to multiple devices. |
-| `AssociateTransitGatewayConnectPeer` | `POST /global-networks/{GlobalNetworkId}/transit-gateway-connect-peer-associations` | - | `DeviceId`, `GlobalNetworkId`, `TransitGatewayConnectPeerArn` | - | `AssociateTransitGatewayConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a transit gateway Connect peer with a device, and optionally, with a link. If you specify a link, it must be associated with the specified device. |
-| `CreateConnectAttachment` | `POST /connect-attachments` | `idempotency-token` | `CoreNetworkId`, `EdgeLocation`, `Options`, `TransportAttachmentId` | `ClientToken` | `CreateConnectAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a core network Connect attachment from a specified core network attachment. A core network Connect attachment is a GRE-based tunnel attachment that you can use to establish a connection between a core network and an appliance. |
+| `AssociateConnectPeer` | `POST /global-networks/{GlobalNetworkId}/connect-peer-associations` | - | `GlobalNetworkId`, `ConnectPeerId`, `DeviceId` | - | `AssociateConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a core network Connect peer with a device and optionally, with a link. If you specify a link, it must be associated with the specified device. You can only associate core network Connect peers that have be ... |
+| `AssociateCustomerGateway` | `POST /global-networks/{GlobalNetworkId}/customer-gateway-associations` | - | `CustomerGatewayArn`, `GlobalNetworkId`, `DeviceId` | - | `AssociateCustomerGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a customer gateway with a device and optionally, with a link. If you specify a link, it must be associated with the specified device. You can only associate customer gateways that are connected to a VPN at ... |
+| `AssociateLink` | `POST /global-networks/{GlobalNetworkId}/link-associations` | - | `GlobalNetworkId`, `DeviceId`, `LinkId` | - | `AssociateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a link to a device. A device can be associated to multiple links and a link can be associated to multiple devices. The device and link must be in the same global network and the same site. |
+| `AssociateTransitGatewayConnectPeer` | `POST /global-networks/{GlobalNetworkId}/transit-gateway-connect-peer-associations` | - | `GlobalNetworkId`, `TransitGatewayConnectPeerArn`, `DeviceId` | - | `AssociateTransitGatewayConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a transit gateway Connect peer with a device, and optionally, with a link. If you specify a link, it must be associated with the specified device. You can only associate transit gateway Connect peers that ... |
+| `CreateConnectAttachment` | `POST /connect-attachments` | `idempotency-token` | `CoreNetworkId`, `EdgeLocation`, `TransportAttachmentId`, `Options` | `ClientToken` | `CreateConnectAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a core network Connect attachment from a specified core network attachment. A core network Connect attachment is a GRE-based tunnel attachment that you can use to establish a connection between a core network ... |
+| `CreateConnection` | `POST /global-networks/{GlobalNetworkId}/connections` | - | `GlobalNetworkId`, `DeviceId`, `ConnectedDeviceId` | - | `CreateConnectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a connection between two devices. The devices can be a physical or virtual appliance that connects to a third-party appliance in a VPC, or a physical appliance that connects to another physical appliance in a ... |
 | `CreateConnectPeer` | `POST /connect-peers` | `idempotency-token` | `ConnectAttachmentId`, `PeerAddress` | `ClientToken` | `CreateConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a core network Connect peer for a specified core network connect attachment between a core network and an appliance. The peer address and transit gateway address must be the same IP address family (IPv4 or IPv6). |
-| `CreateConnection` | `POST /global-networks/{GlobalNetworkId}/connections` | - | `ConnectedDeviceId`, `DeviceId`, `GlobalNetworkId` | - | `CreateConnectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a connection between two devices. The devices can be a physical or virtual appliance that connects to a third-party appliance in a VPC, or a physical appliance that connects to another physical appliance in an on-premises network. |
 | `CreateCoreNetwork` | `POST /core-networks` | `idempotency-token` | `GlobalNetworkId` | `ClientToken` | `CreateCoreNetworkResponse` | `AccessDeniedException`, `ConflictException`, `CoreNetworkPolicyException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a core network as part of your global network, and optionally, with a core network policy. |
-| `CreateCoreNetworkPrefixListAssociation` | `POST /prefix-list` | `idempotency-token` | `CoreNetworkId`, `PrefixListAlias`, `PrefixListArn` | `ClientToken` | `CreateCoreNetworkPrefixListAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an association between a core network and a prefix list for routing control. |
+| `CreateCoreNetworkPrefixListAssociation` | `POST /prefix-list` | `idempotency-token` | `CoreNetworkId`, `PrefixListArn`, `PrefixListAlias` | `ClientToken` | `CreateCoreNetworkPrefixListAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an association between a core network and a prefix list for routing control. |
 | `CreateDevice` | `POST /global-networks/{GlobalNetworkId}/devices` | - | `GlobalNetworkId` | - | `CreateDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new device in a global network. If you specify both a site ID and a location, the location of the site is used for visualization in the Network Manager console. |
 | `CreateDirectConnectGatewayAttachment` | `POST /direct-connect-gateway-attachments` | `idempotency-token` | `CoreNetworkId`, `DirectConnectGatewayArn`, `EdgeLocations` | `ClientToken` | `CreateDirectConnectGatewayAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services Direct Connect gateway attachment |
 | `CreateGlobalNetwork` | `POST /global-networks` | - | - | - | `CreateGlobalNetworkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new, empty global network. |
-| `CreateLink` | `POST /global-networks/{GlobalNetworkId}/links` | - | `Bandwidth`, `GlobalNetworkId`, `SiteId` | - | `CreateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new link for a specified site. |
+| `CreateLink` | `POST /global-networks/{GlobalNetworkId}/links` | - | `GlobalNetworkId`, `Bandwidth`, `SiteId` | - | `CreateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new link for a specified site. |
 | `CreateSite` | `POST /global-networks/{GlobalNetworkId}/sites` | - | `GlobalNetworkId` | - | `CreateSiteResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new site in a global network. |
 | `CreateSiteToSiteVpnAttachment` | `POST /site-to-site-vpn-attachments` | `idempotency-token` | `CoreNetworkId`, `VpnConnectionArn` | `ClientToken` | `CreateSiteToSiteVpnAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates an Amazon Web Services site-to-site VPN attachment on an edge location of a core network. |
 | `CreateTransitGatewayPeering` | `POST /transit-gateway-peerings` | `idempotency-token` | `CoreNetworkId`, `TransitGatewayArn` | `ClientToken` | `CreateTransitGatewayPeeringResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a transit gateway peering connection. |
 | `CreateTransitGatewayRouteTableAttachment` | `POST /transit-gateway-route-table-attachments` | `idempotency-token` | `PeeringId`, `TransitGatewayRouteTableArn` | `ClientToken` | `CreateTransitGatewayRouteTableAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a transit gateway route table attachment. |
-| `CreateVpcAttachment` | `POST /vpc-attachments` | `idempotency-token` | `CoreNetworkId`, `SubnetArns`, `VpcArn` | `ClientToken` | `CreateVpcAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a VPC attachment on an edge location of a core network. |
+| `CreateVpcAttachment` | `POST /vpc-attachments` | `idempotency-token` | `CoreNetworkId`, `VpcArn`, `SubnetArns` | `ClientToken` | `CreateVpcAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a VPC attachment on an edge location of a core network. |
 | `DeleteAttachment` | `DELETE /attachments/{AttachmentId}` | - | `AttachmentId` | - | `DeleteAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an attachment. Supports all attachment types. |
+| `DeleteConnection` | `DELETE /global-networks/{GlobalNetworkId}/connections/{ConnectionId}` | - | `GlobalNetworkId`, `ConnectionId` | - | `DeleteConnectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified connection in your global network. |
 | `DeleteConnectPeer` | `DELETE /connect-peers/{ConnectPeerId}` | - | `ConnectPeerId` | - | `DeleteConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a Connect peer. |
-| `DeleteConnection` | `DELETE /global-networks/{GlobalNetworkId}/connections/{ConnectionId}` | - | `ConnectionId`, `GlobalNetworkId` | - | `DeleteConnectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified connection in your global network. |
 | `DeleteCoreNetwork` | `DELETE /core-networks/{CoreNetworkId}` | - | `CoreNetworkId` | - | `DeleteCoreNetworkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a core network along with all core network policies. This can only be done if there are no attachments on a core network. |
 | `DeleteCoreNetworkPolicyVersion` | `DELETE /core-networks/{CoreNetworkId}/core-network-policy-versions/{PolicyVersionId}` | - | `CoreNetworkId`, `PolicyVersionId` | - | `DeleteCoreNetworkPolicyVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a policy version from a core network. You can't delete the current LIVE policy. |
 | `DeleteCoreNetworkPrefixListAssociation` | `DELETE /prefix-list/{PrefixListArn}/core-network/{CoreNetworkId}` | - | `CoreNetworkId`, `PrefixListArn` | - | `DeleteCoreNetworkPrefixListAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Deletes an association between a core network and a prefix list. |
-| `DeleteDevice` | `DELETE /global-networks/{GlobalNetworkId}/devices/{DeviceId}` | - | `DeviceId`, `GlobalNetworkId` | - | `DeleteDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing device. You must first disassociate the device from any links and customer gateways. |
+| `DeleteDevice` | `DELETE /global-networks/{GlobalNetworkId}/devices/{DeviceId}` | - | `GlobalNetworkId`, `DeviceId` | - | `DeleteDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing device. You must first disassociate the device from any links and customer gateways. |
 | `DeleteGlobalNetwork` | `DELETE /global-networks/{GlobalNetworkId}` | - | `GlobalNetworkId` | - | `DeleteGlobalNetworkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing global network. You must first delete all global network objects (devices, links, and sites), deregister all transit gateways, and delete any core networks. |
 | `DeleteLink` | `DELETE /global-networks/{GlobalNetworkId}/links/{LinkId}` | - | `GlobalNetworkId`, `LinkId` | - | `DeleteLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing link. You must first disassociate the link from any devices and customer gateways. |
 | `DeletePeering` | `DELETE /peerings/{PeeringId}` | - | `PeeringId` | - | `DeletePeeringResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing peering connection. |
 | `DeleteResourcePolicy` | `DELETE /resource-policy/{ResourceArn}` | - | `ResourceArn` | - | `DeleteResourcePolicyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a resource policy for the specified resource. This revokes the access of the principals specified in the resource policy. |
 | `DeleteSite` | `DELETE /global-networks/{GlobalNetworkId}/sites/{SiteId}` | - | `GlobalNetworkId`, `SiteId` | - | `DeleteSiteResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing site. The site cannot be associated with any device or link. |
-| `DeregisterTransitGateway` | `DELETE /global-networks/{GlobalNetworkId}/transit-gateway-registrations/{TransitGatewayArn}` | - | `GlobalNetworkId`, `TransitGatewayArn` | - | `DeregisterTransitGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deregisters a transit gateway from your global network. This action does not delete your transit gateway, or modify any of its attachments. |
-| `DescribeGlobalNetworks` | `GET /global-networks` | `paginated` | - | - | `DescribeGlobalNetworksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes one or more global networks. By default, all global networks are described. |
-| `DisassociateConnectPeer` | `DELETE /global-networks/{GlobalNetworkId}/connect-peer-associations/{ConnectPeerId}` | - | `ConnectPeerId`, `GlobalNetworkId` | - | `DisassociateConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a core network Connect peer from a device and a link. |
-| `DisassociateCustomerGateway` | `DELETE /global-networks/{GlobalNetworkId}/customer-gateway-associations/{CustomerGatewayArn}` | - | `CustomerGatewayArn`, `GlobalNetworkId` | - | `DisassociateCustomerGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a customer gateway from a device and a link. |
-| `DisassociateLink` | `DELETE /global-networks/{GlobalNetworkId}/link-associations` | - | `DeviceId`, `GlobalNetworkId`, `LinkId` | - | `DisassociateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates an existing device from a link. You must first disassociate any customer gateways that are associated with the link. |
+| `DeregisterTransitGateway` | `DELETE /global-networks/{GlobalNetworkId}/transit-gateway-registrations/{TransitGatewayArn}` | - | `GlobalNetworkId`, `TransitGatewayArn` | - | `DeregisterTransitGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deregisters a transit gateway from your global network. This action does not delete your transit gateway, or modify any of its attachments. This action removes any customer gateway associations. |
+| `DescribeGlobalNetworks` | `GET /global-networks` | `paginated` | - | - | `DescribeGlobalNetworksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes one or more global networks. By default, all global networks are described. To describe the objects in your global network, you must use the appropriate Get* action. For example, to list the transit gateway ... |
+| `DisassociateConnectPeer` | `DELETE /global-networks/{GlobalNetworkId}/connect-peer-associations/{ConnectPeerId}` | - | `GlobalNetworkId`, `ConnectPeerId` | - | `DisassociateConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a core network Connect peer from a device and a link. |
+| `DisassociateCustomerGateway` | `DELETE /global-networks/{GlobalNetworkId}/customer-gateway-associations/{CustomerGatewayArn}` | - | `GlobalNetworkId`, `CustomerGatewayArn` | - | `DisassociateCustomerGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a customer gateway from a device and a link. |
+| `DisassociateLink` | `DELETE /global-networks/{GlobalNetworkId}/link-associations` | - | `GlobalNetworkId`, `DeviceId`, `LinkId` | - | `DisassociateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates an existing device from a link. You must first disassociate any customer gateways that are associated with the link. |
 | `DisassociateTransitGatewayConnectPeer` | `DELETE /global-networks/{GlobalNetworkId}/transit-gateway-connect-peer-associations/{TransitGatewayConnectPeerArn}` | - | `GlobalNetworkId`, `TransitGatewayConnectPeerArn` | - | `DisassociateTransitGatewayConnectPeerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a transit gateway Connect peer from a device and link. |
 | `ExecuteCoreNetworkChangeSet` | `POST /core-networks/{CoreNetworkId}/core-network-change-sets/{PolicyVersionId}/execute` | - | `CoreNetworkId`, `PolicyVersionId` | - | `ExecuteCoreNetworkChangeSetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Executes a change set on your core network. Deploys changes globally based on the policy submitted.. |
 | `GetConnectAttachment` | `GET /connect-attachments/{AttachmentId}` | - | `AttachmentId` | - | `GetConnectAttachmentResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a core network Connect attachment. |
+| `GetConnections` | `GET /global-networks/{GlobalNetworkId}/connections` | `paginated` | `GlobalNetworkId` | - | `GetConnectionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about one or more of your connections in a global network. |
 | `GetConnectPeer` | `GET /connect-peers/{ConnectPeerId}` | - | `ConnectPeerId` | - | `GetConnectPeerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a core network Connect peer. |
 | `GetConnectPeerAssociations` | `GET /global-networks/{GlobalNetworkId}/connect-peer-associations` | `paginated` | `GlobalNetworkId` | - | `GetConnectPeerAssociationsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a core network Connect peer associations. |
-| `GetConnections` | `GET /global-networks/{GlobalNetworkId}/connections` | `paginated` | `GlobalNetworkId` | - | `GetConnectionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about one or more of your connections in a global network. |
 | `GetCoreNetwork` | `GET /core-networks/{CoreNetworkId}` | - | `CoreNetworkId` | - | `GetCoreNetworkResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the LIVE policy for a core network. |
 | `GetCoreNetworkChangeEvents` | `GET /core-networks/{CoreNetworkId}/core-network-change-events/{PolicyVersionId}` | `paginated` | `CoreNetworkId`, `PolicyVersionId` | - | `GetCoreNetworkChangeEventsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a core network change event. |
 | `GetCoreNetworkChangeSet` | `GET /core-networks/{CoreNetworkId}/core-network-change-sets/{PolicyVersionId}` | `paginated` | `CoreNetworkId`, `PolicyVersionId` | - | `GetCoreNetworkChangeSetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a change set between the LIVE core network policy and a submitted policy. |
@@ -206,7 +207,7 @@ Network Manager currently stores VPC attachments by ARN and subnet ARN metadata.
 | `GetDevices` | `GET /global-networks/{GlobalNetworkId}/devices` | `paginated` | `GlobalNetworkId` | - | `GetDevicesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about one or more of your devices in a global network. |
 | `GetDirectConnectGatewayAttachment` | `GET /direct-connect-gateway-attachments/{AttachmentId}` | - | `AttachmentId` | - | `GetDirectConnectGatewayAttachmentResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a specific Amazon Web Services Direct Connect gateway attachment. |
 | `GetLinkAssociations` | `GET /global-networks/{GlobalNetworkId}/link-associations` | `paginated` | `GlobalNetworkId` | - | `GetLinkAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the link associations for a device or a link. Either the device ID or the link ID must be specified. |
-| `GetLinks` | `GET /global-networks/{GlobalNetworkId}/links` | `paginated` | `GlobalNetworkId` | - | `GetLinksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about one or more links in a specified global network. If you specify the site ID, you cannot specify the type or provider in the same request. |
+| `GetLinks` | `GET /global-networks/{GlobalNetworkId}/links` | `paginated` | `GlobalNetworkId` | - | `GetLinksResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about one or more links in a specified global network. If you specify the site ID, you cannot specify the type or provider in the same request. You can specify the type and provider in the same request. |
 | `GetNetworkResourceCounts` | `GET /global-networks/{GlobalNetworkId}/network-resource-count` | `paginated` | `GlobalNetworkId` | - | `GetNetworkResourceCountsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Gets the count of network resources, by resource type, for the specified global network. |
 | `GetNetworkResourceRelationships` | `GET /global-networks/{GlobalNetworkId}/network-resource-relationships` | `paginated` | `GlobalNetworkId` | - | `GetNetworkResourceRelationshipsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the network resource relationships for the specified global network. |
 | `GetNetworkResources` | `GET /global-networks/{GlobalNetworkId}/network-resources` | `paginated` | `GlobalNetworkId` | - | `GetNetworkResourcesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Describes the network resources for the specified global network. The results include information from the corresponding Describe call for the resource, minus any sensitive information such as pre-shared keys. |
@@ -214,8 +215,8 @@ Network Manager currently stores VPC attachments by ARN and subnet ARN metadata.
 | `GetNetworkTelemetry` | `GET /global-networks/{GlobalNetworkId}/network-telemetry` | `paginated` | `GlobalNetworkId` | - | `GetNetworkTelemetryResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the network telemetry of the specified global network. |
 | `GetResourcePolicy` | `GET /resource-policy/{ResourceArn}` | - | `ResourceArn` | - | `GetResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns information about a resource policy. |
 | `GetRouteAnalysis` | `GET /global-networks/{GlobalNetworkId}/route-analyses/{RouteAnalysisId}` | - | `GlobalNetworkId`, `RouteAnalysisId` | - | `GetRouteAnalysisResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about the specified route analysis. |
-| `GetSiteToSiteVpnAttachment` | `GET /site-to-site-vpn-attachments/{AttachmentId}` | - | `AttachmentId` | - | `GetSiteToSiteVpnAttachmentResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a site-to-site VPN attachment. |
 | `GetSites` | `GET /global-networks/{GlobalNetworkId}/sites` | `paginated` | `GlobalNetworkId` | - | `GetSitesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about one or more of your sites in a global network. |
+| `GetSiteToSiteVpnAttachment` | `GET /site-to-site-vpn-attachments/{AttachmentId}` | - | `AttachmentId` | - | `GetSiteToSiteVpnAttachmentResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a site-to-site VPN attachment. |
 | `GetTransitGatewayConnectPeerAssociations` | `GET /global-networks/{GlobalNetworkId}/transit-gateway-connect-peer-associations` | `paginated` | `GlobalNetworkId` | - | `GetTransitGatewayConnectPeerAssociationsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about one or more of your transit gateway Connect peer associations in a global network. |
 | `GetTransitGatewayPeering` | `GET /transit-gateway-peerings/{PeeringId}` | - | `PeeringId` | - | `GetTransitGatewayPeeringResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a transit gateway peer. |
 | `GetTransitGatewayRegistrations` | `GET /global-networks/{GlobalNetworkId}/transit-gateway-registrations` | `paginated` | `GlobalNetworkId` | - | `GetTransitGatewayRegistrationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about the transit gateway registrations in a specified global network. |
@@ -226,61 +227,121 @@ Network Manager currently stores VPC attachments by ARN and subnet ARN metadata.
 | `ListConnectPeers` | `GET /connect-peers` | `paginated` | - | - | `ListConnectPeersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of core network Connect peers. |
 | `ListCoreNetworkPolicyVersions` | `GET /core-networks/{CoreNetworkId}/core-network-policy-versions` | `paginated` | `CoreNetworkId` | - | `ListCoreNetworkPolicyVersionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of core network policy versions. |
 | `ListCoreNetworkPrefixListAssociations` | `GET /prefix-list/core-network/{CoreNetworkId}` | `paginated` | `CoreNetworkId` | - | `ListCoreNetworkPrefixListAssociationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the prefix list associations for a core network. |
-| `ListCoreNetworkRoutingInformation` | `POST /core-networks/{CoreNetworkId}/core-network-routing-information` | `paginated` | `CoreNetworkId`, `EdgeLocation`, `SegmentName` | - | `ListCoreNetworkRoutingInformationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists routing information for a core network, including routes and their attributes. |
+| `ListCoreNetworkRoutingInformation` | `POST /core-networks/{CoreNetworkId}/core-network-routing-information` | `paginated` | `CoreNetworkId`, `SegmentName`, `EdgeLocation` | - | `ListCoreNetworkRoutingInformationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists routing information for a core network, including routes and their attributes. |
 | `ListCoreNetworks` | `GET /core-networks` | `paginated` | - | - | `ListCoreNetworksResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of owned and shared core networks. |
 | `ListOrganizationServiceAccessStatus` | `GET /organizations/service-access` | - | - | - | `ListOrganizationServiceAccessStatusResponse` | - | Gets the status of the Service Linked Role (SLR) deployment for the accounts in a given Amazon Web Services Organization. |
 | `ListPeerings` | `GET /peerings` | `paginated` | - | - | `ListPeeringsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the peerings for a core network. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags for a specified resource. |
-| `PutAttachmentRoutingPolicyLabel` | `POST /routing-policy-label` | `idempotency-token` | `AttachmentId`, `CoreNetworkId`, `RoutingPolicyLabel` | `ClientToken` | `PutAttachmentRoutingPolicyLabelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Applies a routing policy label to an attachment for traffic routing decisions. |
+| `PutAttachmentRoutingPolicyLabel` | `POST /routing-policy-label` | `idempotency-token` | `CoreNetworkId`, `AttachmentId`, `RoutingPolicyLabel` | `ClientToken` | `PutAttachmentRoutingPolicyLabelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Applies a routing policy label to an attachment for traffic routing decisions. |
 | `PutCoreNetworkPolicy` | `POST /core-networks/{CoreNetworkId}/core-network-policy` | `idempotency-token` | `CoreNetworkId`, `PolicyDocument` | `ClientToken` | `PutCoreNetworkPolicyResponse` | `AccessDeniedException`, `ConflictException`, `CoreNetworkPolicyException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new, immutable version of a core network policy. A subsequent change set is created showing the differences between the LIVE policy and the submitted policy. |
 | `PutResourcePolicy` | `POST /resource-policy/{ResourceArn}` | - | `PolicyDocument`, `ResourceArn` | - | `PutResourcePolicyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates or updates a resource policy. |
-| `RegisterTransitGateway` | `POST /global-networks/{GlobalNetworkId}/transit-gateway-registrations` | - | `GlobalNetworkId`, `TransitGatewayArn` | - | `RegisterTransitGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Registers a transit gateway in your global network. Not all Regions support transit gateways for global networks. |
+| `RegisterTransitGateway` | `POST /global-networks/{GlobalNetworkId}/transit-gateway-registrations` | - | `GlobalNetworkId`, `TransitGatewayArn` | - | `RegisterTransitGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Registers a transit gateway in your global network. Not all Regions support transit gateways for global networks. For a list of the supported Regions, see Region Availability in the Amazon Web Services Transit Gatewa ... |
 | `RejectAttachment` | `POST /attachments/{AttachmentId}/reject` | - | `AttachmentId` | - | `RejectAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Rejects a core network attachment request. |
-| `RemoveAttachmentRoutingPolicyLabel` | `DELETE /routing-policy-label/core-network/{CoreNetworkId}/attachment/{AttachmentId}` | - | `AttachmentId`, `CoreNetworkId` | - | `RemoveAttachmentRoutingPolicyLabelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Removes a routing policy label from an attachment. |
+| `RemoveAttachmentRoutingPolicyLabel` | `DELETE /routing-policy-label/core-network/{CoreNetworkId}/attachment/{AttachmentId}` | - | `CoreNetworkId`, `AttachmentId` | - | `RemoveAttachmentRoutingPolicyLabelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Removes a routing policy label from an attachment. |
 | `RestoreCoreNetworkPolicyVersion` | `POST /core-networks/{CoreNetworkId}/core-network-policy-versions/{PolicyVersionId}/restore` | - | `CoreNetworkId`, `PolicyVersionId` | - | `RestoreCoreNetworkPolicyVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Restores a previous policy version as a new, immutable version of a core network policy. A subsequent change set is created showing the differences between the LIVE policy and restored policy. |
 | `StartOrganizationServiceAccessUpdate` | `POST /organizations/service-access` | - | `Action` | - | `StartOrganizationServiceAccessUpdateResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Enables the Network Manager service for an Amazon Web Services Organization. This can only be called by a management account within the organization. |
-| `StartRouteAnalysis` | `POST /global-networks/{GlobalNetworkId}/route-analyses` | - | `Destination`, `GlobalNetworkId`, `Source` | - | `StartRouteAnalysisResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts analyzing the routing path between the specified source and destination. For more information, see Route Analyzer. |
+| `StartRouteAnalysis` | `POST /global-networks/{GlobalNetworkId}/route-analyses` | - | `GlobalNetworkId`, `Source`, `Destination` | - | `StartRouteAnalysisResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts analyzing the routing path between the specified source and destination. For more information, see Route Analyzer . |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Tags a specified resource. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from a specified resource. |
-| `UpdateConnection` | `PATCH /global-networks/{GlobalNetworkId}/connections/{ConnectionId}` | - | `ConnectionId`, `GlobalNetworkId` | - | `UpdateConnectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the information for an existing connection. To remove information for any of the parameters, specify an empty string. |
+| `UpdateConnection` | `PATCH /global-networks/{GlobalNetworkId}/connections/{ConnectionId}` | - | `GlobalNetworkId`, `ConnectionId` | - | `UpdateConnectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the information for an existing connection. To remove information for any of the parameters, specify an empty string. |
 | `UpdateCoreNetwork` | `PATCH /core-networks/{CoreNetworkId}` | - | `CoreNetworkId` | - | `UpdateCoreNetworkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the description of a core network. |
-| `UpdateDevice` | `PATCH /global-networks/{GlobalNetworkId}/devices/{DeviceId}` | - | `DeviceId`, `GlobalNetworkId` | - | `UpdateDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the details for an existing device. To remove information for any of the parameters, specify an empty string. |
+| `UpdateDevice` | `PATCH /global-networks/{GlobalNetworkId}/devices/{DeviceId}` | - | `GlobalNetworkId`, `DeviceId` | - | `UpdateDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the details for an existing device. To remove information for any of the parameters, specify an empty string. |
 | `UpdateDirectConnectGatewayAttachment` | `PATCH /direct-connect-gateway-attachments/{AttachmentId}` | - | `AttachmentId` | - | `UpdateDirectConnectGatewayAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the edge locations associated with an Amazon Web Services Direct Connect gateway attachment. |
 | `UpdateGlobalNetwork` | `PATCH /global-networks/{GlobalNetworkId}` | - | `GlobalNetworkId` | - | `UpdateGlobalNetworkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing global network. To remove information for any of the parameters, specify an empty string. |
 | `UpdateLink` | `PATCH /global-networks/{GlobalNetworkId}/links/{LinkId}` | - | `GlobalNetworkId`, `LinkId` | - | `UpdateLinkResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the details for an existing link. To remove information for any of the parameters, specify an empty string. |
-| `UpdateNetworkResourceMetadata` | `PATCH /global-networks/{GlobalNetworkId}/network-resources/{ResourceArn}/metadata` | - | `GlobalNetworkId`, `Metadata`, `ResourceArn` | - | `UpdateNetworkResourceMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the resource metadata for the specified global network. |
+| `UpdateNetworkResourceMetadata` | `PATCH /global-networks/{GlobalNetworkId}/network-resources/{ResourceArn}/metadata` | - | `GlobalNetworkId`, `ResourceArn`, `Metadata` | - | `UpdateNetworkResourceMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the resource metadata for the specified global network. |
 | `UpdateSite` | `PATCH /global-networks/{GlobalNetworkId}/sites/{SiteId}` | - | `GlobalNetworkId`, `SiteId` | - | `UpdateSiteResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the information for an existing site. To remove information for any of the parameters, specify an empty string. |
 | `UpdateVpcAttachment` | `PATCH /vpc-attachments/{AttachmentId}` | - | `AttachmentId` | - | `UpdateVpcAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a VPC attachment. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeGlobalNetworks` | - | `GlobalNetworkIds -> globalNetworkIds`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DisassociateLink` | - | `DeviceId -> deviceId`, `LinkId -> linkId` | - | - |
+| `GetConnections` | - | `ConnectionIds -> connectionIds`, `DeviceId -> deviceId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetConnectPeerAssociations` | - | `ConnectPeerIds -> connectPeerIds`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCoreNetworkChangeEvents` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCoreNetworkChangeSet` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCoreNetworkPolicy` | - | `PolicyVersionId -> policyVersionId`, `Alias -> alias` | - | - |
+| `GetCustomerGatewayAssociations` | - | `CustomerGatewayArns -> customerGatewayArns`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetDevices` | - | `DeviceIds -> deviceIds`, `SiteId -> siteId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetLinkAssociations` | - | `DeviceId -> deviceId`, `LinkId -> linkId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetLinks` | - | `LinkIds -> linkIds`, `SiteId -> siteId`, `Type -> type`, `Provider -> provider`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetNetworkResourceCounts` | - | `ResourceType -> resourceType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetNetworkResourceRelationships` | - | `CoreNetworkId -> coreNetworkId`, `RegisteredGatewayArn -> registeredGatewayArn`, `AwsRegion -> awsRegion`, `AccountId -> accountId`, `ResourceType -> resourceType`, `ResourceArn -> resourceArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetNetworkResources` | - | `CoreNetworkId -> coreNetworkId`, `RegisteredGatewayArn -> registeredGatewayArn`, `AwsRegion -> awsRegion`, `AccountId -> accountId`, `ResourceType -> resourceType`, `ResourceArn -> resourceArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetNetworkTelemetry` | - | `CoreNetworkId -> coreNetworkId`, `RegisteredGatewayArn -> registeredGatewayArn`, `AwsRegion -> awsRegion`, `AccountId -> accountId`, `ResourceType -> resourceType`, `ResourceArn -> resourceArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetSites` | - | `SiteIds -> siteIds`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetTransitGatewayConnectPeerAssociations` | - | `TransitGatewayConnectPeerArns -> transitGatewayConnectPeerArns`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetTransitGatewayRegistrations` | - | `TransitGatewayArns -> transitGatewayArns`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListAttachmentRoutingPolicyAssociations` | - | `AttachmentId -> attachmentId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListAttachments` | - | `CoreNetworkId -> coreNetworkId`, `AttachmentType -> attachmentType`, `EdgeLocation -> edgeLocation`, `State -> state`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListConnectPeers` | - | `CoreNetworkId -> coreNetworkId`, `ConnectAttachmentId -> connectAttachmentId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCoreNetworkPolicyVersions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCoreNetworkPrefixListAssociations` | - | `PrefixListArn -> prefixListArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCoreNetworkRoutingInformation` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCoreNetworks` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListOrganizationServiceAccessStatus` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPeerings` | - | `CoreNetworkId -> coreNetworkId`, `PeeringType -> peeringType`, `EdgeLocation -> edgeLocation`, `State -> state`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `Message`, `RetryAfterSeconds` | The request has failed due to an internal error. |
-| `ThrottlingException` | `structure` | `Message`, `RetryAfterSeconds` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Fields`, `Message`, `Reason` | The input fails to satisfy the constraints. |
-| `ResourceNotFoundException` | `structure` | `Context`, `Message`, `ResourceId`, `ResourceType` | The specified resource could not be found. |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | There was a conflict processing the request. |
-| `ServiceQuotaExceededException` | `structure` | `LimitCode`, `Message`, `ResourceId`, `ResourceType`, `ServiceCode` | A service limit was exceeded. |
-| `CoreNetworkPolicyException` | `structure` | `Errors`, `Message` | Describes a core network policy exception. |
-| `AcceptAttachmentRequest` | `structure` | `AttachmentId` | - |
-| `AcceptAttachmentResponse` | `structure` | `Attachment` | - |
-| `AssociateConnectPeerRequest` | `structure` | `ConnectPeerId`, `DeviceId`, `GlobalNetworkId`, `LinkId` | - |
-| `AssociateConnectPeerResponse` | `structure` | `ConnectPeerAssociation` | - |
-| `AssociateCustomerGatewayRequest` | `structure` | `CustomerGatewayArn`, `DeviceId`, `GlobalNetworkId`, `LinkId` | - |
-| `AssociateCustomerGatewayResponse` | `structure` | `CustomerGatewayAssociation` | - |
-| `AssociateLinkRequest` | `structure` | `DeviceId`, `GlobalNetworkId`, `LinkId` | - |
-| `AssociateLinkResponse` | `structure` | `LinkAssociation` | - |
-| `AssociateTransitGatewayConnectPeerRequest` | `structure` | `DeviceId`, `GlobalNetworkId`, `LinkId`, `TransitGatewayConnectPeerArn` | - |
-| `AssociateTransitGatewayConnectPeerResponse` | `structure` | `TransitGatewayConnectPeerAssociation` | - |
-| `CreateConnectAttachmentRequest` | `structure` | `ClientToken`, `CoreNetworkId`, `EdgeLocation`, `Options`, `RoutingPolicyLabel`, `Tags`, `TransportAttachmentId` | - |
-| `CreateConnectAttachmentResponse` | `structure` | `ConnectAttachment` | - |
-| `CreateConnectPeerRequest` | `structure` | `BgpOptions`, `ClientToken`, `ConnectAttachmentId`, `CoreNetworkAddress`, `InsideCidrBlocks`, `PeerAddress`, `SubnetArn`, `Tags` | - |
-| `CreateConnectPeerResponse` | `structure` | `ConnectPeer` | - |
-| `CreateConnectionRequest` | `structure` | `ConnectedDeviceId`, `ConnectedLinkId`, `Description`, `DeviceId`, `GlobalNetworkId`, `LinkId`, `Tags` | - |
-| `CreateConnectionResponse` | `structure` | `Connection` | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | There was a conflict processing the request. Updating or deleting the resource can cause an inconsistent state. |
+| `CoreNetworkPolicyException` | `structure` | Message, Errors | Describes a core network policy exception. |
+| `InternalServerException` | `structure` | Message, RetryAfterSeconds | The request has failed due to an internal error. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType, Context | The specified resource could not be found. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, LimitCode, ServiceCode | A service limit was exceeded. |
+| `ThrottlingException` | `structure` | Message, RetryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message, Reason, Fields | The input fails to satisfy the constraints. |
+| `AcceptAttachmentRequest` | `structure` | AttachmentId | - |
+| `AcceptAttachmentResponse` | `structure` | Attachment | - |
+| `AssociateConnectPeerRequest` | `structure` | GlobalNetworkId, ConnectPeerId, DeviceId, LinkId | - |
+| `AssociateConnectPeerResponse` | `structure` | ConnectPeerAssociation | - |
+| `AssociateCustomerGatewayRequest` | `structure` | CustomerGatewayArn, GlobalNetworkId, DeviceId, LinkId | - |
+| `AssociateCustomerGatewayResponse` | `structure` | CustomerGatewayAssociation | - |
+| `AssociateLinkRequest` | `structure` | GlobalNetworkId, DeviceId, LinkId | - |
+| `AssociateLinkResponse` | `structure` | LinkAssociation | - |
+| `AssociateTransitGatewayConnectPeerRequest` | `structure` | GlobalNetworkId, TransitGatewayConnectPeerArn, DeviceId, LinkId | - |
+| `AssociateTransitGatewayConnectPeerResponse` | `structure` | TransitGatewayConnectPeerAssociation | - |
+| `CreateConnectAttachmentRequest` | `structure` | CoreNetworkId, EdgeLocation, TransportAttachmentId, RoutingPolicyLabel, Options, Tags, ClientToken | - |
+| `CreateConnectAttachmentResponse` | `structure` | ConnectAttachment | - |
+| `CreateConnectionRequest` | `structure` | GlobalNetworkId, DeviceId, ConnectedDeviceId, LinkId, ConnectedLinkId, Description, Tags | - |
+| `CreateConnectionResponse` | `structure` | Connection | - |
+| `CreateConnectPeerRequest` | `structure` | ConnectAttachmentId, CoreNetworkAddress, PeerAddress, BgpOptions, InsideCidrBlocks, Tags, ClientToken, SubnetArn | - |
+| `CreateConnectPeerResponse` | `structure` | ConnectPeer | - |
+| `CreateCoreNetworkRequest` | `structure` | GlobalNetworkId, Description, Tags, PolicyDocument, ClientToken | - |
+| `CreateCoreNetworkResponse` | `structure` | CoreNetwork | - |
+| `CreateCoreNetworkPrefixListAssociationRequest` | `structure` | CoreNetworkId, PrefixListArn, PrefixListAlias, ClientToken | - |
+| `CreateCoreNetworkPrefixListAssociationResponse` | `structure` | CoreNetworkId, PrefixListArn, PrefixListAlias | - |
+| `CreateDeviceRequest` | `structure` | GlobalNetworkId, AWSLocation, Description, Type, Vendor, Model, SerialNumber, Location, SiteId, Tags | - |
+| `CreateDeviceResponse` | `structure` | Device | - |
+| `CreateDirectConnectGatewayAttachmentRequest` | `structure` | CoreNetworkId, DirectConnectGatewayArn, RoutingPolicyLabel, EdgeLocations, Tags, ClientToken | - |
+| `CreateDirectConnectGatewayAttachmentResponse` | `structure` | DirectConnectGatewayAttachment | - |
+| `CreateGlobalNetworkRequest` | `structure` | Description, Tags | - |
+| `CreateGlobalNetworkResponse` | `structure` | GlobalNetwork | - |
+| `CreateLinkRequest` | `structure` | GlobalNetworkId, Description, Type, Bandwidth, Provider, SiteId, Tags | - |
+| `CreateLinkResponse` | `structure` | Link | - |
+| `CreateSiteRequest` | `structure` | GlobalNetworkId, Description, Location, Tags | - |
+| `CreateSiteResponse` | `structure` | Site | - |
+| `CreateSiteToSiteVpnAttachmentRequest` | `structure` | CoreNetworkId, VpnConnectionArn, RoutingPolicyLabel, Tags, ClientToken | - |
+| `CreateSiteToSiteVpnAttachmentResponse` | `structure` | SiteToSiteVpnAttachment | - |
+| `AttachmentErrorCode` | `enum` | VPC_NOT_FOUND, SUBNET_NOT_FOUND, SUBNET_DUPLICATED_IN_AVAILABILITY_ZONE, SUBNET_NO_FREE_ADDRESSES, SUBNET_UNSUPPORTED_AVAILABILITY_ZONE, SUBNET_NO_IPV6_CIDRS, VPN_CONNECTION_NOT_FOUND, MAXIMUM_NO_ENCAP_LIMIT_EXCEEDED, DIRECT_CONNECT_GATEWAY_NOT_FOUND, DIRECT_CONNECT_GATEWAY_EXISTING_ATTACHMENTS, DIRECT_CONNECT_GATEWAY_NO_PRIVATE_VIF, VPN_EXISTING_ASSOCIATIONS, ... (+1) | - |
+| `AttachmentState` | `enum` | REJECTED, PENDING_ATTACHMENT_ACCEPTANCE, CREATING, FAILED, AVAILABLE, UPDATING, PENDING_NETWORK_UPDATE, PENDING_TAG_ACCEPTANCE, DELETING | - |
+| `AttachmentType` | `enum` | CONNECT, SITE_TO_SITE_VPN, VPC, DIRECT_CONNECT_GATEWAY, TRANSIT_GATEWAY_ROUTE_TABLE | - |
+| `ChangeAction` | `enum` | ADD, MODIFY, REMOVE | - |
+| `ChangeSetState` | `enum` | PENDING_GENERATION, FAILED_GENERATION, READY_TO_EXECUTE, EXECUTING, EXECUTION_SUCCEEDED, OUT_OF_DATE | - |
+| `ChangeStatus` | `enum` | NOT_STARTED, IN_PROGRESS, COMPLETE, FAILED | - |
+| `ChangeType` | `enum` | CORE_NETWORK_SEGMENT, NETWORK_FUNCTION_GROUP, CORE_NETWORK_EDGE, ATTACHMENT_MAPPING, ATTACHMENT_ROUTE_PROPAGATION, ATTACHMENT_ROUTE_STATIC, ROUTING_POLICY, ROUTING_POLICY_SEGMENT_ASSOCIATION, ROUTING_POLICY_EDGE_ASSOCIATION, ROUTING_POLICY_ATTACHMENT_ASSOCIATION, CORE_NETWORK_CONFIGURATION, SEGMENTS_CONFIGURATION, ... (+2) | - |
+| `ConnectPeerAssociationState` | `enum` | pending, available, deleting, deleted | - |
+| `ConnectPeerErrorCode` | `enum` | EDGE_LOCATION_NO_FREE_IPS, EDGE_LOCATION_PEER_DUPLICATE, SUBNET_NOT_FOUND, IP_OUTSIDE_SUBNET_CIDR_RANGE, INVALID_INSIDE_CIDR_BLOCK, NO_ASSOCIATED_CIDR_BLOCK | - |
+| `ConnectPeerState` | `enum` | CREATING, FAILED, AVAILABLE, DELETING | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

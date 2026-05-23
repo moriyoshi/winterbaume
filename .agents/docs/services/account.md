@@ -71,97 +71,28 @@ Parity implications:
 
 ## Operation Groups
 
-### Get
-
-- Operations: `GetAccountInformation`, `GetAlternateContact`, `GetContactInformation`, `GetGovCloudAccountInformation`, `GetPrimaryEmail`, `GetRegionOptStatus`
-- Traits: `readonly` (6)
-- Common required input members in this group: `AccountId`, `AlternateContactType`, `RegionName`
-
-### Put
-
-- Operations: `PutAccountName`, `PutAlternateContact`, `PutContactInformation`
-- Traits: `idempotent` (3)
-- Common required input members in this group: `AccountName`, `AlternateContactType`, `ContactInformation`, `EmailAddress`, `Name`, `PhoneNumber`, `Title`
-
-### Accept
-
-- Operations: `AcceptPrimaryEmailUpdate`
-- Common required input members in this group: `AccountId`, `Otp`, `PrimaryEmail`
-
-### Delete
-
-- Operations: `DeleteAlternateContact`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `AlternateContactType`
-
-### Disable
-
-- Operations: `DisableRegion`
-- Common required input members in this group: `RegionName`
-
-### Enable
-
-- Operations: `EnableRegion`
-- Common required input members in this group: `RegionName`
-
-### List
-
-- Operations: `ListRegions`
-- Traits: `paginated` (1), `readonly` (1)
-
-### Start
-
-- Operations: `StartPrimaryEmailUpdate`
-- Common required input members in this group: `AccountId`, `PrimaryEmail`
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptPrimaryEmailUpdate` | `POST /acceptPrimaryEmailUpdate` | - | `AccountId`, `Otp`, `PrimaryEmail` | - | `AcceptPrimaryEmailUpdateResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Accepts the request that originated from StartPrimaryEmailUpdate to update the primary email address (also known as the root user email address) for the specified account. |
-| `DeleteAlternateContact` | `POST /deleteAlternateContact` | `idempotent` | `AlternateContactType` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Deletes the specified alternate contact from an Amazon Web Services account. For complete details about how to use the alternate contact operations, see Update the alternate contacts for your Amazon Web Services account. |
-| `DisableRegion` | `POST /disableRegion` | - | `RegionName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `TooManyRequestsException`, `ValidationException` | Disables (opts-out) a particular Region for an account. The act of disabling a Region will remove all IAM access to any resources that reside in that Region. |
-| `EnableRegion` | `POST /enableRegion` | - | `RegionName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `TooManyRequestsException`, `ValidationException` | Enables (opts-in) a particular Region for an account. |
-| `GetAccountInformation` | `POST /getAccountInformation` | `readonly` | - | - | `GetAccountInformationResponse` | `AccessDeniedException`, `InternalServerException`, `TooManyRequestsException`, `ValidationException` | Retrieves information about the specified account including its account name, account ID, and account creation date and time. To use this API, an IAM user or role must have the `account:GetAccountInformation` IAM permission. |
-| `GetAlternateContact` | `POST /getAlternateContact` | `readonly` | `AlternateContactType` | - | `GetAlternateContactResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Retrieves the specified alternate contact attached to an Amazon Web Services account. For complete details about how to use the alternate contact operations, see Update the alternate contacts for your Amazon Web Services account. |
-| `GetContactInformation` | `POST /getContactInformation` | `readonly` | - | - | `GetContactInformationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Retrieves the primary contact information of an Amazon Web Services account. For complete details about how to use the primary contact operations, see Update the primary contact for your Amazon Web Services account. |
-| `GetGovCloudAccountInformation` | `POST /getGovCloudAccountInformation` | `readonly` | - | - | `GetGovCloudAccountInformationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ResourceUnavailableException`, `TooManyRequestsException`, `ValidationException` | Retrieves information about the GovCloud account linked to the specified standard account (if it exists) including the GovCloud account ID and state. To use this API, an IAM user or role must have the `account:GetGovCloudAccountInformation` IAM permission. |
-| `GetPrimaryEmail` | `POST /getPrimaryEmail` | `readonly` | `AccountId` | - | `GetPrimaryEmailResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Retrieves the primary email address for the specified account. |
-| `GetRegionOptStatus` | `POST /getRegionOptStatus` | `readonly` | `RegionName` | - | `GetRegionOptStatusResponse` | `AccessDeniedException`, `InternalServerException`, `TooManyRequestsException`, `ValidationException` | Retrieves the opt-in status of a particular Region. |
-| `ListRegions` | `POST /listRegions` | `readonly`, `paginated` | - | - | `ListRegionsResponse` | `AccessDeniedException`, `InternalServerException`, `TooManyRequestsException`, `ValidationException` | Lists all the Regions for a given account and their respective opt-in statuses. Optionally, this list can be filtered by the `region-opt-status-contains` parameter. |
-| `PutAccountName` | `POST /putAccountName` | `idempotent` | `AccountName` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `TooManyRequestsException`, `ValidationException` | Updates the account name of the specified account. To use this API, IAM principals must have the `account:PutAccountName` IAM permission. |
-| `PutAlternateContact` | `POST /putAlternateContact` | `idempotent` | `AlternateContactType`, `EmailAddress`, `Name`, `PhoneNumber`, `Title` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `TooManyRequestsException`, `ValidationException` | Modifies the specified alternate contact attached to an Amazon Web Services account. For complete details about how to use the alternate contact operations, see Update the alternate contacts for your Amazon Web Services account. |
-| `PutContactInformation` | `POST /putContactInformation` | `idempotent` | `ContactInformation` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `TooManyRequestsException`, `ValidationException` | Updates the primary contact information of an Amazon Web Services account. For complete details about how to use the primary contact operations, see Update the primary contact for your Amazon Web Services account. |
-| `StartPrimaryEmailUpdate` | `POST /startPrimaryEmailUpdate` | - | `AccountId`, `PrimaryEmail` | - | `StartPrimaryEmailUpdateResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `TooManyRequestsException`, `ValidationException` | Starts the process to update the primary email address for the specified account. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `errorType`, `message` | The operation failed because the calling identity doesn't have the minimum required permissions. |
-| `InternalServerException` | `structure` | `errorType`, `message` | The operation failed because of an error internal to Amazon Web Services. |
-| `TooManyRequestsException` | `structure` | `errorType`, `message` | The operation failed because it was called too frequently and exceeded a throttle limit. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The operation failed because one of the input parameters was invalid. |
-| `ResourceNotFoundException` | `structure` | `errorType`, `message` | The operation failed because it specified a resource that can't be found. |
-| `ConflictException` | `structure` | `errorType`, `message` | The request could not be processed because of a conflict in the current status of the resource. |
-| `AcceptPrimaryEmailUpdateRequest` | `structure` | `AccountId`, `Otp`, `PrimaryEmail` | - |
-| `AcceptPrimaryEmailUpdateResponse` | `structure` | `Status` | - |
-| `DeleteAlternateContactRequest` | `structure` | `AccountId`, `AlternateContactType` | - |
-| `DisableRegionRequest` | `structure` | `AccountId`, `RegionName` | - |
-| `EnableRegionRequest` | `structure` | `AccountId`, `RegionName` | - |
-| `GetAccountInformationRequest` | `structure` | `AccountId` | - |
-| `GetAccountInformationResponse` | `structure` | `AccountCreatedDate`, `AccountId`, `AccountName` | - |
-| `GetAlternateContactRequest` | `structure` | `AccountId`, `AlternateContactType` | - |
-| `GetAlternateContactResponse` | `structure` | `AlternateContact` | - |
-| `GetContactInformationRequest` | `structure` | `AccountId` | - |
-| `GetContactInformationResponse` | `structure` | `ContactInformation` | - |
-| `GetGovCloudAccountInformationRequest` | `structure` | `StandardAccountId` | - |
-| `GetGovCloudAccountInformationResponse` | `structure` | `AccountState`, `GovCloudAccountId` | - |
-| `ResourceUnavailableException` | `structure` | `errorType`, `message` | The operation failed because it specified a resource that is not currently available. |
-| `GetPrimaryEmailRequest` | `structure` | `AccountId` | - |
-| `GetPrimaryEmailResponse` | `structure` | `PrimaryEmail` | - |
-| `GetRegionOptStatusRequest` | `structure` | `AccountId`, `RegionName` | - |
-
+| `AccessDeniedException` | `structure` | message, errorType | The operation failed because the calling identity doesn't have the minimum required permissions. |
+| `ConflictException` | `structure` | message, errorType | The request could not be processed because of a conflict in the current status of the resource. For example, this happens if you try to enable a Region that ... |
+| `InternalServerException` | `structure` | message, errorType | The operation failed because of an error internal to Amazon Web Services. Try your operation again later. |
+| `ResourceNotFoundException` | `structure` | message, errorType | The operation failed because it specified a resource that can't be found. |
+| `ResourceUnavailableException` | `structure` | message, errorType | The operation failed because it specified a resource that is not currently available. |
+| `TooManyRequestsException` | `structure` | message, errorType | The operation failed because it was called too frequently and exceeded a throttle limit. |
+| `ValidationException` | `structure` | message, reason, fieldList | The operation failed because one of the input parameters was invalid. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

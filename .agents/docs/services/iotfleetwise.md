@@ -57,170 +57,128 @@ Amazon Web Services IoT FleetWise is a fully managed service that you can use to
 | `VehicleResource` | `vehicleName` | put: `CreateVehicle`; read: `GetVehicle`; update: `UpdateVehicle`; delete: `DeleteVehicle`; list: `ListVehicles` | `AssociateVehicleFleet`, `DisassociateVehicleFleet` | - |
 ## Operation Groups
 
-### List
-
-- Operations: `ListCampaigns`, `ListDecoderManifestNetworkInterfaces`, `ListDecoderManifestSignals`, `ListDecoderManifests`, `ListFleets`, `ListFleetsForVehicle`, `ListModelManifestNodes`, `ListModelManifests`, `ListSignalCatalogNodes`, `ListSignalCatalogs`, `ListStateTemplates`, `ListTagsForResource`, `ListVehicles`, `ListVehiclesInFleet`
-- Traits: `paginated` (13), `readonly` (14)
-- Common required input members in this group: `ResourceARN`, `fleetId`, `name`, `vehicleName`
-
 ### Get
 
-- Operations: `GetCampaign`, `GetDecoderManifest`, `GetEncryptionConfiguration`, `GetFleet`, `GetLoggingOptions`, `GetModelManifest`, `GetRegisterAccountStatus`, `GetSignalCatalog`, `GetStateTemplate`, `GetVehicle`, `GetVehicleStatus`
-- Traits: `paginated` (1), `readonly` (11)
-- Common required input members in this group: `fleetId`, `identifier`, `name`, `vehicleName`
-
-### Create
-
-- Operations: `CreateCampaign`, `CreateDecoderManifest`, `CreateFleet`, `CreateModelManifest`, `CreateSignalCatalog`, `CreateStateTemplate`, `CreateVehicle`
-- Traits: `idempotent` (7)
-- Common required input members in this group: `collectionScheme`, `decoderManifestArn`, `fleetId`, `modelManifestArn`, `name`, `nodes`, `signalCatalogArn`, `stateTemplateProperties`, `targetArn`, `vehicleName`
-
-### Delete
-
-- Operations: `DeleteCampaign`, `DeleteDecoderManifest`, `DeleteFleet`, `DeleteModelManifest`, `DeleteSignalCatalog`, `DeleteStateTemplate`, `DeleteVehicle`
-- Traits: `idempotent` (7)
-- Common required input members in this group: `fleetId`, `identifier`, `name`, `vehicleName`
-
-### Update
-
-- Operations: `UpdateCampaign`, `UpdateDecoderManifest`, `UpdateFleet`, `UpdateModelManifest`, `UpdateSignalCatalog`, `UpdateStateTemplate`, `UpdateVehicle`
-- Traits: `idempotent` (4)
-- Common required input members in this group: `action`, `fleetId`, `identifier`, `name`, `vehicleName`
+- Operations: `GetEncryptionConfiguration`, `GetLoggingOptions`, `GetRegisterAccountStatus`, `GetVehicleStatus`
+- Traits: `readonly` (4), `paginated` (1)
+- Common required input members in this group: -
 
 ### Batch
 
 - Operations: `BatchCreateVehicle`, `BatchUpdateVehicle`
 - Common required input members in this group: `vehicles`
 
-### Import
-
-- Operations: `ImportDecoderManifest`, `ImportSignalCatalog`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `name`, `networkFileDefinitions`
-
 ### Put
 
 - Operations: `PutEncryptionConfiguration`, `PutLoggingOptions`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `cloudWatchLogDelivery`, `encryptionType`
+- Common required input members in this group: -
 
-### Associate
+### List
 
-- Operations: `AssociateVehicleFleet`
-- Common required input members in this group: `fleetId`, `vehicleName`
-
-### Disassociate
-
-- Operations: `DisassociateVehicleFleet`
-- Common required input members in this group: `fleetId`, `vehicleName`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterAccount`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateVehicleFleet` | `PUT /vehicles/{vehicleName}/associate` | - | `fleetId`, `vehicleName` | - | `AssociateVehicleFleetResponse` | `AccessDeniedException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds, or associates, a vehicle with a fleet. |
-| `BatchCreateVehicle` | `POST /vehicles` | - | `vehicles` | - | `BatchCreateVehicleResponse` | `AccessDeniedException`, `InternalServerException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a group, or batch, of vehicles. You must specify a decoder manifest and a vehicle model (model manifest) for each vehicle. |
-| `BatchUpdateVehicle` | `PUT /vehicles` | - | `vehicles` | - | `BatchUpdateVehicleResponse` | `AccessDeniedException`, `InternalServerException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Updates a group, or batch, of vehicles. You must specify a decoder manifest and a vehicle model (model manifest) for each vehicle. |
-| `CreateCampaign` | `POST /campaigns/{name}` | `idempotent` | `collectionScheme`, `name`, `signalCatalogArn`, `targetArn` | - | `CreateCampaignResponse` | `AccessDeniedException`, `ConflictException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates an orchestration of data collection rules. The Amazon Web Services IoT FleetWise Edge Agent software running in vehicles uses campaigns to decide how to collect and transfer data to the cloud. |
-| `CreateDecoderManifest` | `POST /decoder-manifests/{name}` | `idempotent` | `modelManifestArn`, `name` | - | `CreateDecoderManifestResponse` | `AccessDeniedException`, `ConflictException`, `DecoderManifestValidationException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates the decoder manifest associated with a model manifest. To create a decoder manifest, the following must be true: Every signal decoder has a unique name. |
-| `CreateFleet` | `POST /fleets/{fleetId}` | `idempotent` | `fleetId`, `signalCatalogArn` | - | `CreateFleetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a fleet that represents a group of vehicles. You must create both a signal catalog and vehicles before you can create a fleet. |
-| `CreateModelManifest` | `POST /model-manifests/{name}` | `idempotent` | `name`, `nodes`, `signalCatalogArn` | - | `CreateModelManifestResponse` | `AccessDeniedException`, `ConflictException`, `InvalidSignalsException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a vehicle model (model manifest) that specifies signals (attributes, branches, sensors, and actuators). For more information, see Vehicle models in the Amazon Web Services IoT FleetWise Developer Guide . |
-| `CreateSignalCatalog` | `POST /signal-catalogs/{name}` | `idempotent` | `name` | - | `CreateSignalCatalogResponse` | `AccessDeniedException`, `ConflictException`, `InvalidNodeException`, `InvalidSignalsException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a collection of standardized signals that can be reused to create vehicle models. |
-| `CreateStateTemplate` | `POST /state-templates/{name}` | `idempotent` | `name`, `signalCatalogArn`, `stateTemplateProperties` | - | `CreateStateTemplateResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidSignalsException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a state template. State templates contain state properties, which are signals that belong to a signal catalog that is synchronized between the Amazon Web Services IoT FleetWise Edge and the Amazon Web Services Cloud. |
-| `CreateVehicle` | `POST /vehicles/{vehicleName}` | `idempotent` | `decoderManifestArn`, `modelManifestArn`, `vehicleName` | - | `CreateVehicleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a vehicle, which is an instance of a vehicle model (model manifest). Vehicles created from the same vehicle model consist of the same signals inherited from the vehicle model. |
-| `DeleteCampaign` | `DELETE /campaigns/{name}` | `idempotent` | `name` | - | `DeleteCampaignResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a data collection campaign. Deleting a campaign suspends all data collection and removes it from any vehicles. |
-| `DeleteDecoderManifest` | `DELETE /decoder-manifests/{name}` | `idempotent` | `name` | - | `DeleteDecoderManifestResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a decoder manifest. You can't delete a decoder manifest if it has vehicles associated with it. |
-| `DeleteFleet` | `DELETE /fleets/{fleetId}` | `idempotent` | `fleetId` | - | `DeleteFleetResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a fleet. Before you delete a fleet, all vehicles must be dissociated from the fleet. |
-| `DeleteModelManifest` | `DELETE /model-manifests/{name}` | `idempotent` | `name` | - | `DeleteModelManifestResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a vehicle model (model manifest). |
-| `DeleteSignalCatalog` | `DELETE /signal-catalogs/{name}` | `idempotent` | `name` | - | `DeleteSignalCatalogResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a signal catalog. |
-| `DeleteStateTemplate` | `DELETE /state-templates/{identifier}` | `idempotent` | `identifier` | - | `DeleteStateTemplateResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a state template. |
-| `DeleteVehicle` | `DELETE /vehicles/{vehicleName}` | `idempotent` | `vehicleName` | - | `DeleteVehicleResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Deletes a vehicle and removes it from any campaigns. |
-| `DisassociateVehicleFleet` | `PUT /vehicles/{vehicleName}/disassociate` | - | `fleetId`, `vehicleName` | - | `DisassociateVehicleFleetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes, or disassociates, a vehicle from a fleet. Disassociating a vehicle from a fleet doesn't delete the vehicle. |
-| `GetCampaign` | `GET /campaigns/{name}` | `readonly` | `name` | - | `GetCampaignResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a campaign. Access to certain Amazon Web Services IoT FleetWise features is currently gated. |
-| `GetDecoderManifest` | `GET /decoder-manifests/{name}` | `readonly` | `name` | - | `GetDecoderManifestResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a created decoder manifest. |
+| `BatchCreateVehicle` | `POST /vehicles` | - | `vehicles` | - | `BatchCreateVehicleResponse` | `AccessDeniedException`, `InternalServerException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a group, or batch, of vehicles. You must specify a decoder manifest and a vehicle model (model manifest) for each vehicle. For more information, see Create multiple vehicles (AWS CLI) in the Amazon Web Servic ... |
+| `BatchUpdateVehicle` | `PUT /vehicles` | - | `vehicles` | - | `BatchUpdateVehicleResponse` | `AccessDeniedException`, `InternalServerException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Updates a group, or batch, of vehicles. You must specify a decoder manifest and a vehicle model (model manifest) for each vehicle. For more information, see Update multiple vehicles (AWS CLI) in the Amazon Web Servic ... |
 | `GetEncryptionConfiguration` | `GET /encryptionConfiguration` | `readonly` | - | - | `GetEncryptionConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the encryption configuration for resources and data in Amazon Web Services IoT FleetWise. |
-| `GetFleet` | `GET /fleets/{fleetId}` | `readonly` | `fleetId` | - | `GetFleetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a fleet. |
 | `GetLoggingOptions` | `GET /loggingOptions` | `readonly` | - | - | `GetLoggingOptionsResponse` | `AccessDeniedException`, `ThrottlingException` | Retrieves the logging options. |
-| `GetModelManifest` | `GET /model-manifests/{name}` | `readonly` | `name` | - | `GetModelManifestResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a vehicle model (model manifest). |
-| `GetRegisterAccountStatus` | `GET /account/registration_status` | `readonly` | - | - | `GetRegisterAccountStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the status of registering your Amazon Web Services account, IAM, and Amazon Timestream resources so that Amazon Web Services IoT FleetWise can transfer your vehicle data to the Amazon Web Services Cloud. For more information... |
-| `GetSignalCatalog` | `GET /signal-catalogs/{name}` | `readonly` | `name` | - | `GetSignalCatalogResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a signal catalog. |
-| `GetStateTemplate` | `GET /state-templates/{identifier}` | `readonly` | `identifier` | - | `GetStateTemplateResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a state template. Access to certain Amazon Web Services IoT FleetWise features is currently gated. |
-| `GetVehicle` | `GET /vehicles/{vehicleName}` | `readonly` | `vehicleName` | - | `GetVehicleResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a vehicle. |
+| `GetRegisterAccountStatus` | `GET /account/registration_status` | `readonly` | - | - | `GetRegisterAccountStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the status of registering your Amazon Web Services account, IAM, and Amazon Timestream resources so that Amazon Web Services IoT FleetWise can transfer your vehicle data to the Amazon Web ... |
 | `GetVehicleStatus` | `GET /vehicles/{vehicleName}/status` | `readonly`, `paginated` | `vehicleName` | - | `GetVehicleStatusResponse` | `AccessDeniedException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the status of campaigns, decoder manifests, or state templates associated with a vehicle. |
-| `ImportDecoderManifest` | `PUT /decoder-manifests/{name}` | - | `name`, `networkFileDefinitions` | - | `ImportDecoderManifestResponse` | `AccessDeniedException`, `ConflictException`, `DecoderManifestValidationException`, `InvalidSignalsException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a decoder manifest using your existing CAN DBC file from your local device. The CAN signal name must be unique and not repeated across CAN message definitions in a .dbc file. |
-| `ImportSignalCatalog` | `PUT /signal-catalogs/{name}/nodes` | `idempotent` | `name` | - | `ImportSignalCatalogResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidSignalsException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a signal catalog using your existing VSS formatted content from your local device. |
-| `ListCampaigns` | `GET /campaigns` | `readonly`, `paginated` | - | - | `ListCampaignsResponse` | `AccessDeniedException`, `ThrottlingException`, `ValidationException` | Lists information about created campaigns. This API operation uses pagination. |
-| `ListDecoderManifestNetworkInterfaces` | `GET /decoder-manifests/{name}/network-interfaces` | `readonly`, `paginated` | `name` | - | `ListDecoderManifestNetworkInterfacesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the network interfaces specified in a decoder manifest. This API operation uses pagination. |
-| `ListDecoderManifestSignals` | `GET /decoder-manifests/{name}/signals` | `readonly`, `paginated` | `name` | - | `ListDecoderManifestSignalsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | A list of information about signal decoders specified in a decoder manifest. This API operation uses pagination. |
-| `ListDecoderManifests` | `GET /decoder-manifests` | `readonly`, `paginated` | - | - | `ListDecoderManifestsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists decoder manifests. This API operation uses pagination. |
-| `ListFleets` | `GET /fleets` | `readonly`, `paginated` | - | - | `ListFleetsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information for each created fleet in an Amazon Web Services account. This API operation uses pagination. |
-| `ListFleetsForVehicle` | `GET /vehicles/{vehicleName}/fleets` | `readonly`, `paginated` | `vehicleName` | - | `ListFleetsForVehicleResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a list of IDs for all fleets that the vehicle is associated with. This API operation uses pagination. |
-| `ListModelManifestNodes` | `GET /model-manifests/{name}/nodes` | `readonly`, `paginated` | `name` | - | `ListModelManifestNodesResponse` | `AccessDeniedException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists information about nodes specified in a vehicle model (model manifest). This API operation uses pagination. |
-| `ListModelManifests` | `GET /model-manifests` | `readonly`, `paginated` | - | - | `ListModelManifestsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of vehicle models (model manifests). This API operation uses pagination. |
-| `ListSignalCatalogNodes` | `GET /signal-catalogs/{name}/nodes` | `readonly`, `paginated` | `name` | - | `ListSignalCatalogNodesResponse` | `AccessDeniedException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists of information about the signals (nodes) specified in a signal catalog. This API operation uses pagination. |
-| `ListSignalCatalogs` | `GET /signal-catalogs` | `readonly`, `paginated` | - | - | `ListSignalCatalogsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all the created signal catalogs in an Amazon Web Services account. You can use to list information about each signal (node) specified in a signal catalog. |
-| `ListStateTemplates` | `GET /state-templates` | `readonly`, `paginated` | - | - | `ListStateTemplatesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists information about created state templates. Access to certain Amazon Web Services IoT FleetWise features is currently gated. |
 | `ListTagsForResource` | `GET /tags` | `readonly` | `ResourceARN` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags (metadata) you have assigned to the resource. |
-| `ListVehicles` | `GET /vehicles` | `readonly`, `paginated` | - | - | `ListVehiclesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of summaries of created vehicles. This API operation uses pagination. |
-| `ListVehiclesInFleet` | `GET /fleets/{fleetId}/vehicles` | `readonly`, `paginated` | `fleetId` | - | `ListVehiclesInFleetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a list of summaries of all vehicles associated with a fleet. This API operation uses pagination. |
-| `PutEncryptionConfiguration` | `POST /encryptionConfiguration` | - | `encryptionType` | - | `PutEncryptionConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates or updates the encryption configuration. Amazon Web Services IoT FleetWise can encrypt your data and resources using an Amazon Web Services managed key. |
+| `PutEncryptionConfiguration` | `POST /encryptionConfiguration` | - | `encryptionType` | - | `PutEncryptionConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates or updates the encryption configuration. Amazon Web Services IoT FleetWise can encrypt your data and resources using an Amazon Web Services managed key. Or, you can use a KMS key that you own and manage. For ... |
 | `PutLoggingOptions` | `PUT /loggingOptions` | `idempotent` | `cloudWatchLogDelivery` | - | `PutLoggingOptionsResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates or updates the logging option. |
-| `RegisterAccount` | `POST /account/registration` | - | - | - | `RegisterAccountResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This API operation contains deprecated parameters. Register your account again without the Timestream resources parameter so that Amazon Web Services IoT FleetWise can remove the Timestream metadata stored. |
+| `RegisterAccount` | `POST /account/registration` | - | - | - | `RegisterAccountResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This API operation contains deprecated parameters. Register your account again without the Timestream resources parameter so that Amazon Web Services IoT FleetWise can remove the Timestream metadata stored. You shoul ... |
 | `TagResource` | `POST /tags` | `idempotent` | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds to or modifies the tags of the given resource. Tags are metadata which can be used to manage a resource. |
 | `UntagResource` | `DELETE /tags` | `idempotent` | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the given tags (metadata) from the resource. |
-| `UpdateCampaign` | `PUT /campaigns/{name}` | - | `action`, `name` | - | `UpdateCampaignResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a campaign. |
-| `UpdateDecoderManifest` | `PATCH /decoder-manifests/{name}` | `idempotent` | `name` | - | `UpdateDecoderManifestResponse` | `AccessDeniedException`, `ConflictException`, `DecoderManifestValidationException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a decoder manifest. A decoder manifest can only be updated when the status is `DRAFT`. |
-| `UpdateFleet` | `PATCH /fleets/{fleetId}` | - | `fleetId` | - | `UpdateFleetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the description of an existing fleet. |
-| `UpdateModelManifest` | `PATCH /model-manifests/{name}` | `idempotent` | `name` | - | `UpdateModelManifestResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidSignalsException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a vehicle model (model manifest). If created vehicles are associated with a vehicle model, it can't be updated. |
-| `UpdateSignalCatalog` | `PATCH /signal-catalogs/{name}` | `idempotent` | `name` | - | `UpdateSignalCatalogResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidNodeException`, `InvalidSignalsException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, ... (+1) | Updates a signal catalog. |
-| `UpdateStateTemplate` | `PATCH /state-templates/{identifier}` | `idempotent` | `identifier` | - | `UpdateStateTemplateResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidSignalsException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a state template. Access to certain Amazon Web Services IoT FleetWise features is currently gated. |
-| `UpdateVehicle` | `PATCH /vehicles/{vehicleName}` | - | `vehicleName` | - | `UpdateVehicleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a vehicle. Access to certain Amazon Web Services IoT FleetWise features is currently gated. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetVehicleStatus` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListTagsForResource` | - | `ResourceARN -> resourceArn` | - | - |
+| `TagResource` | - | `ResourceARN -> resourceArn` | - | - |
+| `UntagResource` | - | `ResourceARN -> resourceArn`, `TagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient permission to perform this action. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The request couldn't be completed due to throttling. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | The request couldn't be completed because the server temporarily failed. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The resource wasn't found. |
-| `ConflictException` | `structure` | `message`, `resource`, `resourceType` | The request has conflicting operations. |
-| `LimitExceededException` | `structure` | `message`, `resourceId`, `resourceType` | A service quota was exceeded. |
-| `InvalidSignalsException` | `structure` | `invalidSignals`, `message` | The request couldn't be completed because it contains signals that aren't valid. |
-| `DecoderManifestValidationException` | `structure` | `invalidNetworkInterfaces`, `invalidSignals`, `message` | The request couldn't be completed because it contains signal decoders with one or more validation errors. |
-| `InvalidNodeException` | `structure` | `invalidNodes`, `message`, `reason` | The specified node type doesn't match the expected node type for a node. |
-| `AssociateVehicleFleetRequest` | `structure` | `fleetId`, `vehicleName` | - |
-| `AssociateVehicleFleetResponse` | `structure` | - | - |
-| `BatchCreateVehicleRequest` | `structure` | `vehicles` | - |
-| `BatchCreateVehicleResponse` | `structure` | `errors`, `vehicles` | - |
-| `BatchUpdateVehicleRequest` | `structure` | `vehicles` | - |
-| `BatchUpdateVehicleResponse` | `structure` | `errors`, `vehicles` | - |
-| `CreateCampaignRequest` | `structure` | `collectionScheme`, `compression`, `dataDestinationConfigs`, `dataExtraDimensions`, `dataPartitions`, `description`, `diagnosticsMode`, `expiryTime`, `name`, `postTriggerCollectionDuration`, `priority`, `signalCatalogArn`, ... (+6) | - |
-| `CreateCampaignResponse` | `structure` | `arn`, `name` | - |
-| `CreateDecoderManifestRequest` | `structure` | `defaultForUnmappedSignals`, `description`, `modelManifestArn`, `name`, `networkInterfaces`, `signalDecoders`, `tags` | - |
-| `CreateDecoderManifestResponse` | `structure` | `arn`, `name` | - |
-| `CreateFleetRequest` | `structure` | `description`, `fleetId`, `signalCatalogArn`, `tags` | - |
-| `CreateFleetResponse` | `structure` | `arn`, `id` | - |
-| `CreateModelManifestRequest` | `structure` | `description`, `name`, `nodes`, `signalCatalogArn`, `tags` | - |
-| `CreateModelManifestResponse` | `structure` | `arn`, `name` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient permission to perform this action. |
+| `ConflictException` | `structure` | message, resource, resourceType | The request has conflicting operations. This can occur if you're trying to perform more than one operation on the same resource at the same time. |
+| `DecoderManifestValidationException` | `structure` | invalidSignals, invalidNetworkInterfaces, message | The request couldn't be completed because it contains signal decoders with one or more validation errors. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | The request couldn't be completed because the server temporarily failed. |
+| `InvalidNodeException` | `structure` | invalidNodes, reason, message | The specified node type doesn't match the expected node type for a node. You can specify the node type as branch, sensor, actuator, or attribute. |
+| `InvalidSignalsException` | `structure` | message, invalidSignals | The request couldn't be completed because it contains signals that aren't valid. |
+| `LimitExceededException` | `structure` | message, resourceId, resourceType | A service quota was exceeded. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The resource wasn't found. |
+| `ThrottlingException` | `structure` | message, quotaCode, serviceCode, retryAfterSeconds | The request couldn't be completed due to throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `BatchCreateVehicleRequest` | `structure` | vehicles | - |
+| `BatchCreateVehicleResponse` | `structure` | vehicles, errors | - |
+| `BatchUpdateVehicleRequest` | `structure` | vehicles | - |
+| `BatchUpdateVehicleResponse` | `structure` | vehicles, errors | - |
+| `GetEncryptionConfigurationRequest` | `structure` | **empty (no members)** | - |
+| `GetEncryptionConfigurationResponse` | `structure` | kmsKeyId, encryptionStatus, encryptionType, errorMessage, creationTime, lastModificationTime | - |
+| `GetLoggingOptionsRequest` | `structure` | **empty (no members)** | - |
+| `GetLoggingOptionsResponse` | `structure` | cloudWatchLogDelivery | - |
+| `GetRegisterAccountStatusRequest` | `structure` | **empty (no members)** | - |
+| `GetRegisterAccountStatusResponse` | `structure` | customerAccountId, accountStatus, timestreamRegistrationResponse, iamRegistrationResponse, creationTime, lastModificationTime | - |
+| `GetVehicleStatusRequest` | `structure` | nextToken, maxResults, vehicleName | - |
+| `GetVehicleStatusResponse` | `structure` | campaigns, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceARN | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `PutEncryptionConfigurationRequest` | `structure` | kmsKeyId, encryptionType | - |
+| `PutEncryptionConfigurationResponse` | `structure` | kmsKeyId, encryptionStatus, encryptionType | - |
+| `PutLoggingOptionsRequest` | `structure` | cloudWatchLogDelivery | - |
+| `PutLoggingOptionsResponse` | `structure` | **empty (no members)** | - |
+| `RegisterAccountRequest` | `structure` | timestreamResources, iamResources | - |
+| `RegisterAccountResponse` | `structure` | registerAccountStatus, timestreamResources, iamResources, creationTime, lastModificationTime | - |
+| `TagResourceRequest` | `structure` | ResourceARN, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceARN, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `CampaignStatus` | `enum` | CREATING, WAITING_FOR_APPROVAL, RUNNING, SUSPENDED | - |
+| `Compression` | `enum` | OFF, SNAPPY | - |
+| `DataFormat` | `enum` | JSON, PARQUET | - |
+| `DefaultForUnmappedSignalsType` | `enum` | CUSTOM_DECODING | - |
+| `DiagnosticsMode` | `enum` | OFF, SEND_ACTIVE_DTCS | - |
+| `EncryptionStatus` | `enum` | PENDING, SUCCESS, FAILURE | - |
+| `EncryptionType` | `enum` | KMS_BASED_ENCRYPTION, FLEETWISE_DEFAULT_ENCRYPTION | - |
+| `ListResponseScope` | `enum` | METADATA_ONLY | - |
+| `LogType` | `enum` | OFF, ERROR | - |
+| `ManifestStatus` | `enum` | ACTIVE, DRAFT, INVALID, VALIDATING | - |
+| `NetworkInterfaceFailureReason` | `enum` | DUPLICATE_INTERFACE, CONFLICTING_NETWORK_INTERFACE, NETWORK_INTERFACE_TO_ADD_ALREADY_EXISTS, CAN_NETWORK_INTERFACE_INFO_IS_NULL, OBD_NETWORK_INTERFACE_INFO_IS_NULL, NETWORK_INTERFACE_TO_REMOVE_ASSOCIATED_WITH_SIGNALS, VEHICLE_MIDDLEWARE_NETWORK_INTERFACE_INFO_IS_NULL, CUSTOM_DECODING_SIGNAL_NETWORK_INTERFACE_INFO_IS_NULL | - |
+| `NetworkInterfaceType` | `enum` | CAN_INTERFACE, OBD_INTERFACE, VEHICLE_MIDDLEWARE, CUSTOM_DECODING_INTERFACE | - |
+| `NodeDataEncoding` | `enum` | BINARY, TYPED | - |
+| `NodeDataType` | `enum` | INT8, UINT8, INT16, UINT16, INT32, UINT32, INT64, UINT64, BOOLEAN, FLOAT, DOUBLE, STRING, ... (+17) | - |
+| `ROS2PrimitiveType` | `enum` | BOOL, BYTE, CHAR, FLOAT32, FLOAT64, INT8, UINT8, INT16, UINT16, INT32, UINT32, INT64, ... (+3) | - |
+| `RegistrationStatus` | `enum` | REGISTRATION_PENDING, REGISTRATION_SUCCESS, REGISTRATION_FAILURE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

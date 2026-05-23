@@ -60,100 +60,130 @@ Parity implications:
 ### Get
 
 - Operations: `GetConnection`, `GetHost`, `GetRepositoryLink`, `GetRepositorySyncStatus`, `GetResourceSyncStatus`, `GetSyncBlockerSummary`, `GetSyncConfiguration`
-- Common required input members in this group: `Branch`, `ConnectionArn`, `HostArn`, `RepositoryLinkId`, `ResourceName`, `SyncType`
+- Common required input members in this group: `RepositoryLinkId`, `SyncType`, `ResourceName`
 
 ### List
 
 - Operations: `ListConnections`, `ListHosts`, `ListRepositoryLinks`, `ListRepositorySyncDefinitions`, `ListSyncConfigurations`, `ListTagsForResource`
 - Traits: `paginated` (4)
-- Common required input members in this group: `RepositoryLinkId`, `ResourceArn`, `SyncType`
+- Common required input members in this group: `RepositoryLinkId`, `SyncType`
 
 ### Create
 
 - Operations: `CreateConnection`, `CreateHost`, `CreateRepositoryLink`, `CreateSyncConfiguration`
-- Common required input members in this group: `Branch`, `ConfigFile`, `ConnectionArn`, `ConnectionName`, `Name`, `OwnerId`, `ProviderEndpoint`, `ProviderType`, `RepositoryLinkId`, `RepositoryName`, `ResourceName`, `RoleArn`, `SyncType`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteConnection`, `DeleteHost`, `DeleteRepositoryLink`, `DeleteSyncConfiguration`
-- Common required input members in this group: `ConnectionArn`, `HostArn`, `RepositoryLinkId`, `ResourceName`, `SyncType`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateHost`, `UpdateRepositoryLink`, `UpdateSyncBlocker`, `UpdateSyncConfiguration`
-- Common required input members in this group: `HostArn`, `Id`, `RepositoryLinkId`, `ResolvedReason`, `ResourceName`, `SyncType`
+- Common required input members in this group: `SyncType`, `ResourceName`
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateConnection` | - | - | `ConnectionName` | - | `CreateConnectionOutput` | `LimitExceededException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Creates a connection that can then be given to other Amazon Web Services services like CodePipeline so that it can access third-party code repositories. The connection is in pending status until the third-party connection handshake is completed from the... |
-| `CreateHost` | - | - | `Name`, `ProviderEndpoint`, `ProviderType` | - | `CreateHostOutput` | `LimitExceededException` | Creates a resource that represents the infrastructure where a third-party provider is installed. The host is used when you create connections to an installed third-party provider type, such as GitHub Enterprise Server. |
-| `CreateRepositoryLink` | - | - | `ConnectionArn`, `OwnerId`, `RepositoryName` | - | `CreateRepositoryLinkOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ThrottlingException` | Creates a link to a specified external Git repository. A repository link allows Git sync to monitor and sync changes to files in a specified Git repository. |
-| `CreateSyncConfiguration` | - | - | `Branch`, `ConfigFile`, `RepositoryLinkId`, `ResourceName`, `RoleArn`, `SyncType` | - | `CreateSyncConfigurationOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ThrottlingException` | Creates a sync configuration which allows Amazon Web Services to sync content from a Git repository to update a specified Amazon Web Services resource. Parameters for the sync configuration are determined by the sync type. |
-| `DeleteConnection` | - | - | `ConnectionArn` | - | `DeleteConnectionOutput` | `ResourceNotFoundException` | The connection to be deleted. |
-| `DeleteHost` | - | - | `HostArn` | - | `DeleteHostOutput` | `ResourceNotFoundException`, `ResourceUnavailableException` | The host to be deleted. Before you delete a host, all connections associated to the host must be deleted. |
-| `DeleteRepositoryLink` | - | - | `RepositoryLinkId` | - | `DeleteRepositoryLinkOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `SyncConfigurationStillExistsException`, `ThrottlingException`, `UnsupportedProviderTypeException` | Deletes the association between your connection and a specified external Git repository. |
-| `DeleteSyncConfiguration` | - | - | `ResourceName`, `SyncType` | - | `DeleteSyncConfigurationOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `LimitExceededException`, `ThrottlingException` | Deletes the sync configuration for a specified repository and connection. |
-| `GetConnection` | - | - | `ConnectionArn` | - | `GetConnectionOutput` | `ResourceNotFoundException`, `ResourceUnavailableException` | Returns the connection ARN and details such as status, owner, and provider type. |
-| `GetHost` | - | - | `HostArn` | - | `GetHostOutput` | `ResourceNotFoundException`, `ResourceUnavailableException` | Returns the host ARN and details such as status, provider type, endpoint, and, if applicable, the VPC configuration. |
-| `GetRepositoryLink` | - | - | `RepositoryLinkId` | - | `GetRepositoryLinkOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns details about a repository link. A repository link allows Git sync to monitor and sync changes from files in a specified Git repository. |
-| `GetRepositorySyncStatus` | - | - | `Branch`, `RepositoryLinkId`, `SyncType` | - | `GetRepositorySyncStatusOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns details about the sync status for a repository. A repository sync uses Git sync to push and pull changes from your remote repository. |
-| `GetResourceSyncStatus` | - | - | `ResourceName`, `SyncType` | - | `GetResourceSyncStatusOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns the status of the sync with the Git repository for a specific Amazon Web Services resource. |
-| `GetSyncBlockerSummary` | - | - | `ResourceName`, `SyncType` | - | `GetSyncBlockerSummaryOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns a list of the most recent sync blockers. |
-| `GetSyncConfiguration` | - | - | `ResourceName`, `SyncType` | - | `GetSyncConfigurationOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns details about a sync configuration, including the sync type and resource name. A sync configuration allows the configuration to sync (push and pull) changes from the remote repository for a specified branch in a Git repository. |
-| `ListConnections` | - | `paginated` | - | - | `ListConnectionsOutput` | `ResourceNotFoundException` | Lists the connections associated with your account. |
-| `ListHosts` | - | `paginated` | - | - | `ListHostsOutput` | - | Lists the hosts associated with your account. |
-| `ListRepositoryLinks` | - | `paginated` | - | - | `ListRepositoryLinksOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Lists the repository links created for connections in your account. |
-| `ListRepositorySyncDefinitions` | - | - | `RepositoryLinkId`, `SyncType` | - | `ListRepositorySyncDefinitionsOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Lists the repository sync definitions for repository links in your account. |
-| `ListSyncConfigurations` | - | `paginated` | `RepositoryLinkId`, `SyncType` | - | `ListSyncConfigurationsOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns a list of sync configurations for a specified repository. |
-| `ListTagsForResource` | - | - | `ResourceArn` | - | `ListTagsForResourceOutput` | `ResourceNotFoundException` | Gets the set of key-value pairs (metadata) that are used to manage the resource. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `LimitExceededException`, `ResourceNotFoundException` | Adds to or modifies the tags of the given resource. Tags are metadata that can be used to manage a resource. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `UntagResourceOutput` | `ResourceNotFoundException` | Removes tags from an Amazon Web Services resource. |
-| `UpdateHost` | - | - | `HostArn` | - | `UpdateHostOutput` | `ConflictException`, `ResourceNotFoundException`, `ResourceUnavailableException`, `UnsupportedOperationException` | Updates a specified host with the provided configurations. |
-| `UpdateRepositoryLink` | - | - | `RepositoryLinkId` | - | `UpdateRepositoryLinkOutput` | `AccessDeniedException`, `ConditionalCheckFailedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException`, `UpdateOutOfSyncException` | Updates the association between your connection and a specified external Git repository. A repository link allows Git sync to monitor and sync changes to files in a specified Git repository. |
-| `UpdateSyncBlocker` | - | - | `Id`, `ResolvedReason`, `ResourceName`, `SyncType` | - | `UpdateSyncBlockerOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `RetryLatestCommitFailedException`, `SyncBlockerDoesNotExistException`, `ThrottlingException` | Allows you to update the status of a sync blocker, resolving the blocker and allowing syncing to continue. |
-| `UpdateSyncConfiguration` | - | - | `ResourceName`, `SyncType` | - | `UpdateSyncConfigurationOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException`, `UpdateOutOfSyncException` | Updates the sync configuration for your connection and a specified external Git repository. |
+| `CreateConnection` | `-` | - | `ConnectionName` | - | `CreateConnectionOutput` | `LimitExceededException`, `ResourceNotFoundException`, `ResourceUnavailableException` | Creates a connection that can then be given to other Amazon Web Services services like CodePipeline so that it can access third-party code repositories. The connection is in pending status until the third-party conne ... |
+| `CreateHost` | `-` | - | `Name`, `ProviderType`, `ProviderEndpoint` | - | `CreateHostOutput` | `LimitExceededException` | Creates a resource that represents the infrastructure where a third-party provider is installed. The host is used when you create connections to an installed third-party provider type, such as GitHub Enterprise Serve ... |
+| `CreateRepositoryLink` | `-` | - | `ConnectionArn`, `OwnerId`, `RepositoryName` | - | `CreateRepositoryLinkOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ThrottlingException` | Creates a link to a specified external Git repository. A repository link allows Git sync to monitor and sync changes to files in a specified Git repository. |
+| `CreateSyncConfiguration` | `-` | - | `Branch`, `ConfigFile`, `RepositoryLinkId`, `ResourceName`, `RoleArn`, `SyncType` | - | `CreateSyncConfigurationOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `LimitExceededException`, `ResourceAlreadyExistsException`, `ThrottlingException` | Creates a sync configuration which allows Amazon Web Services to sync content from a Git repository to update a specified Amazon Web Services resource. Parameters for the sync configuration are determined by the sync ... |
+| `DeleteConnection` | `-` | - | `ConnectionArn` | - | `DeleteConnectionOutput` | `ResourceNotFoundException` | The connection to be deleted. |
+| `DeleteHost` | `-` | - | `HostArn` | - | `DeleteHostOutput` | `ResourceNotFoundException`, `ResourceUnavailableException` | The host to be deleted. Before you delete a host, all connections associated to the host must be deleted. A host cannot be deleted if it is in the VPC_CONFIG_INITIALIZING or VPC_CONFIG_DELETING state. |
+| `DeleteRepositoryLink` | `-` | - | `RepositoryLinkId` | - | `DeleteRepositoryLinkOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `SyncConfigurationStillExistsException`, `ThrottlingException`, `UnsupportedProviderTypeException` | Deletes the association between your connection and a specified external Git repository. |
+| `DeleteSyncConfiguration` | `-` | - | `SyncType`, `ResourceName` | - | `DeleteSyncConfigurationOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `LimitExceededException`, `ThrottlingException` | Deletes the sync configuration for a specified repository and connection. |
+| `GetConnection` | `-` | - | `ConnectionArn` | - | `GetConnectionOutput` | `ResourceNotFoundException`, `ResourceUnavailableException` | Returns the connection ARN and details such as status, owner, and provider type. |
+| `GetHost` | `-` | - | `HostArn` | - | `GetHostOutput` | `ResourceNotFoundException`, `ResourceUnavailableException` | Returns the host ARN and details such as status, provider type, endpoint, and, if applicable, the VPC configuration. |
+| `GetRepositoryLink` | `-` | - | `RepositoryLinkId` | - | `GetRepositoryLinkOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns details about a repository link. A repository link allows Git sync to monitor and sync changes from files in a specified Git repository. |
+| `GetRepositorySyncStatus` | `-` | - | `Branch`, `RepositoryLinkId`, `SyncType` | - | `GetRepositorySyncStatusOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns details about the sync status for a repository. A repository sync uses Git sync to push and pull changes from your remote repository. |
+| `GetResourceSyncStatus` | `-` | - | `ResourceName`, `SyncType` | - | `GetResourceSyncStatusOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns the status of the sync with the Git repository for a specific Amazon Web Services resource. |
+| `GetSyncBlockerSummary` | `-` | - | `SyncType`, `ResourceName` | - | `GetSyncBlockerSummaryOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns a list of the most recent sync blockers. |
+| `GetSyncConfiguration` | `-` | - | `SyncType`, `ResourceName` | - | `GetSyncConfigurationOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns details about a sync configuration, including the sync type and resource name. A sync configuration allows the configuration to sync (push and pull) changes from the remote repository for a specified branch i ... |
+| `ListConnections` | `-` | `paginated` | - | - | `ListConnectionsOutput` | `ResourceNotFoundException` | Lists the connections associated with your account. |
+| `ListHosts` | `-` | `paginated` | - | - | `ListHostsOutput` | - | Lists the hosts associated with your account. |
+| `ListRepositoryLinks` | `-` | `paginated` | - | - | `ListRepositoryLinksOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Lists the repository links created for connections in your account. |
+| `ListRepositorySyncDefinitions` | `-` | - | `RepositoryLinkId`, `SyncType` | - | `ListRepositorySyncDefinitionsOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Lists the repository sync definitions for repository links in your account. |
+| `ListSyncConfigurations` | `-` | `paginated` | `RepositoryLinkId`, `SyncType` | - | `ListSyncConfigurationsOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException` | Returns a list of sync configurations for a specified repository. |
+| `ListTagsForResource` | `-` | - | `ResourceArn` | - | `ListTagsForResourceOutput` | `ResourceNotFoundException` | Gets the set of key-value pairs (metadata) that are used to manage the resource. |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `TagResourceOutput` | `LimitExceededException`, `ResourceNotFoundException` | Adds to or modifies the tags of the given resource. Tags are metadata that can be used to manage a resource. |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceOutput` | `ResourceNotFoundException` | Removes tags from an Amazon Web Services resource. |
+| `UpdateHost` | `-` | - | `HostArn` | - | `UpdateHostOutput` | `ConflictException`, `ResourceNotFoundException`, `ResourceUnavailableException`, `UnsupportedOperationException` | Updates a specified host with the provided configurations. |
+| `UpdateRepositoryLink` | `-` | - | `RepositoryLinkId` | - | `UpdateRepositoryLinkOutput` | `AccessDeniedException`, `ConditionalCheckFailedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException`, `UpdateOutOfSyncException` | Updates the association between your connection and a specified external Git repository. A repository link allows Git sync to monitor and sync changes to files in a specified Git repository. |
+| `UpdateSyncBlocker` | `-` | - | `Id`, `SyncType`, `ResourceName`, `ResolvedReason` | - | `UpdateSyncBlockerOutput` | `AccessDeniedException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `RetryLatestCommitFailedException`, `SyncBlockerDoesNotExistException`, `ThrottlingException` | Allows you to update the status of a sync blocker, resolving the blocker and allowing syncing to continue. |
+| `UpdateSyncConfiguration` | `-` | - | `ResourceName`, `SyncType` | - | `UpdateSyncConfigurationOutput` | `AccessDeniedException`, `ConcurrentModificationException`, `InternalServerException`, `InvalidInputException`, `ResourceNotFoundException`, `ThrottlingException`, `UpdateOutOfSyncException` | Updates the sync configuration for your connection and a specified external Git repository. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `Message` | Resource not found. |
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `Message` | Received an internal server exception. |
-| `InvalidInputException` | `structure` | `Message` | The input is not valid. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ConcurrentModificationException` | `structure` | `Message` | Exception thrown as a result of concurrent modification to an application. |
-| `LimitExceededException` | `structure` | `Message` | Exceeded the maximum limit for connections. |
-| `ResourceUnavailableException` | `structure` | `Message` | Resource not found. |
-| `ResourceAlreadyExistsException` | `structure` | `Message` | Unable to create resource. |
-| `UpdateOutOfSyncException` | `structure` | `Message` | The update is out of sync. |
-| `CreateConnectionInput` | `structure` | `ConnectionName`, `HostArn`, `ProviderType`, `Tags` | - |
-| `CreateConnectionOutput` | `structure` | `ConnectionArn`, `Tags` | - |
-| `CreateHostInput` | `structure` | `Name`, `ProviderEndpoint`, `ProviderType`, `Tags`, `VpcConfiguration` | - |
-| `CreateHostOutput` | `structure` | `HostArn`, `Tags` | - |
-| `CreateRepositoryLinkInput` | `structure` | `ConnectionArn`, `EncryptionKeyArn`, `OwnerId`, `RepositoryName`, `Tags` | - |
-| `CreateRepositoryLinkOutput` | `structure` | `RepositoryLinkInfo` | - |
-| `CreateSyncConfigurationInput` | `structure` | `Branch`, `ConfigFile`, `PublishDeploymentStatus`, `RepositoryLinkId`, `ResourceName`, `RoleArn`, `SyncType`, `TriggerResourceUpdateOn` | - |
-| `CreateSyncConfigurationOutput` | `structure` | `SyncConfiguration` | - |
-| `DeleteConnectionInput` | `structure` | `ConnectionArn` | - |
-| `DeleteConnectionOutput` | `structure` | - | - |
-| `DeleteHostInput` | `structure` | `HostArn` | - |
-| `DeleteHostOutput` | `structure` | - | - |
-| `DeleteRepositoryLinkInput` | `structure` | `RepositoryLinkId` | - |
-| `DeleteRepositoryLinkOutput` | `structure` | - | - |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. |
+| `ConcurrentModificationException` | `structure` | Message | Exception thrown as a result of concurrent modification to an application. For example, two individuals attempting to edit the same application at the same ... |
+| `ConditionalCheckFailedException` | `structure` | Message | The conditional check failed. Try again later. |
+| `ConflictException` | `structure` | Message | Two conflicting operations have been made on the same resource. |
+| `InternalServerException` | `structure` | Message | Received an internal server exception. Try again later. |
+| `InvalidInputException` | `structure` | Message | The input is not valid. Verify that the action is typed correctly. |
+| `LimitExceededException` | `structure` | Message | Exceeded the maximum limit for connections. |
+| `ResourceAlreadyExistsException` | `structure` | Message | Unable to create resource. Resource already exists. |
+| `ResourceNotFoundException` | `structure` | Message | Resource not found. Verify the connection resource ARN and try again. |
+| `ResourceUnavailableException` | `structure` | Message | Resource not found. Verify the ARN for the host resource and try again. |
+| `RetryLatestCommitFailedException` | `structure` | Message | Retrying the latest commit failed. Try again later. |
+| `SyncBlockerDoesNotExistException` | `structure` | Message | Unable to continue. The sync blocker does not exist. |
+| `SyncConfigurationStillExistsException` | `structure` | Message | Unable to continue. The sync blocker still exists. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `UnsupportedOperationException` | `structure` | Message | The operation is not supported. Check the connection status and try again. |
+| `UnsupportedProviderTypeException` | `structure` | Message | The specified provider type is not supported for connections. |
+| `UpdateOutOfSyncException` | `structure` | Message | The update is out of sync. Try syncing again. |
+| `CreateConnectionInput` | `structure` | ProviderType, ConnectionName, Tags, HostArn | - |
+| `CreateConnectionOutput` | `structure` | ConnectionArn, Tags | - |
+| `CreateHostInput` | `structure` | Name, ProviderType, ProviderEndpoint, VpcConfiguration, Tags | - |
+| `CreateHostOutput` | `structure` | HostArn, Tags | - |
+| `CreateRepositoryLinkInput` | `structure` | ConnectionArn, OwnerId, RepositoryName, EncryptionKeyArn, Tags | - |
+| `CreateRepositoryLinkOutput` | `structure` | RepositoryLinkInfo | - |
+| `CreateSyncConfigurationInput` | `structure` | Branch, ConfigFile, RepositoryLinkId, ResourceName, RoleArn, SyncType, PublishDeploymentStatus, TriggerResourceUpdateOn | - |
+| `CreateSyncConfigurationOutput` | `structure` | SyncConfiguration | - |
+| `DeleteConnectionInput` | `structure` | ConnectionArn | - |
+| `DeleteConnectionOutput` | `structure` | **empty (no members)** | - |
+| `DeleteHostInput` | `structure` | HostArn | - |
+| `DeleteHostOutput` | `structure` | **empty (no members)** | - |
+| `DeleteRepositoryLinkInput` | `structure` | RepositoryLinkId | - |
+| `DeleteRepositoryLinkOutput` | `structure` | **empty (no members)** | - |
+| `DeleteSyncConfigurationInput` | `structure` | SyncType, ResourceName | - |
+| `DeleteSyncConfigurationOutput` | `structure` | **empty (no members)** | - |
+| `GetConnectionInput` | `structure` | ConnectionArn | - |
+| `GetConnectionOutput` | `structure` | Connection | - |
+| `GetHostInput` | `structure` | HostArn | - |
+| `GetHostOutput` | `structure` | Name, Status, ProviderType, ProviderEndpoint, VpcConfiguration | - |
+| `GetRepositoryLinkInput` | `structure` | RepositoryLinkId | - |
+| `GetRepositoryLinkOutput` | `structure` | RepositoryLinkInfo | - |
+| `GetRepositorySyncStatusInput` | `structure` | Branch, RepositoryLinkId, SyncType | - |
+| `BlockerStatus` | `enum` | ACTIVE, RESOLVED | - |
+| `BlockerType` | `enum` | AUTOMATED | - |
+| `ConnectionStatus` | `enum` | PENDING, AVAILABLE, ERROR | - |
+| `ProviderType` | `enum` | BITBUCKET, GITHUB, GITHUB_ENTERPRISE_SERVER, GITLAB, GITLAB_SELF_MANAGED | - |
+| `PublishDeploymentStatus` | `enum` | ENABLED, DISABLED | - |
+| `RepositorySyncStatus` | `enum` | FAILED, INITIATED, IN_PROGRESS, SUCCEEDED, QUEUED | - |
+| `ResourceSyncStatus` | `enum` | FAILED, INITIATED, IN_PROGRESS, SUCCEEDED | - |
+| `SyncConfigurationType` | `enum` | CFN_STACK_SYNC | - |
+| `TriggerResourceUpdateOn` | `enum` | ANY_CHANGE, FILE_CHANGE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

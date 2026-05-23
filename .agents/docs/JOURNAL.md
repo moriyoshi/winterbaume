@@ -1427,3 +1427,57 @@ Wired into every operation listed in the coverage trailer:
 - The `HTTP Bindings` section was retro-fitted into `s3.md` but not into the other ~330 existing service dossiers. The SKILL.md merge guidance now tells future invocations of `service-dossier` to add it on next refresh; no bulk rewrite was attempted.
 - `PutObject`'s "modelled errors are a lower bound" insight applies to every write operation in S3 ( conditional writes can legally emit 412/409 even when the error isn't in `errors:` ) and probably to every other service with conditional or quota-bound surfaces. Worth a follow-up pass when we touch other services' write paths.
 - Two new feedback memories were saved during this work: `handler-signatures-drop-modelled-fields` and `error-tests-must-assert-typed-variant`. Both apply across services, not just S3.
+
+## 2026-05-23 — bulk dossier refresh: HTTP Bindings retro-fitted across all 417 service dossiers
+
+Followup to the earlier 2026-05-23 entry. The fix-branch left a known gap: the new `HTTP Bindings` section only existed in `s3.md`. Spun off `chore/refresh-dossiers-http-bindings` from `fix/s3-conditional-and-head-body` and applied the section across every remaining dossier under `.agents/docs/services/`.
+
+### Approach
+
+Scope-limited on purpose. Per `.agents/skills/service-dossier/SKILL.md`, sections beyond the new one ( `Operation Detail Matrix`, `Important Shapes`, `Behavioural Model Notes`, `Possible Usage Scenarios`, `Official AWS Documentation Research`, `Research Checklist for Parity Work`, `Resource Model` ) may carry hand-edits or LTM-derived judgement that the extractor would clobber if regenerated wholesale. The refresh only inserts the new `## HTTP Bindings` block immediately before `## Important Shapes` and leaves everything else untouched.
+
+The refresh script lives at `.agents-workspace/tmp/refresh_dossiers.py` ( gitignored ). It is idempotent: if a dossier already carries `## HTTP Bindings` it is skipped, so re-running the script after future extractor changes ( eg. adding a new column ) will not double-insert. The classification per dossier is:
+
+- `updated` — section inserted.
+- `present` — section already there, skip.
+- `no_anchor` — `## Important Shapes` missing, skip and log ( did not happen ).
+- `extractor_failed` — model resolution or extractor error, skip and log ( did not happen ).
+- `no_block` — extractor produced no HTTP Bindings section ( did not happen ).
+
+Dry-ran on a 7-service sample under `.agents-workspace/tmp/sample-dossiers/` covering restJson1, restXml, awsJson1, ec2Query, awsQuery, restJson1+REST URLs ( api-gateway, accessanalyzer, cloudfront, acm, ec2, sts, lambda ). Confirmed row counts matched expectations ( awsJson*/ec2Query → 0 binding rows + empty-state note; rest-style → 11-109 binding rows ). Second-run reported all 7 `present` confirming idempotency.
+
+### Outcome
+
+Bulk apply on the real tree: **`updated: 417`, `present: 1` ( s3 ), 0 errors**. Total 418 dossiers, every one now carries the section. Sanity-checked: every dossier has exactly one `## HTTP Bindings` heading; section ordering ( `Operation Detail Matrix` → `HTTP Bindings` → `Important Shapes` ) is correct in every file.
+
+Commit `c46147ab`: 417 files changed, 4939 insertions, 0 deletions. Signed and pushed to `origin/chore/refresh-dossiers-http-bindings`.
+
+### Cross-service findings
+
+Four services carry the auto-generated `**Conditional-write/read coverage**` trailer because their Smithy models include operations with `If-Match` / `If-None-Match` / `If-Modified-Since` / `If-Unmodified-Since` headers. Three of the four were not on my radar before the refresh:
+
+| Service | Operations with modelled conditional headers | Notes |
+|---|---|---|
+| `s3` | `CompleteMultipartUpload`, `CopyObject`, `DeleteObject`, `GetObject`, `HeadObject`, `PutObject`, `RenameObject` | Already enforced on the previous branch. |
+| `cloudfront` | ~50 lifecycle operations: every `Delete*`/`Update*`, plus `AssociateDistributionTenantWebACL`, `AssociateDistributionWebACL`, `CopyDistribution`, `DisassociateDistributionTenantWebACL`, `DisassociateDistributionWebACL`, `PublishConnectionFunction`, `PublishFunction`, `TestConnectionFunction`, `TestFunction` | The single largest hidden conditional surface in the codebase. CloudFront's API documents `If-Match` as required-for-correctness on most mutations; ignoring it produces silent overwrites. |
+| `cloudfront-keyvaluestore` | `DeleteKey`, `PutKey`, `UpdateKeys` | |
+| `iotsitewise` | `CreateAssetModelCompositeModel`, `DeleteAssetModel`, `DeleteAssetModelCompositeModel`, `UpdateAssetModel`, `UpdateAssetModelCompositeModel` | Asset-model lifecycle only. |
+
+Spot-checked a binding row in cloudfront's `UpdateDistribution`: renders as `| UpdateDistribution | IfMatch -> If-Match | - | - | DistributionConfig |`. Clean.
+
+### Hidden bindings beyond the conditional surface
+
+The refresh also surfaces every other modelled `@httpHeader` / `@httpQuery` / `@httpPrefixHeaders` / `@httpPayload` member across all services — these are easy to miss because they sit outside the URL and outside the body. A non-exhaustive sample of what is newly visible:
+
+- `cloudfront`: 109 binding rows. Beyond `IfMatch`, every operation carries `@httpHeader` modifiers for accept languages, content checksums, anonymous-vs-authenticated request markers, and so on.
+- `api-gateway`: 39 rows. Includes `Accept` header binding, `X-Amzn-*` SDK overrides.
+- `accessanalyzer`: 11 rows. Pagination, idempotency tokens carried via headers.
+- `lambda`: 13 rows. `X-Amz-Function-Error`, `X-Amz-Invocation-Type`, `X-Amz-Log-Type`, etc.
+
+Most of these are presently ignored by hand-written winterbaume handlers. None are bug reports yet, but the same class of bug ( silently drop a modelled header → SDK fails to round-trip an option the caller set ) applies. Worth pulling into the parity quality gate on a per-service basis.
+
+### Followups not done
+
+- Filing follow-up issues for CloudFront/iotsitewise/cloudfront-keyvaluestore conditional enforcement. These crates are not yet implemented at parity, so the conditional gap is moot until the lifecycle operations themselves are wired up. The dossier now flags it for whoever picks up those crates.
+- The dossier refresh did not update `Important Shapes` tables to use the new `**empty (no members)**` rendering for zero-member shapes. Cosmetic gain only; the strong-signal use of this rendering ( "no body for HEAD" ) is already captured in the narrative `HTTP protocol pitfalls` subsection for s3, and other services' HEAD operations are similarly few.
+- The dossier refresh did not regenerate any other extractor-emitted section against the current Smithy models. Some sections may have drifted since the dossier was first generated ( eg. operation counts, error lists ). A wholesale refresh would require per-dossier diff review to preserve hand-edits — out of scope for this commit.

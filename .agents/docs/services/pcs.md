@@ -49,104 +49,65 @@ Parallel Computing Service (PCS) is a managed service that makes it easier for y
 
 ### List
 
-- Operations: `ListClusters`, `ListComputeNodeGroups`, `ListQueues`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `clusterIdentifier`, `resourceArn`
-
-### Create
-
-- Operations: `CreateCluster`, `CreateComputeNodeGroup`, `CreateQueue`
-- Traits: `idempotency-token` (3), `idempotent` (3)
-- Common required input members in this group: `clusterIdentifier`, `clusterName`, `computeNodeGroupName`, `customLaunchTemplate`, `iamInstanceProfileArn`, `instanceConfigs`, `networking`, `queueName`, `scalingConfiguration`, `scheduler`, `size`, `subnetIds`
-
-### Delete
-
-- Operations: `DeleteCluster`, `DeleteComputeNodeGroup`, `DeleteQueue`
-- Traits: `idempotency-token` (3), `idempotent` (3)
-- Common required input members in this group: `clusterIdentifier`, `computeNodeGroupIdentifier`, `queueIdentifier`
-
-### Get
-
-- Operations: `GetCluster`, `GetComputeNodeGroup`, `GetQueue`
-- Traits: `readonly` (3)
-- Common required input members in this group: `clusterIdentifier`, `computeNodeGroupIdentifier`, `queueIdentifier`
-
-### Update
-
-- Operations: `UpdateCluster`, `UpdateComputeNodeGroup`, `UpdateQueue`
-- Traits: `idempotency-token` (3), `idempotent` (3)
-- Common required input members in this group: `clusterIdentifier`, `computeNodeGroupIdentifier`, `queueIdentifier`
-
-### Register
-
-- Operations: `RegisterComputeNodeGroupInstance`
-- Common required input members in this group: `bootstrapId`, `clusterIdentifier`
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateCluster` | - | `idempotent`, `idempotency-token` | `clusterName`, `networking`, `scheduler`, `size` | `clientToken` | `CreateClusterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a cluster in your account. PCS creates the cluster controller in a service-owned account. |
-| `CreateComputeNodeGroup` | - | `idempotent`, `idempotency-token` | `clusterIdentifier`, `computeNodeGroupName`, `customLaunchTemplate`, `iamInstanceProfileArn`, `instanceConfigs`, `scalingConfiguration`, `subnetIds` | `clientToken` | `CreateComputeNodeGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a managed set of compute nodes. You associate a compute node group with a cluster through 1 or more PCS queues or as part of the login fleet. |
-| `CreateQueue` | - | `idempotent`, `idempotency-token` | `clusterIdentifier`, `queueName` | `clientToken` | `CreateQueueResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a job queue. You must associate 1 or more compute node groups with the queue. |
-| `DeleteCluster` | - | `idempotent`, `idempotency-token` | `clusterIdentifier` | `clientToken` | `DeleteClusterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a cluster and all its linked resources. You must delete all queues and compute node groups associated with the cluster before you can delete the cluster. |
-| `DeleteComputeNodeGroup` | - | `idempotent`, `idempotency-token` | `clusterIdentifier`, `computeNodeGroupIdentifier` | `clientToken` | `DeleteComputeNodeGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a compute node group. You must delete all queues associated with the compute node group first. |
-| `DeleteQueue` | - | `idempotent`, `idempotency-token` | `clusterIdentifier`, `queueIdentifier` | `clientToken` | `DeleteQueueResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a job queue. If the compute node group associated with this queue isn't associated with any other queues, PCS terminates all the compute nodes for this queue. |
-| `GetCluster` | - | `readonly` | `clusterIdentifier` | - | `GetClusterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns detailed information about a running cluster in your account. This API action provides networking information, endpoint information for communication with the scheduler, and provisioning status. |
-| `GetComputeNodeGroup` | - | `readonly` | `clusterIdentifier`, `computeNodeGroupIdentifier` | - | `GetComputeNodeGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns detailed information about a compute node group. This API action provides networking information, EC2 instance type, compute node group status, and scheduler (such as Slurm) configuration. |
-| `GetQueue` | - | `readonly` | `clusterIdentifier`, `queueIdentifier` | - | `GetQueueResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns detailed information about a queue. The information includes the compute node groups that the queue uses to schedule jobs. |
-| `ListClusters` | - | `readonly`, `paginated` | - | - | `ListClustersResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of running clusters in your account. |
-| `ListComputeNodeGroups` | - | `readonly`, `paginated` | `clusterIdentifier` | - | `ListComputeNodeGroupsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of all compute node groups associated with a cluster. |
-| `ListQueues` | - | `readonly`, `paginated` | `clusterIdentifier` | - | `ListQueuesResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of all queues associated with a cluster. |
-| `ListTagsForResource` | - | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Returns a list of all tags on an PCS resource. |
-| `RegisterComputeNodeGroupInstance` | - | - | `bootstrapId`, `clusterIdentifier` | - | `RegisterComputeNodeGroupInstanceResponse` | `AccessDeniedException`, `InternalServerException` | This API action isn't intended for you to use. PCS uses this API action to register the compute nodes it launches in your account. |
-| `TagResource` | - | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Adds or edits tags on an PCS resource. Each tag consists of a tag key and a tag value. |
-| `UntagResource` | - | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException` | Deletes tags from an PCS resource. To delete a tag, specify the tag key and the Amazon Resource Name (ARN) of the PCS resource. |
-| `UpdateCluster` | - | `idempotent`, `idempotency-token` | `clusterIdentifier` | `clientToken` | `UpdateClusterResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a cluster configuration. You can modify Slurm scheduler settings, accounting configuration, and security groups for an existing cluster. |
-| `UpdateComputeNodeGroup` | - | `idempotent`, `idempotency-token` | `clusterIdentifier`, `computeNodeGroupIdentifier` | `clientToken` | `UpdateComputeNodeGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a compute node group. You can update many of the fields related to your compute node group including the configurations for networking, compute nodes, and settings specific to your scheduler (such as Slurm). |
-| `UpdateQueue` | - | `idempotent`, `idempotency-token` | `clusterIdentifier`, `queueIdentifier` | `clientToken` | `UpdateQueueResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the compute node group configuration of a queue. Use this API to change the compute node groups that the queue can send jobs to. |
+| `ListTagsForResource` | `-` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `ResourceNotFoundException` | Returns a list of all tags on an PCS resource. |
+| `TagResource` | `-` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException` | Adds or edits tags on an PCS resource. Each tag consists of a tag key and a tag value. The tag key and tag value are case-sensitive strings. The tag value can be an empty (null) string. To add a tag, specify a new ta ... |
+| `UntagResource` | `-` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException` | Deletes tags from an PCS resource. To delete a tag, specify the tag key and the Amazon Resource Name (ARN) of the PCS resource. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The requested resource can't be found. |
-| `AccessDeniedException` | `structure` | `message` | You don't have permission to perform the action. |
-| `InternalServerException` | `structure` | `message` | PCS can't process your request right now. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | Your request has conflicting operations. |
-| `ThrottlingException` | `structure` | `message`, `retryAfterSeconds` | Your request exceeded a request rate quota. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The request isn't valid. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | You exceeded your service quota. |
-| `CreateClusterRequest` | `structure` | `clientToken`, `clusterName`, `networking`, `scheduler`, `size`, `slurmConfiguration`, `tags` | - |
-| `CreateClusterResponse` | `structure` | `cluster` | - |
-| `CreateComputeNodeGroupRequest` | `structure` | `amiId`, `clientToken`, `clusterIdentifier`, `computeNodeGroupName`, `customLaunchTemplate`, `iamInstanceProfileArn`, `instanceConfigs`, `purchaseOption`, `scalingConfiguration`, `slurmConfiguration`, `spotOptions`, `subnetIds`, ... (+1) | - |
-| `CreateComputeNodeGroupResponse` | `structure` | `computeNodeGroup` | - |
-| `CreateQueueRequest` | `structure` | `clientToken`, `clusterIdentifier`, `computeNodeGroupConfigurations`, `queueName`, `slurmConfiguration`, `tags` | - |
-| `CreateQueueResponse` | `structure` | `queue` | - |
-| `DeleteClusterRequest` | `structure` | `clientToken`, `clusterIdentifier` | - |
-| `DeleteClusterResponse` | `structure` | - | - |
-| `DeleteComputeNodeGroupRequest` | `structure` | `clientToken`, `clusterIdentifier`, `computeNodeGroupIdentifier` | - |
-| `DeleteComputeNodeGroupResponse` | `structure` | - | - |
-| `DeleteQueueRequest` | `structure` | `clientToken`, `clusterIdentifier`, `queueIdentifier` | - |
-| `DeleteQueueResponse` | `structure` | - | - |
-| `GetClusterRequest` | `structure` | `clusterIdentifier` | - |
-| `GetClusterResponse` | `structure` | `cluster` | - |
-| `GetComputeNodeGroupRequest` | `structure` | `clusterIdentifier`, `computeNodeGroupIdentifier` | - |
-| `GetComputeNodeGroupResponse` | `structure` | `computeNodeGroup` | - |
-| `GetQueueRequest` | `structure` | `clusterIdentifier`, `queueIdentifier` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have permission to perform the action. Examples The launch template instance profile doesn't pass iam:PassRole verification. There is a mismatch b ... |
+| `ConflictException` | `structure` | message, resourceId, resourceType | Your request has conflicting operations. This can occur if you're trying to perform more than 1 operation on the same resource at the same time. Examples A ... |
+| `InternalServerException` | `structure` | message | PCS can't process your request right now. Try again later. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The requested resource can't be found. The cluster, node group, or queue you're attempting to get, update, list, or delete doesn't exist. Examples |
+| `ServiceQuotaExceededException` | `structure` | message, serviceCode, resourceId, resourceType, quotaCode | You exceeded your service quota. Service quotas, also referred to as limits, are the maximum number of service resources or operations for your Amazon Web S ... |
+| `ThrottlingException` | `structure` | message, retryAfterSeconds | Your request exceeded a request rate quota. Check the resource's request rate quota and try again. |
+| `ValidationException` | `structure` | message, reason, fieldList | The request isn't valid. Examples Your request contains malformed JSON or unsupported characters. The scheduler version isn't supported. There are networkin ... |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AccountingMode` | `enum` | STANDARD, NONE | - |
+| `ClusterStatus` | `enum` | CREATING, ACTIVE, UPDATING, DELETING, CREATE_FAILED, DELETE_FAILED, UPDATE_FAILED, SUSPENDING, SUSPENDED, RESUMING | - |
+| `ComputeNodeGroupStatus` | `enum` | CREATING, ACTIVE, UPDATING, DELETING, CREATE_FAILED, DELETE_FAILED, UPDATE_FAILED, DELETED, SUSPENDING, SUSPENDED, RESUMING | - |
+| `EndpointType` | `enum` | SLURMCTLD, SLURMDBD, SLURMRESTD | - |
+| `NetworkType` | `enum` | IPV4, IPV6 | - |
+| `PurchaseOption` | `enum` | ONDEMAND, SPOT, CAPACITY_BLOCK | - |
+| `QueueStatus` | `enum` | CREATING, ACTIVE, UPDATING, DELETING, CREATE_FAILED, DELETE_FAILED, UPDATE_FAILED, SUSPENDING, SUSPENDED, RESUMING | - |
+| `SchedulerType` | `enum` | SLURM | - |
+| `Size` | `enum` | SMALL, MEDIUM, LARGE | - |
+| `SlurmRestMode` | `enum` | STANDARD, NONE | - |
+| `SpotAllocationStrategy` | `enum` | LOWEST_PRICE, CAPACITY_OPTIMIZED, PRICE_CAPACITY_OPTIMIZED | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

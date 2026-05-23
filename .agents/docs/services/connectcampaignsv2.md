@@ -44,88 +44,89 @@ Provide APIs to create and manage Amazon Connect Campaigns.
 
 ### Delete
 
-- Operations: `DeleteCampaign`, `DeleteCampaignChannelSubtypeConfig`, `DeleteCampaignCommunicationLimits`, `DeleteCampaignCommunicationTime`, `DeleteConnectInstanceConfig`, `DeleteConnectInstanceIntegration`, `DeleteInstanceOnboardingJob`
-- Traits: `idempotent` (6)
-- Common required input members in this group: `channelSubtype`, `config`, `connectInstanceId`, `id`, `integrationIdentifier`
+- Operations: `DeleteCampaign`, `DeleteCampaignChannelSubtypeConfig`, `DeleteCampaignCommunicationLimits`, `DeleteCampaignCommunicationTime`, `DeleteCampaignEntryLimits`, `DeleteConnectInstanceConfig`, `DeleteConnectInstanceIntegration`, `DeleteInstanceOnboardingJob`
+- Traits: `idempotent` (7)
+- Common required input members in this group: `id`, `config`, `connectInstanceId`
 
 ### Update
 
-- Operations: `UpdateCampaignChannelSubtypeConfig`, `UpdateCampaignCommunicationLimits`, `UpdateCampaignCommunicationTime`, `UpdateCampaignFlowAssociation`, `UpdateCampaignName`, `UpdateCampaignSchedule`, `UpdateCampaignSource`
-- Traits: `idempotent` (7)
-- Common required input members in this group: `channelSubtypeConfig`, `communicationLimitsOverride`, `communicationTimeConfig`, `connectCampaignFlowArn`, `id`, `name`, `schedule`, `source`
+- Operations: `UpdateCampaignChannelSubtypeConfig`, `UpdateCampaignCommunicationLimits`, `UpdateCampaignCommunicationTime`, `UpdateCampaignEntryLimits`, `UpdateCampaignFlowAssociation`, `UpdateCampaignName`, `UpdateCampaignSchedule`, `UpdateCampaignSource`
+- Traits: `idempotent` (8)
+- Common required input members in this group: `id`
 
 ### Get
 
 - Operations: `GetCampaignState`, `GetCampaignStateBatch`, `GetConnectInstanceConfig`, `GetInstanceCommunicationLimits`, `GetInstanceOnboardingJobStatus`
 - Traits: `readonly` (3)
-- Common required input members in this group: `campaignIds`, `connectInstanceId`, `id`
+- Common required input members in this group: `connectInstanceId`
 
 ### Put
 
 - Operations: `PutConnectInstanceIntegration`, `PutInstanceCommunicationLimits`, `PutOutboundRequestBatch`, `PutProfileOutboundRequestBatch`
 - Traits: `idempotent` (4)
-- Common required input members in this group: `communicationLimitsConfig`, `connectInstanceId`, `id`, `integrationConfig`, `outboundRequests`, `profileOutboundRequests`
+- Common required input members in this group: `connectInstanceId`, `id`
 
 ### List
 
 - Operations: `ListCampaigns`, `ListConnectInstanceIntegrations`, `ListTagsForResource`
-- Traits: `paginated` (2), `readonly` (2)
-- Common required input members in this group: `arn`, `connectInstanceId`
+- Traits: `readonly` (2), `paginated` (2)
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartCampaign`, `StartInstanceOnboardingJob`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `connectInstanceId`, `encryptionConfig`, `id`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateCampaign`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `connectInstanceId`, `name`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeCampaign`
 - Traits: `readonly` (1)
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Pause
 
 - Operations: `PauseCampaign`
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Resume
 
 - Operations: `ResumeCampaign`
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopCampaign`
-- Common required input members in this group: `id`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateCampaign` | `PUT /v2/campaigns` | `idempotent` | `connectInstanceId`, `name` | - | `CreateCampaignResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a campaign for the specified Amazon Connect account. This API is idempotent. |
+| `CreateCampaign` | `PUT /v2/campaigns` | `idempotent` | `name`, `connectInstanceId` | - | `CreateCampaignResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a campaign for the specified Amazon Connect account. This API is idempotent. |
 | `DeleteCampaign` | `DELETE /v2/campaigns/{id}` | `idempotent` | `id` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes a campaign from the specified Amazon Connect account. |
-| `DeleteCampaignChannelSubtypeConfig` | `DELETE /v2/campaigns/{id}/channel-subtype-config` | `idempotent` | `channelSubtype`, `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the channel subtype config of a campaign. This API is idempotent. |
-| `DeleteCampaignCommunicationLimits` | `DELETE /v2/campaigns/{id}/communication-limits` | `idempotent` | `config`, `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Deletes the communication limits config for a campaign. This API is idempotent. |
-| `DeleteCampaignCommunicationTime` | `DELETE /v2/campaigns/{id}/communication-time` | `idempotent` | `config`, `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Deletes the communication time config for a campaign. This API is idempotent. |
+| `DeleteCampaignChannelSubtypeConfig` | `DELETE /v2/campaigns/{id}/channel-subtype-config` | `idempotent` | `id`, `channelSubtype` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the channel subtype config of a campaign. This API is idempotent. |
+| `DeleteCampaignCommunicationLimits` | `DELETE /v2/campaigns/{id}/communication-limits` | `idempotent` | `id`, `config` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Deletes the communication limits config for a campaign. This API is idempotent. |
+| `DeleteCampaignCommunicationTime` | `DELETE /v2/campaigns/{id}/communication-time` | `idempotent` | `id`, `config` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Deletes the communication time config for a campaign. This API is idempotent. |
+| `DeleteCampaignEntryLimits` | `DELETE /v2/campaigns/{id}/entry-limits` | `idempotent` | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Deletes the entry limits config for a campaign. This API is idempotent. |
 | `DeleteConnectInstanceConfig` | `DELETE /v2/connect-instance/{connectInstanceId}/config` | `idempotent` | `connectInstanceId` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `InvalidStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a connect instance config from the specified AWS account. |
 | `DeleteConnectInstanceIntegration` | `POST /v2/connect-instance/{connectInstanceId}/integrations/delete` | - | `connectInstanceId`, `integrationIdentifier` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete the integration for the specified Amazon Connect instance. |
 | `DeleteInstanceOnboardingJob` | `DELETE /v2/connect-instance/{connectInstanceId}/onboarding` | `idempotent` | `connectInstanceId` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `InvalidStateException`, `ResourceNotFoundException`, `ValidationException` | Delete the Connect Campaigns onboarding job for the specified Amazon Connect instance. |
@@ -140,7 +141,7 @@ Provide APIs to create and manage Amazon Connect Campaigns.
 | `ListTagsForResource` | `GET /v2/tags/{arn}` | - | `arn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List tags for a resource. |
 | `PauseCampaign` | `POST /v2/campaigns/{id}/pause` | - | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Pauses a campaign for the specified Amazon Connect account. |
 | `PutConnectInstanceIntegration` | `PUT /v2/connect-instance/{connectInstanceId}/integrations` | `idempotent` | `connectInstanceId`, `integrationConfig` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Put or update the integration for the specified Amazon Connect instance. |
-| `PutInstanceCommunicationLimits` | `PUT /v2/connect-instance/{connectInstanceId}/communication-limits` | `idempotent` | `communicationLimitsConfig`, `connectInstanceId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Put the instance communication limits. This API is idempotent. |
+| `PutInstanceCommunicationLimits` | `PUT /v2/connect-instance/{connectInstanceId}/communication-limits` | `idempotent` | `connectInstanceId`, `communicationLimitsConfig` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Put the instance communication limits. This API is idempotent. |
 | `PutOutboundRequestBatch` | `PUT /v2/campaigns/{id}/outbound-requests` | `idempotent` | `id`, `outboundRequests` | - | `PutOutboundRequestBatchResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates outbound requests for the specified campaign Amazon Connect account. This API is idempotent. |
 | `PutProfileOutboundRequestBatch` | `PUT /v2/campaigns/{id}/profile-outbound-requests` | `idempotent` | `id`, `profileOutboundRequests` | - | `PutProfileOutboundRequestBatchResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Takes in a list of profile outbound requests to be placed as part of an outbound campaign. This API is idempotent. |
 | `ResumeCampaign` | `POST /v2/campaigns/{id}/resume` | - | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops a campaign for the specified Amazon Connect account. |
@@ -149,42 +150,72 @@ Provide APIs to create and manage Amazon Connect Campaigns.
 | `StopCampaign` | `POST /v2/campaigns/{id}/stop` | - | `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops a campaign for the specified Amazon Connect account. |
 | `TagResource` | `POST /v2/tags/{arn}` | `idempotent` | `arn`, `tags` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Tag a resource. |
 | `UntagResource` | `DELETE /v2/tags/{arn}` | `idempotent` | `arn`, `tagKeys` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Untag a resource. |
-| `UpdateCampaignChannelSubtypeConfig` | `POST /v2/campaigns/{id}/channel-subtype-config` | `idempotent` | `channelSubtypeConfig`, `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the channel subtype config of a campaign. This API is idempotent. |
-| `UpdateCampaignCommunicationLimits` | `POST /v2/campaigns/{id}/communication-limits` | `idempotent` | `communicationLimitsOverride`, `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the communication limits config for a campaign. This API is idempotent. |
-| `UpdateCampaignCommunicationTime` | `POST /v2/campaigns/{id}/communication-time` | `idempotent` | `communicationTimeConfig`, `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the communication time config for a campaign. This API is idempotent. |
-| `UpdateCampaignFlowAssociation` | `POST /v2/campaigns/{id}/flow` | `idempotent` | `connectCampaignFlowArn`, `id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the campaign flow associated with a campaign. This API is idempotent. |
+| `UpdateCampaignChannelSubtypeConfig` | `POST /v2/campaigns/{id}/channel-subtype-config` | `idempotent` | `id`, `channelSubtypeConfig` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the channel subtype config of a campaign. This API is idempotent. |
+| `UpdateCampaignCommunicationLimits` | `POST /v2/campaigns/{id}/communication-limits` | `idempotent` | `id`, `communicationLimitsOverride` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the communication limits config for a campaign. This API is idempotent. |
+| `UpdateCampaignCommunicationTime` | `POST /v2/campaigns/{id}/communication-time` | `idempotent` | `id`, `communicationTimeConfig` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the communication time config for a campaign. This API is idempotent. |
+| `UpdateCampaignEntryLimits` | `POST /v2/campaigns/{id}/entry-limits` | `idempotent` | `id`, `entryLimitsConfig` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the entry limits config for a campaign. This API is idempotent. |
+| `UpdateCampaignFlowAssociation` | `POST /v2/campaigns/{id}/flow` | `idempotent` | `id`, `connectCampaignFlowArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the campaign flow associated with a campaign. This API is idempotent. |
 | `UpdateCampaignName` | `POST /v2/campaigns/{id}/name` | `idempotent` | `id`, `name` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the name of a campaign. This API is idempotent. |
 | `UpdateCampaignSchedule` | `POST /v2/campaigns/{id}/schedule` | `idempotent` | `id`, `schedule` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the schedule for a campaign. This API is idempotent. |
 | `UpdateCampaignSource` | `POST /v2/campaigns/{id}/source` | `idempotent` | `id`, `source` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `InvalidCampaignStateException`, `ResourceNotFoundException`, `ValidationException` | Updates the campaign source with a campaign. This API is idempotent. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteCampaignChannelSubtypeConfig` | - | `channelSubtype -> channelSubtype` | - | - |
+| `DeleteCampaignCommunicationLimits` | - | `config -> config` | - | - |
+| `DeleteCampaignCommunicationTime` | - | `config -> config` | - | - |
+| `DeleteConnectInstanceConfig` | - | `campaignDeletionPolicy -> campaignDeletionPolicy` | - | - |
+| `ListConnectInstanceIntegrations` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message`, `xAmzErrorType` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message`, `xAmzErrorType` | Request processing failed because of an error or failure with the service. |
-| `ValidationException` | `structure` | `message`, `xAmzErrorType` | The input fails to satisfy the constraints specified by an AWS service. |
-| `ResourceNotFoundException` | `structure` | `message`, `xAmzErrorType` | The specified resource was not found. |
-| `ConflictException` | `structure` | `message`, `xAmzErrorType` | The request could not be processed because of conflict in the current state of the resource. |
-| `ThrottlingException` | `structure` | `message`, `xAmzErrorType` | The request was denied due to request throttling. |
-| `InvalidCampaignStateException` | `structure` | `message`, `state`, `xAmzErrorType` | The request could not be processed because of conflict in the current state of the campaign. |
-| `InvalidStateException` | `structure` | `message`, `xAmzErrorType` | The request could not be processed because of conflict in the current state. |
-| `CreateCampaignRequest` | `structure` | `channelSubtypeConfig`, `communicationLimitsOverride`, `communicationTimeConfig`, `connectCampaignFlowArn`, `connectInstanceId`, `name`, `schedule`, `source`, `tags`, `type` | The request for CreateCampaign API. |
-| `CreateCampaignResponse` | `structure` | `arn`, `id`, `tags` | The response for Create Campaign API |
-| `ServiceQuotaExceededException` | `structure` | `message`, `xAmzErrorType` | Request would cause a service quota to be exceeded. |
-| `DeleteCampaignRequest` | `structure` | `id` | The request for DeleteCampaign API. |
-| `DeleteCampaignChannelSubtypeConfigRequest` | `structure` | `channelSubtype`, `id` | The request for DeleteCampaignChannelSubtypeConfig API. |
-| `DeleteCampaignCommunicationLimitsRequest` | `structure` | `config`, `id` | The request for DeleteCampaignCommunicationLimits API. |
-| `DeleteCampaignCommunicationTimeRequest` | `structure` | `config`, `id` | The request for DeleteCampaignCommunicationTime API. |
-| `DeleteConnectInstanceConfigRequest` | `structure` | `campaignDeletionPolicy`, `connectInstanceId` | The request for DeleteConnectInstanceConfig API. |
-| `DeleteConnectInstanceIntegrationRequest` | `structure` | `connectInstanceId`, `integrationIdentifier` | The request for DeleteConnectInstanceIntegration API. |
-| `DeleteInstanceOnboardingJobRequest` | `structure` | `connectInstanceId` | The request for DeleteInstanceOnboardingJob API. |
-| `DescribeCampaignRequest` | `structure` | `id` | The request for DescribeCampaign API. |
-| `DescribeCampaignResponse` | `structure` | `campaign` | The response for DescribeCampaign API. |
-| `GetCampaignStateRequest` | `structure` | `id` | The request for GetCampaignState API. |
-| `GetCampaignStateResponse` | `structure` | `state` | The response for GetCampaignState API. |
-| `GetCampaignStateBatchRequest` | `structure` | `campaignIds` | The request for GetCampaignStateBatch API. |
-
+| `AccessDeniedException` | `structure` | message, xAmzErrorType | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, xAmzErrorType | The request could not be processed because of conflict in the current state of the resource. |
+| `InternalServerException` | `structure` | message, xAmzErrorType | Request processing failed because of an error or failure with the service. |
+| `InvalidCampaignStateException` | `structure` | state, message, xAmzErrorType | The request could not be processed because of conflict in the current state of the campaign. |
+| `InvalidStateException` | `structure` | message, xAmzErrorType | The request could not be processed because of conflict in the current state. |
+| `ResourceNotFoundException` | `structure` | message, xAmzErrorType | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message, xAmzErrorType | Request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | message, xAmzErrorType | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, xAmzErrorType | The input fails to satisfy the constraints specified by an AWS service. |
+| `CreateCampaignRequest` | `structure` | name, connectInstanceId, channelSubtypeConfig, type, source, connectCampaignFlowArn, schedule, entryLimitsConfig, communicationTimeConfig, communicationLimitsOverride, tags | The request for CreateCampaign API. |
+| `CreateCampaignResponse` | `structure` | id, arn, tags | The response for Create Campaign API |
+| `DeleteCampaignRequest` | `structure` | id | The request for DeleteCampaign API. |
+| `DeleteCampaignChannelSubtypeConfigRequest` | `structure` | id, channelSubtype | The request for DeleteCampaignChannelSubtypeConfig API. |
+| `DeleteCampaignCommunicationLimitsRequest` | `structure` | id, config | The request for DeleteCampaignCommunicationLimits API. |
+| `DeleteCampaignCommunicationTimeRequest` | `structure` | id, config | The request for DeleteCampaignCommunicationTime API. |
+| `DeleteCampaignEntryLimitsRequest` | `structure` | id | The request for DeleteCampaignEntryLimits API. |
+| `DeleteConnectInstanceConfigRequest` | `structure` | connectInstanceId, campaignDeletionPolicy | The request for DeleteConnectInstanceConfig API. |
+| `DeleteConnectInstanceIntegrationRequest` | `structure` | connectInstanceId, integrationIdentifier | The request for DeleteConnectInstanceIntegration API. |
+| `DeleteInstanceOnboardingJobRequest` | `structure` | connectInstanceId | The request for DeleteInstanceOnboardingJob API. |
+| `DescribeCampaignRequest` | `structure` | id | The request for DescribeCampaign API. |
+| `DescribeCampaignResponse` | `structure` | campaign | The response for DescribeCampaign API. |
+| `GetCampaignStateRequest` | `structure` | id | The request for GetCampaignState API. |
+| `GetCampaignStateResponse` | `structure` | state | The response for GetCampaignState API. |
+| `GetCampaignStateBatchRequest` | `structure` | campaignIds | The request for GetCampaignStateBatch API. |
+| `GetCampaignStateBatchResponse` | `structure` | successfulRequests, failedRequests | The response for GetCampaignStateBatch API. |
+| `GetConnectInstanceConfigRequest` | `structure` | connectInstanceId | The request for GetConnectInstanceConfig API. |
+| `GetConnectInstanceConfigResponse` | `structure` | connectInstanceConfig | The response for GetConnectInstanceConfig API. |
+| `GetInstanceCommunicationLimitsRequest` | `structure` | connectInstanceId | The request for GetInstanceCommunicationLimits API. |
+| `GetInstanceCommunicationLimitsResponse` | `structure` | communicationLimitsConfig | The response for GetInstanceCommunicationLimits API. |
+| `GetInstanceOnboardingJobStatusRequest` | `structure` | connectInstanceId | The request for GetInstanceOnboardingJobStatus API. |
+| `GetInstanceOnboardingJobStatusResponse` | `structure` | connectInstanceOnboardingJobStatus | The response for GetInstanceOnboardingJobStatus API. |
+| `ListCampaignsRequest` | `structure` | maxResults, nextToken, filters | The request for ListCampaigns API. |
+| `ListCampaignsResponse` | `structure` | nextToken, campaignSummaryList | The response for ListCampaigns API. |
+| `ListConnectInstanceIntegrationsRequest` | `structure` | connectInstanceId, maxResults, nextToken | The request for ListConnectInstanceIntegrations API. |
+| `ListConnectInstanceIntegrationsResponse` | `structure` | nextToken, integrationSummaryList | The response for ListConnectInstanceIntegrations API. |
+| `ListTagsForResourceRequest` | `structure` | arn | The request for ListTagsForResource API. |
+| `ListTagsForResourceResponse` | `structure` | tags | The request for ListTagsForResource API. |
+| `PauseCampaignRequest` | `structure` | id | The request for PauseCampaign API. |
+| `PutConnectInstanceIntegrationRequest` | `structure` | connectInstanceId, integrationConfig | The request for PutConnectInstanceIntegration API. |
+| `PutInstanceCommunicationLimitsRequest` | `structure` | connectInstanceId, communicationLimitsConfig | The request for PutInstanceCommunicationLimits API. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

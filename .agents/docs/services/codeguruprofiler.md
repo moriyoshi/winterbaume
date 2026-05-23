@@ -49,148 +49,63 @@ This section provides documentation for the Amazon CodeGuru Profiler API operati
 
 ### Get
 
-- Operations: `GetFindingsReportAccountSummary`, `GetNotificationConfiguration`, `GetPolicy`, `GetProfile`, `GetRecommendations`
-- Traits: `paginated` (1), `readonly` (5)
-- Common required input members in this group: `endTime`, `profilingGroupName`, `startTime`
+- Operations: `GetFindingsReportAccountSummary`
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
 ### List
 
-- Operations: `ListFindingsReports`, `ListProfileTimes`, `ListProfilingGroups`, `ListTagsForResource`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `endTime`, `period`, `profilingGroupName`, `resourceArn`, `startTime`
-
-### Remove
-
-- Operations: `RemoveNotificationChannel`, `RemovePermission`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `actionGroup`, `channelId`, `profilingGroupName`, `revisionId`
-
-### Add
-
-- Operations: `AddNotificationChannels`
-- Common required input members in this group: `channels`, `profilingGroupName`
-
-### Batch
-
-- Operations: `BatchGetFrameMetricData`
+- Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `profilingGroupName`
-
-### Configure
-
-- Operations: `ConfigureAgent`
-- Common required input members in this group: `profilingGroupName`
-
-### Create
-
-- Operations: `CreateProfilingGroup`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `clientToken`, `profilingGroupName`
-
-### Delete
-
-- Operations: `DeleteProfilingGroup`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `profilingGroupName`
-
-### Describe
-
-- Operations: `DescribeProfilingGroup`
-- Traits: `readonly` (1)
-- Common required input members in this group: `profilingGroupName`
-
-### Post
-
-- Operations: `PostAgentProfile`
-- Traits: `idempotency-token` (1)
-- Common required input members in this group: `agentProfile`, `contentType`, `profilingGroupName`
-
-### Put
-
-- Operations: `PutPermission`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `actionGroup`, `principals`, `profilingGroupName`
-
-### Submit
-
-- Operations: `SubmitFeedback`
-- Traits: `readonly` (1)
-- Common required input members in this group: `anomalyInstanceId`, `profilingGroupName`, `type`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdateProfilingGroup`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `agentOrchestrationConfig`, `profilingGroupName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddNotificationChannels` | `POST /profilingGroups/{profilingGroupName}/notificationConfiguration` | - | `channels`, `profilingGroupName` | - | `AddNotificationChannelsResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Add up to 2 anomaly notifications channels for a profiling group. |
-| `BatchGetFrameMetricData` | `POST /profilingGroups/{profilingGroupName}/frames/-/metrics` | `readonly` | `profilingGroupName` | - | `BatchGetFrameMetricDataResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the time series of values for a requested list of frame metrics from a time period. |
-| `ConfigureAgent` | `POST /profilingGroups/{profilingGroupName}/configureAgent` | - | `profilingGroupName` | - | `ConfigureAgentResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Used by profiler agents to report their current state and to receive remote configuration updates. For example, `ConfigureAgent` can be used to tell an agent whether to profile or not and for how long to return profiling data. |
-| `CreateProfilingGroup` | `POST /profilingGroups` | `idempotent`, `idempotency-token` | `clientToken`, `profilingGroupName` | `clientToken` | `CreateProfilingGroupResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a profiling group. |
-| `DeleteProfilingGroup` | `DELETE /profilingGroups/{profilingGroupName}` | `idempotent` | `profilingGroupName` | - | `DeleteProfilingGroupResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a profiling group. |
-| `DescribeProfilingGroup` | `GET /profilingGroups/{profilingGroupName}` | `readonly` | `profilingGroupName` | - | `DescribeProfilingGroupResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a `ProfilingGroupDescription` object that contains information about the requested profiling group. |
-| `GetFindingsReportAccountSummary` | `GET /internal/findingsReports` | `readonly`, `paginated` | - | - | `GetFindingsReportAccountSummaryResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of `FindingsReportSummary` objects that contain analysis results for all profiling groups in your AWS account. |
-| `GetNotificationConfiguration` | `GET /profilingGroups/{profilingGroupName}/notificationConfiguration` | `readonly` | `profilingGroupName` | - | `GetNotificationConfigurationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the current configuration for anomaly notifications for a profiling group. |
-| `GetPolicy` | `GET /profilingGroups/{profilingGroupName}/policy` | `readonly` | `profilingGroupName` | - | `GetPolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Returns the JSON-formatted resource-based policy on a profiling group. |
-| `GetProfile` | `GET /profilingGroups/{profilingGroupName}/profile` | `readonly` | `profilingGroupName` | - | `GetProfileResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets the aggregated profile of a profiling group for a specified time range. Amazon CodeGuru Profiler collects posted agent profiles for a profiling group into aggregated profiles. |
-| `GetRecommendations` | `GET /internal/profilingGroups/{profilingGroupName}/recommendations` | `readonly` | `endTime`, `profilingGroupName`, `startTime` | - | `GetRecommendationsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of `Recommendation` objects that contain recommendations for a profiling group for a given time period. A list of `Anomaly` objects that contains details about anomalies detected in the profiling group for the same time period is also returned. |
-| `ListFindingsReports` | `GET /internal/profilingGroups/{profilingGroupName}/findingsReports` | `readonly`, `paginated` | `endTime`, `profilingGroupName`, `startTime` | - | `ListFindingsReportsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List the available reports for a given profiling group and time range. |
-| `ListProfileTimes` | `GET /profilingGroups/{profilingGroupName}/profileTimes` | `readonly`, `paginated` | `endTime`, `period`, `profilingGroupName`, `startTime` | - | `ListProfileTimesResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the start times of the available aggregated profiles of a profiling group for an aggregation period within the specified time range. |
-| `ListProfilingGroups` | `GET /profilingGroups` | `readonly`, `paginated` | - | - | `ListProfilingGroupsResponse` | `InternalServerException`, `ThrottlingException` | Returns a list of profiling groups. The profiling groups are returned as `ProfilingGroupDescription` objects. |
+| `GetFindingsReportAccountSummary` | `GET /internal/findingsReports` | `readonly`, `paginated` | - | - | `GetFindingsReportAccountSummaryResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of FindingsReportSummary objects that contain analysis results for all profiling groups in your AWS account. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns a list of the tags that are assigned to a specified resource. |
-| `PostAgentProfile` | `POST /profilingGroups/{profilingGroupName}/agentProfile` | `idempotency-token` | `agentProfile`, `contentType`, `profilingGroupName` | `profileToken` | `PostAgentProfileResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Submits profiling data to an aggregated profile of a profiling group. To get an aggregated profile that is created with this profiling data, use `GetProfile` . |
-| `PutPermission` | `PUT /profilingGroups/{profilingGroupName}/policy/{actionGroup}` | `idempotent` | `actionGroup`, `principals`, `profilingGroupName` | - | `PutPermissionResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds permissions to a profiling group's resource-based policy that are provided using an action group. If a profiling group doesn't have a resource-based policy, one is created for it using the permissions in the action group and the roles and users in the... |
-| `RemoveNotificationChannel` | `DELETE /profilingGroups/{profilingGroupName}/notificationConfiguration/{channelId}` | `idempotent` | `channelId`, `profilingGroupName` | - | `RemoveNotificationChannelResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Remove one anomaly notifications channel for a profiling group. |
-| `RemovePermission` | `DELETE /profilingGroups/{profilingGroupName}/policy/{actionGroup}` | - | `actionGroup`, `profilingGroupName`, `revisionId` | - | `RemovePermissionResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes permissions from a profiling group's resource-based policy that are provided using an action group. The one supported action group that can be removed is `agentPermission` which grants `ConfigureAgent` and `PostAgent` permissions. |
-| `SubmitFeedback` | `POST /internal/profilingGroups/{profilingGroupName}/anomalies/{anomalyInstanceId}/feedback` | `readonly` | `anomalyInstanceId`, `profilingGroupName`, `type` | - | `SubmitFeedbackResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends feedback to CodeGuru Profiler about whether the anomaly detected by the analysis is useful or not. |
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Use to assign one or more tags to a resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Use to remove one or more tags from a resource. |
-| `UpdateProfilingGroup` | `PUT /profilingGroups/{profilingGroupName}` | `idempotent` | `agentOrchestrationConfig`, `profilingGroupName` | - | `UpdateProfilingGroupResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a profiling group. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetFindingsReportAccountSummary` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `dailyReportsOnly -> dailyReportsOnly` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | The server encountered an internal error and is unable to complete the request. |
-| `ValidationException` | `structure` | `message` | The parameter is not valid. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource specified in the request does not exist. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ConflictException` | `structure` | `message` | The requested operation would cause a conflict with the current state of a service resource associated with the request. |
-| `ServiceQuotaExceededException` | `structure` | `message` | You have exceeded your service quota. |
-| `AddNotificationChannelsRequest` | `structure` | `channels`, `profilingGroupName` | The structure representing the AddNotificationChannelsRequest. |
-| `AddNotificationChannelsResponse` | `structure` | `notificationConfiguration` | The structure representing the AddNotificationChannelsResponse. |
-| `BatchGetFrameMetricDataRequest` | `structure` | `endTime`, `frameMetrics`, `period`, `profilingGroupName`, `startTime`, `targetResolution` | The structure representing the BatchGetFrameMetricDataRequest. |
-| `BatchGetFrameMetricDataResponse` | `structure` | `endTime`, `endTimes`, `frameMetricData`, `resolution`, `startTime`, `unprocessedEndTimes` | The structure representing the BatchGetFrameMetricDataResponse. |
-| `ConfigureAgentRequest` | `structure` | `fleetInstanceId`, `metadata`, `profilingGroupName` | The structure representing the configureAgentRequest. |
-| `ConfigureAgentResponse` | `structure` | `configuration` | The structure representing the configureAgentResponse. |
-| `CreateProfilingGroupRequest` | `structure` | `agentOrchestrationConfig`, `clientToken`, `computePlatform`, `profilingGroupName`, `tags` | The structure representing the createProfiliingGroupRequest. |
-| `CreateProfilingGroupResponse` | `structure` | `profilingGroup` | The structure representing the createProfilingGroupResponse. |
-| `DeleteProfilingGroupRequest` | `structure` | `profilingGroupName` | The structure representing the deleteProfilingGroupRequest. |
-| `DeleteProfilingGroupResponse` | `structure` | - | The structure representing the deleteProfilingGroupResponse. |
-| `DescribeProfilingGroupRequest` | `structure` | `profilingGroupName` | The structure representing the describeProfilingGroupRequest. |
-| `DescribeProfilingGroupResponse` | `structure` | `profilingGroup` | The structure representing the describeProfilingGroupResponse. |
-| `GetFindingsReportAccountSummaryRequest` | `structure` | `dailyReportsOnly`, `maxResults`, `nextToken` | The structure representing the GetFindingsReportAccountSummaryRequest. |
-| `GetFindingsReportAccountSummaryResponse` | `structure` | `nextToken`, `reportSummaries` | The structure representing the GetFindingsReportAccountSummaryResponse. |
-| `GetNotificationConfigurationRequest` | `structure` | `profilingGroupName` | The structure representing the GetNotificationConfigurationRequest. |
-| `GetNotificationConfigurationResponse` | `structure` | `notificationConfiguration` | The structure representing the GetNotificationConfigurationResponse. |
-| `GetPolicyRequest` | `structure` | `profilingGroupName` | The structure representing the `getPolicyRequest`. |
-| `GetPolicyResponse` | `structure` | `policy`, `revisionId` | The structure representing the `getPolicyResponse`. |
-
+| `ConflictException` | `structure` | message | The requested operation would cause a conflict with the current state of a service resource associated with the request. Resolve the conflict before retryin ... |
+| `InternalServerException` | `structure` | message | The server encountered an internal error and is unable to complete the request. |
+| `ResourceNotFoundException` | `structure` | message | The resource specified in the request does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message | You have exceeded your service quota. To perform the requested action, remove some of the relevant resources, or use Service Quotas to request a service quo ... |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The parameter is not valid. |
+| `GetFindingsReportAccountSummaryRequest` | `structure` | nextToken, maxResults, dailyReportsOnly | The structure representing the GetFindingsReportAccountSummaryRequest. |
+| `GetFindingsReportAccountSummaryResponse` | `structure` | reportSummaries, nextToken | The structure representing the GetFindingsReportAccountSummaryResponse. |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

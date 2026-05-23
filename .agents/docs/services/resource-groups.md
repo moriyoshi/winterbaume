@@ -65,125 +65,161 @@ Parity implications:
 
 ### Get
 
-- Operations: `GetAccountSettings`, `GetGroup`, `GetGroupConfiguration`, `GetGroupQuery`, `GetTagSyncTask`, `GetTags`
-- Common required input members in this group: `Arn`, `TaskArn`
+- Operations: `GetAccountSettings`, `GetGroup`, `GetGroupConfiguration`, `GetGroupQuery`, `GetTags`, `GetTagSyncTask`
+- Common required input members in this group: -
 
 ### List
 
-- Operations: `ListGroupResources`, `ListGroupingStatuses`, `ListGroups`, `ListTagSyncTasks`
+- Operations: `ListGroupingStatuses`, `ListGroupResources`, `ListGroups`, `ListTagSyncTasks`
 - Traits: `paginated` (4)
-- Common required input members in this group: `Group`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateAccountSettings`, `UpdateGroup`, `UpdateGroupQuery`
-- Common required input members in this group: `ResourceQuery`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelTagSyncTask`
-- Common required input members in this group: `TaskArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateGroup`
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteGroup`
+- Common required input members in this group: -
 
 ### Group
 
 - Operations: `GroupResources`
-- Common required input members in this group: `Group`, `ResourceArns`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutGroupConfiguration`
+- Common required input members in this group: -
 
 ### Search
 
 - Operations: `SearchResources`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ResourceQuery`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartTagSyncTask`
-- Common required input members in this group: `Group`, `RoleArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `Tag`
-- Common required input members in this group: `Arn`, `Tags`
+- Common required input members in this group: -
 
 ### Ungroup
 
 - Operations: `UngroupResources`
-- Common required input members in this group: `Group`, `ResourceArns`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `Untag`
-- Common required input members in this group: `Arn`, `Keys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelTagSyncTask` | `POST /cancel-tag-sync-task` | - | `TaskArn` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException`, `UnauthorizedException` | Cancels the specified tag-sync task. Minimum permissions To run this command, you must have the following permissions: `resource-groups:CancelTagSyncTask` on the application group `resource-groups:DeleteGroup` |
-| `CreateGroup` | `POST /groups` | - | `Name` | - | `CreateGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Creates a resource group with the specified name and description. You can optionally include either a resource query or a service configuration. |
-| `DeleteGroup` | `POST /delete-group` | - | - | - | `DeleteGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Deletes the specified resource group. Deleting a resource group does not delete any resources that are members of the group; it only deletes the group structure. |
+| `CancelTagSyncTask` | `POST /cancel-tag-sync-task` | - | `TaskArn` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException`, `UnauthorizedException` | Cancels the specified tag-sync task. Minimum permissions To run this command, you must have the following permissions: resource-groups:CancelTagSyncTask on the application group resource-groups:DeleteGroup |
+| `CreateGroup` | `POST /groups` | - | `Name` | - | `CreateGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Creates a resource group with the specified name and description. You can optionally include either a resource query or a service configuration. For more information about constructing a resource query, see Build que ... |
+| `DeleteGroup` | `POST /delete-group` | - | - | - | `DeleteGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Deletes the specified resource group. Deleting a resource group does not delete any resources that are members of the group; it only deletes the group structure. Minimum permissions To run this command, you must have ... |
 | `GetAccountSettings` | `POST /get-account-settings` | - | - | - | `GetAccountSettingsOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Retrieves the current status of optional features in Resource Groups. |
-| `GetGroup` | `POST /get-group` | - | - | - | `GetGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Returns information about a specified resource group. Minimum permissions To run this command, you must have the following permissions: `resource-groups:GetGroup` |
-| `GetGroupConfiguration` | `POST /get-group-configuration` | - | - | - | `GetGroupConfigurationOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Retrieves the service configuration associated with the specified resource group. For details about the service configuration syntax, see Service configurations for Resource Groups. |
-| `GetGroupQuery` | `POST /get-group-query` | - | - | - | `GetGroupQueryOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Retrieves the resource query associated with the specified resource group. For more information about resource queries, see Create a tag-based group in Resource Groups. |
-| `GetTagSyncTask` | `POST /get-tag-sync-task` | - | `TaskArn` | - | `GetTagSyncTaskOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Returns information about a specified tag-sync task. Minimum permissions To run this command, you must have the following permissions: `resource-groups:GetTagSyncTask` on the application group |
-| `GetTags` | `GET /resources/{Arn}/tags` | - | `Arn` | - | `GetTagsOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Returns a list of tags that are associated with a resource group, specified by an Amazon resource name (ARN). Minimum permissions To run this command, you must have the following permissions: `resource-groups:GetTags` |
-| `GroupResources` | `POST /group-resources` | - | `Group`, `ResourceArns` | - | `GroupResourcesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Adds the specified resources to the specified group. You can only use this operation with the following groups: `AWS::EC2::HostManagement` `AWS::EC2::CapacityReservationPool` `AWS::ResourceGroups::ApplicationGroup` Other resource group types and resource... |
-| `ListGroupResources` | `POST /list-group-resources` | `paginated` | - | - | `ListGroupResourcesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of Amazon resource names (ARNs) of the resources that are members of a specified resource group. Minimum permissions To run this command, you must have the following permissions: `resource-groups:ListGroupResources`... |
+| `GetGroup` | `POST /get-group` | - | - | - | `GetGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Returns information about a specified resource group. Minimum permissions To run this command, you must have the following permissions: resource-groups:GetGroup |
+| `GetGroupConfiguration` | `POST /get-group-configuration` | - | - | - | `GetGroupConfigurationOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Retrieves the service configuration associated with the specified resource group. For details about the service configuration syntax, see Service configurations for Resource Groups . Minimum permissions To run this c ... |
+| `GetGroupQuery` | `POST /get-group-query` | - | - | - | `GetGroupQueryOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Retrieves the resource query associated with the specified resource group. For more information about resource queries, see Create a tag-based group in Resource Groups . Minimum permissions To run this command, you m ... |
+| `GetTags` | `GET /resources/{Arn}/tags` | - | `Arn` | - | `GetTagsOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Returns a list of tags that are associated with a resource group, specified by an Amazon resource name (ARN). Minimum permissions To run this command, you must have the following permissions: resource-groups:GetTags |
+| `GetTagSyncTask` | `POST /get-tag-sync-task` | - | `TaskArn` | - | `GetTagSyncTaskOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Returns information about a specified tag-sync task. Minimum permissions To run this command, you must have the following permissions: resource-groups:GetTagSyncTask on the application group |
+| `GroupResources` | `POST /group-resources` | - | `Group`, `ResourceArns` | - | `GroupResourcesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Adds the specified resources to the specified group. You can only use this operation with the following groups: AWS::EC2::HostManagement AWS::EC2::CapacityReservationPool AWS::ResourceGroups::ApplicationGroup Other r ... |
 | `ListGroupingStatuses` | `POST /list-grouping-statuses` | `paginated` | `Group` | - | `ListGroupingStatusesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Returns the status of the last grouping or ungrouping action for each resource in the specified application group. |
-| `ListGroups` | `POST /groups-list` | `paginated` | - | - | `ListGroupsOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Returns a list of existing Resource Groups in your account. Minimum permissions To run this command, you must have the following permissions: `resource-groups:ListGroups` |
-| `ListTagSyncTasks` | `POST /list-tag-sync-tasks` | `paginated` | - | - | `ListTagSyncTasksOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of tag-sync tasks. Minimum permissions To run this command, you must have the following permissions: `resource-groups:ListTagSyncTasks` with the group passed in the filters as the resource or * if using no filters |
-| `PutGroupConfiguration` | `POST /put-group-configuration` | - | - | - | `PutGroupConfigurationOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Attaches a service configuration to the specified group. This occurs asynchronously, and can take time to complete. |
-| `SearchResources` | `POST /resources/search` | `paginated` | `ResourceQuery` | - | `SearchResourcesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of Amazon Web Services resource identifiers that matches the specified query. The query uses the same format as a resource query in a CreateGroup or UpdateGroupQuery operation. |
-| `StartTagSyncTask` | `POST /start-tag-sync-task` | - | `Group`, `RoleArn` | - | `StartTagSyncTaskOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Creates a new tag-sync task to onboard and sync resources tagged with a specific tag key-value pair to an application. To start a tag-sync task, you need a resource tagging role. |
-| `Tag` | `PUT /resources/{Arn}/tags` | - | `Arn`, `Tags` | - | `TagOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Adds tags to a resource group with the specified Amazon resource name (ARN). Existing tags on a resource group are not changed if they are not specified in the request parameters. |
-| `UngroupResources` | `POST /ungroup-resources` | - | `Group`, `ResourceArns` | - | `UngroupResourcesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Removes the specified resources from the specified group. This operation works only with static groups that you populated using the GroupResources operation. |
-| `Untag` | `PATCH /resources/{Arn}/tags` | - | `Arn`, `Keys` | - | `UntagOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Deletes tags from a specified resource group. Minimum permissions To run this command, you must have the following permissions: `resource-groups:Untag` |
-| `UpdateAccountSettings` | `POST /update-account-settings` | - | - | - | `UpdateAccountSettingsOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Turns on or turns off optional features in Resource Groups. The preceding example shows that the request to turn on group lifecycle events is `IN_PROGRESS`. |
-| `UpdateGroup` | `POST /update-group` | - | - | - | `UpdateGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Updates the description for an existing group. You cannot update the name of a resource group. |
-| `UpdateGroupQuery` | `POST /update-group-query` | - | `ResourceQuery` | - | `UpdateGroupQueryOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Updates the resource query of a group. For more information about resource queries, see Create a tag-based group in Resource Groups. |
+| `ListGroupResources` | `POST /list-group-resources` | `paginated` | - | - | `ListGroupResourcesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of Amazon resource names (ARNs) of the resources that are members of a specified resource group. Minimum permissions To run this command, you must have the following permissions: resource-groups:ListGr ... |
+| `ListGroups` | `POST /groups-list` | `paginated` | - | - | `ListGroupsOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Returns a list of existing Resource Groups in your account. Minimum permissions To run this command, you must have the following permissions: resource-groups:ListGroups |
+| `ListTagSyncTasks` | `POST /list-tag-sync-tasks` | `paginated` | - | - | `ListTagSyncTasksOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of tag-sync tasks. Minimum permissions To run this command, you must have the following permissions: resource-groups:ListTagSyncTasks with the group passed in the filters as the resource or * if using ... |
+| `PutGroupConfiguration` | `POST /put-group-configuration` | - | - | - | `PutGroupConfigurationOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Attaches a service configuration to the specified group. This occurs asynchronously, and can take time to complete. You can use GetGroupConfiguration to check the status of the update. Minimum permissions To run this ... |
+| `SearchResources` | `POST /resources/search` | `paginated` | `ResourceQuery` | - | `SearchResourcesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException`, `UnauthorizedException` | Returns a list of Amazon Web Services resource identifiers that matches the specified query. The query uses the same format as a resource query in a CreateGroup or UpdateGroupQuery operation. Minimum permissions To r ... |
+| `StartTagSyncTask` | `POST /start-tag-sync-task` | - | `Group`, `RoleArn` | - | `StartTagSyncTaskOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Creates a new tag-sync task to onboard and sync resources tagged with a specific tag key-value pair to an application. To start a tag-sync task, you need a resource tagging role . The resource tagging role grants per ... |
+| `Tag` | `PUT /resources/{Arn}/tags` | - | `Arn`, `Tags` | - | `TagOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Adds tags to a resource group with the specified Amazon resource name (ARN). Existing tags on a resource group are not changed if they are not specified in the request parameters. Do not store personally identifiable ... |
+| `UngroupResources` | `POST /ungroup-resources` | - | `Group`, `ResourceArns` | - | `UngroupResourcesOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Removes the specified resources from the specified group. This operation works only with static groups that you populated using the GroupResources operation. It doesn't work with any resource groups that are automati ... |
+| `Untag` | `PATCH /resources/{Arn}/tags` | - | `Arn`, `Keys` | - | `UntagOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Deletes tags from a specified resource group. Minimum permissions To run this command, you must have the following permissions: resource-groups:Untag |
+| `UpdateAccountSettings` | `POST /update-account-settings` | - | - | - | `UpdateAccountSettingsOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `TooManyRequestsException` | Turns on or turns off optional features in Resource Groups. The preceding example shows that the request to turn on group lifecycle events is IN_PROGRESS . You can call the GetAccountSettings operation to check for c ... |
+| `UpdateGroup` | `POST /update-group` | - | - | - | `UpdateGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Updates the description for an existing group. You cannot update the name of a resource group. Minimum permissions To run this command, you must have the following permissions: resource-groups:UpdateGroup |
+| `UpdateGroupQuery` | `POST /update-group-query` | - | `ResourceQuery` | - | `UpdateGroupQueryOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Updates the resource query of a group. For more information about resource queries, see Create a tag-based group in Resource Groups . Minimum permissions To run this command, you must have the following permissions: ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `BadRequestException` | `structure` | `Message` | The request includes one or more parameters that violate validation rules. |
-| `ForbiddenException` | `structure` | `Message` | The caller isn't authorized to make the request. |
-| `InternalServerErrorException` | `structure` | `Message` | An internal error occurred while processing the request. |
-| `MethodNotAllowedException` | `structure` | `Message` | The request uses an HTTP method that isn't allowed for the specified resource. |
-| `TooManyRequestsException` | `structure` | `Message` | You've exceeded throttling limits by making too many requests in a period of time. |
-| `NotFoundException` | `structure` | `Message` | One or more of the specified resources don't exist. |
-| `UnauthorizedException` | `structure` | `Message` | The request was rejected because it doesn't have valid credentials for the target resource. |
-| `CancelTagSyncTaskInput` | `structure` | `TaskArn` | - |
-| `CreateGroupInput` | `structure` | `Configuration`, `Criticality`, `Description`, `DisplayName`, `Name`, `Owner`, `ResourceQuery`, `Tags` | - |
-| `CreateGroupOutput` | `structure` | `Group`, `GroupConfiguration`, `ResourceQuery`, `Tags` | - |
-| `DeleteGroupInput` | `structure` | `Group`, `GroupName` | - |
-| `DeleteGroupOutput` | `structure` | `Group` | - |
-| `GetAccountSettingsOutput` | `structure` | `AccountSettings` | - |
-| `GetGroupInput` | `structure` | `Group`, `GroupName` | - |
-| `GetGroupOutput` | `structure` | `Group` | - |
-| `GetGroupConfigurationInput` | `structure` | `Group` | - |
-| `GetGroupConfigurationOutput` | `structure` | `GroupConfiguration` | - |
-| `GetGroupQueryInput` | `structure` | `Group`, `GroupName` | - |
-| `GetGroupQueryOutput` | `structure` | `GroupQuery` | - |
-| `GetTagSyncTaskInput` | `structure` | `TaskArn` | - |
-| `GetTagSyncTaskOutput` | `structure` | `CreatedAt`, `ErrorMessage`, `GroupArn`, `GroupName`, `ResourceQuery`, `RoleArn`, `Status`, `TagKey`, `TagValue`, `TaskArn` | - |
-| `GetTagsInput` | `structure` | `Arn` | - |
-| `GetTagsOutput` | `structure` | `Arn`, `Tags` | - |
-
+| `BadRequestException` | `structure` | Message | The request includes one or more parameters that violate validation rules. |
+| `ForbiddenException` | `structure` | Message | The caller isn't authorized to make the request. Check permissions. |
+| `InternalServerErrorException` | `structure` | Message | An internal error occurred while processing the request. Try again later. |
+| `MethodNotAllowedException` | `structure` | Message | The request uses an HTTP method that isn't allowed for the specified resource. |
+| `NotFoundException` | `structure` | Message | One or more of the specified resources don't exist. |
+| `TooManyRequestsException` | `structure` | Message | You've exceeded throttling limits by making too many requests in a period of time. |
+| `UnauthorizedException` | `structure` | Message | The request was rejected because it doesn't have valid credentials for the target resource. |
+| `CancelTagSyncTaskInput` | `structure` | TaskArn | - |
+| `CreateGroupInput` | `structure` | Name, Description, ResourceQuery, Tags, Configuration, Criticality, Owner, DisplayName | - |
+| `CreateGroupOutput` | `structure` | Group, ResourceQuery, Tags, GroupConfiguration | - |
+| `DeleteGroupInput` | `structure` | GroupName, Group | - |
+| `DeleteGroupOutput` | `structure` | Group | - |
+| `GetAccountSettingsOutput` | `structure` | AccountSettings | - |
+| `GetGroupInput` | `structure` | GroupName, Group | - |
+| `GetGroupOutput` | `structure` | Group | - |
+| `GetGroupConfigurationInput` | `structure` | Group | - |
+| `GetGroupConfigurationOutput` | `structure` | GroupConfiguration | - |
+| `GetGroupQueryInput` | `structure` | GroupName, Group | - |
+| `GetGroupQueryOutput` | `structure` | GroupQuery | - |
+| `GetTagsInput` | `structure` | Arn | - |
+| `GetTagsOutput` | `structure` | Arn, Tags | - |
+| `GetTagSyncTaskInput` | `structure` | TaskArn | - |
+| `GetTagSyncTaskOutput` | `structure` | GroupArn, GroupName, TaskArn, TagKey, TagValue, ResourceQuery, RoleArn, Status, ErrorMessage, CreatedAt | - |
+| `GroupResourcesInput` | `structure` | Group, ResourceArns | - |
+| `GroupResourcesOutput` | `structure` | Succeeded, Failed, Pending | - |
+| `ListGroupingStatusesInput` | `structure` | Group, MaxResults, Filters, NextToken | - |
+| `ListGroupingStatusesOutput` | `structure` | Group, GroupingStatuses, NextToken | - |
+| `ListGroupResourcesInput` | `structure` | GroupName, Group, Filters, MaxResults, NextToken | - |
+| `ListGroupResourcesOutput` | `structure` | Resources, ResourceIdentifiers, NextToken, QueryErrors | - |
+| `ListGroupsInput` | `structure` | Filters, MaxResults, NextToken | - |
+| `ListGroupsOutput` | `structure` | GroupIdentifiers, Groups, NextToken | - |
+| `ListTagSyncTasksInput` | `structure` | Filters, MaxResults, NextToken | - |
+| `ListTagSyncTasksOutput` | `structure` | TagSyncTasks, NextToken | - |
+| `PutGroupConfigurationInput` | `structure` | Group, Configuration | - |
+| `PutGroupConfigurationOutput` | `structure` | **empty (no members)** | - |
+| `SearchResourcesInput` | `structure` | ResourceQuery, MaxResults, NextToken | - |
+| `SearchResourcesOutput` | `structure` | ResourceIdentifiers, NextToken, QueryErrors | - |
+| `StartTagSyncTaskInput` | `structure` | Group, TagKey, TagValue, ResourceQuery, RoleArn | - |
+| `StartTagSyncTaskOutput` | `structure` | GroupArn, GroupName, TaskArn, TagKey, TagValue, ResourceQuery, RoleArn | - |
+| `TagInput` | `structure` | Arn, Tags | - |
+| `GroupConfigurationStatus` | `enum` | UPDATING, UPDATE_COMPLETE, UPDATE_FAILED | - |
+| `GroupFilterName` | `enum` | ResourceType, ConfigurationType, Owner, DisplayName, Criticality | - |
+| `GroupLifecycleEventsDesiredStatus` | `enum` | ACTIVE, INACTIVE | - |
+| `GroupLifecycleEventsStatus` | `enum` | ACTIVE, INACTIVE, IN_PROGRESS, ERROR | - |
+| `GroupingStatus` | `enum` | SUCCESS, FAILED, IN_PROGRESS, SKIPPED | - |
+| `GroupingType` | `enum` | GROUP, UNGROUP | - |
+| `ListGroupingStatusesFilterName` | `enum` | Status, ResourceArn | - |
+| `QueryErrorCode` | `enum` | CLOUDFORMATION_STACK_INACTIVE, CLOUDFORMATION_STACK_NOT_EXISTING, CLOUDFORMATION_STACK_UNASSUMABLE_ROLE, RESOURCE_TYPE_NOT_SUPPORTED | - |
+| `QueryType` | `enum` | TAG_FILTERS_1_0, CLOUDFORMATION_STACK_1_0 | - |
+| `ResourceFilterName` | `enum` | ResourceType | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

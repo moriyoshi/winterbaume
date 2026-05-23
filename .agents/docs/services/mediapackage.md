@@ -49,12 +49,12 @@ AWS Elemental MediaPackage
 
 - Operations: `ListChannels`, `ListHarvestJobs`, `ListOriginEndpoints`, `ListTagsForResource`
 - Traits: `paginated` (3)
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateChannel`, `CreateHarvestJob`, `CreateOriginEndpoint`
-- Common required input members in this group: `ChannelId`, `EndTime`, `Id`, `OriginEndpointId`, `S3Destination`, `StartTime`
+- Common required input members in this group: `Id`
 
 ### Describe
 
@@ -69,7 +69,7 @@ AWS Elemental MediaPackage
 ### Rotate
 
 - Operations: `RotateChannelCredentials`, `RotateIngestEndpointCredentials`
-- Common required input members in this group: `Id`, `IngestEndpointId`
+- Common required input members in this group: `Id`
 
 ### Update
 
@@ -79,17 +79,17 @@ AWS Elemental MediaPackage
 ### Configure
 
 - Operations: `ConfigureLogs`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -108,41 +108,78 @@ AWS Elemental MediaPackage
 | `ListHarvestJobs` | `GET /harvest_jobs` | `paginated` | - | - | `ListHarvestJobsResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Returns a collection of HarvestJob records. |
 | `ListOriginEndpoints` | `GET /origin_endpoints` | `paginated` | - | - | `ListOriginEndpointsResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Returns a collection of OriginEndpoint records. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | - | - |
-| `RotateChannelCredentials` | `PUT /channels/{Id}/credentials` | - | `Id` | - | `RotateChannelCredentialsResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Changes the Channel's first IngestEndpoint's username and password. WARNING - This API is deprecated. |
+| `RotateChannelCredentials` | `PUT /channels/{Id}/credentials` | - | `Id` | - | `RotateChannelCredentialsResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Changes the Channel's first IngestEndpoint's username and password. WARNING - This API is deprecated. Please use RotateIngestEndpointCredentials instead |
 | `RotateIngestEndpointCredentials` | `PUT /channels/{Id}/ingest_endpoints/{IngestEndpointId}/credentials` | - | `Id`, `IngestEndpointId` | - | `RotateIngestEndpointCredentialsResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Rotate the IngestEndpoint's username and password, as specified by the IngestEndpoint's id. |
 | `TagResource` | `POST /tags/{ResourceArn}` | - | `ResourceArn`, `Tags` | - | `Unit` | - | - |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `Unit` | - | - |
 | `UpdateChannel` | `PUT /channels/{Id}` | - | `Id` | - | `UpdateChannelResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Updates an existing Channel. |
 | `UpdateOriginEndpoint` | `PUT /origin_endpoints/{Id}` | - | `Id` | - | `UpdateOriginEndpointResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Updates an existing OriginEndpoint. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListChannels` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListHarvestJobs` | - | `IncludeChannelId -> includeChannelId`, `IncludeStatus -> includeStatus`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListOriginEndpoints` | - | `ChannelId -> channelId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ForbiddenException` | `structure` | `Message` | The client is not authorized to access the requested resource. |
-| `InternalServerErrorException` | `structure` | `Message` | An unexpected error occurred. |
-| `NotFoundException` | `structure` | `Message` | The requested resource does not exist. |
-| `ServiceUnavailableException` | `structure` | `Message` | An unexpected error occurred. |
-| `TooManyRequestsException` | `structure` | `Message` | The client has exceeded their resource or throttling limits. |
-| `UnprocessableEntityException` | `structure` | `Message` | The parameters sent in the request are not valid. |
-| `ConfigureLogsRequest` | `structure` | `EgressAccessLogs`, `Id`, `IngressAccessLogs` | the option to configure log subscription. |
-| `ConfigureLogsResponse` | `structure` | `Arn`, `CreatedAt`, `Description`, `EgressAccessLogs`, `HlsIngest`, `Id`, `IngressAccessLogs`, `Tags` | - |
-| `CreateChannelRequest` | `structure` | `Description`, `Id`, `Tags` | A new Channel configuration. |
-| `CreateChannelResponse` | `structure` | `Arn`, `CreatedAt`, `Description`, `EgressAccessLogs`, `HlsIngest`, `Id`, `IngressAccessLogs`, `Tags` | - |
-| `CreateHarvestJobRequest` | `structure` | `EndTime`, `Id`, `OriginEndpointId`, `S3Destination`, `StartTime` | Configuration parameters used to create a new HarvestJob. |
-| `CreateHarvestJobResponse` | `structure` | `Arn`, `ChannelId`, `CreatedAt`, `EndTime`, `Id`, `OriginEndpointId`, `S3Destination`, `StartTime`, `Status` | - |
-| `CreateOriginEndpointRequest` | `structure` | `Authorization`, `ChannelId`, `CmafPackage`, `DashPackage`, `Description`, `HlsPackage`, `Id`, `ManifestName`, `MssPackage`, `Origination`, `StartoverWindowSeconds`, `Tags`, ... (+2) | Configuration parameters used to create a new OriginEndpoint. |
-| `CreateOriginEndpointResponse` | `structure` | `Arn`, `Authorization`, `ChannelId`, `CmafPackage`, `CreatedAt`, `DashPackage`, `Description`, `HlsPackage`, `Id`, `ManifestName`, `MssPackage`, `Origination`, ... (+5) | - |
-| `DeleteChannelRequest` | `structure` | `Id` | - |
-| `DeleteChannelResponse` | `structure` | - | - |
-| `DeleteOriginEndpointRequest` | `structure` | `Id` | - |
-| `DeleteOriginEndpointResponse` | `structure` | - | - |
-| `DescribeChannelRequest` | `structure` | `Id` | - |
-| `DescribeChannelResponse` | `structure` | `Arn`, `CreatedAt`, `Description`, `EgressAccessLogs`, `HlsIngest`, `Id`, `IngressAccessLogs`, `Tags` | - |
-| `DescribeHarvestJobRequest` | `structure` | `Id` | - |
-| `DescribeHarvestJobResponse` | `structure` | `Arn`, `ChannelId`, `CreatedAt`, `EndTime`, `Id`, `OriginEndpointId`, `S3Destination`, `StartTime`, `Status` | - |
-| `DescribeOriginEndpointRequest` | `structure` | `Id` | - |
-
+| `ForbiddenException` | `structure` | Message | The client is not authorized to access the requested resource. |
+| `InternalServerErrorException` | `structure` | Message | An unexpected error occurred. |
+| `NotFoundException` | `structure` | Message | The requested resource does not exist. |
+| `ServiceUnavailableException` | `structure` | Message | An unexpected error occurred. |
+| `TooManyRequestsException` | `structure` | Message | The client has exceeded their resource or throttling limits. |
+| `UnprocessableEntityException` | `structure` | Message | The parameters sent in the request are not valid. |
+| `ConfigureLogsRequest` | `structure` | EgressAccessLogs, Id, IngressAccessLogs | the option to configure log subscription. |
+| `ConfigureLogsResponse` | `structure` | Arn, CreatedAt, Description, EgressAccessLogs, HlsIngest, Id, IngressAccessLogs, Tags | - |
+| `CreateChannelRequest` | `structure` | Description, Id, Tags | A new Channel configuration. |
+| `CreateChannelResponse` | `structure` | Arn, CreatedAt, Description, EgressAccessLogs, HlsIngest, Id, IngressAccessLogs, Tags | - |
+| `CreateHarvestJobRequest` | `structure` | EndTime, Id, OriginEndpointId, S3Destination, StartTime | Configuration parameters used to create a new HarvestJob. |
+| `CreateHarvestJobResponse` | `structure` | Arn, ChannelId, CreatedAt, EndTime, Id, OriginEndpointId, S3Destination, StartTime, Status | - |
+| `CreateOriginEndpointRequest` | `structure` | Authorization, ChannelId, CmafPackage, DashPackage, Description, HlsPackage, Id, ManifestName, MssPackage, Origination, StartoverWindowSeconds, Tags, ... (+2) | Configuration parameters used to create a new OriginEndpoint. |
+| `CreateOriginEndpointResponse` | `structure` | Arn, Authorization, ChannelId, CmafPackage, CreatedAt, DashPackage, Description, HlsPackage, Id, ManifestName, MssPackage, Origination, ... (+5) | - |
+| `DeleteChannelRequest` | `structure` | Id | - |
+| `DeleteChannelResponse` | `structure` | **empty (no members)** | - |
+| `DeleteOriginEndpointRequest` | `structure` | Id | - |
+| `DeleteOriginEndpointResponse` | `structure` | **empty (no members)** | - |
+| `DescribeChannelRequest` | `structure` | Id | - |
+| `DescribeChannelResponse` | `structure` | Arn, CreatedAt, Description, EgressAccessLogs, HlsIngest, Id, IngressAccessLogs, Tags | - |
+| `DescribeHarvestJobRequest` | `structure` | Id | - |
+| `DescribeHarvestJobResponse` | `structure` | Arn, ChannelId, CreatedAt, EndTime, Id, OriginEndpointId, S3Destination, StartTime, Status | - |
+| `DescribeOriginEndpointRequest` | `structure` | Id | - |
+| `DescribeOriginEndpointResponse` | `structure` | Arn, Authorization, ChannelId, CmafPackage, CreatedAt, DashPackage, Description, HlsPackage, Id, ManifestName, MssPackage, Origination, ... (+5) | - |
+| `ListChannelsRequest` | `structure` | MaxResults, NextToken | - |
+| `ListChannelsResponse` | `structure` | Channels, NextToken | - |
+| `ListHarvestJobsRequest` | `structure` | IncludeChannelId, IncludeStatus, MaxResults, NextToken | - |
+| `ListHarvestJobsResponse` | `structure` | HarvestJobs, NextToken | - |
+| `ListOriginEndpointsRequest` | `structure` | ChannelId, MaxResults, NextToken | - |
+| `ListOriginEndpointsResponse` | `structure` | NextToken, OriginEndpoints | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `RotateChannelCredentialsRequest` | `structure` | Id | - |
+| `RotateChannelCredentialsResponse` | `structure` | Arn, CreatedAt, Description, EgressAccessLogs, HlsIngest, Id, IngressAccessLogs, Tags | - |
+| `RotateIngestEndpointCredentialsRequest` | `structure` | Id, IngestEndpointId | - |
+| `RotateIngestEndpointCredentialsResponse` | `structure` | Arn, CreatedAt, Description, EgressAccessLogs, HlsIngest, Id, IngressAccessLogs, Tags | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UpdateChannelRequest` | `structure` | Description, Id | Configuration parameters used to update the Channel. |
+| `UpdateChannelResponse` | `structure` | Arn, CreatedAt, Description, EgressAccessLogs, HlsIngest, Id, IngressAccessLogs, Tags | - |
+| `AdMarkers` | `enum` | NONE, SCTE35_ENHANCED, PASSTHROUGH, DATERANGE | - |
+| `AdsOnDeliveryRestrictions` | `enum` | NONE, RESTRICTED, UNRESTRICTED, BOTH | This setting allows the delivery restriction flags on SCTE-35 segmentation descriptors to determine whether a message signals an ad. Choosing "NONE" means n ... |
+| `CmafEncryptionMethod` | `enum` | SAMPLE_AES, AES_CTR | The encryption method to use. |
+| `EncryptionMethod` | `enum` | AES_128, SAMPLE_AES | - |
+| `ManifestLayout` | `enum` | FULL, COMPACT, DRM_TOP_LEVEL_COMPACT | - |
+| `Origination` | `enum` | ALLOW, DENY | - |
+| `PlaylistType` | `enum` | NONE, EVENT, VOD | - |
+| `PresetSpeke20Audio` | `enum` | PRESET_AUDIO_1, PRESET_AUDIO_2, PRESET_AUDIO_3, SHARED, UNENCRYPTED | - |
+| `PresetSpeke20Video` | `enum` | PRESET_VIDEO_1, PRESET_VIDEO_2, PRESET_VIDEO_3, PRESET_VIDEO_4, PRESET_VIDEO_5, PRESET_VIDEO_6, PRESET_VIDEO_7, PRESET_VIDEO_8, SHARED, UNENCRYPTED | - |
+| `Profile` | `enum` | NONE, HBBTV_1_5, HYBRIDCAST, DVB_DASH_2014 | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

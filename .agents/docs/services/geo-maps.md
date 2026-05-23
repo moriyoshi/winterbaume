@@ -39,42 +39,26 @@ Integrate high-quality base map data into your applications using MapLibre. Capa
 | `ProviderResource` | - | - | `GetGlyphs`, `GetSprites`, `GetStaticMap`, `GetStyleDescriptor`, `GetTile` | - |
 ## Operation Groups
 
-### Get
-
-- Operations: `GetGlyphs`, `GetSprites`, `GetStaticMap`, `GetStyleDescriptor`, `GetTile`
-- Traits: `readonly` (5)
-- Common required input members in this group: `ColorScheme`, `FileName`, `FontStack`, `FontUnicodeRange`, `Height`, `Style`, `Tileset`, `Variant`, `Width`, `X`, `Y`, `Z`
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetGlyphs` | `GET /glyphs/{FontStack}/{FontUnicodeRange}` | `readonly` | `FontStack`, `FontUnicodeRange` | - | `GetGlyphsResponse` | - | `GetGlyphs` returns the map's glyphs. For more information, see Style labels with glyphs in the Amazon Location Service Developer Guide . |
-| `GetSprites` | `GET /styles/{Style}/{ColorScheme}/{Variant}/sprites/{FileName}` | `readonly` | `ColorScheme`, `FileName`, `Style`, `Variant` | - | `GetSpritesResponse` | - | `GetSprites` returns the map's sprites. For more information, see Style iconography with sprites in the Amazon Location Service Developer Guide . |
-| `GetStaticMap` | `GET /static/{FileName}` | `readonly` | `FileName`, `Height`, `Width` | - | `GetStaticMapResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `GetStaticMap` provides high-quality static map images with customizable options. You can modify the map's appearance and overlay additional information. |
-| `GetStyleDescriptor` | `GET /styles/{Style}/descriptor` | `readonly` | `Style` | - | `GetStyleDescriptorResponse` | - | `GetStyleDescriptor` returns information about the style. For more information, see Style dynamic maps in the Amazon Location Service Developer Guide . |
-| `GetTile` | `GET /tiles/{Tileset}/{Z}/{X}/{Y}` | `readonly` | `Tileset`, `X`, `Y`, `Z` | - | `GetTileResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | `GetTile` returns a tile. Map tiles are used by clients to render a map. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | The request was denied because of insufficient access or permissions. |
-| `InternalServerException` | `structure` | `Message` | The request processing has failed because of an unknown error, exception or failure. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `FieldList`, `Message`, `Reason` | The input fails to satisfy the constraints specified by an AWS service. |
-| `GetGlyphsRequest` | `structure` | `FontStack`, `FontUnicodeRange` | - |
-| `GetGlyphsResponse` | `structure` | `Blob`, `CacheControl`, `ContentType`, `ETag` | - |
-| `GetSpritesRequest` | `structure` | `ColorScheme`, `FileName`, `Style`, `Variant` | - |
-| `GetSpritesResponse` | `structure` | `Blob`, `CacheControl`, `ContentType`, `ETag` | - |
-| `GetStaticMapRequest` | `structure` | `BoundedPositions`, `BoundingBox`, `Center`, `ColorScheme`, `CompactOverlay`, `CropLabels`, `FileName`, `GeoJsonOverlay`, `Height`, `Key`, `LabelSize`, `Language`, ... (+8) | - |
-| `GetStaticMapResponse` | `structure` | `Blob`, `CacheControl`, `ContentType`, `ETag`, `PricingBucket` | - |
-| `GetStyleDescriptorRequest` | `structure` | `Buildings`, `ColorScheme`, `ContourDensity`, `Key`, `PoliticalView`, `Style`, `Terrain`, `Traffic`, `TravelModes` | - |
-| `GetStyleDescriptorResponse` | `structure` | `Blob`, `CacheControl`, `ContentType`, `ETag` | - |
-| `GetTileRequest` | `structure` | `AdditionalFeatures`, `Key`, `Tileset`, `X`, `Y`, `Z` | - |
-| `GetTileResponse` | `structure` | `Blob`, `CacheControl`, `ContentType`, `ETag`, `PricingBucket` | - |
-| `ResourceNotFoundException` | `structure` | `Message` | Exception thrown when the associated resource could not be found. |
-
+| `AccessDeniedException` | `structure` | Message | The request was denied because of insufficient access or permissions. Check with an administrator to verify your permissions. |
+| `InternalServerException` | `structure` | Message | The request processing has failed because of an unknown error, exception or failure. |
+| `ResourceNotFoundException` | `structure` | Message | Exception thrown when the associated resource could not be found. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message, Reason, FieldList | The input fails to satisfy the constraints specified by an AWS service. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

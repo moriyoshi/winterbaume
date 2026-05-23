@@ -36,30 +36,35 @@ The Amazon EKS Auth API and the `AssumeRoleForPodIdentity` action are only used 
 ### Assume
 
 - Operations: `AssumeRoleForPodIdentity`
-- Common required input members in this group: `clusterName`, `token`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssumeRoleForPodIdentity` | `POST /clusters/{clusterName}/assume-role-for-pod-identity` | - | `clusterName`, `token` | - | `AssumeRoleForPodIdentityResponse` | `AccessDeniedException`, `ExpiredTokenException`, `InternalServerException`, `InvalidParameterException`, `InvalidRequestException`, `InvalidTokenException`, `ResourceNotFoundException`, `ServiceUnavailableException`, ... (+1) | The Amazon EKS Auth API and the `AssumeRoleForPodIdentity` action are only used by the EKS Pod Identity Agent. We recommend that applications use the Amazon Web Services SDKs to connect to Amazon Web Services services; if credentials from an EKS Pod Identity... |
+| `AssumeRoleForPodIdentity` | `POST /clusters/{clusterName}/assume-role-for-pod-identity` | - | `clusterName`, `token` | - | `AssumeRoleForPodIdentityResponse` | `AccessDeniedException`, `ExpiredTokenException`, `InternalServerException`, `InvalidParameterException`, `InvalidRequestException`, `InvalidTokenException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | The Amazon EKS Auth API and the AssumeRoleForPodIdentity action are only used by the EKS Pod Identity Agent. We recommend that applications use the Amazon Web Services SDKs to connect to Amazon Web Services services; ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AssumeRoleForPodIdentityRequest` | `structure` | `clusterName`, `token` | - |
-| `AssumeRoleForPodIdentityResponse` | `structure` | `assumedRoleUser`, `audience`, `credentials`, `podIdentityAssociation`, `subject` | - |
-| `AccessDeniedException` | `structure` | `message` | You don't have permissions to perform the requested operation. |
-| `ExpiredTokenException` | `structure` | `message` | The specified Kubernetes service account token is expired. |
-| `InternalServerException` | `structure` | `message` | These errors are usually caused by a server-side issue. |
-| `InvalidParameterException` | `structure` | `message` | The specified parameter is invalid. |
-| `InvalidRequestException` | `structure` | `message` | This exception is thrown if the request contains a semantic error. |
-| `InvalidTokenException` | `structure` | `message` | The specified Kubernetes service account token is invalid. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource could not be found. |
-| `ServiceUnavailableException` | `structure` | `message` | The service is unavailable. |
-| `ThrottlingException` | `structure` | `message` | The request was denied because your request rate is too high. |
-
+| `AccessDeniedException` | `structure` | message | You don't have permissions to perform the requested operation. The IAM principal making the request must have at least one IAM permissions policy attached t ... |
+| `ExpiredTokenException` | `structure` | message | The specified Kubernetes service account token is expired. |
+| `InternalServerException` | `structure` | message | These errors are usually caused by a server-side issue. |
+| `InvalidParameterException` | `structure` | message | The specified parameter is invalid. Review the available parameters for the API request. |
+| `InvalidRequestException` | `structure` | message | This exception is thrown if the request contains a semantic error. The precise meaning will depend on the API, and will be documented in the error message. |
+| `InvalidTokenException` | `structure` | message | The specified Kubernetes service account token is invalid. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource could not be found. |
+| `ServiceUnavailableException` | `structure` | message | The service is unavailable. Back off and retry the operation. |
+| `ThrottlingException` | `structure` | message | The request was denied because your request rate is too high. Reduce the frequency of requests. |
+| `AssumeRoleForPodIdentityRequest` | `structure` | clusterName, token | - |
+| `AssumeRoleForPodIdentityResponse` | `structure` | subject, audience, podIdentityAssociation, assumedRoleUser, credentials | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

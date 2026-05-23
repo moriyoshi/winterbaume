@@ -47,76 +47,79 @@ With License Manager, you can create user-based subscriptions to utilize license
 
 - Operations: `ListIdentityProviders`, `ListInstances`, `ListLicenseServerEndpoints`, `ListProductSubscriptions`, `ListTagsForResource`, `ListUserAssociations`
 - Traits: `paginated` (5), `readonly` (1)
-- Common required input members in this group: `IdentityProvider`, `InstanceId`, `ResourceArn`
+- Common required input members in this group: `IdentityProvider`
 
 ### Associate
 
 - Operations: `AssociateUser`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `IdentityProvider`, `InstanceId`, `Username`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateLicenseServerEndpoint`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `IdentityProviderArn`, `LicenseServerSettings`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteLicenseServerEndpoint`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `LicenseServerEndpointArn`, `ServerType`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterIdentityProvider`
 - Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateUser`
 - Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterIdentityProvider`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `IdentityProvider`, `Product`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartProductSubscription`
-- Common required input members in this group: `IdentityProvider`, `Product`, `Username`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopProductSubscription`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateIdentityProviderSettings`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `UpdateSettings`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateUser` | `POST /user/AssociateUser` | `idempotent` | `IdentityProvider`, `InstanceId`, `Username` | - | `AssociateUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates the user to an EC2 instance to utilize user-based subscriptions. Your estimated bill for charges on the number of users and related costs will take 48 hours to appear for billing periods that haven't closed (marked as Pending billing status) in... |
+| `AssociateUser` | `POST /user/AssociateUser` | `idempotent` | `Username`, `InstanceId`, `IdentityProvider` | - | `AssociateUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates the user to an EC2 instance to utilize user-based subscriptions. Your estimated bill for charges on the number of users and related costs will take 48 hours to appear for billing periods that haven't close ... |
 | `CreateLicenseServerEndpoint` | `POST /license-server/CreateLicenseServerEndpoint` | `idempotent` | `IdentityProviderArn`, `LicenseServerSettings` | - | `CreateLicenseServerEndpointResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a network endpoint for the Remote Desktop Services (RDS) license server. |
-| `DeleteLicenseServerEndpoint` | `POST /license-server/DeleteLicenseServerEndpoint` | `idempotent` | `LicenseServerEndpointArn`, `ServerType` | - | `DeleteLicenseServerEndpointResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Deletes a `LicenseServerEndpoint` resource. |
+| `DeleteLicenseServerEndpoint` | `POST /license-server/DeleteLicenseServerEndpoint` | `idempotent` | `LicenseServerEndpointArn`, `ServerType` | - | `DeleteLicenseServerEndpointResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Deletes a LicenseServerEndpoint resource. |
 | `DeregisterIdentityProvider` | `POST /identity-provider/DeregisterIdentityProvider` | `idempotent` | - | - | `DeregisterIdentityProviderResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Deregisters the Active Directory identity provider from License Manager user-based subscriptions. |
 | `DisassociateUser` | `POST /user/DisassociateUser` | `idempotent` | - | - | `DisassociateUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Disassociates the user from an EC2 instance providing user-based subscriptions. |
 | `ListIdentityProviders` | `POST /identity-provider/ListIdentityProviders` | `paginated` | - | - | `ListIdentityProvidersResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists the Active Directory identity providers for user-based subscriptions. |
@@ -124,43 +127,66 @@ With License Manager, you can create user-based subscriptions to utilize license
 | `ListLicenseServerEndpoints` | `POST /license-server/ListLicenseServerEndpoints` | `paginated` | - | - | `ListLicenseServerEndpointsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | List the Remote Desktop Services (RDS) License Server endpoints |
 | `ListProductSubscriptions` | `POST /user/ListProductSubscriptions` | `paginated` | `IdentityProvider` | - | `ListProductSubscriptionsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists the user-based subscription products available from an identity provider. |
 | `ListTagsForResource` | `GET /tags/{ResourceArn}` | `readonly` | `ResourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the list of tags for the specified resource. |
-| `ListUserAssociations` | `POST /user/ListUserAssociations` | `paginated` | `IdentityProvider`, `InstanceId` | - | `ListUserAssociationsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists user associations for an identity provider. |
+| `ListUserAssociations` | `POST /user/ListUserAssociations` | `paginated` | `InstanceId`, `IdentityProvider` | - | `ListUserAssociationsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Lists user associations for an identity provider. |
 | `RegisterIdentityProvider` | `POST /identity-provider/RegisterIdentityProvider` | `idempotent` | `IdentityProvider`, `Product` | - | `RegisterIdentityProviderResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Registers an identity provider for user-based subscriptions. |
-| `StartProductSubscription` | `POST /user/StartProductSubscription` | - | `IdentityProvider`, `Product`, `Username` | - | `StartProductSubscriptionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a product subscription for a user with the specified identity provider. Your estimated bill for charges on the number of users and related costs will take 48 hours to appear for billing periods that haven't closed (marked as Pending billing status) in... |
+| `StartProductSubscription` | `POST /user/StartProductSubscription` | - | `Username`, `IdentityProvider`, `Product` | - | `StartProductSubscriptionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a product subscription for a user with the specified identity provider. Your estimated bill for charges on the number of users and related costs will take 48 hours to appear for billing periods that haven't cl ... |
 | `StopProductSubscription` | `POST /user/StopProductSubscription` | - | - | - | `StopProductSubscriptionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Stops a product subscription for a user with the specified identity provider. |
 | `TagResource` | `PUT /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds tags to a resource. |
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException` | Removes tags from a resource. |
 | `UpdateIdentityProviderSettings` | `POST /identity-provider/UpdateIdentityProviderSettings` | `idempotent` | `UpdateSettings` | - | `UpdateIdentityProviderSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates additional product configuration settings for the registered identity provider. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | An exception occurred with the service. |
-| `ValidationException` | `structure` | `message` | A parameter is not valid. |
-| `ResourceNotFoundException` | `structure` | `message` | The resource couldn't be found. |
-| `AccessDeniedException` | `structure` | `message` | You don't have sufficient access to perform this action. |
-| `ThrottlingException` | `structure` | `message` | The request was denied because of request throttling. |
-| `ConflictException` | `structure` | `message` | The request couldn't be completed because it conflicted with the current state of the resource. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request failed because a service quota is exceeded. |
-| `AssociateUserRequest` | `structure` | `Domain`, `IdentityProvider`, `InstanceId`, `Tags`, `Username` | - |
-| `AssociateUserResponse` | `structure` | `InstanceUserSummary` | - |
-| `CreateLicenseServerEndpointRequest` | `structure` | `IdentityProviderArn`, `LicenseServerSettings`, `Tags` | - |
-| `CreateLicenseServerEndpointResponse` | `structure` | `IdentityProviderArn`, `LicenseServerEndpointArn` | - |
-| `DeleteLicenseServerEndpointRequest` | `structure` | `LicenseServerEndpointArn`, `ServerType` | - |
-| `DeleteLicenseServerEndpointResponse` | `structure` | `LicenseServerEndpoint` | - |
-| `DeregisterIdentityProviderRequest` | `structure` | `IdentityProvider`, `IdentityProviderArn`, `Product` | - |
-| `DeregisterIdentityProviderResponse` | `structure` | `IdentityProviderSummary` | - |
-| `DisassociateUserRequest` | `structure` | `Domain`, `IdentityProvider`, `InstanceId`, `InstanceUserArn`, `Username` | - |
-| `DisassociateUserResponse` | `structure` | `InstanceUserSummary` | - |
-| `ListIdentityProvidersRequest` | `structure` | `Filters`, `MaxResults`, `NextToken` | - |
-| `ListIdentityProvidersResponse` | `structure` | `IdentityProviderSummaries`, `NextToken` | - |
-| `ListInstancesRequest` | `structure` | `Filters`, `MaxResults`, `NextToken` | - |
-| `ListInstancesResponse` | `structure` | `InstanceSummaries`, `NextToken` | - |
-| `ListLicenseServerEndpointsRequest` | `structure` | `Filters`, `MaxResults`, `NextToken` | - |
-| `ListLicenseServerEndpointsResponse` | `structure` | `LicenseServerEndpoints`, `NextToken` | - |
-| `ListProductSubscriptionsRequest` | `structure` | `Filters`, `IdentityProvider`, `MaxResults`, `NextToken`, `Product` | - |
-
+| `AccessDeniedException` | `structure` | message | You don't have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message | The request couldn't be completed because it conflicted with the current state of the resource. |
+| `InternalServerException` | `structure` | message | An exception occurred with the service. |
+| `ResourceNotFoundException` | `structure` | message | The resource couldn't be found. |
+| `ServiceQuotaExceededException` | `structure` | message | The request failed because a service quota is exceeded. |
+| `ThrottlingException` | `structure` | message | The request was denied because of request throttling. Retry the request. |
+| `ValidationException` | `structure` | message | A parameter is not valid. |
+| `AssociateUserRequest` | `structure` | Username, InstanceId, IdentityProvider, Domain, Tags | - |
+| `AssociateUserResponse` | `structure` | InstanceUserSummary | - |
+| `CreateLicenseServerEndpointRequest` | `structure` | IdentityProviderArn, LicenseServerSettings, Tags | - |
+| `CreateLicenseServerEndpointResponse` | `structure` | IdentityProviderArn, LicenseServerEndpointArn | - |
+| `DeleteLicenseServerEndpointRequest` | `structure` | LicenseServerEndpointArn, ServerType | - |
+| `DeleteLicenseServerEndpointResponse` | `structure` | LicenseServerEndpoint | - |
+| `DeregisterIdentityProviderRequest` | `structure` | IdentityProvider, Product, IdentityProviderArn | - |
+| `DeregisterIdentityProviderResponse` | `structure` | IdentityProviderSummary | - |
+| `DisassociateUserRequest` | `structure` | Username, InstanceId, IdentityProvider, InstanceUserArn, Domain | - |
+| `DisassociateUserResponse` | `structure` | InstanceUserSummary | - |
+| `ListIdentityProvidersRequest` | `structure` | MaxResults, Filters, NextToken | - |
+| `ListIdentityProvidersResponse` | `structure` | IdentityProviderSummaries, NextToken | - |
+| `ListInstancesRequest` | `structure` | MaxResults, NextToken, Filters | - |
+| `ListInstancesResponse` | `structure` | InstanceSummaries, NextToken | - |
+| `ListLicenseServerEndpointsRequest` | `structure` | MaxResults, Filters, NextToken | - |
+| `ListLicenseServerEndpointsResponse` | `structure` | LicenseServerEndpoints, NextToken | - |
+| `ListProductSubscriptionsRequest` | `structure` | Product, IdentityProvider, MaxResults, Filters, NextToken | - |
+| `ListProductSubscriptionsResponse` | `structure` | ProductUserSummaries, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `ListUserAssociationsRequest` | `structure` | InstanceId, IdentityProvider, MaxResults, Filters, NextToken | - |
+| `ListUserAssociationsResponse` | `structure` | InstanceUserSummaries, NextToken | - |
+| `RegisterIdentityProviderRequest` | `structure` | IdentityProvider, Product, Settings, Tags | - |
+| `RegisterIdentityProviderResponse` | `structure` | IdentityProviderSummary | - |
+| `StartProductSubscriptionRequest` | `structure` | Username, IdentityProvider, Product, Domain, Tags | - |
+| `StartProductSubscriptionResponse` | `structure` | ProductUserSummary | - |
+| `StopProductSubscriptionRequest` | `structure` | Username, IdentityProvider, Product, ProductUserArn, Domain | - |
+| `StopProductSubscriptionResponse` | `structure` | ProductUserSummary | - |
+| `TagResourceRequest` | `structure` | ResourceArn, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ResourceArn, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateIdentityProviderSettingsRequest` | `structure` | IdentityProvider, Product, IdentityProviderArn, UpdateSettings | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

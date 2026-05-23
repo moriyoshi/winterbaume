@@ -59,26 +59,34 @@ Parity implications:
 
 - Operations: `ListRealtimeContactAnalysisSegments`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ContactId`, `InstanceId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ListRealtimeContactAnalysisSegments` | `POST /realtime-contact-analysis/analysis-segments` | `paginated` | `ContactId`, `InstanceId` | - | `ListRealtimeContactAnalysisSegmentsResponse` | `AccessDeniedException`, `InternalServiceException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Provides a list of analysis segments for a real-time analysis session. |
+| `ListRealtimeContactAnalysisSegments` | `POST /realtime-contact-analysis/analysis-segments` | `paginated` | `InstanceId`, `ContactId` | - | `ListRealtimeContactAnalysisSegmentsResponse` | `AccessDeniedException`, `InternalServiceException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Provides a list of analysis segments for a real-time analysis session. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ListRealtimeContactAnalysisSegmentsRequest` | `structure` | `ContactId`, `InstanceId`, `MaxResults`, `NextToken` | - |
-| `ListRealtimeContactAnalysisSegmentsResponse` | `structure` | `NextToken`, `Segments` | - |
-| `AccessDeniedException` | `structure` | `Message` | You do not have sufficient access to perform this action. |
-| `InternalServiceException` | `structure` | `Message` | Request processing failed due to an error or failure with the service. |
-| `InvalidRequestException` | `structure` | `Message` | The request is not valid. |
-| `ResourceNotFoundException` | `structure` | `Message` | The specified resource was not found. |
-| `ThrottlingException` | `structure` | `Message` | The throttling limit has been exceeded. |
-
+| `AccessDeniedException` | `structure` | Message | You do not have sufficient access to perform this action. |
+| `InternalServiceException` | `structure` | Message | Request processing failed due to an error or failure with the service. |
+| `InvalidRequestException` | `structure` | Message | The request is not valid. |
+| `ResourceNotFoundException` | `structure` | Message | The specified resource was not found. |
+| `ThrottlingException` | `structure` | Message | The throttling limit has been exceeded. |
+| `ListRealtimeContactAnalysisSegmentsRequest` | `structure` | InstanceId, ContactId, MaxResults, NextToken | - |
+| `ListRealtimeContactAnalysisSegmentsResponse` | `structure` | Segments, NextToken | - |
+| `PostContactSummaryFailureCode` | `enum` | QUOTA_EXCEEDED, INSUFFICIENT_CONVERSATION_CONTENT, FAILED_SAFETY_GUIDELINES, INVALID_ANALYSIS_CONFIGURATION, INTERNAL_ERROR | - |
+| `PostContactSummaryStatus` | `enum` | FAILED, COMPLETED | - |
+| `SentimentValue` | `enum` | POSITIVE, NEUTRAL, NEGATIVE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

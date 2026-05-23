@@ -46,87 +46,87 @@ AWS IoT Wireless provides bi-directional communication between internet-connecte
 ### Get
 
 - Operations: `GetDestination`, `GetDeviceProfile`, `GetEventConfigurationByResourceTypes`, `GetFuotaTask`, `GetLogLevelsByResourceTypes`, `GetMetricConfiguration`, `GetMetrics`, `GetMulticastGroup`, `GetMulticastGroupSession`, `GetNetworkAnalyzerConfiguration`, `GetPartnerAccount`, `GetPosition`, `GetPositionConfiguration`, `GetPositionEstimate`, `GetResourceEventConfiguration`, `GetResourceLogLevel`, `GetResourcePosition`, `GetServiceEndpoint`, `GetServiceProfile`, `GetWirelessDevice`, `GetWirelessDeviceImportTask`, `GetWirelessDeviceStatistics`, `GetWirelessGateway`, `GetWirelessGatewayCertificate`, `GetWirelessGatewayFirmwareInformation`, `GetWirelessGatewayStatistics`, `GetWirelessGatewayTask`, `GetWirelessGatewayTaskDefinition`
-- Common required input members in this group: `ConfigurationName`, `Id`, `Identifier`, `IdentifierType`, `Name`, `PartnerAccountId`, `PartnerType`, `ResourceIdentifier`, `ResourceType`, `WirelessDeviceId`, `WirelessGatewayId`
+- Common required input members in this group: `Id`, `ResourceIdentifier`, `ResourceType`, `Identifier`, `IdentifierType`
 
 ### List
 
-- Operations: `ListDestinations`, `ListDeviceProfiles`, `ListDevicesForWirelessDeviceImportTask`, `ListEventConfigurations`, `ListFuotaTasks`, `ListMulticastGroups`, `ListMulticastGroupsByFuotaTask`, `ListNetworkAnalyzerConfigurations`, `ListPartnerAccounts`, `ListPositionConfigurations`, `ListQueuedMessages`, `ListServiceProfiles`, `ListTagsForResource`, `ListWirelessDeviceImportTasks`, `ListWirelessDevices`, `ListWirelessGatewayTaskDefinitions`, `ListWirelessGateways`
+- Operations: `ListDestinations`, `ListDeviceProfiles`, `ListDevicesForWirelessDeviceImportTask`, `ListEventConfigurations`, `ListFuotaTasks`, `ListMulticastGroups`, `ListMulticastGroupsByFuotaTask`, `ListNetworkAnalyzerConfigurations`, `ListPartnerAccounts`, `ListPositionConfigurations`, `ListQueuedMessages`, `ListServiceProfiles`, `ListTagsForResource`, `ListWirelessDeviceImportTasks`, `ListWirelessDevices`, `ListWirelessGateways`, `ListWirelessGatewayTaskDefinitions`
 - Traits: `paginated` (11)
-- Common required input members in this group: `Id`, `ResourceArn`, `ResourceType`
+- Common required input members in this group: `Id`
 
 ### Update
 
 - Operations: `UpdateDestination`, `UpdateEventConfigurationByResourceTypes`, `UpdateFuotaTask`, `UpdateLogLevelsByResourceTypes`, `UpdateMetricConfiguration`, `UpdateMulticastGroup`, `UpdateNetworkAnalyzerConfiguration`, `UpdatePartnerAccount`, `UpdatePosition`, `UpdateResourceEventConfiguration`, `UpdateResourcePosition`, `UpdateWirelessDevice`, `UpdateWirelessDeviceImportTask`, `UpdateWirelessGateway`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `ConfigurationName`, `Id`, `Identifier`, `IdentifierType`, `Name`, `PartnerAccountId`, `PartnerType`, `Position`, `ResourceIdentifier`, `ResourceType`, `Sidewalk`
+- Common required input members in this group: `Id`, `Sidewalk`, `ResourceIdentifier`, `ResourceType`
 
 ### Delete
 
 - Operations: `DeleteDestination`, `DeleteDeviceProfile`, `DeleteFuotaTask`, `DeleteMulticastGroup`, `DeleteNetworkAnalyzerConfiguration`, `DeleteQueuedMessages`, `DeleteServiceProfile`, `DeleteWirelessDevice`, `DeleteWirelessDeviceImportTask`, `DeleteWirelessGateway`, `DeleteWirelessGatewayTask`, `DeleteWirelessGatewayTaskDefinition`
-- Common required input members in this group: `ConfigurationName`, `Id`, `MessageId`, `Name`
+- Common required input members in this group: `Id`
 
 ### Create
 
 - Operations: `CreateDestination`, `CreateDeviceProfile`, `CreateFuotaTask`, `CreateMulticastGroup`, `CreateNetworkAnalyzerConfiguration`, `CreateServiceProfile`, `CreateWirelessDevice`, `CreateWirelessGateway`, `CreateWirelessGatewayTask`, `CreateWirelessGatewayTaskDefinition`
 - Traits: `idempotency-token` (9)
-- Common required input members in this group: `AutoCreateTasks`, `DestinationName`, `Expression`, `ExpressionType`, `FirmwareUpdateImage`, `FirmwareUpdateRole`, `Id`, `LoRaWAN`, `Name`, `RoleArn`, `Type`, `WirelessGatewayTaskDefinitionId`
+- Common required input members in this group: `Name`, `LoRaWAN`
 
 ### Associate
 
 - Operations: `AssociateAwsAccountWithPartnerAccount`, `AssociateMulticastGroupWithFuotaTask`, `AssociateWirelessDeviceWithFuotaTask`, `AssociateWirelessDeviceWithMulticastGroup`, `AssociateWirelessDeviceWithThing`, `AssociateWirelessGatewayWithCertificate`, `AssociateWirelessGatewayWithThing`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Id`, `IotCertificateId`, `MulticastGroupId`, `Sidewalk`, `ThingArn`, `WirelessDeviceId`
+- Common required input members in this group: `Id`, `WirelessDeviceId`, `ThingArn`
 
 ### Disassociate
 
 - Operations: `DisassociateAwsAccountFromPartnerAccount`, `DisassociateMulticastGroupFromFuotaTask`, `DisassociateWirelessDeviceFromFuotaTask`, `DisassociateWirelessDeviceFromMulticastGroup`, `DisassociateWirelessDeviceFromThing`, `DisassociateWirelessGatewayFromCertificate`, `DisassociateWirelessGatewayFromThing`
-- Common required input members in this group: `Id`, `MulticastGroupId`, `PartnerAccountId`, `PartnerType`, `WirelessDeviceId`
+- Common required input members in this group: `Id`, `WirelessDeviceId`
 
 ### Start
 
 - Operations: `StartBulkAssociateWirelessDeviceWithMulticastGroup`, `StartBulkDisassociateWirelessDeviceFromMulticastGroup`, `StartFuotaTask`, `StartMulticastGroupSession`, `StartSingleWirelessDeviceImportTask`, `StartWirelessDeviceImportTask`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `DestinationName`, `Id`, `LoRaWAN`, `Sidewalk`
+- Common required input members in this group: `Id`, `DestinationName`, `Sidewalk`
 
 ### Put
 
 - Operations: `PutPositionConfiguration`, `PutResourceLogLevel`
-- Common required input members in this group: `LogLevel`, `ResourceIdentifier`, `ResourceType`
+- Common required input members in this group: `ResourceIdentifier`, `ResourceType`
 
 ### Reset
 
 - Operations: `ResetAllResourceLogLevels`, `ResetResourceLogLevel`
-- Common required input members in this group: `ResourceIdentifier`, `ResourceType`
+- Common required input members in this group: -
 
 ### Send
 
 - Operations: `SendDataToMulticastGroup`, `SendDataToWirelessDevice`
-- Common required input members in this group: `Id`, `PayloadData`, `TransmitMode`, `WirelessMetadata`
+- Common required input members in this group: `Id`, `PayloadData`
 
 ### Cancel
 
 - Operations: `CancelMulticastGroupSession`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterWirelessDevice`
-- Common required input members in this group: `Identifier`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Test
 
 - Operations: `TestWirelessDevice`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -140,14 +140,14 @@ AWS IoT Wireless provides bi-directional communication between internet-connecte
 | `AssociateWirelessGatewayWithCertificate` | `PUT /wireless-gateways/{Id}/certificate` | - | `Id`, `IotCertificateId` | - | `AssociateWirelessGatewayWithCertificateResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a wireless gateway with a certificate. |
 | `AssociateWirelessGatewayWithThing` | `PUT /wireless-gateways/{Id}/thing` | - | `Id`, `ThingArn` | - | `AssociateWirelessGatewayWithThingResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Associates a wireless gateway with a thing. |
 | `CancelMulticastGroupSession` | `DELETE /multicast-groups/{Id}/session` | - | `Id` | - | `CancelMulticastGroupSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancels an existing multicast group session. |
-| `CreateDestination` | `POST /destinations` | `idempotency-token` | `Expression`, `ExpressionType`, `Name`, `RoleArn` | `ClientRequestToken` | `CreateDestinationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new destination that maps a device message to an AWS IoT rule. |
+| `CreateDestination` | `POST /destinations` | `idempotency-token` | `Name`, `ExpressionType`, `Expression`, `RoleArn` | `ClientRequestToken` | `CreateDestinationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new destination that maps a device message to an AWS IoT rule. |
 | `CreateDeviceProfile` | `POST /device-profiles` | `idempotency-token` | - | `ClientRequestToken` | `CreateDeviceProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a new device profile. |
 | `CreateFuotaTask` | `POST /fuota-tasks` | `idempotency-token` | `FirmwareUpdateImage`, `FirmwareUpdateRole` | `ClientRequestToken` | `CreateFuotaTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a FUOTA task. |
 | `CreateMulticastGroup` | `POST /multicast-groups` | `idempotency-token` | `LoRaWAN` | `ClientRequestToken` | `CreateMulticastGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a multicast group. |
 | `CreateNetworkAnalyzerConfiguration` | `POST /network-analyzer-configurations` | `idempotency-token` | `Name` | `ClientRequestToken` | `CreateNetworkAnalyzerConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new network analyzer configuration. |
 | `CreateServiceProfile` | `POST /service-profiles` | `idempotency-token` | - | `ClientRequestToken` | `CreateServiceProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Creates a new service profile. |
-| `CreateWirelessDevice` | `POST /wireless-devices` | `idempotency-token` | `DestinationName`, `Type` | `ClientRequestToken` | `CreateWirelessDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provisions a wireless device. |
-| `CreateWirelessGateway` | `POST /wireless-gateways` | `idempotency-token` | `LoRaWAN` | `ClientRequestToken` | `CreateWirelessGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provisions a wireless gateway. When provisioning a wireless gateway, you might run into duplication errors for the following reasons. |
+| `CreateWirelessDevice` | `POST /wireless-devices` | `idempotency-token` | `Type`, `DestinationName` | `ClientRequestToken` | `CreateWirelessDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provisions a wireless device. |
+| `CreateWirelessGateway` | `POST /wireless-gateways` | `idempotency-token` | `LoRaWAN` | `ClientRequestToken` | `CreateWirelessGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provisions a wireless gateway. When provisioning a wireless gateway, you might run into duplication errors for the following reasons. If you specify a GatewayEui value that already exists. If you used a ClientRequest ... |
 | `CreateWirelessGatewayTask` | `POST /wireless-gateways/{Id}/tasks` | - | `Id`, `WirelessGatewayTaskDefinitionId` | - | `CreateWirelessGatewayTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a task for a wireless gateway. |
 | `CreateWirelessGatewayTaskDefinition` | `POST /wireless-gateway-task-definitions` | `idempotency-token` | `AutoCreateTasks` | `ClientRequestToken` | `CreateWirelessGatewayTaskDefinitionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a gateway task definition. |
 | `DeleteDestination` | `DELETE /destinations/{Name}` | - | `Name` | - | `DeleteDestinationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a destination. |
@@ -159,11 +159,11 @@ AWS IoT Wireless provides bi-directional communication between internet-connecte
 | `DeleteServiceProfile` | `DELETE /service-profiles/{Id}` | - | `Id` | - | `DeleteServiceProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a service profile. |
 | `DeleteWirelessDevice` | `DELETE /wireless-devices/{Id}` | - | `Id` | - | `DeleteWirelessDeviceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a wireless device. |
 | `DeleteWirelessDeviceImportTask` | `DELETE /wireless_device_import_task/{Id}` | - | `Id` | - | `DeleteWirelessDeviceImportTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Delete an import task. |
-| `DeleteWirelessGateway` | `DELETE /wireless-gateways/{Id}` | - | `Id` | - | `DeleteWirelessGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a wireless gateway. When deleting a wireless gateway, you might run into duplication errors for the following reasons. |
+| `DeleteWirelessGateway` | `DELETE /wireless-gateways/{Id}` | - | `Id` | - | `DeleteWirelessGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a wireless gateway. When deleting a wireless gateway, you might run into duplication errors for the following reasons. If you specify a GatewayEui value that already exists. If you used a ClientRequestToken w ... |
 | `DeleteWirelessGatewayTask` | `DELETE /wireless-gateways/{Id}/tasks` | - | `Id` | - | `DeleteWirelessGatewayTaskResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a wireless gateway task. |
 | `DeleteWirelessGatewayTaskDefinition` | `DELETE /wireless-gateway-task-definitions/{Id}` | - | `Id` | - | `DeleteWirelessGatewayTaskDefinitionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a wireless gateway task definition. Deleting this task definition does not affect tasks that are currently in progress. |
 | `DeregisterWirelessDevice` | `PATCH /wireless-devices/{Identifier}/deregister` | - | `Identifier` | - | `DeregisterWirelessDeviceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deregister a wireless device from AWS IoT Wireless. |
-| `DisassociateAwsAccountFromPartnerAccount` | `DELETE /partner-accounts/{PartnerAccountId}` | - | `PartnerAccountId`, `PartnerType` | - | `DisassociateAwsAccountFromPartnerAccountResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates your AWS account from a partner account. If `PartnerAccountId` and `PartnerType` are `null`, disassociates your AWS account from all partner accounts. |
+| `DisassociateAwsAccountFromPartnerAccount` | `DELETE /partner-accounts/{PartnerAccountId}` | - | `PartnerAccountId`, `PartnerType` | - | `DisassociateAwsAccountFromPartnerAccountResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates your AWS account from a partner account. If PartnerAccountId and PartnerType are null , disassociates your AWS account from all partner accounts. |
 | `DisassociateMulticastGroupFromFuotaTask` | `DELETE /fuota-tasks/{Id}/multicast-groups/{MulticastGroupId}` | - | `Id`, `MulticastGroupId` | - | `DisassociateMulticastGroupFromFuotaTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Disassociates a multicast group from a FUOTA task. |
 | `DisassociateWirelessDeviceFromFuotaTask` | `DELETE /fuota-tasks/{Id}/wireless-devices/{WirelessDeviceId}` | - | `Id`, `WirelessDeviceId` | - | `DisassociateWirelessDeviceFromFuotaTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a wireless device from a FUOTA task. |
 | `DisassociateWirelessDeviceFromMulticastGroup` | `DELETE /multicast-groups/{Id}/wireless-devices/{WirelessDeviceId}` | - | `Id`, `WirelessDeviceId` | - | `DisassociateWirelessDeviceFromMulticastGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Disassociates a wireless device from a multicast group. |
@@ -180,13 +180,13 @@ AWS IoT Wireless provides bi-directional communication between internet-connecte
 | `GetMulticastGroup` | `GET /multicast-groups/{Id}` | - | `Id` | - | `GetMulticastGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a multicast group. |
 | `GetMulticastGroupSession` | `GET /multicast-groups/{Id}/session` | - | `Id` | - | `GetMulticastGroupSessionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a multicast group session. |
 | `GetNetworkAnalyzerConfiguration` | `GET /network-analyzer-configurations/{ConfigurationName}` | - | `ConfigurationName` | - | `GetNetworkAnalyzerConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get network analyzer configuration. |
-| `GetPartnerAccount` | `GET /partner-accounts/{PartnerAccountId}` | - | `PartnerAccountId`, `PartnerType` | - | `GetPartnerAccountResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a partner account. If `PartnerAccountId` and `PartnerType` are `null`, returns all partner accounts. |
-| `GetPosition` | `GET /positions/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `GetPositionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the position information for a given resource. This action is no longer supported. |
-| `GetPositionConfiguration` | `GET /position-configurations/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `GetPositionConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get position configuration for a given resource. This action is no longer supported. |
+| `GetPartnerAccount` | `GET /partner-accounts/{PartnerAccountId}` | - | `PartnerAccountId`, `PartnerType` | - | `GetPartnerAccountResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a partner account. If PartnerAccountId and PartnerType are null , returns all partner accounts. |
+| `GetPosition` | `GET /positions/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `GetPositionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the position information for a given resource. This action is no longer supported. Calls to retrieve the position information should use the GetResourcePosition API operation instead. |
+| `GetPositionConfiguration` | `GET /position-configurations/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `GetPositionConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get position configuration for a given resource. This action is no longer supported. Calls to retrieve the position configuration should use the GetResourcePosition API operation instead. |
 | `GetPositionEstimate` | `POST /position-estimate` | - | - | - | `GetPositionEstimateResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get estimated position information as a payload in GeoJSON format. The payload measurement data is resolved using solvers that are provided by third-party vendors. |
 | `GetResourceEventConfiguration` | `GET /event-configurations/{Identifier}` | - | `Identifier`, `IdentifierType` | - | `GetResourceEventConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the event configuration for a particular resource identifier. |
 | `GetResourceLogLevel` | `GET /log-levels/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `GetResourceLogLevelResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Fetches the log-level override, if any, for a given resource ID and resource type.. |
-| `GetResourcePosition` | `GET /resource-positions/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `GetResourcePositionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the position information for a given wireless device or a wireless gateway resource. The position information uses the World Geodetic System (WGS84). |
+| `GetResourcePosition` | `GET /resource-positions/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `GetResourcePositionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get the position information for a given wireless device or a wireless gateway resource. The position information uses the World Geodetic System (WGS84) . |
 | `GetServiceEndpoint` | `GET /service-endpoint` | - | - | - | `GetServiceEndpointResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Gets the account-specific endpoint for Configuration and Update Server (CUPS) protocol or LoRaWAN Network Server (LNS) connections. |
 | `GetServiceProfile` | `GET /service-profiles/{Id}` | - | `Id` | - | `GetServiceProfileResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a service profile. |
 | `GetWirelessDevice` | `GET /wireless-devices/{Identifier}` | - | `Identifier`, `IdentifierType` | - | `GetWirelessDeviceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a wireless device. |
@@ -207,20 +207,20 @@ AWS IoT Wireless provides bi-directional communication between internet-connecte
 | `ListMulticastGroupsByFuotaTask` | `GET /fuota-tasks/{Id}/multicast-groups` | `paginated` | `Id` | - | `ListMulticastGroupsByFuotaTaskResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List all multicast groups associated with a FUOTA task. |
 | `ListNetworkAnalyzerConfigurations` | `GET /network-analyzer-configurations` | `paginated` | - | - | `ListNetworkAnalyzerConfigurationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the network analyzer configurations. |
 | `ListPartnerAccounts` | `GET /partner-accounts` | - | - | - | `ListPartnerAccountsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the partner accounts associated with your AWS account. |
-| `ListPositionConfigurations` | `GET /position-configurations` | `paginated` | - | - | `ListPositionConfigurationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List position configurations for a given resource, such as positioning solvers. This action is no longer supported. |
+| `ListPositionConfigurations` | `GET /position-configurations` | `paginated` | - | - | `ListPositionConfigurationsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List position configurations for a given resource, such as positioning solvers. This action is no longer supported. Calls to retrieve position information should use the GetResourcePosition API operation instead. |
 | `ListQueuedMessages` | `GET /wireless-devices/{Id}/data` | `paginated` | `Id` | - | `ListQueuedMessagesResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List queued messages in the downlink queue. |
 | `ListServiceProfiles` | `GET /service-profiles` | `paginated` | - | - | `ListServiceProfilesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the service profiles registered to your AWS account. |
 | `ListTagsForResource` | `GET /tags` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags (metadata) you have assigned to the resource. |
 | `ListWirelessDeviceImportTasks` | `GET /wireless_device_import_tasks` | - | - | - | `ListWirelessDeviceImportTasksResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List of import tasks and summary information of onboarding status of devices in each import task. |
 | `ListWirelessDevices` | `GET /wireless-devices` | `paginated` | - | - | `ListWirelessDevicesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the wireless devices registered to your AWS account. |
-| `ListWirelessGatewayTaskDefinitions` | `GET /wireless-gateway-task-definitions` | - | - | - | `ListWirelessGatewayTaskDefinitionsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List the wireless gateway tasks definitions registered to your AWS account. |
 | `ListWirelessGateways` | `GET /wireless-gateways` | `paginated` | - | - | `ListWirelessGatewaysResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the wireless gateways registered to your AWS account. |
-| `PutPositionConfiguration` | `PUT /position-configurations/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `PutPositionConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Put position configuration for a given resource. This action is no longer supported. |
-| `PutResourceLogLevel` | `PUT /log-levels/{ResourceIdentifier}` | - | `LogLevel`, `ResourceIdentifier`, `ResourceType` | - | `PutResourceLogLevelResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sets the log-level override for a resource ID and resource type. A limit of 200 log level override can be set per account. |
+| `ListWirelessGatewayTaskDefinitions` | `GET /wireless-gateway-task-definitions` | - | - | - | `ListWirelessGatewayTaskDefinitionsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List the wireless gateway tasks definitions registered to your AWS account. |
+| `PutPositionConfiguration` | `PUT /position-configurations/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `PutPositionConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Put position configuration for a given resource. This action is no longer supported. Calls to update the position configuration should use the UpdateResourcePosition API operation instead. |
+| `PutResourceLogLevel` | `PUT /log-levels/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType`, `LogLevel` | - | `PutResourceLogLevelResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sets the log-level override for a resource ID and resource type. A limit of 200 log level override can be set per account. |
 | `ResetAllResourceLogLevels` | `DELETE /log-levels` | - | - | - | `ResetAllResourceLogLevelsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the log-level overrides for all resources; wireless devices, wireless gateways, and FUOTA tasks. |
 | `ResetResourceLogLevel` | `DELETE /log-levels/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `ResetResourceLogLevelResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes the log-level override, if any, for a specific resource ID and resource type. It can be used for a wireless device, a wireless gateway, or a FUOTA task. |
 | `SendDataToMulticastGroup` | `POST /multicast-groups/{Id}/data` | - | `Id`, `PayloadData`, `WirelessMetadata` | - | `SendDataToMulticastGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends the specified data to a multicast group. |
-| `SendDataToWirelessDevice` | `POST /wireless-devices/{Id}/data` | - | `Id`, `PayloadData`, `TransmitMode` | - | `SendDataToWirelessDeviceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends a decrypted application data frame to a device. |
+| `SendDataToWirelessDevice` | `POST /wireless-devices/{Id}/data` | - | `Id`, `TransmitMode`, `PayloadData` | - | `SendDataToWirelessDeviceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends a decrypted application data frame to a device. |
 | `StartBulkAssociateWirelessDeviceWithMulticastGroup` | `PATCH /multicast-groups/{Id}/bulk` | - | `Id` | - | `StartBulkAssociateWirelessDeviceWithMulticastGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a bulk association of all qualifying wireless devices with a multicast group. |
 | `StartBulkDisassociateWirelessDeviceFromMulticastGroup` | `POST /multicast-groups/{Id}/bulk` | - | `Id` | - | `StartBulkDisassociateWirelessDeviceFromMulticastGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a bulk disassociatin of all qualifying wireless devices from a multicast group. |
 | `StartFuotaTask` | `PUT /fuota-tasks/{Id}` | - | `Id` | - | `StartFuotaTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a FUOTA task. |
@@ -228,7 +228,7 @@ AWS IoT Wireless provides bi-directional communication between internet-connecte
 | `StartSingleWirelessDeviceImportTask` | `POST /wireless_single_device_import_task` | `idempotency-token` | `DestinationName`, `Sidewalk` | `ClientRequestToken` | `StartSingleWirelessDeviceImportTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Start import task for a single wireless device. |
 | `StartWirelessDeviceImportTask` | `POST /wireless_device_import_task` | `idempotency-token` | `DestinationName`, `Sidewalk` | `ClientRequestToken` | `StartWirelessDeviceImportTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Start import task for provisioning Sidewalk devices in bulk using an S3 CSV file. |
 | `TagResource` | `POST /tags` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `TooManyTagsException`, `ValidationException` | Adds a tag to a resource. |
-| `TestWirelessDevice` | `POST /wireless-devices/{Id}/test` | - | `Id` | - | `TestWirelessDeviceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Simulates a provisioned device by sending an uplink data payload of `Hello`. |
+| `TestWirelessDevice` | `POST /wireless-devices/{Id}/test` | - | `Id` | - | `TestWirelessDeviceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Simulates a provisioned device by sending an uplink data payload of Hello . |
 | `UntagResource` | `DELETE /tags` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes one or more tags from a resource. |
 | `UpdateDestination` | `PATCH /destinations/{Name}` | - | `Name` | - | `UpdateDestinationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates properties of a destination. |
 | `UpdateEventConfigurationByResourceTypes` | `PATCH /event-configurations-resource-types` | - | - | - | `UpdateEventConfigurationByResourceTypesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Update the event configuration based on resource types. |
@@ -237,43 +237,113 @@ AWS IoT Wireless provides bi-directional communication between internet-connecte
 | `UpdateMetricConfiguration` | `PUT /metric-configuration` | `idempotent` | - | - | `UpdateMetricConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the summary metric configuration. |
 | `UpdateMulticastGroup` | `PATCH /multicast-groups/{Id}` | - | `Id` | - | `UpdateMulticastGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates properties of a multicast group session. |
 | `UpdateNetworkAnalyzerConfiguration` | `PATCH /network-analyzer-configurations/{ConfigurationName}` | - | `ConfigurationName` | - | `UpdateNetworkAnalyzerConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update network analyzer configuration. |
-| `UpdatePartnerAccount` | `PATCH /partner-accounts/{PartnerAccountId}` | - | `PartnerAccountId`, `PartnerType`, `Sidewalk` | - | `UpdatePartnerAccountResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates properties of a partner account. |
-| `UpdatePosition` | `PATCH /positions/{ResourceIdentifier}` | - | `Position`, `ResourceIdentifier`, `ResourceType` | - | `UpdatePositionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the position information of a resource. This action is no longer supported. |
+| `UpdatePartnerAccount` | `PATCH /partner-accounts/{PartnerAccountId}` | - | `Sidewalk`, `PartnerAccountId`, `PartnerType` | - | `UpdatePartnerAccountResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates properties of a partner account. |
+| `UpdatePosition` | `PATCH /positions/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType`, `Position` | - | `UpdatePositionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the position information of a resource. This action is no longer supported. Calls to update the position information should use the UpdateResourcePosition API operation instead. |
 | `UpdateResourceEventConfiguration` | `PATCH /event-configurations/{Identifier}` | - | `Identifier`, `IdentifierType` | - | `UpdateResourceEventConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the event configuration for a particular resource identifier. |
-| `UpdateResourcePosition` | `PATCH /resource-positions/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `UpdateResourcePositionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the position information of a given wireless device or a wireless gateway resource. The position coordinates are based on the World Geodetic System (WGS84). |
+| `UpdateResourcePosition` | `PATCH /resource-positions/{ResourceIdentifier}` | - | `ResourceIdentifier`, `ResourceType` | - | `UpdateResourcePositionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the position information of a given wireless device or a wireless gateway resource. The position coordinates are based on the World Geodetic System (WGS84) . |
 | `UpdateWirelessDevice` | `PATCH /wireless-devices/{Id}` | - | `Id` | - | `UpdateWirelessDeviceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates properties of a wireless device. |
 | `UpdateWirelessDeviceImportTask` | `PATCH /wireless_device_import_task/{Id}` | - | `Id`, `Sidewalk` | - | `UpdateWirelessDeviceImportTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update an import task to add more devices to the task. |
 | `UpdateWirelessGateway` | `PATCH /wireless-gateways/{Id}` | - | `Id` | - | `UpdateWirelessGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates properties of a wireless gateway. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteQueuedMessages` | - | `MessageId -> messageId`, `WirelessDeviceType -> WirelessDeviceType` | - | - |
+| `DeregisterWirelessDevice` | - | `WirelessDeviceType -> WirelessDeviceType` | - | - |
+| `DisassociateAwsAccountFromPartnerAccount` | - | `PartnerType -> partnerType` | - | - |
+| `GetPartnerAccount` | - | `PartnerType -> partnerType` | - | - |
+| `GetPosition` | - | `ResourceType -> resourceType` | - | - |
+| `GetPositionConfiguration` | - | `ResourceType -> resourceType` | - | - |
+| `GetResourceEventConfiguration` | - | `IdentifierType -> identifierType`, `PartnerType -> partnerType` | - | - |
+| `GetResourceLogLevel` | - | `ResourceType -> resourceType` | - | - |
+| `GetResourcePosition` | - | `ResourceType -> resourceType` | - | - |
+| `GetServiceEndpoint` | - | `ServiceType -> serviceType` | - | - |
+| `GetWirelessDevice` | - | `IdentifierType -> identifierType` | - | - |
+| `GetWirelessGateway` | - | `IdentifierType -> identifierType` | - | - |
+| `ListDestinations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDeviceProfiles` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `DeviceProfileType -> deviceProfileType` | - | - |
+| `ListDevicesForWirelessDeviceImportTask` | - | `Id -> id`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `Status -> status` | - | - |
+| `ListEventConfigurations` | - | `ResourceType -> resourceType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListFuotaTasks` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListMulticastGroups` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListMulticastGroupsByFuotaTask` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListNetworkAnalyzerConfigurations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPartnerAccounts` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListPositionConfigurations` | - | `ResourceType -> resourceType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListQueuedMessages` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `WirelessDeviceType -> WirelessDeviceType` | - | - |
+| `ListServiceProfiles` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListTagsForResource` | - | `ResourceArn -> resourceArn` | - | - |
+| `ListWirelessDeviceImportTasks` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListWirelessDevices` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `DestinationName -> destinationName`, `DeviceProfileId -> deviceProfileId`, `ServiceProfileId -> serviceProfileId`, `WirelessDeviceType -> wirelessDeviceType`, `FuotaTaskId -> fuotaTaskId`, `MulticastGroupId -> multicastGroupId` | - | - |
+| `ListWirelessGateways` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListWirelessGatewayTaskDefinitions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `TaskDefinitionType -> taskDefinitionType` | - | - |
+| `PutPositionConfiguration` | - | `ResourceType -> resourceType` | - | - |
+| `PutResourceLogLevel` | - | `ResourceType -> resourceType` | - | - |
+| `ResetResourceLogLevel` | - | `ResourceType -> resourceType` | - | - |
+| `TagResource` | - | `ResourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `ResourceArn -> resourceArn`, `TagKeys -> tagKeys` | - | - |
+| `UpdatePartnerAccount` | - | `PartnerType -> partnerType` | - | - |
+| `UpdatePosition` | - | `ResourceType -> resourceType` | - | - |
+| `UpdateResourceEventConfiguration` | - | `IdentifierType -> identifierType`, `PartnerType -> partnerType` | - | - |
+| `UpdateResourcePosition` | - | `ResourceType -> resourceType` | - | `GeoJsonPayload` |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | An unexpected error occurred while processing a request. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied because it exceeded the allowed API request rate. |
-| `ValidationException` | `structure` | `Message` | The input did not meet the specified constraints. |
-| `AccessDeniedException` | `structure` | `Message` | User does not have permission to perform this action. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | Resource does not exist. |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | Adding, updating, or deleting the resource can cause an inconsistent state. |
-| `AssociateAwsAccountWithPartnerAccountRequest` | `structure` | `ClientRequestToken`, `Sidewalk`, `Tags` | - |
-| `AssociateAwsAccountWithPartnerAccountResponse` | `structure` | `Arn`, `Sidewalk` | - |
-| `AssociateMulticastGroupWithFuotaTaskRequest` | `structure` | `Id`, `MulticastGroupId` | - |
-| `AssociateMulticastGroupWithFuotaTaskResponse` | `structure` | - | - |
-| `AssociateWirelessDeviceWithFuotaTaskRequest` | `structure` | `Id`, `WirelessDeviceId` | - |
-| `AssociateWirelessDeviceWithFuotaTaskResponse` | `structure` | - | - |
-| `AssociateWirelessDeviceWithMulticastGroupRequest` | `structure` | `Id`, `WirelessDeviceId` | - |
-| `AssociateWirelessDeviceWithMulticastGroupResponse` | `structure` | - | - |
-| `AssociateWirelessDeviceWithThingRequest` | `structure` | `Id`, `ThingArn` | - |
-| `AssociateWirelessDeviceWithThingResponse` | `structure` | - | - |
-| `AssociateWirelessGatewayWithCertificateRequest` | `structure` | `Id`, `IotCertificateId` | - |
-| `AssociateWirelessGatewayWithCertificateResponse` | `structure` | `IotCertificateId` | - |
-| `AssociateWirelessGatewayWithThingRequest` | `structure` | `Id`, `ThingArn` | - |
-| `AssociateWirelessGatewayWithThingResponse` | `structure` | - | - |
-| `CancelMulticastGroupSessionRequest` | `structure` | `Id` | - |
-| `CancelMulticastGroupSessionResponse` | `structure` | - | - |
-| `CreateDestinationRequest` | `structure` | `ClientRequestToken`, `Description`, `Expression`, `ExpressionType`, `Name`, `RoleArn`, `Tags` | - |
-| `CreateDestinationResponse` | `structure` | `Arn`, `Name` | - |
-
+| `AccessDeniedException` | `structure` | Message | User does not have permission to perform this action. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | Adding, updating, or deleting the resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | Message | An unexpected error occurred while processing a request. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | Resource does not exist. |
+| `ThrottlingException` | `structure` | Message | The request was denied because it exceeded the allowed API request rate. |
+| `TooManyTagsException` | `structure` | Message, ResourceName | The request was denied because the resource can't have any more tags. |
+| `ValidationException` | `structure` | Message | The input did not meet the specified constraints. |
+| `AssociateAwsAccountWithPartnerAccountRequest` | `structure` | Sidewalk, ClientRequestToken, Tags | - |
+| `AssociateAwsAccountWithPartnerAccountResponse` | `structure` | Sidewalk, Arn | - |
+| `AssociateMulticastGroupWithFuotaTaskRequest` | `structure` | Id, MulticastGroupId | - |
+| `AssociateMulticastGroupWithFuotaTaskResponse` | `structure` | **empty (no members)** | - |
+| `AssociateWirelessDeviceWithFuotaTaskRequest` | `structure` | Id, WirelessDeviceId | - |
+| `AssociateWirelessDeviceWithFuotaTaskResponse` | `structure` | **empty (no members)** | - |
+| `AssociateWirelessDeviceWithMulticastGroupRequest` | `structure` | Id, WirelessDeviceId | - |
+| `AssociateWirelessDeviceWithMulticastGroupResponse` | `structure` | **empty (no members)** | - |
+| `AssociateWirelessDeviceWithThingRequest` | `structure` | Id, ThingArn | - |
+| `AssociateWirelessDeviceWithThingResponse` | `structure` | **empty (no members)** | - |
+| `AssociateWirelessGatewayWithCertificateRequest` | `structure` | Id, IotCertificateId | - |
+| `AssociateWirelessGatewayWithCertificateResponse` | `structure` | IotCertificateId | - |
+| `AssociateWirelessGatewayWithThingRequest` | `structure` | Id, ThingArn | - |
+| `AssociateWirelessGatewayWithThingResponse` | `structure` | **empty (no members)** | - |
+| `CancelMulticastGroupSessionRequest` | `structure` | Id | - |
+| `CancelMulticastGroupSessionResponse` | `structure` | **empty (no members)** | - |
+| `CreateDestinationRequest` | `structure` | Name, ExpressionType, Expression, Description, RoleArn, Tags, ClientRequestToken | - |
+| `CreateDestinationResponse` | `structure` | Arn, Name | - |
+| `CreateDeviceProfileRequest` | `structure` | Name, LoRaWAN, Tags, ClientRequestToken, Sidewalk | - |
+| `CreateDeviceProfileResponse` | `structure` | Arn, Id | - |
+| `CreateFuotaTaskRequest` | `structure` | Name, Description, ClientRequestToken, LoRaWAN, FirmwareUpdateImage, FirmwareUpdateRole, Tags, RedundancyPercent, FragmentSizeBytes, FragmentIntervalMS, Descriptor | - |
+| `CreateFuotaTaskResponse` | `structure` | Arn, Id | - |
+| `CreateMulticastGroupRequest` | `structure` | Name, Description, ClientRequestToken, LoRaWAN, Tags | - |
+| `CreateMulticastGroupResponse` | `structure` | Arn, Id | - |
+| `CreateNetworkAnalyzerConfigurationRequest` | `structure` | Name, TraceContent, WirelessDevices, WirelessGateways, Description, Tags, ClientRequestToken, MulticastGroups | - |
+| `CreateNetworkAnalyzerConfigurationResponse` | `structure` | Arn, Name | - |
+| `CreateServiceProfileRequest` | `structure` | Name, LoRaWAN, Tags, ClientRequestToken | - |
+| `CreateServiceProfileResponse` | `structure` | Arn, Id | - |
+| `CreateWirelessDeviceRequest` | `structure` | Type, Name, Description, DestinationName, ClientRequestToken, LoRaWAN, Tags, Positioning, Sidewalk | - |
+| `CreateWirelessDeviceResponse` | `structure` | Arn, Id | - |
+| `CreateWirelessGatewayRequest` | `structure` | Name, Description, LoRaWAN, Tags, ClientRequestToken | - |
+| `CreateWirelessGatewayResponse` | `structure` | Arn, Id | - |
+| `CreateWirelessGatewayTaskRequest` | `structure` | Id, WirelessGatewayTaskDefinitionId | - |
+| `AggregationPeriod` | `enum` | OneHour, OneDay, OneWeek | - |
+| `ApplicationConfigType` | `enum` | SemtechGeoLocation | - |
+| `BatteryLevel` | `enum` | NORMAL, LOW, CRITICAL | Sidewalk device battery level. |
+| `ConnectionStatus` | `enum` | CONNECTED, DISCONNECTED | - |
+| `DeviceProfileType` | `enum` | Sidewalk, LoRaWAN | - |
+| `DeviceState` | `enum` | PROVISIONED, REGISTEREDNOTSEEN, REGISTEREDREACHABLE, REGISTEREDUNREACHABLE | Device state defines the device status of sidewalk device. |
+| `DimensionName` | `enum` | DeviceId, GatewayId | - |
+| `DlClass` | `enum` | ClassB, ClassC | DlClass for LoRaWAM, valid values are ClassB and ClassC. |
+| `DownlinkMode` | `enum` | SEQUENTIAL, CONCURRENT, USING_UPLINK_GATEWAY | - |
+| `Event` | `enum` | DISCOVERED, LOST, ACK, NACK, PASSTHROUGH | Sidewalk device status notification. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

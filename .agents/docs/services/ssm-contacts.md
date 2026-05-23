@@ -42,155 +42,185 @@ Systems Manager Incident Manager is an incident management console designed to h
 
 ### List
 
-- Operations: `ListContactChannels`, `ListContacts`, `ListEngagements`, `ListPageReceipts`, `ListPageResolutions`, `ListPagesByContact`, `ListPagesByEngagement`, `ListPreviewRotationShifts`, `ListRotationOverrides`, `ListRotationShifts`, `ListRotations`, `ListTagsForResource`
+- Operations: `ListContactChannels`, `ListContacts`, `ListEngagements`, `ListPageReceipts`, `ListPageResolutions`, `ListPagesByContact`, `ListPagesByEngagement`, `ListPreviewRotationShifts`, `ListRotationOverrides`, `ListRotations`, `ListRotationShifts`, `ListTagsForResource`
 - Traits: `paginated` (11)
-- Common required input members in this group: `ContactId`, `EndTime`, `EngagementId`, `Members`, `PageId`, `Recurrence`, `ResourceARN`, `RotationId`, `StartTime`, `TimeZoneId`
+- Common required input members in this group: `ContactId`, `PageId`, `EndTime`, `RotationId`
 
 ### Get
 
 - Operations: `GetContact`, `GetContactChannel`, `GetContactPolicy`, `GetRotation`, `GetRotationOverride`
-- Common required input members in this group: `ContactArn`, `ContactChannelId`, `ContactId`, `RotationId`, `RotationOverrideId`
+- Common required input members in this group: `RotationId`
 
 ### Create
 
 - Operations: `CreateContact`, `CreateContactChannel`, `CreateRotation`, `CreateRotationOverride`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `Alias`, `ContactId`, `ContactIds`, `DeliveryAddress`, `EndTime`, `Name`, `NewContactIds`, `Plan`, `Recurrence`, `RotationId`, `StartTime`, `TimeZoneId`, `Type`
+- Common required input members in this group: `Type`, `Name`
 
 ### Delete
 
 - Operations: `DeleteContact`, `DeleteContactChannel`, `DeleteRotation`, `DeleteRotationOverride`
-- Common required input members in this group: `ContactChannelId`, `ContactId`, `RotationId`, `RotationOverrideId`
+- Common required input members in this group: `RotationId`
 
 ### Update
 
 - Operations: `UpdateContact`, `UpdateContactChannel`, `UpdateRotation`
-- Common required input members in this group: `ContactChannelId`, `ContactId`, `Recurrence`, `RotationId`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeEngagement`, `DescribePage`
-- Common required input members in this group: `EngagementId`, `PageId`
+- Common required input members in this group: -
 
 ### Accept
 
 - Operations: `AcceptPage`
-- Common required input members in this group: `AcceptCode`, `AcceptType`, `PageId`
+- Common required input members in this group: -
 
 ### Activate
 
 - Operations: `ActivateContactChannel`
-- Common required input members in this group: `ActivationCode`, `ContactChannelId`
+- Common required input members in this group: -
 
 ### Deactivate
 
 - Operations: `DeactivateContactChannel`
-- Common required input members in this group: `ContactChannelId`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutContactPolicy`
-- Common required input members in this group: `ContactArn`, `Policy`
+- Common required input members in this group: -
 
 ### Send
 
 - Operations: `SendActivationCode`
-- Common required input members in this group: `ContactChannelId`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartEngagement`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `ContactId`, `Content`, `Sender`, `Subject`
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopEngagement`
-- Common required input members in this group: `EngagementId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptPage` | - | - | `AcceptCode`, `AcceptType`, `PageId` | - | `AcceptPageResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Used to acknowledge an engagement to a contact channel during an incident. |
-| `ActivateContactChannel` | - | - | `ActivationCode`, `ContactChannelId` | - | `ActivateContactChannelResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Activates a contact's contact channel. Incident Manager can't engage a contact until the contact channel has been activated. |
-| `CreateContact` | - | `idempotency-token` | `Alias`, `Plan`, `Type` | `IdempotencyToken` | `CreateContactResult` | `AccessDeniedException`, `ConflictException`, `DataEncryptionException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Contacts are either the contacts that Incident Manager engages during an incident or the escalation plans that Incident Manager uses to engage contacts in phases during an incident. |
-| `CreateContactChannel` | - | `idempotency-token` | `ContactId`, `DeliveryAddress`, `Name`, `Type` | `IdempotencyToken` | `CreateContactChannelResult` | `AccessDeniedException`, `ConflictException`, `DataEncryptionException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | A contact channel is the method that Incident Manager uses to engage your contact. |
-| `CreateRotation` | - | - | `ContactIds`, `Name`, `Recurrence`, `TimeZoneId` | - | `CreateRotationResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a rotation in an on-call schedule. |
-| `CreateRotationOverride` | - | - | `EndTime`, `NewContactIds`, `RotationId`, `StartTime` | - | `CreateRotationOverrideResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an override for a rotation in an on-call schedule. |
-| `DeactivateContactChannel` | - | - | `ContactChannelId` | - | `DeactivateContactChannelResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | To no longer receive Incident Manager engagements to a contact channel, you can deactivate the channel. |
-| `DeleteContact` | - | - | `ContactId` | - | `DeleteContactResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | To remove a contact from Incident Manager, you can delete the contact. However, deleting a contact does not remove it from escalation plans and related response plans. |
-| `DeleteContactChannel` | - | - | `ContactChannelId` | - | `DeleteContactChannelResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | To stop receiving engagements on a contact channel, you can delete the channel from a contact. Deleting the contact channel does not remove it from the contact's engagement plan, but the stage that includes the channel will be ignored. |
-| `DeleteRotation` | - | - | `RotationId` | - | `DeleteRotationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a rotation from the system. If a rotation belongs to more than one on-call schedule, this operation deletes it from all of them. |
-| `DeleteRotationOverride` | - | - | `RotationId`, `RotationOverrideId` | - | `DeleteRotationOverrideResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing override for an on-call rotation. |
-| `DescribeEngagement` | - | - | `EngagementId` | - | `DescribeEngagementResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Incident Manager uses engagements to engage contacts and escalation plans during an incident. Use this command to describe the engagement that occurred during an incident. |
-| `DescribePage` | - | - | `PageId` | - | `DescribePageResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists details of the engagement to a contact channel. |
-| `GetContact` | - | - | `ContactId` | - | `GetContactResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified contact or escalation plan. |
-| `GetContactChannel` | - | - | `ContactChannelId` | - | `GetContactChannelResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List details about a specific contact channel. |
-| `GetContactPolicy` | - | - | `ContactArn` | - | `GetContactPolicyResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the resource policies attached to the specified contact or escalation plan. |
-| `GetRotation` | - | - | `RotationId` | - | `GetRotationResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an on-call rotation. |
-| `GetRotationOverride` | - | - | `RotationId`, `RotationOverrideId` | - | `GetRotationOverrideResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an override to an on-call rotation. |
-| `ListContactChannels` | - | `paginated` | `ContactId` | - | `ListContactChannelsResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all contact channels for the specified contact. |
-| `ListContacts` | - | `paginated` | - | - | `ListContactsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all contacts and escalation plans in Incident Manager. |
-| `ListEngagements` | - | `paginated` | - | - | `ListEngagementsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all engagements that have happened in an incident. |
-| `ListPageReceipts` | - | `paginated` | `PageId` | - | `ListPageReceiptsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all of the engagements to contact channels that have been acknowledged. |
-| `ListPageResolutions` | - | `paginated` | `PageId` | - | `ListPageResolutionsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the resolution path of an engagement. For example, the escalation plan engaged in an incident might target an on-call schedule that includes several contacts in a rotation, but just one contact on-call when the incident starts. |
-| `ListPagesByContact` | - | `paginated` | `ContactId` | - | `ListPagesByContactResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the engagements to a contact's contact channels. |
-| `ListPagesByEngagement` | - | `paginated` | `EngagementId` | - | `ListPagesByEngagementResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the engagements to contact channels that occurred by engaging a contact. |
-| `ListPreviewRotationShifts` | - | `paginated` | `EndTime`, `Members`, `Recurrence`, `TimeZoneId` | - | `ListPreviewRotationShiftsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of shifts based on rotation configuration parameters. The Incident Manager primarily uses this operation to populate the Preview calendar. |
-| `ListRotationOverrides` | - | `paginated` | `EndTime`, `RotationId`, `StartTime` | - | `ListRotationOverridesResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a list of overrides currently specified for an on-call rotation. |
-| `ListRotationShifts` | - | `paginated` | `EndTime`, `RotationId` | - | `ListRotationShiftsResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of shifts generated by an existing rotation in the system. |
-| `ListRotations` | - | `paginated` | - | - | `ListRotationsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a list of on-call rotations. |
-| `ListTagsForResource` | - | - | `ResourceARN` | - | `ListTagsForResourceResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags of a contact, escalation plan, rotation, or on-call schedule. |
-| `PutContactPolicy` | - | - | `ContactArn`, `Policy` | - | `PutContactPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds a resource policy to the specified contact or escalation plan. The resource policy is used to share the contact or escalation plan using Resource Access Manager (RAM). |
-| `SendActivationCode` | - | - | `ContactChannelId` | - | `SendActivationCodeResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Sends an activation code to a contact channel. The contact can use this code to activate the contact channel in the console or with the `ActivateChannel` operation. |
-| `StartEngagement` | - | `idempotency-token` | `ContactId`, `Content`, `Sender`, `Subject` | `IdempotencyToken` | `StartEngagementResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts an engagement to a contact or escalation plan. The engagement engages each contact specified in the incident. |
-| `StopEngagement` | - | - | `EngagementId` | - | `StopEngagementResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops an engagement before it finishes the final stage of the escalation plan or engagement plan. Further contacts aren't engaged. |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Tags a contact or escalation plan. You can tag only contacts and escalation plans in the first region of your replication set. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from the specified resource. |
-| `UpdateContact` | - | - | `ContactId` | - | `UpdateContactResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the contact or escalation plan specified. |
-| `UpdateContactChannel` | - | - | `ContactChannelId` | - | `UpdateContactChannelResult` | `AccessDeniedException`, `ConflictException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a contact's contact channel. |
-| `UpdateRotation` | - | - | `Recurrence`, `RotationId` | - | `UpdateRotationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the information specified for an on-call rotation. |
+| `AcceptPage` | `-` | - | `PageId`, `AcceptType`, `AcceptCode` | - | `AcceptPageResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Used to acknowledge an engagement to a contact channel during an incident. |
+| `ActivateContactChannel` | `-` | - | `ContactChannelId`, `ActivationCode` | - | `ActivateContactChannelResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Activates a contact's contact channel. Incident Manager can't engage a contact until the contact channel has been activated. |
+| `CreateContact` | `-` | `idempotency-token` | `Alias`, `Type`, `Plan` | `IdempotencyToken` | `CreateContactResult` | `AccessDeniedException`, `ConflictException`, `DataEncryptionException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Contacts are either the contacts that Incident Manager engages during an incident or the escalation plans that Incident Manager uses to engage contacts in phases during an incident. |
+| `CreateContactChannel` | `-` | `idempotency-token` | `ContactId`, `Name`, `Type`, `DeliveryAddress` | `IdempotencyToken` | `CreateContactChannelResult` | `AccessDeniedException`, `ConflictException`, `DataEncryptionException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | A contact channel is the method that Incident Manager uses to engage your contact. |
+| `CreateRotation` | `-` | - | `Name`, `ContactIds`, `TimeZoneId`, `Recurrence` | - | `CreateRotationResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a rotation in an on-call schedule. |
+| `CreateRotationOverride` | `-` | - | `RotationId`, `NewContactIds`, `StartTime`, `EndTime` | - | `CreateRotationOverrideResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an override for a rotation in an on-call schedule. |
+| `DeactivateContactChannel` | `-` | - | `ContactChannelId` | - | `DeactivateContactChannelResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | To no longer receive Incident Manager engagements to a contact channel, you can deactivate the channel. |
+| `DeleteContact` | `-` | - | `ContactId` | - | `DeleteContactResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | To remove a contact from Incident Manager, you can delete the contact. However, deleting a contact does not remove it from escalation plans and related response plans. Deleting an escalation plan also does not remove ... |
+| `DeleteContactChannel` | `-` | - | `ContactChannelId` | - | `DeleteContactChannelResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | To stop receiving engagements on a contact channel, you can delete the channel from a contact. Deleting the contact channel does not remove it from the contact's engagement plan, but the stage that includes the chann ... |
+| `DeleteRotation` | `-` | - | `RotationId` | - | `DeleteRotationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a rotation from the system. If a rotation belongs to more than one on-call schedule, this operation deletes it from all of them. |
+| `DeleteRotationOverride` | `-` | - | `RotationId`, `RotationOverrideId` | - | `DeleteRotationOverrideResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an existing override for an on-call rotation. |
+| `DescribeEngagement` | `-` | - | `EngagementId` | - | `DescribeEngagementResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Incident Manager uses engagements to engage contacts and escalation plans during an incident. Use this command to describe the engagement that occurred during an incident. |
+| `DescribePage` | `-` | - | `PageId` | - | `DescribePageResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists details of the engagement to a contact channel. |
+| `GetContact` | `-` | - | `ContactId` | - | `GetContactResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about the specified contact or escalation plan. |
+| `GetContactChannel` | `-` | - | `ContactChannelId` | - | `GetContactChannelResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List details about a specific contact channel. |
+| `GetContactPolicy` | `-` | - | `ContactArn` | - | `GetContactPolicyResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the resource policies attached to the specified contact or escalation plan. |
+| `GetRotation` | `-` | - | `RotationId` | - | `GetRotationResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an on-call rotation. |
+| `GetRotationOverride` | `-` | - | `RotationId`, `RotationOverrideId` | - | `GetRotationOverrideResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about an override to an on-call rotation. |
+| `ListContactChannels` | `-` | `paginated` | `ContactId` | - | `ListContactChannelsResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all contact channels for the specified contact. |
+| `ListContacts` | `-` | `paginated` | - | - | `ListContactsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all contacts and escalation plans in Incident Manager. |
+| `ListEngagements` | `-` | `paginated` | - | - | `ListEngagementsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all engagements that have happened in an incident. |
+| `ListPageReceipts` | `-` | `paginated` | `PageId` | - | `ListPageReceiptsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all of the engagements to contact channels that have been acknowledged. |
+| `ListPageResolutions` | `-` | `paginated` | `PageId` | - | `ListPageResolutionsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the resolution path of an engagement. For example, the escalation plan engaged in an incident might target an on-call schedule that includes several contacts in a rotation, but just one contact on-call when t ... |
+| `ListPagesByContact` | `-` | `paginated` | `ContactId` | - | `ListPagesByContactResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the engagements to a contact's contact channels. |
+| `ListPagesByEngagement` | `-` | `paginated` | `EngagementId` | - | `ListPagesByEngagementResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the engagements to contact channels that occurred by engaging a contact. |
+| `ListPreviewRotationShifts` | `-` | `paginated` | `EndTime`, `Members`, `TimeZoneId`, `Recurrence` | - | `ListPreviewRotationShiftsResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of shifts based on rotation configuration parameters. The Incident Manager primarily uses this operation to populate the Preview calendar. It is not typically run by end users. |
+| `ListRotationOverrides` | `-` | `paginated` | `RotationId`, `StartTime`, `EndTime` | - | `ListRotationOverridesResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a list of overrides currently specified for an on-call rotation. |
+| `ListRotations` | `-` | `paginated` | - | - | `ListRotationsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves a list of on-call rotations. |
+| `ListRotationShifts` | `-` | `paginated` | `RotationId`, `EndTime` | - | `ListRotationShiftsResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of shifts generated by an existing rotation in the system. |
+| `ListTagsForResource` | `-` | - | `ResourceARN` | - | `ListTagsForResourceResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the tags of a contact, escalation plan, rotation, or on-call schedule. |
+| `PutContactPolicy` | `-` | - | `ContactArn`, `Policy` | - | `PutContactPolicyResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds a resource policy to the specified contact or escalation plan. The resource policy is used to share the contact or escalation plan using Resource Access Manager (RAM). For more information about cross-account sh ... |
+| `SendActivationCode` | `-` | - | `ContactChannelId` | - | `SendActivationCodeResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Sends an activation code to a contact channel. The contact can use this code to activate the contact channel in the console or with the ActivateChannel operation. Incident Manager can't engage a contact channel until ... |
+| `StartEngagement` | `-` | `idempotency-token` | `ContactId`, `Sender`, `Subject`, `Content` | `IdempotencyToken` | `StartEngagementResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts an engagement to a contact or escalation plan. The engagement engages each contact specified in the incident. |
+| `StopEngagement` | `-` | - | `EngagementId` | - | `StopEngagementResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops an engagement before it finishes the final stage of the escalation plan or engagement plan. Further contacts aren't engaged. |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Tags a contact or escalation plan. You can tag only contacts and escalation plans in the first region of your replication set. |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from the specified resource. |
+| `UpdateContact` | `-` | - | `ContactId` | - | `UpdateContactResult` | `AccessDeniedException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the contact or escalation plan specified. |
+| `UpdateContactChannel` | `-` | - | `ContactChannelId` | - | `UpdateContactChannelResult` | `AccessDeniedException`, `ConflictException`, `DataEncryptionException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a contact's contact channel. |
+| `UpdateRotation` | `-` | - | `RotationId`, `Recurrence` | - | `UpdateRotationResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the information specified for an on-call rotation. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You don't have sufficient access to perform this operation. |
-| `InternalServerException` | `structure` | `Message`, `RetryAfterSeconds` | Unexpected error occurred while processing the request. |
-| `ThrottlingException` | `structure` | `Message`, `QuotaCode`, `RetryAfterSeconds`, `ServiceCode` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Fields`, `Message`, `Reason` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | Request references a resource that doesn't exist. |
-| `DataEncryptionException` | `structure` | `Message` | The operation failed to due an encryption key error. |
-| `ConflictException` | `structure` | `DependentEntities`, `Message`, `ResourceId`, `ResourceType` | Updating or deleting a resource causes an inconsistent state. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `QuotaCode`, `ResourceId`, `ResourceType`, `ServiceCode` | Request would cause a service quota to be exceeded. |
-| `AcceptPageRequest` | `structure` | `AcceptCode`, `AcceptCodeValidation`, `AcceptType`, `ContactChannelId`, `Note`, `PageId` | - |
-| `AcceptPageResult` | `structure` | - | - |
-| `ActivateContactChannelRequest` | `structure` | `ActivationCode`, `ContactChannelId` | - |
-| `ActivateContactChannelResult` | `structure` | - | - |
-| `CreateContactRequest` | `structure` | `Alias`, `DisplayName`, `IdempotencyToken`, `Plan`, `Tags`, `Type` | - |
-| `CreateContactResult` | `structure` | `ContactArn` | - |
-| `CreateContactChannelRequest` | `structure` | `ContactId`, `DeferActivation`, `DeliveryAddress`, `IdempotencyToken`, `Name`, `Type` | - |
-| `CreateContactChannelResult` | `structure` | `ContactChannelArn` | - |
-| `CreateRotationRequest` | `structure` | `ContactIds`, `IdempotencyToken`, `Name`, `Recurrence`, `StartTime`, `Tags`, `TimeZoneId` | - |
-| `CreateRotationResult` | `structure` | `RotationArn` | - |
-| `CreateRotationOverrideRequest` | `structure` | `EndTime`, `IdempotencyToken`, `NewContactIds`, `RotationId`, `StartTime` | - |
-| `CreateRotationOverrideResult` | `structure` | `RotationOverrideId` | - |
-| `DeactivateContactChannelRequest` | `structure` | `ContactChannelId` | - |
-| `DeactivateContactChannelResult` | `structure` | - | - |
-| `DeleteContactRequest` | `structure` | `ContactId` | - |
-| `DeleteContactResult` | `structure` | - | - |
-
+| `AccessDeniedException` | `structure` | Message | You don't have sufficient access to perform this operation. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType, DependentEntities | Updating or deleting a resource causes an inconsistent state. |
+| `DataEncryptionException` | `structure` | Message | The operation failed to due an encryption key error. |
+| `InternalServerException` | `structure` | Message, RetryAfterSeconds | Unexpected error occurred while processing the request. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | Request references a resource that doesn't exist. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, QuotaCode, ServiceCode | Request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | Message, QuotaCode, ServiceCode, RetryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message, Reason, Fields | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `AcceptPageRequest` | `structure` | PageId, ContactChannelId, AcceptType, Note, AcceptCode, AcceptCodeValidation | - |
+| `AcceptPageResult` | `structure` | **empty (no members)** | - |
+| `ActivateContactChannelRequest` | `structure` | ContactChannelId, ActivationCode | - |
+| `ActivateContactChannelResult` | `structure` | **empty (no members)** | - |
+| `CreateContactRequest` | `structure` | Alias, DisplayName, Type, Plan, Tags, IdempotencyToken | - |
+| `CreateContactResult` | `structure` | ContactArn | - |
+| `CreateContactChannelRequest` | `structure` | ContactId, Name, Type, DeliveryAddress, DeferActivation, IdempotencyToken | - |
+| `CreateContactChannelResult` | `structure` | ContactChannelArn | - |
+| `CreateRotationRequest` | `structure` | Name, ContactIds, StartTime, TimeZoneId, Recurrence, Tags, IdempotencyToken | - |
+| `CreateRotationResult` | `structure` | RotationArn | - |
+| `CreateRotationOverrideRequest` | `structure` | RotationId, NewContactIds, StartTime, EndTime, IdempotencyToken | - |
+| `CreateRotationOverrideResult` | `structure` | RotationOverrideId | - |
+| `DeactivateContactChannelRequest` | `structure` | ContactChannelId | - |
+| `DeactivateContactChannelResult` | `structure` | **empty (no members)** | - |
+| `DeleteContactRequest` | `structure` | ContactId | - |
+| `DeleteContactResult` | `structure` | **empty (no members)** | - |
+| `DeleteContactChannelRequest` | `structure` | ContactChannelId | - |
+| `DeleteContactChannelResult` | `structure` | **empty (no members)** | - |
+| `DeleteRotationRequest` | `structure` | RotationId | - |
+| `DeleteRotationResult` | `structure` | **empty (no members)** | - |
+| `DeleteRotationOverrideRequest` | `structure` | RotationId, RotationOverrideId | - |
+| `DeleteRotationOverrideResult` | `structure` | **empty (no members)** | - |
+| `DescribeEngagementRequest` | `structure` | EngagementId | - |
+| `DescribeEngagementResult` | `structure` | ContactArn, EngagementArn, Sender, Subject, Content, PublicSubject, PublicContent, IncidentId, StartTime, StopTime | - |
+| `DescribePageRequest` | `structure` | PageId | - |
+| `DescribePageResult` | `structure` | PageArn, EngagementArn, ContactArn, Sender, Subject, Content, PublicSubject, PublicContent, IncidentId, SentTime, ReadTime, DeliveryTime | - |
+| `GetContactRequest` | `structure` | ContactId | - |
+| `GetContactResult` | `structure` | ContactArn, Alias, DisplayName, Type, Plan | - |
+| `GetContactChannelRequest` | `structure` | ContactChannelId | - |
+| `GetContactChannelResult` | `structure` | ContactArn, ContactChannelArn, Name, Type, DeliveryAddress, ActivationStatus | - |
+| `GetContactPolicyRequest` | `structure` | ContactArn | - |
+| `GetContactPolicyResult` | `structure` | ContactArn, Policy | - |
+| `AcceptCodeValidation` | `enum` | IGNORE, ENFORCE | - |
+| `AcceptType` | `enum` | DELIVERED, READ | - |
+| `ActivationStatus` | `enum` | ACTIVATED, NOT_ACTIVATED | - |
+| `ChannelType` | `enum` | SMS, VOICE, EMAIL | - |
+| `ContactType` | `enum` | PERSONAL, ESCALATION, ONCALL_SCHEDULE | - |
+| `DayOfWeek` | `enum` | MON, TUE, WED, THU, FRI, SAT, SUN | - |
+| `ReceiptType` | `enum` | DELIVERED, ERROR, READ, SENT, STOP | - |
+| `ShiftType` | `enum` | REGULAR, OVERRIDDEN | - |
+| `ValidationExceptionReason` | `enum` | UNKNOWN_OPERATION, CANNOT_PARSE, FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

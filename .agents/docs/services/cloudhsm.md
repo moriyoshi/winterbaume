@@ -39,97 +39,122 @@ AWS CloudHSM Service This is documentation for AWS CloudHSM Classic . For more i
 ### List
 
 - Operations: `ListAvailableZones`, `ListHapgs`, `ListHsms`, `ListLunaClients`, `ListTagsForResource`
-- Common required input members in this group: `ResourceArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateHapg`, `CreateHsm`, `CreateLunaClient`
-- Common required input members in this group: `Certificate`, `IamRoleArn`, `Label`, `SshKey`, `SubnetId`, `SubscriptionType`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteHapg`, `DeleteHsm`, `DeleteLunaClient`
-- Common required input members in this group: `ClientArn`, `HapgArn`, `HsmArn`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeHapg`, `DescribeHsm`, `DescribeLunaClient`
-- Common required input members in this group: `HapgArn`
+- Common required input members in this group: -
 
 ### Modify
 
 - Operations: `ModifyHapg`, `ModifyHsm`, `ModifyLunaClient`
-- Common required input members in this group: `Certificate`, `ClientArn`, `HapgArn`, `HsmArn`
+- Common required input members in this group: -
 
 ### Add
 
 - Operations: `AddTagsToResource`
-- Common required input members in this group: `ResourceArn`, `TagList`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetConfig`
-- Common required input members in this group: `ClientArn`, `ClientVersion`, `HapgList`
+- Common required input members in this group: -
 
 ### Remove
 
 - Operations: `RemoveTagsFromResource`
-- Common required input members in this group: `ResourceArn`, `TagKeyList`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AddTagsToResource` | - | - | `ResourceArn`, `TagList` | - | `AddTagsToResourceResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `CreateHapg` | - | - | `Label` | - | `CreateHapgResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `CreateHsm` | - | - | `IamRoleArn`, `SshKey`, `SubnetId`, `SubscriptionType` | - | `CreateHsmResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `CreateLunaClient` | - | - | `Certificate` | - | `CreateLunaClientResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `DeleteHapg` | - | - | `HapgArn` | - | `DeleteHapgResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `DeleteHsm` | - | - | `HsmArn` | - | `DeleteHsmResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `DeleteLunaClient` | - | - | `ClientArn` | - | `DeleteLunaClientResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `DescribeHapg` | - | - | `HapgArn` | - | `DescribeHapgResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `DescribeHsm` | - | - | - | - | `DescribeHsmResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `DescribeLunaClient` | - | - | - | - | `DescribeLunaClientResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `GetConfig` | - | - | `ClientArn`, `ClientVersion`, `HapgList` | - | `GetConfigResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `ListAvailableZones` | - | - | - | - | `ListAvailableZonesResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `ListHapgs` | - | - | - | - | `ListHapgsResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `ListHsms` | - | - | - | - | `ListHsmsResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `ListLunaClients` | - | - | - | - | `ListLunaClientsResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `ListTagsForResource` | - | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `ModifyHapg` | - | - | `HapgArn` | - | `ModifyHapgResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `ModifyHsm` | - | - | `HsmArn` | - | `ModifyHsmResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `ModifyLunaClient` | - | - | `Certificate`, `ClientArn` | - | `ModifyLunaClientResponse` | `CloudHsmServiceException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
-| `RemoveTagsFromResource` | - | - | `ResourceArn`, `TagKeyList` | - | `RemoveTagsFromResourceResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs, the AWS CloudHSM Classic User Guide, and the AWS CloudHSM Classic API Reference. |
+| `AddTagsToResource` | `-` | - | `ResourceArn`, `TagList` | - | `AddTagsToResourceResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `CreateHapg` | `-` | - | `Label` | - | `CreateHapgResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `CreateHsm` | `-` | - | `SubnetId`, `SshKey`, `IamRoleArn`, `SubscriptionType` | - | `CreateHsmResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `CreateLunaClient` | `-` | - | `Certificate` | - | `CreateLunaClientResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `DeleteHapg` | `-` | - | `HapgArn` | - | `DeleteHapgResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `DeleteHsm` | `-` | - | `HsmArn` | - | `DeleteHsmResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `DeleteLunaClient` | `-` | - | `ClientArn` | - | `DeleteLunaClientResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `DescribeHapg` | `-` | - | `HapgArn` | - | `DescribeHapgResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `DescribeHsm` | `-` | - | - | - | `DescribeHsmResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `DescribeLunaClient` | `-` | - | - | - | `DescribeLunaClientResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `GetConfig` | `-` | - | `ClientArn`, `ClientVersion`, `HapgList` | - | `GetConfigResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `ListAvailableZones` | `-` | - | - | - | `ListAvailableZonesResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `ListHapgs` | `-` | - | - | - | `ListHapgsResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `ListHsms` | `-` | - | - | - | `ListHsmsResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `ListLunaClients` | `-` | - | - | - | `ListLunaClientsResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `ListTagsForResource` | `-` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `ModifyHapg` | `-` | - | `HapgArn` | - | `ModifyHapgResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `ModifyHsm` | `-` | - | `HsmArn` | - | `ModifyHsmResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `ModifyLunaClient` | `-` | - | `ClientArn`, `Certificate` | - | `ModifyLunaClientResponse` | `CloudHsmServiceException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+| `RemoveTagsFromResource` | `-` | - | `ResourceArn`, `TagKeyList` | - | `RemoveTagsFromResourceResponse` | `CloudHsmInternalException`, `CloudHsmServiceException`, `InvalidRequestException` | This is documentation for AWS CloudHSM Classic . For more information, see AWS CloudHSM Classic FAQs , the AWS CloudHSM Classic User Guide , and the AWS CloudHSM Classic API Reference . For information about the curr ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `CloudHsmServiceException` | `structure` | `message`, `retryable` | Indicates that an exception occurred in the AWS CloudHSM service. |
-| `CloudHsmInternalException` | `structure` | `message`, `retryable` | Indicates that an internal error occurred. |
-| `InvalidRequestException` | `structure` | `message`, `retryable` | Indicates that one or more of the request parameters are not valid. |
-| `AddTagsToResourceRequest` | `structure` | `ResourceArn`, `TagList` | - |
-| `AddTagsToResourceResponse` | `structure` | `Status` | - |
-| `CreateHapgRequest` | `structure` | `Label` | Contains the inputs for the CreateHapgRequest action. |
-| `CreateHapgResponse` | `structure` | `HapgArn` | Contains the output of the CreateHAPartitionGroup action. |
-| `CreateHsmRequest` | `structure` | `ClientToken`, `EniIp`, `ExternalId`, `IamRoleArn`, `SshKey`, `SubnetId`, `SubscriptionType`, `SyslogIp` | Contains the inputs for the `CreateHsm` operation. |
-| `CreateHsmResponse` | `structure` | `HsmArn` | Contains the output of the `CreateHsm` operation. |
-| `CreateLunaClientRequest` | `structure` | `Certificate`, `Label` | Contains the inputs for the CreateLunaClient action. |
-| `CreateLunaClientResponse` | `structure` | `ClientArn` | Contains the output of the CreateLunaClient action. |
-| `DeleteHapgRequest` | `structure` | `HapgArn` | Contains the inputs for the DeleteHapg action. |
-| `DeleteHapgResponse` | `structure` | `Status` | Contains the output of the DeleteHapg action. |
-| `DeleteHsmRequest` | `structure` | `HsmArn` | Contains the inputs for the DeleteHsm operation. |
-| `DeleteHsmResponse` | `structure` | `Status` | Contains the output of the DeleteHsm operation. |
-| `DeleteLunaClientRequest` | `structure` | `ClientArn` | - |
-| `DeleteLunaClientResponse` | `structure` | `Status` | - |
-| `DescribeHapgRequest` | `structure` | `HapgArn` | Contains the inputs for the DescribeHapg action. |
-| `DescribeHapgResponse` | `structure` | `HapgArn`, `HapgSerial`, `HsmsLastActionFailed`, `HsmsPendingDeletion`, `HsmsPendingRegistration`, `Label`, `LastModifiedTimestamp`, `PartitionSerialList`, `State` | Contains the output of the DescribeHapg action. |
-| `DescribeHsmRequest` | `structure` | `HsmArn`, `HsmSerialNumber` | Contains the inputs for the DescribeHsm operation. |
-| `DescribeHsmResponse` | `structure` | `AvailabilityZone`, `EniId`, `EniIp`, `HsmArn`, `HsmType`, `IamRoleArn`, `Partitions`, `SerialNumber`, `ServerCertLastUpdated`, `ServerCertUri`, `SoftwareVersion`, `SshKeyLastUpdated`, ... (+9) | Contains the output of the DescribeHsm operation. |
-| `DescribeLunaClientRequest` | `structure` | `CertificateFingerprint`, `ClientArn` | - |
-| `DescribeLunaClientResponse` | `structure` | `Certificate`, `CertificateFingerprint`, `ClientArn`, `Label`, `LastModifiedTimestamp` | - |
-| `GetConfigRequest` | `structure` | `ClientArn`, `ClientVersion`, `HapgList` | - |
-
+| `CloudHsmInternalException` | `structure` | message, retryable | Indicates that an internal error occurred. |
+| `CloudHsmServiceException` | `structure` | message, retryable | Indicates that an exception occurred in the AWS CloudHSM service. |
+| `InvalidRequestException` | `structure` | message, retryable | Indicates that one or more of the request parameters are not valid. |
+| `AddTagsToResourceRequest` | `structure` | ResourceArn, TagList | - |
+| `AddTagsToResourceResponse` | `structure` | Status | - |
+| `CreateHapgRequest` | `structure` | Label | Contains the inputs for the CreateHapgRequest action. |
+| `CreateHapgResponse` | `structure` | HapgArn | Contains the output of the CreateHAPartitionGroup action. |
+| `CreateHsmRequest` | `structure` | SubnetId, SshKey, EniIp, IamRoleArn, ExternalId, SubscriptionType, ClientToken, SyslogIp | Contains the inputs for the CreateHsm operation. |
+| `CreateHsmResponse` | `structure` | HsmArn | Contains the output of the CreateHsm operation. |
+| `CreateLunaClientRequest` | `structure` | Label, Certificate | Contains the inputs for the CreateLunaClient action. |
+| `CreateLunaClientResponse` | `structure` | ClientArn | Contains the output of the CreateLunaClient action. |
+| `DeleteHapgRequest` | `structure` | HapgArn | Contains the inputs for the DeleteHapg action. |
+| `DeleteHapgResponse` | `structure` | Status | Contains the output of the DeleteHapg action. |
+| `DeleteHsmRequest` | `structure` | HsmArn | Contains the inputs for the DeleteHsm operation. |
+| `DeleteHsmResponse` | `structure` | Status | Contains the output of the DeleteHsm operation. |
+| `DeleteLunaClientRequest` | `structure` | ClientArn | - |
+| `DeleteLunaClientResponse` | `structure` | Status | - |
+| `DescribeHapgRequest` | `structure` | HapgArn | Contains the inputs for the DescribeHapg action. |
+| `DescribeHapgResponse` | `structure` | HapgArn, HapgSerial, HsmsLastActionFailed, HsmsPendingDeletion, HsmsPendingRegistration, Label, LastModifiedTimestamp, PartitionSerialList, State | Contains the output of the DescribeHapg action. |
+| `DescribeHsmRequest` | `structure` | HsmArn, HsmSerialNumber | Contains the inputs for the DescribeHsm operation. |
+| `DescribeHsmResponse` | `structure` | HsmArn, Status, StatusDetails, AvailabilityZone, EniId, EniIp, SubscriptionType, SubscriptionStartDate, SubscriptionEndDate, VpcId, SubnetId, IamRoleArn, ... (+9) | Contains the output of the DescribeHsm operation. |
+| `DescribeLunaClientRequest` | `structure` | ClientArn, CertificateFingerprint | - |
+| `DescribeLunaClientResponse` | `structure` | ClientArn, Certificate, CertificateFingerprint, LastModifiedTimestamp, Label | - |
+| `GetConfigRequest` | `structure` | ClientArn, ClientVersion, HapgList | - |
+| `GetConfigResponse` | `structure` | ConfigType, ConfigFile, ConfigCred | - |
+| `ListAvailableZonesRequest` | `structure` | **empty (no members)** | Contains the inputs for the ListAvailableZones action. |
+| `ListAvailableZonesResponse` | `structure` | AZList | - |
+| `ListHapgsRequest` | `structure` | NextToken | - |
+| `ListHapgsResponse` | `structure` | HapgList, NextToken | - |
+| `ListHsmsRequest` | `structure` | NextToken | - |
+| `ListHsmsResponse` | `structure` | HsmList, NextToken | Contains the output of the ListHsms operation. |
+| `ListLunaClientsRequest` | `structure` | NextToken | - |
+| `ListLunaClientsResponse` | `structure` | ClientList, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | TagList | - |
+| `ModifyHapgRequest` | `structure` | HapgArn, Label, PartitionSerialList | - |
+| `ModifyHapgResponse` | `structure` | HapgArn | - |
+| `ModifyHsmRequest` | `structure` | HsmArn, SubnetId, EniIp, IamRoleArn, ExternalId, SyslogIp | Contains the inputs for the ModifyHsm operation. |
+| `ModifyHsmResponse` | `structure` | HsmArn | Contains the output of the ModifyHsm operation. |
+| `ModifyLunaClientRequest` | `structure` | ClientArn, Certificate | - |
+| `ClientVersion` | `enum` | FIVE_ONE, FIVE_THREE | - |
+| `CloudHsmObjectState` | `enum` | READY, UPDATING, DEGRADED | - |
+| `HsmStatus` | `enum` | PENDING, RUNNING, UPDATING, SUSPENDED, TERMINATING, TERMINATED, DEGRADED | - |
+| `SubscriptionType` | `enum` | PRODUCTION | Specifies the type of subscription for the HSM. PRODUCTION - The HSM is being used in a production environment. TRIAL - The HSM is being used in a product t ... |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

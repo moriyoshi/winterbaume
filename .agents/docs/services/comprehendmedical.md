@@ -67,12 +67,13 @@ Parity implications:
 ### List
 
 - Operations: `ListEntitiesDetectionV2Jobs`, `ListICD10CMInferenceJobs`, `ListPHIDetectionJobs`, `ListRxNormInferenceJobs`, `ListSNOMEDCTInferenceJobs`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartEntitiesDetectionV2Job`, `StartICD10CMInferenceJob`, `StartPHIDetectionJob`, `StartRxNormInferenceJob`, `StartSNOMEDCTInferenceJob`
 - Traits: `idempotency-token` (5)
-- Common required input members in this group: `DataAccessRoleArn`, `InputDataConfig`, `LanguageCode`, `OutputDataConfig`
+- Common required input members in this group: `InputDataConfig`, `OutputDataConfig`, `DataAccessRoleArn`, `LanguageCode`
 
 ### Stop
 
@@ -93,62 +94,93 @@ Parity implications:
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DescribeEntitiesDetectionV2Job` | - | - | `JobId` | - | `DescribeEntitiesDetectionV2JobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with a medical entities detection job. Use this operation to get the status of a detection job. |
-| `DescribeICD10CMInferenceJob` | - | - | `JobId` | - | `DescribeICD10CMInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with an InferICD10CM job. Use this operation to get the status of an inference job. |
-| `DescribePHIDetectionJob` | - | - | `JobId` | - | `DescribePHIDetectionJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with a protected health information (PHI) detection job. Use this operation to get the status of a detection job. |
-| `DescribeRxNormInferenceJob` | - | - | `JobId` | - | `DescribeRxNormInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with an InferRxNorm job. Use this operation to get the status of an inference job. |
-| `DescribeSNOMEDCTInferenceJob` | - | - | `JobId` | - | `DescribeSNOMEDCTInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with an InferSNOMEDCT job. Use this operation to get the status of an inference job. |
-| `DetectEntities` | - | - | `Text` | - | `DetectEntitiesResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | The `DetectEntities` operation is deprecated. You should use the DetectEntitiesV2 operation instead. |
-| `DetectEntitiesV2` | - | - | `Text` | - | `DetectEntitiesV2Response` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | Inspects the clinical text for a variety of medical entities and returns specific information about them such as entity category, location, and confidence score on that information. Amazon Comprehend Medical only detects medical entities in English language... |
-| `DetectPHI` | - | - | `Text` | - | `DetectPHIResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | Inspects the clinical text for protected health information (PHI) entities and returns the entity category, location, and confidence score for each entity. Amazon Comprehend Medical only detects entities in English language texts. |
-| `InferICD10CM` | - | - | `Text` | - | `InferICD10CMResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | InferICD10CM detects medical conditions as entities listed in a patient record and links those entities to normalized concept identifiers in the ICD-10-CM knowledge base from the Centers for Disease Control. Amazon Comprehend Medical only detects medical... |
-| `InferRxNorm` | - | - | `Text` | - | `InferRxNormResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | InferRxNorm detects medications as entities listed in a patient record and links to the normalized concept identifiers in the RxNorm database from the National Library of Medicine. Amazon Comprehend Medical only detects medical entities in English language... |
-| `InferSNOMEDCT` | - | - | `Text` | - | `InferSNOMEDCTResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | InferSNOMEDCT detects possible medical concepts as entities and links them to codes from the Systematized Nomenclature of Medicine, Clinical Terms (SNOMED-CT) ontology |
-| `ListEntitiesDetectionV2Jobs` | - | - | - | - | `ListEntitiesDetectionV2JobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of medical entity detection jobs that you have submitted. |
-| `ListICD10CMInferenceJobs` | - | - | - | - | `ListICD10CMInferenceJobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of InferICD10CM jobs that you have submitted. |
-| `ListPHIDetectionJobs` | - | - | - | - | `ListPHIDetectionJobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of protected health information (PHI) detection jobs you have submitted. |
-| `ListRxNormInferenceJobs` | - | - | - | - | `ListRxNormInferenceJobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of InferRxNorm jobs that you have submitted. |
-| `ListSNOMEDCTInferenceJobs` | - | - | - | - | `ListSNOMEDCTInferenceJobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of InferSNOMEDCT jobs a user has submitted. |
-| `StartEntitiesDetectionV2Job` | - | `idempotency-token` | `DataAccessRoleArn`, `InputDataConfig`, `LanguageCode`, `OutputDataConfig` | `ClientRequestToken` | `StartEntitiesDetectionV2JobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous medical entity detection job for a collection of documents. Use the `DescribeEntitiesDetectionV2Job` operation to track the status of a job. |
-| `StartICD10CMInferenceJob` | - | `idempotency-token` | `DataAccessRoleArn`, `InputDataConfig`, `LanguageCode`, `OutputDataConfig` | `ClientRequestToken` | `StartICD10CMInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous job to detect medical conditions and link them to the ICD-10-CM ontology. Use the `DescribeICD10CMInferenceJob` operation to track the status of a job. |
-| `StartPHIDetectionJob` | - | `idempotency-token` | `DataAccessRoleArn`, `InputDataConfig`, `LanguageCode`, `OutputDataConfig` | `ClientRequestToken` | `StartPHIDetectionJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous job to detect protected health information (PHI). Use the `DescribePHIDetectionJob` operation to track the status of a job. |
-| `StartRxNormInferenceJob` | - | `idempotency-token` | `DataAccessRoleArn`, `InputDataConfig`, `LanguageCode`, `OutputDataConfig` | `ClientRequestToken` | `StartRxNormInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous job to detect medication entities and link them to the RxNorm ontology. Use the `DescribeRxNormInferenceJob` operation to track the status of a job. |
-| `StartSNOMEDCTInferenceJob` | - | `idempotency-token` | `DataAccessRoleArn`, `InputDataConfig`, `LanguageCode`, `OutputDataConfig` | `ClientRequestToken` | `StartSNOMEDCTInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous job to detect medical concepts and link them to the SNOMED-CT ontology. Use the DescribeSNOMEDCTInferenceJob operation to track the status of a job. |
-| `StopEntitiesDetectionV2Job` | - | - | `JobId` | - | `StopEntitiesDetectionV2JobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Stops a medical entities detection job in progress. |
-| `StopICD10CMInferenceJob` | - | - | `JobId` | - | `StopICD10CMInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Stops an InferICD10CM inference job in progress. |
-| `StopPHIDetectionJob` | - | - | `JobId` | - | `StopPHIDetectionJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Stops a protected health information (PHI) detection job in progress. |
-| `StopRxNormInferenceJob` | - | - | `JobId` | - | `StopRxNormInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Stops an InferRxNorm inference job in progress. |
-| `StopSNOMEDCTInferenceJob` | - | - | `JobId` | - | `StopSNOMEDCTInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Stops an InferSNOMEDCT inference job in progress. |
+| `DescribeEntitiesDetectionV2Job` | `-` | - | `JobId` | - | `DescribeEntitiesDetectionV2JobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with a medical entities detection job. Use this operation to get the status of a detection job. |
+| `DescribeICD10CMInferenceJob` | `-` | - | `JobId` | - | `DescribeICD10CMInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with an InferICD10CM job. Use this operation to get the status of an inference job. |
+| `DescribePHIDetectionJob` | `-` | - | `JobId` | - | `DescribePHIDetectionJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with a protected health information (PHI) detection job. Use this operation to get the status of a detection job. |
+| `DescribeRxNormInferenceJob` | `-` | - | `JobId` | - | `DescribeRxNormInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with an InferRxNorm job. Use this operation to get the status of an inference job. |
+| `DescribeSNOMEDCTInferenceJob` | `-` | - | `JobId` | - | `DescribeSNOMEDCTInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the properties associated with an InferSNOMEDCT job. Use this operation to get the status of an inference job. |
+| `DetectEntities` | `-` | - | `Text` | - | `DetectEntitiesResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | The DetectEntities operation is deprecated. You should use the DetectEntitiesV2 operation instead. Inspects the clinical text for a variety of medical entities and returns specific information about them such as enti ... |
+| `DetectEntitiesV2` | `-` | - | `Text` | - | `DetectEntitiesV2Response` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | Inspects the clinical text for a variety of medical entities and returns specific information about them such as entity category, location, and confidence score on that information. Amazon Comprehend Medical only det ... |
+| `DetectPHI` | `-` | - | `Text` | - | `DetectPHIResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | Inspects the clinical text for protected health information (PHI) entities and returns the entity category, location, and confidence score for each entity. Amazon Comprehend Medical only detects entities in English l ... |
+| `InferICD10CM` | `-` | - | `Text` | - | `InferICD10CMResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | InferICD10CM detects medical conditions as entities listed in a patient record and links those entities to normalized concept identifiers in the ICD-10-CM knowledge base from the Centers for Disease Control. Amazon C ... |
+| `InferRxNorm` | `-` | - | `Text` | - | `InferRxNormResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | InferRxNorm detects medications as entities listed in a patient record and links to the normalized concept identifiers in the RxNorm database from the National Library of Medicine. Amazon Comprehend Medical only dete ... |
+| `InferSNOMEDCT` | `-` | - | `Text` | - | `InferSNOMEDCTResponse` | `InternalServerException`, `InvalidEncodingException`, `InvalidRequestException`, `ServiceUnavailableException`, `TextSizeLimitExceededException`, `TooManyRequestsException` | InferSNOMEDCT detects possible medical concepts as entities and links them to codes from the Systematized Nomenclature of Medicine, Clinical Terms (SNOMED-CT) ontology |
+| `ListEntitiesDetectionV2Jobs` | `-` | - | - | - | `ListEntitiesDetectionV2JobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of medical entity detection jobs that you have submitted. |
+| `ListICD10CMInferenceJobs` | `-` | - | - | - | `ListICD10CMInferenceJobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of InferICD10CM jobs that you have submitted. |
+| `ListPHIDetectionJobs` | `-` | - | - | - | `ListPHIDetectionJobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of protected health information (PHI) detection jobs you have submitted. |
+| `ListRxNormInferenceJobs` | `-` | - | - | - | `ListRxNormInferenceJobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of InferRxNorm jobs that you have submitted. |
+| `ListSNOMEDCTInferenceJobs` | `-` | - | - | - | `ListSNOMEDCTInferenceJobsResponse` | `InternalServerException`, `InvalidRequestException`, `TooManyRequestsException`, `ValidationException` | Gets a list of InferSNOMEDCT jobs a user has submitted. |
+| `StartEntitiesDetectionV2Job` | `-` | `idempotency-token` | `InputDataConfig`, `OutputDataConfig`, `DataAccessRoleArn`, `LanguageCode` | `ClientRequestToken` | `StartEntitiesDetectionV2JobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous medical entity detection job for a collection of documents. Use the DescribeEntitiesDetectionV2Job operation to track the status of a job. |
+| `StartICD10CMInferenceJob` | `-` | `idempotency-token` | `InputDataConfig`, `OutputDataConfig`, `DataAccessRoleArn`, `LanguageCode` | `ClientRequestToken` | `StartICD10CMInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous job to detect medical conditions and link them to the ICD-10-CM ontology. Use the DescribeICD10CMInferenceJob operation to track the status of a job. |
+| `StartPHIDetectionJob` | `-` | `idempotency-token` | `InputDataConfig`, `OutputDataConfig`, `DataAccessRoleArn`, `LanguageCode` | `ClientRequestToken` | `StartPHIDetectionJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous job to detect protected health information (PHI). Use the DescribePHIDetectionJob operation to track the status of a job. |
+| `StartRxNormInferenceJob` | `-` | `idempotency-token` | `InputDataConfig`, `OutputDataConfig`, `DataAccessRoleArn`, `LanguageCode` | `ClientRequestToken` | `StartRxNormInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous job to detect medication entities and link them to the RxNorm ontology. Use the DescribeRxNormInferenceJob operation to track the status of a job. |
+| `StartSNOMEDCTInferenceJob` | `-` | `idempotency-token` | `InputDataConfig`, `OutputDataConfig`, `DataAccessRoleArn`, `LanguageCode` | `ClientRequestToken` | `StartSNOMEDCTInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Starts an asynchronous job to detect medical concepts and link them to the SNOMED-CT ontology. Use the DescribeSNOMEDCTInferenceJob operation to track the status of a job. |
+| `StopEntitiesDetectionV2Job` | `-` | - | `JobId` | - | `StopEntitiesDetectionV2JobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Stops a medical entities detection job in progress. |
+| `StopICD10CMInferenceJob` | `-` | - | `JobId` | - | `StopICD10CMInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Stops an InferICD10CM inference job in progress. |
+| `StopPHIDetectionJob` | `-` | - | `JobId` | - | `StopPHIDetectionJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Stops a protected health information (PHI) detection job in progress. |
+| `StopRxNormInferenceJob` | `-` | - | `JobId` | - | `StopRxNormInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Stops an InferRxNorm inference job in progress. |
+| `StopSNOMEDCTInferenceJob` | `-` | - | `JobId` | - | `StopSNOMEDCTInferenceJobResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException`, `TooManyRequestsException` | Stops an InferSNOMEDCT inference job in progress. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `Message` | An internal server error occurred. |
-| `InvalidRequestException` | `structure` | `Message` | The request that you made is invalid. |
-| `TooManyRequestsException` | `structure` | `Message` | You have made too many requests within a short period of time. |
-| `ResourceNotFoundException` | `structure` | `Message` | The resource identified by the specified Amazon Resource Name (ARN) was not found. |
-| `InvalidEncodingException` | `structure` | `Message` | The input text was not in valid UTF-8 character encoding. |
-| `ServiceUnavailableException` | `structure` | `Message` | The Amazon Comprehend Medical service is temporarily unavailable. |
-| `TextSizeLimitExceededException` | `structure` | `Message` | The size of the text you submitted exceeds the size limit. |
-| `ValidationException` | `structure` | `Message` | The filter that you specified for the operation is invalid. |
-| `DescribeEntitiesDetectionV2JobRequest` | `structure` | `JobId` | - |
-| `DescribeEntitiesDetectionV2JobResponse` | `structure` | `ComprehendMedicalAsyncJobProperties` | - |
-| `DescribeICD10CMInferenceJobRequest` | `structure` | `JobId` | - |
-| `DescribeICD10CMInferenceJobResponse` | `structure` | `ComprehendMedicalAsyncJobProperties` | - |
-| `DescribePHIDetectionJobRequest` | `structure` | `JobId` | - |
-| `DescribePHIDetectionJobResponse` | `structure` | `ComprehendMedicalAsyncJobProperties` | - |
-| `DescribeRxNormInferenceJobRequest` | `structure` | `JobId` | - |
-| `DescribeRxNormInferenceJobResponse` | `structure` | `ComprehendMedicalAsyncJobProperties` | - |
-| `DescribeSNOMEDCTInferenceJobRequest` | `structure` | `JobId` | - |
-| `DescribeSNOMEDCTInferenceJobResponse` | `structure` | `ComprehendMedicalAsyncJobProperties` | - |
-| `DetectEntitiesRequest` | `structure` | `Text` | - |
-| `DetectEntitiesResponse` | `structure` | `Entities`, `ModelVersion`, `PaginationToken`, `UnmappedAttributes` | - |
-| `DetectEntitiesV2Request` | `structure` | `Text` | - |
-| `DetectEntitiesV2Response` | `structure` | `Entities`, `ModelVersion`, `PaginationToken`, `UnmappedAttributes` | - |
-| `DetectPHIRequest` | `structure` | `Text` | - |
-| `DetectPHIResponse` | `structure` | `Entities`, `ModelVersion`, `PaginationToken` | - |
-
+| `InternalServerException` | `structure` | Message | An internal server error occurred. Retry your request. |
+| `InvalidEncodingException` | `structure` | Message | The input text was not in valid UTF-8 character encoding. Check your text then retry your request. |
+| `InvalidRequestException` | `structure` | Message | The request that you made is invalid. Check your request to determine why it's invalid and then retry the request. |
+| `ResourceNotFoundException` | `structure` | Message | The resource identified by the specified Amazon Resource Name (ARN) was not found. Check the ARN and try your request again. |
+| `ServiceUnavailableException` | `structure` | Message | The Amazon Comprehend Medical service is temporarily unavailable. Please wait and then retry your request. |
+| `TextSizeLimitExceededException` | `structure` | Message | The size of the text you submitted exceeds the size limit. Reduce the size of the text or use a smaller document and then retry your request. |
+| `TooManyRequestsException` | `structure` | Message | You have made too many requests within a short period of time. Wait for a short time and then try your request again. Contact customer support for more info ... |
+| `ValidationException` | `structure` | Message | The filter that you specified for the operation is invalid. Check the filter values that you entered and try your request again. |
+| `DescribeEntitiesDetectionV2JobRequest` | `structure` | JobId | - |
+| `DescribeEntitiesDetectionV2JobResponse` | `structure` | ComprehendMedicalAsyncJobProperties | - |
+| `DescribeICD10CMInferenceJobRequest` | `structure` | JobId | - |
+| `DescribeICD10CMInferenceJobResponse` | `structure` | ComprehendMedicalAsyncJobProperties | - |
+| `DescribePHIDetectionJobRequest` | `structure` | JobId | - |
+| `DescribePHIDetectionJobResponse` | `structure` | ComprehendMedicalAsyncJobProperties | - |
+| `DescribeRxNormInferenceJobRequest` | `structure` | JobId | - |
+| `DescribeRxNormInferenceJobResponse` | `structure` | ComprehendMedicalAsyncJobProperties | - |
+| `DescribeSNOMEDCTInferenceJobRequest` | `structure` | JobId | - |
+| `DescribeSNOMEDCTInferenceJobResponse` | `structure` | ComprehendMedicalAsyncJobProperties | - |
+| `DetectEntitiesRequest` | `structure` | Text | - |
+| `DetectEntitiesResponse` | `structure` | Entities, UnmappedAttributes, PaginationToken, ModelVersion | - |
+| `DetectEntitiesV2Request` | `structure` | Text | - |
+| `DetectEntitiesV2Response` | `structure` | Entities, UnmappedAttributes, PaginationToken, ModelVersion | - |
+| `DetectPHIRequest` | `structure` | Text | - |
+| `DetectPHIResponse` | `structure` | Entities, PaginationToken, ModelVersion | - |
+| `InferICD10CMRequest` | `structure` | Text | - |
+| `InferICD10CMResponse` | `structure` | Entities, PaginationToken, ModelVersion | - |
+| `InferRxNormRequest` | `structure` | Text | - |
+| `InferRxNormResponse` | `structure` | Entities, PaginationToken, ModelVersion | - |
+| `InferSNOMEDCTRequest` | `structure` | Text | - |
+| `InferSNOMEDCTResponse` | `structure` | Entities, PaginationToken, ModelVersion, SNOMEDCTDetails, Characters | - |
+| `ListEntitiesDetectionV2JobsRequest` | `structure` | Filter, NextToken, MaxResults | - |
+| `ListEntitiesDetectionV2JobsResponse` | `structure` | ComprehendMedicalAsyncJobPropertiesList, NextToken | - |
+| `ListICD10CMInferenceJobsRequest` | `structure` | Filter, NextToken, MaxResults | - |
+| `ListICD10CMInferenceJobsResponse` | `structure` | ComprehendMedicalAsyncJobPropertiesList, NextToken | - |
+| `ListPHIDetectionJobsRequest` | `structure` | Filter, NextToken, MaxResults | - |
+| `ListPHIDetectionJobsResponse` | `structure` | ComprehendMedicalAsyncJobPropertiesList, NextToken | - |
+| `ListRxNormInferenceJobsRequest` | `structure` | Filter, NextToken, MaxResults | - |
+| `ListRxNormInferenceJobsResponse` | `structure` | ComprehendMedicalAsyncJobPropertiesList, NextToken | - |
+| `ListSNOMEDCTInferenceJobsRequest` | `structure` | Filter, NextToken, MaxResults | - |
+| `ListSNOMEDCTInferenceJobsResponse` | `structure` | ComprehendMedicalAsyncJobPropertiesList, NextToken | - |
+| `AttributeName` | `enum` | SIGN, SYMPTOM, DIAGNOSIS, NEGATION, PERTAINS_TO_FAMILY, HYPOTHETICAL, LOW_CONFIDENCE, PAST_HISTORY, FUTURE | - |
+| `EntitySubType` | `enum` | NAME, DX_NAME, DOSAGE, ROUTE_OR_MODE, FORM, FREQUENCY, DURATION, GENERIC_NAME, BRAND_NAME, STRENGTH, RATE, ACUITY, ... (+33) | - |
+| `EntityType` | `enum` | MEDICATION, MEDICAL_CONDITION, PROTECTED_HEALTH_INFORMATION, TEST_TREATMENT_PROCEDURE, ANATOMY, TIME_EXPRESSION, BEHAVIORAL_ENVIRONMENTAL_SOCIAL | - |
+| `ICD10CMAttributeType` | `enum` | ACUITY, DIRECTION, SYSTEM_ORGAN_SITE, QUALITY, QUANTITY, TIME_TO_DX_NAME, TIME_EXPRESSION | - |
+| `ICD10CMEntityCategory` | `enum` | MEDICAL_CONDITION | - |
+| `ICD10CMEntityType` | `enum` | DX_NAME, TIME_EXPRESSION | - |
+| `ICD10CMRelationshipType` | `enum` | OVERLAP, SYSTEM_ORGAN_SITE, QUALITY | - |
+| `ICD10CMTraitName` | `enum` | NEGATION, DIAGNOSIS, SIGN, SYMPTOM, PERTAINS_TO_FAMILY, HYPOTHETICAL, LOW_CONFIDENCE | - |
+| `JobStatus` | `enum` | SUBMITTED, IN_PROGRESS, COMPLETED, PARTIAL_SUCCESS, FAILED, STOP_REQUESTED, STOPPED | - |
+| `LanguageCode` | `enum` | EN | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

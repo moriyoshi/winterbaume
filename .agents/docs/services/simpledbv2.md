@@ -43,18 +43,19 @@ Amazon SimpleDB is a web service providing the core database functions of data i
 
 - Operations: `GetExport`
 - Traits: `readonly` (1)
-- Common required input members in this group: `exportArn`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListExports`
-- Traits: `paginated` (1), `readonly` (1)
+- Traits: `readonly` (1), `paginated` (1)
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartDomainExport`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `domainName`, `s3Bucket`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -64,24 +65,31 @@ Amazon SimpleDB is a web service providing the core database functions of data i
 | `ListExports` | `POST /v2/ListExports` | `readonly`, `paginated` | - | - | `ListExportsResponse` | `InvalidNextTokenException`, `InvalidParameterValueException`, `NoSuchDomainException` | Lists all exports that were created. The results are paginated and can be filtered by domain name. |
 | `StartDomainExport` | `POST /v2/StartDomainExport` | `idempotent`, `idempotency-token` | `domainName`, `s3Bucket` | `clientToken` | `StartDomainExportResponse` | `ConflictException`, `InvalidParameterCombinationException`, `InvalidParameterValueException`, `NoSuchDomainException`, `NumberExportsLimitExceeded` | Initiates the export of a SimpleDB domain to an S3 bucket. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidParameterValueException` | `structure` | `message` | The specified parameter value is not valid. |
-| `NoSuchDomainException` | `structure` | `message` | The specified domain does not exist. |
-| `GetExportRequest` | `structure` | `exportArn` | - |
-| `GetExportResponse` | `structure` | `clientToken`, `domainName`, `exportArn`, `exportDataCutoffTime`, `exportManifest`, `exportStatus`, `failureCode`, `failureMessage`, `itemsCount`, `requestedAt`, `s3Bucket`, `s3BucketOwner`, ... (+3) | - |
-| `NoSuchExportException` | `structure` | `message` | Export with specified ARN does not exist. |
-| `ListExportsRequest` | `structure` | `domainName`, `maxResults`, `nextToken` | - |
-| `ListExportsResponse` | `structure` | `exportSummaries`, `nextToken` | - |
-| `InvalidNextTokenException` | `structure` | `message` | The specified next token is not valid. |
-| `StartDomainExportRequest` | `structure` | `clientToken`, `domainName`, `s3Bucket`, `s3BucketOwner`, `s3KeyPrefix`, `s3SseAlgorithm`, `s3SseKmsKeyId` | - |
-| `StartDomainExportResponse` | `structure` | `clientToken`, `exportArn`, `requestedAt` | - |
-| `ConflictException` | `structure` | `message` | Indicates a conflict with one or more parameters of the request. |
-| `InvalidParameterCombinationException` | `structure` | `message` | Parameters that must not be used together were used together in the request. |
-| `NumberExportsLimitExceeded` | `structure` | `message` | Cannot start export as export quota limit was exceeded |
-
+| `ConflictException` | `structure` | message | Indicates a conflict with one or more parameters of the request. |
+| `InvalidNextTokenException` | `structure` | message | The specified next token is not valid. |
+| `InvalidParameterCombinationException` | `structure` | message | Parameters that must not be used together were used together in the request. |
+| `InvalidParameterValueException` | `structure` | message | The specified parameter value is not valid. |
+| `NoSuchDomainException` | `structure` | message | The specified domain does not exist. |
+| `NoSuchExportException` | `structure` | message | Export with specified ARN does not exist. |
+| `NumberExportsLimitExceeded` | `structure` | message | Cannot start export as export quota limit was exceeded |
+| `GetExportRequest` | `structure` | exportArn | - |
+| `GetExportResponse` | `structure` | exportArn, clientToken, exportStatus, domainName, requestedAt, s3Bucket, s3KeyPrefix, s3SseAlgorithm, s3SseKmsKeyId, s3BucketOwner, failureCode, failureMessage, ... (+3) | - |
+| `ListExportsRequest` | `structure` | domainName, maxResults, nextToken | - |
+| `ListExportsResponse` | `structure` | exportSummaries, nextToken | - |
+| `StartDomainExportRequest` | `structure` | clientToken, domainName, s3Bucket, s3KeyPrefix, s3SseAlgorithm, s3SseKmsKeyId, s3BucketOwner | - |
+| `StartDomainExportResponse` | `structure` | clientToken, exportArn, requestedAt | - |
+| `ExportStatus` | `enum` | PENDING, IN_PROGRESS, SUCCEEDED, FAILED | The current state of the export. Current possible values include : PENDING - export request received, IN_PROGRESS - export is being processed, SUCCEEDED - e ... |
+| `S3SseAlgorithm` | `enum` | AES256, KMS | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

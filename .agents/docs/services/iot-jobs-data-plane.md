@@ -41,22 +41,22 @@ IoT Jobs is a service that allows you to define a set of jobs — remote operati
 
 - Operations: `StartCommandExecution`, `StartNextPendingJobExecution`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `commandArn`, `targetArn`, `thingName`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeJobExecution`
-- Common required input members in this group: `jobId`, `thingName`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetPendingJobExecutions`
-- Common required input members in this group: `thingName`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateJobExecution`
-- Common required input members in this group: `jobId`, `status`, `thingName`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -64,36 +64,44 @@ IoT Jobs is a service that allows you to define a set of jobs — remote operati
 |---|---|---|---|---|---|---|---|
 | `DescribeJobExecution` | `GET /things/{thingName}/jobs/{jobId}` | - | `jobId`, `thingName` | - | `DescribeJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `TerminalStateException`, `ThrottlingException` | Gets details of a job execution. Requires permission to access the DescribeJobExecution action. |
 | `GetPendingJobExecutions` | `GET /things/{thingName}/jobs` | - | `thingName` | - | `GetPendingJobExecutionsResponse` | `CertificateValidationException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Gets the list of all jobs for a thing that are not in a terminal status. Requires permission to access the GetPendingJobExecutions action. |
-| `StartCommandExecution` | `POST /command-executions` | `idempotency-token` | `commandArn`, `targetArn` | `clientToken` | `StartCommandExecutionResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Using the command created with the `CreateCommand` API, start a command execution on a specific device. |
+| `StartCommandExecution` | `POST /command-executions` | `idempotency-token` | `targetArn`, `commandArn` | `clientToken` | `StartCommandExecutionResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Using the command created with the CreateCommand API, start a command execution on a specific device. |
 | `StartNextPendingJobExecution` | `PUT /things/{thingName}/jobs/$next` | - | `thingName` | - | `StartNextPendingJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Gets and starts the next pending (status IN_PROGRESS or QUEUED) job execution for a thing. Requires permission to access the StartNextPendingJobExecution action. |
-| `UpdateJobExecution` | `POST /things/{thingName}/jobs/{jobId}` | - | `jobId`, `status`, `thingName` | - | `UpdateJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `InvalidStateTransitionException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Updates the status of a job execution. Requires permission to access the UpdateJobExecution action. |
+| `UpdateJobExecution` | `POST /things/{thingName}/jobs/{jobId}` | - | `jobId`, `thingName`, `status` | - | `UpdateJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `InvalidStateTransitionException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Updates the status of a job execution. Requires permission to access the UpdateJobExecution action. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeJobExecution` | - | `includeJobDocument -> includeJobDocument`, `executionNumber -> executionNumber` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource does not exist. |
-| `ThrottlingException` | `structure` | `message`, `payload` | The rate exceeds the limit. |
-| `CertificateValidationException` | `structure` | `message` | The certificate is invalid. |
-| `InvalidRequestException` | `structure` | `message` | The contents of the request were invalid. |
-| `ServiceUnavailableException` | `structure` | `message` | The service is temporarily unavailable. |
-| `DescribeJobExecutionRequest` | `structure` | `executionNumber`, `includeJobDocument`, `jobId`, `thingName` | - |
-| `DescribeJobExecutionResponse` | `structure` | `execution` | - |
-| `TerminalStateException` | `structure` | `message` | The job is in a terminal state. |
-| `GetPendingJobExecutionsRequest` | `structure` | `thingName` | - |
-| `GetPendingJobExecutionsResponse` | `structure` | `inProgressJobs`, `queuedJobs` | - |
-| `StartCommandExecutionRequest` | `structure` | `clientToken`, `commandArn`, `executionTimeoutSeconds`, `parameters`, `targetArn` | - |
-| `StartCommandExecutionResponse` | `structure` | `executionId` | - |
-| `ConflictException` | `structure` | `message`, `resourceId` | A conflict has occurred when performing the API request. |
-| `InternalServerException` | `structure` | `message` | An internal server error occurred when performing the API request. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The service quota has been exceeded for this request. |
-| `ValidationException` | `structure` | `message` | A validation error occurred when performing the API request. |
-| `StartNextPendingJobExecutionRequest` | `structure` | `statusDetails`, `stepTimeoutInMinutes`, `thingName` | - |
-| `StartNextPendingJobExecutionResponse` | `structure` | `execution` | - |
-| `UpdateJobExecutionRequest` | `structure` | `executionNumber`, `expectedVersion`, `includeJobDocument`, `includeJobExecutionState`, `jobId`, `status`, `statusDetails`, `stepTimeoutInMinutes`, `thingName` | - |
-| `UpdateJobExecutionResponse` | `structure` | `executionState`, `jobDocument` | - |
-| `InvalidStateTransitionException` | `structure` | `message` | An update attempted to change the job execution to a state that is invalid because of the job execution's current state (for example, an attempt to change a request in state... |
-
+| `CertificateValidationException` | `structure` | message | The certificate is invalid. |
+| `ConflictException` | `structure` | message, resourceId | A conflict has occurred when performing the API request. |
+| `InternalServerException` | `structure` | message | An internal server error occurred when performing the API request. |
+| `InvalidRequestException` | `structure` | message | The contents of the request were invalid. |
+| `InvalidStateTransitionException` | `structure` | message | An update attempted to change the job execution to a state that is invalid because of the job execution's current state (for example, an attempt to change a ... |
+| `ResourceNotFoundException` | `structure` | message | The specified resource does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message | The service quota has been exceeded for this request. |
+| `ServiceUnavailableException` | `structure` | message | The service is temporarily unavailable. |
+| `TerminalStateException` | `structure` | message | The job is in a terminal state. |
+| `ThrottlingException` | `structure` | message, payload | The rate exceeds the limit. |
+| `ValidationException` | `structure` | message | A validation error occurred when performing the API request. |
+| `DescribeJobExecutionRequest` | `structure` | jobId, thingName, includeJobDocument, executionNumber | - |
+| `DescribeJobExecutionResponse` | `structure` | execution | - |
+| `GetPendingJobExecutionsRequest` | `structure` | thingName | - |
+| `GetPendingJobExecutionsResponse` | `structure` | inProgressJobs, queuedJobs | - |
+| `StartCommandExecutionRequest` | `structure` | targetArn, commandArn, parameters, executionTimeoutSeconds, clientToken | - |
+| `StartCommandExecutionResponse` | `structure` | executionId | - |
+| `StartNextPendingJobExecutionRequest` | `structure` | thingName, statusDetails, stepTimeoutInMinutes | - |
+| `StartNextPendingJobExecutionResponse` | `structure` | execution | - |
+| `UpdateJobExecutionRequest` | `structure` | jobId, thingName, status, statusDetails, stepTimeoutInMinutes, expectedVersion, includeJobExecutionState, includeJobDocument, executionNumber | - |
+| `UpdateJobExecutionResponse` | `structure` | executionState, jobDocument | - |
+| `JobExecutionStatus` | `enum` | QUEUED, IN_PROGRESS, SUCCEEDED, FAILED, TIMED_OUT, REJECTED, REMOVED, CANCELED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

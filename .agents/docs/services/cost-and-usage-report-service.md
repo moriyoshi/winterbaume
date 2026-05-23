@@ -63,74 +63,88 @@ Parity implications:
 ### Delete
 
 - Operations: `DeleteReportDefinition`
-- Common required input members in this group: `ReportName`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeReportDefinitions`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
-- Common required input members in this group: `ReportName`
+- Common required input members in this group: -
 
 ### Modify
 
 - Operations: `ModifyReportDefinition`
-- Common required input members in this group: `ReportDefinition`, `ReportName`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutReportDefinition`
-- Common required input members in this group: `ReportDefinition`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ReportName`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ReportName`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `DeleteReportDefinition` | - | - | `ReportName` | - | `DeleteReportDefinitionResponse` | `InternalErrorException`, `ValidationException` | Deletes the specified report. Any tags associated with the report are also deleted. |
-| `DescribeReportDefinitions` | - | `paginated` | - | - | `DescribeReportDefinitionsResponse` | `InternalErrorException` | Lists the Amazon Web Services Cost and Usage Report available to this account. |
-| `ListTagsForResource` | - | - | `ReportName` | - | `ListTagsForResourceResponse` | `InternalErrorException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags associated with the specified report definition. |
-| `ModifyReportDefinition` | - | - | `ReportDefinition`, `ReportName` | - | `ModifyReportDefinitionResponse` | `InternalErrorException`, `ValidationException` | Allows you to programmatically update your report preferences. |
-| `PutReportDefinition` | - | - | `ReportDefinition` | - | `PutReportDefinitionResponse` | `DuplicateReportNameException`, `InternalErrorException`, `ReportLimitReachedException`, `ResourceNotFoundException`, `ValidationException` | Creates a new report using the description that you provide. |
-| `TagResource` | - | - | `ReportName`, `Tags` | - | `TagResourceResponse` | `InternalErrorException`, `ResourceNotFoundException`, `ValidationException` | Associates a set of tags with a report definition. |
-| `UntagResource` | - | - | `ReportName`, `TagKeys` | - | `UntagResourceResponse` | `InternalErrorException`, `ResourceNotFoundException`, `ValidationException` | Disassociates a set of tags from a report definition. |
+| `DeleteReportDefinition` | `-` | - | `ReportName` | - | `DeleteReportDefinitionResponse` | `InternalErrorException`, `ValidationException` | Deletes the specified report. Any tags associated with the report are also deleted. |
+| `DescribeReportDefinitions` | `-` | `paginated` | - | - | `DescribeReportDefinitionsResponse` | `InternalErrorException` | Lists the Amazon Web Services Cost and Usage Report available to this account. |
+| `ListTagsForResource` | `-` | - | `ReportName` | - | `ListTagsForResourceResponse` | `InternalErrorException`, `ResourceNotFoundException`, `ValidationException` | Lists the tags associated with the specified report definition. |
+| `ModifyReportDefinition` | `-` | - | `ReportName`, `ReportDefinition` | - | `ModifyReportDefinitionResponse` | `InternalErrorException`, `ValidationException` | Allows you to programmatically update your report preferences. |
+| `PutReportDefinition` | `-` | - | `ReportDefinition` | - | `PutReportDefinitionResponse` | `DuplicateReportNameException`, `InternalErrorException`, `ReportLimitReachedException`, `ResourceNotFoundException`, `ValidationException` | Creates a new report using the description that you provide. |
+| `TagResource` | `-` | - | `ReportName`, `Tags` | - | `TagResourceResponse` | `InternalErrorException`, `ResourceNotFoundException`, `ValidationException` | Associates a set of tags with a report definition. |
+| `UntagResource` | `-` | - | `ReportName`, `TagKeys` | - | `UntagResourceResponse` | `InternalErrorException`, `ResourceNotFoundException`, `ValidationException` | Disassociates a set of tags from a report definition. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalErrorException` | `structure` | `Message` | An error on the server occurred during the processing of your request. |
-| `ValidationException` | `structure` | `Message` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `ResourceNotFoundException` | `structure` | `Message` | The specified report (`ReportName`) in the request doesn't exist. |
-| `DeleteReportDefinitionRequest` | `structure` | `ReportName` | Deletes the specified report. |
-| `DeleteReportDefinitionResponse` | `structure` | `ResponseMessage` | If the action is successful, the service sends back an HTTP 200 response. |
-| `DescribeReportDefinitionsRequest` | `structure` | `MaxResults`, `NextToken` | Requests a Amazon Web Services Cost and Usage Report list owned by the account. |
-| `DescribeReportDefinitionsResponse` | `structure` | `NextToken`, `ReportDefinitions` | If the action is successful, the service sends back an HTTP 200 response. |
-| `ListTagsForResourceRequest` | `structure` | `ReportName` | - |
-| `ListTagsForResourceResponse` | `structure` | `Tags` | - |
-| `ModifyReportDefinitionRequest` | `structure` | `ReportDefinition`, `ReportName` | - |
-| `ModifyReportDefinitionResponse` | `structure` | - | - |
-| `PutReportDefinitionRequest` | `structure` | `ReportDefinition`, `Tags` | Creates a Cost and Usage Report. |
-| `PutReportDefinitionResponse` | `structure` | - | If the action is successful, the service sends back an HTTP 200 response with an empty HTTP body. |
-| `DuplicateReportNameException` | `structure` | `Message` | A report with the specified name already exists in the account. |
-| `ReportLimitReachedException` | `structure` | `Message` | This account already has five reports defined. |
-| `TagResourceRequest` | `structure` | `ReportName`, `Tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `ReportName`, `TagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-
+| `DuplicateReportNameException` | `structure` | Message | A report with the specified name already exists in the account. Specify a different report name. |
+| `InternalErrorException` | `structure` | Message | An error on the server occurred during the processing of your request. Try again later. |
+| `ReportLimitReachedException` | `structure` | Message | This account already has five reports defined. To define a new report, you must delete an existing report. |
+| `ResourceNotFoundException` | `structure` | Message | The specified report ( ReportName ) in the request doesn't exist. |
+| `ValidationException` | `structure` | Message | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `DeleteReportDefinitionRequest` | `structure` | ReportName | Deletes the specified report. |
+| `DeleteReportDefinitionResponse` | `structure` | ResponseMessage | If the action is successful, the service sends back an HTTP 200 response. |
+| `DescribeReportDefinitionsRequest` | `structure` | MaxResults, NextToken | Requests a Amazon Web Services Cost and Usage Report list owned by the account. |
+| `DescribeReportDefinitionsResponse` | `structure` | ReportDefinitions, NextToken | If the action is successful, the service sends back an HTTP 200 response. |
+| `ListTagsForResourceRequest` | `structure` | ReportName | - |
+| `ListTagsForResourceResponse` | `structure` | Tags | - |
+| `ModifyReportDefinitionRequest` | `structure` | ReportName, ReportDefinition | - |
+| `ModifyReportDefinitionResponse` | `structure` | **empty (no members)** | - |
+| `PutReportDefinitionRequest` | `structure` | ReportDefinition, Tags | Creates a Cost and Usage Report. |
+| `PutReportDefinitionResponse` | `structure` | **empty (no members)** | If the action is successful, the service sends back an HTTP 200 response with an empty HTTP body. |
+| `TagResourceRequest` | `structure` | ReportName, Tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | ReportName, TagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `AWSRegion` | `enum` | CAPE_TOWN, HONG_KONG, MUMBAI, HYDERABAD, SINGAPORE, SYDNEY, JAKARTA, TOKYO, SEOUL, OSAKA, CANADA_CENTRAL, FRANKFURT, ... (+16) | The region of the S3 bucket that Amazon Web Services delivers the report into. |
+| `AdditionalArtifact` | `enum` | REDSHIFT, QUICKSIGHT, ATHENA | The types of manifest that you want Amazon Web Services to create for this report. |
+| `CompressionFormat` | `enum` | ZIP, GZIP, Parquet | The compression format that Amazon Web Services uses for the report. |
+| `LastStatus` | `enum` | SUCCESS, ERROR_PERMISSIONS, ERROR_NO_BUCKET | - |
+| `ReportFormat` | `enum` | CSV, Parquet | The format that Amazon Web Services saves the report in. |
+| `ReportVersioning` | `enum` | CREATE_NEW_REPORT, OVERWRITE_REPORT | - |
+| `SchemaElement` | `enum` | RESOURCES, SPLIT_COST_ALLOCATION_DATA, MANUAL_DISCOUNT_COMPATIBILITY | Whether or not Amazon Web Services includes resource IDs in the report. |
+| `TimeUnit` | `enum` | HOURLY, DAILY, MONTHLY | The length of time covered by the report. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

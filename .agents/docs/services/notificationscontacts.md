@@ -46,93 +46,56 @@ AWS User Notifications Contacts is a service that allows you to create and manag
 
 ### List
 
-- Operations: `ListEmailContacts`, `ListTagsForResource`
-- Traits: `paginated` (1), `readonly` (2)
-- Common required input members in this group: `arn`
-
-### Activate
-
-- Operations: `ActivateEmailContact`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `code`
-
-### Create
-
-- Operations: `CreateEmailContact`
-- Common required input members in this group: `emailAddress`, `name`
-
-### Delete
-
-- Operations: `DeleteEmailContact`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `arn`
-
-### Get
-
-- Operations: `GetEmailContact`
+- Operations: `ListTagsForResource`
 - Traits: `readonly` (1)
-- Common required input members in this group: `arn`
-
-### Send
-
-- Operations: `SendActivationCode`
-- Common required input members in this group: `arn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `arn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `ActivateEmailContact` | `PUT /emailcontacts/{arn}/activate/{code}` | `idempotent` | `arn`, `code` | - | `ActivateEmailContactResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Activates an email contact using an activation code. This code is in the activation email sent to the email address associated with this email contact. |
-| `CreateEmailContact` | `POST /2022-09-19/emailcontacts` | - | `emailAddress`, `name` | - | `CreateEmailContactResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an email contact for the provided email address. |
-| `DeleteEmailContact` | `DELETE /emailcontacts/{arn}` | `idempotent` | `arn` | - | `DeleteEmailContactResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an email contact. Deleting an email contact removes it from all associated notification configurations. |
-| `GetEmailContact` | `GET /emailcontacts/{arn}` | `readonly` | `arn` | - | `GetEmailContactResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns an email contact. |
-| `ListEmailContacts` | `GET /emailcontacts` | `readonly`, `paginated` | - | - | `ListEmailContactsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all email contacts created under the Account. |
 | `ListTagsForResource` | `GET /tags/{arn}` | `readonly` | `arn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all of the tags associated with the Amazon Resource Name (ARN) that you specify. The resource can be a user, server, or role. |
-| `SendActivationCode` | `POST /2022-10-31/emailcontacts/{arn}/activate/send` | - | `arn` | - | `SendActivationCodeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sends an activation email to the email address associated with the specified email contact. It might take a few minutes for the activation email to arrive. |
 | `TagResource` | `POST /tags/{arn}` | `idempotent` | `arn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Attaches a key-value pair to a resource, as identified by its Amazon Resource Name (ARN). Taggable resources in AWS User Notifications Contacts include email contacts. |
 | `UntagResource` | `DELETE /tags/{arn}` | `idempotent` | `arn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Detaches a key-value pair from a resource, as identified by its Amazon Resource Name (ARN). Taggable resources in AWS User Notifications Contacts include email contacts.. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message` | Unexpected error during processing of request. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input fails to satisfy the constraints specified by an AWS service. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | Your request references a resource which does not exist. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | Updating or deleting a resource can cause an inconsistent state. |
-| `ActivateEmailContactRequest` | `structure` | `arn`, `code` | - |
-| `ActivateEmailContactResponse` | `structure` | - | - |
-| `CreateEmailContactRequest` | `structure` | `emailAddress`, `name`, `tags` | - |
-| `CreateEmailContactResponse` | `structure` | `arn` | - |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | Request would cause a service quota to be exceeded. |
-| `DeleteEmailContactRequest` | `structure` | `arn` | - |
-| `DeleteEmailContactResponse` | `structure` | - | - |
-| `GetEmailContactRequest` | `structure` | `arn` | - |
-| `GetEmailContactResponse` | `structure` | `emailContact` | - |
-| `ListEmailContactsRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListEmailContactsResponse` | `structure` | `emailContacts`, `nextToken` | - |
-| `ListTagsForResourceRequest` | `structure` | `arn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `SendActivationCodeRequest` | `structure` | `arn` | - |
-| `SendActivationCodeResponse` | `structure` | - | - |
-| `TagResourceRequest` | `structure` | `arn`, `tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `arn`, `tagKeys` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | Updating or deleting a resource can cause an inconsistent state. |
+| `InternalServerException` | `structure` | message | Unexpected error during processing of request. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | Your request references a resource which does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | Request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input fails to satisfy the constraints specified by an AWS service. |
+| `ListTagsForResourceRequest` | `structure` | arn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | arn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | arn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `ValidationExceptionReason` | `enum` | FIELD_VALIDATION_FAILED, OTHER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

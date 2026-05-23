@@ -49,49 +49,61 @@ S3 Outposts currently stores endpoint networking as endpoint-local metadata.
 
 - Operations: `ListEndpoints`, `ListOutpostsWithS3`, `ListSharedEndpoints`
 - Traits: `paginated` (3)
-- Common required input members in this group: `OutpostId`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateEndpoint`
-- Common required input members in this group: `OutpostId`, `SecurityGroupId`, `SubnetId`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteEndpoint`
-- Common required input members in this group: `EndpointId`, `OutpostId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateEndpoint` | `POST /S3Outposts/CreateEndpoint` | - | `OutpostId`, `SecurityGroupId`, `SubnetId` | - | `CreateEndpointResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `OutpostOfflineException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates an endpoint and associates it with the specified Outpost. It can take up to 5 minutes for this action to finish. |
-| `DeleteEndpoint` | `DELETE /S3Outposts/DeleteEndpoint` | - | `EndpointId`, `OutpostId` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `OutpostOfflineException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an endpoint. It can take up to 5 minutes for this action to finish. |
+| `CreateEndpoint` | `POST /S3Outposts/CreateEndpoint` | - | `OutpostId`, `SubnetId`, `SecurityGroupId` | - | `CreateEndpointResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `OutpostOfflineException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates an endpoint and associates it with the specified Outpost. It can take up to 5 minutes for this action to finish. Related actions include: DeleteEndpoint ListEndpoints |
+| `DeleteEndpoint` | `DELETE /S3Outposts/DeleteEndpoint` | - | `EndpointId`, `OutpostId` | - | `Unit` | `AccessDeniedException`, `InternalServerException`, `OutpostOfflineException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an endpoint. It can take up to 5 minutes for this action to finish. Related actions include: CreateEndpoint ListEndpoints |
 | `ListEndpoints` | `GET /S3Outposts/ListEndpoints` | `paginated` | - | - | `ListEndpointsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists endpoints associated with the specified Outpost. Related actions include: CreateEndpoint DeleteEndpoint |
 | `ListOutpostsWithS3` | `GET /S3Outposts/ListOutpostsWithS3` | `paginated` | - | - | `ListOutpostsWithS3Result` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the Outposts with S3 on Outposts capacity for your Amazon Web Services account. Includes S3 on Outposts that you have access to as the Outposts owner, or as a shared user from Resource Access Manager (RAM). |
 | `ListSharedEndpoints` | `GET /S3Outposts/ListSharedEndpoints` | `paginated` | `OutpostId` | - | `ListSharedEndpointsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all endpoints associated with an Outpost that has been shared by Amazon Web Services Resource Access Manager (RAM). Related actions include: CreateEndpoint DeleteEndpoint |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteEndpoint` | - | `EndpointId -> endpointId`, `OutpostId -> outpostId` | - | - |
+| `ListEndpoints` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListOutpostsWithS3` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListSharedEndpoints` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `OutpostId -> outpostId` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | Access was denied for this action. |
-| `InternalServerException` | `structure` | `Message` | There was an exception with the internal server. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Message` | There was an exception validating this data. |
-| `ResourceNotFoundException` | `structure` | `Message` | The requested resource was not found. |
-| `OutpostOfflineException` | `structure` | `Message` | The service link connection to your Outposts home Region is down. |
-| `CreateEndpointRequest` | `structure` | `AccessType`, `CustomerOwnedIpv4Pool`, `OutpostId`, `SecurityGroupId`, `SubnetId` | - |
-| `CreateEndpointResult` | `structure` | `EndpointArn` | - |
-| `ConflictException` | `structure` | `Message` | There was a conflict with this action, and it could not be completed. |
-| `DeleteEndpointRequest` | `structure` | `EndpointId`, `OutpostId` | - |
-| `ListEndpointsRequest` | `structure` | `MaxResults`, `NextToken` | - |
-| `ListEndpointsResult` | `structure` | `Endpoints`, `NextToken` | - |
-| `ListOutpostsWithS3Request` | `structure` | `MaxResults`, `NextToken` | - |
-| `ListOutpostsWithS3Result` | `structure` | `NextToken`, `Outposts` | - |
-| `ListSharedEndpointsRequest` | `structure` | `MaxResults`, `NextToken`, `OutpostId` | - |
-| `ListSharedEndpointsResult` | `structure` | `Endpoints`, `NextToken` | - |
-
+| `AccessDeniedException` | `structure` | Message | Access was denied for this action. |
+| `ConflictException` | `structure` | Message | There was a conflict with this action, and it could not be completed. |
+| `InternalServerException` | `structure` | Message | There was an exception with the internal server. |
+| `OutpostOfflineException` | `structure` | Message | The service link connection to your Outposts home Region is down. Check your connection and try again. |
+| `ResourceNotFoundException` | `structure` | Message | The requested resource was not found. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message | There was an exception validating this data. |
+| `CreateEndpointRequest` | `structure` | OutpostId, SubnetId, SecurityGroupId, AccessType, CustomerOwnedIpv4Pool | - |
+| `CreateEndpointResult` | `structure` | EndpointArn | - |
+| `DeleteEndpointRequest` | `structure` | EndpointId, OutpostId | - |
+| `ListEndpointsRequest` | `structure` | NextToken, MaxResults | - |
+| `ListEndpointsResult` | `structure` | Endpoints, NextToken | - |
+| `ListOutpostsWithS3Request` | `structure` | NextToken, MaxResults | - |
+| `ListOutpostsWithS3Result` | `structure` | Outposts, NextToken | - |
+| `ListSharedEndpointsRequest` | `structure` | NextToken, MaxResults, OutpostId | - |
+| `ListSharedEndpointsResult` | `structure` | Endpoints, NextToken | - |
+| `EndpointAccessType` | `enum` | PRIVATE, CUSTOMER_OWNED_IP | - |
+| `EndpointStatus` | `enum` | PENDING, AVAILABLE, DELETING, CREATE_FAILED, DELETE_FAILED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

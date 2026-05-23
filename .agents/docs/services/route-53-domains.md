@@ -45,18 +45,18 @@ Amazon Route 53 API actions let you register domain names and perform related op
 ### Get
 
 - Operations: `GetContactReachabilityStatus`, `GetDomainDetail`, `GetDomainSuggestions`, `GetOperationDetail`
-- Common required input members in this group: `DomainName`, `OnlyAvailable`, `OperationId`, `SuggestionCount`
+- Common required input members in this group: `DomainName`
 
 ### List
 
 - Operations: `ListDomains`, `ListOperations`, `ListPrices`, `ListTagsForDomain`
 - Traits: `paginated` (3)
-- Common required input members in this group: `DomainName`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateDomainContact`, `UpdateDomainContactPrivacy`, `UpdateDomainNameservers`, `UpdateTagsForDomain`
-- Common required input members in this group: `DomainName`, `Nameservers`
+- Common required input members in this group: `DomainName`
 
 ### Check
 
@@ -66,7 +66,7 @@ Amazon Route 53 API actions let you register domain names and perform related op
 ### Delete
 
 - Operations: `DeleteDomain`, `DeleteTagsForDomain`
-- Common required input members in this group: `DomainName`, `TagsToDelete`
+- Common required input members in this group: `DomainName`
 
 ### Disable
 
@@ -81,130 +81,163 @@ Amazon Route 53 API actions let you register domain names and perform related op
 ### Resend
 
 - Operations: `ResendContactReachabilityEmail`, `ResendOperationAuthorization`
-- Common required input members in this group: `OperationId`
+- Common required input members in this group: -
 
 ### Transfer
 
 - Operations: `TransferDomain`, `TransferDomainToAnotherAwsAccount`
-- Common required input members in this group: `AccountId`, `AdminContact`, `DomainName`, `DurationInYears`, `RegistrantContact`, `TechContact`
+- Common required input members in this group: `DomainName`
 
 ### Accept
 
 - Operations: `AcceptDomainTransferFromAnotherAwsAccount`
-- Common required input members in this group: `DomainName`, `Password`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateDelegationSignerToDomain`
-- Common required input members in this group: `DomainName`, `SigningAttributes`
+- Common required input members in this group: -
 
 ### Cancel
 
 - Operations: `CancelDomainTransferToAnotherAwsAccount`
-- Common required input members in this group: `DomainName`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateDelegationSignerFromDomain`
-- Common required input members in this group: `DomainName`, `Id`
+- Common required input members in this group: -
 
 ### Push
 
 - Operations: `PushDomain`
-- Common required input members in this group: `DomainName`, `Target`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterDomain`
-- Common required input members in this group: `AdminContact`, `DomainName`, `DurationInYears`, `RegistrantContact`, `TechContact`
+- Common required input members in this group: -
 
 ### Reject
 
 - Operations: `RejectDomainTransferFromAnotherAwsAccount`
-- Common required input members in this group: `DomainName`
+- Common required input members in this group: -
 
 ### Renew
 
 - Operations: `RenewDomain`
-- Common required input members in this group: `CurrentExpiryYear`, `DomainName`
+- Common required input members in this group: -
 
 ### Retrieve
 
 - Operations: `RetrieveDomainAuthCode`
-- Common required input members in this group: `DomainName`
+- Common required input members in this group: -
 
 ### View
 
 - Operations: `ViewBilling`
 - Traits: `paginated` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AcceptDomainTransferFromAnotherAwsAccount` | - | - | `DomainName`, `Password` | - | `AcceptDomainTransferFromAnotherAwsAccountResponse` | `DomainLimitExceeded`, `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Accepts the transfer of a domain from another Amazon Web Services account to the currentAmazon Web Services account. You initiate a transfer between Amazon Web Services accounts using TransferDomainToAnotherAwsAccount. |
-| `AssociateDelegationSignerToDomain` | - | - | `DomainName`, `SigningAttributes` | - | `AssociateDelegationSignerToDomainResponse` | `DnssecLimitExceeded`, `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | Creates a delegation signer (DS) record in the registry zone for this domain name. Note that creating DS record at the registry impacts DNSSEC validation of your DNS records. |
-| `CancelDomainTransferToAnotherAwsAccount` | - | - | `DomainName` | - | `CancelDomainTransferToAnotherAwsAccountResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Cancels the transfer of a domain from the current Amazon Web Services account to another Amazon Web Services account. You initiate a transfer betweenAmazon Web Services accounts using TransferDomainToAnotherAwsAccount. |
-| `CheckDomainAvailability` | - | - | `DomainName` | - | `CheckDomainAvailabilityResponse` | `InvalidInput`, `UnsupportedTLD` | This operation checks the availability of one domain name. Note that if the availability status of a domain is pending, you must submit another request to determine the availability of the domain name. |
-| `CheckDomainTransferability` | - | - | `DomainName` | - | `CheckDomainTransferabilityResponse` | `InvalidInput`, `UnsupportedTLD` | Checks whether a domain name can be transferred to Amazon Route 53. |
-| `DeleteDomain` | - | - | `DomainName` | - | `DeleteDomainResponse` | `DuplicateRequest`, `InvalidInput`, `TLDRulesViolation`, `UnsupportedTLD` | This operation deletes the specified domain. This action is permanent. |
-| `DeleteTagsForDomain` | - | - | `DomainName`, `TagsToDelete` | - | `DeleteTagsForDomainResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | This operation deletes the specified tags for a domain. All tag operations are eventually consistent; subsequent operations might not immediately represent all issued operations. |
-| `DisableDomainAutoRenew` | - | - | `DomainName` | - | `DisableDomainAutoRenewResponse` | `InvalidInput`, `UnsupportedTLD` | This operation disables automatic renewal of domain registration for the specified domain. |
-| `DisableDomainTransferLock` | - | - | `DomainName` | - | `DisableDomainTransferLockResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation removes the transfer lock on the domain (specifically the `clientTransferProhibited` status) to allow domain transfers. We recommend you refrain from performing this action unless you intend to transfer the domain to a different registrar. |
-| `DisassociateDelegationSignerFromDomain` | - | - | `DomainName`, `Id` | - | `DisassociateDelegationSignerFromDomainResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | Deletes a delegation signer (DS) record in the registry zone for this domain name. |
-| `EnableDomainAutoRenew` | - | - | `DomainName` | - | `EnableDomainAutoRenewResponse` | `InvalidInput`, `TLDRulesViolation`, `UnsupportedTLD` | This operation configures Amazon Route 53 to automatically renew the specified domain before the domain registration expires. The cost of renewing your domain registration is billed to your Amazon Web Services account. |
-| `EnableDomainTransferLock` | - | - | `DomainName` | - | `EnableDomainTransferLockResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation sets the transfer lock on the domain (specifically the `clientTransferProhibited` status) to prevent domain transfers. Successful submission returns an operation ID that you can use to track the progress and completion of the action. |
-| `GetContactReachabilityStatus` | - | - | - | - | `GetContactReachabilityStatusResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | For operations that require confirmation that the email address for the registrant contact is valid, such as registering a new domain, this operation returns information about whether the registrant contact has responded. If you want us to resend the email... |
-| `GetDomainDetail` | - | - | `DomainName` | - | `GetDomainDetailResponse` | `InvalidInput`, `UnsupportedTLD` | This operation returns detailed information about a specified domain that is associated with the current Amazon Web Services account. Contact information for the domain is also returned as part of the output. |
-| `GetDomainSuggestions` | - | - | `DomainName`, `OnlyAvailable`, `SuggestionCount` | - | `GetDomainSuggestionsResponse` | `InvalidInput`, `UnsupportedTLD` | The GetDomainSuggestions operation returns a list of suggested domain names. |
-| `GetOperationDetail` | - | - | `OperationId` | - | `GetOperationDetailResponse` | `InvalidInput` | This operation returns the current status of an operation that is not completed. |
-| `ListDomains` | - | `paginated` | - | - | `ListDomainsResponse` | `InvalidInput` | This operation returns all the domain names registered with Amazon Route 53 for the current Amazon Web Services account if no filtering conditions are used. |
-| `ListOperations` | - | `paginated` | - | - | `ListOperationsResponse` | `InvalidInput` | Returns information about all of the operations that return an operation ID and that have ever been performed on domains that were registered by the current account. This command runs only in the us-east-1 Region. |
-| `ListPrices` | - | `paginated` | - | - | `ListPricesResponse` | `InvalidInput`, `UnsupportedTLD` | Lists the following prices for either all the TLDs supported by Route 53, or the specified TLD: Registration Transfer Owner change Domain renewal Domain restoration |
-| `ListTagsForDomain` | - | - | `DomainName` | - | `ListTagsForDomainResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | This operation returns all of the tags that are associated with the specified domain. All tag operations are eventually consistent; subsequent operations might not immediately represent all issued operations. |
-| `PushDomain` | - | - | `DomainName`, `Target` | - | `Unit` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Moves a domain from Amazon Web Services to another registrar. Supported actions: Changes the IPS tags of a .uk domain, and pushes it to transit. |
-| `RegisterDomain` | - | - | `AdminContact`, `DomainName`, `DurationInYears`, `RegistrantContact`, `TechContact` | - | `RegisterDomainResponse` | `DomainLimitExceeded`, `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation registers a domain. For some top-level domains (TLDs), this operation requires extra parameters. |
-| `RejectDomainTransferFromAnotherAwsAccount` | - | - | `DomainName` | - | `RejectDomainTransferFromAnotherAwsAccountResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Rejects the transfer of a domain from another Amazon Web Services account to the current Amazon Web Services account. You initiate a transfer betweenAmazon Web Services accounts using TransferDomainToAnotherAwsAccount. |
-| `RenewDomain` | - | - | `CurrentExpiryYear`, `DomainName` | - | `RenewDomainResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation renews a domain for the specified number of years. The cost of renewing your domain is billed to your Amazon Web Services account. |
-| `ResendContactReachabilityEmail` | - | - | - | - | `ResendContactReachabilityEmailResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | For operations that require confirmation that the email address for the registrant contact is valid, such as registering a new domain, this operation resends the confirmation email to the current email address for the registrant contact. |
-| `ResendOperationAuthorization` | - | - | `OperationId` | - | `Unit` | `InvalidInput` | Resend the form of authorization email for this operation. |
-| `RetrieveDomainAuthCode` | - | - | `DomainName` | - | `RetrieveDomainAuthCodeResponse` | `InvalidInput`, `UnsupportedTLD` | This operation returns the authorization code for the domain. To transfer a domain to another registrar, you provide this value to the new registrar. |
-| `TransferDomain` | - | - | `AdminContact`, `DomainName`, `DurationInYears`, `RegistrantContact`, `TechContact` | - | `TransferDomainResponse` | `DomainLimitExceeded`, `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | Transfers a domain from another registrar to Amazon Route 53. For more information about transferring domains, see the following topics: For transfer requirements, a detailed procedure, and information about viewing the status of a domain that you're... |
-| `TransferDomainToAnotherAwsAccount` | - | - | `AccountId`, `DomainName` | - | `TransferDomainToAnotherAwsAccountResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Transfers a domain from the current Amazon Web Services account to another Amazon Web Services account. Note the following: The Amazon Web Services account that you're transferring the domain to must accept the transfer. |
-| `UpdateDomainContact` | - | - | `DomainName` | - | `UpdateDomainContactResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation updates the contact information for a particular domain. You must specify information for at least one contact: registrant, administrator, or technical. |
-| `UpdateDomainContactPrivacy` | - | - | `DomainName` | - | `UpdateDomainContactPrivacyResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation updates the specified domain contact's privacy setting. When privacy protection is enabled, your contact information is replaced with contact information for the registrar or with the phrase "REDACTED FOR PRIVACY", or "On behalf of owner."... |
-| `UpdateDomainNameservers` | - | - | `DomainName`, `Nameservers` | - | `UpdateDomainNameserversResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation replaces the current set of name servers for the domain with the specified set of name servers. If you use Amazon Route 53 as your DNS service, specify the four name servers in the delegation set for the hosted zone for the domain. |
-| `UpdateTagsForDomain` | - | - | `DomainName` | - | `UpdateTagsForDomainResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | This operation adds or updates tags for a specified domain. All tag operations are eventually consistent; subsequent operations might not immediately represent all issued operations. |
-| `ViewBilling` | - | `paginated` | - | - | `ViewBillingResponse` | `InvalidInput` | Returns all the domain-related billing records for the current Amazon Web Services account for a specified period |
+| `AcceptDomainTransferFromAnotherAwsAccount` | `-` | - | `DomainName`, `Password` | - | `AcceptDomainTransferFromAnotherAwsAccountResponse` | `DomainLimitExceeded`, `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Accepts the transfer of a domain from another Amazon Web Services account to the currentAmazon Web Services account. You initiate a transfer between Amazon Web Services accounts using TransferDomainToAnotherAwsAccoun ... |
+| `AssociateDelegationSignerToDomain` | `-` | - | `DomainName`, `SigningAttributes` | - | `AssociateDelegationSignerToDomainResponse` | `DnssecLimitExceeded`, `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | Creates a delegation signer (DS) record in the registry zone for this domain name. Note that creating DS record at the registry impacts DNSSEC validation of your DNS records. This action may render your domain name u ... |
+| `CancelDomainTransferToAnotherAwsAccount` | `-` | - | `DomainName` | - | `CancelDomainTransferToAnotherAwsAccountResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Cancels the transfer of a domain from the current Amazon Web Services account to another Amazon Web Services account. You initiate a transfer betweenAmazon Web Services accounts using TransferDomainToAnotherAwsAccoun ... |
+| `CheckDomainAvailability` | `-` | - | `DomainName` | - | `CheckDomainAvailabilityResponse` | `InvalidInput`, `UnsupportedTLD` | This operation checks the availability of one domain name. Note that if the availability status of a domain is pending, you must submit another request to determine the availability of the domain name. |
+| `CheckDomainTransferability` | `-` | - | `DomainName` | - | `CheckDomainTransferabilityResponse` | `InvalidInput`, `UnsupportedTLD` | Checks whether a domain name can be transferred to Amazon Route 53. |
+| `DeleteDomain` | `-` | - | `DomainName` | - | `DeleteDomainResponse` | `DuplicateRequest`, `InvalidInput`, `TLDRulesViolation`, `UnsupportedTLD` | This operation deletes the specified domain. This action is permanent. For more information, see Deleting a domain name registration . To transfer the domain registration to another registrar, use the transfer proces ... |
+| `DeleteTagsForDomain` | `-` | - | `DomainName`, `TagsToDelete` | - | `DeleteTagsForDomainResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | This operation deletes the specified tags for a domain. All tag operations are eventually consistent; subsequent operations might not immediately represent all issued operations. |
+| `DisableDomainAutoRenew` | `-` | - | `DomainName` | - | `DisableDomainAutoRenewResponse` | `InvalidInput`, `UnsupportedTLD` | This operation disables automatic renewal of domain registration for the specified domain. |
+| `DisableDomainTransferLock` | `-` | - | `DomainName` | - | `DisableDomainTransferLockResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation removes the transfer lock on the domain (specifically the clientTransferProhibited status) to allow domain transfers. We recommend you refrain from performing this action unless you intend to transfer ... |
+| `DisassociateDelegationSignerFromDomain` | `-` | - | `DomainName`, `Id` | - | `DisassociateDelegationSignerFromDomainResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | Deletes a delegation signer (DS) record in the registry zone for this domain name. |
+| `EnableDomainAutoRenew` | `-` | - | `DomainName` | - | `EnableDomainAutoRenewResponse` | `InvalidInput`, `TLDRulesViolation`, `UnsupportedTLD` | This operation configures Amazon Route 53 to automatically renew the specified domain before the domain registration expires. The cost of renewing your domain registration is billed to your Amazon Web Services accoun ... |
+| `EnableDomainTransferLock` | `-` | - | `DomainName` | - | `EnableDomainTransferLockResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation sets the transfer lock on the domain (specifically the clientTransferProhibited status) to prevent domain transfers. Successful submission returns an operation ID that you can use to track the progress ... |
+| `GetContactReachabilityStatus` | `-` | - | - | - | `GetContactReachabilityStatusResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | For operations that require confirmation that the email address for the registrant contact is valid, such as registering a new domain, this operation returns information about whether the registrant contact has respo ... |
+| `GetDomainDetail` | `-` | - | `DomainName` | - | `GetDomainDetailResponse` | `InvalidInput`, `UnsupportedTLD` | This operation returns detailed information about a specified domain that is associated with the current Amazon Web Services account. Contact information for the domain is also returned as part of the output. |
+| `GetDomainSuggestions` | `-` | - | `DomainName`, `SuggestionCount`, `OnlyAvailable` | - | `GetDomainSuggestionsResponse` | `InvalidInput`, `UnsupportedTLD` | The GetDomainSuggestions operation returns a list of suggested domain names. |
+| `GetOperationDetail` | `-` | - | `OperationId` | - | `GetOperationDetailResponse` | `InvalidInput` | This operation returns the current status of an operation that is not completed. |
+| `ListDomains` | `-` | `paginated` | - | - | `ListDomainsResponse` | `InvalidInput` | This operation returns all the domain names registered with Amazon Route 53 for the current Amazon Web Services account if no filtering conditions are used. |
+| `ListOperations` | `-` | `paginated` | - | - | `ListOperationsResponse` | `InvalidInput` | Returns information about all of the operations that return an operation ID and that have ever been performed on domains that were registered by the current account. This command runs only in the us-east-1 Region. |
+| `ListPrices` | `-` | `paginated` | - | - | `ListPricesResponse` | `InvalidInput`, `UnsupportedTLD` | Lists the following prices for either all the TLDs supported by Route 53, or the specified TLD: Registration Transfer Owner change Domain renewal Domain restoration |
+| `ListTagsForDomain` | `-` | - | `DomainName` | - | `ListTagsForDomainResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | This operation returns all of the tags that are associated with the specified domain. All tag operations are eventually consistent; subsequent operations might not immediately represent all issued operations. |
+| `PushDomain` | `-` | - | `DomainName`, `Target` | - | `Unit` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Moves a domain from Amazon Web Services to another registrar. Supported actions: Changes the IPS tags of a .uk domain, and pushes it to transit. Transit means that the domain is ready to be transferred to another reg ... |
+| `RegisterDomain` | `-` | - | `DomainName`, `DurationInYears`, `AdminContact`, `RegistrantContact`, `TechContact` | - | `RegisterDomainResponse` | `DomainLimitExceeded`, `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation registers a domain. For some top-level domains (TLDs), this operation requires extra parameters. When you register a domain, Amazon Route 53 does the following: Creates a Route 53 hosted zone that has ... |
+| `RejectDomainTransferFromAnotherAwsAccount` | `-` | - | `DomainName` | - | `RejectDomainTransferFromAnotherAwsAccountResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Rejects the transfer of a domain from another Amazon Web Services account to the current Amazon Web Services account. You initiate a transfer betweenAmazon Web Services accounts using TransferDomainToAnotherAwsAccoun ... |
+| `RenewDomain` | `-` | - | `DomainName`, `CurrentExpiryYear` | - | `RenewDomainResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation renews a domain for the specified number of years. The cost of renewing your domain is billed to your Amazon Web Services account. We recommend that you renew your domain several weeks before the expir ... |
+| `ResendContactReachabilityEmail` | `-` | - | - | - | `ResendContactReachabilityEmailResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | For operations that require confirmation that the email address for the registrant contact is valid, such as registering a new domain, this operation resends the confirmation email to the current email address for th ... |
+| `ResendOperationAuthorization` | `-` | - | `OperationId` | - | `Unit` | `InvalidInput` | Resend the form of authorization email for this operation. |
+| `RetrieveDomainAuthCode` | `-` | - | `DomainName` | - | `RetrieveDomainAuthCodeResponse` | `InvalidInput`, `UnsupportedTLD` | This operation returns the authorization code for the domain. To transfer a domain to another registrar, you provide this value to the new registrar. |
+| `TransferDomain` | `-` | - | `DomainName`, `DurationInYears`, `AdminContact`, `RegistrantContact`, `TechContact` | - | `TransferDomainResponse` | `DomainLimitExceeded`, `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | Transfers a domain from another registrar to Amazon Route 53. For more information about transferring domains, see the following topics: For transfer requirements, a detailed procedure, and information about viewing ... |
+| `TransferDomainToAnotherAwsAccount` | `-` | - | `DomainName`, `AccountId` | - | `TransferDomainToAnotherAwsAccountResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | Transfers a domain from the current Amazon Web Services account to another Amazon Web Services account. Note the following: The Amazon Web Services account that you're transferring the domain to must accept the trans ... |
+| `UpdateDomainContact` | `-` | - | `DomainName` | - | `UpdateDomainContactResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation updates the contact information for a particular domain. You must specify information for at least one contact: registrant, administrator, or technical. If the update is successful, this method returns ... |
+| `UpdateDomainContactPrivacy` | `-` | - | `DomainName` | - | `UpdateDomainContactPrivacyResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation updates the specified domain contact's privacy setting. When privacy protection is enabled, your contact information is replaced with contact information for the registrar or with the phrase "REDACTED ... |
+| `UpdateDomainNameservers` | `-` | - | `DomainName`, `Nameservers` | - | `UpdateDomainNameserversResponse` | `DuplicateRequest`, `InvalidInput`, `OperationLimitExceeded`, `TLDRulesViolation`, `UnsupportedTLD` | This operation replaces the current set of name servers for the domain with the specified set of name servers. If you use Amazon Route 53 as your DNS service, specify the four name servers in the delegation set for t ... |
+| `UpdateTagsForDomain` | `-` | - | `DomainName` | - | `UpdateTagsForDomainResponse` | `InvalidInput`, `OperationLimitExceeded`, `UnsupportedTLD` | This operation adds or updates tags for a specified domain. All tag operations are eventually consistent; subsequent operations might not immediately represent all issued operations. |
+| `ViewBilling` | `-` | `paginated` | - | - | `ViewBillingResponse` | `InvalidInput` | Returns all the domain-related billing records for the current Amazon Web Services account for a specified period |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidInput` | `structure` | `message` | The requested item is not acceptable. |
-| `UnsupportedTLD` | `structure` | `message` | Amazon Route 53 does not support this top-level domain (TLD). |
-| `OperationLimitExceeded` | `structure` | `message` | The number of operations or jobs running exceeded the allowed threshold for the account. |
-| `DuplicateRequest` | `structure` | `message`, `requestId` | The request is already in progress for the domain. |
-| `TLDRulesViolation` | `structure` | `message` | The top-level domain does not support this operation. |
-| `DomainLimitExceeded` | `structure` | `message` | The number of domains has exceeded the allowed threshold for the account. |
-| `AcceptDomainTransferFromAnotherAwsAccountRequest` | `structure` | `DomainName`, `Password` | The AcceptDomainTransferFromAnotherAwsAccount request includes the following elements. |
-| `AcceptDomainTransferFromAnotherAwsAccountResponse` | `structure` | `OperationId` | The AcceptDomainTransferFromAnotherAwsAccount response includes the following element. |
-| `AssociateDelegationSignerToDomainRequest` | `structure` | `DomainName`, `SigningAttributes` | - |
-| `AssociateDelegationSignerToDomainResponse` | `structure` | `OperationId` | - |
-| `DnssecLimitExceeded` | `structure` | `message` | This error is returned if you call `AssociateDelegationSignerToDomain` when the specified domain has reached the maximum number of DS records. |
-| `CancelDomainTransferToAnotherAwsAccountRequest` | `structure` | `DomainName` | The CancelDomainTransferToAnotherAwsAccount request includes the following element. |
-| `CancelDomainTransferToAnotherAwsAccountResponse` | `structure` | `OperationId` | The `CancelDomainTransferToAnotherAwsAccount` response includes the following element. |
-| `CheckDomainAvailabilityRequest` | `structure` | `DomainName`, `IdnLangCode` | The CheckDomainAvailability request contains the following elements. |
-| `CheckDomainAvailabilityResponse` | `structure` | `Availability` | The CheckDomainAvailability response includes the following elements. |
-| `CheckDomainTransferabilityRequest` | `structure` | `AuthCode`, `DomainName` | The CheckDomainTransferability request contains the following elements. |
-| `CheckDomainTransferabilityResponse` | `structure` | `Message`, `Transferability` | The CheckDomainTransferability response includes the following elements. |
-| `DeleteDomainRequest` | `structure` | `DomainName` | - |
-| `DeleteDomainResponse` | `structure` | `OperationId` | - |
-| `DeleteTagsForDomainRequest` | `structure` | `DomainName`, `TagsToDelete` | The DeleteTagsForDomainRequest includes the following elements. |
-| `DeleteTagsForDomainResponse` | `structure` | - | - |
-| `DisableDomainAutoRenewRequest` | `structure` | `DomainName` | - |
-| `DisableDomainAutoRenewResponse` | `structure` | - | - |
-
+| `DnssecLimitExceeded` | `structure` | message | This error is returned if you call AssociateDelegationSignerToDomain when the specified domain has reached the maximum number of DS records. You can't add a ... |
+| `DomainLimitExceeded` | `structure` | message | The number of domains has exceeded the allowed threshold for the account. |
+| `DuplicateRequest` | `structure` | requestId, message | The request is already in progress for the domain. |
+| `InvalidInput` | `structure` | message | The requested item is not acceptable. For example, for APIs that accept a domain name, the request might specify a domain name that doesn't belong to the ac ... |
+| `OperationLimitExceeded` | `structure` | message | The number of operations or jobs running exceeded the allowed threshold for the account. |
+| `TLDRulesViolation` | `structure` | message | The top-level domain does not support this operation. |
+| `UnsupportedTLD` | `structure` | message | Amazon Route 53 does not support this top-level domain (TLD). |
+| `AcceptDomainTransferFromAnotherAwsAccountRequest` | `structure` | DomainName, Password | The AcceptDomainTransferFromAnotherAwsAccount request includes the following elements. |
+| `AcceptDomainTransferFromAnotherAwsAccountResponse` | `structure` | OperationId | The AcceptDomainTransferFromAnotherAwsAccount response includes the following element. |
+| `AssociateDelegationSignerToDomainRequest` | `structure` | DomainName, SigningAttributes | - |
+| `AssociateDelegationSignerToDomainResponse` | `structure` | OperationId | - |
+| `CancelDomainTransferToAnotherAwsAccountRequest` | `structure` | DomainName | The CancelDomainTransferToAnotherAwsAccount request includes the following element. |
+| `CancelDomainTransferToAnotherAwsAccountResponse` | `structure` | OperationId | The CancelDomainTransferToAnotherAwsAccount response includes the following element. |
+| `CheckDomainAvailabilityRequest` | `structure` | DomainName, IdnLangCode | The CheckDomainAvailability request contains the following elements. |
+| `CheckDomainAvailabilityResponse` | `structure` | Availability | The CheckDomainAvailability response includes the following elements. |
+| `CheckDomainTransferabilityRequest` | `structure` | DomainName, AuthCode | The CheckDomainTransferability request contains the following elements. |
+| `CheckDomainTransferabilityResponse` | `structure` | Transferability, Message | The CheckDomainTransferability response includes the following elements. |
+| `DeleteDomainRequest` | `structure` | DomainName | - |
+| `DeleteDomainResponse` | `structure` | OperationId | - |
+| `DeleteTagsForDomainRequest` | `structure` | DomainName, TagsToDelete | The DeleteTagsForDomainRequest includes the following elements. |
+| `DeleteTagsForDomainResponse` | `structure` | **empty (no members)** | - |
+| `DisableDomainAutoRenewRequest` | `structure` | DomainName | - |
+| `DisableDomainAutoRenewResponse` | `structure` | **empty (no members)** | - |
+| `DisableDomainTransferLockRequest` | `structure` | DomainName | The DisableDomainTransferLock request includes the following element. |
+| `DisableDomainTransferLockResponse` | `structure` | OperationId | The DisableDomainTransferLock response includes the following element. |
+| `DisassociateDelegationSignerFromDomainRequest` | `structure` | DomainName, Id | - |
+| `DisassociateDelegationSignerFromDomainResponse` | `structure` | OperationId | - |
+| `EnableDomainAutoRenewRequest` | `structure` | DomainName | - |
+| `EnableDomainAutoRenewResponse` | `structure` | **empty (no members)** | - |
+| `EnableDomainTransferLockRequest` | `structure` | DomainName | A request to set the transfer lock for the specified domain. |
+| `EnableDomainTransferLockResponse` | `structure` | OperationId | The EnableDomainTransferLock response includes the following elements. |
+| `GetContactReachabilityStatusRequest` | `structure` | domainName | - |
+| `GetContactReachabilityStatusResponse` | `structure` | domainName, status | - |
+| `GetDomainDetailRequest` | `structure` | DomainName | The GetDomainDetail request includes the following element. |
+| `GetDomainDetailResponse` | `structure` | DomainName, Nameservers, AutoRenew, AdminContact, RegistrantContact, TechContact, AdminPrivacy, RegistrantPrivacy, TechPrivacy, RegistrarName, WhoIsServer, RegistrarUrl, ... (+12) | The GetDomainDetail response includes the following elements. |
+| `GetDomainSuggestionsRequest` | `structure` | DomainName, SuggestionCount, OnlyAvailable | - |
+| `GetDomainSuggestionsResponse` | `structure` | SuggestionsList | - |
+| `GetOperationDetailRequest` | `structure` | OperationId | The GetOperationDetail request includes the following element. |
+| `GetOperationDetailResponse` | `structure` | OperationId, Status, Message, DomainName, Type, SubmittedDate, LastUpdatedDate, StatusFlag | The GetOperationDetail response includes the following elements. |
+| `ListDomainsRequest` | `structure` | FilterConditions, SortCondition, Marker, MaxItems | The ListDomains request includes the following elements. |
+| `ContactType` | `enum` | PERSON, COMPANY, ASSOCIATION, PUBLIC_BODY, RESELLER | - |
+| `CountryCode` | `enum` | AC, AD, AE, AF, AG, AI, AL, AM, AN, AO, AQ, AR, ... (+239) | - |
+| `DomainAvailability` | `enum` | AVAILABLE, AVAILABLE_RESERVED, AVAILABLE_PREORDER, UNAVAILABLE, UNAVAILABLE_PREMIUM, UNAVAILABLE_RESTRICTED, RESERVED, DONT_KNOW, INVALID_NAME_FOR_TLD, PENDING | - |
+| `ExtraParamName` | `enum` | DUNS_NUMBER, BRAND_NUMBER, BIRTH_DEPARTMENT, BIRTH_DATE_IN_YYYY_MM_DD, BIRTH_COUNTRY, BIRTH_CITY, DOCUMENT_NUMBER, AU_ID_NUMBER, AU_ID_TYPE, CA_LEGAL_TYPE, CA_BUSINESS_ENTITY_TYPE, CA_LEGAL_REPRESENTATIVE, ... (+22) | - |
+| `ListDomainsAttributeName` | `enum` | DomainName, Expiry | - |
+| `ListOperationsSortAttributeName` | `enum` | SubmittedDate | - |
+| `OperationStatus` | `enum` | SUBMITTED, IN_PROGRESS, ERROR, SUCCESSFUL, FAILED | - |
+| `OperationType` | `enum` | REGISTER_DOMAIN, DELETE_DOMAIN, TRANSFER_IN_DOMAIN, UPDATE_DOMAIN_CONTACT, UPDATE_NAMESERVER, CHANGE_PRIVACY_PROTECTION, DOMAIN_LOCK, ENABLE_AUTORENEW, DISABLE_AUTORENEW, ADD_DNSSEC, REMOVE_DNSSEC, EXPIRE_DOMAIN, ... (+9) | - |
+| `Operator` | `enum` | LE, GE, BEGINS_WITH | - |
+| `ReachabilityStatus` | `enum` | PENDING, DONE, EXPIRED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

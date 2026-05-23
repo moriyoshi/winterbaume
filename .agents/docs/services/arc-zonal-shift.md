@@ -73,94 +73,38 @@ Parity implications:
 
 ## Operation Groups
 
-### Update
-
-- Operations: `UpdateAutoshiftObserverNotificationStatus`, `UpdatePracticeRunConfiguration`, `UpdateZonalAutoshiftConfiguration`, `UpdateZonalShift`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `resourceIdentifier`, `status`, `zonalAutoshiftStatus`, `zonalShiftId`
-
-### List
-
-- Operations: `ListAutoshifts`, `ListManagedResources`, `ListZonalShifts`
-- Traits: `paginated` (3), `readonly` (3)
-
-### Cancel
-
-- Operations: `CancelPracticeRun`, `CancelZonalShift`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `zonalShiftId`
-
-### Get
-
-- Operations: `GetAutoshiftObserverNotificationStatus`, `GetManagedResource`
-- Traits: `readonly` (2)
-- Common required input members in this group: `resourceIdentifier`
-
-### Start
-
-- Operations: `StartPracticeRun`, `StartZonalShift`
-- Common required input members in this group: `awayFrom`, `comment`, `expiresIn`, `resourceIdentifier`
-
-### Create
-
-- Operations: `CreatePracticeRunConfiguration`
-- Common required input members in this group: `outcomeAlarms`, `resourceIdentifier`
-
-### Delete
-
-- Operations: `DeletePracticeRunConfiguration`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `resourceIdentifier`
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CancelPracticeRun` | `DELETE /practiceruns/{zonalShiftId}` | `idempotent` | `zonalShiftId` | - | `CancelPracticeRunResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancel an in-progress practice run zonal shift in Amazon Application Recovery Controller. |
-| `CancelZonalShift` | `DELETE /zonalshifts/{zonalShiftId}` | - | `zonalShiftId` | - | `ZonalShift` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Cancel a zonal shift in Amazon Application Recovery Controller. To cancel the zonal shift, specify the zonal shift ID. |
-| `CreatePracticeRunConfiguration` | `POST /configuration` | - | `outcomeAlarms`, `resourceIdentifier` | - | `CreatePracticeRunConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | A practice run configuration for zonal autoshift is required when you enable zonal autoshift. A practice run configuration includes specifications for blocked dates and blocked time windows, and for Amazon CloudWatch alarms that you create to use with... |
-| `DeletePracticeRunConfiguration` | `DELETE /configuration/{resourceIdentifier}` | `idempotent` | `resourceIdentifier` | - | `DeletePracticeRunConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the practice run configuration for a resource. Before you can delete a practice run configuration for a resource., you must disable zonal autoshift for the resource. |
-| `GetAutoshiftObserverNotificationStatus` | `GET /autoshift-observer-notification` | `readonly` | - | - | `GetAutoshiftObserverNotificationStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException` | Returns the status of the autoshift observer notification. Autoshift observer notifications notify you through Amazon EventBridge when there is an autoshift event for zonal autoshift. |
-| `GetManagedResource` | `GET /managedresources/{resourceIdentifier}` | `readonly` | `resourceIdentifier` | - | `GetManagedResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get information about a resource that's been registered for zonal shifts with Amazon Application Recovery Controller in this Amazon Web Services Region. Resources that are registered for zonal shifts are managed resources in ARC. |
-| `ListAutoshifts` | `GET /autoshifts` | `readonly`, `paginated` | - | - | `ListAutoshiftsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns the autoshifts for an Amazon Web Services Region. By default, the call returns only `ACTIVE` autoshifts. |
-| `ListManagedResources` | `GET /managedresources` | `readonly`, `paginated` | - | - | `ListManagedResourcesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all the resources in your Amazon Web Services account in this Amazon Web Services Region that are managed for zonal shifts in Amazon Application Recovery Controller, and information about them. The information includes the zonal autoshift status for the... |
-| `ListZonalShifts` | `GET /zonalshifts` | `readonly`, `paginated` | - | - | `ListZonalShiftsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all active and completed zonal shifts in Amazon Application Recovery Controller in your Amazon Web Services account in this Amazon Web Services Region. `ListZonalShifts` returns customer-initiated zonal shifts, as well as practice run zonal shifts that... |
-| `StartPracticeRun` | `POST /practiceruns` | - | `awayFrom`, `comment`, `resourceIdentifier` | - | `StartPracticeRunResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Start an on-demand practice run zonal shift in Amazon Application Recovery Controller. With zonal autoshift enabled, you can start an on-demand practice run to verify preparedness at any time. |
-| `StartZonalShift` | `POST /zonalshifts` | - | `awayFrom`, `comment`, `expiresIn`, `resourceIdentifier` | - | `ZonalShift` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | You start a zonal shift to temporarily move load balancer traffic away from an Availability Zone in an Amazon Web Services Region, to help your application recover immediately, for example, from a developer's bad code deployment or from an Amazon Web Services... |
-| `UpdateAutoshiftObserverNotificationStatus` | `PUT /autoshift-observer-notification` | `idempotent` | `status` | - | `UpdateAutoshiftObserverNotificationStatusResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Update the status of autoshift observer notification. Autoshift observer notification enables you to be notified, through Amazon EventBridge, when there is an autoshift event for zonal autoshift. |
-| `UpdatePracticeRunConfiguration` | `PATCH /configuration/{resourceIdentifier}` | - | `resourceIdentifier` | - | `UpdatePracticeRunConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update a practice run configuration to change one or more of the following: add, change, or remove the blocking alarm; change the outcome alarm; or add, change, or remove blocking dates or time windows. |
-| `UpdateZonalAutoshiftConfiguration` | `PUT /managedresources/{resourceIdentifier}` | `idempotent` | `resourceIdentifier`, `zonalAutoshiftStatus` | - | `UpdateZonalAutoshiftConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | The zonal autoshift configuration for a resource includes the practice run configuration and the status for running autoshifts, zonal autoshift status. When a resource has a practice run configuration, ARC starts weekly zonal shifts for the resource, to shift... |
-| `UpdateZonalShift` | `PATCH /zonalshifts/{zonalShiftId}` | - | `zonalShiftId` | - | `ZonalShift` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update an active zonal shift in Amazon Application Recovery Controller in your Amazon Web Services account. You can update a zonal shift to set a new expiration, or edit or replace the comment for the zonal shift. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message` | There was an internal server error. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `message`, `reason` | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
-| `ResourceNotFoundException` | `structure` | `message` | The input requested a resource that was not found. |
-| `ConflictException` | `structure` | `message`, `reason`, `zonalShiftId` | The request could not be processed because of conflict in the current state of the resource. |
-| `ZonalShift` | `structure` | `awayFrom`, `comment`, `expiryTime`, `resourceIdentifier`, `startTime`, `status`, `zonalShiftId` | - |
-| `CancelPracticeRunRequest` | `structure` | `zonalShiftId` | - |
-| `CancelPracticeRunResponse` | `structure` | `awayFrom`, `comment`, `expiryTime`, `resourceIdentifier`, `startTime`, `status`, `zonalShiftId` | - |
-| `CancelZonalShiftRequest` | `structure` | `zonalShiftId` | - |
-| `CreatePracticeRunConfigurationRequest` | `structure` | `allowedWindows`, `blockedDates`, `blockedWindows`, `blockingAlarms`, `outcomeAlarms`, `resourceIdentifier` | - |
-| `CreatePracticeRunConfigurationResponse` | `structure` | `arn`, `name`, `practiceRunConfiguration`, `zonalAutoshiftStatus` | - |
-| `DeletePracticeRunConfigurationRequest` | `structure` | `resourceIdentifier` | - |
-| `DeletePracticeRunConfigurationResponse` | `structure` | `arn`, `name`, `zonalAutoshiftStatus` | - |
-| `GetAutoshiftObserverNotificationStatusRequest` | `structure` | - | - |
-| `GetAutoshiftObserverNotificationStatusResponse` | `structure` | `status` | - |
-| `GetManagedResourceRequest` | `structure` | `resourceIdentifier` | - |
-| `GetManagedResourceResponse` | `structure` | `appliedWeights`, `arn`, `autoshifts`, `name`, `practiceRunConfiguration`, `zonalAutoshiftStatus`, `zonalShifts` | - |
-| `ListAutoshiftsRequest` | `structure` | `maxResults`, `nextToken`, `status` | - |
-| `ListAutoshiftsResponse` | `structure` | `items`, `nextToken` | - |
-| `ListManagedResourcesRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListManagedResourcesResponse` | `structure` | `items`, `nextToken` | - |
-| `ListZonalShiftsRequest` | `structure` | `maxResults`, `nextToken`, `resourceIdentifier`, `status` | - |
-| `ListZonalShiftsResponse` | `structure` | `items`, `nextToken` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, reason, zonalShiftId | The request could not be processed because of conflict in the current state of the resource. |
+| `InternalServerException` | `structure` | message | There was an internal server error. |
+| `ResourceNotFoundException` | `structure` | message | The input requested a resource that was not found. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason | The input fails to satisfy the constraints specified by an Amazon Web Services service. |
+| `AppliedStatus` | `enum` | APPLIED, NOT_APPLIED | - |
+| `AutoshiftAppliedStatus` | `enum` | APPLIED, NOT_APPLIED | - |
+| `AutoshiftExecutionStatus` | `enum` | ACTIVE, COMPLETED | - |
+| `AutoshiftObserverNotificationStatus` | `enum` | ENABLED, DISABLED | - |
+| `ConflictExceptionReason` | `enum` | ZONAL_SHIFT_ALREADY_EXISTS, ZONAL_SHIFT_STATUS_NOT_ACTIVE, SIMULTANEOUS_ZONAL_SHIFTS_CONFLICT, PRACTICE_CONFIGURATION_ALREADY_EXISTS, AUTOSHIFT_ENABLED, PRACTICE_CONFIGURATION_DOES_NOT_EXIST, ZONAL_AUTOSHIFT_ACTIVE, PRACTICE_OUTCOME_ALARMS_RED, PRACTICE_BLOCKING_ALARMS_RED, PRACTICE_IN_BLOCKED_DATES, PRACTICE_IN_BLOCKED_WINDOWS, PRACTICE_OUTSIDE_ALLOWED_WINDOWS | - |
+| `ControlConditionType` | `enum` | CLOUDWATCH | - |
+| `PracticeRunOutcome` | `enum` | FAILED, INTERRUPTED, PENDING, SUCCEEDED, CAPACITY_CHECK_FAILED | - |
+| `ShiftType` | `enum` | ZONAL_SHIFT, PRACTICE_RUN, FIS_EXPERIMENT, ZONAL_AUTOSHIFT | - |
+| `ValidationExceptionReason` | `enum` | INVALID_EXPIRES_IN, INVALID_STATUS, MISSING_VALUE, INVALID_TOKEN, INVALID_RESOURCE_IDENTIFIER, INVALID_AZ, UNSUPPORTED_AZ, INVALID_ALARM_CONDITION, INVALID_CONDITION_TYPE, INVALID_PRACTICE_BLOCKER, FIS_EXPERIMENT_UPDATE_NOT_ALLOWED, AUTOSHIFT_UPDATE_NOT_ALLOWED, ... (+3) | - |
+| `ZonalAutoshiftStatus` | `enum` | ENABLED, DISABLED | - |
+| `ZonalShiftStatus` | `enum` | ACTIVE, EXPIRED, CANCELED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

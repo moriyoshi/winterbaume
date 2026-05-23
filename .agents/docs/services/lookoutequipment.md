@@ -42,146 +42,178 @@ Amazon Lookout for Equipment is a machine learning service that uses advanced an
 
 ### List
 
-- Operations: `ListDataIngestionJobs`, `ListDatasets`, `ListInferenceEvents`, `ListInferenceExecutions`, `ListInferenceSchedulers`, `ListLabelGroups`, `ListLabels`, `ListModelVersions`, `ListModels`, `ListRetrainingSchedulers`, `ListSensorStatistics`, `ListTagsForResource`
+- Operations: `ListDataIngestionJobs`, `ListDatasets`, `ListInferenceEvents`, `ListInferenceExecutions`, `ListInferenceSchedulers`, `ListLabelGroups`, `ListLabels`, `ListModels`, `ListModelVersions`, `ListRetrainingSchedulers`, `ListSensorStatistics`, `ListTagsForResource`
 - Traits: `paginated` (11)
-- Common required input members in this group: `DatasetName`, `InferenceSchedulerName`, `IntervalEndTime`, `IntervalStartTime`, `LabelGroupName`, `ModelName`, `ResourceArn`
+- Common required input members in this group: `InferenceSchedulerName`
 
 ### Describe
 
 - Operations: `DescribeDataIngestionJob`, `DescribeDataset`, `DescribeInferenceScheduler`, `DescribeLabel`, `DescribeLabelGroup`, `DescribeModel`, `DescribeModelVersion`, `DescribeResourcePolicy`, `DescribeRetrainingScheduler`
-- Common required input members in this group: `DatasetName`, `InferenceSchedulerName`, `JobId`, `LabelGroupName`, `LabelId`, `ModelName`, `ModelVersion`, `ResourceArn`
+- Common required input members in this group: `LabelGroupName`, `ModelName`
 
 ### Delete
 
 - Operations: `DeleteDataset`, `DeleteInferenceScheduler`, `DeleteLabel`, `DeleteLabelGroup`, `DeleteModel`, `DeleteResourcePolicy`, `DeleteRetrainingScheduler`
-- Common required input members in this group: `DatasetName`, `InferenceSchedulerName`, `LabelGroupName`, `LabelId`, `ModelName`, `ResourceArn`
+- Common required input members in this group: `LabelGroupName`, `ModelName`
 
 ### Create
 
 - Operations: `CreateDataset`, `CreateInferenceScheduler`, `CreateLabel`, `CreateLabelGroup`, `CreateModel`, `CreateRetrainingScheduler`
 - Traits: `idempotency-token` (6)
-- Common required input members in this group: `ClientToken`, `DataInputConfiguration`, `DataOutputConfiguration`, `DataUploadFrequency`, `DatasetName`, `EndTime`, `InferenceSchedulerName`, `LabelGroupName`, `LookbackWindow`, `ModelName`, `Rating`, `RetrainingFrequency`, `RoleArn`, `StartTime`
+- Common required input members in this group: `DatasetName`, `ClientToken`, `ModelName`, `LabelGroupName`
 
 ### Update
 
 - Operations: `UpdateActiveModelVersion`, `UpdateInferenceScheduler`, `UpdateLabelGroup`, `UpdateModel`, `UpdateRetrainingScheduler`
-- Common required input members in this group: `InferenceSchedulerName`, `LabelGroupName`, `ModelName`, `ModelVersion`
+- Common required input members in this group: `ModelName`
 
 ### Start
 
 - Operations: `StartDataIngestionJob`, `StartInferenceScheduler`, `StartRetrainingScheduler`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `ClientToken`, `DatasetName`, `InferenceSchedulerName`, `IngestionInputConfiguration`, `ModelName`, `RoleArn`
+- Common required input members in this group: -
 
 ### Import
 
 - Operations: `ImportDataset`, `ImportModelVersion`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `ClientToken`, `DatasetName`, `SourceDatasetArn`, `SourceModelVersionArn`
+- Common required input members in this group: `ClientToken`
 
 ### Stop
 
 - Operations: `StopInferenceScheduler`, `StopRetrainingScheduler`
-- Common required input members in this group: `InferenceSchedulerName`, `ModelName`
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutResourcePolicy`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `ClientToken`, `ResourceArn`, `ResourcePolicy`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceArn`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceArn`, `TagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateDataset` | - | `idempotency-token` | `ClientToken`, `DatasetName` | `ClientToken` | `CreateDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a container for a collection of data being ingested for analysis. The dataset contains the metadata describing where the data is and what the data actually looks like. |
-| `CreateInferenceScheduler` | - | `idempotency-token` | `ClientToken`, `DataInputConfiguration`, `DataOutputConfiguration`, `DataUploadFrequency`, `InferenceSchedulerName`, `ModelName`, `RoleArn` | `ClientToken` | `CreateInferenceSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a scheduled inference. Scheduling an inference is setting up a continuous real-time inference plan to analyze new measurement data. |
-| `CreateLabel` | - | `idempotency-token` | `ClientToken`, `EndTime`, `LabelGroupName`, `Rating`, `StartTime` | `ClientToken` | `CreateLabelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a label for an event. |
-| `CreateLabelGroup` | - | `idempotency-token` | `ClientToken`, `LabelGroupName` | `ClientToken` | `CreateLabelGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a group of labels. |
-| `CreateModel` | - | `idempotency-token` | `ClientToken`, `DatasetName`, `ModelName` | `ClientToken` | `CreateModelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a machine learning model for data inference. A machine-learning (ML) model is a mathematical model that finds patterns in your data. |
-| `CreateRetrainingScheduler` | - | `idempotency-token` | `ClientToken`, `LookbackWindow`, `ModelName`, `RetrainingFrequency` | `ClientToken` | `CreateRetrainingSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a retraining scheduler on the specified model. |
-| `DeleteDataset` | - | - | `DatasetName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a dataset and associated artifacts. The operation will check to see if any inference scheduler or data ingestion job is currently using the dataset, and if there isn't, the dataset, its metadata, and any associated data stored in S3 will be deleted. |
-| `DeleteInferenceScheduler` | - | - | `InferenceSchedulerName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an inference scheduler that has been set up. Prior inference results will not be deleted. |
-| `DeleteLabel` | - | - | `LabelGroupName`, `LabelId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a label. |
-| `DeleteLabelGroup` | - | - | `LabelGroupName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a group of labels. |
-| `DeleteModel` | - | - | `ModelName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a machine learning model currently available for Amazon Lookout for Equipment. This will prevent it from being used with an inference scheduler, even one that is already set up. |
-| `DeleteResourcePolicy` | - | - | `ResourceArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the resource policy attached to the resource. |
-| `DeleteRetrainingScheduler` | - | - | `ModelName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a retraining scheduler from a model. The retraining scheduler must be in the `STOPPED` status. |
-| `DescribeDataIngestionJob` | - | - | `JobId` | - | `DescribeDataIngestionJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides information on a specific data ingestion job such as creation time, dataset ARN, and status. |
-| `DescribeDataset` | - | - | `DatasetName` | - | `DescribeDatasetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides a JSON description of the data in each time series dataset, including names, column names, and data types. |
-| `DescribeInferenceScheduler` | - | - | `InferenceSchedulerName` | - | `DescribeInferenceSchedulerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Specifies information about the inference scheduler being used, including name, model, status, and associated metadata |
-| `DescribeLabel` | - | - | `LabelGroupName`, `LabelId` | - | `DescribeLabelResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the name of the label. |
-| `DescribeLabelGroup` | - | - | `LabelGroupName` | - | `DescribeLabelGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the label group. |
-| `DescribeModel` | - | - | `ModelName` | - | `DescribeModelResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides a JSON containing the overall information about a specific machine learning model, including model name and ARN, dataset, training and evaluation information, status, and so on. |
-| `DescribeModelVersion` | - | - | `ModelName`, `ModelVersion` | - | `DescribeModelVersionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a specific machine learning model version. |
-| `DescribeResourcePolicy` | - | - | `ResourceArn` | - | `DescribeResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides the details of a resource policy attached to a resource. |
-| `DescribeRetrainingScheduler` | - | - | `ModelName` | - | `DescribeRetrainingSchedulerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides a description of the retraining scheduler, including information such as the model name and retraining parameters. |
-| `ImportDataset` | - | `idempotency-token` | `ClientToken`, `SourceDatasetArn` | `ClientToken` | `ImportDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Imports a dataset. |
-| `ImportModelVersion` | - | `idempotency-token` | `ClientToken`, `DatasetName`, `SourceModelVersionArn` | `ClientToken` | `ImportModelVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Imports a model that has been trained successfully. |
-| `ListDataIngestionJobs` | - | `paginated` | - | - | `ListDataIngestionJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provides a list of all data ingestion jobs, including dataset name and ARN, S3 location of the input data, status, and so on. |
-| `ListDatasets` | - | `paginated` | - | - | `ListDatasetsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all datasets currently available in your account, filtering on the dataset name. |
-| `ListInferenceEvents` | - | `paginated` | `InferenceSchedulerName`, `IntervalEndTime`, `IntervalStartTime` | - | `ListInferenceEventsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all inference events that have been found for the specified inference scheduler. |
-| `ListInferenceExecutions` | - | `paginated` | `InferenceSchedulerName` | - | `ListInferenceExecutionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all inference executions that have been performed by the specified inference scheduler. |
-| `ListInferenceSchedulers` | - | `paginated` | - | - | `ListInferenceSchedulersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of all inference schedulers currently available for your account. |
-| `ListLabelGroups` | - | `paginated` | - | - | `ListLabelGroupsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of the label groups. |
-| `ListLabels` | - | `paginated` | `LabelGroupName` | - | `ListLabelsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provides a list of labels. |
-| `ListModelVersions` | - | `paginated` | `ModelName` | - | `ListModelVersionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Generates a list of all model versions for a given model, including the model version, model version ARN, and status. To list a subset of versions, use the `MaxModelVersion` and `MinModelVersion` fields. |
-| `ListModels` | - | `paginated` | - | - | `ListModelsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Generates a list of all models in the account, including model name and ARN, dataset, and status. |
-| `ListRetrainingSchedulers` | - | `paginated` | - | - | `ListRetrainingSchedulersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all retraining schedulers in your account, filtering by model name prefix and status. |
-| `ListSensorStatistics` | - | `paginated` | `DatasetName` | - | `ListSensorStatisticsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists statistics about the data collected for each of the sensors that have been successfully ingested in the particular dataset. Can also be used to retreive Sensor Statistics for a previous ingestion job. |
-| `ListTagsForResource` | - | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the tags for a specified resource, including key and value. |
-| `PutResourcePolicy` | - | `idempotency-token` | `ClientToken`, `ResourceArn`, `ResourcePolicy` | `ClientToken` | `PutResourcePolicyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a resource control policy for a given resource. |
-| `StartDataIngestionJob` | - | `idempotency-token` | `ClientToken`, `DatasetName`, `IngestionInputConfiguration`, `RoleArn` | `ClientToken` | `StartDataIngestionJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a data ingestion job. Amazon Lookout for Equipment returns the job status. |
-| `StartInferenceScheduler` | - | - | `InferenceSchedulerName` | - | `StartInferenceSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts an inference scheduler. |
-| `StartRetrainingScheduler` | - | - | `ModelName` | - | `StartRetrainingSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a retraining scheduler. |
-| `StopInferenceScheduler` | - | - | `InferenceSchedulerName` | - | `StopInferenceSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops an inference scheduler. |
-| `StopRetrainingScheduler` | - | - | `ModelName` | - | `StopRetrainingSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops a retraining scheduler. |
-| `TagResource` | - | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a given tag to a resource in your account. A tag is a key-value pair which can be added to an Amazon Lookout for Equipment resource as metadata. |
-| `UntagResource` | - | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a specific tag from a given resource. The tag is specified by its key. |
-| `UpdateActiveModelVersion` | - | - | `ModelName`, `ModelVersion` | - | `UpdateActiveModelVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sets the active model version for a given machine learning model. |
-| `UpdateInferenceScheduler` | - | - | `InferenceSchedulerName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an inference scheduler. |
-| `UpdateLabelGroup` | - | - | `LabelGroupName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the label group. |
-| `UpdateModel` | - | - | `ModelName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a model in the account. |
-| `UpdateRetrainingScheduler` | - | - | `ModelName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a retraining scheduler. |
+| `CreateDataset` | `-` | `idempotency-token` | `DatasetName`, `ClientToken` | `ClientToken` | `CreateDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a container for a collection of data being ingested for analysis. The dataset contains the metadata describing where the data is and what the data actually looks like. For example, it contains the location of ... |
+| `CreateInferenceScheduler` | `-` | `idempotency-token` | `ModelName`, `InferenceSchedulerName`, `DataUploadFrequency`, `DataInputConfiguration`, `DataOutputConfiguration`, `RoleArn`, `ClientToken` | `ClientToken` | `CreateInferenceSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a scheduled inference. Scheduling an inference is setting up a continuous real-time inference plan to analyze new measurement data. When setting up the schedule, you provide an S3 bucket location for the inpu ... |
+| `CreateLabel` | `-` | `idempotency-token` | `LabelGroupName`, `StartTime`, `EndTime`, `Rating`, `ClientToken` | `ClientToken` | `CreateLabelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a label for an event. |
+| `CreateLabelGroup` | `-` | `idempotency-token` | `LabelGroupName`, `ClientToken` | `ClientToken` | `CreateLabelGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a group of labels. |
+| `CreateModel` | `-` | `idempotency-token` | `ModelName`, `DatasetName`, `ClientToken` | `ClientToken` | `CreateModelResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a machine learning model for data inference. A machine-learning (ML) model is a mathematical model that finds patterns in your data. In Amazon Lookout for Equipment, the model learns the patterns of normal be ... |
+| `CreateRetrainingScheduler` | `-` | `idempotency-token` | `ModelName`, `RetrainingFrequency`, `LookbackWindow`, `ClientToken` | `ClientToken` | `CreateRetrainingSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a retraining scheduler on the specified model. |
+| `DeleteDataset` | `-` | - | `DatasetName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a dataset and associated artifacts. The operation will check to see if any inference scheduler or data ingestion job is currently using the dataset, and if there isn't, the dataset, its metadata, and any asso ... |
+| `DeleteInferenceScheduler` | `-` | - | `InferenceSchedulerName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an inference scheduler that has been set up. Prior inference results will not be deleted. |
+| `DeleteLabel` | `-` | - | `LabelGroupName`, `LabelId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a label. |
+| `DeleteLabelGroup` | `-` | - | `LabelGroupName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a group of labels. |
+| `DeleteModel` | `-` | - | `ModelName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a machine learning model currently available for Amazon Lookout for Equipment. This will prevent it from being used with an inference scheduler, even one that is already set up. |
+| `DeleteResourcePolicy` | `-` | - | `ResourceArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the resource policy attached to the resource. |
+| `DeleteRetrainingScheduler` | `-` | - | `ModelName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a retraining scheduler from a model. The retraining scheduler must be in the STOPPED status. |
+| `DescribeDataIngestionJob` | `-` | - | `JobId` | - | `DescribeDataIngestionJobResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides information on a specific data ingestion job such as creation time, dataset ARN, and status. |
+| `DescribeDataset` | `-` | - | `DatasetName` | - | `DescribeDatasetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides a JSON description of the data in each time series dataset, including names, column names, and data types. |
+| `DescribeInferenceScheduler` | `-` | - | `InferenceSchedulerName` | - | `DescribeInferenceSchedulerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Specifies information about the inference scheduler being used, including name, model, status, and associated metadata |
+| `DescribeLabel` | `-` | - | `LabelGroupName`, `LabelId` | - | `DescribeLabelResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the name of the label. |
+| `DescribeLabelGroup` | `-` | - | `LabelGroupName` | - | `DescribeLabelGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about the label group. |
+| `DescribeModel` | `-` | - | `ModelName` | - | `DescribeModelResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides a JSON containing the overall information about a specific machine learning model, including model name and ARN, dataset, training and evaluation information, status, and so on. |
+| `DescribeModelVersion` | `-` | - | `ModelName`, `ModelVersion` | - | `DescribeModelVersionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves information about a specific machine learning model version. |
+| `DescribeResourcePolicy` | `-` | - | `ResourceArn` | - | `DescribeResourcePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides the details of a resource policy attached to a resource. |
+| `DescribeRetrainingScheduler` | `-` | - | `ModelName` | - | `DescribeRetrainingSchedulerResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Provides a description of the retraining scheduler, including information such as the model name and retraining parameters. |
+| `ImportDataset` | `-` | `idempotency-token` | `SourceDatasetArn`, `ClientToken` | `ClientToken` | `ImportDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Imports a dataset. |
+| `ImportModelVersion` | `-` | `idempotency-token` | `SourceModelVersionArn`, `DatasetName`, `ClientToken` | `ClientToken` | `ImportModelVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Imports a model that has been trained successfully. |
+| `ListDataIngestionJobs` | `-` | `paginated` | - | - | `ListDataIngestionJobsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provides a list of all data ingestion jobs, including dataset name and ARN, S3 location of the input data, status, and so on. |
+| `ListDatasets` | `-` | `paginated` | - | - | `ListDatasetsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all datasets currently available in your account, filtering on the dataset name. |
+| `ListInferenceEvents` | `-` | `paginated` | `InferenceSchedulerName`, `IntervalStartTime`, `IntervalEndTime` | - | `ListInferenceEventsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all inference events that have been found for the specified inference scheduler. |
+| `ListInferenceExecutions` | `-` | `paginated` | `InferenceSchedulerName` | - | `ListInferenceExecutionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all inference executions that have been performed by the specified inference scheduler. |
+| `ListInferenceSchedulers` | `-` | `paginated` | - | - | `ListInferenceSchedulersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of all inference schedulers currently available for your account. |
+| `ListLabelGroups` | `-` | `paginated` | - | - | `ListLabelGroupsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of the label groups. |
+| `ListLabels` | `-` | `paginated` | `LabelGroupName` | - | `ListLabelsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Provides a list of labels. |
+| `ListModels` | `-` | `paginated` | - | - | `ListModelsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Generates a list of all models in the account, including model name and ARN, dataset, and status. |
+| `ListModelVersions` | `-` | `paginated` | `ModelName` | - | `ListModelVersionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Generates a list of all model versions for a given model, including the model version, model version ARN, and status. To list a subset of versions, use the MaxModelVersion and MinModelVersion fields. |
+| `ListRetrainingSchedulers` | `-` | `paginated` | - | - | `ListRetrainingSchedulersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all retraining schedulers in your account, filtering by model name prefix and status. |
+| `ListSensorStatistics` | `-` | `paginated` | `DatasetName` | - | `ListSensorStatisticsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists statistics about the data collected for each of the sensors that have been successfully ingested in the particular dataset. Can also be used to retreive Sensor Statistics for a previous ingestion job. |
+| `ListTagsForResource` | `-` | - | `ResourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the tags for a specified resource, including key and value. |
+| `PutResourcePolicy` | `-` | `idempotency-token` | `ResourceArn`, `ResourcePolicy`, `ClientToken` | `ClientToken` | `PutResourcePolicyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a resource control policy for a given resource. |
+| `StartDataIngestionJob` | `-` | `idempotency-token` | `DatasetName`, `IngestionInputConfiguration`, `RoleArn`, `ClientToken` | `ClientToken` | `StartDataIngestionJobResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a data ingestion job. Amazon Lookout for Equipment returns the job status. |
+| `StartInferenceScheduler` | `-` | - | `InferenceSchedulerName` | - | `StartInferenceSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts an inference scheduler. |
+| `StartRetrainingScheduler` | `-` | - | `ModelName` | - | `StartRetrainingSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Starts a retraining scheduler. |
+| `StopInferenceScheduler` | `-` | - | `InferenceSchedulerName` | - | `StopInferenceSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops an inference scheduler. |
+| `StopRetrainingScheduler` | `-` | - | `ModelName` | - | `StopRetrainingSchedulerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops a retraining scheduler. |
+| `TagResource` | `-` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associates a given tag to a resource in your account. A tag is a key-value pair which can be added to an Amazon Lookout for Equipment resource as metadata. Tags can be used for organizing your resources as well as he ... |
+| `UntagResource` | `-` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a specific tag from a given resource. The tag is specified by its key. |
+| `UpdateActiveModelVersion` | `-` | - | `ModelName`, `ModelVersion` | - | `UpdateActiveModelVersionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Sets the active model version for a given machine learning model. |
+| `UpdateInferenceScheduler` | `-` | - | `InferenceSchedulerName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an inference scheduler. |
+| `UpdateLabelGroup` | `-` | - | `LabelGroupName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the label group. |
+| `UpdateModel` | `-` | - | `ModelName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a model in the account. |
+| `UpdateRetrainingScheduler` | `-` | - | `ModelName` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a retraining scheduler. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | The request could not be completed because you do not have access to the resource. |
-| `InternalServerException` | `structure` | `Message` | Processing of the request has failed because of an unknown error, exception or failure. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Message` | The input fails to satisfy constraints specified by Amazon Lookout for Equipment or a related Amazon Web Services service that's being utilized. |
-| `ResourceNotFoundException` | `structure` | `Message` | The resource requested could not be found. |
-| `ConflictException` | `structure` | `Message` | The request could not be completed due to a conflict with the current state of the target resource. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | Resource limitations have been exceeded. |
-| `CreateDatasetRequest` | `structure` | `ClientToken`, `DatasetName`, `DatasetSchema`, `ServerSideKmsKeyId`, `Tags` | - |
-| `CreateDatasetResponse` | `structure` | `DatasetArn`, `DatasetName`, `Status` | - |
-| `CreateInferenceSchedulerRequest` | `structure` | `ClientToken`, `DataDelayOffsetInMinutes`, `DataInputConfiguration`, `DataOutputConfiguration`, `DataUploadFrequency`, `InferenceSchedulerName`, `ModelName`, `RoleArn`, `ServerSideKmsKeyId`, `Tags` | - |
-| `CreateInferenceSchedulerResponse` | `structure` | `InferenceSchedulerArn`, `InferenceSchedulerName`, `ModelQuality`, `Status` | - |
-| `CreateLabelRequest` | `structure` | `ClientToken`, `EndTime`, `Equipment`, `FaultCode`, `LabelGroupName`, `Notes`, `Rating`, `StartTime` | - |
-| `CreateLabelResponse` | `structure` | `LabelId` | - |
-| `CreateLabelGroupRequest` | `structure` | `ClientToken`, `FaultCodes`, `LabelGroupName`, `Tags` | - |
-| `CreateLabelGroupResponse` | `structure` | `LabelGroupArn`, `LabelGroupName` | - |
-| `CreateModelRequest` | `structure` | `ClientToken`, `DataPreProcessingConfiguration`, `DatasetName`, `DatasetSchema`, `EvaluationDataEndTime`, `EvaluationDataStartTime`, `LabelsInputConfiguration`, `ModelDiagnosticsOutputConfiguration`, `ModelName`, `OffCondition`, `RoleArn`, `ServerSideKmsKeyId`, ... (+3) | - |
-| `CreateModelResponse` | `structure` | `ModelArn`, `Status` | - |
-| `CreateRetrainingSchedulerRequest` | `structure` | `ClientToken`, `LookbackWindow`, `ModelName`, `PromoteMode`, `RetrainingFrequency`, `RetrainingStartDate` | - |
-| `CreateRetrainingSchedulerResponse` | `structure` | `ModelArn`, `ModelName`, `Status` | - |
-| `DeleteDatasetRequest` | `structure` | `DatasetName` | - |
-| `DeleteInferenceSchedulerRequest` | `structure` | `InferenceSchedulerName` | - |
-| `DeleteLabelRequest` | `structure` | `LabelGroupName`, `LabelId` | - |
-| `DeleteLabelGroupRequest` | `structure` | `LabelGroupName` | - |
-
+| `AccessDeniedException` | `structure` | Message | The request could not be completed because you do not have access to the resource. |
+| `ConflictException` | `structure` | Message | The request could not be completed due to a conflict with the current state of the target resource. |
+| `InternalServerException` | `structure` | Message | Processing of the request has failed because of an unknown error, exception or failure. |
+| `ResourceNotFoundException` | `structure` | Message | The resource requested could not be found. Verify the resource ID and retry your request. |
+| `ServiceQuotaExceededException` | `structure` | Message | Resource limitations have been exceeded. |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | Message | The input fails to satisfy constraints specified by Amazon Lookout for Equipment or a related Amazon Web Services service that's being utilized. |
+| `CreateDatasetRequest` | `structure` | DatasetName, DatasetSchema, ServerSideKmsKeyId, ClientToken, Tags | - |
+| `CreateDatasetResponse` | `structure` | DatasetName, DatasetArn, Status | - |
+| `CreateInferenceSchedulerRequest` | `structure` | ModelName, InferenceSchedulerName, DataDelayOffsetInMinutes, DataUploadFrequency, DataInputConfiguration, DataOutputConfiguration, RoleArn, ServerSideKmsKeyId, ClientToken, Tags | - |
+| `CreateInferenceSchedulerResponse` | `structure` | InferenceSchedulerArn, InferenceSchedulerName, Status, ModelQuality | - |
+| `CreateLabelRequest` | `structure` | LabelGroupName, StartTime, EndTime, Rating, FaultCode, Notes, Equipment, ClientToken | - |
+| `CreateLabelResponse` | `structure` | LabelId | - |
+| `CreateLabelGroupRequest` | `structure` | LabelGroupName, FaultCodes, ClientToken, Tags | - |
+| `CreateLabelGroupResponse` | `structure` | LabelGroupName, LabelGroupArn | - |
+| `CreateModelRequest` | `structure` | ModelName, DatasetName, DatasetSchema, LabelsInputConfiguration, ClientToken, TrainingDataStartTime, TrainingDataEndTime, EvaluationDataStartTime, EvaluationDataEndTime, RoleArn, DataPreProcessingConfiguration, ServerSideKmsKeyId, ... (+3) | - |
+| `CreateModelResponse` | `structure` | ModelArn, Status | - |
+| `CreateRetrainingSchedulerRequest` | `structure` | ModelName, RetrainingStartDate, RetrainingFrequency, LookbackWindow, PromoteMode, ClientToken | - |
+| `CreateRetrainingSchedulerResponse` | `structure` | ModelName, ModelArn, Status | - |
+| `DeleteDatasetRequest` | `structure` | DatasetName | - |
+| `DeleteInferenceSchedulerRequest` | `structure` | InferenceSchedulerName | - |
+| `DeleteLabelRequest` | `structure` | LabelGroupName, LabelId | - |
+| `DeleteLabelGroupRequest` | `structure` | LabelGroupName | - |
+| `DeleteModelRequest` | `structure` | ModelName | - |
+| `DeleteResourcePolicyRequest` | `structure` | ResourceArn | - |
+| `DeleteRetrainingSchedulerRequest` | `structure` | ModelName | - |
+| `DescribeDataIngestionJobRequest` | `structure` | JobId | - |
+| `DescribeDataIngestionJobResponse` | `structure` | JobId, DatasetArn, IngestionInputConfiguration, RoleArn, CreatedAt, Status, FailedReason, DataQualitySummary, IngestedFilesSummary, StatusDetail, IngestedDataSize, DataStartTime, ... (+2) | - |
+| `DescribeDatasetRequest` | `structure` | DatasetName | - |
+| `DescribeDatasetResponse` | `structure` | DatasetName, DatasetArn, CreatedAt, LastUpdatedAt, Status, Schema, ServerSideKmsKeyId, IngestionInputConfiguration, DataQualitySummary, IngestedFilesSummary, RoleArn, DataStartTime, ... (+2) | - |
+| `DescribeInferenceSchedulerRequest` | `structure` | InferenceSchedulerName | - |
+| `DescribeInferenceSchedulerResponse` | `structure` | ModelArn, ModelName, InferenceSchedulerName, InferenceSchedulerArn, Status, DataDelayOffsetInMinutes, DataUploadFrequency, CreatedAt, UpdatedAt, DataInputConfiguration, DataOutputConfiguration, RoleArn, ... (+2) | - |
+| `DescribeLabelRequest` | `structure` | LabelGroupName, LabelId | - |
+| `DescribeLabelResponse` | `structure` | LabelGroupName, LabelGroupArn, LabelId, StartTime, EndTime, Rating, FaultCode, Notes, Equipment, CreatedAt | - |
+| `DescribeLabelGroupRequest` | `structure` | LabelGroupName | - |
+| `DescribeLabelGroupResponse` | `structure` | LabelGroupName, LabelGroupArn, FaultCodes, CreatedAt, UpdatedAt | - |
+| `DescribeModelRequest` | `structure` | ModelName | - |
+| `DescribeModelResponse` | `structure` | ModelName, ModelArn, DatasetName, DatasetArn, Schema, LabelsInputConfiguration, TrainingDataStartTime, TrainingDataEndTime, EvaluationDataStartTime, EvaluationDataEndTime, RoleArn, DataPreProcessingConfiguration, ... (+30) | - |
+| `DescribeModelVersionRequest` | `structure` | ModelName, ModelVersion | - |
+| `DescribeModelVersionResponse` | `structure` | ModelName, ModelArn, ModelVersion, ModelVersionArn, Status, SourceType, DatasetName, DatasetArn, Schema, LabelsInputConfiguration, TrainingDataStartTime, TrainingDataEndTime, ... (+23) | - |
+| `AutoPromotionResult` | `enum` | MODEL_PROMOTED, MODEL_NOT_PROMOTED, RETRAINING_INTERNAL_ERROR, RETRAINING_CUSTOMER_ERROR, RETRAINING_CANCELLED | - |
+| `DataUploadFrequency` | `enum` | PT5M, PT10M, PT15M, PT30M, PT1H | - |
+| `DatasetStatus` | `enum` | CREATED, INGESTION_IN_PROGRESS, ACTIVE, IMPORT_IN_PROGRESS | - |
+| `InferenceDataImportStrategy` | `enum` | NO_IMPORT, ADD_WHEN_EMPTY, OVERWRITE | - |
+| `InferenceExecutionStatus` | `enum` | IN_PROGRESS, SUCCESS, FAILED | - |
+| `InferenceSchedulerStatus` | `enum` | PENDING, RUNNING, STOPPING, STOPPED | - |
+| `IngestionJobStatus` | `enum` | IN_PROGRESS, SUCCESS, FAILED, IMPORT_IN_PROGRESS | - |
+| `LabelRating` | `enum` | ANOMALY, NO_ANOMALY, NEUTRAL | - |
+| `LatestInferenceResult` | `enum` | ANOMALOUS, NORMAL | - |
+| `ModelPromoteMode` | `enum` | MANAGED, MANUAL | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -40,101 +40,138 @@ Amazon WorkSpaces Thin Client is an affordable device built to work with Amazon 
 ### List
 
 - Operations: `ListDevices`, `ListEnvironments`, `ListSoftwareSets`, `ListTagsForResource`
-- Traits: `endpoint-bound` (4), `paginated` (3), `readonly` (4)
-- Common required input members in this group: `resourceArn`
+- Traits: `readonly` (4), `paginated` (3)
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetDevice`, `GetEnvironment`, `GetSoftwareSet`
-- Traits: `endpoint-bound` (3), `readonly` (3)
+- Traits: `readonly` (3)
 - Common required input members in this group: `id`
 
 ### Update
 
 - Operations: `UpdateDevice`, `UpdateEnvironment`, `UpdateSoftwareSet`
-- Traits: `endpoint-bound` (3), `idempotent` (3)
-- Common required input members in this group: `id`, `validationStatus`
+- Traits: `idempotent` (3)
+- Common required input members in this group: `id`
 
 ### Delete
 
 - Operations: `DeleteDevice`, `DeleteEnvironment`
-- Traits: `endpoint-bound` (2), `idempotency-token` (2), `idempotent` (2)
+- Traits: `idempotent` (2), `idempotency-token` (2)
 - Common required input members in this group: `id`
 
 ### Create
 
 - Operations: `CreateEnvironment`
-- Traits: `endpoint-bound` (1), `idempotency-token` (1)
-- Common required input members in this group: `desktopArn`
+- Traits: `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterDevice`
-- Traits: `endpoint-bound` (1), `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `id`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Traits: `endpoint-bound` (1), `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Traits: `idempotent` (1)
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateEnvironment` | `POST /environments` | `endpoint-bound`, `idempotency-token` | `desktopArn` | `clientToken` | `CreateEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an environment for your thin client devices. |
-| `DeleteDevice` | `DELETE /devices/{id}` | `idempotent`, `endpoint-bound`, `idempotency-token` | `id` | `clientToken` | `DeleteDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a thin client device. |
-| `DeleteEnvironment` | `DELETE /environments/{id}` | `idempotent`, `endpoint-bound`, `idempotency-token` | `id` | `clientToken` | `DeleteEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an environment. |
-| `DeregisterDevice` | `POST /deregister-device/{id}` | `idempotent`, `endpoint-bound`, `idempotency-token` | `id` | `clientToken` | `DeregisterDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deregisters a thin client device. |
-| `GetDevice` | `GET /devices/{id}` | `readonly`, `endpoint-bound` | `id` | - | `GetDeviceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information for a thin client device. |
-| `GetEnvironment` | `GET /environments/{id}` | `readonly`, `endpoint-bound` | `id` | - | `GetEnvironmentResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information for an environment. |
-| `GetSoftwareSet` | `GET /softwaresets/{id}` | `readonly`, `endpoint-bound` | `id` | - | `GetSoftwareSetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information for a software set. |
-| `ListDevices` | `GET /devices` | `readonly`, `paginated`, `endpoint-bound` | - | - | `ListDevicesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of thin client devices. |
-| `ListEnvironments` | `GET /environments` | `readonly`, `paginated`, `endpoint-bound` | - | - | `ListEnvironmentsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of environments. |
-| `ListSoftwareSets` | `GET /softwaresets` | `readonly`, `paginated`, `endpoint-bound` | - | - | `ListSoftwareSetsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of software sets. |
-| `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly`, `endpoint-bound` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of tags for a resource. |
-| `TagResource` | `POST /tags/{resourceArn}` | `endpoint-bound` | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Assigns one or more tags (key-value pairs) to the specified resource. |
-| `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent`, `endpoint-bound` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a tag or tags from a resource. |
-| `UpdateDevice` | `PATCH /devices/{id}` | `idempotent`, `endpoint-bound` | `id` | - | `UpdateDeviceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a thin client device. |
-| `UpdateEnvironment` | `PATCH /environments/{id}` | `idempotent`, `endpoint-bound` | `id` | - | `UpdateEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an environment. |
-| `UpdateSoftwareSet` | `PATCH /softwaresets/{id}` | `idempotent`, `endpoint-bound` | `id`, `validationStatus` | - | `UpdateSoftwareSetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a software set. |
+| `CreateEnvironment` | `POST /environments` | `idempotency-token` | `desktopArn` | `clientToken` | `CreateEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates an environment for your thin client devices. |
+| `DeleteDevice` | `DELETE /devices/{id}` | `idempotent`, `idempotency-token` | `id` | `clientToken` | `DeleteDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a thin client device. |
+| `DeleteEnvironment` | `DELETE /environments/{id}` | `idempotent`, `idempotency-token` | `id` | `clientToken` | `DeleteEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes an environment. |
+| `DeregisterDevice` | `POST /deregister-device/{id}` | `idempotent`, `idempotency-token` | `id` | `clientToken` | `DeregisterDeviceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deregisters a thin client device. |
+| `GetDevice` | `GET /devices/{id}` | `readonly` | `id` | - | `GetDeviceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information for a thin client device. |
+| `GetEnvironment` | `GET /environments/{id}` | `readonly` | `id` | - | `GetEnvironmentResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information for an environment. |
+| `GetSoftwareSet` | `GET /softwaresets/{id}` | `readonly` | `id` | - | `GetSoftwareSetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information for a software set. |
+| `ListDevices` | `GET /devices` | `readonly`, `paginated` | - | - | `ListDevicesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of thin client devices. |
+| `ListEnvironments` | `GET /environments` | `readonly`, `paginated` | - | - | `ListEnvironmentsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of environments. |
+| `ListSoftwareSets` | `GET /softwaresets` | `readonly`, `paginated` | - | - | `ListSoftwareSetsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a list of software sets. |
+| `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns a list of tags for a resource. |
+| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Assigns one or more tags (key-value pairs) to the specified resource. |
+| `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a tag or tags from a resource. |
+| `UpdateDevice` | `PATCH /devices/{id}` | `idempotent` | `id` | - | `UpdateDeviceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a thin client device. |
+| `UpdateEnvironment` | `PATCH /environments/{id}` | `idempotent` | `id` | - | `UpdateEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an environment. |
+| `UpdateSoftwareSet` | `PATCH /softwaresets/{id}` | `idempotent` | `id`, `validationStatus` | - | `UpdateSoftwareSetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a software set. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteDevice` | - | `clientToken -> clientToken` | - | - |
+| `DeleteEnvironment` | - | `clientToken -> clientToken` | - | - |
+| `ListDevices` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListEnvironments` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListSoftwareSets` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | The server encountered an internal error and is unable to complete the request. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | The input fails to satisfy the specified constraints. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | The resource specified in the request was not found. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | The requested operation would cause a conflict with the current state of a service resource associated with the request. |
-| `CreateEnvironmentRequest` | `structure` | `clientToken`, `desiredSoftwareSetId`, `desktopArn`, `desktopEndpoint`, `deviceCreationTags`, `kmsKeyArn`, `maintenanceWindow`, `name`, `softwareSetUpdateMode`, `softwareSetUpdateSchedule`, `tags` | - |
-| `CreateEnvironmentResponse` | `structure` | `environment` | - |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | Your request exceeds a service quota. |
-| `DeleteDeviceRequest` | `structure` | `clientToken`, `id` | - |
-| `DeleteDeviceResponse` | `structure` | - | - |
-| `DeleteEnvironmentRequest` | `structure` | `clientToken`, `id` | - |
-| `DeleteEnvironmentResponse` | `structure` | - | - |
-| `DeregisterDeviceRequest` | `structure` | `clientToken`, `id`, `targetDeviceStatus` | - |
-| `DeregisterDeviceResponse` | `structure` | - | - |
-| `GetDeviceRequest` | `structure` | `id` | - |
-| `GetDeviceResponse` | `structure` | `device` | - |
-| `GetEnvironmentRequest` | `structure` | `id` | - |
-| `GetEnvironmentResponse` | `structure` | `environment` | - |
-| `GetSoftwareSetRequest` | `structure` | `id` | - |
-| `GetSoftwareSetResponse` | `structure` | `softwareSet` | - |
-| `ListDevicesRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListDevicesResponse` | `structure` | `devices`, `nextToken` | - |
-| `ListEnvironmentsRequest` | `structure` | `maxResults`, `nextToken` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | The requested operation would cause a conflict with the current state of a service resource associated with the request. Resolve the conflict before retryin ... |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | The server encountered an internal error and is unable to complete the request. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | The resource specified in the request was not found. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | Your request exceeds a service quota. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | The input fails to satisfy the specified constraints. |
+| `CreateEnvironmentRequest` | `structure` | name, desktopArn, desktopEndpoint, softwareSetUpdateSchedule, maintenanceWindow, softwareSetUpdateMode, desiredSoftwareSetId, kmsKeyArn, clientToken, tags, deviceCreationTags | - |
+| `CreateEnvironmentResponse` | `structure` | environment | - |
+| `DeleteDeviceRequest` | `structure` | id, clientToken | - |
+| `DeleteDeviceResponse` | `structure` | **empty (no members)** | - |
+| `DeleteEnvironmentRequest` | `structure` | id, clientToken | - |
+| `DeleteEnvironmentResponse` | `structure` | **empty (no members)** | - |
+| `DeregisterDeviceRequest` | `structure` | id, targetDeviceStatus, clientToken | - |
+| `DeregisterDeviceResponse` | `structure` | **empty (no members)** | - |
+| `GetDeviceRequest` | `structure` | id | - |
+| `GetDeviceResponse` | `structure` | device | - |
+| `GetEnvironmentRequest` | `structure` | id | - |
+| `GetEnvironmentResponse` | `structure` | environment | - |
+| `GetSoftwareSetRequest` | `structure` | id | - |
+| `GetSoftwareSetResponse` | `structure` | softwareSet | - |
+| `ListDevicesRequest` | `structure` | nextToken, maxResults | - |
+| `ListDevicesResponse` | `structure` | devices, nextToken | - |
+| `ListEnvironmentsRequest` | `structure` | nextToken, maxResults | - |
+| `ListEnvironmentsResponse` | `structure` | environments, nextToken | - |
+| `ListSoftwareSetsRequest` | `structure` | nextToken, maxResults | - |
+| `ListSoftwareSetsResponse` | `structure` | softwareSets, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateDeviceRequest` | `structure` | id, name, desiredSoftwareSetId, softwareSetUpdateSchedule | - |
+| `UpdateDeviceResponse` | `structure` | device | - |
+| `UpdateEnvironmentRequest` | `structure` | id, name, desktopArn, desktopEndpoint, softwareSetUpdateSchedule, maintenanceWindow, softwareSetUpdateMode, desiredSoftwareSetId, deviceCreationTags | - |
+| `UpdateEnvironmentResponse` | `structure` | environment | - |
+| `UpdateSoftwareSetRequest` | `structure` | id, validationStatus | - |
+| `UpdateSoftwareSetResponse` | `structure` | **empty (no members)** | - |
+| `ApplyTimeOf` | `enum` | UTC, DEVICE | - |
+| `DayOfWeek` | `enum` | MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY | - |
+| `DesktopType` | `enum` | WORKSPACES, APPSTREAM, WORKSPACES_WEB | - |
+| `DeviceSoftwareSetComplianceStatus` | `enum` | NONE, COMPLIANT, NOT_COMPLIANT | - |
+| `DeviceStatus` | `enum` | REGISTERED, DEREGISTERING, DEREGISTERED, ARCHIVED | - |
+| `EnvironmentSoftwareSetComplianceStatus` | `enum` | NO_REGISTERED_DEVICES, COMPLIANT, NOT_COMPLIANT | - |
+| `MaintenanceWindowType` | `enum` | SYSTEM, CUSTOM | - |
+| `SoftwareSetUpdateMode` | `enum` | USE_LATEST, USE_DESIRED | - |
+| `SoftwareSetUpdateSchedule` | `enum` | USE_MAINTENANCE_WINDOW, APPLY_IMMEDIATELY | - |
+| `SoftwareSetUpdateStatus` | `enum` | AVAILABLE, IN_PROGRESS, UP_TO_DATE | - |
+| `SoftwareSetValidationStatus` | `enum` | VALIDATED, NOT_VALIDATED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

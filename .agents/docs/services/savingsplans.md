@@ -41,45 +41,45 @@ Savings Plans are a pricing model that offer significant savings on Amazon Web S
 ### Describe
 
 - Operations: `DescribeSavingsPlanRates`, `DescribeSavingsPlans`, `DescribeSavingsPlansOfferingRates`, `DescribeSavingsPlansOfferings`
-- Common required input members in this group: `savingsPlanId`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateSavingsPlan`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `commitment`, `savingsPlanOfferingId`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteQueuedSavingsPlan`
-- Common required input members in this group: `savingsPlanId`
+- Common required input members in this group: -
 
 ### List
 
 - Operations: `ListTagsForResource`
-- Common required input members in this group: `resourceArn`
+- Common required input members in this group: -
 
 ### Return
 
 - Operations: `ReturnSavingsPlan`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `savingsPlanId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateSavingsPlan` | `POST /CreateSavingsPlan` | `idempotency-token` | `commitment`, `savingsPlanOfferingId` | `clientToken` | `CreateSavingsPlanResponse` | `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a Savings Plan. |
+| `CreateSavingsPlan` | `POST /CreateSavingsPlan` | `idempotency-token` | `savingsPlanOfferingId`, `commitment` | `clientToken` | `CreateSavingsPlanResponse` | `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a Savings Plan. |
 | `DeleteQueuedSavingsPlan` | `POST /DeleteQueuedSavingsPlan` | - | `savingsPlanId` | - | `DeleteQueuedSavingsPlanResponse` | `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Deletes the queued purchase for the specified Savings Plan. |
 | `DescribeSavingsPlanRates` | `POST /DescribeSavingsPlanRates` | - | `savingsPlanId` | - | `DescribeSavingsPlanRatesResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Describes the rates for a specific, existing Savings Plan. |
 | `DescribeSavingsPlans` | `POST /DescribeSavingsPlans` | - | - | - | `DescribeSavingsPlansResponse` | `InternalServerException`, `ValidationException` | Describes the specified Savings Plans. |
@@ -90,35 +90,53 @@ Savings Plans are a pricing model that offer significant savings on Amazon Web S
 | `TagResource` | `POST /TagResource` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Adds the specified tags to the specified resource. |
 | `UntagResource` | `POST /UntagResource` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes the specified tags from the specified resource. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | An unexpected error occurred. |
-| `ValidationException` | `structure` | `message` | One of the input parameters is not valid. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource was not found. |
-| `ServiceQuotaExceededException` | `structure` | `message` | A service quota has been exceeded. |
-| `CreateSavingsPlanRequest` | `structure` | `clientToken`, `commitment`, `purchaseTime`, `savingsPlanOfferingId`, `tags`, `upfrontPaymentAmount` | - |
-| `CreateSavingsPlanResponse` | `structure` | `savingsPlanId` | - |
-| `DeleteQueuedSavingsPlanRequest` | `structure` | `savingsPlanId` | - |
-| `DeleteQueuedSavingsPlanResponse` | `structure` | - | - |
-| `DescribeSavingsPlanRatesRequest` | `structure` | `filters`, `maxResults`, `nextToken`, `savingsPlanId` | - |
-| `DescribeSavingsPlanRatesResponse` | `structure` | `nextToken`, `savingsPlanId`, `searchResults` | - |
-| `DescribeSavingsPlansRequest` | `structure` | `filters`, `maxResults`, `nextToken`, `savingsPlanArns`, `savingsPlanIds`, `states` | - |
-| `DescribeSavingsPlansResponse` | `structure` | `nextToken`, `savingsPlans` | - |
-| `DescribeSavingsPlansOfferingRatesRequest` | `structure` | `filters`, `maxResults`, `nextToken`, `operations`, `products`, `savingsPlanOfferingIds`, `savingsPlanPaymentOptions`, `savingsPlanTypes`, `serviceCodes`, `usageTypes` | - |
-| `DescribeSavingsPlansOfferingRatesResponse` | `structure` | `nextToken`, `searchResults` | - |
-| `DescribeSavingsPlansOfferingsRequest` | `structure` | `currencies`, `descriptions`, `durations`, `filters`, `maxResults`, `nextToken`, `offeringIds`, `operations`, `paymentOptions`, `planTypes`, `productType`, `serviceCodes`, ... (+1) | - |
-| `DescribeSavingsPlansOfferingsResponse` | `structure` | `nextToken`, `searchResults` | - |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `ReturnSavingsPlanRequest` | `structure` | `clientToken`, `savingsPlanId` | - |
-| `ReturnSavingsPlanResponse` | `structure` | `savingsPlanId` | - |
-| `TagResourceRequest` | `structure` | `resourceArn`, `tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `resourceArn`, `tagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-
+| `InternalServerException` | `structure` | message | An unexpected error occurred. |
+| `ResourceNotFoundException` | `structure` | message | The specified resource was not found. |
+| `ServiceQuotaExceededException` | `structure` | message | A service quota has been exceeded. |
+| `ValidationException` | `structure` | message | One of the input parameters is not valid. |
+| `CreateSavingsPlanRequest` | `structure` | savingsPlanOfferingId, commitment, upfrontPaymentAmount, purchaseTime, clientToken, tags | - |
+| `CreateSavingsPlanResponse` | `structure` | savingsPlanId | - |
+| `DeleteQueuedSavingsPlanRequest` | `structure` | savingsPlanId | - |
+| `DeleteQueuedSavingsPlanResponse` | `structure` | **empty (no members)** | - |
+| `DescribeSavingsPlanRatesRequest` | `structure` | savingsPlanId, filters, nextToken, maxResults | - |
+| `DescribeSavingsPlanRatesResponse` | `structure` | savingsPlanId, searchResults, nextToken | - |
+| `DescribeSavingsPlansRequest` | `structure` | savingsPlanArns, savingsPlanIds, nextToken, maxResults, states, filters | - |
+| `DescribeSavingsPlansResponse` | `structure` | savingsPlans, nextToken | - |
+| `DescribeSavingsPlansOfferingRatesRequest` | `structure` | savingsPlanOfferingIds, savingsPlanPaymentOptions, savingsPlanTypes, products, serviceCodes, usageTypes, operations, filters, nextToken, maxResults | - |
+| `DescribeSavingsPlansOfferingRatesResponse` | `structure` | searchResults, nextToken | - |
+| `DescribeSavingsPlansOfferingsRequest` | `structure` | offeringIds, paymentOptions, productType, planTypes, durations, currencies, descriptions, serviceCodes, usageTypes, operations, filters, nextToken, ... (+1) | - |
+| `DescribeSavingsPlansOfferingsResponse` | `structure` | searchResults, nextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `ReturnSavingsPlanRequest` | `structure` | savingsPlanId, clientToken | - |
+| `ReturnSavingsPlanResponse` | `structure` | savingsPlanId | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `CurrencyCode` | `enum` | CNY, USD, EUR | - |
+| `SavingsPlanOfferingFilterAttribute` | `enum` | region, instanceFamily | - |
+| `SavingsPlanOfferingPropertyKey` | `enum` | REGION, INSTANCE_FAMILY | - |
+| `SavingsPlanPaymentOption` | `enum` | ALL_UPFRONT, PARTIAL_UPFRONT, NO_UPFRONT | - |
+| `SavingsPlanProductType` | `enum` | EC2, FARGATE, LAMBDA, SAGEMAKER, RDS, DSQL, DYNAMODB, ELASTICACHE, DOCDB, NEPTUNE, TIMESTREAM, KEYSPACES, ... (+2) | - |
+| `SavingsPlanRateFilterAttribute` | `enum` | REGION, INSTANCE_FAMILY, INSTANCE_TYPE, PRODUCT_DESCRIPTION, TENANCY, PRODUCT_ID | - |
+| `SavingsPlanRateFilterName` | `enum` | REGION, INSTANCE_TYPE, PRODUCT_DESCRIPTION, TENANCY, PRODUCT_TYPE, SERVICE_CODE, USAGE_TYPE, OPERATION | - |
+| `SavingsPlanRatePropertyKey` | `enum` | REGION, INSTANCE_TYPE, INSTANCE_FAMILY, PRODUCT_DESCRIPTION, TENANCY | - |
+| `SavingsPlanRateServiceCode` | `enum` | EC2, FARGATE, FARGATE_EKS, LAMBDA, SAGEMAKER, RDS, AURORA, DYNAMODB, ELASTICACHE, DOCDB, NEPTUNE, TIMESTREAM, ... (+3) | - |
+| `SavingsPlanRateUnit` | `enum` | HOURS, LAMBDA_GB_SECOND, REQUEST, ACU_HR, READ_REQUEST_UNITS, WRITE_REQUEST_UNITS, READ_CAPACITY_UNIT_HRS, WRITE_CAPACITY_UNIT_HRS, REPLICATED_WRITE_REQUEST_UNITS, REPLICATED_WRITE_CAPACITY_UNIT_HRS, GB_HOURS, DPU, ... (+5) | - |
+| `SavingsPlanState` | `enum` | PAYMENT_PENDING, PAYMENT_FAILED, ACTIVE, RETIRED, QUEUED, QUEUED_DELETED, PENDING_RETURN, RETURNED | - |
+| `SavingsPlanType` | `enum` | COMPUTE, EC2_INSTANCE, SAGEMAKER, DATABASE | - |
+| `SavingsPlansFilterName` | `enum` | REGION, EC2_INSTANCE_FAMILY, COMMITMENT, UPFRONT, TERM, SAVINGS_PLAN_TYPE, PAYMENT_OPTION, START, END, INSTANCE_FAMILY | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

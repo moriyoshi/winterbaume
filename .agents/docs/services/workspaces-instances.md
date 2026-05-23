@@ -44,93 +44,124 @@ Amazon WorkSpaces Instances provides an API framework for managing virtual works
 ### List
 
 - Operations: `ListInstanceTypes`, `ListRegions`, `ListTagsForResource`, `ListWorkspaceInstances`
-- Traits: `paginated` (3), `readonly` (4)
-- Common required input members in this group: `WorkspaceInstanceId`
+- Traits: `readonly` (4), `paginated` (3)
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateVolume`, `CreateWorkspaceInstance`
-- Traits: `idempotency-token` (2), `idempotent` (2)
-- Common required input members in this group: `AvailabilityZone`, `ManagedInstance`
+- Traits: `idempotent` (2), `idempotency-token` (2)
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteVolume`, `DeleteWorkspaceInstance`
-- Common required input members in this group: `VolumeId`, `WorkspaceInstanceId`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateVolume`
-- Common required input members in this group: `Device`, `VolumeId`, `WorkspaceInstanceId`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateVolume`
-- Common required input members in this group: `VolumeId`, `WorkspaceInstanceId`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetWorkspaceInstance`
 - Traits: `readonly` (1)
-- Common required input members in this group: `WorkspaceInstanceId`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `Tags`, `WorkspaceInstanceId`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `TagKeys`, `WorkspaceInstanceId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `AssociateVolume` | - | - | `Device`, `VolumeId`, `WorkspaceInstanceId` | - | `AssociateVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Attaches a volume to a WorkSpace Instance. |
-| `CreateVolume` | - | `idempotent`, `idempotency-token` | `AvailabilityZone` | `ClientToken` | `CreateVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new volume for WorkSpace Instances. |
-| `CreateWorkspaceInstance` | - | `idempotent`, `idempotency-token` | `ManagedInstance` | `ClientToken` | `CreateWorkspaceInstanceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Launches a new WorkSpace Instance with specified configuration parameters, enabling programmatic workspace deployment. |
-| `DeleteVolume` | - | - | `VolumeId` | - | `DeleteVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a specified volume. |
-| `DeleteWorkspaceInstance` | - | - | `WorkspaceInstanceId` | - | `DeleteWorkspaceInstanceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified WorkSpace Usage of this API will result in deletion of the resource in question. |
-| `DisassociateVolume` | - | - | `VolumeId`, `WorkspaceInstanceId` | - | `DisassociateVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Detaches a volume from a WorkSpace Instance. |
-| `GetWorkspaceInstance` | - | `readonly` | `WorkspaceInstanceId` | - | `GetWorkspaceInstanceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific WorkSpace Instance. |
-| `ListInstanceTypes` | - | `readonly`, `paginated` | - | - | `ListInstanceTypesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of instance types supported by Amazon WorkSpaces Instances, enabling precise workspace infrastructure configuration. |
-| `ListRegions` | - | `readonly`, `paginated` | - | - | `ListRegionsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of AWS regions supported by Amazon WorkSpaces Instances, enabling region discovery for workspace deployments. |
-| `ListTagsForResource` | - | `readonly` | `WorkspaceInstanceId` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves tags for a WorkSpace Instance. |
-| `ListWorkspaceInstances` | - | `readonly`, `paginated` | - | - | `ListWorkspaceInstancesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a collection of WorkSpaces Instances based on specified filters. |
-| `TagResource` | - | - | `Tags`, `WorkspaceInstanceId` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds tags to a WorkSpace Instance. |
-| `UntagResource` | - | - | `TagKeys`, `WorkspaceInstanceId` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from a WorkSpace Instance. |
+| `AssociateVolume` | `-` | - | `WorkspaceInstanceId`, `VolumeId`, `Device` | - | `AssociateVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Attaches a volume to a WorkSpace Instance. |
+| `CreateVolume` | `-` | `idempotent`, `idempotency-token` | `AvailabilityZone` | `ClientToken` | `CreateVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new volume for WorkSpace Instances. |
+| `CreateWorkspaceInstance` | `-` | `idempotent`, `idempotency-token` | `ManagedInstance` | `ClientToken` | `CreateWorkspaceInstanceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Launches a new WorkSpace Instance with specified configuration parameters, enabling programmatic workspace deployment. |
+| `DeleteVolume` | `-` | - | `VolumeId` | - | `DeleteVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a specified volume. |
+| `DeleteWorkspaceInstance` | `-` | - | `WorkspaceInstanceId` | - | `DeleteWorkspaceInstanceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes the specified WorkSpace Usage of this API will result in deletion of the resource in question. |
+| `DisassociateVolume` | `-` | - | `WorkspaceInstanceId`, `VolumeId` | - | `DisassociateVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Detaches a volume from a WorkSpace Instance. |
+| `GetWorkspaceInstance` | `-` | `readonly` | `WorkspaceInstanceId` | - | `GetWorkspaceInstanceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves detailed information about a specific WorkSpace Instance. |
+| `ListInstanceTypes` | `-` | `readonly`, `paginated` | - | - | `ListInstanceTypesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of instance types supported by Amazon WorkSpaces Instances, enabling precise workspace infrastructure configuration. |
+| `ListRegions` | `-` | `readonly`, `paginated` | - | - | `ListRegionsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a list of AWS regions supported by Amazon WorkSpaces Instances, enabling region discovery for workspace deployments. |
+| `ListTagsForResource` | `-` | `readonly` | `WorkspaceInstanceId` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves tags for a WorkSpace Instance. |
+| `ListWorkspaceInstances` | `-` | `readonly`, `paginated` | - | - | `ListWorkspaceInstancesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Retrieves a collection of WorkSpaces Instances based on specified filters. |
+| `TagResource` | `-` | - | `WorkspaceInstanceId`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds tags to a WorkSpace Instance. |
+| `UntagResource` | `-` | - | `WorkspaceInstanceId`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from a WorkSpace Instance. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | Indicates insufficient permissions to perform the requested action. |
-| `InternalServerException` | `structure` | `Message`, `RetryAfterSeconds` | Indicates an unexpected server-side error occurred. |
-| `ThrottlingException` | `structure` | `Message`, `QuotaCode`, `RetryAfterSeconds`, `ServiceCode` | Indicates the request rate has exceeded limits. |
-| `ValidationException` | `structure` | `FieldList`, `Message`, `Reason` | Indicates invalid input parameters in the request. |
-| `ResourceNotFoundException` | `structure` | `Message`, `ResourceId`, `ResourceType` | Indicates the requested resource could not be found. |
-| `ConflictException` | `structure` | `Message`, `ResourceId`, `ResourceType` | Signals a conflict with the current state of the resource. |
-| `ServiceQuotaExceededException` | `structure` | `Message`, `QuotaCode`, `ResourceId`, `ResourceType`, `ServiceCode` | Indicates that a service quota has been exceeded. |
-| `AssociateVolumeRequest` | `structure` | `Device`, `VolumeId`, `WorkspaceInstanceId` | Specifies volume attachment parameters. |
-| `AssociateVolumeResponse` | `structure` | - | Confirms volume attachment. |
-| `CreateVolumeRequest` | `structure` | `AvailabilityZone`, `ClientToken`, `Encrypted`, `Iops`, `KmsKeyId`, `SizeInGB`, `SnapshotId`, `TagSpecifications`, `Throughput`, `VolumeType` | Specifies volume creation parameters. |
-| `CreateVolumeResponse` | `structure` | `VolumeId` | Returns the created volume identifier. |
-| `CreateWorkspaceInstanceRequest` | `structure` | `BillingConfiguration`, `ClientToken`, `ManagedInstance`, `Tags` | Defines the configuration parameters for creating a new WorkSpaces Instance. |
-| `CreateWorkspaceInstanceResponse` | `structure` | `WorkspaceInstanceId` | Returns the unique identifier for the newly created WorkSpaces Instance. |
-| `DeleteVolumeRequest` | `structure` | `VolumeId` | Specifies the volume to delete. |
-| `DeleteVolumeResponse` | `structure` | - | Confirms volume deletion. |
-| `DeleteWorkspaceInstanceRequest` | `structure` | `WorkspaceInstanceId` | The WorkSpace to delete |
-| `DeleteWorkspaceInstanceResponse` | `structure` | - | Confirms the successful deletion of the specified WorkSpace Instance. |
-| `DisassociateVolumeRequest` | `structure` | `Device`, `DisassociateMode`, `VolumeId`, `WorkspaceInstanceId` | Specifies volume detachment parameters. |
-| `DisassociateVolumeResponse` | `structure` | - | Confirms volume detachment. |
-| `GetWorkspaceInstanceRequest` | `structure` | `WorkspaceInstanceId` | Identifies the WorkSpaces Instance to retrieve detailed information for. |
-| `GetWorkspaceInstanceResponse` | `structure` | `BillingConfiguration`, `EC2InstanceErrors`, `EC2ManagedInstance`, `ProvisionState`, `WorkspaceInstanceErrors`, `WorkspaceInstanceId` | Provides comprehensive details about the requested WorkSpaces Instance. |
-| `ListInstanceTypesRequest` | `structure` | `InstanceConfigurationFilter`, `MaxResults`, `NextToken` | Defines input parameters for retrieving supported WorkSpaces Instances instance types. |
-| `ListInstanceTypesResponse` | `structure` | `InstanceTypes`, `NextToken` | Contains the list of instance types supported by WorkSpaces Instances. |
-| `ListRegionsRequest` | `structure` | `MaxResults`, `NextToken` | Defines input parameters for retrieving supported WorkSpaces Instances regions. |
-
+| `AccessDeniedException` | `structure` | Message | Indicates insufficient permissions to perform the requested action. |
+| `ConflictException` | `structure` | Message, ResourceId, ResourceType | Signals a conflict with the current state of the resource. |
+| `InternalServerException` | `structure` | Message, RetryAfterSeconds | Indicates an unexpected server-side error occurred. |
+| `ResourceNotFoundException` | `structure` | Message, ResourceId, ResourceType | Indicates the requested resource could not be found. |
+| `ServiceQuotaExceededException` | `structure` | Message, ResourceId, ResourceType, ServiceCode, QuotaCode | Indicates that a service quota has been exceeded. |
+| `ThrottlingException` | `structure` | Message, ServiceCode, QuotaCode, RetryAfterSeconds | Indicates the request rate has exceeded limits. |
+| `ValidationException` | `structure` | Message, Reason, FieldList | Indicates invalid input parameters in the request. |
+| `AssociateVolumeRequest` | `structure` | WorkspaceInstanceId, VolumeId, Device | Specifies volume attachment parameters. |
+| `AssociateVolumeResponse` | `structure` | **empty (no members)** | Confirms volume attachment. |
+| `CreateVolumeRequest` | `structure` | AvailabilityZone, ClientToken, Encrypted, Iops, KmsKeyId, SizeInGB, SnapshotId, TagSpecifications, Throughput, VolumeType | Specifies volume creation parameters. |
+| `CreateVolumeResponse` | `structure` | VolumeId | Returns the created volume identifier. |
+| `CreateWorkspaceInstanceRequest` | `structure` | ClientToken, Tags, ManagedInstance, BillingConfiguration | Defines the configuration parameters for creating a new WorkSpaces Instance. |
+| `CreateWorkspaceInstanceResponse` | `structure` | WorkspaceInstanceId | Returns the unique identifier for the newly created WorkSpaces Instance. |
+| `DeleteVolumeRequest` | `structure` | VolumeId | Specifies the volume to delete. |
+| `DeleteVolumeResponse` | `structure` | **empty (no members)** | Confirms volume deletion. |
+| `DeleteWorkspaceInstanceRequest` | `structure` | WorkspaceInstanceId | The WorkSpace to delete |
+| `DeleteWorkspaceInstanceResponse` | `structure` | **empty (no members)** | Confirms the successful deletion of the specified WorkSpace Instance. |
+| `DisassociateVolumeRequest` | `structure` | WorkspaceInstanceId, VolumeId, Device, DisassociateMode | Specifies volume detachment parameters. |
+| `DisassociateVolumeResponse` | `structure` | **empty (no members)** | Confirms volume detachment. |
+| `GetWorkspaceInstanceRequest` | `structure` | WorkspaceInstanceId | Identifies the WorkSpaces Instance to retrieve detailed information for. |
+| `GetWorkspaceInstanceResponse` | `structure` | WorkspaceInstanceErrors, EC2InstanceErrors, ProvisionState, WorkspaceInstanceId, EC2ManagedInstance, BillingConfiguration | Provides comprehensive details about the requested WorkSpaces Instance. |
+| `ListInstanceTypesRequest` | `structure` | MaxResults, NextToken, InstanceConfigurationFilter | Defines input parameters for retrieving supported WorkSpaces Instances instance types. |
+| `ListInstanceTypesResponse` | `structure` | InstanceTypes, NextToken | Contains the list of instance types supported by WorkSpaces Instances. |
+| `ListRegionsRequest` | `structure` | MaxResults, NextToken | Defines input parameters for retrieving supported WorkSpaces Instances regions. |
+| `ListRegionsResponse` | `structure` | Regions, NextToken | Contains the list of supported AWS regions for WorkSpaces Instances. |
+| `ListTagsForResourceRequest` | `structure` | WorkspaceInstanceId | Specifies the WorkSpace Instance to retrieve tags for. |
+| `ListTagsForResourceResponse` | `structure` | Tags | Returns the list of tags for the specified WorkSpace Instance. |
+| `ListWorkspaceInstancesRequest` | `structure` | ProvisionStates, MaxResults, NextToken | Defines filters and pagination parameters for retrieving WorkSpaces Instances. |
+| `ListWorkspaceInstancesResponse` | `structure` | WorkspaceInstances, NextToken | Contains the list of WorkSpaces Instances matching the specified criteria. |
+| `TagResourceRequest` | `structure` | WorkspaceInstanceId, Tags | Specifies tags to add to a WorkSpace Instance. |
+| `TagResourceResponse` | `structure` | **empty (no members)** | Confirms successful tag addition. |
+| `UntagResourceRequest` | `structure` | WorkspaceInstanceId, TagKeys | Specifies tags to remove from a WorkSpace Instance. |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | Confirms successful tag removal. |
+| `AmdSevSnpEnum` | `enum` | ENABLED, DISABLED | - |
+| `AutoRecoveryEnum` | `enum` | DISABLED, DEFAULT | - |
+| `BandwidthWeightingEnum` | `enum` | DEFAULT, VPC_1, EBS_1 | - |
+| `BillingMode` | `enum` | MONTHLY, HOURLY | - |
+| `CapacityReservationPreferenceEnum` | `enum` | CAPACITY_RESERVATIONS_ONLY, OPEN, NONE | - |
+| `CpuCreditsEnum` | `enum` | STANDARD, UNLIMITED | - |
+| `DisassociateModeEnum` | `enum` | FORCE, NO_FORCE | - |
+| `HostnameTypeEnum` | `enum` | IP_NAME, RESOURCE_NAME | - |
+| `HttpEndpointEnum` | `enum` | ENABLED, DISABLED | - |
+| `HttpProtocolIpv6Enum` | `enum` | ENABLED, DISABLED | - |
+| `HttpTokensEnum` | `enum` | OPTIONAL, REQUIRED | - |
+| `InstanceConfigurationTenancyEnum` | `enum` | SHARED, DEDICATED | - |
+| `InstanceInterruptionBehaviorEnum` | `enum` | HIBERNATE, STOP | - |
+| `InstanceMetadataTagsEnum` | `enum` | ENABLED, DISABLED | - |
+| `InterfaceTypeEnum` | `enum` | INTERFACE, EFA, EFA_ONLY | - |
+| `MarketTypeEnum` | `enum` | SPOT, CAPACITY_BLOCK | - |
+| `PlatformTypeEnum` | `enum` | WINDOWS, WINDOWS_BYOL, LINUX_UNIX, UBUNTU_PRO, RHEL, LINUX_BYOL, SUSE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

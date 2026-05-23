@@ -61,162 +61,71 @@ Contains APIs related to model invocation and querying of knowledge bases.
 | `TaggingResource` | - | - | `ListTagsForResource`, `TagResource`, `UntagResource` | - |
 ## Operation Groups
 
-### List
-
-- Operations: `ListFlowExecutionEvents`, `ListFlowExecutions`, `ListInvocationSteps`, `ListInvocations`, `ListSessions`, `ListTagsForResource`
-- Traits: `paginated` (5), `readonly` (6)
-- Common required input members in this group: `eventType`, `executionIdentifier`, `flowAliasIdentifier`, `flowIdentifier`, `resourceArn`, `sessionIdentifier`
-
-### Get
-
-- Operations: `GetAgentMemory`, `GetExecutionFlowSnapshot`, `GetFlowExecution`, `GetInvocationStep`, `GetSession`
-- Traits: `paginated` (1), `readonly` (5)
-- Common required input members in this group: `agentAliasId`, `agentId`, `executionIdentifier`, `flowAliasIdentifier`, `flowIdentifier`, `invocationIdentifier`, `invocationStepId`, `memoryId`, `memoryType`, `sessionIdentifier`
-
-### Invoke
-
-- Operations: `InvokeAgent`, `InvokeFlow`, `InvokeInlineAgent`
-- Common required input members in this group: `agentAliasId`, `agentId`, `flowAliasIdentifier`, `flowIdentifier`, `foundationModel`, `inputs`, `instruction`, `sessionId`
-
-### Retrieve
-
-- Operations: `Retrieve`, `RetrieveAndGenerate`, `RetrieveAndGenerateStream`
-- Traits: `paginated` (1), `readonly` (1)
-- Common required input members in this group: `input`, `knowledgeBaseId`, `retrievalQuery`
-
-### Create
-
-- Operations: `CreateInvocation`, `CreateSession`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `sessionIdentifier`
-
-### Delete
-
-- Operations: `DeleteAgentMemory`, `DeleteSession`
-- Traits: `idempotent` (2)
-- Common required input members in this group: `agentAliasId`, `agentId`, `sessionIdentifier`
-
-### End
-
-- Operations: `EndSession`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `sessionIdentifier`
-
-### Generate
-
-- Operations: `GenerateQuery`
-- Traits: `readonly` (1)
-- Common required input members in this group: `queryGenerationInput`, `transformationConfiguration`
-
-### Optimize
-
-- Operations: `OptimizePrompt`
-- Common required input members in this group: `input`, `targetModelId`
-
-### Put
-
-- Operations: `PutInvocationStep`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `invocationIdentifier`, `invocationStepTime`, `payload`, `sessionIdentifier`
-
-### Rerank
-
-- Operations: `Rerank`
-- Traits: `paginated` (1)
-- Common required input members in this group: `queries`, `rerankingConfiguration`, `sources`
-
-### Start
-
-- Operations: `StartFlowExecution`
-- Common required input members in this group: `flowAliasIdentifier`, `flowIdentifier`, `inputs`
-
-### Stop
-
-- Operations: `StopFlowExecution`
-- Common required input members in this group: `executionIdentifier`, `flowAliasIdentifier`, `flowIdentifier`
-
-### Tag
-
-- Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
-
-### Untag
-
-- Operations: `UntagResource`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
-
-### Update
-
-- Operations: `UpdateSession`
-- Traits: `idempotent` (1)
-- Common required input members in this group: `sessionIdentifier`
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateInvocation` | `PUT /sessions/{sessionIdentifier}/invocations/` | `idempotent` | `sessionIdentifier` | - | `CreateInvocationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a new invocation within a session. An invocation groups the related invocation steps that store the content from a conversation. |
-| `CreateSession` | `PUT /sessions/` | `idempotent` | - | - | `CreateSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a session to temporarily store conversations for generative AI (GenAI) applications built with open-source frameworks such as LangGraph and LlamaIndex. Sessions enable you to save the state of conversations at checkpoints, with the added security and... |
-| `DeleteAgentMemory` | `DELETE /agents/{agentId}/agentAliases/{agentAliasId}/memories` | `idempotent` | `agentAliasId`, `agentId` | - | `DeleteAgentMemoryResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Deletes memory from the specified memory identifier. |
-| `DeleteSession` | `DELETE /sessions/{sessionIdentifier}/` | `idempotent` | `sessionIdentifier` | - | `DeleteSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a session that you ended. You can't delete a session with an `ACTIVE` status. |
-| `EndSession` | `PATCH /sessions/{sessionIdentifier}` | `idempotent` | `sessionIdentifier` | - | `EndSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Ends the session. After you end a session, you can still access its content but you can’t add to it. |
-| `GenerateQuery` | `POST /generateQuery` | `readonly` | `queryGenerationInput`, `transformationConfiguration` | - | `GenerateQueryResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Generates an SQL query from a natural language query. For more information, see Generate a query for structured data in the Amazon Bedrock User Guide. |
-| `GetAgentMemory` | `GET /agents/{agentId}/agentAliases/{agentAliasId}/memories` | `readonly`, `paginated` | `agentAliasId`, `agentId`, `memoryId`, `memoryType` | - | `GetAgentMemoryResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Gets the sessions stored in the memory of the agent. |
-| `GetExecutionFlowSnapshot` | `GET /flows/{flowIdentifier}/aliases/{flowAliasIdentifier}/executions/{executionIdentifier}/flowsnapshot` | `readonly` | `executionIdentifier`, `flowAliasIdentifier`, `flowIdentifier` | - | `GetExecutionFlowSnapshotResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the flow definition snapshot used for a flow execution. The snapshot represents the flow metadata and definition as it existed at the time the execution was started. |
-| `GetFlowExecution` | `GET /flows/{flowIdentifier}/aliases/{flowAliasIdentifier}/executions/{executionIdentifier}` | `readonly` | `executionIdentifier`, `flowAliasIdentifier`, `flowIdentifier` | - | `GetFlowExecutionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves details about a specific flow execution, including its status, start and end times, and any errors that occurred during execution. |
-| `GetInvocationStep` | `POST /sessions/{sessionIdentifier}/invocationSteps/{invocationStepId}` | `readonly` | `invocationIdentifier`, `invocationStepId`, `sessionIdentifier` | - | `GetInvocationStepResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the details of a specific invocation step within an invocation in a session. For more information about sessions, see Store and retrieve conversation history and context with Amazon Bedrock sessions. |
-| `GetSession` | `GET /sessions/{sessionIdentifier}/` | `readonly` | `sessionIdentifier` | - | `GetSessionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves details about a specific session. For more information about sessions, see Store and retrieve conversation history and context with Amazon Bedrock sessions. |
-| `InvokeAgent` | `POST /agents/{agentId}/agentAliases/{agentAliasId}/sessions/{sessionId}/text` | - | `agentAliasId`, `agentId`, `sessionId` | - | `InvokeAgentResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ModelNotReadyException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, ... (+2) | Sends a prompt for the agent to process and respond to. Note the following fields for the request: To continue the same conversation with an agent, use the same `sessionId` value in the request. |
-| `InvokeFlow` | `POST /flows/{flowIdentifier}/aliases/{flowAliasIdentifier}` | - | `flowAliasIdentifier`, `flowIdentifier`, `inputs` | - | `InvokeFlowResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Invokes an alias of a flow to run the inputs that you specify and return the output of each node as a stream. If there's an error, the error is returned. |
-| `InvokeInlineAgent` | `POST /agents/{sessionId}` | - | `foundationModel`, `instruction`, `sessionId` | - | `InvokeInlineAgentResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Invokes an inline Amazon Bedrock agent using the configurations you provide with the request. Specify the following fields for security purposes. |
-| `ListFlowExecutionEvents` | `GET /flows/{flowIdentifier}/aliases/{flowAliasIdentifier}/executions/{executionIdentifier}/events` | `readonly`, `paginated` | `eventType`, `executionIdentifier`, `flowAliasIdentifier`, `flowIdentifier` | - | `ListFlowExecutionEventsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists events that occurred during a flow execution. Events provide detailed information about the execution progress, including node inputs and outputs, flow inputs and outputs, condition results, and failure events. |
-| `ListFlowExecutions` | `GET /flows/{flowIdentifier}/executions` | `readonly`, `paginated` | `flowIdentifier` | - | `ListFlowExecutionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all executions of a flow. Results can be paginated and include summary information about each execution, such as status, start and end times, and the execution's Amazon Resource Name (ARN). |
-| `ListInvocationSteps` | `POST /sessions/{sessionIdentifier}/invocationSteps/` | `readonly`, `paginated` | `sessionIdentifier` | - | `ListInvocationStepsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all invocation steps associated with a session and optionally, an invocation within the session. For more information about sessions, see Store and retrieve conversation history and context with Amazon Bedrock sessions. |
-| `ListInvocations` | `POST /sessions/{sessionIdentifier}/invocations/` | `readonly`, `paginated` | `sessionIdentifier` | - | `ListInvocationsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all invocations associated with a specific session. For more information about sessions, see Store and retrieve conversation history and context with Amazon Bedrock sessions. |
-| `ListSessions` | `POST /sessions/` | `readonly`, `paginated` | - | - | `ListSessionsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all sessions in your Amazon Web Services account. For more information about sessions, see Store and retrieve conversation history and context with Amazon Bedrock sessions. |
-| `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | List all the tags for the resource you specify. |
-| `OptimizePrompt` | `POST /optimize-prompt` | - | `input`, `targetModelId` | - | `OptimizePromptResponse` | `AccessDeniedException`, `BadGatewayException`, `DependencyFailedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Optimizes a prompt for the task that you specify. For more information, see Optimize a prompt in the Amazon Bedrock User Guide. |
-| `PutInvocationStep` | `PUT /sessions/{sessionIdentifier}/invocationSteps/` | `idempotent` | `invocationIdentifier`, `invocationStepTime`, `payload`, `sessionIdentifier` | - | `PutInvocationStepResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Add an invocation step to an invocation in a session. An invocation step stores fine-grained state checkpoints, including text and images, for each interaction. |
-| `Rerank` | `POST /rerank` | `paginated` | `queries`, `rerankingConfiguration`, `sources` | - | `RerankResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Reranks the relevance of sources based on queries. For more information, see Improve the relevance of query responses with a reranker model. |
-| `Retrieve` | `POST /knowledgebases/{knowledgeBaseId}/retrieve` | `readonly`, `paginated` | `knowledgeBaseId`, `retrievalQuery` | - | `RetrieveResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Queries a knowledge base and retrieves information from it. |
-| `RetrieveAndGenerate` | `POST /retrieveAndGenerate` | - | `input` | - | `RetrieveAndGenerateResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Queries a knowledge base and generates responses based on the retrieved results and using the specified foundation model or inference profile. The response only cites sources that are relevant to the query. |
-| `RetrieveAndGenerateStream` | `POST /retrieveAndGenerateStream` | - | `input` | - | `RetrieveAndGenerateStreamResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Queries a knowledge base and generates responses based on the retrieved results, with output in streaming format. The CLI doesn't support streaming operations in Amazon Bedrock, including `InvokeModelWithResponseStream`. |
-| `StartFlowExecution` | `POST /flows/{flowIdentifier}/aliases/{flowAliasIdentifier}/executions` | - | `flowAliasIdentifier`, `flowIdentifier`, `inputs` | - | `StartFlowExecutionResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Starts an execution of an Amazon Bedrock flow. Unlike flows that run until completion or time out after five minutes, flow executions let you run flows asynchronously for longer durations. |
-| `StopFlowExecution` | `POST /flows/{flowIdentifier}/aliases/{flowAliasIdentifier}/executions/{executionIdentifier}/stop` | - | `executionIdentifier`, `flowAliasIdentifier`, `flowIdentifier` | - | `StopFlowExecutionResponse` | `AccessDeniedException`, `BadGatewayException`, `ConflictException`, `DependencyFailedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops an Amazon Bedrock flow's execution. This operation prevents further processing of the flow and changes the execution status to `Aborted`. |
-| `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Associate tags with a resource. For more information, see Tagging resources in the Amazon Bedrock User Guide. |
-| `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Remove tags from a resource. |
-| `UpdateSession` | `PUT /sessions/{sessionIdentifier}/` | `idempotent` | `sessionIdentifier` | - | `UpdateSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the metadata or encryption settings of a session. For more information about sessions, see Store and retrieve conversation history and context with Amazon Bedrock sessions. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | The request is denied because of missing access permissions. |
-| `InternalServerException` | `structure` | `message`, `reason` | An internal server error occurred. |
-| `ThrottlingException` | `structure` | `message` | The number of requests exceeds the limit. |
-| `ValidationException` | `structure` | `message` | Input validation failed. |
-| `ResourceNotFoundException` | `structure` | `message` | The specified resource Amazon Resource Name (ARN) was not found. |
-| `ConflictException` | `structure` | `message` | There was a conflict performing an operation. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The number of requests exceeds the service quota. |
-| `BadGatewayException` | `structure` | `message`, `resourceName` | There was an issue with a dependency due to a server issue. |
-| `DependencyFailedException` | `structure` | `message`, `resourceName` | There was an issue with a dependency. |
-| `CreateInvocationRequest` | `structure` | `description`, `invocationId`, `sessionIdentifier` | - |
-| `CreateInvocationResponse` | `structure` | `createdAt`, `invocationId`, `sessionId` | - |
-| `CreateSessionRequest` | `structure` | `encryptionKeyArn`, `sessionMetadata`, `tags` | - |
-| `CreateSessionResponse` | `structure` | `createdAt`, `sessionArn`, `sessionId`, `sessionStatus` | - |
-| `DeleteAgentMemoryRequest` | `structure` | `agentAliasId`, `agentId`, `memoryId`, `sessionId` | - |
-| `DeleteAgentMemoryResponse` | `structure` | - | - |
-| `DeleteSessionRequest` | `structure` | `sessionIdentifier` | - |
-| `DeleteSessionResponse` | `structure` | - | - |
-| `EndSessionRequest` | `structure` | `sessionIdentifier` | - |
-| `EndSessionResponse` | `structure` | `sessionArn`, `sessionId`, `sessionStatus` | - |
-| `GenerateQueryRequest` | `structure` | `queryGenerationInput`, `transformationConfiguration` | - |
-| `GenerateQueryResponse` | `structure` | `queries` | - |
-| `GetAgentMemoryRequest` | `structure` | `agentAliasId`, `agentId`, `maxItems`, `memoryId`, `memoryType`, `nextToken` | - |
-| `GetAgentMemoryResponse` | `structure` | `memoryContents`, `nextToken` | - |
-| `GetExecutionFlowSnapshotRequest` | `structure` | `executionIdentifier`, `flowAliasIdentifier`, `flowIdentifier` | - |
-
+| `AccessDeniedException` | `structure` | message | The request is denied because of missing access permissions. Check your permissions and retry your request. |
+| `BadGatewayException` | `structure` | message, resourceName | There was an issue with a dependency due to a server issue. Retry your request. |
+| `ConflictException` | `structure` | message | There was a conflict performing an operation. Resolve the conflict and retry your request. |
+| `DependencyFailedException` | `structure` | message, resourceName | There was an issue with a dependency. Check the resource configurations and retry the request. |
+| `InternalServerException` | `structure` | message, reason | An internal server error occurred. Retry your request. |
+| `ModelNotReadyException` | `structure` | message | The model specified in the request is not ready to serve inference requests. The AWS SDK will automatically retry the operation up to 5 times. For informati ... |
+| `ResourceNotFoundException` | `structure` | message | The specified resource Amazon Resource Name (ARN) was not found. Check the Amazon Resource Name (ARN) and try your request again. |
+| `ServiceQuotaExceededException` | `structure` | message | The number of requests exceeds the service quota. Resubmit your request later. |
+| `ThrottlingException` | `structure` | message | The number of requests exceeds the limit. Resubmit your request later. |
+| `ValidationException` | `structure` | message | Input validation failed. Check your request parameters and retry the request. |
+| `ActionGroupSignature` | `enum` | AMAZON_USERINPUT, AMAZON_CODEINTERPRETER, ANTHROPIC_COMPUTER, ANTHROPIC_BASH, ANTHROPIC_TEXTEDITOR | - |
+| `ActionInvocationType` | `enum` | RESULT, USER_CONFIRMATION, USER_CONFIRMATION_AND_RESULT | - |
+| `AgentCollaboration` | `enum` | SUPERVISOR, SUPERVISOR_ROUTER, DISABLED | - |
+| `AttributeType` | `enum` | STRING, NUMBER, BOOLEAN, STRING_LIST | - |
+| `ConfirmationState` | `enum` | CONFIRM, DENY | - |
+| `ConversationRole` | `enum` | USER, ASSISTANT | - |
+| `CreationMode` | `enum` | DEFAULT, OVERRIDDEN | - |
+| `CustomControlMethod` | `enum` | RETURN_CONTROL | - |
+| `ExecutionType` | `enum` | LAMBDA, RETURN_CONTROL | - |
+| `ExternalSourceType` | `enum` | S3, BYTE_CONTENT | - |
+| `FileSourceType` | `enum` | S3, BYTE_CONTENT | - |
+| `FileUseCase` | `enum` | CODE_INTERPRETER, CHAT | - |
+| `FlowCompletionReason` | `enum` | SUCCESS, INPUT_REQUIRED | - |
+| `FlowControlNodeType` | `enum` | ITERATOR, LOOP | - |
+| `FlowErrorCode` | `enum` | VALIDATION, INTERNAL_SERVER, NODE_EXECUTION_FAILED | - |
+| `FlowExecutionErrorType` | `enum` | TIMED_OUT | - |
+| `FlowExecutionEventType` | `enum` | NODE, FLOW | - |
+| `FlowExecutionStatus` | `enum` | RUNNING, SUCCEEDED, FAILED, TIMED_OUT, ABORTED | - |
+| `FlowNodeIODataType` | `enum` | STRING, NUMBER, BOOLEAN, OBJECT, ARRAY | - |
+| `FlowNodeInputCategory` | `enum` | LOOP_CONDITION, RETURN_VALUE_TO_LOOP_START, EXIT_LOOP | - |
+| `GeneratedQueryType` | `enum` | REDSHIFT_SQL | - |
+| `GuadrailAction` | `enum` | INTERVENED, NONE | - |
+| `GuardrailAction` | `enum` | INTERVENED, NONE | - |
+| `GuardrailContentFilterConfidence` | `enum` | NONE, LOW, MEDIUM, HIGH | - |
+| `GuardrailContentFilterType` | `enum` | INSULTS, HATE, SEXUAL, VIOLENCE, MISCONDUCT, PROMPT_ATTACK | - |
+| `GuardrailContentPolicyAction` | `enum` | BLOCKED | - |
+| `GuardrailManagedWordType` | `enum` | PROFANITY | - |
+| `GuardrailPiiEntityType` | `enum` | ADDRESS, AGE, AWS_ACCESS_KEY, AWS_SECRET_KEY, CA_HEALTH_NUMBER, CA_SOCIAL_INSURANCE_NUMBER, CREDIT_DEBIT_CARD_CVV, CREDIT_DEBIT_CARD_EXPIRY, CREDIT_DEBIT_CARD_NUMBER, DRIVER_ID, EMAIL, INTERNATIONAL_BANK_ACCOUNT_NUMBER, ... (+19) | - |
+| `GuardrailSensitiveInformationPolicyAction` | `enum` | BLOCKED, ANONYMIZED | - |
+| `GuardrailTopicPolicyAction` | `enum` | BLOCKED | - |
+| `GuardrailTopicType` | `enum` | DENY | - |
+| `GuardrailWordPolicyAction` | `enum` | BLOCKED | - |
+| `ImageFormat` | `enum` | PNG, JPEG, GIF, WEBP | - |
+| `ImageInputFormat` | `enum` | PNG, JPEG, GIF, WEBP | - |
+| `InputImageFormat` | `enum` | png, jpeg, gif, webp | - |
+| `InputQueryType` | `enum` | TEXT | - |
+| `InvocationType` | `enum` | ACTION_GROUP, KNOWLEDGE_BASE, FINISH, ACTION_GROUP_CODE_INTERPRETER, AGENT_COLLABORATOR | - |
+| `KnowledgeBaseQueryType` | `enum` | TEXT, IMAGE | - |
+| `MemoryType` | `enum` | SESSION_SUMMARY | - |
+| `NodeErrorCode` | `enum` | VALIDATION, DEPENDENCY_FAILED, BAD_GATEWAY, INTERNAL_SERVER | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

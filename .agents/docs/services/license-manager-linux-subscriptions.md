@@ -42,43 +42,43 @@ With License Manager, you can discover and track your commercial Linux subscript
 
 - Operations: `ListLinuxSubscriptionInstances`, `ListLinuxSubscriptions`, `ListRegisteredSubscriptionProviders`, `ListTagsForResource`
 - Traits: `idempotent` (3), `paginated` (3), `readonly` (1)
-- Common required input members in this group: `resourceArn`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetRegisteredSubscriptionProvider`, `GetServiceSettings`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `SubscriptionProviderArn`
+- Common required input members in this group: -
 
 ### Deregister
 
 - Operations: `DeregisterSubscriptionProvider`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `SubscriptionProviderArn`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterSubscriptionProvider`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `SecretArn`, `SubscriptionProviderSource`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateServiceSettings`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `LinuxSubscriptionsDiscovery`, `LinuxSubscriptionsDiscoverySettings`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
@@ -91,40 +91,49 @@ With License Manager, you can discover and track your commercial Linux subscript
 | `ListLinuxSubscriptions` | `POST /subscription/ListLinuxSubscriptions` | `idempotent`, `paginated` | - | - | `ListLinuxSubscriptionsResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the Linux subscriptions that have been discovered. If you have linked your organization, the returned results will include data aggregated across your accounts in Organizations. |
 | `ListRegisteredSubscriptionProviders` | `POST /subscription/ListRegisteredSubscriptionProviders` | `idempotent`, `paginated` | - | - | `ListRegisteredSubscriptionProvidersResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | List Bring Your Own License (BYOL) subscription registration resources for your account. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | List the metadata tags that are assigned to the specified Amazon Web Services resource. |
-| `RegisterSubscriptionProvider` | `POST /subscription/RegisterSubscriptionProvider` | `idempotent` | `SecretArn`, `SubscriptionProviderSource` | - | `RegisterSubscriptionProviderResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Register the supported third-party subscription provider for your Bring Your Own License (BYOL) subscription. |
+| `RegisterSubscriptionProvider` | `POST /subscription/RegisterSubscriptionProvider` | `idempotent` | `SubscriptionProviderSource`, `SecretArn` | - | `RegisterSubscriptionProviderResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Register the supported third-party subscription provider for your Bring Your Own License (BYOL) subscription. |
 | `TagResource` | `PUT /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Add metadata tags to the specified Amazon Web Services resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException` | Remove one or more metadata tag from the specified Amazon Web Services resource. |
 | `UpdateServiceSettings` | `POST /subscription/UpdateServiceSettings` | `idempotent` | `LinuxSubscriptionsDiscovery`, `LinuxSubscriptionsDiscoverySettings` | - | `UpdateServiceSettingsResponse` | `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates the service settings for Linux subscriptions. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | An exception occurred with the service. |
-| `ValidationException` | `structure` | `message` | The provided input is not valid. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `ResourceNotFoundException` | `structure` | `message` | Unable to find the requested Amazon Web Services resource. |
-| `DeregisterSubscriptionProviderRequest` | `structure` | `SubscriptionProviderArn` | - |
-| `DeregisterSubscriptionProviderResponse` | `structure` | - | - |
-| `GetRegisteredSubscriptionProviderRequest` | `structure` | `SubscriptionProviderArn` | - |
-| `GetRegisteredSubscriptionProviderResponse` | `structure` | `LastSuccessfulDataRetrievalTime`, `SecretArn`, `SubscriptionProviderArn`, `SubscriptionProviderSource`, `SubscriptionProviderStatus`, `SubscriptionProviderStatusMessage` | - |
-| `GetServiceSettingsRequest` | `structure` | - | - |
-| `GetServiceSettingsResponse` | `structure` | `HomeRegions`, `LinuxSubscriptionsDiscovery`, `LinuxSubscriptionsDiscoverySettings`, `Status`, `StatusMessage` | - |
-| `ListLinuxSubscriptionInstancesRequest` | `structure` | `Filters`, `MaxResults`, `NextToken` | NextToken length limit is half of ddb accepted limit. |
-| `ListLinuxSubscriptionInstancesResponse` | `structure` | `Instances`, `NextToken` | - |
-| `ListLinuxSubscriptionsRequest` | `structure` | `Filters`, `MaxResults`, `NextToken` | NextToken length limit is half of ddb accepted limit. |
-| `ListLinuxSubscriptionsResponse` | `structure` | `NextToken`, `Subscriptions` | - |
-| `ListRegisteredSubscriptionProvidersRequest` | `structure` | `MaxResults`, `NextToken`, `SubscriptionProviderSources` | - |
-| `ListRegisteredSubscriptionProvidersResponse` | `structure` | `NextToken`, `RegisteredSubscriptionProviders` | - |
-| `ListTagsForResourceRequest` | `structure` | `resourceArn` | - |
-| `ListTagsForResourceResponse` | `structure` | `tags` | - |
-| `RegisterSubscriptionProviderRequest` | `structure` | `SecretArn`, `SubscriptionProviderSource`, `Tags` | - |
-| `RegisterSubscriptionProviderResponse` | `structure` | `SubscriptionProviderArn`, `SubscriptionProviderSource`, `SubscriptionProviderStatus` | - |
-| `TagResourceRequest` | `structure` | `resourceArn`, `tags` | - |
-| `TagResourceResponse` | `structure` | - | - |
-| `UntagResourceRequest` | `structure` | `resourceArn`, `tagKeys` | - |
-| `UntagResourceResponse` | `structure` | - | - |
-
+| `InternalServerException` | `structure` | message | An exception occurred with the service. |
+| `ResourceNotFoundException` | `structure` | message | Unable to find the requested Amazon Web Services resource. |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message | The provided input is not valid. Try your request again. |
+| `DeregisterSubscriptionProviderRequest` | `structure` | SubscriptionProviderArn | - |
+| `DeregisterSubscriptionProviderResponse` | `structure` | **empty (no members)** | - |
+| `GetRegisteredSubscriptionProviderRequest` | `structure` | SubscriptionProviderArn | - |
+| `GetRegisteredSubscriptionProviderResponse` | `structure` | SubscriptionProviderArn, SubscriptionProviderSource, SecretArn, SubscriptionProviderStatus, SubscriptionProviderStatusMessage, LastSuccessfulDataRetrievalTime | - |
+| `GetServiceSettingsRequest` | `structure` | **empty (no members)** | - |
+| `GetServiceSettingsResponse` | `structure` | LinuxSubscriptionsDiscovery, LinuxSubscriptionsDiscoverySettings, Status, StatusMessage, HomeRegions | - |
+| `ListLinuxSubscriptionInstancesRequest` | `structure` | Filters, MaxResults, NextToken | NextToken length limit is half of ddb accepted limit. Increase this limit if parameters in request increases. |
+| `ListLinuxSubscriptionInstancesResponse` | `structure` | Instances, NextToken | - |
+| `ListLinuxSubscriptionsRequest` | `structure` | Filters, MaxResults, NextToken | NextToken length limit is half of ddb accepted limit. Increase this limit if parameters in request increases. |
+| `ListLinuxSubscriptionsResponse` | `structure` | Subscriptions, NextToken | - |
+| `ListRegisteredSubscriptionProvidersRequest` | `structure` | SubscriptionProviderSources, MaxResults, NextToken | - |
+| `ListRegisteredSubscriptionProvidersResponse` | `structure` | RegisteredSubscriptionProviders, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `RegisterSubscriptionProviderRequest` | `structure` | SubscriptionProviderSource, SecretArn, Tags | - |
+| `RegisterSubscriptionProviderResponse` | `structure` | SubscriptionProviderSource, SubscriptionProviderArn, SubscriptionProviderStatus | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UpdateServiceSettingsRequest` | `structure` | LinuxSubscriptionsDiscovery, LinuxSubscriptionsDiscoverySettings, AllowUpdate | - |
+| `UpdateServiceSettingsResponse` | `structure` | LinuxSubscriptionsDiscovery, LinuxSubscriptionsDiscoverySettings, Status, StatusMessage, HomeRegions | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -43,86 +43,95 @@ Amazon Kendra Intelligent Ranking uses Amazon Kendra semantic search capabilitie
 
 - Operations: `ListRescoreExecutionPlans`, `ListTagsForResource`
 - Traits: `paginated` (1)
-- Common required input members in this group: `ResourceARN`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateRescoreExecutionPlan`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `Name`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteRescoreExecutionPlan`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Describe
 
 - Operations: `DescribeRescoreExecutionPlan`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ### Rescore
 
 - Operations: `Rescore`
-- Common required input members in this group: `Documents`, `RescoreExecutionPlanId`, `SearchQuery`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `ResourceARN`, `Tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `ResourceARN`, `TagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateRescoreExecutionPlan`
-- Common required input members in this group: `Id`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateRescoreExecutionPlan` | `POST /rescore-execution-plans` | `idempotency-token` | `Name` | `ClientToken` | `CreateRescoreExecutionPlanResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the `Rescore` API. |
-| `DeleteRescoreExecutionPlan` | `DELETE /rescore-execution-plans/{Id}` | - | `Id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the `Rescore` API. |
-| `DescribeRescoreExecutionPlan` | `GET /rescore-execution-plans/{Id}` | - | `Id` | - | `DescribeRescoreExecutionPlanResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the `Rescore` API. |
-| `ListRescoreExecutionPlans` | `GET /rescore-execution-plans` | `paginated` | - | - | `ListRescoreExecutionPlansResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists your rescore execution plans. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the `Rescore` API. |
-| `ListTagsForResource` | - | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets a list of tags associated with a specified resource. A rescore execution plan is an example of a resource that can have tags associated with it. |
-| `Rescore` | `POST /rescore-execution-plans/{RescoreExecutionPlanId}/rescore` | - | `Documents`, `RescoreExecutionPlanId`, `SearchQuery` | - | `RescoreResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Rescores or re-ranks search results from a search service such as OpenSearch (self managed). You use the semantic search capabilities of Amazon Kendra Intelligent Ranking to improve the search service's results. |
-| `TagResource` | - | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceUnavailableException`, `ThrottlingException`, `ValidationException` | Adds a specified tag to a specified rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the `Rescore` API. |
-| `UntagResource` | - | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceUnavailableException`, `ThrottlingException`, `ValidationException` | Removes a tag from a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the `Rescore` operation. |
-| `UpdateRescoreExecutionPlan` | `PUT /rescore-execution-plans/{Id}` | - | `Id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the `Rescore` API. |
+| `CreateRescoreExecutionPlan` | `POST /rescore-execution-plans` | `idempotency-token` | `Name` | `ClientToken` | `CreateRescoreExecutionPlanResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the Rescore API. You set the number of capacity units that you require for Amazon Kend ... |
+| `DeleteRescoreExecutionPlan` | `DELETE /rescore-execution-plans/{Id}` | - | `Id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the Rescore API. |
+| `DescribeRescoreExecutionPlan` | `GET /rescore-execution-plans/{Id}` | - | `Id` | - | `DescribeRescoreExecutionPlanResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the Rescore API. |
+| `ListRescoreExecutionPlans` | `GET /rescore-execution-plans` | `paginated` | - | - | `ListRescoreExecutionPlansResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists your rescore execution plans. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the Rescore API. |
+| `ListTagsForResource` | `-` | - | `ResourceARN` | - | `ListTagsForResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceUnavailableException`, `ThrottlingException`, `ValidationException` | Gets a list of tags associated with a specified resource. A rescore execution plan is an example of a resource that can have tags associated with it. |
+| `Rescore` | `POST /rescore-execution-plans/{RescoreExecutionPlanId}/rescore` | - | `RescoreExecutionPlanId`, `SearchQuery`, `Documents` | - | `RescoreResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Rescores or re-ranks search results from a search service such as OpenSearch (self managed). You use the semantic search capabilities of Amazon Kendra Intelligent Ranking to improve the search service's results. |
+| `TagResource` | `-` | - | `ResourceARN`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceUnavailableException`, `ThrottlingException`, `ValidationException` | Adds a specified tag to a specified rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the Rescore API. If the tag already exists, the existing val ... |
+| `UntagResource` | `-` | - | `ResourceARN`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceUnavailableException`, `ThrottlingException`, `ValidationException` | Removes a tag from a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the Rescore operation. |
+| `UpdateRescoreExecutionPlan` | `PUT /rescore-execution-plans/{Id}` | - | `Id` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisioning the Rescore API. You can update the number of capacity units you require for Amazon Ke ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListRescoreExecutionPlans` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `Message` | You don’t have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `Message` | An issue occurred with the internal server used for your Amazon Kendra Intelligent Ranking service. |
-| `ThrottlingException` | `structure` | `Message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `Message` | The input fails to satisfy the constraints set by the Amazon Kendra Intelligent Ranking service. |
-| `ConflictException` | `structure` | `Message` | A conflict occurred with the request. |
-| `ResourceNotFoundException` | `structure` | `Message` | The resource you want to use doesn't exist. |
-| `ResourceUnavailableException` | `structure` | `Message` | The resource you want to use is unavailable. |
-| `ServiceQuotaExceededException` | `structure` | `Message` | You have exceeded the set limits for your Amazon Kendra Intelligent Ranking service. |
-| `CreateRescoreExecutionPlanRequest` | `structure` | `CapacityUnits`, `ClientToken`, `Description`, `Name`, `Tags` | - |
-| `CreateRescoreExecutionPlanResponse` | `structure` | `Arn`, `Id` | - |
-| `DeleteRescoreExecutionPlanRequest` | `structure` | `Id` | - |
-| `DescribeRescoreExecutionPlanRequest` | `structure` | `Id` | - |
-| `DescribeRescoreExecutionPlanResponse` | `structure` | `Arn`, `CapacityUnits`, `CreatedAt`, `Description`, `ErrorMessage`, `Id`, `Name`, `Status`, `UpdatedAt` | - |
-| `ListRescoreExecutionPlansRequest` | `structure` | `MaxResults`, `NextToken` | - |
-| `ListRescoreExecutionPlansResponse` | `structure` | `NextToken`, `SummaryItems` | - |
-| `ListTagsForResourceRequest` | `structure` | `ResourceARN` | The request information for listing tags associated with a rescore execution plan. |
-| `ListTagsForResourceResponse` | `structure` | `Tags` | If the action is successful, the service sends back an HTTP 200 response. |
-| `RescoreRequest` | `structure` | `Documents`, `RescoreExecutionPlanId`, `SearchQuery` | - |
-| `RescoreResult` | `structure` | `RescoreId`, `ResultItems` | - |
-| `TagResourceRequest` | `structure` | `ResourceARN`, `Tags` | The request information for tagging a rescore execution plan. |
-| `TagResourceResponse` | `structure` | - | If the action is successful, the service sends back an HTTP 200 response with an empty HTTP body. |
-| `UntagResourceRequest` | `structure` | `ResourceARN`, `TagKeys` | The request information to remove a tag from a rescore execution plan. |
-| `UntagResourceResponse` | `structure` | - | If the action is successful, the service sends back an HTTP 200 response with an empty HTTP body. |
-
+| `AccessDeniedException` | `structure` | Message | You don’t have sufficient access to perform this action. Please ensure you have the required permission policies and user accounts and try again. |
+| `ConflictException` | `structure` | Message | A conflict occurred with the request. Please fix any inconsistencies with your resources and try again. |
+| `InternalServerException` | `structure` | Message | An issue occurred with the internal server used for your Amazon Kendra Intelligent Ranking service. Please wait a few minutes and try again, or contact Supp ... |
+| `ResourceNotFoundException` | `structure` | Message | The resource you want to use doesn't exist. Please check you have provided the correct resource and try again. |
+| `ResourceUnavailableException` | `structure` | Message | The resource you want to use is unavailable. Please check you have provided the correct resource information and try again. |
+| `ServiceQuotaExceededException` | `structure` | Message | You have exceeded the set limits for your Amazon Kendra Intelligent Ranking service. Please see Quotas for more information, or contact Support to inquire a ... |
+| `ThrottlingException` | `structure` | Message | The request was denied due to request throttling. Please reduce the number of requests and try again. |
+| `ValidationException` | `structure` | Message | The input fails to satisfy the constraints set by the Amazon Kendra Intelligent Ranking service. Please provide the correct input and try again. |
+| `CreateRescoreExecutionPlanRequest` | `structure` | Name, Description, CapacityUnits, Tags, ClientToken | - |
+| `CreateRescoreExecutionPlanResponse` | `structure` | Id, Arn | - |
+| `DeleteRescoreExecutionPlanRequest` | `structure` | Id | - |
+| `DescribeRescoreExecutionPlanRequest` | `structure` | Id | - |
+| `DescribeRescoreExecutionPlanResponse` | `structure` | Id, Arn, Name, Description, CapacityUnits, CreatedAt, UpdatedAt, Status, ErrorMessage | - |
+| `ListRescoreExecutionPlansRequest` | `structure` | NextToken, MaxResults | - |
+| `ListRescoreExecutionPlansResponse` | `structure` | SummaryItems, NextToken | - |
+| `ListTagsForResourceRequest` | `structure` | ResourceARN | The request information for listing tags associated with a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource ... |
+| `ListTagsForResourceResponse` | `structure` | Tags | If the action is successful, the service sends back an HTTP 200 response. |
+| `RescoreRequest` | `structure` | RescoreExecutionPlanId, SearchQuery, Documents | - |
+| `RescoreResult` | `structure` | RescoreId, ResultItems | - |
+| `TagResourceRequest` | `structure` | ResourceARN, Tags | The request information for tagging a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for provisionin ... |
+| `TagResourceResponse` | `structure` | **empty (no members)** | If the action is successful, the service sends back an HTTP 200 response with an empty HTTP body. |
+| `UntagResourceRequest` | `structure` | ResourceARN, TagKeys | The request information to remove a tag from a rescore execution plan. A rescore execution plan is an Amazon Kendra Intelligent Ranking resource used for pr ... |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | If the action is successful, the service sends back an HTTP 200 response with an empty HTTP body. |
+| `UpdateRescoreExecutionPlanRequest` | `structure` | Id, Name, Description, CapacityUnits | - |
+| `RescoreExecutionPlanStatus` | `enum` | CREATING, UPDATING, ACTIVE, DELETING, FAILED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -42,128 +42,171 @@ The FinSpace APIs let you take actions inside the FinSpace.
 
 ### Get
 
-- Operations: `GetChangeset`, `GetDataView`, `GetDataset`, `GetExternalDataViewAccessDetails`, `GetPermissionGroup`, `GetProgrammaticAccessCredentials`, `GetUser`, `GetWorkingLocation`
-- Common required input members in this group: `changesetId`, `dataViewId`, `datasetId`, `environmentId`, `permissionGroupId`, `userId`
+- Operations: `GetChangeset`, `GetDataset`, `GetDataView`, `GetExternalDataViewAccessDetails`, `GetPermissionGroup`, `GetProgrammaticAccessCredentials`, `GetUser`, `GetWorkingLocation`
+- Common required input members in this group: `datasetId`, `dataViewId`
 
 ### List
 
-- Operations: `ListChangesets`, `ListDataViews`, `ListDatasets`, `ListPermissionGroups`, `ListPermissionGroupsByUser`, `ListUsers`, `ListUsersByPermissionGroup`
+- Operations: `ListChangesets`, `ListDatasets`, `ListDataViews`, `ListPermissionGroups`, `ListPermissionGroupsByUser`, `ListUsers`, `ListUsersByPermissionGroup`
 - Traits: `paginated` (5)
-- Common required input members in this group: `datasetId`, `maxResults`, `permissionGroupId`, `userId`
+- Common required input members in this group: `datasetId`, `maxResults`
 
 ### Create
 
-- Operations: `CreateChangeset`, `CreateDataView`, `CreateDataset`, `CreatePermissionGroup`, `CreateUser`
+- Operations: `CreateChangeset`, `CreateDataset`, `CreateDataView`, `CreatePermissionGroup`, `CreateUser`
 - Traits: `idempotency-token` (5)
-- Common required input members in this group: `applicationPermissions`, `changeType`, `datasetId`, `datasetTitle`, `destinationTypeParams`, `emailAddress`, `formatParams`, `kind`, `name`, `permissionGroupParams`, `sourceParams`, `type`
+- Common required input members in this group: `datasetId`
 
 ### Update
 
 - Operations: `UpdateChangeset`, `UpdateDataset`, `UpdatePermissionGroup`, `UpdateUser`
 - Traits: `idempotency-token` (4)
-- Common required input members in this group: `changesetId`, `datasetId`, `datasetTitle`, `formatParams`, `kind`, `permissionGroupId`, `sourceParams`, `userId`
+- Common required input members in this group: `datasetId`
 
 ### Delete
 
 - Operations: `DeleteDataset`, `DeletePermissionGroup`
 - Traits: `idempotency-token` (2)
-- Common required input members in this group: `datasetId`, `permissionGroupId`
+- Common required input members in this group: -
 
 ### Associate
 
 - Operations: `AssociateUserToPermissionGroup`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `permissionGroupId`, `userId`
+- Common required input members in this group: -
 
 ### Disable
 
 - Operations: `DisableUser`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `userId`
+- Common required input members in this group: -
 
 ### Disassociate
 
 - Operations: `DisassociateUserFromPermissionGroup`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `permissionGroupId`, `userId`
+- Common required input members in this group: -
 
 ### Enable
 
 - Operations: `EnableUser`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `userId`
+- Common required input members in this group: -
 
 ### Reset
 
 - Operations: `ResetUserPassword`
 - Traits: `idempotency-token` (1)
-- Common required input members in this group: `userId`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
 | `AssociateUserToPermissionGroup` | `POST /permission-group/{permissionGroupId}/users/{userId}` | `idempotency-token` | `permissionGroupId`, `userId` | `clientToken` | `AssociateUserToPermissionGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Adds a user to a permission group to grant permissions for actions a user can perform in FinSpace. |
-| `CreateChangeset` | `POST /datasets/{datasetId}/changesetsv2` | `idempotency-token` | `changeType`, `datasetId`, `formatParams`, `sourceParams` | `clientToken` | `CreateChangesetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new Changeset in a FinSpace Dataset. |
-| `CreateDataView` | `POST /datasets/{datasetId}/dataviewsv2` | `idempotency-token` | `datasetId`, `destinationTypeParams` | `clientToken` | `CreateDataViewResponse` | `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a Dataview for a Dataset. |
+| `CreateChangeset` | `POST /datasets/{datasetId}/changesetsv2` | `idempotency-token` | `datasetId`, `changeType`, `sourceParams`, `formatParams` | `clientToken` | `CreateChangesetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new Changeset in a FinSpace Dataset. |
 | `CreateDataset` | `POST /datasetsv2` | `idempotency-token` | `datasetTitle`, `kind`, `permissionGroupParams` | `clientToken` | `CreateDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a new FinSpace Dataset. |
-| `CreatePermissionGroup` | `POST /permission-group` | `idempotency-token` | `applicationPermissions`, `name` | `clientToken` | `CreatePermissionGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a group of permissions for various actions that a user can perform in FinSpace. |
+| `CreateDataView` | `POST /datasets/{datasetId}/dataviewsv2` | `idempotency-token` | `datasetId`, `destinationTypeParams` | `clientToken` | `CreateDataViewResponse` | `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Creates a Dataview for a Dataset. |
+| `CreatePermissionGroup` | `POST /permission-group` | `idempotency-token` | `name`, `applicationPermissions` | `clientToken` | `CreatePermissionGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a group of permissions for various actions that a user can perform in FinSpace. |
 | `CreateUser` | `POST /user` | `idempotency-token` | `emailAddress`, `type` | `clientToken` | `CreateUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ThrottlingException`, `ValidationException` | Creates a new user in FinSpace. |
 | `DeleteDataset` | `DELETE /datasetsv2/{datasetId}` | `idempotency-token` | `datasetId` | `clientToken` | `DeleteDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a FinSpace Dataset. |
 | `DeletePermissionGroup` | `DELETE /permission-group/{permissionGroupId}` | `idempotency-token` | `permissionGroupId` | `clientToken` | `DeletePermissionGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Deletes a permission group. This action is irreversible. |
 | `DisableUser` | `POST /user/{userId}/disable` | `idempotency-token` | `userId` | `clientToken` | `DisableUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Denies access to the FinSpace web application and API for the specified user. |
 | `DisassociateUserFromPermissionGroup` | `DELETE /permission-group/{permissionGroupId}/users/{userId}` | `idempotency-token` | `permissionGroupId`, `userId` | `clientToken` | `DisassociateUserFromPermissionGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a user from a permission group. |
 | `EnableUser` | `POST /user/{userId}/enable` | `idempotency-token` | `userId` | `clientToken` | `EnableUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Allows the specified user to access the FinSpace web application and API. |
-| `GetChangeset` | `GET /datasets/{datasetId}/changesetsv2/{changesetId}` | - | `changesetId`, `datasetId` | - | `GetChangesetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get information about a Changeset. |
-| `GetDataView` | `GET /datasets/{datasetId}/dataviewsv2/{dataViewId}` | - | `dataViewId`, `datasetId` | - | `GetDataViewResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a Dataview. |
+| `GetChangeset` | `GET /datasets/{datasetId}/changesetsv2/{changesetId}` | - | `datasetId`, `changesetId` | - | `GetChangesetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Get information about a Changeset. |
 | `GetDataset` | `GET /datasetsv2/{datasetId}` | - | `datasetId` | - | `GetDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns information about a Dataset. |
-| `GetExternalDataViewAccessDetails` | `POST /datasets/{datasetId}/dataviewsv2/{dataViewId}/external-access-details` | - | `dataViewId`, `datasetId` | - | `GetExternalDataViewAccessDetailsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the credentials to access the external Dataview from an S3 location. To call this API: You must retrieve the programmatic credentials. |
+| `GetDataView` | `GET /datasets/{datasetId}/dataviewsv2/{dataViewId}` | - | `dataViewId`, `datasetId` | - | `GetDataViewResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Gets information about a Dataview. |
+| `GetExternalDataViewAccessDetails` | `POST /datasets/{datasetId}/dataviewsv2/{dataViewId}/external-access-details` | - | `dataViewId`, `datasetId` | - | `GetExternalDataViewAccessDetailsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Returns the credentials to access the external Dataview from an S3 location. To call this API: You must retrieve the programmatic credentials. You must be a member of a FinSpace user group, where the dataset that you ... |
 | `GetPermissionGroup` | `GET /permission-group/{permissionGroupId}` | - | `permissionGroupId` | - | `GetPermissionGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves the details of a specific permission group. |
-| `GetProgrammaticAccessCredentials` | `GET /credentials/programmatic` | - | `environmentId` | - | `GetProgrammaticAccessCredentialsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Request programmatic credentials to use with FinSpace SDK. For more information, see Step 2. |
+| `GetProgrammaticAccessCredentials` | `GET /credentials/programmatic` | - | `environmentId` | - | `GetProgrammaticAccessCredentialsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Request programmatic credentials to use with FinSpace SDK. For more information, see Step 2. Access credentials programmatically using IAM access key id and secret access key . |
 | `GetUser` | `GET /user/{userId}` | - | `userId` | - | `GetUserResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Retrieves details for a specific user. |
 | `GetWorkingLocation` | `POST /workingLocationV1` | - | - | - | `GetWorkingLocationResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | A temporary Amazon S3 location, where you can copy your files from a source location to stage or use as a scratch space in FinSpace notebook. |
 | `ListChangesets` | `GET /datasets/{datasetId}/changesetsv2` | `paginated` | `datasetId` | - | `ListChangesetsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists the FinSpace Changesets for a Dataset. |
-| `ListDataViews` | `GET /datasets/{datasetId}/dataviewsv2` | `paginated` | `datasetId` | - | `ListDataViewsResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all available Dataviews for a Dataset. |
 | `ListDatasets` | `GET /datasetsv2` | `paginated` | - | - | `ListDatasetsResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all of the active Datasets that a user has access to. |
+| `ListDataViews` | `GET /datasets/{datasetId}/dataviewsv2` | `paginated` | `datasetId` | - | `ListDataViewsResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all available Dataviews for a Dataset. |
 | `ListPermissionGroups` | `GET /permission-group` | `paginated` | `maxResults` | - | `ListPermissionGroupsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all available permission groups in FinSpace. |
-| `ListPermissionGroupsByUser` | `GET /user/{userId}/permission-groups` | - | `maxResults`, `userId` | - | `ListPermissionGroupsByUserResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the permission groups that are associated with a specific user. |
+| `ListPermissionGroupsByUser` | `GET /user/{userId}/permission-groups` | - | `userId`, `maxResults` | - | `ListPermissionGroupsByUserResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all the permission groups that are associated with a specific user. |
 | `ListUsers` | `GET /user` | `paginated` | `maxResults` | - | `ListUsersResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists all available users in FinSpace. |
-| `ListUsersByPermissionGroup` | `GET /permission-group/{permissionGroupId}/users` | - | `maxResults`, `permissionGroupId` | - | `ListUsersByPermissionGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists details of all the users in a specific permission group. |
-| `ResetUserPassword` | `POST /user/{userId}/password` | `idempotency-token` | `userId` | `clientToken` | `ResetUserPasswordResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Resets the password for a specified user ID and generates a temporary one. Only a superuser can reset password for other users. |
-| `UpdateChangeset` | `PUT /datasets/{datasetId}/changesetsv2/{changesetId}` | `idempotency-token` | `changesetId`, `datasetId`, `formatParams`, `sourceParams` | `clientToken` | `UpdateChangesetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a FinSpace Changeset. |
+| `ListUsersByPermissionGroup` | `GET /permission-group/{permissionGroupId}/users` | - | `permissionGroupId`, `maxResults` | - | `ListUsersByPermissionGroupResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists details of all the users in a specific permission group. |
+| `ResetUserPassword` | `POST /user/{userId}/password` | `idempotency-token` | `userId` | `clientToken` | `ResetUserPasswordResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Resets the password for a specified user ID and generates a temporary one. Only a superuser can reset password for other users. Resetting the password immediately invalidates the previous password associated with the ... |
+| `UpdateChangeset` | `PUT /datasets/{datasetId}/changesetsv2/{changesetId}` | `idempotency-token` | `datasetId`, `changesetId`, `sourceParams`, `formatParams` | `clientToken` | `UpdateChangesetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a FinSpace Changeset. |
 | `UpdateDataset` | `PUT /datasetsv2/{datasetId}` | `idempotency-token` | `datasetId`, `datasetTitle`, `kind` | `clientToken` | `UpdateDatasetResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a FinSpace Dataset. |
-| `UpdatePermissionGroup` | `PUT /permission-group/{permissionGroupId}` | `idempotency-token` | `permissionGroupId` | `clientToken` | `UpdatePermissionGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies the details of a permission group. You cannot modify a `permissionGroupID`. |
-| `UpdateUser` | `PUT /user/{userId}` | `idempotency-token` | `userId` | `clientToken` | `UpdateUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies the details of the specified user. You cannot update the `userId` for a user. |
+| `UpdatePermissionGroup` | `PUT /permission-group/{permissionGroupId}` | `idempotency-token` | `permissionGroupId` | `clientToken` | `UpdatePermissionGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies the details of a permission group. You cannot modify a permissionGroupID . |
+| `UpdateUser` | `PUT /user/{userId}` | `idempotency-token` | `userId` | `clientToken` | `UpdateUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies the details of the specified user. You cannot update the userId for a user. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteDataset` | - | `clientToken -> clientToken` | - | - |
+| `DeletePermissionGroup` | - | `clientToken -> clientToken` | - | - |
+| `DisassociateUserFromPermissionGroup` | - | `clientToken -> clientToken` | - | - |
+| `GetProgrammaticAccessCredentials` | - | `durationInMinutes -> durationInMinutes`, `environmentId -> environmentId` | - | - |
+| `ListChangesets` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListDatasets` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDataViews` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListPermissionGroups` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListPermissionGroupsByUser` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListUsers` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListUsersByPermissionGroup` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalServerException` | `structure` | `message` | The request processing has failed because of an unknown error, exception or failure. |
-| `ThrottlingException` | `structure` | - | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `message`, `reason` | The input fails to satisfy the constraints specified by an AWS service. |
-| `AccessDeniedException` | `structure` | `message` | You do not have sufficient access to perform this action. |
-| `ResourceNotFoundException` | `structure` | `message`, `reason` | One or more resources can't be found. |
-| `ConflictException` | `structure` | `message`, `reason` | The request conflicts with an existing resource. |
-| `LimitExceededException` | `structure` | `message` | A limit has exceeded. |
-| `AssociateUserToPermissionGroupRequest` | `structure` | `clientToken`, `permissionGroupId`, `userId` | - |
-| `AssociateUserToPermissionGroupResponse` | `structure` | `statusCode` | - |
-| `CreateChangesetRequest` | `structure` | `changeType`, `clientToken`, `datasetId`, `formatParams`, `sourceParams` | The request for a CreateChangeset operation. |
-| `CreateChangesetResponse` | `structure` | `changesetId`, `datasetId` | The response from a CreateChangeset operation. |
-| `CreateDataViewRequest` | `structure` | `asOfTimestamp`, `autoUpdate`, `clientToken`, `datasetId`, `destinationTypeParams`, `partitionColumns`, `sortColumns` | Request for creating a data view. |
-| `CreateDataViewResponse` | `structure` | `dataViewId`, `datasetId` | Response for creating a data view. |
-| `CreateDatasetRequest` | `structure` | `alias`, `clientToken`, `datasetDescription`, `datasetTitle`, `kind`, `ownerInfo`, `permissionGroupParams`, `schemaDefinition` | The request for a CreateDataset operation |
-| `CreateDatasetResponse` | `structure` | `datasetId` | The response from a CreateDataset operation |
-| `CreatePermissionGroupRequest` | `structure` | `applicationPermissions`, `clientToken`, `description`, `name` | - |
-| `CreatePermissionGroupResponse` | `structure` | `permissionGroupId` | - |
-| `CreateUserRequest` | `structure` | `apiAccess`, `apiAccessPrincipalArn`, `clientToken`, `emailAddress`, `firstName`, `lastName`, `type` | - |
-| `CreateUserResponse` | `structure` | `userId` | - |
-| `DeleteDatasetRequest` | `structure` | `clientToken`, `datasetId` | The request for a DeleteDataset operation. |
-| `DeleteDatasetResponse` | `structure` | `datasetId` | The response from an DeleteDataset operation |
-| `DeletePermissionGroupRequest` | `structure` | `clientToken`, `permissionGroupId` | - |
-| `DeletePermissionGroupResponse` | `structure` | `permissionGroupId` | - |
-| `DisableUserRequest` | `structure` | `clientToken`, `userId` | - |
-
+| `AccessDeniedException` | `structure` | message | You do not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, reason | The request conflicts with an existing resource. |
+| `InternalServerException` | `structure` | message | The request processing has failed because of an unknown error, exception or failure. |
+| `LimitExceededException` | `structure` | message | A limit has exceeded. |
+| `ResourceNotFoundException` | `structure` | message, reason | One or more resources can't be found. |
+| `ThrottlingException` | `structure` | **empty (no members)** | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason | The input fails to satisfy the constraints specified by an AWS service. |
+| `AssociateUserToPermissionGroupRequest` | `structure` | permissionGroupId, userId, clientToken | - |
+| `AssociateUserToPermissionGroupResponse` | `structure` | statusCode | - |
+| `CreateChangesetRequest` | `structure` | clientToken, datasetId, changeType, sourceParams, formatParams | The request for a CreateChangeset operation. |
+| `CreateChangesetResponse` | `structure` | datasetId, changesetId | The response from a CreateChangeset operation. |
+| `CreateDatasetRequest` | `structure` | clientToken, datasetTitle, kind, datasetDescription, ownerInfo, permissionGroupParams, alias, schemaDefinition | The request for a CreateDataset operation |
+| `CreateDatasetResponse` | `structure` | datasetId | The response from a CreateDataset operation |
+| `CreateDataViewRequest` | `structure` | clientToken, datasetId, autoUpdate, sortColumns, partitionColumns, asOfTimestamp, destinationTypeParams | Request for creating a data view. |
+| `CreateDataViewResponse` | `structure` | datasetId, dataViewId | Response for creating a data view. |
+| `CreatePermissionGroupRequest` | `structure` | name, description, applicationPermissions, clientToken | - |
+| `CreatePermissionGroupResponse` | `structure` | permissionGroupId | - |
+| `CreateUserRequest` | `structure` | emailAddress, type, firstName, lastName, apiAccess, apiAccessPrincipalArn, clientToken | - |
+| `CreateUserResponse` | `structure` | userId | - |
+| `DeleteDatasetRequest` | `structure` | clientToken, datasetId | The request for a DeleteDataset operation. |
+| `DeleteDatasetResponse` | `structure` | datasetId | The response from an DeleteDataset operation |
+| `DeletePermissionGroupRequest` | `structure` | permissionGroupId, clientToken | - |
+| `DeletePermissionGroupResponse` | `structure` | permissionGroupId | - |
+| `DisableUserRequest` | `structure` | userId, clientToken | - |
+| `DisableUserResponse` | `structure` | userId | - |
+| `DisassociateUserFromPermissionGroupRequest` | `structure` | permissionGroupId, userId, clientToken | - |
+| `DisassociateUserFromPermissionGroupResponse` | `structure` | statusCode | - |
+| `EnableUserRequest` | `structure` | userId, clientToken | - |
+| `EnableUserResponse` | `structure` | userId | - |
+| `GetChangesetRequest` | `structure` | datasetId, changesetId | Request to describe a changeset. |
+| `GetChangesetResponse` | `structure` | changesetId, changesetArn, datasetId, changeType, sourceParams, formatParams, createTime, status, errorInfo, activeUntilTimestamp, activeFromTimestamp, updatesChangesetId, ... (+1) | The response from a describe changeset operation |
+| `GetDatasetRequest` | `structure` | datasetId | Request for the GetDataset operation. |
+| `GetDatasetResponse` | `structure` | datasetId, datasetArn, datasetTitle, kind, datasetDescription, createTime, lastModifiedTime, schemaDefinition, alias, status | Response for the GetDataset operation |
+| `GetDataViewRequest` | `structure` | dataViewId, datasetId | Request for retrieving a data view detail. Grouped / accessible within a dataset by its dataset id. |
+| `GetDataViewResponse` | `structure` | autoUpdate, partitionColumns, datasetId, asOfTimestamp, errorInfo, lastModifiedTime, createTime, sortColumns, dataViewId, dataViewArn, destinationTypeParams, status | Response from retrieving a dataview, which includes details on the target database and table name |
+| `GetExternalDataViewAccessDetailsRequest` | `structure` | dataViewId, datasetId | - |
+| `GetExternalDataViewAccessDetailsResponse` | `structure` | credentials, s3Location | - |
+| `GetPermissionGroupRequest` | `structure` | permissionGroupId | - |
+| `GetPermissionGroupResponse` | `structure` | permissionGroup | - |
+| `GetProgrammaticAccessCredentialsRequest` | `structure` | durationInMinutes, environmentId | Request for GetProgrammaticAccessCredentials operation |
+| `ApiAccess` | `enum` | ENABLED, DISABLED | - |
+| `ApplicationPermission` | `enum` | CreateDataset, ManageClusters, ManageUsersAndGroups, ManageAttributeSets, ViewAuditData, AccessNotebooks, GetTemporaryCredentials | - |
+| `ChangeType` | `enum` | REPLACE, APPEND, MODIFY | Indicates how the given change will be applied to the dataset. |
+| `ColumnDataType` | `enum` | STRING, CHAR, INTEGER, TINYINT, SMALLINT, BIGINT, FLOAT, DOUBLE, DATE, DATETIME, BOOLEAN, BINARY | Data type of a column. |
+| `DataViewStatus` | `enum` | RUNNING, STARTING, FAILED, CANCELLED, TIMEOUT, SUCCESS, PENDING, FAILED_CLEANUP_FAILED | Status of a DataView |
+| `DatasetKind` | `enum` | TABULAR, NON_TABULAR | Dataset Kind |
+| `DatasetStatus` | `enum` | PENDING, FAILED, SUCCESS, RUNNING | Status of the dataset process returned from scheduler service. |
+| `ErrorCategory` | `enum` | VALIDATION, SERVICE_QUOTA_EXCEEDED, ACCESS_DENIED, RESOURCE_NOT_FOUND, THROTTLING, INTERNAL_SERVICE_EXCEPTION, CANCELLED, USER_RECOVERABLE | Changeset Error Category |
+| `ExportFileFormat` | `enum` | PARQUET, DELIMITED_TEXT | Data View Export File Format |
+| `IngestionStatus` | `enum` | PENDING, FAILED, SUCCESS, RUNNING, STOP_REQUESTED | Status of the ingestion process returned from scheduler service. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -68,64 +68,34 @@ Parity implications:
 
 ## Operation Groups
 
-### Get
-
-- Operations: `GetAccountSettings`, `GetReport`, `GetReportMetadata`, `GetTermForReport`
-- Traits: `readonly` (4)
-- Common required input members in this group: `reportId`, `termToken`
-
-### List
-
-- Operations: `ListCustomerAgreements`, `ListReportVersions`, `ListReports`
-- Traits: `paginated` (3), `readonly` (3)
-- Common required input members in this group: `reportId`
-
-### Put
-
-- Operations: `PutAccountSettings`
-- Traits: `idempotent` (1)
-
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetAccountSettings` | `GET /v1/account-settings/get` | `readonly` | - | - | `GetAccountSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Get the account settings for Artifact. |
-| `GetReport` | `GET /v1/report/get` | `readonly` | `reportId`, `termToken` | - | `GetReportResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Get the content for a single report. |
-| `GetReportMetadata` | `GET /v1/report/getMetadata` | `readonly` | `reportId` | - | `GetReportMetadataResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Get the metadata for a single report. |
-| `GetTermForReport` | `GET /v1/report/getTermForReport` | `readonly` | `reportId` | - | `GetTermForReportResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Get the Term content associated with a single report. |
-| `ListCustomerAgreements` | `GET /v1/customer-agreement/list` | `readonly`, `paginated` | - | - | `ListCustomerAgreementsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | List active customer-agreements applicable to calling identity. |
-| `ListReportVersions` | `GET /v1/report/listVersions` | `readonly`, `paginated` | `reportId` | - | `ListReportVersionsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | List available report versions for a given report. |
-| `ListReports` | `GET /v1/report/list` | `readonly`, `paginated` | - | - | `ListReportsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | List available reports. |
-| `PutAccountSettings` | `PUT /v1/account-settings/put` | `idempotent` | - | - | `PutAccountSettingsResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Put the account settings for Artifact. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `AccessDeniedException` | `structure` | `message` | User does not have sufficient access to perform this action. |
-| `InternalServerException` | `structure` | `message`, `retryAfterSeconds` | An unknown server exception has occurred. |
-| `ThrottlingException` | `structure` | `message`, `quotaCode`, `retryAfterSeconds`, `serviceCode` | Request was denied due to request throttling. |
-| `ValidationException` | `structure` | `fieldList`, `message`, `reason` | Request fails to satisfy the constraints specified by an AWS service. |
-| `ResourceNotFoundException` | `structure` | `message`, `resourceId`, `resourceType` | Request references a resource which does not exist. |
-| `ServiceQuotaExceededException` | `structure` | `message`, `quotaCode`, `resourceId`, `resourceType`, `serviceCode` | Request would cause a service quota to be exceeded. |
-| `ConflictException` | `structure` | `message`, `resourceId`, `resourceType` | Request to create/modify content would result in a conflict. |
-| `GetAccountSettingsRequest` | `structure` | - | - |
-| `GetAccountSettingsResponse` | `structure` | `accountSettings` | - |
-| `GetReportRequest` | `structure` | `reportId`, `reportVersion`, `termToken` | - |
-| `GetReportResponse` | `structure` | `documentPresignedUrl` | - |
-| `GetReportMetadataRequest` | `structure` | `reportId`, `reportVersion` | - |
-| `GetReportMetadataResponse` | `structure` | `reportDetails` | - |
-| `GetTermForReportRequest` | `structure` | `reportId`, `reportVersion` | - |
-| `GetTermForReportResponse` | `structure` | `documentPresignedUrl`, `termToken` | - |
-| `ListCustomerAgreementsRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListCustomerAgreementsResponse` | `structure` | `customerAgreements`, `nextToken` | - |
-| `ListReportVersionsRequest` | `structure` | `maxResults`, `nextToken`, `reportId` | - |
-| `ListReportVersionsResponse` | `structure` | `nextToken`, `reports` | - |
-| `ListReportsRequest` | `structure` | `maxResults`, `nextToken` | - |
-| `ListReportsResponse` | `structure` | `nextToken`, `reports` | - |
-| `PutAccountSettingsRequest` | `structure` | `notificationSubscriptionStatus` | - |
-| `PutAccountSettingsResponse` | `structure` | `accountSettings` | - |
-
+| `AccessDeniedException` | `structure` | message | User does not have sufficient access to perform this action. |
+| `ConflictException` | `structure` | message, resourceId, resourceType | Request to create/modify content would result in a conflict. |
+| `InternalServerException` | `structure` | message, retryAfterSeconds | An unknown server exception has occurred. |
+| `ResourceNotFoundException` | `structure` | message, resourceId, resourceType | Request references a resource which does not exist. |
+| `ServiceQuotaExceededException` | `structure` | message, resourceId, resourceType, serviceCode, quotaCode | Request would cause a service quota to be exceeded. |
+| `ThrottlingException` | `structure` | message, serviceCode, quotaCode, retryAfterSeconds | Request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, reason, fieldList | Request fails to satisfy the constraints specified by an AWS service. |
+| `AcceptanceType` | `enum` | PASSTHROUGH, EXPLICIT | - |
+| `AgreementType` | `enum` | CUSTOM, DEFAULT, MODIFIED | - |
+| `CustomerAgreementState` | `enum` | ACTIVE, CUSTOMER_TERMINATED, AWS_TERMINATED | - |
+| `NotificationSubscriptionStatus` | `enum` | SUBSCRIBED, NOT_SUBSCRIBED | - |
+| `PublishedState` | `enum` | PUBLISHED, UNPUBLISHED | - |
+| `UploadState` | `enum` | PROCESSING, COMPLETE, FAILED, FAULT | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

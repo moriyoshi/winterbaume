@@ -51,137 +51,105 @@ The Amplify UI Builder API provides a programmatic interface for creating and co
 | `ThemeResource` | `appId`, `environmentName`, `id` | create: `CreateTheme`; read: `GetTheme`; update: `UpdateTheme`; delete: `DeleteTheme`; list: `ListThemes` | `ExportThemes` | - |
 ## Operation Groups
 
-### Get
-
-- Operations: `GetCodegenJob`, `GetComponent`, `GetForm`, `GetMetadata`, `GetTheme`
-- Traits: `readonly` (5)
-- Common required input members in this group: `appId`, `environmentName`, `id`
-
-### List
-
-- Operations: `ListCodegenJobs`, `ListComponents`, `ListForms`, `ListTagsForResource`, `ListThemes`
-- Traits: `paginated` (4), `readonly` (5)
-- Common required input members in this group: `appId`, `environmentName`, `resourceArn`
-
-### Create
-
-- Operations: `CreateComponent`, `CreateForm`, `CreateTheme`
-- Traits: `idempotency-token` (3), `idempotent` (3)
-- Common required input members in this group: `appId`, `componentToCreate`, `environmentName`, `formToCreate`, `themeToCreate`
-
-### Delete
-
-- Operations: `DeleteComponent`, `DeleteForm`, `DeleteTheme`
-- Traits: `idempotent` (3)
-- Common required input members in this group: `appId`, `environmentName`, `id`
-
-### Export
-
-- Operations: `ExportComponents`, `ExportForms`, `ExportThemes`
-- Traits: `paginated` (3), `readonly` (3)
-- Common required input members in this group: `appId`, `environmentName`
-
-### Update
-
-- Operations: `UpdateComponent`, `UpdateForm`, `UpdateTheme`
-- Traits: `idempotency-token` (3), `idempotent` (3)
-- Common required input members in this group: `appId`, `environmentName`, `id`, `updatedComponent`, `updatedForm`, `updatedTheme`
-
 ### Exchange
 
 - Operations: `ExchangeCodeForToken`
-- Common required input members in this group: `provider`, `request`
+- Common required input members in this group: -
+
+### Get
+
+- Operations: `GetMetadata`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
+
+### List
+
+- Operations: `ListTagsForResource`
+- Traits: `readonly` (1)
+- Common required input members in this group: -
 
 ### Put
 
 - Operations: `PutMetadataFlag`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `appId`, `body`, `environmentName`, `featureName`
+- Common required input members in this group: -
 
 ### Refresh
 
 - Operations: `RefreshToken`
-- Common required input members in this group: `provider`, `refreshTokenBody`
-
-### Start
-
-- Operations: `StartCodegenJob`
-- Traits: `idempotency-token` (1)
-- Common required input members in this group: `appId`, `codegenJobToCreate`, `environmentName`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateComponent` | `POST /app/{appId}/environment/{environmentName}/components` | `idempotent`, `idempotency-token` | `appId`, `componentToCreate`, `environmentName` | `clientToken` | `CreateComponentResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceConflictException`, `ServiceQuotaExceededException` | Creates a new component for an Amplify app. |
-| `CreateForm` | `POST /app/{appId}/environment/{environmentName}/forms` | `idempotent`, `idempotency-token` | `appId`, `environmentName`, `formToCreate` | `clientToken` | `CreateFormResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceConflictException`, `ServiceQuotaExceededException` | Creates a new form for an Amplify app. |
-| `CreateTheme` | `POST /app/{appId}/environment/{environmentName}/themes` | `idempotent`, `idempotency-token` | `appId`, `environmentName`, `themeToCreate` | `clientToken` | `CreateThemeResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceConflictException`, `ServiceQuotaExceededException` | Creates a theme to apply to the components in an Amplify app. |
-| `DeleteComponent` | `DELETE /app/{appId}/environment/{environmentName}/components/{id}` | `idempotent` | `appId`, `environmentName`, `id` | - | `Unit` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException` | Deletes a component from an Amplify app. |
-| `DeleteForm` | `DELETE /app/{appId}/environment/{environmentName}/forms/{id}` | `idempotent` | `appId`, `environmentName`, `id` | - | `Unit` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException` | Deletes a form from an Amplify app. |
-| `DeleteTheme` | `DELETE /app/{appId}/environment/{environmentName}/themes/{id}` | `idempotent` | `appId`, `environmentName`, `id` | - | `Unit` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException` | Deletes a theme from an Amplify app. |
 | `ExchangeCodeForToken` | `POST /tokens/{provider}` | - | `provider`, `request` | - | `ExchangeCodeForTokenResponse` | `InvalidParameterException` | This is for internal use. Amplify uses this action to exchange an access code for a token. |
-| `ExportComponents` | `GET /export/app/{appId}/environment/{environmentName}/components` | `readonly`, `paginated` | `appId`, `environmentName` | - | `ExportComponentsResponse` | `InternalServerException`, `InvalidParameterException` | Exports component configurations to code that is ready to integrate into an Amplify app. |
-| `ExportForms` | `GET /export/app/{appId}/environment/{environmentName}/forms` | `readonly`, `paginated` | `appId`, `environmentName` | - | `ExportFormsResponse` | `InternalServerException`, `InvalidParameterException` | Exports form configurations to code that is ready to integrate into an Amplify app. |
-| `ExportThemes` | `GET /export/app/{appId}/environment/{environmentName}/themes` | `readonly`, `paginated` | `appId`, `environmentName` | - | `ExportThemesResponse` | `InternalServerException`, `InvalidParameterException` | Exports theme configurations to code that is ready to integrate into an Amplify app. |
-| `GetCodegenJob` | `GET /app/{appId}/environment/{environmentName}/codegen-jobs/{id}` | `readonly` | `appId`, `environmentName`, `id` | - | `GetCodegenJobResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException`, `ThrottlingException` | Returns an existing code generation job. |
-| `GetComponent` | `GET /app/{appId}/environment/{environmentName}/components/{id}` | `readonly` | `appId`, `environmentName`, `id` | - | `GetComponentResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns an existing component for an Amplify app. |
-| `GetForm` | `GET /app/{appId}/environment/{environmentName}/forms/{id}` | `readonly` | `appId`, `environmentName`, `id` | - | `GetFormResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns an existing form for an Amplify app. |
 | `GetMetadata` | `GET /app/{appId}/environment/{environmentName}/metadata` | `readonly` | `appId`, `environmentName` | - | `GetMetadataResponse` | `InvalidParameterException`, `UnauthorizedException` | Returns existing metadata for an Amplify app. |
-| `GetTheme` | `GET /app/{appId}/environment/{environmentName}/themes/{id}` | `readonly` | `appId`, `environmentName`, `id` | - | `GetThemeResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException` | Returns an existing theme for an Amplify app. |
-| `ListCodegenJobs` | `GET /app/{appId}/environment/{environmentName}/codegen-jobs` | `readonly`, `paginated` | `appId`, `environmentName` | - | `ListCodegenJobsResponse` | `InternalServerException`, `InvalidParameterException`, `ThrottlingException` | Retrieves a list of code generation jobs for a specified Amplify app and backend environment. |
-| `ListComponents` | `GET /app/{appId}/environment/{environmentName}/components` | `readonly`, `paginated` | `appId`, `environmentName` | - | `ListComponentsResponse` | `InternalServerException`, `InvalidParameterException` | Retrieves a list of components for a specified Amplify app and backend environment. |
-| `ListForms` | `GET /app/{appId}/environment/{environmentName}/forms` | `readonly`, `paginated` | `appId`, `environmentName` | - | `ListFormsResponse` | `InternalServerException`, `InvalidParameterException` | Retrieves a list of forms for a specified Amplify app and backend environment. |
 | `ListTagsForResource` | `GET /tags/{resourceArn}` | `readonly` | `resourceArn` | - | `ListTagsForResourceResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException`, `ThrottlingException`, `UnauthorizedException` | Returns a list of tags for a specified Amazon Resource Name (ARN). |
-| `ListThemes` | `GET /app/{appId}/environment/{environmentName}/themes` | `readonly`, `paginated` | `appId`, `environmentName` | - | `ListThemesResponse` | `InternalServerException`, `InvalidParameterException` | Retrieves a list of themes for a specified Amplify app and backend environment. |
-| `PutMetadataFlag` | `PUT /app/{appId}/environment/{environmentName}/metadata/features/{featureName}` | `idempotent` | `appId`, `body`, `environmentName`, `featureName` | - | `Unit` | `InvalidParameterException`, `UnauthorizedException` | Stores the metadata information about a feature on a form. |
+| `PutMetadataFlag` | `PUT /app/{appId}/environment/{environmentName}/metadata/features/{featureName}` | `idempotent` | `appId`, `environmentName`, `featureName`, `body` | - | `Unit` | `InvalidParameterException`, `UnauthorizedException` | Stores the metadata information about a feature on a form. |
 | `RefreshToken` | `POST /tokens/{provider}/refresh` | - | `provider`, `refreshTokenBody` | - | `RefreshTokenResponse` | `InvalidParameterException` | This is for internal use. Amplify uses this action to refresh a previously issued access token that might have expired. |
-| `StartCodegenJob` | `POST /app/{appId}/environment/{environmentName}/codegen-jobs` | `idempotency-token` | `appId`, `codegenJobToCreate`, `environmentName` | `clientToken` | `StartCodegenJobResponse` | `InternalServerException`, `InvalidParameterException`, `ThrottlingException` | Starts a code generation job for a specified Amplify app and backend environment. |
 | `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException`, `ThrottlingException`, `UnauthorizedException` | Tags the resource with a tag key and value. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceNotFoundException`, `ThrottlingException`, `UnauthorizedException` | Untags a resource with a specified Amazon Resource Name (ARN). |
-| `UpdateComponent` | `PATCH /app/{appId}/environment/{environmentName}/components/{id}` | `idempotent`, `idempotency-token` | `appId`, `environmentName`, `id`, `updatedComponent` | `clientToken` | `UpdateComponentResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceConflictException` | Updates an existing component. |
-| `UpdateForm` | `PATCH /app/{appId}/environment/{environmentName}/forms/{id}` | `idempotent`, `idempotency-token` | `appId`, `environmentName`, `id`, `updatedForm` | `clientToken` | `UpdateFormResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceConflictException` | Updates an existing form. |
-| `UpdateTheme` | `PATCH /app/{appId}/environment/{environmentName}/themes/{id}` | `idempotent`, `idempotency-token` | `appId`, `environmentName`, `id`, `updatedTheme` | `clientToken` | `UpdateThemeResponse` | `InternalServerException`, `InvalidParameterException`, `ResourceConflictException` | Updates an existing theme. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ExchangeCodeForToken` | - | - | - | `request` |
+| `PutMetadataFlag` | - | - | - | `body` |
+| `RefreshToken` | - | - | - | `refreshTokenBody` |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidParameterException` | `structure` | `message` | An invalid or out-of-range value was supplied for the input parameter. |
-| `InternalServerException` | `structure` | `message` | An internal error has occurred. |
-| `ResourceNotFoundException` | `structure` | `message` | The requested resource does not exist, or access was denied. |
-| `ResourceConflictException` | `structure` | `message` | The resource specified in the request conflicts with an existing resource. |
-| `ThrottlingException` | `structure` | `message` | The request was denied due to request throttling. |
-| `UnauthorizedException` | `structure` | `message` | You don't have permission to perform this operation. |
-| `ServiceQuotaExceededException` | `structure` | `message` | You exceeded your service quota. |
-| `CreateComponentRequest` | `structure` | `appId`, `clientToken`, `componentToCreate`, `environmentName` | - |
-| `CreateComponentResponse` | `structure` | `entity` | - |
-| `CreateFormRequest` | `structure` | `appId`, `clientToken`, `environmentName`, `formToCreate` | - |
-| `CreateFormResponse` | `structure` | `entity` | - |
-| `CreateThemeRequest` | `structure` | `appId`, `clientToken`, `environmentName`, `themeToCreate` | - |
-| `CreateThemeResponse` | `structure` | `entity` | - |
-| `DeleteComponentRequest` | `structure` | `appId`, `environmentName`, `id` | - |
-| `DeleteFormRequest` | `structure` | `appId`, `environmentName`, `id` | - |
-| `DeleteThemeRequest` | `structure` | `appId`, `environmentName`, `id` | - |
-| `ExchangeCodeForTokenRequest` | `structure` | `provider`, `request` | - |
-| `ExchangeCodeForTokenResponse` | `structure` | `accessToken`, `expiresIn`, `refreshToken` | - |
-| `ExportComponentsRequest` | `structure` | `appId`, `environmentName`, `nextToken` | - |
-| `ExportComponentsResponse` | `structure` | `entities`, `nextToken` | - |
-| `ExportFormsRequest` | `structure` | `appId`, `environmentName`, `nextToken` | - |
-| `ExportFormsResponse` | `structure` | `entities`, `nextToken` | - |
-| `ExportThemesRequest` | `structure` | `appId`, `environmentName`, `nextToken` | - |
-
+| `InternalServerException` | `structure` | message | An internal error has occurred. Please retry your request. |
+| `InvalidParameterException` | `structure` | message | An invalid or out-of-range value was supplied for the input parameter. |
+| `ResourceConflictException` | `structure` | message | The resource specified in the request conflicts with an existing resource. |
+| `ResourceNotFoundException` | `structure` | message | The requested resource does not exist, or access was denied. |
+| `ServiceQuotaExceededException` | `structure` | message | You exceeded your service quota. Service quotas, also referred to as limits, are the maximum number of service resources or operations for your Amazon Web S ... |
+| `ThrottlingException` | `structure` | message | The request was denied due to request throttling. |
+| `UnauthorizedException` | `structure` | message | You don't have permission to perform this operation. |
+| `ExchangeCodeForTokenRequest` | `structure` | provider, request | - |
+| `ExchangeCodeForTokenResponse` | `structure` | accessToken, expiresIn, refreshToken | - |
+| `GetMetadataRequest` | `structure` | appId, environmentName | - |
+| `GetMetadataResponse` | `structure` | features | - |
+| `ListTagsForResourceRequest` | `structure` | resourceArn | - |
+| `ListTagsForResourceResponse` | `structure` | tags | - |
+| `PutMetadataFlagRequest` | `structure` | appId, environmentName, featureName, body | - |
+| `RefreshTokenRequest` | `structure` | provider, refreshTokenBody | - |
+| `RefreshTokenResponse` | `structure` | accessToken, expiresIn | - |
+| `TagResourceRequest` | `structure` | resourceArn, tags | - |
+| `TagResourceResponse` | `structure` | **empty (no members)** | - |
+| `UntagResourceRequest` | `structure` | resourceArn, tagKeys | - |
+| `UntagResourceResponse` | `structure` | **empty (no members)** | - |
+| `CodegenGenericDataFieldDataType` | `enum` | ID, STRING, INT, FLOAT, AWS_DATE, AWS_TIME, AWS_DATE_TIME, AWS_TIMESTAMP, AWS_EMAIL, AWS_URL, AWS_IP_ADDRESS, BOOLEAN, ... (+5) | - |
+| `CodegenJobGenericDataSourceType` | `enum` | DATA_STORE | - |
+| `CodegenJobStatus` | `enum` | IN_PROGRESS, FAILED, SUCCEEDED | - |
+| `FixedPosition` | `enum` | FIRST | - |
+| `FormActionType` | `enum` | CREATE, UPDATE | - |
+| `FormButtonsPosition` | `enum` | TOP, BOTTOM, TOP_AND_BOTTOM | - |
+| `GenericDataRelationshipType` | `enum` | HAS_MANY, HAS_ONE, BELONGS_TO | - |
+| `JSModule` | `enum` | ES2020, ESNEXT | - |
+| `JSScript` | `enum` | JSX, TSX, JS | - |
+| `JSTarget` | `enum` | ES2015, ES2020 | - |
+| `SortDirection` | `enum` | ASC, DESC | - |
+| `StorageAccessLevel` | `enum` | PUBLIC, PROTECTED, PRIVATE | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

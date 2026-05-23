@@ -37,25 +37,32 @@ AWS Signer Data Plane service provides APIs for checking revocation status of si
 
 - Operations: `GetRevocationStatus`
 - Traits: `readonly` (1)
-- Common required input members in this group: `certificateHashes`, `jobArn`, `platformId`, `profileVersionArn`, `signatureTimestamp`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `GetRevocationStatus` | `GET /revocations` | `readonly` | `certificateHashes`, `jobArn`, `platformId`, `profileVersionArn`, `signatureTimestamp` | - | `GetRevocationStatusResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException`, `ValidationException` | Retrieves the revocation status for a signed artifact by checking if the signing profile, job, or certificate has been revoked. |
+| `GetRevocationStatus` | `GET /revocations` | `readonly` | `signatureTimestamp`, `platformId`, `profileVersionArn`, `jobArn`, `certificateHashes` | - | `GetRevocationStatusResponse` | `AccessDeniedException`, `InternalServiceErrorException`, `TooManyRequestsException`, `ValidationException` | Retrieves the revocation status for a signed artifact by checking if the signing profile, job, or certificate has been revoked. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetRevocationStatus` | - | `signatureTimestamp -> signatureTimestamp`, `platformId -> platformId`, `profileVersionArn -> profileVersionArn`, `jobArn -> jobArn`, `certificateHashes -> certificateHashes` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `GetRevocationStatusRequest` | `structure` | `certificateHashes`, `jobArn`, `platformId`, `profileVersionArn`, `signatureTimestamp` | Request structure for checking revocation status. |
-| `GetRevocationStatusResponse` | `structure` | `revokedEntities` | Response containing the list of revoked entities. |
-| `AccessDeniedException` | `structure` | `code`, `message` | You do not have sufficient permissions to perform this action. |
-| `InternalServiceErrorException` | `structure` | `code`, `message` | An internal service error occurred. |
-| `TooManyRequestsException` | `structure` | `code`, `message` | The request was denied due to request throttling. |
-| `ValidationException` | `structure` | `code`, `message` | The request contains invalid parameters or is malformed. |
-
+| `AccessDeniedException` | `structure` | message, code | You do not have sufficient permissions to perform this action. |
+| `InternalServiceErrorException` | `structure` | message, code | An internal service error occurred. |
+| `TooManyRequestsException` | `structure` | message, code | The request was denied due to request throttling. |
+| `ValidationException` | `structure` | message, code | The request contains invalid parameters or is malformed. |
+| `GetRevocationStatusRequest` | `structure` | signatureTimestamp, platformId, profileVersionArn, jobArn, certificateHashes | Request structure for checking revocation status. |
+| `GetRevocationStatusResponse` | `structure` | revokedEntities | Response containing the list of revoked entities. |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

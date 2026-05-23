@@ -98,106 +98,135 @@ S3Files currently has one of the more detailed local network stubs for mount tar
 
 - Operations: `GetAccessPoint`, `GetFileSystem`, `GetFileSystemPolicy`, `GetMountTarget`, `GetSynchronizationConfiguration`
 - Traits: `readonly` (5)
-- Common required input members in this group: `accessPointId`, `fileSystemId`, `mountTargetId`
+- Common required input members in this group: `fileSystemId`
 
 ### Delete
 
 - Operations: `DeleteAccessPoint`, `DeleteFileSystem`, `DeleteFileSystemPolicy`, `DeleteMountTarget`
 - Traits: `idempotent` (4)
-- Common required input members in this group: `accessPointId`, `fileSystemId`, `mountTargetId`
+- Common required input members in this group: `fileSystemId`
 
 ### List
 
 - Operations: `ListAccessPoints`, `ListFileSystems`, `ListMountTargets`, `ListTagsForResource`
-- Traits: `paginated` (4), `readonly` (4)
-- Common required input members in this group: `fileSystemId`, `resourceId`
+- Traits: `readonly` (4), `paginated` (4)
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateAccessPoint`, `CreateFileSystem`, `CreateMountTarget`
 - Traits: `idempotent` (3), `idempotency-token` (2)
-- Common required input members in this group: `bucket`, `fileSystemId`, `roleArn`, `subnetId`
+- Common required input members in this group: `fileSystemId`
 
 ### Put
 
 - Operations: `PutFileSystemPolicy`, `PutSynchronizationConfiguration`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `expirationDataRules`, `fileSystemId`, `importDataRules`, `policy`
+- Common required input members in this group: `fileSystemId`
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceId`, `tags`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `resourceId`, `tagKeys`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateMountTarget`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `mountTargetId`, `securityGroups`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateAccessPoint` | `PUT /access-points` | `idempotent`, `idempotency-token` | `fileSystemId` | `clientToken` | `CreateAccessPointResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an S3 File System Access Point for application-specific access with POSIX user identity and root directory enforcement. |
-| `CreateFileSystem` | `PUT /file-systems` | `idempotent`, `idempotency-token` | `bucket`, `roleArn` | `clientToken` | `CreateFileSystemResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an S3 File System resource scoped to a bucket or prefix within a bucket, using an IAM role that grants S3 Files bucket access. |
-| `CreateMountTarget` | `PUT /mount-targets` | `idempotent` | `fileSystemId`, `subnetId` | - | `CreateMountTargetResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a mount target endpoint for mounting the S3 File System from compute resources in a specific Availability Zone and VPC. |
+| `CreateAccessPoint` | `PUT /access-points` | `idempotent`, `idempotency-token` | `fileSystemId` | `clientToken` | `CreateAccessPointResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an S3 File System Access Point for application-specific access with POSIX user identity and root directory enforcement. Access points provide a way to manage access to shared datasets in multi-tenant scenarios. |
+| `CreateFileSystem` | `PUT /file-systems` | `idempotent`, `idempotency-token` | `bucket`, `roleArn` | `clientToken` | `CreateFileSystemResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates an S3 File System resource scoped to a bucket or prefix within a bucket, enabling file system access to S3 data. To create a file system, you need an S3 bucket and an IAM role that grants the service permissi ... |
+| `CreateMountTarget` | `PUT /mount-targets` | `idempotent` | `fileSystemId`, `subnetId` | - | `CreateMountTargetResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a mount target resource as an endpoint for mounting the S3 File System from compute resources in a specific Availability Zone and VPC. Mount targets provide network access to the file system. |
 | `DeleteAccessPoint` | `DELETE /access-points/{accessPointId}` | `idempotent` | `accessPointId` | - | `Unit` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an S3 File System Access Point. This operation is irreversible. |
-| `DeleteFileSystem` | `DELETE /file-systems/{fileSystemId}` | `idempotent` | `fileSystemId` | - | `Unit` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an S3 File System, optionally forcing deletion when pending export data exists. |
+| `DeleteFileSystem` | `DELETE /file-systems/{fileSystemId}` | `idempotent` | `fileSystemId` | - | `Unit` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes an S3 File System. You can optionally force deletion of a file system that has pending export data. |
 | `DeleteFileSystemPolicy` | `DELETE /file-systems/{fileSystemId}/policy` | `idempotent` | `fileSystemId` | - | `Unit` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the IAM resource policy of an S3 File System. |
 | `DeleteMountTarget` | `DELETE /mount-targets/{mountTargetId}` | `idempotent` | `mountTargetId` | - | `Unit` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Deletes the specified mount target. This operation is irreversible. |
 | `GetAccessPoint` | `GET /access-points/{accessPointId}` | `readonly` | `accessPointId` | - | `GetAccessPointResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns resource information for an S3 File System Access Point. |
-| `GetFileSystem` | `GET /file-systems/{fileSystemId}` | `readonly` | `fileSystemId` | - | `GetFileSystemResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns resource information for the specified S3 File System, including status, configuration, and metadata. |
+| `GetFileSystem` | `GET /file-systems/{fileSystemId}` | `readonly` | `fileSystemId` | - | `GetFileSystemResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns resource information for the specified S3 File System including status, configuration, and metadata. |
 | `GetFileSystemPolicy` | `GET /file-systems/{fileSystemId}/policy` | `readonly` | `fileSystemId` | - | `GetFileSystemPolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the IAM resource policy of an S3 File System. |
-| `GetMountTarget` | `GET /mount-targets/{mountTargetId}` | `readonly` | `mountTargetId` | - | `GetMountTargetResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns detailed resource information for the specified mount target, including network configuration. |
-| `GetSynchronizationConfiguration` | `GET /file-systems/{fileSystemId}/synchronization-configuration` | `readonly` | `fileSystemId` | - | `GetSynchronizationConfigurationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the synchronisation configuration for the specified S3 File System, including import data rules and expiration data rules. |
+| `GetMountTarget` | `GET /mount-targets/{mountTargetId}` | `readonly` | `mountTargetId` | - | `GetMountTargetResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns detailed resource information for the specified mount target including network configuration. |
+| `GetSynchronizationConfiguration` | `GET /file-systems/{fileSystemId}/synchronization-configuration` | `readonly` | `fileSystemId` | - | `GetSynchronizationConfigurationResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns the synchronization configuration for the specified S3 File System, including import data rules and expiration data rules. |
 | `ListAccessPoints` | `GET /access-points` | `readonly`, `paginated` | `fileSystemId` | - | `ListAccessPointsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns resource information for all S3 File System Access Points associated with the specified S3 File System. |
-| `ListFileSystems` | `GET /file-systems` | `readonly`, `paginated` | - | - | `ListFileSystemsResponse` | `InternalServerException`, `ValidationException` | Returns a list of all S3 File Systems owned by the account, with optional filtering by bucket. |
-| `ListMountTargets` | `GET /mount-targets` | `readonly`, `paginated` | - | - | `ListMountTargetsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns resource information for all mount targets, with optional filtering by file system, access point, and VPC. |
+| `ListFileSystems` | `GET /file-systems` | `readonly`, `paginated` | - | - | `ListFileSystemsResponse` | `InternalServerException`, `ValidationException` | Returns a list of all S3 File Systems owned by the account with optional filtering by bucket. |
+| `ListMountTargets` | `GET /mount-targets` | `readonly`, `paginated` | - | - | `ListMountTargetsResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Returns resource information for all mount targets with optional filtering by file system, access point, and VPC. |
 | `ListTagsForResource` | `GET /resource-tags/{resourceId}` | `readonly`, `paginated` | `resourceId` | - | `ListTagsForResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Lists all tags for S3 Files resources. |
 | `PutFileSystemPolicy` | `PUT /file-systems/{fileSystemId}/policy` | `idempotent` | `fileSystemId`, `policy` | - | `PutFileSystemPolicyResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates or replaces the IAM resource policy for an S3 File System to control access permissions. |
-| `PutSynchronizationConfiguration` | `PUT /file-systems/{fileSystemId}/synchronization-configuration` | `idempotent` | `fileSystemId`, `importDataRules`, `expirationDataRules` | - | `PutSynchronizationConfigurationResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates or updates the synchronisation configuration for the specified S3 File System, including import data rules and expiration data rules. |
-| `TagResource` | `POST /resource-tags/{resourceId}` | - | `resourceId`, `tags` | - | `Unit` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates tags for S3 Files resources using standard AWS tagging APIs. |
+| `PutSynchronizationConfiguration` | `PUT /file-systems/{fileSystemId}/synchronization-configuration` | `idempotent` | `fileSystemId`, `importDataRules`, `expirationDataRules` | - | `PutSynchronizationConfigurationResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates or updates the synchronization configuration for the specified S3 File System, including import data rules and expiration data rules. |
+| `TagResource` | `POST /resource-tags/{resourceId}` | - | `resourceId`, `tags` | - | `Unit` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Creates tags for S3 Files resources using standard Amazon Web Services tagging APIs. |
 | `UntagResource` | `DELETE /resource-tags/{resourceId}` | `idempotent` | `resourceId`, `tagKeys` | - | `Unit` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from S3 Files resources. |
 | `UpdateMountTarget` | `PUT /mount-targets/{mountTargetId}` | `idempotent` | `mountTargetId`, `securityGroups` | - | `UpdateMountTargetResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the mount target resource, specifically security group configurations. |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteFileSystem` | - | `forceDelete -> forceDelete` | - | - |
+| `ListAccessPoints` | - | `fileSystemId -> fileSystemId`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListFileSystems` | - | `bucket -> bucket`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListMountTargets` | - | `fileSystemId -> fileSystemId`, `accessPointId -> accessPointId`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListTagsForResource` | - | `maxResults -> MaxResults`, `nextToken -> NextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `ConflictException` | `structure` | `errorCode`, `message`, `resourceId`, `resourceType` | The request conflicts with the current resource state, such as creating an existing resource or deleting an in-use resource. |
-| `InternalServerException` | `structure` | `errorCode`, `message` | An internal server error occurred. Retry the request. |
-| `ResourceNotFoundException` | `structure` | `errorCode`, `message` | The specified resource was not found. |
-| `ServiceQuotaExceededException` | `structure` | `errorCode`, `message` | The request would exceed a service quota. |
-| `ThrottlingException` | `structure` | `errorCode`, `message` | The request was throttled. |
-| `ValidationException` | `structure` | `errorCode`, `message` | The input parameters are not valid. |
-| `CreateFileSystemRequest` | `structure` | `bucket`, `prefix`, `clientToken`, `kmsKeyId`, `roleArn`, `tags`, `acceptBucketWarning` | Creates a file system scoped to an S3 bucket or optional prefix. |
-| `CreateFileSystemResponse` | `structure` | `creationTime`, `fileSystemArn`, `fileSystemId`, `bucket`, `prefix`, `clientToken`, `kmsKeyId`, `status`, `statusMessage`, `roleArn`, `ownerId`, `tags`, `name` | Describes the created file system. |
-| `CreateMountTargetRequest` | `structure` | `fileSystemId`, `subnetId`, `ipv4Address`, `ipv6Address`, `ipAddressType`, `securityGroups` | Creates a mount target in a subnet with optional IP and security group configuration. |
-| `CreateMountTargetResponse` | `structure` | `availabilityZoneId`, `ownerId`, `mountTargetId`, `fileSystemId`, `subnetId`, `ipv4Address`, `ipv6Address`, `networkInterfaceId`, `vpcId`, `securityGroups`, `status`, `statusMessage` | Describes the created mount target and managed network interface. |
-| `CreateAccessPointRequest` | `structure` | `clientToken`, `tags`, `fileSystemId`, `posixUser`, `rootDirectory` | Creates an access point with optional POSIX user and root directory enforcement. |
-| `CreateAccessPointResponse` | `structure` | `accessPointArn`, `accessPointId`, `clientToken`, `fileSystemId`, `status`, `ownerId`, `posixUser`, `rootDirectory`, `tags`, `name` | Describes the created access point. |
-| `DeleteFileSystemRequest` | `structure` | `fileSystemId`, `forceDelete` | Deletes a file system, optionally accepting loss of unsynchronised changes. |
-| `PutFileSystemPolicyRequest` | `structure` | `fileSystemId`, `policy` | Replaces the file system's IAM resource policy. |
-| `PutSynchronizationConfigurationRequest` | `structure` | `fileSystemId`, `latestVersionNumber`, `importDataRules`, `expirationDataRules` | Updates synchronisation configuration with optional optimistic concurrency. |
-| `GetSynchronizationConfigurationResponse` | `structure` | `latestVersionNumber`, `importDataRules`, `expirationDataRules` | Returns the current synchronisation configuration and version number. |
-| `ListFileSystemsDescription` | `structure` | `creationTime`, `fileSystemArn`, `fileSystemId`, `name`, `bucket`, `status`, `statusMessage`, `roleArn`, `ownerId` | File system summary returned by list operations. |
-| `ListMountTargetsDescription` | `structure` | `availabilityZoneId`, `fileSystemId`, `ipv4Address`, `ipv6Address`, `status`, `statusMessage`, `mountTargetId`, `networkInterfaceId`, `ownerId`, `subnetId`, `vpcId` | Mount target summary returned by list operations. |
-| `ListAccessPointsDescription` | `structure` | `accessPointArn`, `accessPointId`, `fileSystemId`, `status`, `ownerId`, `posixUser`, `rootDirectory`, `name` | Access point summary returned by list operations. |
-| `PosixUser` | `structure` | `uid`, `gid`, `secondaryGids` | POSIX identity enforced for requests through an access point. |
-| `RootDirectory` | `structure` | `path`, `creationPermissions` | Access point root directory and optional creation permissions. |
-| `ImportDataRule` | `structure` | `prefix`, `trigger`, `sizeLessThan` | Controls how data is imported from S3 into the file system. |
-| `ExpirationDataRule` | `structure` | `daysAfterLastAccess` | Controls when cached data expires from the file system. |
-| `ImportTrigger` | `enum` | `ON_DIRECTORY_FIRST_ACCESS`, `ON_FILE_ACCESS` | Import timing mode for import data rules. |
-| `IpAddressType` | `enum` | `IPV4_ONLY`, `IPV6_ONLY`, `DUAL_STACK` | Requested IP address type for a mount target. |
-| `LifeCycleState` | `enum` | `available`, `creating`, `deleting`, `deleted`, `error`, `updating` | Lifecycle state for file systems, mount targets, and access points. |
-
+| `ConflictException` | `structure` | errorCode, message, resourceId, resourceType | The request conflicts with the current state of the resource. This can occur when trying to create a resource that already exists or delete a resource that ... |
+| `InternalServerException` | `structure` | errorCode, message | An internal server error occurred. Retry your request. |
+| `ResourceNotFoundException` | `structure` | errorCode, message | The specified resource was not found. Verify that the resource exists and that you have permission to access it. |
+| `ServiceQuotaExceededException` | `structure` | errorCode, message | The request would exceed a service quota. Review your service quotas and either delete resources or request a quota increase. |
+| `ThrottlingException` | `structure` | errorCode, message | The request was throttled. Retry your request using exponential backoff. |
+| `ValidationException` | `structure` | errorCode, message | The input parameters are not valid. Check the parameter values and try again. |
+| `CreateAccessPointRequest` | `structure` | clientToken, tags, fileSystemId, posixUser, rootDirectory | - |
+| `CreateAccessPointResponse` | `structure` | accessPointArn, accessPointId, clientToken, fileSystemId, status, ownerId, posixUser, rootDirectory, tags, name | - |
+| `CreateFileSystemRequest` | `structure` | bucket, prefix, clientToken, kmsKeyId, roleArn, tags, acceptBucketWarning | - |
+| `CreateFileSystemResponse` | `structure` | creationTime, fileSystemArn, fileSystemId, bucket, prefix, clientToken, kmsKeyId, status, statusMessage, roleArn, ownerId, tags, ... (+1) | - |
+| `CreateMountTargetRequest` | `structure` | fileSystemId, subnetId, ipv4Address, ipv6Address, ipAddressType, securityGroups | - |
+| `CreateMountTargetResponse` | `structure` | availabilityZoneId, ownerId, mountTargetId, fileSystemId, subnetId, ipv4Address, ipv6Address, networkInterfaceId, vpcId, securityGroups, status, statusMessage | - |
+| `DeleteAccessPointRequest` | `structure` | accessPointId | - |
+| `DeleteFileSystemRequest` | `structure` | fileSystemId, forceDelete | - |
+| `DeleteFileSystemPolicyRequest` | `structure` | fileSystemId | - |
+| `DeleteMountTargetRequest` | `structure` | mountTargetId | - |
+| `GetAccessPointRequest` | `structure` | accessPointId | - |
+| `GetAccessPointResponse` | `structure` | accessPointArn, accessPointId, clientToken, fileSystemId, status, ownerId, posixUser, rootDirectory, tags, name | - |
+| `GetFileSystemRequest` | `structure` | fileSystemId | - |
+| `GetFileSystemResponse` | `structure` | creationTime, fileSystemArn, fileSystemId, bucket, prefix, clientToken, kmsKeyId, status, statusMessage, roleArn, ownerId, tags, ... (+1) | - |
+| `GetFileSystemPolicyRequest` | `structure` | fileSystemId | - |
+| `GetFileSystemPolicyResponse` | `structure` | fileSystemId, policy | - |
+| `GetMountTargetRequest` | `structure` | mountTargetId | - |
+| `GetMountTargetResponse` | `structure` | availabilityZoneId, ownerId, mountTargetId, fileSystemId, subnetId, ipv4Address, ipv6Address, networkInterfaceId, vpcId, securityGroups, status, statusMessage | - |
+| `GetSynchronizationConfigurationRequest` | `structure` | fileSystemId | - |
+| `GetSynchronizationConfigurationResponse` | `structure` | latestVersionNumber, importDataRules, expirationDataRules | - |
+| `ListAccessPointsRequest` | `structure` | fileSystemId, maxResults, nextToken | - |
+| `ListAccessPointsResponse` | `structure` | nextToken, accessPoints | - |
+| `ListFileSystemsRequest` | `structure` | bucket, maxResults, nextToken | - |
+| `ListFileSystemsResponse` | `structure` | nextToken, fileSystems | - |
+| `ListMountTargetsRequest` | `structure` | fileSystemId, accessPointId, maxResults, nextToken | - |
+| `ListMountTargetsResponse` | `structure` | nextToken, mountTargets | - |
+| `ListTagsForResourceRequest` | `structure` | resourceId, maxResults, nextToken | - |
+| `ListTagsForResourceResponse` | `structure` | tags, nextToken | - |
+| `PutFileSystemPolicyRequest` | `structure` | fileSystemId, policy | - |
+| `PutFileSystemPolicyResponse` | `structure` | **empty (no members)** | - |
+| `PutSynchronizationConfigurationRequest` | `structure` | fileSystemId, latestVersionNumber, importDataRules, expirationDataRules | - |
+| `PutSynchronizationConfigurationResponse` | `structure` | **empty (no members)** | - |
+| `TagResourceRequest` | `structure` | resourceId, tags | - |
+| `UntagResourceRequest` | `structure` | resourceId, tagKeys | - |
+| `ImportTrigger` | `enum` | ON_DIRECTORY_FIRST_ACCESS, ON_FILE_ACCESS | - |
+| `IpAddressType` | `enum` | IPV4_ONLY, IPV6_ONLY, DUAL_STACK | - |
+| `LifeCycleState` | `enum` | available, creating, deleting, deleted, error, updating | - |
 ## Winterbaume LTM Notes
 
 Sources: .agents/docs/LTM/new-service-implementation-patterns.md, .agents/docs/LTM/core-service-expansion-and-coverage.md, .agents/docs/LTM/quality-gate-workflow-and-recurring-findings.md.

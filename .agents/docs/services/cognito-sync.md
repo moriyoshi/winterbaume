@@ -64,7 +64,7 @@ Parity implications:
 ### Describe
 
 - Operations: `DescribeDataset`, `DescribeIdentityPoolUsage`, `DescribeIdentityUsage`
-- Common required input members in this group: `DatasetName`, `IdentityId`, `IdentityPoolId`
+- Common required input members in this group: `IdentityPoolId`, `IdentityId`
 
 ### Get
 
@@ -74,94 +74,124 @@ Parity implications:
 ### List
 
 - Operations: `ListDatasets`, `ListIdentityPoolUsage`, `ListRecords`
-- Common required input members in this group: `DatasetName`, `IdentityId`, `IdentityPoolId`
+- Common required input members in this group: `IdentityPoolId`, `IdentityId`
 
 ### Set
 
 - Operations: `SetCognitoEvents`, `SetIdentityPoolConfiguration`
-- Common required input members in this group: `Events`, `IdentityPoolId`
+- Common required input members in this group: `IdentityPoolId`
 
 ### Bulk
 
 - Operations: `BulkPublish`
-- Common required input members in this group: `IdentityPoolId`
+- Common required input members in this group: -
 
 ### Delete
 
 - Operations: `DeleteDataset`
-- Common required input members in this group: `DatasetName`, `IdentityId`, `IdentityPoolId`
+- Common required input members in this group: -
 
 ### Register
 
 - Operations: `RegisterDevice`
-- Common required input members in this group: `IdentityId`, `IdentityPoolId`, `Platform`, `Token`
+- Common required input members in this group: -
 
 ### Subscribe
 
 - Operations: `SubscribeToDataset`
-- Common required input members in this group: `DatasetName`, `DeviceId`, `IdentityId`, `IdentityPoolId`
+- Common required input members in this group: -
 
 ### Unsubscribe
 
 - Operations: `UnsubscribeFromDataset`
-- Common required input members in this group: `DatasetName`, `DeviceId`, `IdentityId`, `IdentityPoolId`
+- Common required input members in this group: -
 
 ### Update
 
 - Operations: `UpdateRecords`
-- Common required input members in this group: `DatasetName`, `IdentityId`, `IdentityPoolId`, `SyncSessionToken`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `BulkPublish` | `POST /identitypools/{IdentityPoolId}/bulkpublish` | - | `IdentityPoolId` | - | `BulkPublishResponse` | `AlreadyStreamedException`, `DuplicateRequestException`, `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException` | Initiates a bulk publish of all existing datasets for an Identity Pool to the configured stream. Customers are limited to one successful bulk publish per 24 hours. |
-| `DeleteDataset` | `DELETE /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}` | - | `DatasetName`, `IdentityId`, `IdentityPoolId` | - | `DeleteDatasetResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceConflictException`, `ResourceNotFoundException`, `TooManyRequestsException` | Deletes the specific dataset. The dataset will be deleted permanently, and the action can't be undone. |
-| `DescribeDataset` | `GET /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}` | - | `DatasetName`, `IdentityId`, `IdentityPoolId` | - | `DescribeDatasetResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets meta data about a dataset by identity and dataset name. With Amazon Cognito Sync, each identity has access only to its own data. |
-| `DescribeIdentityPoolUsage` | `GET /identitypools/{IdentityPoolId}` | - | `IdentityPoolId` | - | `DescribeIdentityPoolUsageResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets usage details (for example, data storage) about a particular identity pool. This API can only be called with developer credentials. |
-| `DescribeIdentityUsage` | `GET /identitypools/{IdentityPoolId}/identities/{IdentityId}` | - | `IdentityId`, `IdentityPoolId` | - | `DescribeIdentityUsageResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets usage information for an identity, including number of datasets and data usage. This API can be called with temporary user credentials provided by Cognito Identity or with developer credentials. |
-| `GetBulkPublishDetails` | `POST /identitypools/{IdentityPoolId}/getBulkPublishDetails` | - | `IdentityPoolId` | - | `GetBulkPublishDetailsResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException` | Get the status of the last BulkPublish operation for an identity pool. This API can only be called with developer credentials. |
-| `GetCognitoEvents` | `GET /identitypools/{IdentityPoolId}/events` | - | `IdentityPoolId` | - | `GetCognitoEventsResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the events and the corresponding Lambda functions associated with an identity pool. This API can only be called with developer credentials. |
-| `GetIdentityPoolConfiguration` | `GET /identitypools/{IdentityPoolId}/configuration` | - | `IdentityPoolId` | - | `GetIdentityPoolConfigurationResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the configuration settings of an identity pool. This API can only be called with developer credentials. |
-| `ListDatasets` | `GET /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets` | - | `IdentityId`, `IdentityPoolId` | - | `ListDatasetsResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `TooManyRequestsException` | Lists datasets for an identity. With Amazon Cognito Sync, each identity has access only to its own data. |
-| `ListIdentityPoolUsage` | `GET /identitypools` | - | - | - | `ListIdentityPoolUsageResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `TooManyRequestsException` | Gets a list of identity pools registered with Cognito. ListIdentityPoolUsage can only be called with developer credentials. |
-| `ListRecords` | `GET /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}/records` | - | `DatasetName`, `IdentityId`, `IdentityPoolId` | - | `ListRecordsResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `TooManyRequestsException` | Gets paginated records, optionally changed after a particular sync count for a dataset and identity. With Amazon Cognito Sync, each identity has access only to its own data. |
-| `RegisterDevice` | `POST /identitypools/{IdentityPoolId}/identity/{IdentityId}/device` | - | `IdentityId`, `IdentityPoolId`, `Platform`, `Token` | - | `RegisterDeviceResponse` | `InternalErrorException`, `InvalidConfigurationException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Registers a device to receive push sync notifications. This API can only be called with temporary credentials provided by Cognito Identity. |
-| `SetCognitoEvents` | `POST /identitypools/{IdentityPoolId}/events` | - | `Events`, `IdentityPoolId` | - | `Unit` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Sets the AWS Lambda function for a given event type for an identity pool. This request only updates the key/value pair specified. |
-| `SetIdentityPoolConfiguration` | `POST /identitypools/{IdentityPoolId}/configuration` | - | `IdentityPoolId` | - | `SetIdentityPoolConfigurationResponse` | `ConcurrentModificationException`, `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Sets the necessary configuration for push sync. This API can only be called with developer credentials. |
-| `SubscribeToDataset` | `POST /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}/subscriptions/{DeviceId}` | - | `DatasetName`, `DeviceId`, `IdentityId`, `IdentityPoolId` | - | `SubscribeToDatasetResponse` | `InternalErrorException`, `InvalidConfigurationException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Subscribes to receive notifications when a dataset is modified by another device. This API can only be called with temporary credentials provided by Cognito Identity. |
-| `UnsubscribeFromDataset` | `DELETE /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}/subscriptions/{DeviceId}` | - | `DatasetName`, `DeviceId`, `IdentityId`, `IdentityPoolId` | - | `UnsubscribeFromDatasetResponse` | `InternalErrorException`, `InvalidConfigurationException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Unsubscribes from receiving notifications when a dataset is modified by another device. This API can only be called with temporary credentials provided by Cognito Identity. |
-| `UpdateRecords` | `POST /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}` | - | `DatasetName`, `IdentityId`, `IdentityPoolId`, `SyncSessionToken` | - | `UpdateRecordsResponse` | `InternalErrorException`, `InvalidLambdaFunctionOutputException`, `InvalidParameterException`, `LambdaThrottledException`, `LimitExceededException`, `NotAuthorizedException`, `ResourceConflictException`, `ResourceNotFoundException`, ... (+1) | Posts updates to records and adds and deletes records for a dataset and user. The sync count in the record patch is your last known sync count for that record. |
+| `BulkPublish` | `POST /identitypools/{IdentityPoolId}/bulkpublish` | - | `IdentityPoolId` | - | `BulkPublishResponse` | `AlreadyStreamedException`, `DuplicateRequestException`, `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException` | Initiates a bulk publish of all existing datasets for an Identity Pool to the configured stream. Customers are limited to one successful bulk publish per 24 hours. Bulk publish is an asynchronous request, customers c ... |
+| `DeleteDataset` | `DELETE /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}` | - | `IdentityPoolId`, `IdentityId`, `DatasetName` | - | `DeleteDatasetResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceConflictException`, `ResourceNotFoundException`, `TooManyRequestsException` | Deletes the specific dataset. The dataset will be deleted permanently, and the action can't be undone. Datasets that this dataset was merged with will no longer report the merge. Any subsequent operation on this data ... |
+| `DescribeDataset` | `GET /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}` | - | `IdentityPoolId`, `IdentityId`, `DatasetName` | - | `DescribeDatasetResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets meta data about a dataset by identity and dataset name. With Amazon Cognito Sync, each identity has access only to its own data. Thus, the credentials used to make this API call need to have access to the identi ... |
+| `DescribeIdentityPoolUsage` | `GET /identitypools/{IdentityPoolId}` | - | `IdentityPoolId` | - | `DescribeIdentityPoolUsageResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets usage details (for example, data storage) about a particular identity pool. This API can only be called with developer credentials. You cannot call this API with the temporary user credentials provided by Cognit ... |
+| `DescribeIdentityUsage` | `GET /identitypools/{IdentityPoolId}/identities/{IdentityId}` | - | `IdentityPoolId`, `IdentityId` | - | `DescribeIdentityUsageResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets usage information for an identity, including number of datasets and data usage. This API can be called with temporary user credentials provided by Cognito Identity or with developer credentials. DescribeIdentity ... |
+| `GetBulkPublishDetails` | `POST /identitypools/{IdentityPoolId}/getBulkPublishDetails` | - | `IdentityPoolId` | - | `GetBulkPublishDetailsResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException` | Get the status of the last BulkPublish operation for an identity pool. This API can only be called with developer credentials. You cannot call this API with the temporary user credentials provided by Cognito Identity. |
+| `GetCognitoEvents` | `GET /identitypools/{IdentityPoolId}/events` | - | `IdentityPoolId` | - | `GetCognitoEventsResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the events and the corresponding Lambda functions associated with an identity pool. This API can only be called with developer credentials. You cannot call this API with the temporary user credentials provided b ... |
+| `GetIdentityPoolConfiguration` | `GET /identitypools/{IdentityPoolId}/configuration` | - | `IdentityPoolId` | - | `GetIdentityPoolConfigurationResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Gets the configuration settings of an identity pool. This API can only be called with developer credentials. You cannot call this API with the temporary user credentials provided by Cognito Identity. GetIdentityPoolC ... |
+| `ListDatasets` | `GET /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets` | - | `IdentityPoolId`, `IdentityId` | - | `ListDatasetsResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `TooManyRequestsException` | Lists datasets for an identity. With Amazon Cognito Sync, each identity has access only to its own data. Thus, the credentials used to make this API call need to have access to the identity data. ListDatasets can be ... |
+| `ListIdentityPoolUsage` | `GET /identitypools` | - | - | - | `ListIdentityPoolUsageResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `TooManyRequestsException` | Gets a list of identity pools registered with Cognito. ListIdentityPoolUsage can only be called with developer credentials. You cannot make this API call with the temporary user credentials provided by Cognito Identi ... |
+| `ListRecords` | `GET /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}/records` | - | `IdentityPoolId`, `IdentityId`, `DatasetName` | - | `ListRecordsResponse` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `TooManyRequestsException` | Gets paginated records, optionally changed after a particular sync count for a dataset and identity. With Amazon Cognito Sync, each identity has access only to its own data. Thus, the credentials used to make this AP ... |
+| `RegisterDevice` | `POST /identitypools/{IdentityPoolId}/identity/{IdentityId}/device` | - | `IdentityPoolId`, `IdentityId`, `Platform`, `Token` | - | `RegisterDeviceResponse` | `InternalErrorException`, `InvalidConfigurationException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Registers a device to receive push sync notifications. This API can only be called with temporary credentials provided by Cognito Identity. You cannot call this API with developer credentials. RegisterDevice The foll ... |
+| `SetCognitoEvents` | `POST /identitypools/{IdentityPoolId}/events` | - | `IdentityPoolId`, `Events` | - | `Unit` | `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Sets the AWS Lambda function for a given event type for an identity pool. This request only updates the key/value pair specified. Other key/values pairs are not updated. To remove a key value pair, pass a empty value ... |
+| `SetIdentityPoolConfiguration` | `POST /identitypools/{IdentityPoolId}/configuration` | - | `IdentityPoolId` | - | `SetIdentityPoolConfigurationResponse` | `ConcurrentModificationException`, `InternalErrorException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Sets the necessary configuration for push sync. This API can only be called with developer credentials. You cannot call this API with the temporary user credentials provided by Cognito Identity. SetIdentityPoolConfig ... |
+| `SubscribeToDataset` | `POST /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}/subscriptions/{DeviceId}` | - | `IdentityPoolId`, `IdentityId`, `DatasetName`, `DeviceId` | - | `SubscribeToDatasetResponse` | `InternalErrorException`, `InvalidConfigurationException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Subscribes to receive notifications when a dataset is modified by another device. This API can only be called with temporary credentials provided by Cognito Identity. You cannot call this API with developer credentia ... |
+| `UnsubscribeFromDataset` | `DELETE /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}/subscriptions/{DeviceId}` | - | `IdentityPoolId`, `IdentityId`, `DatasetName`, `DeviceId` | - | `UnsubscribeFromDatasetResponse` | `InternalErrorException`, `InvalidConfigurationException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Unsubscribes from receiving notifications when a dataset is modified by another device. This API can only be called with temporary credentials provided by Cognito Identity. You cannot call this API with developer cre ... |
+| `UpdateRecords` | `POST /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}` | - | `IdentityPoolId`, `IdentityId`, `DatasetName`, `SyncSessionToken` | - | `UpdateRecordsResponse` | `InternalErrorException`, `InvalidLambdaFunctionOutputException`, `InvalidParameterException`, `LambdaThrottledException`, `LimitExceededException`, `NotAuthorizedException`, `ResourceConflictException`, `ResourceNotFoundException`, `TooManyRequestsException` | Posts updates to records and adds and deletes records for a dataset and user. The sync count in the record patch is your last known sync count for that record. The server will reject an UpdateRecords request with a R ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListDatasets` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListIdentityPoolUsage` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRecords` | - | `LastSyncCount -> lastSyncCount`, `NextToken -> nextToken`, `MaxResults -> maxResults`, `SyncSessionToken -> syncSessionToken` | - | - |
+| `UpdateRecords` | `ClientContext -> x-amz-Client-Context` | - | - | - |
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InternalErrorException` | `structure` | `message` | Indicates an internal service error. |
-| `InvalidParameterException` | `structure` | `message` | Thrown when a request parameter does not comply with the associated constraints. |
-| `NotAuthorizedException` | `structure` | `message` | Thrown when a user is not authorized to access the requested resource. |
-| `TooManyRequestsException` | `structure` | `message` | Thrown if the request is throttled. |
-| `ResourceNotFoundException` | `structure` | `message` | Thrown if the resource doesn't exist. |
-| `InvalidConfigurationException` | `structure` | `message` | - |
-| `ResourceConflictException` | `structure` | `message` | Thrown if an update can't be applied because the resource was changed by another call and this would result in a conflict. |
-| `BulkPublishRequest` | `structure` | `IdentityPoolId` | The input for the BulkPublish operation. |
-| `BulkPublishResponse` | `structure` | `IdentityPoolId` | The output for the BulkPublish operation. |
-| `AlreadyStreamedException` | `structure` | `message` | An exception thrown when a bulk publish operation is requested less than 24 hours after a previous bulk publish operation completed successfully. |
-| `DuplicateRequestException` | `structure` | `message` | An exception thrown when there is an IN_PROGRESS bulk publish operation for the given identity pool. |
-| `DeleteDatasetRequest` | `structure` | `DatasetName`, `IdentityId`, `IdentityPoolId` | A request to delete the specific dataset. |
-| `DeleteDatasetResponse` | `structure` | `Dataset` | Response to a successful DeleteDataset request. |
-| `DescribeDatasetRequest` | `structure` | `DatasetName`, `IdentityId`, `IdentityPoolId` | A request for meta data about a dataset (creation date, number of records, size) by owner and dataset name. |
-| `DescribeDatasetResponse` | `structure` | `Dataset` | Response to a successful DescribeDataset request. |
-| `DescribeIdentityPoolUsageRequest` | `structure` | `IdentityPoolId` | A request for usage information about the identity pool. |
-| `DescribeIdentityPoolUsageResponse` | `structure` | `IdentityPoolUsage` | Response to a successful DescribeIdentityPoolUsage request. |
-| `DescribeIdentityUsageRequest` | `structure` | `IdentityId`, `IdentityPoolId` | A request for information about the usage of an identity pool. |
-| `DescribeIdentityUsageResponse` | `structure` | `IdentityUsage` | The response to a successful DescribeIdentityUsage request. |
-| `GetBulkPublishDetailsRequest` | `structure` | `IdentityPoolId` | The input for the GetBulkPublishDetails operation. |
-| `GetBulkPublishDetailsResponse` | `structure` | `BulkPublishCompleteTime`, `BulkPublishStartTime`, `BulkPublishStatus`, `FailureMessage`, `IdentityPoolId` | The output for the GetBulkPublishDetails operation. |
-| `GetCognitoEventsRequest` | `structure` | `IdentityPoolId` | A request for a list of the configured Cognito Events |
-| `GetCognitoEventsResponse` | `structure` | `Events` | The response from the GetCognitoEvents request |
-| `GetIdentityPoolConfigurationRequest` | `structure` | `IdentityPoolId` | The input for the GetIdentityPoolConfiguration operation. |
-
+| `AlreadyStreamedException` | `structure` | message | An exception thrown when a bulk publish operation is requested less than 24 hours after a previous bulk publish operation completed successfully. |
+| `ConcurrentModificationException` | `structure` | message | Thrown if there are parallel requests to modify a resource. |
+| `DuplicateRequestException` | `structure` | message | An exception thrown when there is an IN_PROGRESS bulk publish operation for the given identity pool. |
+| `InternalErrorException` | `structure` | message | Indicates an internal service error. |
+| `InvalidConfigurationException` | `structure` | message | - |
+| `InvalidLambdaFunctionOutputException` | `structure` | message | The AWS Lambda function returned invalid output or an exception. |
+| `InvalidParameterException` | `structure` | message | Thrown when a request parameter does not comply with the associated constraints. |
+| `LambdaThrottledException` | `structure` | message | AWS Lambda throttled your account, please contact AWS Support |
+| `LimitExceededException` | `structure` | message | Thrown when the limit on the number of objects or operations has been exceeded. |
+| `NotAuthorizedException` | `structure` | message | Thrown when a user is not authorized to access the requested resource. |
+| `ResourceConflictException` | `structure` | message | Thrown if an update can't be applied because the resource was changed by another call and this would result in a conflict. |
+| `ResourceNotFoundException` | `structure` | message | Thrown if the resource doesn't exist. |
+| `TooManyRequestsException` | `structure` | message | Thrown if the request is throttled. |
+| `BulkPublishRequest` | `structure` | IdentityPoolId | The input for the BulkPublish operation. |
+| `BulkPublishResponse` | `structure` | IdentityPoolId | The output for the BulkPublish operation. |
+| `DeleteDatasetRequest` | `structure` | IdentityPoolId, IdentityId, DatasetName | A request to delete the specific dataset. |
+| `DeleteDatasetResponse` | `structure` | Dataset | Response to a successful DeleteDataset request. |
+| `DescribeDatasetRequest` | `structure` | IdentityPoolId, IdentityId, DatasetName | A request for meta data about a dataset (creation date, number of records, size) by owner and dataset name. |
+| `DescribeDatasetResponse` | `structure` | Dataset | Response to a successful DescribeDataset request. |
+| `DescribeIdentityPoolUsageRequest` | `structure` | IdentityPoolId | A request for usage information about the identity pool. |
+| `DescribeIdentityPoolUsageResponse` | `structure` | IdentityPoolUsage | Response to a successful DescribeIdentityPoolUsage request. |
+| `DescribeIdentityUsageRequest` | `structure` | IdentityPoolId, IdentityId | A request for information about the usage of an identity pool. |
+| `DescribeIdentityUsageResponse` | `structure` | IdentityUsage | The response to a successful DescribeIdentityUsage request. |
+| `GetBulkPublishDetailsRequest` | `structure` | IdentityPoolId | The input for the GetBulkPublishDetails operation. |
+| `GetBulkPublishDetailsResponse` | `structure` | IdentityPoolId, BulkPublishStartTime, BulkPublishCompleteTime, BulkPublishStatus, FailureMessage | The output for the GetBulkPublishDetails operation. |
+| `GetCognitoEventsRequest` | `structure` | IdentityPoolId | A request for a list of the configured Cognito Events |
+| `GetCognitoEventsResponse` | `structure` | Events | The response from the GetCognitoEvents request |
+| `GetIdentityPoolConfigurationRequest` | `structure` | IdentityPoolId | The input for the GetIdentityPoolConfiguration operation. |
+| `GetIdentityPoolConfigurationResponse` | `structure` | IdentityPoolId, PushSync, CognitoStreams | The output for the GetIdentityPoolConfiguration operation. |
+| `ListDatasetsRequest` | `structure` | IdentityPoolId, IdentityId, NextToken, MaxResults | Request for a list of datasets for an identity. |
+| `ListDatasetsResponse` | `structure` | Datasets, Count, NextToken | Returned for a successful ListDatasets request. |
+| `ListIdentityPoolUsageRequest` | `structure` | NextToken, MaxResults | A request for usage information on an identity pool. |
+| `ListIdentityPoolUsageResponse` | `structure` | IdentityPoolUsages, MaxResults, Count, NextToken | Returned for a successful ListIdentityPoolUsage request. |
+| `ListRecordsRequest` | `structure` | IdentityPoolId, IdentityId, DatasetName, LastSyncCount, NextToken, MaxResults, SyncSessionToken | A request for a list of records. |
+| `ListRecordsResponse` | `structure` | Records, NextToken, Count, DatasetSyncCount, LastModifiedBy, MergedDatasetNames, DatasetExists, DatasetDeletedAfterRequestedSyncCount, SyncSessionToken | Returned for a successful ListRecordsRequest. |
+| `RegisterDeviceRequest` | `structure` | IdentityPoolId, IdentityId, Platform, Token | A request to RegisterDevice. |
+| `RegisterDeviceResponse` | `structure` | DeviceId | Response to a RegisterDevice request. |
+| `SetCognitoEventsRequest` | `structure` | IdentityPoolId, Events | A request to configure Cognito Events" " |
+| `SetIdentityPoolConfigurationRequest` | `structure` | IdentityPoolId, PushSync, CognitoStreams | The input for the SetIdentityPoolConfiguration operation. |
+| `SetIdentityPoolConfigurationResponse` | `structure` | IdentityPoolId, PushSync, CognitoStreams | The output for the SetIdentityPoolConfiguration operation |
+| `BulkPublishStatus` | `enum` | NOT_STARTED, IN_PROGRESS, FAILED, SUCCEEDED | - |
+| `Operation` | `enum` | replace, remove | - |
+| `Platform` | `enum` | APNS, APNS_SANDBOX, GCM, ADM | - |
+| `StreamingStatus` | `enum` | ENABLED, DISABLED | - |
 ## Research Checklist for Parity Work
 
 - Confirm lifecycle transitions for every create/update/delete/start/stop operation.

@@ -70,158 +70,188 @@ Parity implications:
 
 ### List
 
-- Operations: `ListActivities`, `ListExecutions`, `ListMapRuns`, `ListStateMachineAliases`, `ListStateMachineVersions`, `ListStateMachines`, `ListTagsForResource`
+- Operations: `ListActivities`, `ListExecutions`, `ListMapRuns`, `ListStateMachineAliases`, `ListStateMachines`, `ListStateMachineVersions`, `ListTagsForResource`
 - Traits: `paginated` (4)
-- Common required input members in this group: `executionArn`, `resourceArn`, `stateMachineArn`
+- Common required input members in this group: `stateMachineArn`
 
 ### Describe
 
 - Operations: `DescribeActivity`, `DescribeExecution`, `DescribeMapRun`, `DescribeStateMachine`, `DescribeStateMachineAlias`, `DescribeStateMachineForExecution`
-- Common required input members in this group: `activityArn`, `executionArn`, `mapRunArn`, `stateMachineAliasArn`, `stateMachineArn`
+- Common required input members in this group: `executionArn`
 
 ### Delete
 
 - Operations: `DeleteActivity`, `DeleteStateMachine`, `DeleteStateMachineAlias`, `DeleteStateMachineVersion`
-- Common required input members in this group: `activityArn`, `stateMachineAliasArn`, `stateMachineArn`, `stateMachineVersionArn`
+- Common required input members in this group: -
 
 ### Create
 
 - Operations: `CreateActivity`, `CreateStateMachine`, `CreateStateMachineAlias`
 - Traits: `idempotent` (2)
-- Common required input members in this group: `definition`, `name`, `roleArn`, `routingConfiguration`
+- Common required input members in this group: `name`
 
 ### Send
 
 - Operations: `SendTaskFailure`, `SendTaskHeartbeat`, `SendTaskSuccess`
-- Common required input members in this group: `output`, `taskToken`
+- Common required input members in this group: `taskToken`
 
 ### Update
 
 - Operations: `UpdateMapRun`, `UpdateStateMachine`, `UpdateStateMachineAlias`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `mapRunArn`, `stateMachineAliasArn`, `stateMachineArn`
+- Common required input members in this group: -
 
 ### Get
 
 - Operations: `GetActivityTask`, `GetExecutionHistory`
 - Traits: `paginated` (1)
-- Common required input members in this group: `activityArn`, `executionArn`
+- Common required input members in this group: -
 
 ### Start
 
 - Operations: `StartExecution`, `StartSyncExecution`
-- Traits: `endpoint-bound` (1), `idempotent` (1)
+- Traits: `idempotent` (1)
 - Common required input members in this group: `stateMachineArn`
 
 ### Publish
 
 - Operations: `PublishStateMachineVersion`
 - Traits: `idempotent` (1)
-- Common required input members in this group: `stateMachineArn`
+- Common required input members in this group: -
 
 ### Redrive
 
 - Operations: `RedriveExecution`
-- Traits: `idempotency-token` (1), `idempotent` (1)
-- Common required input members in this group: `executionArn`
+- Traits: `idempotent` (1), `idempotency-token` (1)
+- Common required input members in this group: -
 
 ### Stop
 
 - Operations: `StopExecution`
-- Common required input members in this group: `executionArn`
+- Common required input members in this group: -
 
 ### Tag
 
 - Operations: `TagResource`
-- Common required input members in this group: `resourceArn`, `tags`
+- Common required input members in this group: -
 
 ### Test
 
 - Operations: `TestState`
-- Traits: `endpoint-bound` (1)
-- Common required input members in this group: `definition`
+- Common required input members in this group: -
 
 ### Untag
 
 - Operations: `UntagResource`
-- Common required input members in this group: `resourceArn`, `tagKeys`
+- Common required input members in this group: -
 
 ### Validate
 
 - Operations: `ValidateStateMachineDefinition`
-- Common required input members in this group: `definition`
+- Common required input members in this group: -
 
 ## Operation Detail Matrix
 
 | Operation | HTTP | Traits | Required input | Idempotency tokens | Output | Errors | AWS documentation summary |
 |---|---|---|---|---|---|---|---|
-| `CreateActivity` | - | `idempotent` | `name` | - | `CreateActivityOutput` | `ActivityAlreadyExists`, `ActivityLimitExceeded`, `InvalidEncryptionConfiguration`, `InvalidName`, `KmsAccessDeniedException`, `KmsThrottlingException`, `TooManyTags` | Creates an activity. An activity is a task that you write in any programming language and host on any machine that has access to Step Functions. |
-| `CreateStateMachine` | - | `idempotent` | `definition`, `name`, `roleArn` | - | `CreateStateMachineOutput` | `ConflictException`, `InvalidArn`, `InvalidDefinition`, `InvalidEncryptionConfiguration`, `InvalidLoggingConfiguration`, `InvalidName`, `InvalidTracingConfiguration`, `KmsAccessDeniedException`, ... (+7) | Creates a state machine. A state machine consists of a collection of states that can do work (`Task` states), determine to which states to transition next (`Choice` states), stop an execution with an error (`Fail` states), and so on. |
-| `CreateStateMachineAlias` | - | - | `name`, `routingConfiguration` | - | `CreateStateMachineAliasOutput` | `ConflictException`, `InvalidArn`, `InvalidName`, `ResourceNotFound`, `ServiceQuotaExceededException`, `StateMachineDeleting`, `ValidationException` | Creates an alias for a state machine that points to one or two versions of the same state machine. You can set your application to call StartExecution with an alias and update the version the alias uses without changing the client's code. |
-| `DeleteActivity` | - | - | `activityArn` | - | `DeleteActivityOutput` | `InvalidArn` | Deletes an activity. |
-| `DeleteStateMachine` | - | - | `stateMachineArn` | - | `DeleteStateMachineOutput` | `InvalidArn`, `ValidationException` | Deletes a state machine. This is an asynchronous operation. |
-| `DeleteStateMachineAlias` | - | - | `stateMachineAliasArn` | - | `DeleteStateMachineAliasOutput` | `ConflictException`, `InvalidArn`, `ResourceNotFound`, `ValidationException` | Deletes a state machine alias. After you delete a state machine alias, you can't use it to start executions. |
-| `DeleteStateMachineVersion` | - | - | `stateMachineVersionArn` | - | `DeleteStateMachineVersionOutput` | `ConflictException`, `InvalidArn`, `ValidationException` | Deletes a state machine version. After you delete a version, you can't call StartExecution using that version's ARN or use the version with a state machine alias. |
-| `DescribeActivity` | - | - | `activityArn` | - | `DescribeActivityOutput` | `ActivityDoesNotExist`, `InvalidArn` | Describes an activity. This operation is eventually consistent. |
-| `DescribeExecution` | - | - | `executionArn` | - | `DescribeExecutionOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException` | Provides information about a state machine execution, such as the state machine associated with the execution, the execution input and output, and relevant execution metadata. If you've redriven an execution, you can use this API action to return information... |
-| `DescribeMapRun` | - | - | `mapRunArn` | - | `DescribeMapRunOutput` | `InvalidArn`, `ResourceNotFound` | Provides information about a Map Run's configuration, progress, and results. If you've redriven a Map Run, this API action also returns information about the redrives of that Map Run. |
-| `DescribeStateMachine` | - | - | `stateMachineArn` | - | `DescribeStateMachineOutput` | `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `StateMachineDoesNotExist` | Provides information about a state machine's definition, its IAM role Amazon Resource Name (ARN), and configuration. A qualified state machine ARN can either refer to a Distributed Map state defined within a state machine, a version ARN, or an alias ARN. |
-| `DescribeStateMachineAlias` | - | - | `stateMachineAliasArn` | - | `DescribeStateMachineAliasOutput` | `InvalidArn`, `ResourceNotFound`, `ValidationException` | Returns details about a state machine alias. Related operations: CreateStateMachineAlias ListStateMachineAliases UpdateStateMachineAlias DeleteStateMachineAlias |
-| `DescribeStateMachineForExecution` | - | - | `executionArn` | - | `DescribeStateMachineForExecutionOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException` | Provides information about a state machine's definition, its execution role ARN, and configuration. If a Map Run dispatched the execution, this action returns the Map Run Amazon Resource Name (ARN) in the response. |
-| `GetActivityTask` | - | - | `activityArn` | - | `GetActivityTaskOutput` | `ActivityDoesNotExist`, `ActivityWorkerLimitExceeded`, `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException` | Used by workers to retrieve a task (with the specified activity ARN) which has been scheduled for execution by a running state machine. This initiates a long poll, where the service holds the HTTP connection open and responds as soon as a task becomes... |
-| `GetExecutionHistory` | - | `paginated` | `executionArn` | - | `GetExecutionHistoryOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `InvalidToken`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException` | Returns the history of the specified execution as a list of events. By default, the results are returned in ascending order of the `timeStamp` of the events. |
-| `ListActivities` | - | `paginated` | - | - | `ListActivitiesOutput` | `InvalidToken` | Lists the existing activities. If `nextToken` is returned, there are more results available. |
-| `ListExecutions` | - | `paginated` | - | - | `ListExecutionsOutput` | `InvalidArn`, `InvalidToken`, `ResourceNotFound`, `StateMachineDoesNotExist`, `StateMachineTypeNotSupported`, `ValidationException` | Lists all executions of a state machine or a Map Run. You can list all executions related to a state machine by specifying a state machine Amazon Resource Name (ARN), or those related to a Map Run by specifying a Map Run ARN. |
-| `ListMapRuns` | - | `paginated` | `executionArn` | - | `ListMapRunsOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `InvalidToken` | Lists all Map Runs that were started by a given state machine execution. Use this API action to obtain Map Run ARNs, and then call `DescribeMapRun` to obtain more information, if needed. |
-| `ListStateMachineAliases` | - | - | `stateMachineArn` | - | `ListStateMachineAliasesOutput` | `InvalidArn`, `InvalidToken`, `ResourceNotFound`, `StateMachineDeleting`, `StateMachineDoesNotExist` | Lists aliases for a specified state machine ARN. Results are sorted by time, with the most recently created aliases listed first. |
-| `ListStateMachineVersions` | - | - | `stateMachineArn` | - | `ListStateMachineVersionsOutput` | `InvalidArn`, `InvalidToken`, `ValidationException` | Lists versions for the specified state machine Amazon Resource Name (ARN). The results are sorted in descending order of the version creation time. |
-| `ListStateMachines` | - | `paginated` | - | - | `ListStateMachinesOutput` | `InvalidToken` | Lists the existing state machines. If `nextToken` is returned, there are more results available. |
-| `ListTagsForResource` | - | - | `resourceArn` | - | `ListTagsForResourceOutput` | `InvalidArn`, `ResourceNotFound` | List tags for a given resource. Tags may only contain Unicode letters, digits, white space, or these symbols: `_ . |
-| `PublishStateMachineVersion` | - | `idempotent` | `stateMachineArn` | - | `PublishStateMachineVersionOutput` | `ConflictException`, `InvalidArn`, `ServiceQuotaExceededException`, `StateMachineDeleting`, `StateMachineDoesNotExist`, `ValidationException` | Creates a version from the current revision of a state machine. Use versions to create immutable snapshots of your state machine. |
-| `RedriveExecution` | - | `idempotent`, `idempotency-token` | `executionArn` | `clientToken` | `RedriveExecutionOutput` | `ExecutionDoesNotExist`, `ExecutionLimitExceeded`, `ExecutionNotRedrivable`, `InvalidArn`, `ValidationException` | Restarts unsuccessful executions of Standard workflows that didn't complete successfully in the last 14 days. These include failed, aborted, or timed out executions. |
-| `SendTaskFailure` | - | - | `taskToken` | - | `SendTaskFailureOutput` | `InvalidToken`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `TaskDoesNotExist`, `TaskTimedOut` | Used by activity workers, Task states using the callback pattern, and optionally Task states using the job run pattern to report that the task identified by the `taskToken` failed. For an execution with encryption enabled, Step Functions will encrypt the... |
-| `SendTaskHeartbeat` | - | - | `taskToken` | - | `SendTaskHeartbeatOutput` | `InvalidToken`, `TaskDoesNotExist`, `TaskTimedOut` | Used by activity workers and Task states using the callback pattern, and optionally Task states using the job run pattern to report to Step Functions that the task represented by the specified `taskToken` is still making progress. This action resets the... |
-| `SendTaskSuccess` | - | - | `output`, `taskToken` | - | `SendTaskSuccessOutput` | `InvalidOutput`, `InvalidToken`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `TaskDoesNotExist`, `TaskTimedOut` | Used by activity workers, Task states using the callback pattern, and optionally Task states using the job run pattern to report that the task identified by the `taskToken` completed successfully. |
-| `StartExecution` | - | `idempotent` | `stateMachineArn` | - | `StartExecutionOutput` | `ExecutionAlreadyExists`, `ExecutionLimitExceeded`, `InvalidArn`, `InvalidExecutionInput`, `InvalidName`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, ... (+3) | Starts a state machine execution. A qualified state machine ARN can either refer to a Distributed Map state defined within a state machine, a version ARN, or an alias ARN. |
-| `StartSyncExecution` | - | `endpoint-bound` | `stateMachineArn` | - | `StartSyncExecutionOutput` | `InvalidArn`, `InvalidExecutionInput`, `InvalidName`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `StateMachineDeleting`, `StateMachineDoesNotExist`, ... (+1) | Starts a Synchronous Express state machine execution. `StartSyncExecution` is not available for `STANDARD` workflows. |
-| `StopExecution` | - | - | `executionArn` | - | `StopExecutionOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `ValidationException` | Stops an execution. This API action is not supported by `EXPRESS` state machines. |
-| `TagResource` | - | - | `resourceArn`, `tags` | - | `TagResourceOutput` | `InvalidArn`, `ResourceNotFound`, `TooManyTags` | Add a tag to a Step Functions resource. An array of key-value pairs. |
-| `TestState` | - | `endpoint-bound` | `definition` | - | `TestStateOutput` | `InvalidArn`, `InvalidDefinition`, `InvalidExecutionInput`, `ValidationException` | Accepts the definition of a single state and executes it. You can test a state without creating a state machine or updating an existing state machine. |
-| `UntagResource` | - | - | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `InvalidArn`, `ResourceNotFound` | Remove a tag from a Step Functions resource |
-| `UpdateMapRun` | - | - | `mapRunArn` | - | `UpdateMapRunOutput` | `InvalidArn`, `ResourceNotFound`, `ValidationException` | Updates an in-progress Map Run's configuration to include changes to the settings that control maximum concurrency and Map Run failure. |
-| `UpdateStateMachine` | - | `idempotent` | `stateMachineArn` | - | `UpdateStateMachineOutput` | `ConflictException`, `InvalidArn`, `InvalidDefinition`, `InvalidEncryptionConfiguration`, `InvalidLoggingConfiguration`, `InvalidTracingConfiguration`, `KmsAccessDeniedException`, `KmsThrottlingException`, ... (+5) | Updates an existing state machine by modifying its `definition`, `roleArn`, `loggingConfiguration`, or `EncryptionConfiguration`. Running executions will continue to use the previous `definition` and `roleArn`. |
-| `UpdateStateMachineAlias` | - | - | `stateMachineAliasArn` | - | `UpdateStateMachineAliasOutput` | `ConflictException`, `InvalidArn`, `ResourceNotFound`, `StateMachineDeleting`, `ValidationException` | Updates the configuration of an existing state machine alias by modifying its `description` or `routingConfiguration`. You must specify at least one of the `description` or `routingConfiguration` parameters to update a state machine alias. |
-| `ValidateStateMachineDefinition` | - | - | `definition` | - | `ValidateStateMachineDefinitionOutput` | `ValidationException` | Validates the syntax of a state machine definition specified in Amazon States Language (ASL), a JSON-based, structured language. You can validate that a state machine definition is correct without creating a state machine resource. |
+| `CreateActivity` | `-` | `idempotent` | `name` | - | `CreateActivityOutput` | `ActivityAlreadyExists`, `ActivityLimitExceeded`, `InvalidEncryptionConfiguration`, `InvalidName`, `KmsAccessDeniedException`, `KmsThrottlingException`, `TooManyTags` | Creates an activity. An activity is a task that you write in any programming language and host on any machine that has access to Step Functions. Activities must poll Step Functions using the GetActivityTask API actio ... |
+| `CreateStateMachine` | `-` | `idempotent` | `name`, `definition`, `roleArn` | - | `CreateStateMachineOutput` | `ConflictException`, `InvalidArn`, `InvalidDefinition`, `InvalidEncryptionConfiguration`, `InvalidLoggingConfiguration`, `InvalidName`, `InvalidTracingConfiguration`, `KmsAccessDeniedException`, `KmsThrottlingException`, `StateMachineAlreadyExists`, `StateMachineDeleting`, `StateMachineLimitExceeded`, `StateMachineTypeNotSupported`, `TooManyTags`, `ValidationException` | Creates a state machine. A state machine consists of a collection of states that can do work ( Task states), determine to which states to transition next ( Choice states), stop an execution with an error ( Fail state ... |
+| `CreateStateMachineAlias` | `-` | - | `name`, `routingConfiguration` | - | `CreateStateMachineAliasOutput` | `ConflictException`, `InvalidArn`, `InvalidName`, `ResourceNotFound`, `ServiceQuotaExceededException`, `StateMachineDeleting`, `ValidationException` | Creates an alias for a state machine that points to one or two versions of the same state machine. You can set your application to call StartExecution with an alias and update the version the alias uses without chang ... |
+| `DeleteActivity` | `-` | - | `activityArn` | - | `DeleteActivityOutput` | `InvalidArn` | Deletes an activity. |
+| `DeleteStateMachine` | `-` | - | `stateMachineArn` | - | `DeleteStateMachineOutput` | `InvalidArn`, `ValidationException` | Deletes a state machine. This is an asynchronous operation. It sets the state machine's status to DELETING and begins the deletion process. A state machine is deleted only when all its executions are completed. On th ... |
+| `DeleteStateMachineAlias` | `-` | - | `stateMachineAliasArn` | - | `DeleteStateMachineAliasOutput` | `ConflictException`, `InvalidArn`, `ResourceNotFound`, `ValidationException` | Deletes a state machine alias . After you delete a state machine alias, you can't use it to start executions. When you delete a state machine alias, Step Functions doesn't delete the state machine versions that alias ... |
+| `DeleteStateMachineVersion` | `-` | - | `stateMachineVersionArn` | - | `DeleteStateMachineVersionOutput` | `ConflictException`, `InvalidArn`, `ValidationException` | Deletes a state machine version . After you delete a version, you can't call StartExecution using that version's ARN or use the version with a state machine alias . Deleting a state machine version won't terminate it ... |
+| `DescribeActivity` | `-` | - | `activityArn` | - | `DescribeActivityOutput` | `ActivityDoesNotExist`, `InvalidArn` | Describes an activity. This operation is eventually consistent. The results are best effort and may not reflect very recent updates and changes. |
+| `DescribeExecution` | `-` | - | `executionArn` | - | `DescribeExecutionOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException` | Provides information about a state machine execution, such as the state machine associated with the execution, the execution input and output, and relevant execution metadata. If you've redriven an execution, you can ... |
+| `DescribeMapRun` | `-` | - | `mapRunArn` | - | `DescribeMapRunOutput` | `InvalidArn`, `ResourceNotFound` | Provides information about a Map Run's configuration, progress, and results. If you've redriven a Map Run, this API action also returns information about the redrives of that Map Run. For more information, see Examin ... |
+| `DescribeStateMachine` | `-` | - | `stateMachineArn` | - | `DescribeStateMachineOutput` | `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `StateMachineDoesNotExist` | Provides information about a state machine's definition, its IAM role Amazon Resource Name (ARN), and configuration. A qualified state machine ARN can either refer to a Distributed Map state defined within a state ma ... |
+| `DescribeStateMachineAlias` | `-` | - | `stateMachineAliasArn` | - | `DescribeStateMachineAliasOutput` | `InvalidArn`, `ResourceNotFound`, `ValidationException` | Returns details about a state machine alias . Related operations: CreateStateMachineAlias ListStateMachineAliases UpdateStateMachineAlias DeleteStateMachineAlias |
+| `DescribeStateMachineForExecution` | `-` | - | `executionArn` | - | `DescribeStateMachineForExecutionOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException` | Provides information about a state machine's definition, its execution role ARN, and configuration. If a Map Run dispatched the execution, this action returns the Map Run Amazon Resource Name (ARN) in the response. T ... |
+| `GetActivityTask` | `-` | - | `activityArn` | - | `GetActivityTaskOutput` | `ActivityDoesNotExist`, `ActivityWorkerLimitExceeded`, `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException` | Used by workers to retrieve a task (with the specified activity ARN) which has been scheduled for execution by a running state machine. This initiates a long poll, where the service holds the HTTP connection open and ... |
+| `GetExecutionHistory` | `-` | `paginated` | `executionArn` | - | `GetExecutionHistoryOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `InvalidToken`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException` | Returns the history of the specified execution as a list of events. By default, the results are returned in ascending order of the timeStamp of the events. Use the reverseOrder parameter to get the latest events firs ... |
+| `ListActivities` | `-` | `paginated` | - | - | `ListActivitiesOutput` | `InvalidToken` | Lists the existing activities. If nextToken is returned, there are more results available. The value of nextToken is a unique pagination token for each page. Make the call again using the returned token to retrieve t ... |
+| `ListExecutions` | `-` | `paginated` | - | - | `ListExecutionsOutput` | `InvalidArn`, `InvalidToken`, `ResourceNotFound`, `StateMachineDoesNotExist`, `StateMachineTypeNotSupported`, `ValidationException` | Lists all executions of a state machine or a Map Run. You can list all executions related to a state machine by specifying a state machine Amazon Resource Name (ARN), or those related to a Map Run by specifying a Map ... |
+| `ListMapRuns` | `-` | `paginated` | `executionArn` | - | `ListMapRunsOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `InvalidToken` | Lists all Map Runs that were started by a given state machine execution. Use this API action to obtain Map Run ARNs, and then call DescribeMapRun to obtain more information, if needed. |
+| `ListStateMachineAliases` | `-` | - | `stateMachineArn` | - | `ListStateMachineAliasesOutput` | `InvalidArn`, `InvalidToken`, `ResourceNotFound`, `StateMachineDeleting`, `StateMachineDoesNotExist` | Lists aliases for a specified state machine ARN. Results are sorted by time, with the most recently created aliases listed first. To list aliases that reference a state machine version , you can specify the version A ... |
+| `ListStateMachines` | `-` | `paginated` | - | - | `ListStateMachinesOutput` | `InvalidToken` | Lists the existing state machines. If nextToken is returned, there are more results available. The value of nextToken is a unique pagination token for each page. Make the call again using the returned token to retrie ... |
+| `ListStateMachineVersions` | `-` | - | `stateMachineArn` | - | `ListStateMachineVersionsOutput` | `InvalidArn`, `InvalidToken`, `ValidationException` | Lists versions for the specified state machine Amazon Resource Name (ARN). The results are sorted in descending order of the version creation time. If nextToken is returned, there are more results available. The valu ... |
+| `ListTagsForResource` | `-` | - | `resourceArn` | - | `ListTagsForResourceOutput` | `InvalidArn`, `ResourceNotFound` | List tags for a given resource. Tags may only contain Unicode letters, digits, white space, or these symbols: _ . : / = + - @ . |
+| `PublishStateMachineVersion` | `-` | `idempotent` | `stateMachineArn` | - | `PublishStateMachineVersionOutput` | `ConflictException`, `InvalidArn`, `ServiceQuotaExceededException`, `StateMachineDeleting`, `StateMachineDoesNotExist`, `ValidationException` | Creates a version from the current revision of a state machine. Use versions to create immutable snapshots of your state machine. You can start executions from versions either directly or with an alias. To create an ... |
+| `RedriveExecution` | `-` | `idempotent`, `idempotency-token` | `executionArn` | `clientToken` | `RedriveExecutionOutput` | `ExecutionDoesNotExist`, `ExecutionLimitExceeded`, `ExecutionNotRedrivable`, `InvalidArn`, `ValidationException` | Restarts unsuccessful executions of Standard workflows that didn't complete successfully in the last 14 days. These include failed, aborted, or timed out executions. When you redrive an execution, it continues the fa ... |
+| `SendTaskFailure` | `-` | - | `taskToken` | - | `SendTaskFailureOutput` | `InvalidToken`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `TaskDoesNotExist`, `TaskTimedOut` | Used by activity workers, Task states using the callback pattern, and optionally Task states using the job run pattern to report that the task identified by the taskToken failed. For an execution with encryption enab ... |
+| `SendTaskHeartbeat` | `-` | - | `taskToken` | - | `SendTaskHeartbeatOutput` | `InvalidToken`, `TaskDoesNotExist`, `TaskTimedOut` | Used by activity workers and Task states using the callback pattern, and optionally Task states using the job run pattern to report to Step Functions that the task represented by the specified taskToken is still maki ... |
+| `SendTaskSuccess` | `-` | - | `taskToken`, `output` | - | `SendTaskSuccessOutput` | `InvalidOutput`, `InvalidToken`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `TaskDoesNotExist`, `TaskTimedOut` | Used by activity workers, Task states using the callback pattern, and optionally Task states using the job run pattern to report that the task identified by the taskToken completed successfully. |
+| `StartExecution` | `-` | `idempotent` | `stateMachineArn` | - | `StartExecutionOutput` | `ExecutionAlreadyExists`, `ExecutionLimitExceeded`, `InvalidArn`, `InvalidExecutionInput`, `InvalidName`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `StateMachineDeleting`, `StateMachineDoesNotExist`, `ValidationException` | Starts a state machine execution. A qualified state machine ARN can either refer to a Distributed Map state defined within a state machine, a version ARN, or an alias ARN. The following are some examples of qualified ... |
+| `StartSyncExecution` | `-` | - | `stateMachineArn` | - | `StartSyncExecutionOutput` | `InvalidArn`, `InvalidExecutionInput`, `InvalidName`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `StateMachineDeleting`, `StateMachineDoesNotExist`, `StateMachineTypeNotSupported` | Starts a Synchronous Express state machine execution. StartSyncExecution is not available for STANDARD workflows. StartSyncExecution will return a 200 OK response, even if your execution fails, because the status cod ... |
+| `StopExecution` | `-` | - | `executionArn` | - | `StopExecutionOutput` | `ExecutionDoesNotExist`, `InvalidArn`, `KmsAccessDeniedException`, `KmsInvalidStateException`, `KmsThrottlingException`, `ValidationException` | Stops an execution. This API action is not supported by EXPRESS state machines. For an execution with encryption enabled, Step Functions will encrypt the error and cause fields using the KMS key for the execution rol ... |
+| `TagResource` | `-` | - | `resourceArn`, `tags` | - | `TagResourceOutput` | `InvalidArn`, `ResourceNotFound`, `TooManyTags` | Add a tag to a Step Functions resource. An array of key-value pairs. For more information, see Using Cost Allocation Tags in the Amazon Web Services Billing and Cost Management User Guide , and Controlling Access Usi ... |
+| `TestState` | `-` | - | `definition` | - | `TestStateOutput` | `InvalidArn`, `InvalidDefinition`, `InvalidExecutionInput`, `ValidationException` | Accepts the definition of a single state and executes it. You can test a state without creating a state machine or updating an existing state machine. Using this API, you can test the following: A state's input and o ... |
+| `UntagResource` | `-` | - | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `InvalidArn`, `ResourceNotFound` | Remove a tag from a Step Functions resource |
+| `UpdateMapRun` | `-` | - | `mapRunArn` | - | `UpdateMapRunOutput` | `InvalidArn`, `ResourceNotFound`, `ValidationException` | Updates an in-progress Map Run's configuration to include changes to the settings that control maximum concurrency and Map Run failure. |
+| `UpdateStateMachine` | `-` | `idempotent` | `stateMachineArn` | - | `UpdateStateMachineOutput` | `ConflictException`, `InvalidArn`, `InvalidDefinition`, `InvalidEncryptionConfiguration`, `InvalidLoggingConfiguration`, `InvalidTracingConfiguration`, `KmsAccessDeniedException`, `KmsThrottlingException`, `MissingRequiredParameter`, `ServiceQuotaExceededException`, `StateMachineDeleting`, `StateMachineDoesNotExist`, `ValidationException` | Updates an existing state machine by modifying its definition , roleArn , loggingConfiguration , or EncryptionConfiguration . Running executions will continue to use the previous definition and roleArn . You must inc ... |
+| `UpdateStateMachineAlias` | `-` | - | `stateMachineAliasArn` | - | `UpdateStateMachineAliasOutput` | `ConflictException`, `InvalidArn`, `ResourceNotFound`, `StateMachineDeleting`, `ValidationException` | Updates the configuration of an existing state machine alias by modifying its description or routingConfiguration . You must specify at least one of the description or routingConfiguration parameters to update a stat ... |
+| `ValidateStateMachineDefinition` | `-` | - | `definition` | - | `ValidateStateMachineDefinitionOutput` | `ValidationException` | Validates the syntax of a state machine definition specified in Amazon States Language (ASL), a JSON-based, structured language. You can validate that a state machine definition is correct without creating a state ma ... |
+
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
 
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
 |---|---|---|---|
-| `InvalidArn` | `structure` | `message` | The provided Amazon Resource Name (ARN) is not valid. |
-| `ValidationException` | `structure` | `message`, `reason` | The input does not satisfy the constraints specified by an Amazon Web Services service. |
-| `KmsAccessDeniedException` | `structure` | `message` | Either your KMS key policy or API caller does not have the required permissions. |
-| `KmsThrottlingException` | `structure` | `message` | Received when KMS returns `ThrottlingException` for a KMS call that Step Functions makes on behalf of the caller. |
-| `ResourceNotFound` | `structure` | `message`, `resourceName` | Could not find the referenced resource. |
-| `KmsInvalidStateException` | `structure` | `kmsKeyState`, `message` | The KMS key is not in valid state, for example: Disabled or Deleted. |
-| `InvalidToken` | `structure` | `message` | The provided token is not valid. |
-| `StateMachineDeleting` | `structure` | `message` | The specified state machine is being deleted. |
-| `ConflictException` | `structure` | `message` | Updating or deleting a resource can cause an inconsistent state. |
-| `StateMachineDoesNotExist` | `structure` | `message` | The specified state machine does not exist. |
-| `ExecutionDoesNotExist` | `structure` | `message` | The specified execution does not exist. |
-| `InvalidName` | `structure` | `message` | The provided name is not valid. |
-| `InvalidEncryptionConfiguration` | `structure` | `message` | Received when `encryptionConfiguration` is specified but various conditions exist which make the configuration invalid. |
-| `TooManyTags` | `structure` | `message`, `resourceName` | You've exceeded the number of tags allowed for a resource. |
-| `InvalidDefinition` | `structure` | `message` | The provided Amazon States Language definition is not valid. |
-| `StateMachineTypeNotSupported` | `structure` | `message` | State machine type is not supported. |
-| `ServiceQuotaExceededException` | `structure` | `message` | The request would cause a service quota to be exceeded. |
-| `TaskDoesNotExist` | `structure` | `message` | The activity does not exist. |
-| `TaskTimedOut` | `structure` | `message` | The task token has either expired or the task associated with the token has already been closed. |
-| `InvalidExecutionInput` | `structure` | `message` | The provided JSON input data is not valid. |
-| `InvalidLoggingConfiguration` | `structure` | `message` | Configuration is not valid. |
-| `InvalidTracingConfiguration` | `structure` | `message` | Your `tracingConfiguration` key does not match, or `enabled` has not been set to `true` or `false`. |
-| `ActivityDoesNotExist` | `structure` | `message` | The specified activity does not exist. |
-| `ExecutionLimitExceeded` | `structure` | `message` | The maximum number of running executions has been reached. |
-
+| `ActivityAlreadyExists` | `structure` | message | Activity already exists. EncryptionConfiguration may not be updated. |
+| `ActivityDoesNotExist` | `structure` | message | The specified activity does not exist. |
+| `ActivityLimitExceeded` | `structure` | message | The maximum number of activities has been reached. Existing activities must be deleted before a new activity can be created. |
+| `ActivityWorkerLimitExceeded` | `structure` | message | The maximum number of workers concurrently polling for activity tasks has been reached. |
+| `ConflictException` | `structure` | message | Updating or deleting a resource can cause an inconsistent state. This error occurs when there're concurrent requests for DeleteStateMachineVersion , Publish ... |
+| `ExecutionAlreadyExists` | `structure` | message | The execution has the same name as another execution (but a different input ). Executions with the same name and input are considered idempotent. |
+| `ExecutionDoesNotExist` | `structure` | message | The specified execution does not exist. |
+| `ExecutionLimitExceeded` | `structure` | message | The maximum number of running executions has been reached. Running executions must end or be stopped before a new execution can be started. |
+| `ExecutionNotRedrivable` | `structure` | message | The execution Amazon Resource Name (ARN) that you specified for executionArn cannot be redriven. |
+| `InvalidArn` | `structure` | message | The provided Amazon Resource Name (ARN) is not valid. |
+| `InvalidDefinition` | `structure` | message | The provided Amazon States Language definition is not valid. |
+| `InvalidEncryptionConfiguration` | `structure` | message | Received when encryptionConfiguration is specified but various conditions exist which make the configuration invalid. For example, if type is set to CUSTOME ... |
+| `InvalidExecutionInput` | `structure` | message | The provided JSON input data is not valid. |
+| `InvalidLoggingConfiguration` | `structure` | message | Configuration is not valid. |
+| `InvalidName` | `structure` | message | The provided name is not valid. |
+| `InvalidOutput` | `structure` | message | The provided JSON output data is not valid. |
+| `InvalidToken` | `structure` | message | The provided token is not valid. |
+| `InvalidTracingConfiguration` | `structure` | message | Your tracingConfiguration key does not match, or enabled has not been set to true or false . |
+| `KmsAccessDeniedException` | `structure` | message | Either your KMS key policy or API caller does not have the required permissions. |
+| `KmsInvalidStateException` | `structure` | kmsKeyState, message | The KMS key is not in valid state, for example: Disabled or Deleted. |
+| `KmsThrottlingException` | `structure` | message | Received when KMS returns ThrottlingException for a KMS call that Step Functions makes on behalf of the caller. |
+| `MissingRequiredParameter` | `structure` | message | Request is missing a required parameter. This error occurs if both definition and roleArn are not specified. |
+| `ResourceNotFound` | `structure` | message, resourceName | Could not find the referenced resource. |
+| `ServiceQuotaExceededException` | `structure` | message | The request would cause a service quota to be exceeded. HTTP Status Code: 402 |
+| `StateMachineAlreadyExists` | `structure` | message | A state machine with the same name but a different definition or role ARN already exists. |
+| `StateMachineDeleting` | `structure` | message | The specified state machine is being deleted. |
+| `StateMachineDoesNotExist` | `structure` | message | The specified state machine does not exist. |
+| `StateMachineLimitExceeded` | `structure` | message | The maximum number of state machines has been reached. Existing state machines must be deleted before a new state machine can be created. |
+| `StateMachineTypeNotSupported` | `structure` | message | State machine type is not supported. |
+| `TaskDoesNotExist` | `structure` | message | The activity does not exist. |
+| `TaskTimedOut` | `structure` | message | The task token has either expired or the task associated with the token has already been closed. |
+| `TooManyTags` | `structure` | message, resourceName | You've exceeded the number of tags allowed for a resource. See the Limits Topic in the Step Functions Developer Guide. |
+| `ValidationException` | `structure` | message, reason | The input does not satisfy the constraints specified by an Amazon Web Services service. |
+| `CreateActivityInput` | `structure` | name, tags, encryptionConfiguration | - |
+| `CreateActivityOutput` | `structure` | activityArn, creationDate | - |
+| `CreateStateMachineInput` | `structure` | name, definition, roleArn, type, loggingConfiguration, tags, tracingConfiguration, publish, versionDescription, encryptionConfiguration | - |
+| `CreateStateMachineOutput` | `structure` | stateMachineArn, creationDate, stateMachineVersionArn | - |
+| `CreateStateMachineAliasInput` | `structure` | description, name, routingConfiguration | - |
+| `CreateStateMachineAliasOutput` | `structure` | stateMachineAliasArn, creationDate | - |
+| `DeleteActivityInput` | `structure` | activityArn | - |
+| `EncryptionType` | `enum` | AWS_OWNED_KEY, CUSTOMER_MANAGED_KMS_KEY | - |
+| `ExecutionRedriveFilter` | `enum` | REDRIVEN, NOT_REDRIVEN | - |
+| `ExecutionRedriveStatus` | `enum` | REDRIVABLE, NOT_REDRIVABLE, REDRIVABLE_BY_MAP_RUN | - |
+| `ExecutionStatus` | `enum` | RUNNING, SUCCEEDED, FAILED, TIMED_OUT, ABORTED, PENDING_REDRIVE | - |
+| `HistoryEventType` | `enum` | ActivityFailed, ActivityScheduled, ActivityScheduleFailed, ActivityStarted, ActivitySucceeded, ActivityTimedOut, ChoiceStateEntered, ChoiceStateExited, ExecutionAborted, ExecutionFailed, ExecutionStarted, ExecutionSucceeded, ... (+50) | - |
+| `IncludedData` | `enum` | ALL_DATA, METADATA_ONLY | - |
+| `InspectionLevel` | `enum` | INFO, DEBUG, TRACE | - |
+| `KmsKeyState` | `enum` | DISABLED, PENDING_DELETION, PENDING_IMPORT, UNAVAILABLE, CREATING | - |
+| `LogLevel` | `enum` | ALL, ERROR, FATAL, OFF | - |
+| `MapRunStatus` | `enum` | RUNNING, SUCCEEDED, FAILED, ABORTED | - |
 ## Winterbaume LTM Notes
 
 Sources: .agents/docs/LTM/rule-evaluator-and-validator-crates.md, .agents/docs/LTM/aws-inter-service-integration-priorities.md, .agents/docs/LTM/cross-service-integration-and-engine-boundaries-synthesis.md.
