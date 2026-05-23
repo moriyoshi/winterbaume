@@ -386,6 +386,50 @@ Parity implications:
 | `UpdateSubscriptionTarget` | `PATCH /v2/domains/{domainIdentifier}/environments/{environmentIdentifier}/subscription-targets/{identifier}` | `idempotent` | `domainIdentifier`, `environmentIdentifier`, `identifier` | - | `UpdateSubscriptionTargetOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified subscription target in Amazon DataZone. |
 | `UpdateUserProfile` | `PUT /v2/domains/{domainIdentifier}/user-profiles/{userIdentifier}` | - | `domainIdentifier`, `status`, `userIdentifier` | - | `UpdateUserProfileOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates the specified user profile in Amazon DataZone. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AcceptPredictions` | - | `revision -> revision` | - | - |
+| `BatchGetAttributesMetadata` | - | `entityRevision -> entityRevision`, `attributeIdentifiers -> attributeIdentifier` | - | - |
+| `DeleteProject` | - | `skipDeletionCheck -> skipDeletionCheck` | - | - |
+| `DeleteTimeSeriesDataPoints` | - | `formName -> formName`, `clientToken -> clientToken` | - | - |
+| `GetConnection` | - | `withSecret -> withSecret` | - | - |
+| `GetLineageNode` | - | `eventTimestamp -> timestamp` | - | - |
+| `GetTimeSeriesDataPoint` | - | `formName -> formName` | - | - |
+| `GetUserProfile` | - | `type -> type`, `sessionName -> sessionName` | - | - |
+| `ListAccountPools` | - | `name -> name`, `sortBy -> sortBy`, `sortOrder -> sortOrder`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAccountsInAccountPool` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAssetFilters` | - | `status -> status`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAssetRevisions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListConnections` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `sortBy -> sortBy`, `sortOrder -> sortOrder`, `name -> name`, `environmentIdentifier -> environmentIdentifier`, `projectIdentifier -> projectIdentifier`, `type -> type`, `scope -> scope` | - | - |
+| `ListDataProductRevisions` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListDataSourceRunActivities` | - | `status -> status`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListEntityOwners` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListEnvironmentActions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListEnvironmentBlueprints` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `name -> name`, `managed -> managed` | - | - |
+| `ListEnvironmentProfiles` | - | `awsAccountId -> awsAccountId`, `awsAccountRegion -> awsAccountRegion`, `environmentBlueprintIdentifier -> environmentBlueprintIdentifier`, `projectIdentifier -> projectIdentifier`, `name -> name`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListEnvironments` | - | `awsAccountId -> awsAccountId`, `status -> status`, `awsAccountRegion -> awsAccountRegion`, `projectIdentifier -> projectIdentifier`, `environmentProfileIdentifier -> environmentProfileIdentifier`, `environmentBlueprintIdentifier -> environmentBlueprintIdentifier`, `provider -> provider`, `name -> name`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListJobRuns` | - | `status -> status`, `sortOrder -> sortOrder`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListLineageEvents` | - | `maxResults -> maxResults`, `timestampAfter -> timestampAfter`, `timestampBefore -> timestampBefore`, `processingStatus -> processingStatus`, `sortOrder -> sortOrder`, `nextToken -> nextToken` | - | - |
+| `ListLineageNodeHistory` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `direction -> direction`, `eventTimestampGTE -> timestampGTE`, `eventTimestampLTE -> timestampLTE`, `sortOrder -> sortOrder` | - | - |
+| `ListNotifications` | - | `type -> type`, `afterTimestamp -> afterTimestamp`, `beforeTimestamp -> beforeTimestamp`, `subjects -> subjects`, `taskStatus -> taskStatus`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListPolicyGrants` | - | `policyType -> policyType`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListProjectMemberships` | - | `sortBy -> sortBy`, `sortOrder -> sortOrder`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListProjectProfiles` | - | `name -> name`, `sortBy -> sortBy`, `sortOrder -> sortOrder`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListProjects` | - | `userIdentifier -> userIdentifier`, `groupIdentifier -> groupIdentifier`, `name -> name`, `projectCategory -> projectCategory`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListSubscriptionGrants` | - | `environmentId -> environmentId`, `subscriptionTargetId -> subscriptionTargetId`, `subscribedListingId -> subscribedListingId`, `subscriptionId -> subscriptionId`, `owningProjectId -> owningProjectId`, `owningIamPrincipalArn -> owningIamPrincipalArn`, `owningUserId -> owningUserId`, `owningGroupId -> owningGroupId`, `sortBy -> sortBy`, `sortOrder -> sortOrder`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListSubscriptionRequests` | - | `status -> status`, `subscribedListingId -> subscribedListingId`, `owningProjectId -> owningProjectId`, `owningIamPrincipalArn -> owningIamPrincipalArn`, `approverProjectId -> approverProjectId`, `owningUserId -> owningUserId`, `owningGroupId -> owningGroupId`, `sortBy -> sortBy`, `sortOrder -> sortOrder`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListSubscriptions` | - | `subscriptionRequestIdentifier -> subscriptionRequestIdentifier`, `status -> status`, `subscribedListingId -> subscribedListingId`, `owningProjectId -> owningProjectId`, `owningIamPrincipalArn -> owningIamPrincipalArn`, `owningUserId -> owningUserId`, `owningGroupId -> owningGroupId`, `approverProjectId -> approverProjectId`, `sortBy -> sortBy`, `sortOrder -> sortOrder`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListSubscriptionTargets` | - | `sortBy -> sortBy`, `sortOrder -> sortOrder`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListTimeSeriesDataPoints` | - | `formName -> formName`, `startedAt -> startedAt`, `endedAt -> endedAt`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `PostLineageEvent` | `clientToken -> Client-Token` | - | - | `event` |
+| `QueryGraph` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `RejectPredictions` | - | `revision -> revision` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

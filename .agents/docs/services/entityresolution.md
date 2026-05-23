@@ -151,6 +151,22 @@ Welcome to the Entity Resolution API Reference . Entity Resolution is an Amazon 
 | `UpdateMatchingWorkflow` | `PUT /matchingworkflows/{workflowName}` | `idempotent` | `inputSourceConfig`, `outputSourceConfig`, `resolutionTechniques`, `roleArn`, `workflowName` | - | `UpdateMatchingWorkflowOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing matching workflow. The workflow must already exist for this operation to succeed. |
 | `UpdateSchemaMapping` | `PUT /schemas/{schemaName}` | `idempotent` | `mappedInputFields`, `schemaName` | - | `UpdateSchemaMappingOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a schema mapping. A schema is immutable if it is being used by a workflow. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `BatchDeleteUniqueId` | `inputSource -> inputSource`, `uniqueIds -> uniqueIds` | - | - | - |
+| `ListIdMappingJobs` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListIdMappingWorkflows` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListIdNamespaces` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListMatchingJobs` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListMatchingWorkflows` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListProviderServices` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `providerName -> providerName` | - | - |
+| `ListSchemaMappings` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

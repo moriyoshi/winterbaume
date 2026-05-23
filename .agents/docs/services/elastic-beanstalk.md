@@ -199,6 +199,12 @@ Parity implications:
 | `UpdateTagsForResource` | - | - | `ResourceArn` | - | `Unit` | `InsufficientPrivilegesException`, `OperationInProgressException`, `ResourceNotFoundException`, `ResourceTypeNotSupportedException`, `TooManyTagsException` | Update the list of tags applied to an AWS Elastic Beanstalk resource. Two lists can be passed: `TagsToAdd` for tags to add or update, and `TagsToRemove`. |
 | `ValidateConfigurationSettings` | - | - | `ApplicationName`, `OptionSettings` | - | `ConfigurationSettingsValidationMessages` | `InsufficientPrivilegesException`, `TooManyBucketsException` | Takes a set of configuration settings and either a configuration template or environment, and determines whether those values are valid. This action returns a list of messages indicating any errors or warnings associated with the selection of option values. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

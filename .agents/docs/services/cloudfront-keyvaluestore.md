@@ -83,6 +83,19 @@ Amazon CloudFront KeyValueStore Service to View and Update Data in a KVS Resourc
 | `PutKey` | `PUT /key-value-stores/{KvsARN}/keys/{Key}` | `idempotent` | `IfMatch`, `Key`, `KvsARN`, `Value` | - | `PutKeyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new key value pair or replaces the value of an existing key. |
 | `UpdateKeys` | `POST /key-value-stores/{KvsARN}/keys` | `idempotent` | `IfMatch`, `KvsARN` | - | `UpdateKeysResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Puts or Deletes multiple key value pairs in a single, all-or-nothing operation. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteKey` | `IfMatch -> If-Match` | - | - | - |
+| `ListKeys` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `PutKey` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateKeys` | `IfMatch -> If-Match` | - | - | - |
+
+**Conditional-write/read coverage:** the following operations model RFC 7232 conditional headers and therefore must enforce 412 PreconditionFailed (and may emit 409 ConditionalRequestConflict on races) even though those error codes are typically not in the modelled `errors:` list: `DeleteKey`, `PutKey`, `UpdateKeys`.
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

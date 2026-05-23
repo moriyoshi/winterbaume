@@ -252,6 +252,17 @@ Service Catalog Service Catalog enables organizations to create and manage catal
 | `UpdateServiceAction` | - | - | `Id` | - | `UpdateServiceActionOutput` | `InvalidParametersException`, `ResourceNotFoundException` | Updates a self-service action. |
 | `UpdateTagOption` | - | - | `Id` | - | `UpdateTagOptionOutput` | `DuplicateResourceException`, `InvalidParametersException`, `ResourceNotFoundException`, `TagOptionNotMigratedException` | Updates the specified TagOption. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteTagOption` | - | `Id -> id` | - | - |
+| `DescribeTagOption` | - | `Id -> id` | - | - |
+| `DisassociateTagOptionFromResource` | - | `ResourceId -> resourceId`, `TagOptionId -> tagOptionId` | - | - |
+| `ListResourcesForTagOption` | - | `TagOptionId -> tagOptionId`, `ResourceType -> resourceType`, `PageSize -> pageSize`, `PageToken -> pageToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

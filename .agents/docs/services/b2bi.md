@@ -143,6 +143,15 @@ This is the Amazon Web Services B2B Data Interchange API Reference . It provides
 | `UpdateProfile` | `PATCH /profiles/{profileId}` | `idempotent` | `profileId` | - | `UpdateProfileResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified parameters for a profile. A profile is the mechanism used to create the concept of a private network. |
 | `UpdateTransformer` | `PATCH /transformers/{transformerId}` | `idempotent` | `transformerId` | - | `UpdateTransformerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified parameters for a transformer. A transformer can take an EDI file as input and transform it into a JSON-or XML-formatted document. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetTransformerJob` | - | `transformerId -> transformerId` | - | - |
+| `UntagResource` | - | `TagKeys -> TagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

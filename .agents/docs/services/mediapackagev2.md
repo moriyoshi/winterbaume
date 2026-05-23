@@ -150,6 +150,14 @@ This guide is intended for creating AWS Elemental MediaPackage resources in Medi
 | `UpdateChannelGroup` | `PUT /channelGroup/{ChannelGroupName}` | `idempotent` | `ChannelGroupName` | - | `UpdateChannelGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the specified channel group. You can edit the description on a channel group for easier identification later from the AWS Elemental MediaPackage console. |
 | `UpdateOriginEndpoint` | `PUT /channelGroup/{ChannelGroupName}/channel/{ChannelName}/originEndpoint/{OriginEndpointName}` | `idempotent` | `ChannelGroupName`, `ChannelName`, `ContainerType`, `OriginEndpointName` | - | `UpdateOriginEndpointResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Update the specified origin endpoint. Edit the packaging preferences on an endpoint to optimize the viewing experience. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

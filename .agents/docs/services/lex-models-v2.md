@@ -228,6 +228,23 @@ Amazon Lex Model Building Service provides APIs for creating, managing, and depl
 | `UpdateSlotType` | `PUT /bots/{botId}/botversions/{botVersion}/botlocales/{localeId}/slottypes/{slotTypeId}` | - | `botId`, `botVersion`, `localeId`, `slotTypeId`, `slotTypeName` | - | `UpdateSlotTypeResponse` | `ConflictException`, `InternalServerException`, `PreconditionFailedException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of an existing slot type. |
 | `UpdateTestSet` | `PUT /testsets/{testSetId}` | `idempotent` | `testSetId`, `testSetName` | - | `UpdateTestSetResponse` | `ConflictException`, `InternalServerException`, `PreconditionFailedException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | The action to update the test set. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateResourcePolicyStatement` | - | `expectedRevisionId -> expectedRevisionId` | - | - |
+| `DeleteBot` | - | `skipResourceInUseCheck -> skipResourceInUseCheck` | - | - |
+| `DeleteBotAlias` | - | `skipResourceInUseCheck -> skipResourceInUseCheck` | - | - |
+| `DeleteBotVersion` | - | `skipResourceInUseCheck -> skipResourceInUseCheck` | - | - |
+| `DeleteResourcePolicy` | - | `expectedRevisionId -> expectedRevisionId` | - | - |
+| `DeleteResourcePolicyStatement` | - | `expectedRevisionId -> expectedRevisionId` | - | - |
+| `DeleteSlotType` | - | `skipResourceInUseCheck -> skipResourceInUseCheck` | - | - |
+| `DeleteUtterances` | - | `localeId -> localeId`, `sessionId -> sessionId` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `UpdateResourcePolicy` | - | `expectedRevisionId -> expectedRevisionId` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

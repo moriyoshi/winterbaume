@@ -132,6 +132,32 @@ The FinSpace management service provides the APIs for managing FinSpace environm
 | `UpdateKxUser` | `PUT /kx/environments/{environmentId}/users/{userName}` | `idempotency-token` | `environmentId`, `iamRole`, `userName` | `clientToken` | `UpdateKxUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the user details. You can only update the IAM role associated with a user. |
 | `UpdateKxVolume` | `PATCH /kx/environments/{environmentId}/kxvolumes/{volumeName}` | `idempotency-token` | `environmentId`, `volumeName` | `clientToken` | `UpdateKxVolumeResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the throughput or capacity of a volume. During the update process, the filesystem might be unavailable for a few minutes. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteKxCluster` | - | `clientToken -> clientToken` | - | - |
+| `DeleteKxDatabase` | - | `clientToken -> clientToken` | - | - |
+| `DeleteKxDataview` | - | `clientToken -> clientToken` | - | - |
+| `DeleteKxEnvironment` | - | `clientToken -> clientToken` | - | - |
+| `DeleteKxScalingGroup` | - | `clientToken -> clientToken` | - | - |
+| `DeleteKxUser` | - | `clientToken -> clientToken` | - | - |
+| `DeleteKxVolume` | - | `clientToken -> clientToken` | - | - |
+| `GetKxConnectionString` | - | `userArn -> userArn`, `clusterName -> clusterName` | - | - |
+| `ListEnvironments` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListKxChangesets` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListKxClusterNodes` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListKxClusters` | - | `clusterType -> clusterType`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListKxDatabases` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListKxDataviews` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListKxEnvironments` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListKxScalingGroups` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListKxUsers` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListKxVolumes` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `volumeType -> volumeType` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

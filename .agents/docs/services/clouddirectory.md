@@ -228,6 +228,67 @@ Parity implications:
 | `UpgradeAppliedSchema` | `PUT /amazonclouddirectory/2017-01-11/schema/upgradeapplied` | - | `DirectoryArn`, `PublishedSchemaArn` | - | `UpgradeAppliedSchemaResponse` | `AccessDeniedException`, `IncompatibleSchemaException`, `InternalServiceException`, `InvalidArnException`, `InvalidAttachmentException`, `ResourceNotFoundException`, `RetryableConflictException`, `SchemaAlreadyExistsException`, ... (+1) | Upgrades a single directory in-place using the `PublishedSchemaArn` with schema updates found in `MinorVersion`. Backwards-compatible minor version upgrades are instantaneously available for readers on all objects in the directory. |
 | `UpgradePublishedSchema` | `PUT /amazonclouddirectory/2017-01-11/schema/upgradepublished` | - | `DevelopmentSchemaArn`, `MinorVersion`, `PublishedSchemaArn` | - | `UpgradePublishedSchemaResponse` | `AccessDeniedException`, `IncompatibleSchemaException`, `InternalServiceException`, `InvalidArnException`, `InvalidAttachmentException`, `LimitExceededException`, `ResourceNotFoundException`, `RetryableConflictException`, ... (+1) | Upgrades a published schema under a new minor version revision using the current contents of `DevelopmentSchemaArn`. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AddFacetToObject` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `ApplySchema` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `AttachObject` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `AttachPolicy` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `AttachToIndex` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `AttachTypedLink` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `BatchRead` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `BatchWrite` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `CreateDirectory` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `CreateFacet` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `CreateIndex` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `CreateObject` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `CreateTypedLinkFacet` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `DeleteDirectory` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `DeleteFacet` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `DeleteObject` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `DeleteSchema` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `DeleteTypedLinkFacet` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `DetachFromIndex` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `DetachObject` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `DetachPolicy` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `DetachTypedLink` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `DisableDirectory` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `EnableDirectory` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `GetDirectory` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `GetFacet` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `GetLinkAttributes` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `GetObjectAttributes` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `GetObjectInformation` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `GetSchemaAsJson` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `GetTypedLinkFacetInformation` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `ListAttachedIndices` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `ListFacetAttributes` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `ListFacetNames` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `ListIncomingTypedLinks` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `ListIndex` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `ListObjectAttributes` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `ListObjectChildren` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `ListObjectParentPaths` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `ListObjectParents` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `ListObjectPolicies` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `ListOutgoingTypedLinks` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `ListPolicyAttachments` | `DirectoryArn -> x-amz-data-partition`, `ConsistencyLevel -> x-amz-consistency-level` | - | - | - |
+| `ListTypedLinkFacetAttributes` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `ListTypedLinkFacetNames` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `LookupPolicy` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `PublishSchema` | `DevelopmentSchemaArn -> x-amz-data-partition` | - | - | - |
+| `PutSchemaFromJson` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `RemoveFacetFromObject` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `UpdateFacet` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `UpdateLinkAttributes` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `UpdateObjectAttributes` | `DirectoryArn -> x-amz-data-partition` | - | - | - |
+| `UpdateSchema` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+| `UpdateTypedLinkFacet` | `SchemaArn -> x-amz-data-partition` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

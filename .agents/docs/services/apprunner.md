@@ -177,6 +177,12 @@ App Runner exposes VPC-aware operations in the model but currently does not pers
 | `UpdateService` | - | - | `ServiceArn` | - | `UpdateServiceResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Update an App Runner service. You can update the source configuration and instance configuration of the service. |
 | `UpdateVpcIngressConnection` | - | - | `IngressVpcConfiguration`, `VpcIngressConnectionArn` | - | `UpdateVpcIngressConnectionResponse` | `InternalServiceErrorException`, `InvalidRequestException`, `InvalidStateException`, `ResourceNotFoundException` | Update an existing App Runner VPC Ingress Connection resource. The VPC Ingress Connection must be in one of the following states to be updated: AVAILABLE FAILED_CREATION FAILED_UPDATE |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

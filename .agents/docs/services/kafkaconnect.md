@@ -102,6 +102,20 @@ No high-level service documentation is embedded in the AWS API model.
 | `UntagResource` | `DELETE /v1/tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Removes tags from the specified resource. |
 | `UpdateConnector` | `PUT /v1/connectors/{connectorArn}` | `idempotent` | `connectorArn`, `currentVersion` | - | `UpdateConnectorResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Updates the specified connector. For request body, specify only one parameter: either `capacity` or `connectorConfiguration`. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteConnector` | - | `currentVersion -> currentVersion` | - | - |
+| `ListConnectorOperations` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListConnectors` | - | `connectorNamePrefix -> connectorNamePrefix`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListCustomPlugins` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `namePrefix -> namePrefix` | - | - |
+| `ListWorkerConfigurations` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `namePrefix -> namePrefix` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `UpdateConnector` | - | `currentVersion -> currentVersion` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

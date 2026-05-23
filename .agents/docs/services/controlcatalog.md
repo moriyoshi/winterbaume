@@ -67,6 +67,14 @@ Welcome to the Control Catalog API reference. This guide is for developers who n
 | `ListDomains` | `POST /domains` | `readonly`, `paginated` | - | - | `ListDomainsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of domains from the Control Catalog. |
 | `ListObjectives` | `POST /objectives` | `readonly`, `paginated` | - | - | `ListObjectivesResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Returns a paginated list of objectives from the Control Catalog. You can apply an optional filter to see the objectives that belong to a specific domain. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListControlMappings` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

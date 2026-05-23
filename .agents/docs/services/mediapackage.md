@@ -115,6 +115,17 @@ AWS Elemental MediaPackage
 | `UpdateChannel` | `PUT /channels/{Id}` | - | `Id` | - | `UpdateChannelResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Updates an existing Channel. |
 | `UpdateOriginEndpoint` | `PUT /origin_endpoints/{Id}` | - | `Id` | - | `UpdateOriginEndpointResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Updates an existing OriginEndpoint. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListChannels` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListHarvestJobs` | - | `IncludeChannelId -> includeChannelId`, `IncludeStatus -> includeStatus`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListOriginEndpoints` | - | `ChannelId -> channelId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

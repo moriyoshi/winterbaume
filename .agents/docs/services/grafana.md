@@ -134,6 +134,15 @@ Amazon Managed Grafana is a fully managed and secure data visualization service 
 | `UpdateWorkspaceAuthentication` | `POST /workspaces/{workspaceId}/authentication` | - | `authenticationProviders`, `workspaceId` | - | `UpdateWorkspaceAuthenticationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Use this operation to define the identity provider (IdP) that this workspace authenticates users from, using SAML. You can also map SAML assertion attributes to workspace user information and define which groups in the assertion attribute are to have the... |
 | `UpdateWorkspaceConfiguration` | `PUT /workspaces/{workspaceId}/configuration` | - | `configuration`, `workspaceId` | - | `UpdateWorkspaceConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the configuration string for the given workspace |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListVersions` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `workspaceId -> workspace-id` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

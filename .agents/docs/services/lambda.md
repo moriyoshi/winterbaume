@@ -264,6 +264,26 @@ Lambda currently reserves a VPC configuration slot on function state but does no
 | `UpdateFunctionEventInvokeConfig` | `POST /2019-09-25/functions/{FunctionName}/event-invoke-config` | - | `FunctionName` | - | `FunctionEventInvokeConfig` | `InvalidParameterValueException`, `ResourceConflictException`, `ResourceNotFoundException`, `ServiceException`, `TooManyRequestsException` | Updates the configuration for asynchronous invocation for a function, version, or alias. To configure options for asynchronous invocation, use PutFunctionEventInvokeConfig. |
 | `UpdateFunctionUrlConfig` | `PUT /2021-10-31/functions/{FunctionName}/url` | - | `FunctionName` | - | `UpdateFunctionUrlConfigResponse` | `InvalidParameterValueException`, `ResourceConflictException`, `ResourceNotFoundException`, `ServiceException`, `TooManyRequestsException` | Updates the configuration for a Lambda function URL. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteFunction` | - | `Qualifier -> Qualifier` | - | - |
+| `DeleteFunctionEventInvokeConfig` | - | `Qualifier -> Qualifier` | - | - |
+| `GetDurableExecutionHistory` | - | `IncludeExecutionData -> IncludeExecutionData`, `MaxItems -> MaxItems`, `Marker -> Marker`, `ReverseOrder -> ReverseOrder` | - | - |
+| `GetDurableExecutionState` | - | `CheckpointToken -> CheckpointToken`, `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `GetFunctionEventInvokeConfig` | - | `Qualifier -> Qualifier` | - | - |
+| `ListDurableExecutionsByFunction` | - | `Qualifier -> Qualifier`, `DurableExecutionName -> DurableExecutionName`, `Statuses -> Statuses`, `StartedAfter -> StartedAfter`, `StartedBefore -> StartedBefore`, `ReverseOrder -> ReverseOrder`, `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListFunctionEventInvokeConfigs` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `PutFunctionEventInvokeConfig` | - | `Qualifier -> Qualifier` | - | - |
+| `SendDurableExecutionCallbackFailure` | - | - | - | `Error` |
+| `SendDurableExecutionCallbackSuccess` | - | - | - | `Result` |
+| `StopDurableExecution` | - | - | - | `Error` |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+| `UpdateFunctionEventInvokeConfig` | - | `Qualifier -> Qualifier` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -208,6 +208,22 @@ Parity implications:
 | `UpdateUser` | `POST /accounts/{AccountId}/users/{UserId}` | - | `AccountId`, `UserId` | - | `UpdateUserResponse` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates user details for a specified user ID. Currently, only `LicenseType` updates are supported for this action. |
 | `UpdateUserSettings` | `PUT /accounts/{AccountId}/users/{UserId}/settings` | - | `AccountId`, `UserId`, `UserSettings` | - | `Unit` | `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the settings for the specified user, such as phone number settings. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListAccounts` | - | `Name -> name`, `UserEmail -> user-email`, `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListBots` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListPhoneNumberOrders` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListPhoneNumbers` | - | `Status -> status`, `ProductType -> product-type`, `FilterName -> filter-name`, `FilterValue -> filter-value`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListRoomMemberships` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListRooms` | - | `MemberId -> member-id`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListSupportedPhoneNumberCountries` | - | `ProductType -> product-type` | - | - |
+| `ListUsers` | - | `UserEmail -> user-email`, `UserType -> user-type`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `SearchAvailablePhoneNumbers` | - | `AreaCode -> area-code`, `City -> city`, `Country -> country`, `State -> state`, `TollFreePrefix -> toll-free-prefix`, `PhoneNumberType -> phone-number-type`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

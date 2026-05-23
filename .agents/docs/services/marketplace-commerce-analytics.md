@@ -53,6 +53,12 @@ Provides AWS Marketplace business intelligence data on-demand.
 | `GenerateDataSet` | - | - | `dataSetPublicationDate`, `dataSetType`, `destinationS3BucketName`, `roleNameArn`, `snsTopicArn` | - | `GenerateDataSetResult` | `MarketplaceCommerceAnalyticsException` | Given a data set type and data set publication date, asynchronously publishes the requested data set to the specified S3 bucket and notifies the specified SNS topic once the data is available. Returns a unique request identifier that can be used to correlate... |
 | `StartSupportDataExport` | - | - | `dataSetType`, `destinationS3BucketName`, `fromDate`, `roleNameArn`, `snsTopicArn` | - | `StartSupportDataExportResult` | `MarketplaceCommerceAnalyticsException` | This target has been deprecated. Given a data set type and a from date, asynchronously publishes the requested customer support data to the specified S3 bucket and notifies the specified SNS topic once the data is available. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

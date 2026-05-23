@@ -202,6 +202,54 @@ Parity implications:
 | `UpdateChannelMessage` | `PUT /channels/{ChannelArn}/messages/{MessageId}` | - | `ChannelArn`, `ChimeBearer`, `Content`, `MessageId` | - | `UpdateChannelMessageResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the content of a message. The `x-amz-chime-bearer` request header is mandatory. |
 | `UpdateChannelReadMarker` | `PUT /channels/{ChannelArn}/readMarker` | - | `ChannelArn`, `ChimeBearer` | - | `UpdateChannelReadMarkerResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | The details of the time when a user last read messages in a channel. The `x-amz-chime-bearer` request header is mandatory. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AssociateChannelFlow` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `BatchCreateChannelMembership` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `CreateChannel` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `CreateChannelBan` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `CreateChannelMembership` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `CreateChannelModerator` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `DeleteChannel` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `DeleteChannelBan` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `DeleteChannelMembership` | `ChimeBearer -> x-amz-chime-bearer` | `SubChannelId -> sub-channel-id` | - | - |
+| `DeleteChannelMessage` | `ChimeBearer -> x-amz-chime-bearer` | `SubChannelId -> sub-channel-id` | - | - |
+| `DeleteChannelModerator` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `DescribeChannel` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `DescribeChannelBan` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `DescribeChannelMembership` | `ChimeBearer -> x-amz-chime-bearer` | `SubChannelId -> sub-channel-id` | - | - |
+| `DescribeChannelMembershipForAppInstanceUser` | `ChimeBearer -> x-amz-chime-bearer` | `AppInstanceUserArn -> app-instance-user-arn` | - | - |
+| `DescribeChannelModeratedByAppInstanceUser` | `ChimeBearer -> x-amz-chime-bearer` | `AppInstanceUserArn -> app-instance-user-arn` | - | - |
+| `DescribeChannelModerator` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `DisassociateChannelFlow` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `GetChannelMembershipPreferences` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `GetChannelMessage` | `ChimeBearer -> x-amz-chime-bearer` | `SubChannelId -> sub-channel-id` | - | - |
+| `GetChannelMessageStatus` | `ChimeBearer -> x-amz-chime-bearer` | `SubChannelId -> sub-channel-id` | - | - |
+| `GetMessagingSessionEndpoint` | - | `NetworkType -> network-type` | - | - |
+| `ListChannelBans` | `ChimeBearer -> x-amz-chime-bearer` | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListChannelFlows` | - | `AppInstanceArn -> app-instance-arn`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListChannelMemberships` | `ChimeBearer -> x-amz-chime-bearer` | `Type -> type`, `MaxResults -> max-results`, `NextToken -> next-token`, `SubChannelId -> sub-channel-id` | - | - |
+| `ListChannelMembershipsForAppInstanceUser` | `ChimeBearer -> x-amz-chime-bearer` | `AppInstanceUserArn -> app-instance-user-arn`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListChannelMessages` | `ChimeBearer -> x-amz-chime-bearer` | `SortOrder -> sort-order`, `NotBefore -> not-before`, `NotAfter -> not-after`, `MaxResults -> max-results`, `NextToken -> next-token`, `SubChannelId -> sub-channel-id` | - | - |
+| `ListChannelModerators` | `ChimeBearer -> x-amz-chime-bearer` | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListChannels` | `ChimeBearer -> x-amz-chime-bearer` | `AppInstanceArn -> app-instance-arn`, `Privacy -> privacy`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListChannelsAssociatedWithChannelFlow` | - | `ChannelFlowArn -> channel-flow-arn`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListChannelsModeratedByAppInstanceUser` | `ChimeBearer -> x-amz-chime-bearer` | `AppInstanceUserArn -> app-instance-user-arn`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListSubChannels` | `ChimeBearer -> x-amz-chime-bearer` | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListTagsForResource` | - | `ResourceARN -> arn` | - | - |
+| `PutChannelExpirationSettings` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `PutChannelMembershipPreferences` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `RedactChannelMessage` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `SearchChannels` | `ChimeBearer -> x-amz-chime-bearer` | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `SendChannelMessage` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `UpdateChannel` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `UpdateChannelMessage` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+| `UpdateChannelReadMarker` | `ChimeBearer -> x-amz-chime-bearer` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

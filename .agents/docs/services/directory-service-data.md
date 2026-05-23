@@ -116,6 +116,30 @@ Amazon Web Services Directory Service Data is an extension of Directory Service.
 | `UpdateGroup` | `POST /Groups/UpdateGroup` | `idempotency-token` | `DirectoryId`, `SAMAccountName` | `ClientToken` | `UpdateGroupResult` | `AccessDeniedException`, `ConflictException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates group information. |
 | `UpdateUser` | `POST /Users/UpdateUser` | `idempotency-token` | `DirectoryId`, `SAMAccountName` | `ClientToken` | `UpdateUserResult` | `AccessDeniedException`, `ConflictException`, `DirectoryUnavailableException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates user information. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AddGroupMember` | - | `DirectoryId -> DirectoryId` | - | - |
+| `CreateGroup` | - | `DirectoryId -> DirectoryId` | - | - |
+| `CreateUser` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DeleteGroup` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DeleteUser` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DescribeGroup` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DescribeUser` | - | `DirectoryId -> DirectoryId` | - | - |
+| `DisableUser` | - | `DirectoryId -> DirectoryId` | - | - |
+| `ListGroupMembers` | - | `DirectoryId -> DirectoryId` | - | - |
+| `ListGroups` | - | `DirectoryId -> DirectoryId` | - | - |
+| `ListGroupsForMember` | - | `DirectoryId -> DirectoryId` | - | - |
+| `ListUsers` | - | `DirectoryId -> DirectoryId` | - | - |
+| `RemoveGroupMember` | - | `DirectoryId -> DirectoryId` | - | - |
+| `SearchGroups` | - | `DirectoryId -> DirectoryId` | - | - |
+| `SearchUsers` | - | `DirectoryId -> DirectoryId` | - | - |
+| `UpdateGroup` | - | `DirectoryId -> DirectoryId` | - | - |
+| `UpdateUser` | - | `DirectoryId -> DirectoryId` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

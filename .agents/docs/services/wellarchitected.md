@@ -186,6 +186,43 @@ Well-Architected Tool This is the Well-Architected Tool API Reference . The WA T
 | `UpgradeProfileVersion` | `PUT /workloads/{WorkloadId}/profiles/{ProfileArn}/upgrade` | `idempotency-token` | `ProfileArn`, `WorkloadId` | `ClientRequestToken` | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Upgrade a profile. |
 | `UpgradeReviewTemplateLensReview` | `PUT /reviewTemplates/{TemplateArn}/lensReviews/{LensAlias}/upgrade` | - | `LensAlias`, `TemplateArn` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Upgrade the lens review of a review template. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteLens` | - | `ClientRequestToken -> ClientRequestToken`, `LensStatus -> LensStatus` | - | - |
+| `DeleteLensShare` | - | `ClientRequestToken -> ClientRequestToken` | - | - |
+| `DeleteProfile` | - | `ClientRequestToken -> ClientRequestToken` | - | - |
+| `DeleteProfileShare` | - | `ClientRequestToken -> ClientRequestToken` | - | - |
+| `DeleteReviewTemplate` | - | `ClientRequestToken -> ClientRequestToken` | - | - |
+| `DeleteTemplateShare` | - | `ClientRequestToken -> ClientRequestToken` | - | - |
+| `DeleteWorkload` | - | `ClientRequestToken -> ClientRequestToken` | - | - |
+| `DeleteWorkloadShare` | - | `ClientRequestToken -> ClientRequestToken` | - | - |
+| `ExportLens` | - | `LensVersion -> LensVersion` | - | - |
+| `GetAnswer` | - | `MilestoneNumber -> MilestoneNumber` | - | - |
+| `GetConsolidatedReport` | - | `Format -> Format`, `IncludeSharedResources -> IncludeSharedResources`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `GetLens` | - | `LensVersion -> LensVersion` | - | - |
+| `GetLensReview` | - | `MilestoneNumber -> MilestoneNumber` | - | - |
+| `GetLensReviewReport` | - | `MilestoneNumber -> MilestoneNumber` | - | - |
+| `GetLensVersionDifference` | - | `BaseLensVersion -> BaseLensVersion`, `TargetLensVersion -> TargetLensVersion` | - | - |
+| `GetProfile` | - | `ProfileVersion -> ProfileVersion` | - | - |
+| `ListAnswers` | - | `PillarId -> PillarId`, `MilestoneNumber -> MilestoneNumber`, `NextToken -> NextToken`, `MaxResults -> MaxResults`, `QuestionPriority -> QuestionPriority` | - | - |
+| `ListLenses` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `LensType -> LensType`, `LensStatus -> LensStatus`, `LensName -> LensName` | - | - |
+| `ListLensReviewImprovements` | - | `PillarId -> PillarId`, `MilestoneNumber -> MilestoneNumber`, `NextToken -> NextToken`, `MaxResults -> MaxResults`, `QuestionPriority -> QuestionPriority` | - | - |
+| `ListLensReviews` | - | `MilestoneNumber -> MilestoneNumber`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListLensShares` | - | `SharedWithPrefix -> SharedWithPrefix`, `NextToken -> NextToken`, `MaxResults -> MaxResults`, `Status -> Status` | - | - |
+| `ListProfileNotifications` | - | `WorkloadId -> WorkloadId`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListProfiles` | - | `ProfileNamePrefix -> ProfileNamePrefix`, `ProfileOwnerType -> ProfileOwnerType`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListProfileShares` | - | `SharedWithPrefix -> SharedWithPrefix`, `NextToken -> NextToken`, `MaxResults -> MaxResults`, `Status -> Status` | - | - |
+| `ListReviewTemplateAnswers` | - | `PillarId -> PillarId`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListReviewTemplates` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListShareInvitations` | - | `WorkloadNamePrefix -> WorkloadNamePrefix`, `LensNamePrefix -> LensNamePrefix`, `ShareResourceType -> ShareResourceType`, `NextToken -> NextToken`, `MaxResults -> MaxResults`, `ProfileNamePrefix -> ProfileNamePrefix`, `TemplateNamePrefix -> TemplateNamePrefix` | - | - |
+| `ListTemplateShares` | - | `SharedWithPrefix -> SharedWithPrefix`, `NextToken -> NextToken`, `MaxResults -> MaxResults`, `Status -> Status` | - | - |
+| `ListWorkloadShares` | - | `SharedWithPrefix -> SharedWithPrefix`, `NextToken -> NextToken`, `MaxResults -> MaxResults`, `Status -> Status` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

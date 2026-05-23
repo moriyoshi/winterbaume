@@ -130,6 +130,18 @@ Amazon DevOps Guru is a fully managed service that helps you identify anomalous 
 | `UpdateResourceCollection` | `PUT /resource-collections` | - | `Action`, `ResourceCollection` | - | `UpdateResourceCollectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates the collection of resources that DevOps Guru analyzes. The two types of Amazon Web Services resource collections supported are Amazon Web Services CloudFormation stacks and Amazon Web Services resources that contain the same Amazon Web Services tag. |
 | `UpdateServiceIntegration` | `PUT /service-integrations` | - | `ServiceIntegration` | - | `UpdateServiceIntegrationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Enables or disables integration with a service that can be integrated with DevOps Guru. The one service that can be integrated with DevOps Guru is Amazon Web Services Systems Manager, which can be used to create an OpsItem for each generated insight. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeAnomaly` | - | `AccountId -> AccountId` | - | - |
+| `DescribeInsight` | - | `AccountId -> AccountId` | - | - |
+| `DescribeResourceCollectionHealth` | - | `NextToken -> NextToken` | - | - |
+| `GetCostEstimation` | - | `NextToken -> NextToken` | - | - |
+| `GetResourceCollection` | - | `NextToken -> NextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

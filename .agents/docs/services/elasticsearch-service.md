@@ -208,6 +208,30 @@ Parity implications:
 | `UpdateVpcEndpoint` | `POST /2015-01-01/es/vpcEndpoints/update` | - | `VpcEndpointId`, `VpcOptions` | - | `UpdateVpcEndpointResponse` | `BaseException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Modifies an Amazon OpenSearch Service-managed interface VPC endpoint. |
 | `UpgradeElasticsearchDomain` | `POST /2015-01-01/es/upgradeDomain` | - | `DomainName`, `TargetVersion` | - | `UpgradeElasticsearchDomainResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException`, `ValidationException` | Allows you to either upgrade your domain or perform an Upgrade eligibility check to a compatible Elasticsearch version. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeDomainAutoTunes` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DescribeDomainChangeProgress` | - | `ChangeId -> changeid` | - | - |
+| `DescribeElasticsearchInstanceTypeLimits` | - | `DomainName -> domainName` | - | - |
+| `DescribeReservedElasticsearchInstanceOfferings` | - | `ReservedElasticsearchInstanceOfferingId -> offeringId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DescribeReservedElasticsearchInstances` | - | `ReservedElasticsearchInstanceId -> reservationId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCompatibleElasticsearchVersions` | - | `DomainName -> domainName` | - | - |
+| `GetPackageVersionHistory` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetUpgradeHistory` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDomainNames` | - | `EngineType -> engineType` | - | - |
+| `ListDomainsForPackage` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListElasticsearchInstanceTypes` | - | `DomainName -> domainName`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListElasticsearchVersions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPackagesForDomain` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListTags` | - | `ARN -> arn` | - | - |
+| `ListVpcEndpointAccess` | - | `NextToken -> nextToken` | - | - |
+| `ListVpcEndpoints` | - | `NextToken -> nextToken` | - | - |
+| `ListVpcEndpointsForDomain` | - | `NextToken -> nextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

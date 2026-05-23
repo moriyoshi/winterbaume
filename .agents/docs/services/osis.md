@@ -140,6 +140,20 @@ OSIS currently exposes VPC option shapes but does not persist detailed networkin
 | `UpdatePipeline` | `PUT /2022-01-01/osis/updatePipeline/{PipelineName}` | - | `PipelineName` | - | `UpdatePipelineResponse` | `AccessDeniedException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Updates an OpenSearch Ingestion pipeline. For more information, see Updating Amazon OpenSearch Ingestion pipelines. |
 | `ValidatePipeline` | `POST /2022-01-01/osis/validatePipeline` | - | `PipelineConfigurationBody` | - | `ValidatePipelineResponse` | `AccessDeniedException`, `DisabledOperationException`, `InternalException`, `ValidationException` | Checks whether an OpenSearch Ingestion pipeline configuration is valid prior to creation. For more information, see Creating Amazon OpenSearch Ingestion pipelines. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetPipelineBlueprint` | - | `Format -> format` | - | - |
+| `ListPipelineEndpointConnections` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPipelineEndpoints` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPipelines` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListTagsForResource` | - | `Arn -> arn` | - | - |
+| `TagResource` | - | `Arn -> arn` | - | - |
+| `UntagResource` | - | `Arn -> arn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

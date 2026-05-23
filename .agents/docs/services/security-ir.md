@@ -135,6 +135,14 @@ This guide documents the action and response elements for use of the service.
 | `UpdateMembership` | `PUT /v1/membership/{membershipId}/update-membership` | `idempotent` | `membershipId` | - | `UpdateMembershipResponse` | - | Updates membership configuration. |
 | `UpdateResolverType` | `POST /v1/cases/{caseId}/update-resolver-type` | - | `caseId`, `resolverType` | - | `UpdateResolverTypeResponse` | - | Updates the resolver type for a case. This is a one-way action and cannot be reversed. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

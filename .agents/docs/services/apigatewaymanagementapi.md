@@ -57,6 +57,14 @@ The Amazon API Gateway Management API allows you to directly manage runtime aspe
 | `GetConnection` | `GET /@connections/{ConnectionId}` | - | `ConnectionId` | - | `GetConnectionResponse` | `ForbiddenException`, `GoneException`, `LimitExceededException` | Get information about the connection with the provided id. |
 | `PostToConnection` | `POST /@connections/{ConnectionId}` | - | `ConnectionId`, `Data` | - | `Unit` | `ForbiddenException`, `GoneException`, `LimitExceededException`, `PayloadTooLargeException` | Sends the provided data to the specified connection. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `PostToConnection` | - | - | - | `Data` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

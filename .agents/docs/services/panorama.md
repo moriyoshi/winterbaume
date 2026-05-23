@@ -138,6 +138,27 @@ AWS Panorama Overview This is the AWS Panorama API Reference . For an introducti
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from a resource. |
 | `UpdateDeviceMetadata` | `PUT /devices/{DeviceId}` | - | `DeviceId` | - | `UpdateDeviceMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates a device's metadata. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeletePackage` | - | `ForceDelete -> ForceDelete` | - | - |
+| `DeregisterPackageVersion` | - | `OwnerAccount -> OwnerAccount`, `UpdatedLatestPatchVersion -> UpdatedLatestPatchVersion` | - | - |
+| `DescribeNode` | - | `OwnerAccount -> OwnerAccount` | - | - |
+| `DescribePackageVersion` | - | `OwnerAccount -> OwnerAccount`, `PatchVersion -> PatchVersion` | - | - |
+| `ListApplicationInstanceDependencies` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListApplicationInstanceNodeInstances` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListApplicationInstances` | - | `DeviceId -> deviceId`, `StatusFilter -> statusFilter`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDevices` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `SortBy -> SortBy`, `SortOrder -> SortOrder`, `NameFilter -> NameFilter`, `DeviceAggregatedStatusFilter -> DeviceAggregatedStatusFilter` | - | - |
+| `ListDevicesJobs` | - | `DeviceId -> DeviceId`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListNodeFromTemplateJobs` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListNodes` | - | `Category -> category`, `OwnerAccount -> ownerAccount`, `PackageName -> packageName`, `PackageVersion -> packageVersion`, `PatchVersion -> patchVersion`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListPackageImportJobs` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListPackages` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

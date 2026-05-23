@@ -231,6 +231,12 @@ This is the API Reference for Amazon Rekognition Image, Amazon Rekognition Custo
 | `UpdateDatasetEntries` | - | - | `Changes`, `DatasetArn` | - | `UpdateDatasetEntriesResponse` | `AccessDeniedException`, `InternalServerError`, `InvalidParameterException`, `LimitExceededException`, `ProvisionedThroughputExceededException`, `ResourceInUseException`, `ResourceNotFoundException`, `ThrottlingException` | This operation applies only to Amazon Rekognition Custom Labels. Adds or updates one or more entries (images) in a dataset. |
 | `UpdateStreamProcessor` | - | - | `Name` | - | `UpdateStreamProcessorResponse` | `AccessDeniedException`, `InternalServerError`, `InvalidParameterException`, `ProvisionedThroughputExceededException`, `ResourceInUseException`, `ResourceNotFoundException`, `ThrottlingException` | Allows you to update a stream processor. You can change some settings and regions of interest and delete certain parameters. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

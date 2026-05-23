@@ -238,6 +238,12 @@ Network Firewall currently stores firewall subnet attachments and VPC endpoint a
 | `UpdateSubnetChangeProtection` | - | - | `SubnetChangeProtection` | - | `UpdateSubnetChangeProtectionResponse` | `InternalServerError`, `InvalidRequestException`, `InvalidTokenException`, `ResourceNotFoundException`, `ResourceOwnerCheckException`, `ThrottlingException` | - |
 | `UpdateTLSInspectionConfiguration` | - | - | `TLSInspectionConfiguration`, `UpdateToken` | - | `UpdateTLSInspectionConfigurationResponse` | `InternalServerError`, `InvalidRequestException`, `InvalidTokenException`, `ResourceNotFoundException`, `ThrottlingException` | Updates the TLS inspection configuration settings for the specified TLS inspection configuration. You use a TLS inspection configuration by referencing it in one or more firewall policies. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

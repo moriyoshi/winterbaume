@@ -146,6 +146,26 @@ Parity implications:
 | `UpdateSiteAddress` | `PUT /sites/{SiteId}/address` | - | `Address`, `AddressType`, `SiteId` | - | `UpdateSiteAddressOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Updates the address of the specified site. You can't update a site address if there is an order in progress. |
 | `UpdateSiteRackPhysicalProperties` | `PATCH /sites/{SiteId}/rackPhysicalProperties` | - | `SiteId` | - | `UpdateSiteRackPhysicalPropertiesOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `NotFoundException`, `ValidationException` | Update the physical and logistical details for a rack at a site. For more information about hardware requirements for racks, see Network readiness checklist in the Amazon Web Services Outposts User Guide. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetOutpostBillingInformation` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `GetOutpostInstanceTypes` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `GetOutpostSupportedInstanceTypes` | - | `OrderId -> OrderId`, `AssetId -> AssetId`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `GetSiteAddress` | - | `AddressType -> AddressType` | - | - |
+| `ListAssetInstances` | - | `AssetIdFilter -> AssetIdFilter`, `InstanceTypeFilter -> InstanceTypeFilter`, `AccountIdFilter -> AccountIdFilter`, `AwsServiceFilter -> AwsServiceFilter`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListAssets` | - | `HostIdFilter -> HostIdFilter`, `MaxResults -> MaxResults`, `NextToken -> NextToken`, `StatusFilter -> StatusFilter`, `AssetTypeFilter -> AssetTypeFilter` | - | - |
+| `ListBlockingInstancesForCapacityTask` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListCapacityTasks` | - | `OutpostIdentifierFilter -> OutpostIdentifierFilter`, `MaxResults -> MaxResults`, `NextToken -> NextToken`, `CapacityTaskStatusFilter -> CapacityTaskStatusFilter` | - | - |
+| `ListCatalogItems` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `ItemClassFilter -> ItemClassFilter`, `SupportedStorageFilter -> SupportedStorageFilter`, `EC2FamilyFilter -> EC2FamilyFilter` | - | - |
+| `ListOrders` | - | `OutpostIdentifierFilter -> OutpostIdentifierFilter`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListOutposts` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `LifeCycleStatusFilter -> LifeCycleStatusFilter`, `AvailabilityZoneFilter -> AvailabilityZoneFilter`, `AvailabilityZoneIdFilter -> AvailabilityZoneIdFilter` | - | - |
+| `ListSites` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `OperatingAddressCountryCodeFilter -> OperatingAddressCountryCodeFilter`, `OperatingAddressStateOrRegionFilter -> OperatingAddressStateOrRegionFilter`, `OperatingAddressCityFilter -> OperatingAddressCityFilter` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

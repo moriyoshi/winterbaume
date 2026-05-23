@@ -89,6 +89,15 @@ Amazon Web Services Billing and Cost Management Dashboards is a service that ena
 | `UntagResource` | - | - | `resourceArn`, `resourceTagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes specified tags from a dashboard resource. |
 | `UpdateDashboard` | - | - | `arn` | - | `UpdateDashboardResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing dashboard's properties, including its name, description, and widget configurations. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateScheduledReport` | `clientToken -> X-Amzn-Client-Token` | - | - | - |
+| `ExecuteScheduledReport` | `clientToken -> X-Amzn-Client-Token` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

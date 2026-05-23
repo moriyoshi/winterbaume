@@ -130,6 +130,16 @@ Multi-party approval is a capability of Organizations that allows you to protect
 | `UntagResource` | `POST /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a resource tag. Each tag is a label consisting of a user-defined key and value. |
 | `UpdateApprovalTeam` | `PATCH /approval-teams/{Arn}` | `idempotent` | `Arn` | - | `UpdateApprovalTeamResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates an approval team. You can request to update the team description, approval threshold, and approvers in the team. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListPolicies` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListPolicyVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListResourcePolicies` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

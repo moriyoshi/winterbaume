@@ -135,6 +135,16 @@ Amazon Web Services RTB Fabric provides secure, low-latency infrastructure for c
 | `UpdateRequesterGateway` | `POST /requester-gateway/{gatewayId}/update` | `idempotent`, `idempotency-token` | `clientToken`, `gatewayId` | `clientToken` | `UpdateRequesterGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a requester gateway. |
 | `UpdateResponderGateway` | `POST /responder-gateway/{gatewayId}/update` | `idempotent`, `idempotency-token` | `clientToken`, `gatewayId`, `port`, `protocol` | `clientToken` | `UpdateResponderGatewayResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a responder gateway. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListRequesterGateways` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListResponderGateways` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

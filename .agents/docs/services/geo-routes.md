@@ -68,6 +68,12 @@ With the Amazon Location Routes API you can calculate routes and estimate travel
 | `OptimizeWaypoints` | `POST /optimize-waypoints` | `readonly` | `Origin` | - | `OptimizeWaypointsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `OptimizeWaypoints` calculates the optimal order to travel between a set of waypoints to minimize either the travel time or the distance travelled during the journey, based on road network restrictions and the traffic pattern data. |
 | `SnapToRoads` | `POST /snap-to-roads` | `readonly` | `TracePoints` | - | `SnapToRoadsResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | `SnapToRoads` matches GPS trace to roads most likely traveled on. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

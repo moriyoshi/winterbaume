@@ -145,6 +145,18 @@ Parity implications:
 | `UpdateMediaInsightsPipelineStatus` | `PUT /media-insights-pipeline-status/{Identifier}` | - | `Identifier`, `UpdateStatus` | - | `Unit` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the status of a media insights pipeline. |
 | `UpdateMediaPipelineKinesisVideoStreamPool` | `PUT /media-pipeline-kinesis-video-stream-pools/{Identifier}` | - | `Identifier` | - | `UpdateMediaPipelineKinesisVideoStreamPoolResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates an Amazon Kinesis Video Stream pool in a media pipeline. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListMediaCapturePipelines` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListMediaInsightsPipelineConfigurations` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListMediaPipelineKinesisVideoStreamPools` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListMediaPipelines` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListTagsForResource` | - | `ResourceARN -> arn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

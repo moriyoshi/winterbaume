@@ -259,6 +259,36 @@ OpenSearch currently stores VPC endpoints and access relationships inside OpenSe
 | `UpdateVpcEndpoint` | `POST /2021-01-01/opensearch/vpcEndpoints/update` | - | `VpcEndpointId`, `VpcOptions` | - | `UpdateVpcEndpointResponse` | `BaseException`, `ConflictException`, `DisabledOperationException`, `InternalException`, `ResourceNotFoundException`, `ValidationException` | Modifies an Amazon OpenSearch Service-managed interface VPC endpoint. |
 | `UpgradeDomain` | `POST /2021-01-01/opensearch/upgradeDomain` | - | `DomainName`, `TargetVersion` | - | `UpgradeDomainResponse` | `BaseException`, `DisabledOperationException`, `InternalException`, `ResourceAlreadyExistsException`, `ResourceNotFoundException`, `ValidationException` | Allows you to either upgrade your Amazon OpenSearch Service domain or perform an upgrade eligibility check to a compatible version of OpenSearch or Elasticsearch. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeDomainAutoTunes` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DescribeDomainChangeProgress` | - | `ChangeId -> changeid` | - | - |
+| `DescribeDryRunProgress` | - | `DryRunId -> dryRunId`, `LoadDryRunConfig -> loadDryRunConfig` | - | - |
+| `DescribeInstanceTypeLimits` | - | `DomainName -> domainName` | - | - |
+| `DescribeReservedInstanceOfferings` | - | `ReservedInstanceOfferingId -> offeringId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DescribeReservedInstances` | - | `ReservedInstanceId -> reservationId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCompatibleVersions` | - | `DomainName -> domainName` | - | - |
+| `GetDomainMaintenanceStatus` | - | `MaintenanceId -> maintenanceId` | - | - |
+| `GetPackageVersionHistory` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetUpgradeHistory` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListApplications` | - | `nextToken -> nextToken`, `statuses -> statuses`, `maxResults -> maxResults` | - | - |
+| `ListDirectQueryDataSources` | - | `NextToken -> nexttoken` | - | - |
+| `ListDomainMaintenances` | - | `Action -> action`, `Status -> status`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDomainNames` | - | `EngineType -> engineType` | - | - |
+| `ListDomainsForPackage` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListInstanceTypeDetails` | - | `DomainName -> domainName`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `RetrieveAZs -> retrieveAZs`, `InstanceType -> instanceType` | - | - |
+| `ListPackagesForDomain` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListScheduledActions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListTags` | - | `ARN -> arn` | - | - |
+| `ListVersions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListVpcEndpointAccess` | - | `NextToken -> nextToken` | - | - |
+| `ListVpcEndpoints` | - | `NextToken -> nextToken` | - | - |
+| `ListVpcEndpointsForDomain` | - | `NextToken -> nextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

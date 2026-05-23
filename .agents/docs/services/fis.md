@@ -142,6 +142,21 @@ Parity implications:
 | `UpdateSafetyLeverState` | `PATCH /safetyLevers/{id}/state` | - | `id`, `state` | - | `UpdateSafetyLeverStateResponse` | `ConflictException`, `ResourceNotFoundException`, `ValidationException` | Updates the specified safety lever state. |
 | `UpdateTargetAccountConfiguration` | `PATCH /experimentTemplates/{experimentTemplateId}/targetAccountConfigurations/{accountId}` | - | `accountId`, `experimentTemplateId` | - | `UpdateTargetAccountConfigurationResponse` | `ResourceNotFoundException`, `ValidationException` | Updates the target account configuration for the specified experiment template. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListActions` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListExperimentResolvedTargets` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `targetName -> targetName` | - | - |
+| `ListExperiments` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `experimentTemplateId -> experimentTemplateId` | - | - |
+| `ListExperimentTargetAccountConfigurations` | - | `nextToken -> nextToken` | - | - |
+| `ListExperimentTemplates` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListTargetAccountConfigurations` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListTargetResourceTypes` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

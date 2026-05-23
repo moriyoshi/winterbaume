@@ -75,6 +75,16 @@ Parity implications:
 | `Suggest` | `GET /2013-01-01/suggest?format=sdk&pretty=true` | - | `query`, `suggester` | - | `SuggestResponse` | `SearchException` | Retrieves autocomplete suggestions for a partial query string. You can use suggestions enable you to display likely matches before users finish typing. |
 | `UploadDocuments` | `POST /2013-01-01/documents/batch?format=sdk` | - | `contentType`, `documents` | - | `UploadDocumentsResponse` | `DocumentServiceException` | Posts a batch of documents to a search domain for indexing. A document batch is a collection of add and delete operations that represent the documents you want to add, update, or delete from your domain. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `Search` | - | `cursor -> cursor`, `expr -> expr`, `facet -> facet`, `filterQuery -> fq`, `highlight -> highlight`, `partial -> partial`, `query -> q`, `queryOptions -> q.options`, `queryParser -> q.parser`, `return -> return`, `size -> size`, `sort -> sort`, `start -> start`, `stats -> stats` | - | - |
+| `Suggest` | - | `query -> q`, `suggester -> suggester`, `size -> size` | - | - |
+| `UploadDocuments` | `contentType -> Content-Type` | - | - | `documents` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

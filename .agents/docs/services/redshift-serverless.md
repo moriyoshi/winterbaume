@@ -202,6 +202,15 @@ Parity implications:
 | `UpdateUsageLimit` | - | - | `usageLimitId` | - | `UpdateUsageLimitResponse` | `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Update a usage limit in Amazon Redshift Serverless. You can't update the usage type or period of a usage limit. |
 | `UpdateWorkgroup` | - | - | `workgroupName` | - | `UpdateWorkgroupResponse` | `ConflictException`, `InsufficientCapacityException`, `InternalServerException`, `Ipv6CidrBlockNotFoundException`, `ResourceNotFoundException`, `ValidationException` | Updates a workgroup with the specified configuration settings. You can't update multiple parameters in one request. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListCustomDomainAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListTracks` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

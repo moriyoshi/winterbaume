@@ -134,6 +134,23 @@ Amazon Pinpoint Email Service Welcome to the Amazon Pinpoint Email API Reference
 | `UntagResource` | `DELETE /v1/email/tags` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ConcurrentModificationException`, `NotFoundException`, `TooManyRequestsException` | Remove one or more tags (keys and values) from a specified resource. |
 | `UpdateConfigurationSetEventDestination` | `PUT /v1/email/configuration-sets/{ConfigurationSetName}/event-destinations/{EventDestinationName}` | - | `ConfigurationSetName`, `EventDestination`, `EventDestinationName` | - | `UpdateConfigurationSetEventDestinationResponse` | `BadRequestException`, `NotFoundException`, `TooManyRequestsException` | Update the configuration of an event destination for a configuration set. In Amazon Pinpoint, events include message sends, deliveries, opens, clicks, bounces, and complaints. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetBlacklistReports` | - | `BlacklistItemNames -> BlacklistItemNames` | - | - |
+| `GetDedicatedIps` | - | `PoolName -> PoolName`, `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `GetDomainStatisticsReport` | - | `StartDate -> StartDate`, `EndDate -> EndDate` | - | - |
+| `ListConfigurationSets` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListDedicatedIpPools` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListDeliverabilityTestReports` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListDomainDeliverabilityCampaigns` | - | `StartDate -> StartDate`, `EndDate -> EndDate`, `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListEmailIdentities` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListTagsForResource` | - | `ResourceArn -> ResourceArn` | - | - |
+| `UntagResource` | - | `ResourceArn -> ResourceArn`, `TagKeys -> TagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

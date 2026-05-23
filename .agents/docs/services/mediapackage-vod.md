@@ -99,6 +99,17 @@ AWS Elemental MediaPackage VOD
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `Unit` | - | Removes tags from the specified resource. You can specify one or more tags to remove. |
 | `UpdatePackagingGroup` | `PUT /packaging_groups/{Id}` | - | `Id` | - | `UpdatePackagingGroupResponse` | `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnprocessableEntityException` | Updates a specific packaging group. You can't change the id attribute or any other system-generated attributes. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListAssets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `PackagingGroupId -> packagingGroupId` | - | - |
+| `ListPackagingConfigurations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `PackagingGroupId -> packagingGroupId` | - | - |
+| `ListPackagingGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

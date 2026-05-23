@@ -137,6 +137,14 @@ Amazon Web Services End User Messaging Social , also referred to as Social messa
 | `UntagResource` | `POST /v1/tags/untag-resource` | - | `resourceArn`, `tagKeys` | - | `UntagResourceOutput` | `InternalServiceException`, `InvalidParametersException`, `ThrottledRequestException` | Removes the specified tags from a resource. |
 | `UpdateWhatsAppMessageTemplate` | `POST /v1/whatsapp/template` | - | `id`, `metaTemplateId` | - | `UpdateWhatsAppMessageTemplateOutput` | `DependencyException`, `InternalServiceException`, `InvalidParametersException`, `ResourceNotFoundException`, `ThrottledRequestException` | Updates an existing WhatsApp message template. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListTagsForResource` | - | `resourceArn -> resourceArn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -105,6 +105,14 @@ Amazon CloudWatch Network Monitor is an Amazon Web Services active network monit
 | `UpdateMonitor` | `PATCH /monitors/{monitorName}` | `idempotent` | `aggregationPeriod`, `monitorName` | - | `UpdateMonitorOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the `aggregationPeriod` for a monitor. Monitors support an `aggregationPeriod` of either `30` or `60` seconds. |
 | `UpdateProbe` | `PATCH /monitors/{monitorName}/probes/{probeId}` | `idempotent` | `monitorName`, `probeId` | - | `UpdateProbeOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a monitor probe. This action requires both the `monitorName` and `probeId` parameters. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

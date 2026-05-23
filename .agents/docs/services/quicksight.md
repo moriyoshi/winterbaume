@@ -381,6 +381,74 @@ QuickSight currently has a placeholder for VPC connection properties in dashboar
 | `UpdateUserCustomPermission` | `PUT /accounts/{AwsAccountId}/namespaces/{Namespace}/users/{UserName}/custom-permission` | - | `AwsAccountId`, `CustomPermissionsName`, `Namespace`, `UserName` | - | `UpdateUserCustomPermissionResponse` | `AccessDeniedException`, `ConflictException`, `InternalFailureException`, `InvalidParameterValueException`, `PreconditionNotMetException`, `ResourceNotFoundException`, `ResourceUnavailableException`, `ThrottlingException` | Updates a custom permissions profile for a user. |
 | `UpdateVPCConnection` | `PUT /accounts/{AwsAccountId}/vpc-connections/{VPCConnectionId}` | - | `AwsAccountId`, `Name`, `RoleArn`, `SecurityGroupIds`, `SubnetIds`, `VPCConnectionId` | - | `UpdateVPCConnectionResponse` | `AccessDeniedException`, `ConflictException`, `InternalFailureException`, `InvalidParameterValueException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `UnsupportedUserEditionException` | Updates a VPC connection. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateAccountCustomization` | - | `Namespace -> namespace` | - | - |
+| `DeleteAccountCustomization` | - | `Namespace -> namespace` | - | - |
+| `DeleteAnalysis` | - | `RecoveryWindowInDays -> recovery-window-in-days`, `ForceDeleteWithoutRecovery -> force-delete-without-recovery` | - | - |
+| `DeleteDashboard` | - | `VersionNumber -> version-number` | - | - |
+| `DeleteDefaultQBusinessApplication` | - | `Namespace -> namespace` | - | - |
+| `DeleteTemplate` | - | `VersionNumber -> version-number` | - | - |
+| `DeleteTheme` | - | `VersionNumber -> version-number` | - | - |
+| `DescribeAccountCustomization` | - | `Namespace -> namespace`, `Resolved -> resolved` | - | - |
+| `DescribeAutomationJob` | - | `IncludeInputPayload -> includeInputPayload`, `IncludeOutputPayload -> includeOutputPayload` | - | - |
+| `DescribeBrand` | - | `VersionId -> versionId` | - | - |
+| `DescribeDashboard` | - | `VersionNumber -> version-number`, `AliasName -> alias-name` | - | - |
+| `DescribeDashboardDefinition` | - | `VersionNumber -> version-number`, `AliasName -> alias-name` | - | - |
+| `DescribeDefaultQBusinessApplication` | - | `Namespace -> namespace` | - | - |
+| `DescribeFolderPermissions` | - | `Namespace -> namespace`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `DescribeFolderResolvedPermissions` | - | `Namespace -> namespace`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `DescribeKeyRegistration` | - | `DefaultKeyOnly -> default-key-only` | - | - |
+| `DescribeTemplate` | - | `VersionNumber -> version-number`, `AliasName -> alias-name` | - | - |
+| `DescribeTemplateDefinition` | - | `VersionNumber -> version-number`, `AliasName -> alias-name` | - | - |
+| `DescribeTheme` | - | `VersionNumber -> version-number`, `AliasName -> alias-name` | - | - |
+| `GetDashboardEmbedUrl` | - | `IdentityType -> creds-type`, `SessionLifetimeInMinutes -> session-lifetime`, `UndoRedoDisabled -> undo-redo-disabled`, `ResetDisabled -> reset-disabled`, `StatePersistenceEnabled -> state-persistence-enabled`, `UserArn -> user-arn`, `Namespace -> namespace`, `AdditionalDashboardIds -> additional-dashboard-ids` | - | - |
+| `GetSessionEmbedUrl` | - | `EntryPoint -> entry-point`, `SessionLifetimeInMinutes -> session-lifetime`, `UserArn -> user-arn` | - | - |
+| `ListActionConnectors` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListAnalyses` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListAssetBundleExportJobs` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListAssetBundleImportJobs` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListBrands` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListCustomPermissions` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListDashboards` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListDashboardVersions` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListDataSets` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListDataSources` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListFlows` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListFolderMembers` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListFolders` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListFoldersForResource` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListGroupMemberships` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListGroups` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListIAMPolicyAssignments` | - | `AssignmentStatus -> assignment-status`, `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListIAMPolicyAssignmentsForUser` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListIdentityPropagationConfigs` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListIngestions` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListNamespaces` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListRoleMemberships` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListSelfUpgrades` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListTemplateAliases` | - | `NextToken -> next-token`, `MaxResults -> max-result` | - | - |
+| `ListTemplates` | - | `NextToken -> next-token`, `MaxResults -> max-result` | - | - |
+| `ListTemplateVersions` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListThemeAliases` | - | `NextToken -> next-token`, `MaxResults -> max-result` | - | - |
+| `ListThemes` | - | `NextToken -> next-token`, `MaxResults -> max-results`, `Type -> type` | - | - |
+| `ListThemeVersions` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListTopics` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListUserGroups` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListUsers` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListVPCConnections` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `RestoreAnalysis` | - | `RestoreToFolders -> restore-to-folders` | - | - |
+| `SearchActionConnectors` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `SearchGroups` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `UntagResource` | - | `TagKeys -> keys` | - | - |
+| `UpdateAccountCustomization` | - | `Namespace -> namespace` | - | - |
+| `UpdateApplicationWithTokenExchangeGrant` | - | `Namespace -> namespace` | - | - |
+| `UpdateDefaultQBusinessApplication` | - | `Namespace -> namespace` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

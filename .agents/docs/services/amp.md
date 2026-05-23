@@ -157,6 +157,14 @@ Amazon Managed Service for Prometheus is a serverless, Prometheus-compatible mon
 | `UpdateWorkspaceAlias` | `POST /workspaces/{workspaceId}/alias` | `idempotent`, `idempotency-token` | `workspaceId` | `clientToken` | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the alias of an existing workspace. |
 | `UpdateWorkspaceConfiguration` | `PATCH /workspaces/{workspaceId}/configuration` | `idempotent`, `idempotency-token` | `workspaceId` | `clientToken` | `UpdateWorkspaceConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Use this operation to create or update the label sets, label set limits, and retention period of a workspace. You must specify at least one of `limitsPerLabelSet` or `retentionPeriodInDays` for the request to be valid. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

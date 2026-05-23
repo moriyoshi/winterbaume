@@ -128,6 +128,27 @@ Amazon Lex Build-Time Actions Amazon Lex is an AWS service for building conversa
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException` | Adds the specified tags to the specified resource. If a tag key already exists, the existing value is replaced with the new value. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException` | Removes tags from a bot, bot alias or bot channel. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetBotAliases` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `nameContains -> nameContains` | - | - |
+| `GetBotChannelAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `nameContains -> nameContains` | - | - |
+| `GetBots` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `nameContains -> nameContains` | - | - |
+| `GetBotVersions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetBuiltinIntents` | - | `locale -> locale`, `signatureContains -> signatureContains`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetBuiltinSlotTypes` | - | `locale -> locale`, `signatureContains -> signatureContains`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetExport` | - | `name -> name`, `version -> version`, `resourceType -> resourceType`, `exportType -> exportType` | - | - |
+| `GetIntents` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `nameContains -> nameContains` | - | - |
+| `GetIntentVersions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetMigrations` | - | `sortByAttribute -> sortByAttribute`, `sortByOrder -> sortByOrder`, `v1BotNameContains -> v1BotNameContains`, `migrationStatusEquals -> migrationStatusEquals`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `GetSlotTypes` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `nameContains -> nameContains` | - | - |
+| `GetSlotTypeVersions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetUtterancesView` | - | `botVersions -> bot_versions`, `statusType -> status_type` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

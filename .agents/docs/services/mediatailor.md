@@ -174,6 +174,15 @@ Use the AWS Elemental MediaTailor SDKs and CLI to configure scalable ad insertio
 | `UpdateSourceLocation` | `PUT /sourceLocation/{SourceLocationName}` | `idempotent` | `HttpConfiguration`, `SourceLocationName` | - | `UpdateSourceLocationResponse` | - | Updates a source location. A source location is a container for sources. |
 | `UpdateVodSource` | `PUT /sourceLocation/{SourceLocationName}/vodSource/{VodSourceName}` | `idempotent` | `HttpPackageConfigurations`, `SourceLocationName`, `VodSourceName` | - | `UpdateVodSourceResponse` | - | Updates a VOD source's configuration. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListAlerts` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `ResourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

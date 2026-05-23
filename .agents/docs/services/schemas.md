@@ -143,6 +143,27 @@ Amazon EventBridge Schema Registry
 | `UpdateRegistry` | `PUT /v1/registries/name/{RegistryName}` | - | `RegistryName` | - | `UpdateRegistryResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `UnauthorizedException` | Updates a registry. |
 | `UpdateSchema` | `PUT /v1/registries/name/{RegistryName}/schemas/name/{SchemaName}` | `idempotency-token` | `RegistryName`, `SchemaName` | `ClientTokenId` | `UpdateSchemaResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException` | Updates the schema definition Inactive schemas will be deleted after two years. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteResourcePolicy` | - | `RegistryName -> registryName` | - | - |
+| `DescribeCodeBinding` | - | `SchemaVersion -> schemaVersion` | - | - |
+| `DescribeSchema` | - | `SchemaVersion -> schemaVersion` | - | - |
+| `ExportSchema` | - | `SchemaVersion -> schemaVersion`, `Type -> type` | - | - |
+| `GetCodeBindingSource` | - | `SchemaVersion -> schemaVersion` | - | - |
+| `GetResourcePolicy` | - | `RegistryName -> registryName` | - | - |
+| `ListDiscoverers` | - | `DiscovererIdPrefix -> discovererIdPrefix`, `Limit -> limit`, `NextToken -> nextToken`, `SourceArnPrefix -> sourceArnPrefix` | - | - |
+| `ListRegistries` | - | `Limit -> limit`, `NextToken -> nextToken`, `RegistryNamePrefix -> registryNamePrefix`, `Scope -> scope` | - | - |
+| `ListSchemas` | - | `Limit -> limit`, `NextToken -> nextToken`, `SchemaNamePrefix -> schemaNamePrefix` | - | - |
+| `ListSchemaVersions` | - | `Limit -> limit`, `NextToken -> nextToken` | - | - |
+| `PutCodeBinding` | - | `SchemaVersion -> schemaVersion` | - | - |
+| `PutResourcePolicy` | - | `RegistryName -> registryName` | - | - |
+| `SearchSchemas` | - | `Keywords -> keywords`, `Limit -> limit`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

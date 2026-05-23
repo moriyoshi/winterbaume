@@ -216,6 +216,32 @@ Route 53 currently stores private hosted zone VPC associations as Route 53-local
 | `UpdateTrafficPolicyComment` | `POST /2013-04-01/trafficpolicy/{Id}/{Version}` | - | `Comment`, `Id`, `Version` | - | `UpdateTrafficPolicyCommentResponse` | `ConcurrentModification`, `InvalidInput`, `NoSuchTrafficPolicy` | Updates the comment for a specified traffic policy version. |
 | `UpdateTrafficPolicyInstance` | `POST /2013-04-01/trafficpolicyinstance/{Id}` | - | `Id`, `TTL`, `TrafficPolicyId`, `TrafficPolicyVersion` | - | `UpdateTrafficPolicyInstanceResponse` | `ConflictingTypes`, `InvalidInput`, `NoSuchTrafficPolicy`, `NoSuchTrafficPolicyInstance`, `PriorRequestNotComplete` | After you submit a `UpdateTrafficPolicyInstance` request, there's a brief delay while Route 53 creates the resource record sets that are specified in the traffic policy definition. Use `GetTrafficPolicyInstance` with the `id` of updated traffic policy... |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetGeoLocation` | - | `ContinentCode -> continentcode`, `CountryCode -> countrycode`, `SubdivisionCode -> subdivisioncode` | - | - |
+| `ListCidrBlocks` | - | `LocationName -> location`, `NextToken -> nexttoken`, `MaxResults -> maxresults` | - | - |
+| `ListCidrCollections` | - | `NextToken -> nexttoken`, `MaxResults -> maxresults` | - | - |
+| `ListCidrLocations` | - | `NextToken -> nexttoken`, `MaxResults -> maxresults` | - | - |
+| `ListGeoLocations` | - | `StartContinentCode -> startcontinentcode`, `StartCountryCode -> startcountrycode`, `StartSubdivisionCode -> startsubdivisioncode`, `MaxItems -> maxitems` | - | - |
+| `ListHealthChecks` | - | `Marker -> marker`, `MaxItems -> maxitems` | - | - |
+| `ListHostedZones` | - | `Marker -> marker`, `MaxItems -> maxitems`, `DelegationSetId -> delegationsetid`, `HostedZoneType -> hostedzonetype` | - | - |
+| `ListHostedZonesByName` | - | `DNSName -> dnsname`, `HostedZoneId -> hostedzoneid`, `MaxItems -> maxitems` | - | - |
+| `ListHostedZonesByVPC` | - | `VPCId -> vpcid`, `VPCRegion -> vpcregion`, `MaxItems -> maxitems`, `NextToken -> nexttoken` | - | - |
+| `ListQueryLoggingConfigs` | - | `HostedZoneId -> hostedzoneid`, `NextToken -> nexttoken`, `MaxResults -> maxresults` | - | - |
+| `ListResourceRecordSets` | - | `StartRecordName -> name`, `StartRecordType -> type`, `StartRecordIdentifier -> identifier`, `MaxItems -> maxitems` | - | - |
+| `ListReusableDelegationSets` | - | `Marker -> marker`, `MaxItems -> maxitems` | - | - |
+| `ListTrafficPolicies` | - | `TrafficPolicyIdMarker -> trafficpolicyid`, `MaxItems -> maxitems` | - | - |
+| `ListTrafficPolicyInstances` | - | `HostedZoneIdMarker -> hostedzoneid`, `TrafficPolicyInstanceNameMarker -> trafficpolicyinstancename`, `TrafficPolicyInstanceTypeMarker -> trafficpolicyinstancetype`, `MaxItems -> maxitems` | - | - |
+| `ListTrafficPolicyInstancesByHostedZone` | - | `HostedZoneId -> id`, `TrafficPolicyInstanceNameMarker -> trafficpolicyinstancename`, `TrafficPolicyInstanceTypeMarker -> trafficpolicyinstancetype`, `MaxItems -> maxitems` | - | - |
+| `ListTrafficPolicyInstancesByPolicy` | - | `TrafficPolicyId -> id`, `TrafficPolicyVersion -> version`, `HostedZoneIdMarker -> hostedzoneid`, `TrafficPolicyInstanceNameMarker -> trafficpolicyinstancename`, `TrafficPolicyInstanceTypeMarker -> trafficpolicyinstancetype`, `MaxItems -> maxitems` | - | - |
+| `ListTrafficPolicyVersions` | - | `TrafficPolicyVersionMarker -> trafficpolicyversion`, `MaxItems -> maxitems` | - | - |
+| `ListVPCAssociationAuthorizations` | - | `NextToken -> nexttoken`, `MaxResults -> maxresults` | - | - |
+| `TestDNSAnswer` | - | `HostedZoneId -> hostedzoneid`, `RecordName -> recordname`, `RecordType -> recordtype`, `ResolverIP -> resolverip`, `EDNS0ClientSubnetIP -> edns0clientsubnetip`, `EDNS0ClientSubnetMask -> edns0clientsubnetmask` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

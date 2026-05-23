@@ -100,6 +100,24 @@ Participant Service actions Participant Service data types Amazon Connect is an 
 | `SendMessage` | `POST /participant/message` | `idempotency-token` | `ConnectionToken`, `Content`, `ContentType` | `ClientToken` | `SendMessageResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Sends a message. For security recommendations, see Amazon Connect Chat security best practices. |
 | `StartAttachmentUpload` | `POST /participant/start-attachment-upload` | `idempotency-token` | `AttachmentName`, `AttachmentSizeInBytes`, `ClientToken`, `ConnectionToken`, `ContentType` | `ClientToken` | `StartAttachmentUploadResponse` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Provides a pre-signed Amazon S3 URL in response for uploading the file directly to S3. For security recommendations, see Amazon Connect Chat security best practices. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CancelParticipantAuthentication` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `CompleteAttachmentUpload` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `CreateParticipantConnection` | `ParticipantToken -> X-Amz-Bearer` | - | - | - |
+| `DescribeView` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `DisconnectParticipant` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `GetAttachment` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `GetAuthenticationUrl` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `GetTranscript` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `SendEvent` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `SendMessage` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+| `StartAttachmentUpload` | `ConnectionToken -> X-Amz-Bearer` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

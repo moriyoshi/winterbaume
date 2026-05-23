@@ -144,6 +144,16 @@ IoT TwinMaker is a service with which you can build operational digital twins of
 | `UpdateScene` | `PUT /workspaces/{workspaceId}/scenes/{sceneId}` | `endpoint-bound` | `sceneId`, `workspaceId` | - | `UpdateSceneResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a scene. |
 | `UpdateWorkspace` | `PUT /workspaces/{workspaceId}` | `endpoint-bound` | `workspaceId` | - | `UpdateWorkspaceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a workspace. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteEntity` | - | `isRecursive -> isRecursive` | - | - |
+| `GetSyncJob` | - | `workspaceId -> workspace` | - | - |
+| `UntagResource` | - | `resourceARN -> resourceARN`, `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

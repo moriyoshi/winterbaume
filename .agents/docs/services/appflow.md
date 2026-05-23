@@ -162,6 +162,14 @@ Parity implications:
 | `UpdateConnectorRegistration` | `POST /update-connector-registration` | `idempotency-token` | `connectorLabel` | `clientToken` | `UpdateConnectorRegistrationResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, ... (+1) | Updates a custom connector that you've previously registered. This operation updates the connector with one of the following: The latest version of the AWS Lambda function that's assigned to the connector A new AWS Lambda function that you specify |
 | `UpdateFlow` | `POST /update-flow` | `idempotency-token` | `destinationFlowConfigList`, `flowName`, `sourceFlowConfig`, `tasks`, `triggerConfig` | `clientToken` | `UpdateFlowResponse` | `AccessDeniedException`, `ConflictException`, `ConnectorAuthenticationException`, `ConnectorServerException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Updates an existing flow. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

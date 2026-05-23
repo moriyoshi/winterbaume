@@ -161,6 +161,16 @@ Parity implications:
 | `UpdateVirtualRouter` | `PUT /v20190125/meshes/{meshName}/virtualRouters/{virtualRouterName}` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualRouterName` | `clientToken` | `UpdateVirtualRouterOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing virtual router in a specified service mesh. |
 | `UpdateVirtualService` | `PUT /v20190125/meshes/{meshName}/virtualServices/{virtualServiceName}` | `idempotent`, `idempotency-token` | `meshName`, `spec`, `virtualServiceName` | `clientToken` | `UpdateVirtualServiceOutput` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `LimitExceededException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates an existing virtual service in a specified service mesh. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListTagsForResource` | - | `resourceArn -> resourceArn`, `nextToken -> nextToken`, `limit -> limit` | - | - |
+| `TagResource` | - | `resourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `resourceArn -> resourceArn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

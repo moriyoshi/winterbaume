@@ -119,6 +119,24 @@ AWS IoT Events monitors your equipment or device fleets for failures or changes 
 | `UpdateDetectorModel` | `POST /detector-models/{detectorModelName}` | - | `detectorModelDefinition`, `detectorModelName`, `roleArn` | - | `UpdateDetectorModelResponse` | `InternalFailureException`, `InvalidRequestException`, `ResourceInUseException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Updates a detector model. Detectors (instances) spawned by the previous version are deleted and then re-created as new inputs arrive. |
 | `UpdateInput` | `PUT /inputs/{inputName}` | - | `inputDefinition`, `inputName` | - | `UpdateInputResponse` | `InternalFailureException`, `InvalidRequestException`, `ResourceInUseException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Updates an input. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeAlarmModel` | - | `alarmModelVersion -> version` | - | - |
+| `DescribeDetectorModel` | - | `detectorModelVersion -> version` | - | - |
+| `GetDetectorModelAnalysisResults` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAlarmModels` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAlarmModelVersions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDetectorModels` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDetectorModelVersions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListInputs` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListTagsForResource` | - | `resourceArn -> resourceArn` | - | - |
+| `TagResource` | - | `resourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `resourceArn -> resourceArn`, `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

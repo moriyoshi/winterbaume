@@ -149,6 +149,23 @@ Parity implications:
 | `UntagResource` | `POST /untag-resource` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `ResourceNotFoundException`, `ThrottlingException` | Removes one or more tags from the specified resource. |
 | `UpdateServiceLevelObjective` | `PATCH /slo/{Id}` | - | `Id` | - | `UpdateServiceLevelObjectiveOutput` | `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing service level objective (SLO). If you omit parameters, the previous values of those parameters are retained. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetService` | - | `StartTime -> StartTime`, `EndTime -> EndTime` | - | - |
+| `ListAuditFindings` | - | `StartTime -> StartTime`, `EndTime -> EndTime` | - | - |
+| `ListEntityEvents` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListGroupingAttributeDefinitions` | - | `NextToken -> NextToken`, `AwsAccountId -> AwsAccountId`, `IncludeLinkedAccounts -> IncludeLinkedAccounts` | - | - |
+| `ListServiceDependencies` | - | `StartTime -> StartTime`, `EndTime -> EndTime`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListServiceDependents` | - | `StartTime -> StartTime`, `EndTime -> EndTime`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListServiceLevelObjectiveExclusionWindows` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListServiceOperations` | - | `StartTime -> StartTime`, `EndTime -> EndTime`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListServices` | - | `StartTime -> StartTime`, `EndTime -> EndTime`, `MaxResults -> MaxResults`, `NextToken -> NextToken`, `IncludeLinkedAccounts -> IncludeLinkedAccounts`, `AwsAccountId -> AwsAccountId` | - | - |
+| `ListTagsForResource` | - | `ResourceArn -> ResourceArn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

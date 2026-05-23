@@ -377,6 +377,19 @@ Parity implications:
 | `UpdateRelationalDatabase` | `POST /ls/api/2016-11-28/UpdateRelationalDatabase` | - | `relationalDatabaseName` | - | `UpdateRelationalDatabaseResult` | `AccessDeniedException`, `AccountSetupInProgressException`, `InvalidInputException`, `NotFoundException`, `OperationFailureException`, `RegionSetupInProgressException`, `ServiceException`, `UnauthenticatedException` | Allows the update of one or more attributes of a database in Amazon Lightsail. Updates are applied immediately, or in cases where the updates could result in an outage, are applied during the database's predefined maintenance window. |
 | `UpdateRelationalDatabaseParameters` | `POST /ls/api/2016-11-28/UpdateRelationalDatabaseParameters` | - | `parameters`, `relationalDatabaseName` | - | `UpdateRelationalDatabaseParametersResult` | `AccessDeniedException`, `AccountSetupInProgressException`, `InvalidInputException`, `NotFoundException`, `OperationFailureException`, `RegionSetupInProgressException`, `ServiceException`, `UnauthenticatedException` | Allows the update of one or more parameters of a database in Amazon Lightsail. Parameter updates don't cause outages; therefore, their application is not subject to the preferred maintenance window. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetAlarms` | - | `alarmName -> alarmName`, `pageToken -> pageToken`, `monitoredResourceName -> monitoredResourceName` | - | - |
+| `GetContactMethods` | - | `protocols -> protocols` | - | - |
+| `GetContainerLog` | - | `startTime -> startTime`, `endTime -> endTime`, `filterPattern -> filterPattern`, `pageToken -> pageToken` | - | - |
+| `GetContainerServiceMetricData` | - | `metricName -> metricName`, `startTime -> startTime`, `endTime -> endTime`, `period -> period`, `statistics -> statistics` | - | - |
+| `GetContainerServices` | - | `serviceName -> serviceName` | - | - |
+| `TestAlarm` | - | `state -> state` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

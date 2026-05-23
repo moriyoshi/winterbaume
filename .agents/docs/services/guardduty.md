@@ -256,6 +256,27 @@ Parity implications:
 | `UpdateThreatIntelSet` | `POST /detector/{DetectorId}/threatintelset/{ThreatIntelSetId}` | - | `DetectorId`, `ThreatIntelSetId` | - | `UpdateThreatIntelSetResponse` | `AccessDeniedException`, `BadRequestException`, `InternalServerErrorException` | Updates the ThreatIntelSet specified by the ThreatIntelSet ID. |
 | `UpdateTrustedEntitySet` | `POST /detector/{DetectorId}/trustedentityset/{TrustedEntitySetId}` | - | `DetectorId`, `TrustedEntitySetId` | - | `UpdateTrustedEntitySetResponse` | `BadRequestException`, `InternalServerErrorException` | Updates the trusted entity set associated with the specified `trustedEntitySetId`. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeOrganizationConfiguration` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDetectors` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListFilters` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListInvitations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListIPSets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListMalwareProtectionPlans` | - | `NextToken -> nextToken` | - | - |
+| `ListMalwareScans` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListMembers` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `OnlyAssociated -> onlyAssociated` | - | - |
+| `ListOrganizationAdminAccounts` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPublishingDestinations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListThreatEntitySets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListThreatIntelSets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListTrustedEntitySets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

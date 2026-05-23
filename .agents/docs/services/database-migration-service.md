@@ -308,6 +308,12 @@ Database Migration Service currently keeps replication subnet groups as DMS-loca
 | `TestConnection` | - | - | `EndpointArn`, `ReplicationInstanceArn` | - | `TestConnectionResponse` | `AccessDeniedFault`, `InvalidResourceStateFault`, `KMSKeyNotAccessibleFault`, `ResourceNotFoundFault`, `ResourceQuotaExceededFault` | Tests the connection between the replication instance and the endpoint. |
 | `UpdateSubscriptionsToEventBridge` | - | - | - | - | `UpdateSubscriptionsToEventBridgeResponse` | `AccessDeniedFault`, `InvalidResourceStateFault` | Migrates 10 active and enabled Amazon SNS subscriptions at a time and converts them to corresponding Amazon EventBridge rules. By default, this operation migrates subscriptions only when all your replication instance versions are 3.4.5 or higher. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

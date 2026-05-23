@@ -178,6 +178,16 @@ The User Notifications API Reference provides descriptions, API request paramete
 | `UpdateEventRule` | `PUT /event-rules/{arn}` | `idempotent` | `arn` | - | `UpdateEventRuleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an existing `EventRule`. |
 | `UpdateNotificationConfiguration` | `PUT /notification-configurations/{arn}` | `idempotent` | `arn` | - | `UpdateNotificationConfigurationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a `NotificationConfiguration`. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListManagedNotificationChannelAssociations` | - | `managedNotificationConfigurationArn -> managedNotificationConfigurationArn`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListMemberAccounts` | - | `notificationConfigurationArn -> notificationConfigurationArn`, `maxResults -> maxResults`, `nextToken -> nextToken`, `memberAccount -> memberAccount`, `status -> status`, `organizationalUnitId -> organizationalUnitId` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

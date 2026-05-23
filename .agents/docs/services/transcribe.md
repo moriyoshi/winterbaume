@@ -134,6 +134,23 @@ Amazon Transcribe offers three main types of batch transcription: Standard , Med
 | `UpdateVocabulary` | `PATCH /vocabularies/{VocabularyName}` | - | `LanguageCode`, `VocabularyName` | - | `UpdateVocabularyResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException` | Updates an existing custom vocabulary with new values. This operation overwrites all existing information with your new values; you cannot append new terms onto an existing custom vocabulary. |
 | `UpdateVocabularyFilter` | `PUT /vocabularyFilters/{VocabularyFilterName}` | - | `VocabularyFilterName` | - | `UpdateVocabularyFilterResponse` | `BadRequestException`, `InternalFailureException`, `LimitExceededException`, `NotFoundException` | Updates an existing custom vocabulary filter with a new list of words. The new list you provide overwrites all previous entries; you cannot append new terms onto an existing custom vocabulary filter. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListCallAnalyticsCategories` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListCallAnalyticsJobs` | - | `Status -> Status`, `JobNameContains -> JobNameContains`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListLanguageModels` | - | `StatusEquals ->          StatusEquals`, `NameContains -> NameContains`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListMedicalScribeJobs` | - | `Status -> Status`, `JobNameContains -> JobNameContains`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListMedicalTranscriptionJobs` | - | `Status -> Status`, `JobNameContains -> JobNameContains`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListMedicalVocabularies` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `StateEquals -> StateEquals`, `NameContains -> NameContains` | - | - |
+| `ListTranscriptionJobs` | - | `Status -> Status`, `JobNameContains -> JobNameContains`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListVocabularies` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `StateEquals -> StateEquals`, `NameContains -> NameContains` | - | - |
+| `ListVocabularyFilters` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults`, `NameContains -> NameContains` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -167,6 +167,15 @@ Welcome to the Amazon Bedrock AgentCore Data Plane API reference. Data Plane act
 | `StopRuntimeSession` | `POST /runtimes/{agentRuntimeArn}/stopruntimesession` | `idempotent`, `idempotency-token` | `agentRuntimeArn`, `runtimeSessionId` | `clientToken` | `StopRuntimeSessionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `RuntimeClientError`, `ServiceQuotaExceededException`, `ThrottlingException`, `UnauthorizedException`, ... (+1) | Stops a session that is running in an running AgentCore Runtime agent. |
 | `UpdateBrowserStream` | `PUT /browsers/{browserIdentifier}/sessions/streams/update` | `idempotent`, `idempotency-token` | `browserIdentifier`, `sessionId`, `streamUpdate` | `clientToken` | `UpdateBrowserStreamResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a browser stream. To use this operation, you must have permissions to perform the bedrock:UpdateBrowserStream action. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `InvokeCodeInterpreter` | `sessionId -> x-amzn-code-interpreter-session-id`, `traceId -> X-Amzn-Trace-Id`, `traceParent -> traceparent` | - | - | - |
+| `InvokeHarness` | `runtimeSessionId -> X-Amzn-Bedrock-AgentCore-Runtime-Session-Id` | `harnessArn -> harnessArn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

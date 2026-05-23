@@ -51,6 +51,16 @@ The Amazon SageMaker AI runtime API.
 | `InvokeEndpointAsync` | `POST /endpoints/{EndpointName}/async-invocations` | - | `EndpointName`, `InputLocation` | - | `InvokeEndpointAsyncOutput` | `InternalFailure`, `ServiceUnavailable`, `ValidationError` | After you deploy a model into production using Amazon SageMaker AI hosting services, your client applications use this API to get inferences from the model hosted at the specified endpoint in an asynchronous manner. Inference requests sent to this API are... |
 | `InvokeEndpointWithResponseStream` | `POST /endpoints/{EndpointName}/invocations-response-stream` | - | `Body`, `EndpointName` | - | `InvokeEndpointWithResponseStreamOutput` | `InternalFailure`, `InternalStreamFailure`, `ModelError`, `ModelStreamError`, `ServiceUnavailable`, `ValidationError` | Invokes a model at the specified endpoint to return the inference response as a stream. The inference stream provides the response payload incrementally as a series of parts. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `InvokeEndpoint` | `ContentType -> Content-Type`, `Accept -> Accept`, `CustomAttributes -> X-Amzn-SageMaker-Custom-Attributes`, `TargetModel -> X-Amzn-SageMaker-Target-Model`, `TargetVariant -> X-Amzn-SageMaker-Target-Variant`, `TargetContainerHostname -> X-Amzn-SageMaker-Target-Container-Hostname`, `InferenceId -> X-Amzn-SageMaker-Inference-Id`, `EnableExplanations -> X-Amzn-SageMaker-Enable-Explanations`, `InferenceComponentName -> X-Amzn-SageMaker-Inference-Component`, `SessionId -> X-Amzn-SageMaker-Session-Id` | - | - | `Body` |
+| `InvokeEndpointAsync` | `ContentType -> X-Amzn-SageMaker-Content-Type`, `Accept -> X-Amzn-SageMaker-Accept`, `CustomAttributes -> X-Amzn-SageMaker-Custom-Attributes`, `InferenceId -> X-Amzn-SageMaker-Inference-Id`, `InputLocation -> X-Amzn-SageMaker-InputLocation`, `S3OutputPathExtension -> X-Amzn-SageMaker-S3OutputPathExtension`, `Filename -> X-Amzn-SageMaker-Filename`, `RequestTTLSeconds -> X-Amzn-SageMaker-RequestTTLSeconds`, `InvocationTimeoutSeconds -> X-Amzn-SageMaker-InvocationTimeoutSeconds` | - | - | - |
+| `InvokeEndpointWithResponseStream` | `ContentType -> Content-Type`, `Accept -> X-Amzn-SageMaker-Accept`, `CustomAttributes -> X-Amzn-SageMaker-Custom-Attributes`, `TargetVariant -> X-Amzn-SageMaker-Target-Variant`, `TargetContainerHostname -> X-Amzn-SageMaker-Target-Container-Hostname`, `InferenceId -> X-Amzn-SageMaker-Inference-Id`, `InferenceComponentName -> X-Amzn-SageMaker-Inference-Component`, `SessionId -> X-Amzn-SageMaker-Session-Id` | - | - | `Body` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

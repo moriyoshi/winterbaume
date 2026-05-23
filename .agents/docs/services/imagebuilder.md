@@ -202,6 +202,39 @@ EC2 Image Builder is a fully managed Amazon Web Services service that makes it e
 | `UpdateInfrastructureConfiguration` | `PUT /UpdateInfrastructureConfiguration` | `idempotency-token` | `clientToken`, `infrastructureConfigurationArn`, `instanceProfileName` | `clientToken` | `UpdateInfrastructureConfigurationResponse` | `CallRateLimitExceededException`, `ClientException`, `ForbiddenException`, `IdempotentParameterMismatchException`, `InvalidRequestException`, `ResourceInUseException`, `ServiceException`, `ServiceUnavailableException` | Updates a new infrastructure configuration. An infrastructure configuration defines the environment in which your image will be built and tested. |
 | `UpdateLifecyclePolicy` | `PUT /UpdateLifecyclePolicy` | `idempotency-token` | `clientToken`, `executionRole`, `lifecyclePolicyArn`, `policyDetails`, `resourceSelection`, `resourceType` | `clientToken` | `UpdateLifecyclePolicyResponse` | `CallRateLimitExceededException`, `ClientException`, `ForbiddenException`, `IdempotentParameterMismatchException`, `InvalidParameterCombinationException`, `InvalidRequestException`, `ResourceInUseException`, `ServiceException`, ... (+1) | Update the specified lifecycle policy. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteComponent` | - | `componentBuildVersionArn -> componentBuildVersionArn` | - | - |
+| `DeleteContainerRecipe` | - | `containerRecipeArn -> containerRecipeArn` | - | - |
+| `DeleteDistributionConfiguration` | - | `distributionConfigurationArn -> distributionConfigurationArn` | - | - |
+| `DeleteImage` | - | `imageBuildVersionArn -> imageBuildVersionArn` | - | - |
+| `DeleteImagePipeline` | - | `imagePipelineArn -> imagePipelineArn` | - | - |
+| `DeleteImageRecipe` | - | `imageRecipeArn -> imageRecipeArn` | - | - |
+| `DeleteInfrastructureConfiguration` | - | `infrastructureConfigurationArn -> infrastructureConfigurationArn` | - | - |
+| `DeleteLifecyclePolicy` | - | `lifecyclePolicyArn -> lifecyclePolicyArn` | - | - |
+| `DeleteWorkflow` | - | `workflowBuildVersionArn -> workflowBuildVersionArn` | - | - |
+| `GetComponent` | - | `componentBuildVersionArn -> componentBuildVersionArn` | - | - |
+| `GetComponentPolicy` | - | `componentArn -> componentArn` | - | - |
+| `GetContainerRecipe` | - | `containerRecipeArn -> containerRecipeArn` | - | - |
+| `GetContainerRecipePolicy` | - | `containerRecipeArn -> containerRecipeArn` | - | - |
+| `GetDistributionConfiguration` | - | `distributionConfigurationArn -> distributionConfigurationArn` | - | - |
+| `GetImage` | - | `imageBuildVersionArn -> imageBuildVersionArn` | - | - |
+| `GetImagePipeline` | - | `imagePipelineArn -> imagePipelineArn` | - | - |
+| `GetImagePolicy` | - | `imageArn -> imageArn` | - | - |
+| `GetImageRecipe` | - | `imageRecipeArn -> imageRecipeArn` | - | - |
+| `GetImageRecipePolicy` | - | `imageRecipeArn -> imageRecipeArn` | - | - |
+| `GetInfrastructureConfiguration` | - | `infrastructureConfigurationArn -> infrastructureConfigurationArn` | - | - |
+| `GetLifecycleExecution` | - | `lifecycleExecutionId -> lifecycleExecutionId` | - | - |
+| `GetLifecyclePolicy` | - | `lifecyclePolicyArn -> lifecyclePolicyArn` | - | - |
+| `GetWorkflow` | - | `workflowBuildVersionArn -> workflowBuildVersionArn` | - | - |
+| `GetWorkflowExecution` | - | `workflowExecutionId -> workflowExecutionId` | - | - |
+| `GetWorkflowStepExecution` | - | `stepExecutionId -> stepExecutionId` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

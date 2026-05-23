@@ -71,6 +71,17 @@ S3 Outposts currently stores endpoint networking as endpoint-local metadata.
 | `ListOutpostsWithS3` | `GET /S3Outposts/ListOutpostsWithS3` | `paginated` | - | - | `ListOutpostsWithS3Result` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Lists the Outposts with S3 on Outposts capacity for your Amazon Web Services account. Includes S3 on Outposts that you have access to as the Outposts owner, or as a shared user from Resource Access Manager (RAM). |
 | `ListSharedEndpoints` | `GET /S3Outposts/ListSharedEndpoints` | `paginated` | `OutpostId` | - | `ListSharedEndpointsResult` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Lists all endpoints associated with an Outpost that has been shared by Amazon Web Services Resource Access Manager (RAM). Related actions include: CreateEndpoint DeleteEndpoint |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteEndpoint` | - | `EndpointId -> endpointId`, `OutpostId -> outpostId` | - | - |
+| `ListEndpoints` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListOutpostsWithS3` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListSharedEndpoints` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `OutpostId -> outpostId` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

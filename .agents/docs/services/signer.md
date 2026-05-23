@@ -127,6 +127,21 @@ AWS Signer is a fully managed code-signing service to help you ensure the trust 
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Adds one or more tags to a signing profile. Tags are labels that you can use to identify and organize your AWS resources. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Removes one or more tags from a signing profile. To remove the tags, specify a list of tag keys. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetRevocationStatus` | - | `signatureTimestamp -> signatureTimestamp`, `platformId -> platformId`, `profileVersionArn -> profileVersionArn`, `jobArn -> jobArn`, `certificateHashes -> certificateHashes` | - | - |
+| `GetSigningProfile` | - | `profileOwner -> profileOwner` | - | - |
+| `ListProfilePermissions` | - | `nextToken -> nextToken` | - | - |
+| `ListSigningJobs` | - | `status -> status`, `platformId -> platformId`, `requestedBy -> requestedBy`, `maxResults -> maxResults`, `nextToken -> nextToken`, `isRevoked -> isRevoked`, `signatureExpiresBefore -> signatureExpiresBefore`, `signatureExpiresAfter -> signatureExpiresAfter`, `jobInvoker -> jobInvoker` | - | - |
+| `ListSigningPlatforms` | - | `category -> category`, `partner -> partner`, `target -> target`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListSigningProfiles` | - | `includeCanceled -> includeCanceled`, `maxResults -> maxResults`, `nextToken -> nextToken`, `platformId -> platformId`, `statuses -> statuses` | - | - |
+| `RemoveProfilePermission` | - | `revisionId -> revisionId` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

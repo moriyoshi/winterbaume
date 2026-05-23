@@ -195,6 +195,31 @@ Managed Streaming for Kafka currently keeps cluster networking in Kafka-local st
 | `UpdateStorage` | `PUT /v1/clusters/{ClusterArn}/storage` | - | `ClusterArn`, `CurrentVersion` | - | `UpdateStorageResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException`, `UnauthorizedException` | Updates cluster broker volume size (or) sets cluster storage mode to TIERED. |
 | `UpdateTopic` | `PUT /v1/clusters/{ClusterArn}/topics/{TopicName}` | - | `ClusterArn`, `TopicName` | - | `UpdateTopicResponse` | `BadRequestException`, `ClusterConnectivityException`, `ControllerMovedException`, `ForbiddenException`, `GroupSubscribedToTopicException`, `InternalServerErrorException`, `KafkaRequestException`, `KafkaTimeoutException`, ... (+6) | Updates the configuration of the specified topic. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteCluster` | - | `CurrentVersion -> currentVersion` | - | - |
+| `DeleteReplicator` | - | `CurrentVersion -> currentVersion` | - | - |
+| `DescribeTopicPartitions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCompatibleKafkaVersions` | - | `ClusterArn -> clusterArn` | - | - |
+| `ListClientVpcConnections` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListClusterOperations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListClusterOperationsV2` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListClusters` | - | `ClusterNameFilter -> clusterNameFilter`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListClustersV2` | - | `ClusterNameFilter -> clusterNameFilter`, `ClusterTypeFilter -> clusterTypeFilter`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListConfigurationRevisions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListConfigurations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListKafkaVersions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListNodes` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListReplicators` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `ReplicatorNameFilter -> replicatorNameFilter` | - | - |
+| `ListScramSecrets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListTopics` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `TopicNameFilter -> topicNameFilter` | - | - |
+| `ListVpcConnections` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

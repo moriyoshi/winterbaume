@@ -135,6 +135,20 @@ Amazon MQ currently treats broker networking as broker metadata.
 | `UpdateConfiguration` | `PUT /v1/configurations/{ConfigurationId}` | - | `ConfigurationId`, `Data` | - | `UpdateConfigurationResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Updates the specified configuration. |
 | `UpdateUser` | `PUT /v1/brokers/{BrokerId}/users/{Username}` | - | `BrokerId`, `Username` | - | `UpdateUserResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException` | Updates the information for an ActiveMQ user. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteTags` | - | `TagKeys -> tagKeys` | - | - |
+| `DescribeBrokerEngineTypes` | - | `EngineType -> engineType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DescribeBrokerInstanceOptions` | - | `EngineType -> engineType`, `HostInstanceType -> hostInstanceType`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `StorageType -> storageType` | - | - |
+| `ListBrokers` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListConfigurationRevisions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListConfigurations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListUsers` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

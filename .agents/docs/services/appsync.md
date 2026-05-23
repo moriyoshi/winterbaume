@@ -214,6 +214,29 @@ Parity implications:
 | `UpdateSourceApiAssociation` | `POST /v1/mergedApis/{mergedApiIdentifier}/sourceApiAssociations/{associationId}` | - | `associationId`, `mergedApiIdentifier` | - | `UpdateSourceApiAssociationResponse` | `BadRequestException`, `ConcurrentModificationException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Updates some of the configuration choices of a particular source API association. |
 | `UpdateType` | `POST /v1/apis/{apiId}/types/{typeName}` | - | `apiId`, `format`, `typeName` | - | `UpdateTypeResponse` | `BadRequestException`, `ConcurrentModificationException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Updates a `Type` object. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetDataSourceIntrospection` | - | `includeModelsSDL -> includeModelsSDL`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetIntrospectionSchema` | - | `format -> format`, `includeDirectives -> includeDirectives` | - | - |
+| `GetType` | - | `format -> format` | - | - |
+| `ListApiKeys` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListApis` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListChannelNamespaces` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDataSources` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDomainNames` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListFunctions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListGraphqlApis` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `apiType -> apiType`, `owner -> owner` | - | - |
+| `ListResolvers` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListResolversByFunction` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListSourceApiAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListTypes` | - | `format -> format`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListTypesByAssociation` | - | `format -> format`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

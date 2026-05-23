@@ -154,6 +154,17 @@ Parity implications:
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes metadata tags from an elastic cluster resource |
 | `UpdateCluster` | `PUT /cluster/{clusterArn}` | `idempotent`, `idempotency-token` | `clusterArn` | `clientToken` | `UpdateClusterOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies an elastic cluster. This includes updating admin-username/password, upgrading the API version, and setting up a backup window and maintenance window |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListClusters` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListClusterSnapshots` | - | `clusterArn -> clusterArn`, `nextToken -> nextToken`, `maxResults -> maxResults`, `snapshotType -> snapshotType` | - | - |
+| `ListPendingMaintenanceActions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

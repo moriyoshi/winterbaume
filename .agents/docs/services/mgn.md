@@ -296,6 +296,14 @@ The Application Migration Service service.
 | `UpdateSourceServerReplicationType` | `POST /UpdateSourceServerReplicationType` | - | `replicationType`, `sourceServerID` | - | `SourceServer` | `ConflictException`, `ResourceNotFoundException`, `UninitializedAccountException`, `ValidationException` | Allows you to change between the AGENT_BASED replication type and the SNAPSHOT_SHIPPING replication type. SNAPSHOT_SHIPPING should be used for agentless replication. |
 | `UpdateWave` | `POST /UpdateWave` | `idempotent` | `waveID` | - | `Wave` | `ConflictException`, `ResourceNotFoundException`, `UninitializedAccountException` | Update wave. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

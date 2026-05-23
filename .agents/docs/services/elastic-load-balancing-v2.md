@@ -187,6 +187,12 @@ ELBv2 currently synthesises load balancer networking unless later mutation calls
 | `SetSecurityGroups` | - | - | `LoadBalancerArn`, `SecurityGroups` | - | `SetSecurityGroupsOutput` | `InvalidConfigurationRequestException`, `InvalidSecurityGroupException`, `LoadBalancerNotFoundException` | Associates the specified security groups with the specified Application Load Balancer or Network Load Balancer. The specified security groups override the previously associated security groups. |
 | `SetSubnets` | - | - | `LoadBalancerArn` | - | `SetSubnetsOutput` | `AllocationIdNotFoundException`, `AvailabilityZoneNotSupportedException`, `CapacityReservationPendingException`, `InvalidConfigurationRequestException`, `InvalidSubnetException`, `LoadBalancerNotFoundException`, `SubnetNotFoundException` | Enables the Availability Zones for the specified public subnets for the specified Application Load Balancer, Network Load Balancer or Gateway Load Balancer. The specified subnets replace the previously enabled subnets. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

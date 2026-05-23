@@ -252,6 +252,41 @@ Network Manager currently stores VPC attachments by ARN and subnet ARN metadata.
 | `UpdateSite` | `PATCH /global-networks/{GlobalNetworkId}/sites/{SiteId}` | - | `GlobalNetworkId`, `SiteId` | - | `UpdateSiteResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the information for an existing site. To remove information for any of the parameters, specify an empty string. |
 | `UpdateVpcAttachment` | `PATCH /vpc-attachments/{AttachmentId}` | - | `AttachmentId` | - | `UpdateVpcAttachmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a VPC attachment. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeGlobalNetworks` | - | `GlobalNetworkIds -> globalNetworkIds`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DisassociateLink` | - | `DeviceId -> deviceId`, `LinkId -> linkId` | - | - |
+| `GetConnections` | - | `ConnectionIds -> connectionIds`, `DeviceId -> deviceId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetConnectPeerAssociations` | - | `ConnectPeerIds -> connectPeerIds`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCoreNetworkChangeEvents` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCoreNetworkChangeSet` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetCoreNetworkPolicy` | - | `PolicyVersionId -> policyVersionId`, `Alias -> alias` | - | - |
+| `GetCustomerGatewayAssociations` | - | `CustomerGatewayArns -> customerGatewayArns`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetDevices` | - | `DeviceIds -> deviceIds`, `SiteId -> siteId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetLinkAssociations` | - | `DeviceId -> deviceId`, `LinkId -> linkId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetLinks` | - | `LinkIds -> linkIds`, `SiteId -> siteId`, `Type -> type`, `Provider -> provider`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetNetworkResourceCounts` | - | `ResourceType -> resourceType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetNetworkResourceRelationships` | - | `CoreNetworkId -> coreNetworkId`, `RegisteredGatewayArn -> registeredGatewayArn`, `AwsRegion -> awsRegion`, `AccountId -> accountId`, `ResourceType -> resourceType`, `ResourceArn -> resourceArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetNetworkResources` | - | `CoreNetworkId -> coreNetworkId`, `RegisteredGatewayArn -> registeredGatewayArn`, `AwsRegion -> awsRegion`, `AccountId -> accountId`, `ResourceType -> resourceType`, `ResourceArn -> resourceArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetNetworkTelemetry` | - | `CoreNetworkId -> coreNetworkId`, `RegisteredGatewayArn -> registeredGatewayArn`, `AwsRegion -> awsRegion`, `AccountId -> accountId`, `ResourceType -> resourceType`, `ResourceArn -> resourceArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetSites` | - | `SiteIds -> siteIds`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetTransitGatewayConnectPeerAssociations` | - | `TransitGatewayConnectPeerArns -> transitGatewayConnectPeerArns`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetTransitGatewayRegistrations` | - | `TransitGatewayArns -> transitGatewayArns`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListAttachmentRoutingPolicyAssociations` | - | `AttachmentId -> attachmentId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListAttachments` | - | `CoreNetworkId -> coreNetworkId`, `AttachmentType -> attachmentType`, `EdgeLocation -> edgeLocation`, `State -> state`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListConnectPeers` | - | `CoreNetworkId -> coreNetworkId`, `ConnectAttachmentId -> connectAttachmentId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCoreNetworkPolicyVersions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCoreNetworkPrefixListAssociations` | - | `PrefixListArn -> prefixListArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCoreNetworkRoutingInformation` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCoreNetworks` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListOrganizationServiceAccessStatus` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPeerings` | - | `CoreNetworkId -> coreNetworkId`, `PeeringType -> peeringType`, `EdgeLocation -> edgeLocation`, `State -> state`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

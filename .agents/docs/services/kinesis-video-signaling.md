@@ -50,6 +50,12 @@ Kinesis Video Streams Signaling Service is a intermediate service that establish
 | `GetIceServerConfig` | `POST /v1/get-ice-server-config` | - | `ChannelARN` | - | `GetIceServerConfigResponse` | `ClientLimitExceededException`, `InvalidArgumentException`, `InvalidClientException`, `NotAuthorizedException`, `ResourceNotFoundException`, `SessionExpiredException` | Gets the Interactive Connectivity Establishment (ICE) server configuration information, including URIs, username, and password which can be used to configure the WebRTC connection. The ICE component uses this configuration information to setup the WebRTC... |
 | `SendAlexaOfferToMaster` | `POST /v1/send-alexa-offer-to-master` | - | `ChannelARN`, `MessagePayload`, `SenderClientId` | - | `SendAlexaOfferToMasterResponse` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | This API allows you to connect WebRTC-enabled devices with Alexa display devices. When invoked, it sends the Alexa Session Description Protocol (SDP) offer to the master peer. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

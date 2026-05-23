@@ -141,6 +141,23 @@ IoT Greengrass brings local compute, messaging, data management, sync, and ML in
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes a tag from an IoT Greengrass resource. |
 | `UpdateConnectivityInfo` | `PUT /greengrass/things/{thingName}/connectivityInfo` | - | `connectivityInfo`, `thingName` | - | `UpdateConnectivityInfoResponse` | `InternalServerException`, `ValidationException` | Updates connectivity information for a Greengrass core device. Connectivity information includes endpoints and ports where client devices can connect to an MQTT broker on the core device. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetComponent` | - | `recipeOutputFormat -> recipeOutputFormat` | - | - |
+| `GetComponentVersionArtifact` | `iotEndpointType -> x-amz-iot-endpoint-type` | `s3EndpointType -> s3EndpointType` | - | - |
+| `ListClientDevicesAssociatedWithCoreDevice` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListComponents` | - | `scope -> scope`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListComponentVersions` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListCoreDevices` | - | `thingGroupArn -> thingGroupArn`, `status -> status`, `maxResults -> maxResults`, `nextToken -> nextToken`, `runtime -> runtime` | - | - |
+| `ListDeployments` | - | `targetArn -> targetArn`, `historyFilter -> historyFilter`, `parentTargetArn -> parentTargetArn`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListEffectiveDeployments` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListInstalledComponents` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `topologyFilter -> topologyFilter` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

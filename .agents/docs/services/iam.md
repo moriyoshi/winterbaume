@@ -375,6 +375,12 @@ Parity implications:
 | `UploadServerCertificate` | - | - | `CertificateBody`, `PrivateKey`, `ServerCertificateName` | - | `UploadServerCertificateResponse` | `ConcurrentModificationException`, `EntityAlreadyExistsException`, `InvalidInputException`, `KeyPairMismatchException`, `LimitExceededException`, `MalformedCertificateException`, `ServiceFailureException` | Uploads a server certificate entity for the Amazon Web Services account. The server certificate entity includes a public key certificate, a private key, and an optional certificate chain, which should all be PEM-encoded. |
 | `UploadSigningCertificate` | - | - | `CertificateBody` | - | `UploadSigningCertificateResponse` | `ConcurrentModificationException`, `DuplicateCertificateException`, `EntityAlreadyExistsException`, `InvalidCertificateException`, `LimitExceededException`, `MalformedCertificateException`, `NoSuchEntityException`, `ServiceFailureException` | Uploads an X.509 signing certificate and associates it with the specified IAM user. Some Amazon Web Services services require you to use certificates to validate requests that are signed with a corresponding private key. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -62,6 +62,12 @@ No high-level service documentation is embedded in the AWS API model.
 | `GetMediaForFragmentList` | `POST /getMediaForFragmentList` | - | `Fragments` | - | `GetMediaForFragmentListOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Gets media for a list of fragments (specified by fragment number) from the archived data in an Amazon Kinesis video stream. You must first call the `GetDataEndpoint` API to get an endpoint. |
 | `ListFragments` | `POST /listFragments` | `paginated` | - | - | `ListFragmentsOutput` | `ClientLimitExceededException`, `InvalidArgumentException`, `NotAuthorizedException`, `ResourceNotFoundException` | Returns a list of Fragment objects from the specified stream and timestamp range within the archived data. Listing fragments is eventually consistent. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

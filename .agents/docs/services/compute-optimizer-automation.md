@@ -135,6 +135,12 @@ Automation is a feature within Amazon Web Services Compute Optimizer that enable
 | `UpdateAutomationRule` | - | `idempotent`, `idempotency-token` | `ruleArn`, `ruleRevision` | `clientToken` | `UpdateAutomationRuleResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `OptInRequiredException`, `ResourceNotFoundException`, ... (+2) | Updates an existing automation rule. |
 | `UpdateEnrollmentConfiguration` | - | `idempotent`, `idempotency-token` | `status` | `clientToken` | `UpdateEnrollmentConfigurationResponse` | `AccessDeniedException`, `ForbiddenException`, `IdempotencyTokenInUseException`, `IdempotentParameterMismatchException`, `InternalServerException`, `InvalidParameterValueException`, `NotManagementAccountException`, `OptInRequiredException`, ... (+3) | Updates your account’s Compute Optimizer Automation enrollment configuration. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

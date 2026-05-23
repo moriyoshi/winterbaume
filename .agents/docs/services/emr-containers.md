@@ -117,6 +117,19 @@ Amazon EMR on EKS provides a deployment option for Amazon EMR that allows you to
 | `TagResource` | `POST /tags/{resourceArn}` | - | `resourceArn`, `tags` | - | `TagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Assigns tags to resources. A tag is a label that you assign to an Amazon Web Services resource. |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | - | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes tags from resources. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListJobRuns` | - | `createdBefore -> createdBefore`, `createdAfter -> createdAfter`, `name -> name`, `states -> states`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListJobTemplates` | - | `createdAfter -> createdAfter`, `createdBefore -> createdBefore`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListManagedEndpoints` | - | `createdBefore -> createdBefore`, `createdAfter -> createdAfter`, `types -> types`, `states -> states`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListSecurityConfigurations` | - | `createdAfter -> createdAfter`, `createdBefore -> createdBefore`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListVirtualClusters` | - | `containerProviderId -> containerProviderId`, `containerProviderType -> containerProviderType`, `createdAfter -> createdAfter`, `createdBefore -> createdBefore`, `states -> states`, `maxResults -> maxResults`, `nextToken -> nextToken`, `eksAccessEntryIntegrated -> eksAccessEntryIntegrated` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

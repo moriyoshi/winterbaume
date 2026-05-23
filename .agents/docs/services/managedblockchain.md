@@ -119,6 +119,23 @@ Amazon Managed Blockchain is a fully managed service for creating and managing b
 | `UpdateNode` | `PATCH /networks/{NetworkId}/nodes/{NodeId}` | - | `NetworkId`, `NodeId` | - | `UpdateNodeOutput` | `AccessDeniedException`, `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates a node configuration with new parameters. Applies only to Hyperledger Fabric. |
 | `VoteOnProposal` | `POST /networks/{NetworkId}/proposals/{ProposalId}/votes` | - | `NetworkId`, `ProposalId`, `Vote`, `VoterMemberId` | - | `VoteOnProposalOutput` | `AccessDeniedException`, `IllegalActionException`, `InternalServiceErrorException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Casts a vote for a specified `ProposalId` on behalf of a member. The member to vote as, specified by `VoterMemberId`, must be in the same Amazon Web Services account as the principal that calls the action. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteNode` | - | `MemberId -> memberId` | - | - |
+| `GetNode` | - | `MemberId -> memberId` | - | - |
+| `ListAccessors` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `NetworkType -> networkType` | - | - |
+| `ListInvitations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListMembers` | - | `Name -> name`, `Status -> status`, `IsOwned -> isOwned`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListNetworks` | - | `Name -> name`, `Framework -> framework`, `Status -> status`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListNodes` | - | `MemberId -> memberId`, `Status -> status`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListProposals` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListProposalVotes` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -112,6 +112,12 @@ Amazon Timestream Write Amazon Timestream is a fast, scalable, fully managed tim
 | `UpdateTable` | - | - | `DatabaseName`, `TableName` | - | `UpdateTableResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidEndpointException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Modifies the retention duration of the memory store and magnetic store for your Timestream table. Note that the change in retention duration takes effect immediately. |
 | `WriteRecords` | - | - | `DatabaseName`, `Records`, `TableName` | - | `WriteRecordsResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidEndpointException`, `RejectedRecordsException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Enables you to write your time-series data into Timestream. You can specify a single data point or a batch of data points to be inserted into the system. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

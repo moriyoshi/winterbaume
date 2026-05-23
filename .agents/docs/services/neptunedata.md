@@ -131,6 +131,35 @@ Neptune Data API The Amazon Neptune data API provides SDK support for more than 
 | `StartMLModelTrainingJob` | `POST /ml/modeltraining` | - | `dataProcessingJobId`, `trainModelS3Location` | - | `StartMLModelTrainingJobOutput` | `BadRequestException`, `ClientTimeoutException`, `ConstraintViolationException`, `IllegalArgumentException`, `InvalidArgumentException`, `InvalidParameterException`, `MLResourceNotFoundException`, `MissingParameterException`, ... (+3) | Creates a new Neptune ML model training job. See Model training using the `modeltraining` command. |
 | `StartMLModelTransformJob` | `POST /ml/modeltransform` | - | `modelTransformOutputS3Location` | - | `StartMLModelTransformJobOutput` | `BadRequestException`, `ClientTimeoutException`, `ConstraintViolationException`, `IllegalArgumentException`, `InvalidArgumentException`, `InvalidParameterException`, `MLResourceNotFoundException`, `MissingParameterException`, ... (+3) | Creates a new model transform job. See Use a trained model to generate new model artifacts. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CancelMLDataProcessingJob` | - | `neptuneIamRoleArn -> neptuneIamRoleArn`, `clean -> clean` | - | - |
+| `CancelMLModelTrainingJob` | - | `neptuneIamRoleArn -> neptuneIamRoleArn`, `clean -> clean` | - | - |
+| `CancelMLModelTransformJob` | - | `neptuneIamRoleArn -> neptuneIamRoleArn`, `clean -> clean` | - | - |
+| `CancelOpenCypherQuery` | - | `silent -> silent` | - | - |
+| `DeleteMLEndpoint` | - | `neptuneIamRoleArn -> neptuneIamRoleArn`, `clean -> clean` | - | - |
+| `ExecuteGremlinQuery` | `serializer -> accept` | - | - | - |
+| `GetLoaderJobStatus` | - | `details -> details`, `errors -> errors`, `page -> page`, `errorsPerPage -> errorsPerPage` | - | - |
+| `GetMLDataProcessingJob` | - | `neptuneIamRoleArn -> neptuneIamRoleArn` | - | - |
+| `GetMLEndpoint` | - | `neptuneIamRoleArn -> neptuneIamRoleArn` | - | - |
+| `GetMLModelTrainingJob` | - | `neptuneIamRoleArn -> neptuneIamRoleArn` | - | - |
+| `GetMLModelTransformJob` | - | `neptuneIamRoleArn -> neptuneIamRoleArn` | - | - |
+| `GetPropertygraphStream` | `encoding -> Accept-Encoding` | `limit -> limit`, `iteratorType -> iteratorType`, `commitNum -> commitNum`, `opNum -> opNum` | - | - |
+| `GetPropertygraphSummary` | - | `mode -> mode` | - | - |
+| `GetRDFGraphSummary` | - | `mode -> mode` | - | - |
+| `GetSparqlStream` | `encoding -> Accept-Encoding` | `limit -> limit`, `iteratorType -> iteratorType`, `commitNum -> commitNum`, `opNum -> opNum` | - | - |
+| `ListGremlinQueries` | - | `includeWaiting -> includeWaiting` | - | - |
+| `ListLoaderJobs` | - | `limit -> limit`, `includeQueuedLoads -> includeQueuedLoads` | - | - |
+| `ListMLDataProcessingJobs` | - | `maxItems -> maxItems`, `neptuneIamRoleArn -> neptuneIamRoleArn` | - | - |
+| `ListMLEndpoints` | - | `maxItems -> maxItems`, `neptuneIamRoleArn -> neptuneIamRoleArn` | - | - |
+| `ListMLModelTrainingJobs` | - | `maxItems -> maxItems`, `neptuneIamRoleArn -> neptuneIamRoleArn` | - | - |
+| `ListMLModelTransformJobs` | - | `maxItems -> maxItems`, `neptuneIamRoleArn -> neptuneIamRoleArn` | - | - |
+| `ListOpenCypherQueries` | - | `includeWaiting -> includeWaiting` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

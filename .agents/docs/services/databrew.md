@@ -169,6 +169,23 @@ Parity implications:
 | `UpdateRuleset` | `PUT /rulesets/{Name}` | - | `Name`, `Rules` | - | `UpdateRulesetResponse` | `ResourceNotFoundException`, `ValidationException` | Updates specified ruleset. |
 | `UpdateSchedule` | `PUT /schedules/{Name}` | - | `CronExpression`, `Name` | - | `UpdateScheduleResponse` | `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Modifies the definition of an existing DataBrew schedule. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeRecipe` | - | `RecipeVersion -> recipeVersion` | - | - |
+| `ListDatasets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListJobRuns` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListJobs` | - | `DatasetName -> datasetName`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `ProjectName -> projectName` | - | - |
+| `ListProjects` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRecipes` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `RecipeVersion -> recipeVersion` | - | - |
+| `ListRecipeVersions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `Name -> name` | - | - |
+| `ListRulesets` | - | `TargetArn -> targetArn`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListSchedules` | - | `JobName -> jobName`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -63,6 +63,12 @@ The Amazon Web Services Price List API is a centralized and convenient way to pr
 | `GetProducts` | - | `paginated` | `ServiceCode` | - | `GetProductsResponse` | `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ThrottlingException` | Returns a list of all products that match the filter criteria. |
 | `ListPriceLists` | - | `paginated` | `CurrencyCode`, `EffectiveDate`, `ServiceCode` | - | `ListPriceListsResponse` | `AccessDeniedException`, `ExpiredNextTokenException`, `InternalErrorException`, `InvalidNextTokenException`, `InvalidParameterException`, `NotFoundException`, `ResourceNotFoundException`, `ThrottlingException` | This feature is in preview release and is subject to change. Your use of Amazon Web Services Price List API is subject to the Beta Service Participation terms of the Amazon Web Services Service Terms (Section 1.10). |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

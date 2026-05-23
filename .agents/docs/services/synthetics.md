@@ -139,6 +139,16 @@ Synthetics currently has a placeholder for canary VPC configuration.
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ConflictException`, `InternalFailureException`, `NotFoundException`, `TooManyRequestsException` | Removes one or more tags from the specified resource. |
 | `UpdateCanary` | `PATCH /canary/{Name}` | - | `Name` | - | `UpdateCanaryResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `RequestEntityTooLargeException`, `ResourceNotFoundException`, `ValidationException` | Updates the configuration of a canary that has already been created. For multibrowser canaries, you can add or remove browsers by updating the browserConfig list in the update call. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteCanary` | - | `DeleteLambda -> deleteLambda` | - | - |
+| `GetCanary` | - | `DryRunId -> dryRunId` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

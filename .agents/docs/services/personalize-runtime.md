@@ -50,6 +50,12 @@ No high-level service documentation is embedded in the AWS API model.
 | `GetPersonalizedRanking` | `POST /personalize-ranking` | `idempotent` | `campaignArn`, `inputList`, `userId` | - | `GetPersonalizedRankingResponse` | `InvalidInputException`, `ResourceNotFoundException` | Re-ranks a list of recommended items for the given user. The first item in the list is deemed the most likely item to be of interest to the user. |
 | `GetRecommendations` | `POST /recommendations` | `idempotent` | - | - | `GetRecommendationsResponse` | `InvalidInputException`, `ResourceNotFoundException` | Returns a list of recommended items. For campaigns, the campaign's Amazon Resource Name (ARN) is required and the required user and item input depends on the recipe type used to create the solution backing the campaign as follows: USER_PERSONALIZATION -... |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

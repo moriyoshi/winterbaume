@@ -106,6 +106,19 @@ Amazon WorkSpaces Thin Client is an affordable device built to work with Amazon 
 | `UpdateEnvironment` | `PATCH /environments/{id}` | `idempotent`, `endpoint-bound` | `id` | - | `UpdateEnvironmentResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an environment. |
 | `UpdateSoftwareSet` | `PATCH /softwaresets/{id}` | `idempotent`, `endpoint-bound` | `id`, `validationStatus` | - | `UpdateSoftwareSetResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a software set. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteDevice` | - | `clientToken -> clientToken` | - | - |
+| `DeleteEnvironment` | - | `clientToken -> clientToken` | - | - |
+| `ListDevices` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListEnvironments` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListSoftwareSets` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

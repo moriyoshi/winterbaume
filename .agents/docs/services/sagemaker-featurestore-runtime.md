@@ -63,6 +63,15 @@ Contains all data plane API operations and data types for the Amazon SageMaker F
 | `GetRecord` | `GET /FeatureGroup/{FeatureGroupName}` | - | `FeatureGroupName`, `RecordIdentifierValueAsString` | - | `GetRecordResponse` | `AccessForbidden`, `InternalFailure`, `ResourceNotFound`, `ServiceUnavailable`, `ValidationError` | Use for `OnlineStore` serving from a `FeatureStore`. Only the latest records stored in the `OnlineStore` can be retrieved. |
 | `PutRecord` | `PUT /FeatureGroup/{FeatureGroupName}` | - | `FeatureGroupName`, `Record` | - | `Unit` | `AccessForbidden`, `InternalFailure`, `ServiceUnavailable`, `ValidationError` | The `PutRecord` API is used to ingest a list of `Records` into your feature group. If a new record’s `EventTime` is greater, the new record is written to both the `OnlineStore` and `OfflineStore`. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteRecord` | - | `RecordIdentifierValueAsString -> RecordIdentifierValueAsString`, `EventTime -> EventTime`, `TargetStores -> TargetStores`, `DeletionMode -> DeletionMode` | - | - |
+| `GetRecord` | - | `RecordIdentifierValueAsString -> RecordIdentifierValueAsString`, `FeatureNames -> FeatureName`, `ExpirationTimeResponse -> ExpirationTimeResponse` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -252,6 +252,18 @@ Parity implications:
 | `UpdateOrgEc2DeepInspectionConfiguration` | `POST /ec2deepinspectionconfiguration/org/update` | - | `orgPackagePaths` | - | `UpdateOrgEc2DeepInspectionConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates the Amazon Inspector deep inspection custom paths for your organization. You must be an Amazon Inspector delegated administrator to use this API. |
 | `UpdateOrganizationConfiguration` | `POST /organizationconfiguration/update` | - | `autoEnable` | - | `UpdateOrganizationConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates the configurations for your Amazon Inspector organization. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetEncryptionKey` | - | `scanType -> scanType`, `resourceType -> resourceType` | - | - |
+| `ListCodeSecurityIntegrations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListCodeSecurityScanConfigurationAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListCodeSecurityScanConfigurations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

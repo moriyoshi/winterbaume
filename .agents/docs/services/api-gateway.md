@@ -273,6 +273,52 @@ API Gateway currently keeps networking resources inside its own service state.
 | `UpdateUsagePlan` | `PATCH /usageplans/{usagePlanId}` | - | `usagePlanId` | - | `UsagePlan` | `BadRequestException`, `ConflictException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Updates a usage plan of a given plan Id. |
 | `UpdateVpcLink` | `PATCH /vpclinks/{vpcLinkId}` | - | `vpcLinkId` | - | `VpcLink` | `BadRequestException`, `ConflictException`, `LimitExceededException`, `NotFoundException`, `TooManyRequestsException`, `UnauthorizedException` | Updates an existing VpcLink of a specified identifier. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateBasePathMapping` | - | `domainNameId -> domainNameId` | - | - |
+| `DeleteBasePathMapping` | - | `domainNameId -> domainNameId` | - | - |
+| `DeleteDomainName` | - | `domainNameId -> domainNameId` | - | - |
+| `GetApiKey` | - | `includeValue -> includeValue` | - | - |
+| `GetApiKeys` | - | `position -> position`, `limit -> limit`, `nameQuery -> name`, `customerId -> customerId`, `includeValues -> includeValues` | - | - |
+| `GetAuthorizers` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetBasePathMapping` | - | `domainNameId -> domainNameId` | - | - |
+| `GetBasePathMappings` | - | `domainNameId -> domainNameId`, `position -> position`, `limit -> limit` | - | - |
+| `GetClientCertificates` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetDeployment` | - | `embed -> embed` | - | - |
+| `GetDeployments` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetDocumentationParts` | - | `type -> type`, `nameQuery -> name`, `path -> path`, `position -> position`, `limit -> limit`, `locationStatus -> locationStatus` | - | - |
+| `GetDocumentationVersions` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetDomainName` | - | `domainNameId -> domainNameId` | - | - |
+| `GetDomainNameAccessAssociations` | - | `position -> position`, `limit -> limit`, `resourceOwner -> resourceOwner` | - | - |
+| `GetDomainNames` | - | `position -> position`, `limit -> limit`, `resourceOwner -> resourceOwner` | - | - |
+| `GetExport` | `accepts -> Accept` | - | - | - |
+| `GetGatewayResponses` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetModel` | - | `flatten -> flatten` | - | - |
+| `GetModels` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetRequestValidators` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetResource` | - | `embed -> embed` | - | - |
+| `GetResources` | - | `position -> position`, `limit -> limit`, `embed -> embed` | - | - |
+| `GetRestApis` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetSdkTypes` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetStages` | - | `deploymentId -> deploymentId` | - | - |
+| `GetTags` | - | `position -> position`, `limit -> limit` | - | - |
+| `GetUsage` | - | `keyId -> keyId`, `startDate -> startDate`, `endDate -> endDate`, `position -> position`, `limit -> limit` | - | - |
+| `GetUsagePlanKeys` | - | `position -> position`, `limit -> limit`, `nameQuery -> name` | - | - |
+| `GetUsagePlans` | - | `position -> position`, `keyId -> keyId`, `limit -> limit` | - | - |
+| `GetVpcLinks` | - | `position -> position`, `limit -> limit` | - | - |
+| `ImportApiKeys` | - | `format -> format`, `failOnWarnings -> failonwarnings` | - | `body` |
+| `ImportDocumentationParts` | - | `mode -> mode`, `failOnWarnings -> failonwarnings` | - | `body` |
+| `ImportRestApi` | - | `failOnWarnings -> failonwarnings` | - | `body` |
+| `PutRestApi` | - | `mode -> mode`, `failOnWarnings -> failonwarnings` | - | `body` |
+| `RejectDomainNameAccessAssociation` | - | `domainNameAccessAssociationArn -> domainNameAccessAssociationArn`, `domainNameArn -> domainNameArn` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `UpdateBasePathMapping` | - | `domainNameId -> domainNameId` | - | - |
+| `UpdateDomainName` | - | `domainNameId -> domainNameId` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -160,6 +160,14 @@ An Amazon S3 table represents a structured dataset consisting of tabular data in
 | `UntagResource` | `DELETE /tag/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Removes the specified user-defined tags from an Amazon S3 Tables resource. You can pass one or more tag keys. |
 | `UpdateTableMetadataLocation` | `PUT /tables/{tableBucketARN}/{namespace}/{name}/metadata-location` | - | `metadataLocation`, `name`, `namespace`, `tableBucketARN`, `versionToken` | - | `UpdateTableMetadataLocationResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Updates the metadata location for a table. The metadata location of a table must be an S3 URI that begins with the table's warehouse location. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

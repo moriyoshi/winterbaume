@@ -170,6 +170,46 @@ The Amazon Q Apps feature capability within Amazon Q Business allows web experie
 | `UpdateQAppSession` | `POST /runtime.updateQAppSession` | - | `instanceId`, `sessionId` | - | `UpdateQAppSessionOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `UnauthorizedException`, `ValidationException` | Updates the session for a given Q App `sessionId`. This is only valid when at least one card of the session is in the `WAITING` state. |
 | `UpdateQAppSessionMetadata` | `POST /runtime.updateQAppSessionMetadata` | - | `instanceId`, `sessionId`, `sharingConfiguration` | - | `UpdateQAppSessionMetadataOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `UnauthorizedException`, `ValidationException` | Updates the configuration metadata of a session for a given Q App `sessionId`. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AssociateLibraryItemReview` | `instanceId -> instance-id` | - | - | - |
+| `AssociateQAppWithUser` | `instanceId -> instance-id` | - | - | - |
+| `BatchCreateCategory` | `instanceId -> instance-id` | - | - | - |
+| `BatchDeleteCategory` | `instanceId -> instance-id` | - | - | - |
+| `BatchUpdateCategory` | `instanceId -> instance-id` | - | - | - |
+| `CreateLibraryItem` | `instanceId -> instance-id` | - | - | - |
+| `CreatePresignedUrl` | `instanceId -> instance-id` | - | - | - |
+| `CreateQApp` | `instanceId -> instance-id` | - | - | - |
+| `DeleteLibraryItem` | `instanceId -> instance-id` | - | - | - |
+| `DeleteQApp` | `instanceId -> instance-id` | - | - | - |
+| `DescribeQAppPermissions` | `instanceId -> instance-id` | `appId -> appId` | - | - |
+| `DisassociateLibraryItemReview` | `instanceId -> instance-id` | - | - | - |
+| `DisassociateQAppFromUser` | `instanceId -> instance-id` | - | - | - |
+| `ExportQAppSessionData` | `instanceId -> instance-id` | - | - | - |
+| `GetLibraryItem` | `instanceId -> instance-id` | `libraryItemId -> libraryItemId`, `appId -> appId` | - | - |
+| `GetQApp` | `instanceId -> instance-id` | `appId -> appId`, `appVersion -> appVersion` | - | - |
+| `GetQAppSession` | `instanceId -> instance-id` | `sessionId -> sessionId` | - | - |
+| `GetQAppSessionMetadata` | `instanceId -> instance-id` | `sessionId -> sessionId` | - | - |
+| `ImportDocument` | `instanceId -> instance-id` | - | - | - |
+| `ListCategories` | `instanceId -> instance-id` | - | - | - |
+| `ListLibraryItems` | `instanceId -> instance-id` | `limit -> limit`, `nextToken -> nextToken`, `categoryId -> categoryId` | - | - |
+| `ListQApps` | `instanceId -> instance-id` | `limit -> limit`, `nextToken -> nextToken` | - | - |
+| `ListQAppSessionData` | `instanceId -> instance-id` | `sessionId -> sessionId` | - | - |
+| `PredictQApp` | `instanceId -> instance-id` | - | - | - |
+| `StartQAppSession` | `instanceId -> instance-id` | - | - | - |
+| `StopQAppSession` | `instanceId -> instance-id` | - | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `UpdateLibraryItem` | `instanceId -> instance-id` | - | - | - |
+| `UpdateLibraryItemMetadata` | `instanceId -> instance-id` | - | - | - |
+| `UpdateQApp` | `instanceId -> instance-id` | - | - | - |
+| `UpdateQAppPermissions` | `instanceId -> instance-id` | - | - | - |
+| `UpdateQAppSession` | `instanceId -> instance-id` | - | - | - |
+| `UpdateQAppSessionMetadata` | `instanceId -> instance-id` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

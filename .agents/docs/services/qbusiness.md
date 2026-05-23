@@ -242,6 +242,35 @@ This is the Amazon Q Business API Reference. Amazon Q Business is a fully manage
 | `UpdateUser` | `PUT /applications/{applicationId}/users/{userId}` | `idempotent` | `applicationId`, `userId` | - | `UpdateUserResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates a information associated with a user id. |
 | `UpdateWebExperience` | `PUT /applications/{applicationId}/experiences/{webExperienceId}` | `idempotent` | `applicationId`, `webExperienceId` | - | `UpdateWebExperienceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an Amazon Q Business web experience. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `Chat` | - | `userId -> userId`, `userGroups -> userGroups`, `conversationId -> conversationId`, `parentMessageId -> parentMessageId`, `clientToken -> clientToken` | - | `inputStream` |
+| `ChatSync` | - | `userId -> userId`, `userGroups -> userGroups` | - | - |
+| `CheckDocumentAccess` | - | `dataSourceId -> dataSourceId` | - | - |
+| `DeleteAttachment` | - | `userId -> userId` | - | - |
+| `DeleteConversation` | - | `userId -> userId` | - | - |
+| `DeleteGroup` | - | `dataSourceId -> dataSourceId` | - | - |
+| `GetChatControlsConfiguration` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `GetDocumentContent` | - | `dataSourceId -> dataSourceId`, `outputFormat -> outputFormat` | - | - |
+| `GetGroup` | - | `dataSourceId -> dataSourceId` | - | - |
+| `ListAttachments` | - | `conversationId -> conversationId`, `userId -> userId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListChatResponseConfigurations` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListConversations` | - | `userId -> userId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDataSourceSyncJobs` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `startTime -> startTime`, `endTime -> endTime`, `statusFilter -> syncStatus` | - | - |
+| `ListDocuments` | - | `dataSourceIds -> dataSourceIds`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListGroups` | - | `updatedEarlierThan -> updatedEarlierThan`, `dataSourceId -> dataSourceId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListMessages` | - | `userId -> userId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListPluginActions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListPluginTypeActions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListPluginTypeMetadata` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListSubscriptions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `PutFeedback` | - | `userId -> userId` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

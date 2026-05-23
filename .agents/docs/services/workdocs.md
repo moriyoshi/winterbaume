@@ -151,6 +151,55 @@ The Amazon WorkDocs API is designed for the following use cases: File Migration:
 | `UpdateFolder` | `PATCH /api/v1/folders/{FolderId}` | - | `FolderId` | - | `Unit` | `ConcurrentModificationException`, `ConflictingOperationException`, `EntityAlreadyExistsException`, `EntityNotExistsException`, `FailedDependencyException`, `LimitExceededException`, `ProhibitedStateException`, `ServiceUnavailableException`, ... (+2) | Updates the specified attributes of the specified folder. The user must have access to both the folder and its parent folder, if applicable. |
 | `UpdateUser` | `PATCH /api/v1/users/{UserId}` | - | `UserId` | - | `UpdateUserResponse` | `DeactivatingLastSystemUserException`, `EntityNotExistsException`, `FailedDependencyException`, `IllegalUserStateException`, `InvalidArgumentException`, `ProhibitedStateException`, `ServiceUnavailableException`, `UnauthorizedOperationException`, ... (+1) | Updates the specified attributes of the specified user, and grants or revokes administrative privileges to the Amazon WorkDocs site. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AbortDocumentVersionUpload` | `AuthenticationToken -> Authentication` | - | - | - |
+| `ActivateUser` | `AuthenticationToken -> Authentication` | - | - | - |
+| `AddResourcePermissions` | `AuthenticationToken -> Authentication` | - | - | - |
+| `CreateComment` | `AuthenticationToken -> Authentication` | - | - | - |
+| `CreateCustomMetadata` | `AuthenticationToken -> Authentication` | `VersionId -> versionid` | - | - |
+| `CreateFolder` | `AuthenticationToken -> Authentication` | - | - | - |
+| `CreateLabels` | `AuthenticationToken -> Authentication` | - | - | - |
+| `CreateUser` | `AuthenticationToken -> Authentication` | - | - | - |
+| `DeactivateUser` | `AuthenticationToken -> Authentication` | - | - | - |
+| `DeleteComment` | `AuthenticationToken -> Authentication` | - | - | - |
+| `DeleteCustomMetadata` | `AuthenticationToken -> Authentication` | `VersionId -> versionId`, `Keys -> keys`, `DeleteAll -> deleteAll` | - | - |
+| `DeleteDocument` | `AuthenticationToken -> Authentication` | - | - | - |
+| `DeleteDocumentVersion` | `AuthenticationToken -> Authentication` | `DeletePriorVersions -> deletePriorVersions` | - | - |
+| `DeleteFolder` | `AuthenticationToken -> Authentication` | - | - | - |
+| `DeleteFolderContents` | `AuthenticationToken -> Authentication` | - | - | - |
+| `DeleteLabels` | `AuthenticationToken -> Authentication` | `Labels -> labels`, `DeleteAll -> deleteAll` | - | - |
+| `DeleteUser` | `AuthenticationToken -> Authentication` | - | - | - |
+| `DescribeActivities` | `AuthenticationToken -> Authentication` | `StartTime -> startTime`, `EndTime -> endTime`, `OrganizationId -> organizationId`, `ActivityTypes -> activityTypes`, `ResourceId -> resourceId`, `UserId -> userId`, `IncludeIndirectActivities -> includeIndirectActivities`, `Limit -> limit`, `Marker -> marker` | - | - |
+| `DescribeComments` | `AuthenticationToken -> Authentication` | `Limit -> limit`, `Marker -> marker` | - | - |
+| `DescribeDocumentVersions` | `AuthenticationToken -> Authentication` | `Marker -> marker`, `Limit -> limit`, `Include -> include`, `Fields -> fields` | - | - |
+| `DescribeFolderContents` | `AuthenticationToken -> Authentication` | `Sort -> sort`, `Order -> order`, `Limit -> limit`, `Marker -> marker`, `Type -> type`, `Include -> include` | - | - |
+| `DescribeGroups` | `AuthenticationToken -> Authentication` | `SearchQuery -> searchQuery`, `OrganizationId -> organizationId`, `Marker -> marker`, `Limit -> limit` | - | - |
+| `DescribeNotificationSubscriptions` | - | `Marker -> marker`, `Limit -> limit` | - | - |
+| `DescribeResourcePermissions` | `AuthenticationToken -> Authentication` | `PrincipalId -> principalId`, `Limit -> limit`, `Marker -> marker` | - | - |
+| `DescribeRootFolders` | `AuthenticationToken -> Authentication` | `Limit -> limit`, `Marker -> marker` | - | - |
+| `DescribeUsers` | `AuthenticationToken -> Authentication` | `OrganizationId -> organizationId`, `UserIds -> userIds`, `Query -> query`, `Include -> include`, `Order -> order`, `Sort -> sort`, `Marker -> marker`, `Limit -> limit`, `Fields -> fields` | - | - |
+| `GetCurrentUser` | `AuthenticationToken -> Authentication` | - | - | - |
+| `GetDocument` | `AuthenticationToken -> Authentication` | `IncludeCustomMetadata -> includeCustomMetadata` | - | - |
+| `GetDocumentPath` | `AuthenticationToken -> Authentication` | `Limit -> limit`, `Fields -> fields`, `Marker -> marker` | - | - |
+| `GetDocumentVersion` | `AuthenticationToken -> Authentication` | `Fields -> fields`, `IncludeCustomMetadata -> includeCustomMetadata` | - | - |
+| `GetFolder` | `AuthenticationToken -> Authentication` | `IncludeCustomMetadata -> includeCustomMetadata` | - | - |
+| `GetFolderPath` | `AuthenticationToken -> Authentication` | `Limit -> limit`, `Fields -> fields`, `Marker -> marker` | - | - |
+| `GetResources` | `AuthenticationToken -> Authentication` | `UserId -> userId`, `CollectionType -> collectionType`, `Limit -> limit`, `Marker -> marker` | - | - |
+| `InitiateDocumentVersionUpload` | `AuthenticationToken -> Authentication` | - | - | - |
+| `RemoveAllResourcePermissions` | `AuthenticationToken -> Authentication` | - | - | - |
+| `RemoveResourcePermission` | `AuthenticationToken -> Authentication` | `PrincipalType -> type` | - | - |
+| `RestoreDocumentVersions` | `AuthenticationToken -> Authentication` | - | - | - |
+| `SearchResources` | `AuthenticationToken -> Authentication` | - | - | - |
+| `UpdateDocument` | `AuthenticationToken -> Authentication` | - | - | - |
+| `UpdateDocumentVersion` | `AuthenticationToken -> Authentication` | - | - | - |
+| `UpdateFolder` | `AuthenticationToken -> Authentication` | - | - | - |
+| `UpdateUser` | `AuthenticationToken -> Authentication` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

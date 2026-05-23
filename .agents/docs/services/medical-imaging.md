@@ -131,6 +131,22 @@ This is the AWS HealthImaging API Reference . For an introduction to the service
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from a medical imaging resource. |
 | `UpdateImageSetMetadata` | `POST /datastore/{datastoreId}/imageSet/{imageSetId}/updateImageSetMetadata` | `endpoint-bound` | `datastoreId`, `imageSetId`, `latestVersionId`, `updateImageSetMetadataUpdates` | - | `UpdateImageSetMetadataResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Update image set metadata attributes. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CopyImageSet` | - | `force -> force`, `promoteToPrimary -> promoteToPrimary` | - | `copyImageSetInformation` |
+| `GetImageFrame` | - | - | - | `imageFrameInformation` |
+| `GetImageSet` | - | `versionId -> version` | - | - |
+| `GetImageSetMetadata` | - | `versionId -> version` | - | - |
+| `ListDICOMImportJobs` | - | `jobStatus -> jobStatus`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListImageSetVersions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `SearchImageSets` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | `searchCriteria` |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `UpdateImageSetMetadata` | - | `latestVersionId -> latestVersion`, `force -> force`, `includeStudyImageSets -> includeStudyImageSets` | - | `updateImageSetMetadataUpdates` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

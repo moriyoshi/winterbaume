@@ -111,6 +111,19 @@ Recovery Control Configuration API Reference for Amazon Route 53 Application Rec
 | `UpdateRoutingControl` | `PUT /routingcontrol` | - | `RoutingControlArn`, `RoutingControlName` | - | `UpdateRoutingControlResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a routing control. You can only update the name of the routing control. |
 | `UpdateSafetyRule` | `PUT /safetyrule` | - | - | - | `UpdateSafetyRuleResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Update a safety rule (an assertion rule or gating rule). You can only update the name and the waiting period for a safety rule. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListAssociatedRoute53HealthChecks` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListClusters` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListControlPanels` | - | `ClusterArn -> ClusterArn`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListRoutingControls` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListSafetyRules` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> TagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

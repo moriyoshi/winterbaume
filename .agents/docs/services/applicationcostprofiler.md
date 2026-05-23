@@ -79,6 +79,14 @@ This reference provides descriptions of the AWS Application Cost Profiler API. T
 | `PutReportDefinition` | `POST /reportDefinition` | - | `destinationS3Location`, `format`, `reportDescription`, `reportFrequency`, `reportId` | - | `PutReportDefinitionResult` | `AccessDeniedException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Creates the report definition for a report in Application Cost Profiler. |
 | `UpdateReportDefinition` | `PUT /reportDefinition/{reportId}` | - | `destinationS3Location`, `format`, `reportDescription`, `reportFrequency`, `reportId` | - | `UpdateReportDefinitionResult` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates existing report in AWS Application Cost Profiler. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListReportDefinitions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

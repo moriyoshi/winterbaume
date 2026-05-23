@@ -78,6 +78,16 @@ An AWS Elemental MediaStore asset is an object, similar to an object in the Amaz
 | `ListItems` | `GET /` | `paginated` | - | - | `ListItemsResponse` | `ContainerNotFoundException`, `InternalServerError` | Provides a list of metadata entries about folders and objects in the specified folder. |
 | `PutObject` | `PUT /{Path+}` | - | `Body`, `Path` | - | `PutObjectResponse` | `ContainerNotFoundException`, `InternalServerError` | Uploads an object to the specified path. Object sizes are limited to 25 MB for standard upload availability and 10 MB for streaming upload availability. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetObject` | `Range -> Range` | - | - | - |
+| `ListItems` | - | `Path -> Path`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `PutObject` | `ContentType -> Content-Type`, `CacheControl -> Cache-Control`, `StorageClass -> x-amz-storage-class`, `UploadAvailability -> x-amz-upload-availability` | - | - | `Body` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

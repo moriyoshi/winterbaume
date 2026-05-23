@@ -199,6 +199,12 @@ Parity implications:
 | `UpdateLag` | - | - | `lagId` | - | `Lag` | `DirectConnectClientException`, `DirectConnectServerException` | Updates the attributes of the specified link aggregation group (LAG). You can update the following LAG attributes: The name of the LAG. |
 | `UpdateVirtualInterfaceAttributes` | - | - | `virtualInterfaceId` | - | `VirtualInterface` | `DirectConnectClientException`, `DirectConnectServerException` | Updates the specified attributes of the specified virtual private interface. Setting the MTU of a virtual interface to 8500 (jumbo frames) can cause an update to the underlying physical connection if it wasn't updated to support jumbo frames. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

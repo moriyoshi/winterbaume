@@ -247,6 +247,26 @@ Parity implications:
 | `UpdateVoiceProfileDomain` | `PUT /voice-profile-domains/{VoiceProfileDomainId}` | - | `VoiceProfileDomainId` | - | `UpdateVoiceProfileDomainResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Updates the settings for the specified voice profile domain. |
 | `ValidateE911Address` | `POST /emergency-calling/address` | - | `AwsAccountId`, `City`, `Country`, `PostalCode`, `State`, `StreetInfo`, `StreetNumber` | - | `ValidateE911AddressResponse` | `AccessDeniedException`, `BadRequestException`, `ForbiddenException`, `NotFoundException`, `ServiceFailureException`, `ServiceUnavailableException`, `ThrottledClientException`, `UnauthorizedClientException` | Validates an address to be used for 911 calls made with Amazon Chime SDK Voice Connectors. You can use validated addresses in a Presence Information Data Format Location Object file that you include in SIP requests. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetVoiceToneAnalysisTask` | - | `IsCaller -> isCaller` | - | - |
+| `ListPhoneNumberOrders` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListPhoneNumbers` | - | `Status -> status`, `ProductType -> product-type`, `FilterName -> filter-name`, `FilterValue -> filter-value`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListProxySessions` | - | `Status -> status`, `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListSipMediaApplications` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListSipRules` | - | `SipMediaApplicationId -> sip-media-application`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListSupportedPhoneNumberCountries` | - | `ProductType -> product-type` | - | - |
+| `ListTagsForResource` | - | `ResourceARN -> arn` | - | - |
+| `ListVoiceConnectorGroups` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListVoiceConnectors` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListVoiceProfileDomains` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListVoiceProfiles` | - | `VoiceProfileDomainId -> voice-profile-domain-id`, `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `SearchAvailablePhoneNumbers` | - | `AreaCode -> area-code`, `City -> city`, `Country -> country`, `State -> state`, `TollFreePrefix -> toll-free-prefix`, `PhoneNumberType -> phone-number-type`, `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

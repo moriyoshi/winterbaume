@@ -154,6 +154,21 @@ Parity implications:
 | `UpdateDomainAssociation` | `POST /apps/{appId}/domains/{domainName}` | - | `appId`, `domainName` | - | `UpdateDomainAssociationResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Creates a new domain association for an Amplify app. |
 | `UpdateWebhook` | `POST /webhooks/{webhookId}` | - | `webhookId` | - | `UpdateWebhookResult` | `BadRequestException`, `DependentServiceFailureException`, `InternalFailureException`, `NotFoundException`, `UnauthorizedException` | Updates a webhook. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListApps` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListArtifacts` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListBackendEnvironments` | - | `environmentName -> environmentName`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListBranches` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDomainAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListJobs` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListWebhooks` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

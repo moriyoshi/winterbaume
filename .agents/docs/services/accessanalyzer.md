@@ -191,6 +191,24 @@ Parity implications:
 | `UpdateFindings` | `PUT /finding` | `idempotent`, `idempotency-token` | `analyzerArn`, `status` | `clientToken` | `Unit` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the status for the specified findings. |
 | `ValidatePolicy` | `POST /policy/validation` | `readonly`, `paginated` | `policyDocument`, `policyType` | - | `ValidatePolicyResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Requests the validation of a policy and returns a list of findings. The findings help you identify issues and provide actionable recommendations to resolve the issue and enable you to author functional policies that meet security best practices. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GenerateFindingRecommendation` | - | `analyzerArn -> analyzerArn` | - | - |
+| `GetAccessPreview` | - | `analyzerArn -> analyzerArn` | - | - |
+| `GetAnalyzedResource` | - | `analyzerArn -> analyzerArn`, `resourceArn -> resourceArn` | - | - |
+| `GetFinding` | - | `analyzerArn -> analyzerArn` | - | - |
+| `GetFindingRecommendation` | - | `analyzerArn -> analyzerArn`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `GetFindingV2` | - | `analyzerArn -> analyzerArn`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `GetGeneratedPolicy` | - | `includeResourcePlaceholders -> includeResourcePlaceholders`, `includeServiceLevelTemplate -> includeServiceLevelTemplate` | - | - |
+| `ListAccessPreviews` | - | `analyzerArn -> analyzerArn`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListPolicyGenerations` | - | `principalArn -> principalArn`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `ValidatePolicy` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

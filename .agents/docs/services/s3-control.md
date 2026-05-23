@@ -227,6 +227,110 @@ S3 Control currently stores access point VPC configuration on the access point r
 | `UpdateJobStatus` | `POST /v20180820/jobs/{JobId}/status` | `endpoint-bound` | `AccountId`, `JobId`, `RequestedJobStatus` | - | `UpdateJobStatusResult` | `BadRequestException`, `InternalServiceException`, `JobStatusException`, `NotFoundException`, `TooManyRequestsException` | Updates the status for the specified job. Use this operation to confirm that you want to run a job or to cancel an existing job. |
 | `UpdateStorageLensGroup` | `PUT /v20180820/storagelensgroup/{Name}` | `endpoint-bound` | `AccountId`, `Name`, `StorageLensGroup` | - | `Unit` | - | Updates the existing Storage Lens group. To use this operation, you must have the permission to perform the `s3:UpdateStorageLensGroup` action. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AssociateAccessGrantsIdentityCenter` | `AccountId -> x-amz-account-id` | - | - | - |
+| `CreateAccessGrant` | `AccountId -> x-amz-account-id` | - | - | - |
+| `CreateAccessGrantsInstance` | `AccountId -> x-amz-account-id` | - | - | - |
+| `CreateAccessGrantsLocation` | `AccountId -> x-amz-account-id` | - | - | - |
+| `CreateAccessPoint` | `AccountId -> x-amz-account-id` | - | - | - |
+| `CreateAccessPointForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `CreateBucket` | `ACL -> x-amz-acl`, `GrantFullControl -> x-amz-grant-full-control`, `GrantRead -> x-amz-grant-read`, `GrantReadACP -> x-amz-grant-read-acp`, `GrantWrite -> x-amz-grant-write`, `GrantWriteACP -> x-amz-grant-write-acp`, `ObjectLockEnabledForBucket -> x-amz-bucket-object-lock-enabled`, `OutpostId -> x-amz-outpost-id` | - | - | `CreateBucketConfiguration` |
+| `CreateJob` | `AccountId -> x-amz-account-id` | - | - | - |
+| `CreateMultiRegionAccessPoint` | `AccountId -> x-amz-account-id` | - | - | - |
+| `CreateStorageLensGroup` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessGrant` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessGrantsInstance` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessGrantsInstanceResourcePolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessGrantsLocation` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessPoint` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessPointForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessPointPolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessPointPolicyForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteAccessPointScope` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteBucket` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteBucketLifecycleConfiguration` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteBucketPolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteBucketReplication` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteBucketTagging` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteJobTagging` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteMultiRegionAccessPoint` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeletePublicAccessBlock` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteStorageLensConfiguration` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteStorageLensConfigurationTagging` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DeleteStorageLensGroup` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DescribeJob` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DescribeMultiRegionAccessPointOperation` | `AccountId -> x-amz-account-id` | - | - | - |
+| `DissociateAccessGrantsIdentityCenter` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessGrant` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessGrantsInstance` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessGrantsInstanceForPrefix` | `AccountId -> x-amz-account-id` | `S3Prefix -> s3prefix` | - | - |
+| `GetAccessGrantsInstanceResourcePolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessGrantsLocation` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessPoint` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessPointConfigurationForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessPointForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessPointPolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessPointPolicyForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessPointPolicyStatus` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessPointPolicyStatusForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetAccessPointScope` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetBucket` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetBucketLifecycleConfiguration` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetBucketPolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetBucketReplication` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetBucketTagging` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetBucketVersioning` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetDataAccess` | `AccountId -> x-amz-account-id` | `Target -> target`, `Permission -> permission`, `DurationSeconds -> durationSeconds`, `Privilege -> privilege`, `TargetType -> targetType`, `AuditContext -> auditContext` | - | - |
+| `GetJobTagging` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetMultiRegionAccessPoint` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetMultiRegionAccessPointPolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetMultiRegionAccessPointPolicyStatus` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetMultiRegionAccessPointRoutes` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetPublicAccessBlock` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetStorageLensConfiguration` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetStorageLensConfigurationTagging` | `AccountId -> x-amz-account-id` | - | - | - |
+| `GetStorageLensGroup` | `AccountId -> x-amz-account-id` | - | - | - |
+| `ListAccessGrants` | `AccountId -> x-amz-account-id` | `NextToken -> nextToken`, `MaxResults -> maxResults`, `GranteeType -> granteetype`, `GranteeIdentifier -> granteeidentifier`, `Permission -> permission`, `GrantScope -> grantscope`, `ApplicationArn -> application_arn` | - | - |
+| `ListAccessGrantsInstances` | `AccountId -> x-amz-account-id` | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListAccessGrantsLocations` | `AccountId -> x-amz-account-id` | `NextToken -> nextToken`, `MaxResults -> maxResults`, `LocationScope -> locationscope` | - | - |
+| `ListAccessPoints` | `AccountId -> x-amz-account-id` | `Bucket -> bucket`, `NextToken -> nextToken`, `MaxResults -> maxResults`, `DataSourceId -> dataSourceId`, `DataSourceType -> dataSourceType` | - | - |
+| `ListAccessPointsForDirectoryBuckets` | `AccountId -> x-amz-account-id` | `DirectoryBucket -> directoryBucket`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListAccessPointsForObjectLambda` | `AccountId -> x-amz-account-id` | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListCallerAccessGrants` | `AccountId -> x-amz-account-id` | `GrantScope -> grantscope`, `NextToken -> nextToken`, `MaxResults -> maxResults`, `AllowedByApplication -> allowedByApplication` | - | - |
+| `ListJobs` | `AccountId -> x-amz-account-id` | `JobStatuses -> jobStatuses`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListMultiRegionAccessPoints` | `AccountId -> x-amz-account-id` | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRegionalBuckets` | `AccountId -> x-amz-account-id`, `OutpostId -> x-amz-outpost-id` | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListStorageLensConfigurations` | `AccountId -> x-amz-account-id` | `NextToken -> nextToken` | - | - |
+| `ListStorageLensGroups` | `AccountId -> x-amz-account-id` | `NextToken -> nextToken` | - | - |
+| `ListTagsForResource` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutAccessGrantsInstanceResourcePolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutAccessPointConfigurationForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutAccessPointPolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutAccessPointPolicyForObjectLambda` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutAccessPointScope` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutBucketLifecycleConfiguration` | `AccountId -> x-amz-account-id` | - | - | `LifecycleConfiguration` |
+| `PutBucketPolicy` | `AccountId -> x-amz-account-id`, `ConfirmRemoveSelfBucketAccess -> x-amz-confirm-remove-self-bucket-access` | - | - | - |
+| `PutBucketReplication` | `AccountId -> x-amz-account-id` | - | - | `ReplicationConfiguration` |
+| `PutBucketTagging` | `AccountId -> x-amz-account-id` | - | - | `Tagging` |
+| `PutBucketVersioning` | `AccountId -> x-amz-account-id`, `MFA -> x-amz-mfa` | - | - | `VersioningConfiguration` |
+| `PutJobTagging` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutMultiRegionAccessPointPolicy` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutPublicAccessBlock` | `AccountId -> x-amz-account-id` | - | - | `PublicAccessBlockConfiguration` |
+| `PutStorageLensConfiguration` | `AccountId -> x-amz-account-id` | - | - | - |
+| `PutStorageLensConfigurationTagging` | `AccountId -> x-amz-account-id` | - | - | - |
+| `SubmitMultiRegionAccessPointRoutes` | `AccountId -> x-amz-account-id` | - | - | - |
+| `TagResource` | `AccountId -> x-amz-account-id` | - | - | - |
+| `UntagResource` | `AccountId -> x-amz-account-id` | `TagKeys -> tagKeys` | - | - |
+| `UpdateAccessGrantsLocation` | `AccountId -> x-amz-account-id` | - | - | - |
+| `UpdateJobPriority` | `AccountId -> x-amz-account-id` | `Priority -> priority` | - | - |
+| `UpdateJobStatus` | `AccountId -> x-amz-account-id` | `RequestedJobStatus -> requestedJobStatus`, `StatusUpdateReason -> statusUpdateReason` | - | - |
+| `UpdateStorageLensGroup` | `AccountId -> x-amz-account-id` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -104,6 +104,15 @@ Parity implications:
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `InvalidRequestException`, `ResourceNotFoundException` | Removes the specified tags from the specified resource. |
 | `UpdateLifecyclePolicy` | `PATCH /policies/{PolicyId}` | - | `PolicyId` | - | `UpdateLifecyclePolicyResponse` | `InternalServerException`, `InvalidRequestException`, `LimitExceededException`, `ResourceNotFoundException` | Updates the specified lifecycle policy. For more information about updating a policy, see Modify lifecycle policies. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetLifecyclePolicies` | - | `PolicyIds -> policyIds`, `State -> state`, `ResourceTypes -> resourceTypes`, `TargetTags -> targetTags`, `TagsToAdd -> tagsToAdd`, `DefaultPolicyType -> defaultPolicyType` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

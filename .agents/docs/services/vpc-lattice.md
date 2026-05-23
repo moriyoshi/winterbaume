@@ -220,6 +220,15 @@ VPC Lattice currently stores service-network VPC associations and resource gatew
 | `UpdateServiceNetworkVpcAssociation` | `PATCH /servicenetworkvpcassociations/{serviceNetworkVpcAssociationIdentifier}` | `idempotent` | `securityGroupIds`, `serviceNetworkVpcAssociationIdentifier` | - | `UpdateServiceNetworkVpcAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the service network and VPC association. If you add a security group to the service network and VPC association, the association must continue to have at least one security group. |
 | `UpdateTargetGroup` | `PATCH /targetgroups/{targetGroupIdentifier}` | `idempotent` | `healthCheck`, `targetGroupIdentifier` | - | `UpdateTargetGroupResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the specified target group. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListServiceNetworkVpcEndpointAssociations` | - | `serviceNetworkIdentifier -> serviceNetworkIdentifier`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -323,6 +323,124 @@ CloudFront currently models VPC origins as CloudFront-owned records.
 | `UpdateVpcOrigin` | `PUT /2020-05-31/vpc-origin/{Id}` | - | `Id`, `IfMatch`, `VpcOriginEndpointConfig` | - | `UpdateVpcOriginResult` | `AccessDenied`, `CannotUpdateEntityWhileInUse`, `EntityAlreadyExists`, `EntityLimitExceeded`, `EntityNotFound`, `IllegalUpdate`, `InconsistentQuantities`, `InvalidArgument`, ... (+3) | Update an Amazon CloudFront VPC origin in your account. |
 | `VerifyDnsConfiguration` | `POST /2020-05-31/verify-dns-configuration` | - | `Identifier` | - | `VerifyDnsConfigurationResult` | `AccessDenied`, `EntityNotFound`, `InvalidArgument` | Verify the DNS configuration for your domain names. This API operation checks whether your domain name points to the correct routing endpoint of the connection group, such as d111111abcdef8.cloudfront.net. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AssociateAlias` | - | `Alias -> Alias` | - | - |
+| `AssociateDistributionTenantWebACL` | `IfMatch -> If-Match` | - | - | - |
+| `AssociateDistributionWebACL` | `IfMatch -> If-Match` | - | - | - |
+| `CopyDistribution` | `Staging -> Staging`, `IfMatch -> If-Match` | - | - | - |
+| `CreateCachePolicy` | - | - | - | `CachePolicyConfig` |
+| `CreateCloudFrontOriginAccessIdentity` | - | - | - | `CloudFrontOriginAccessIdentityConfig` |
+| `CreateContinuousDeploymentPolicy` | - | - | - | `ContinuousDeploymentPolicyConfig` |
+| `CreateDistribution` | - | - | - | `DistributionConfig` |
+| `CreateDistributionWithTags` | - | - | - | `DistributionConfigWithTags` |
+| `CreateFieldLevelEncryptionConfig` | - | - | - | `FieldLevelEncryptionConfig` |
+| `CreateFieldLevelEncryptionProfile` | - | - | - | `FieldLevelEncryptionProfileConfig` |
+| `CreateInvalidation` | - | - | - | `InvalidationBatch` |
+| `CreateInvalidationForDistributionTenant` | - | - | - | `InvalidationBatch` |
+| `CreateKeyGroup` | - | - | - | `KeyGroupConfig` |
+| `CreateMonitoringSubscription` | - | - | - | `MonitoringSubscription` |
+| `CreateOriginAccessControl` | - | - | - | `OriginAccessControlConfig` |
+| `CreateOriginRequestPolicy` | - | - | - | `OriginRequestPolicyConfig` |
+| `CreatePublicKey` | - | - | - | `PublicKeyConfig` |
+| `CreateResponseHeadersPolicy` | - | - | - | `ResponseHeadersPolicyConfig` |
+| `CreateStreamingDistribution` | - | - | - | `StreamingDistributionConfig` |
+| `CreateStreamingDistributionWithTags` | - | - | - | `StreamingDistributionConfigWithTags` |
+| `DeleteAnycastIpList` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteCachePolicy` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteCloudFrontOriginAccessIdentity` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteConnectionFunction` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteConnectionGroup` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteContinuousDeploymentPolicy` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteDistribution` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteDistributionTenant` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteFieldLevelEncryptionConfig` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteFieldLevelEncryptionProfile` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteFunction` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteKeyGroup` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteKeyValueStore` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteOriginAccessControl` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteOriginRequestPolicy` | `IfMatch -> If-Match` | - | - | - |
+| `DeletePublicKey` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteResponseHeadersPolicy` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteStreamingDistribution` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteTrustStore` | `IfMatch -> If-Match` | - | - | - |
+| `DeleteVpcOrigin` | `IfMatch -> If-Match` | - | - | - |
+| `DescribeConnectionFunction` | - | `Stage -> Stage` | - | - |
+| `DescribeFunction` | - | `Stage -> Stage` | - | - |
+| `DisassociateDistributionTenantWebACL` | `IfMatch -> If-Match` | - | - | - |
+| `DisassociateDistributionWebACL` | `IfMatch -> If-Match` | - | - | - |
+| `GetConnectionFunction` | - | `Stage -> Stage` | - | - |
+| `GetConnectionGroupByRoutingEndpoint` | - | `RoutingEndpoint -> RoutingEndpoint` | - | - |
+| `GetDistributionTenantByDomain` | - | `Domain -> domain` | - | - |
+| `GetFunction` | - | `Stage -> Stage` | - | - |
+| `ListAnycastIpLists` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListCachePolicies` | - | `Type -> Type`, `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListCloudFrontOriginAccessIdentities` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListConflictingAliases` | - | `DistributionId -> DistributionId`, `Alias -> Alias`, `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListContinuousDeploymentPolicies` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributions` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByAnycastIpListId` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByCachePolicyId` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByConnectionFunction` | - | `Marker -> Marker`, `MaxItems -> MaxItems`, `ConnectionFunctionIdentifier -> ConnectionFunctionIdentifier` | - | - |
+| `ListDistributionsByConnectionMode` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByKeyGroup` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByOriginRequestPolicyId` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByOwnedResource` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByResponseHeadersPolicyId` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByTrustStore` | - | `TrustStoreIdentifier -> TrustStoreIdentifier`, `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByVpcOriginId` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListDistributionsByWebACLId` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListFieldLevelEncryptionConfigs` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListFieldLevelEncryptionProfiles` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListFunctions` | - | `Marker -> Marker`, `MaxItems -> MaxItems`, `Stage -> Stage` | - | - |
+| `ListInvalidations` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListInvalidationsForDistributionTenant` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListKeyGroups` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListKeyValueStores` | - | `Marker -> Marker`, `MaxItems -> MaxItems`, `Status -> Status` | - | - |
+| `ListOriginAccessControls` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListOriginRequestPolicies` | - | `Type -> Type`, `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListPublicKeys` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListRealtimeLogConfigs` | - | `MaxItems -> MaxItems`, `Marker -> Marker` | - | - |
+| `ListResponseHeadersPolicies` | - | `Type -> Type`, `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListStreamingDistributions` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `ListTagsForResource` | - | `Resource -> Resource` | - | - |
+| `ListVpcOrigins` | - | `Marker -> Marker`, `MaxItems -> MaxItems` | - | - |
+| `PublishConnectionFunction` | `IfMatch -> If-Match` | - | - | - |
+| `PublishFunction` | `IfMatch -> If-Match` | - | - | - |
+| `TagResource` | - | `Resource -> Resource` | - | `Tags` |
+| `TestConnectionFunction` | `IfMatch -> If-Match` | - | - | - |
+| `TestFunction` | `IfMatch -> If-Match` | - | - | - |
+| `UntagResource` | - | `Resource -> Resource` | - | `TagKeys` |
+| `UpdateAnycastIpList` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateCachePolicy` | `IfMatch -> If-Match` | - | - | `CachePolicyConfig` |
+| `UpdateCloudFrontOriginAccessIdentity` | `IfMatch -> If-Match` | - | - | `CloudFrontOriginAccessIdentityConfig` |
+| `UpdateConnectionFunction` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateConnectionGroup` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateContinuousDeploymentPolicy` | `IfMatch -> If-Match` | - | - | `ContinuousDeploymentPolicyConfig` |
+| `UpdateDistribution` | `IfMatch -> If-Match` | - | - | `DistributionConfig` |
+| `UpdateDistributionTenant` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateDistributionWithStagingConfig` | `IfMatch -> If-Match` | `StagingDistributionId -> StagingDistributionId` | - | - |
+| `UpdateDomainAssociation` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateFieldLevelEncryptionConfig` | `IfMatch -> If-Match` | - | - | `FieldLevelEncryptionConfig` |
+| `UpdateFieldLevelEncryptionProfile` | `IfMatch -> If-Match` | - | - | `FieldLevelEncryptionProfileConfig` |
+| `UpdateFunction` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateKeyGroup` | `IfMatch -> If-Match` | - | - | `KeyGroupConfig` |
+| `UpdateKeyValueStore` | `IfMatch -> If-Match` | - | - | - |
+| `UpdateOriginAccessControl` | `IfMatch -> If-Match` | - | - | `OriginAccessControlConfig` |
+| `UpdateOriginRequestPolicy` | `IfMatch -> If-Match` | - | - | `OriginRequestPolicyConfig` |
+| `UpdatePublicKey` | `IfMatch -> If-Match` | - | - | `PublicKeyConfig` |
+| `UpdateResponseHeadersPolicy` | `IfMatch -> If-Match` | - | - | `ResponseHeadersPolicyConfig` |
+| `UpdateStreamingDistribution` | `IfMatch -> If-Match` | - | - | `StreamingDistributionConfig` |
+| `UpdateTrustStore` | `IfMatch -> If-Match` | - | - | `CaCertificatesBundleSource` |
+| `UpdateVpcOrigin` | `IfMatch -> If-Match` | - | - | `VpcOriginEndpointConfig` |
+
+**Conditional-write/read coverage:** the following operations model RFC 7232 conditional headers and therefore must enforce 412 PreconditionFailed (and may emit 409 ConditionalRequestConflict on races) even though those error codes are typically not in the modelled `errors:` list: `AssociateDistributionTenantWebACL`, `AssociateDistributionWebACL`, `CopyDistribution`, `DeleteAnycastIpList`, `DeleteCachePolicy`, `DeleteCloudFrontOriginAccessIdentity`, `DeleteConnectionFunction`, `DeleteConnectionGroup`, `DeleteContinuousDeploymentPolicy`, `DeleteDistribution`, `DeleteDistributionTenant`, `DeleteFieldLevelEncryptionConfig`, `DeleteFieldLevelEncryptionProfile`, `DeleteFunction`, `DeleteKeyGroup`, `DeleteKeyValueStore`, `DeleteOriginAccessControl`, `DeleteOriginRequestPolicy`, `DeletePublicKey`, `DeleteResponseHeadersPolicy`, `DeleteStreamingDistribution`, `DeleteTrustStore`, `DeleteVpcOrigin`, `DisassociateDistributionTenantWebACL`, `DisassociateDistributionWebACL`, `PublishConnectionFunction`, `PublishFunction`, `TestConnectionFunction`, `TestFunction`, `UpdateAnycastIpList`, `UpdateCachePolicy`, `UpdateCloudFrontOriginAccessIdentity`, `UpdateConnectionFunction`, `UpdateConnectionGroup`, `UpdateContinuousDeploymentPolicy`, `UpdateDistribution`, `UpdateDistributionTenant`, `UpdateDistributionWithStagingConfig`, `UpdateDomainAssociation`, `UpdateFieldLevelEncryptionConfig`, `UpdateFieldLevelEncryptionProfile`, `UpdateFunction`, `UpdateKeyGroup`, `UpdateKeyValueStore`, `UpdateOriginAccessControl`, `UpdateOriginRequestPolicy`, `UpdatePublicKey`, `UpdateResponseHeadersPolicy`, `UpdateStreamingDistribution`, `UpdateTrustStore`, `UpdateVpcOrigin`.
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

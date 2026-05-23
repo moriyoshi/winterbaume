@@ -131,6 +131,15 @@ Parity implications:
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent`, `endpoint-bound` | `ResourceArn`, `tagKeys` | - | `UntagResourceOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Removes key-value tag pairs associated to your Amazon Managed Workflows for Apache Airflow (MWAA) environment. For example, `"Environment": "Staging"`. |
 | `UpdateEnvironment` | `PATCH /environments/{Name}` | `endpoint-bound` | `Name` | - | `UpdateEnvironmentOutput` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Updates an Amazon Managed Workflows for Apache Airflow (MWAA) environment. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListEnvironments` | - | `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

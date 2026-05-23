@@ -228,6 +228,28 @@ Amazon SES API v2 Amazon SES is an Amazon Web Services service that you can use 
 | `UpdateReputationEntityCustomerManagedStatus` | `PUT /v2/email/reputation/entities/{ReputationEntityType}/{ReputationEntityReference}/customer-managed-status` | - | `ReputationEntityReference`, `ReputationEntityType`, `SendingStatus` | - | `UpdateReputationEntityCustomerManagedStatusResponse` | `BadRequestException`, `ConflictException`, `TooManyRequestsException` | Update the customer-managed sending status for a reputation entity. This allows you to enable, disable, or reinstate sending for the entity. |
 | `UpdateReputationEntityPolicy` | `PUT /v2/email/reputation/entities/{ReputationEntityType}/{ReputationEntityReference}/policy` | - | `ReputationEntityPolicy`, `ReputationEntityReference`, `ReputationEntityType` | - | `UpdateReputationEntityPolicyResponse` | `BadRequestException`, `ConflictException`, `TooManyRequestsException` | Update the reputation management policy for a reputation entity. The policy determines how the entity responds to reputation findings, such as automatically pausing sending when certain thresholds are exceeded. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetBlacklistReports` | - | `BlacklistItemNames -> BlacklistItemNames` | - | - |
+| `GetDedicatedIps` | - | `PoolName -> PoolName`, `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `GetDomainStatisticsReport` | - | `StartDate -> StartDate`, `EndDate -> EndDate` | - | - |
+| `ListConfigurationSets` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListContactLists` | - | `PageSize -> PageSize`, `NextToken -> NextToken` | - | - |
+| `ListCustomVerificationEmailTemplates` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListDedicatedIpPools` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListDeliverabilityTestReports` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListDomainDeliverabilityCampaigns` | - | `StartDate -> StartDate`, `EndDate -> EndDate`, `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListEmailIdentities` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListEmailTemplates` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListMultiRegionEndpoints` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListSuppressedDestinations` | - | `Reasons -> Reason`, `StartDate -> StartDate`, `EndDate -> EndDate`, `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+| `ListTagsForResource` | - | `ResourceArn -> ResourceArn` | - | - |
+| `UntagResource` | - | `ResourceArn -> ResourceArn`, `TagKeys -> TagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

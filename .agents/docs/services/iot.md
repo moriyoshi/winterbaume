@@ -507,6 +507,131 @@ Parity implications:
 | `UpdateTopicRuleDestination` | `PATCH /destinations` | - | `arn`, `status` | - | `UpdateTopicRuleDestinationResponse` | `ConflictingResourceUpdateException`, `InternalException`, `InvalidRequestException`, `ServiceUnavailableException`, `UnauthorizedException` | Updates a topic rule destination. You use this to change the status, endpoint URL, or confirmation URL of the destination. |
 | `ValidateSecurityProfileBehaviors` | `POST /security-profile-behaviors/validate` | - | `behaviors` | - | `ValidateSecurityProfileBehaviorsResponse` | `InternalFailureException`, `InvalidRequestException`, `ThrottlingException` | Validates a Device Defender security profile behaviors specification. Requires permission to access the ValidateSecurityProfileBehaviors action. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AcceptCertificateTransfer` | - | `setAsActive -> setAsActive` | - | - |
+| `AssociateSbomWithPackageVersion` | - | `clientToken -> clientToken` | - | - |
+| `AssociateTargetsWithJob` | - | `namespaceId -> namespaceId` | - | - |
+| `AttachPrincipalPolicy` | `principal -> x-amzn-iot-principal` | - | - | - |
+| `AttachSecurityProfile` | - | `securityProfileTargetArn -> securityProfileTargetArn` | - | - |
+| `AttachThingPrincipal` | `principal -> x-amzn-principal` | `thingPrincipalType -> thingPrincipalType` | - | - |
+| `CancelJob` | - | `force -> force` | - | - |
+| `CancelJobExecution` | - | `force -> force` | - | - |
+| `CreateCertificateFromCsr` | - | `setAsActive -> setAsActive` | - | - |
+| `CreateKeysAndCertificate` | - | `setAsActive -> setAsActive` | - | - |
+| `CreatePackage` | - | `clientToken -> clientToken` | - | - |
+| `CreatePackageVersion` | - | `clientToken -> clientToken` | - | - |
+| `CreatePolicyVersion` | - | `setAsDefault -> setAsDefault` | - | - |
+| `CreateProvisioningTemplateVersion` | - | `setAsDefault -> setAsDefault` | - | - |
+| `CreateTopicRule` | `tags -> x-amz-tagging` | - | - | `topicRulePayload` |
+| `DeleteAccountAuditConfiguration` | - | `deleteScheduledAudits -> deleteScheduledAudits` | - | - |
+| `DeleteBillingGroup` | - | `expectedVersion -> expectedVersion` | - | - |
+| `DeleteCertificate` | - | `forceDelete -> forceDelete` | - | - |
+| `DeleteCommandExecution` | - | `targetArn -> targetArn` | - | - |
+| `DeleteDynamicThingGroup` | - | `expectedVersion -> expectedVersion` | - | - |
+| `DeleteFleetMetric` | - | `expectedVersion -> expectedVersion` | - | - |
+| `DeleteJob` | - | `force -> force`, `namespaceId -> namespaceId` | - | - |
+| `DeleteJobExecution` | - | `force -> force`, `namespaceId -> namespaceId` | - | - |
+| `DeleteOTAUpdate` | - | `deleteStream -> deleteStream`, `forceDeleteAWSJob -> forceDeleteAWSJob` | - | - |
+| `DeletePackage` | - | `clientToken -> clientToken` | - | - |
+| `DeletePackageVersion` | - | `clientToken -> clientToken` | - | - |
+| `DeleteSecurityProfile` | - | `expectedVersion -> expectedVersion` | - | - |
+| `DeleteThing` | - | `expectedVersion -> expectedVersion` | - | - |
+| `DeleteThingGroup` | - | `expectedVersion -> expectedVersion` | - | - |
+| `DeleteV2LoggingLevel` | - | `targetType -> targetType`, `targetName -> targetName` | - | - |
+| `DescribeEndpoint` | - | `endpointType -> endpointType` | - | - |
+| `DescribeJob` | - | `beforeSubstitution -> beforeSubstitution` | - | - |
+| `DescribeJobExecution` | - | `executionNumber -> executionNumber` | - | - |
+| `DescribeManagedJobTemplate` | - | `templateVersion -> templateVersion` | - | - |
+| `DetachPrincipalPolicy` | `principal -> x-amzn-iot-principal` | - | - | - |
+| `DetachSecurityProfile` | - | `securityProfileTargetArn -> securityProfileTargetArn` | - | - |
+| `DetachThingPrincipal` | `principal -> x-amzn-principal` | - | - | - |
+| `DisassociateSbomFromPackageVersion` | - | `clientToken -> clientToken` | - | - |
+| `GetBehaviorModelTrainingSummaries` | - | `securityProfileName -> securityProfileName`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `GetCommandExecution` | - | `targetArn -> targetArn`, `includeResult -> includeResult` | - | - |
+| `GetEffectivePolicies` | - | `thingName -> thingName` | - | - |
+| `GetJobDocument` | - | `beforeSubstitution -> beforeSubstitution` | - | - |
+| `GetV2LoggingOptions` | - | `verbose -> verbose` | - | - |
+| `ListActiveViolations` | - | `thingName -> thingName`, `securityProfileName -> securityProfileName`, `behaviorCriteriaType -> behaviorCriteriaType`, `listSuppressedAlerts -> listSuppressedAlerts`, `verificationState -> verificationState`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAttachedPolicies` | - | `recursive -> recursive`, `marker -> marker`, `pageSize -> pageSize` | - | - |
+| `ListAuditMitigationActionsExecutions` | - | `taskId -> taskId`, `actionStatus -> actionStatus`, `findingId -> findingId`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListAuditMitigationActionsTasks` | - | `auditTaskId -> auditTaskId`, `findingId -> findingId`, `taskStatus -> taskStatus`, `maxResults -> maxResults`, `nextToken -> nextToken`, `startTime -> startTime`, `endTime -> endTime` | - | - |
+| `ListAuditTasks` | - | `startTime -> startTime`, `endTime -> endTime`, `taskType -> taskType`, `taskStatus -> taskStatus`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAuthorizers` | - | `pageSize -> pageSize`, `marker -> marker`, `ascendingOrder -> isAscendingOrder`, `status -> status` | - | - |
+| `ListBillingGroups` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `namePrefixFilter -> namePrefixFilter` | - | - |
+| `ListCACertificates` | - | `pageSize -> pageSize`, `marker -> marker`, `ascendingOrder -> isAscendingOrder`, `templateName -> templateName` | - | - |
+| `ListCertificateProviders` | - | `nextToken -> nextToken`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListCertificates` | - | `pageSize -> pageSize`, `marker -> marker`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListCertificatesByCA` | - | `pageSize -> pageSize`, `marker -> marker`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListCommandExecutions` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListCommands` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `namespace -> namespace`, `commandParameterName -> commandParameterName`, `sortOrder -> sortOrder` | - | - |
+| `ListCustomMetrics` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDetectMitigationActionsExecutions` | - | `taskId -> taskId`, `violationId -> violationId`, `thingName -> thingName`, `startTime -> startTime`, `endTime -> endTime`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListDetectMitigationActionsTasks` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `startTime -> startTime`, `endTime -> endTime` | - | - |
+| `ListDimensions` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDomainConfigurations` | - | `marker -> marker`, `pageSize -> pageSize`, `serviceType -> serviceType` | - | - |
+| `ListFleetMetrics` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListIndices` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListJobExecutionsForJob` | - | `status -> status`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListJobExecutionsForThing` | - | `status -> status`, `namespaceId -> namespaceId`, `maxResults -> maxResults`, `nextToken -> nextToken`, `jobId -> jobId` | - | - |
+| `ListJobs` | - | `status -> status`, `targetSelection -> targetSelection`, `maxResults -> maxResults`, `nextToken -> nextToken`, `thingGroupName -> thingGroupName`, `thingGroupId -> thingGroupId`, `namespaceId -> namespaceId` | - | - |
+| `ListJobTemplates` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListManagedJobTemplates` | - | `templateName -> templateName`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListMetricValues` | - | `thingName -> thingName`, `metricName -> metricName`, `dimensionName -> dimensionName`, `dimensionValueOperator -> dimensionValueOperator`, `startTime -> startTime`, `endTime -> endTime`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListMitigationActions` | - | `actionType -> actionType`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListOTAUpdates` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `otaUpdateStatus -> otaUpdateStatus` | - | - |
+| `ListOutgoingCertificates` | - | `pageSize -> pageSize`, `marker -> marker`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListPackages` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListPackageVersions` | - | `status -> status`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListPolicies` | - | `marker -> marker`, `pageSize -> pageSize`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListPolicyPrincipals` | `policyName -> x-amzn-iot-policy` | `marker -> marker`, `pageSize -> pageSize`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListPrincipalPolicies` | `principal -> x-amzn-iot-principal` | `marker -> marker`, `pageSize -> pageSize`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListPrincipalThings` | `principal -> x-amzn-principal` | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListPrincipalThingsV2` | `principal -> x-amzn-principal` | `nextToken -> nextToken`, `maxResults -> maxResults`, `thingPrincipalType -> thingPrincipalType` | - | - |
+| `ListProvisioningTemplates` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListProvisioningTemplateVersions` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListRelatedResourcesForAuditFinding` | - | `findingId -> findingId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListRoleAliases` | - | `pageSize -> pageSize`, `marker -> marker`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListSbomValidationResults` | - | `validationResult -> validationResult`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListScheduledAudits` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListSecurityProfiles` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `dimensionName -> dimensionName`, `metricName -> metricName` | - | - |
+| `ListSecurityProfilesForTarget` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `recursive -> recursive`, `securityProfileTargetArn -> securityProfileTargetArn` | - | - |
+| `ListStreams` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `ascendingOrder -> isAscendingOrder` | - | - |
+| `ListTagsForResource` | - | `resourceArn -> resourceArn`, `nextToken -> nextToken` | - | - |
+| `ListTargetsForPolicy` | - | `marker -> marker`, `pageSize -> pageSize` | - | - |
+| `ListTargetsForSecurityProfile` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListThingGroups` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `parentGroup -> parentGroup`, `namePrefixFilter -> namePrefixFilter`, `recursive -> recursive` | - | - |
+| `ListThingGroupsForThing` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListThingPrincipals` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListThingPrincipalsV2` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `thingPrincipalType -> thingPrincipalType` | - | - |
+| `ListThingRegistrationTaskReports` | - | `reportType -> reportType`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListThingRegistrationTasks` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `status -> status` | - | - |
+| `ListThings` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `attributeName -> attributeName`, `attributeValue -> attributeValue`, `thingTypeName -> thingTypeName`, `usePrefixAttributeValue -> usePrefixAttributeValue` | - | - |
+| `ListThingsInBillingGroup` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListThingsInThingGroup` | - | `recursive -> recursive`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListThingTypes` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `thingTypeName -> thingTypeName` | - | - |
+| `ListTopicRuleDestinations` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListTopicRules` | - | `topic -> topic`, `maxResults -> maxResults`, `nextToken -> nextToken`, `ruleDisabled -> ruleDisabled` | - | - |
+| `ListV2LoggingLevels` | - | `targetType -> targetType`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListViolationEvents` | - | `startTime -> startTime`, `endTime -> endTime`, `thingName -> thingName`, `securityProfileName -> securityProfileName`, `behaviorCriteriaType -> behaviorCriteriaType`, `listSuppressedAlerts -> listSuppressedAlerts`, `verificationState -> verificationState`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `RegisterCACertificate` | - | `setAsActive -> setAsActive`, `allowAutoRegistration -> allowAutoRegistration` | - | - |
+| `RegisterCertificate` | - | `setAsActive -> setAsActive` | - | - |
+| `ReplaceTopicRule` | - | - | - | `topicRulePayload` |
+| `SetLoggingOptions` | - | - | - | `loggingOptionsPayload` |
+| `TestAuthorization` | - | `clientId -> clientId` | - | - |
+| `TransferCertificate` | - | `targetAwsAccount -> targetAwsAccount` | - | - |
+| `UpdateCACertificate` | - | `newStatus -> newStatus`, `newAutoRegistrationStatus -> newAutoRegistrationStatus` | - | - |
+| `UpdateCertificate` | - | `newStatus -> newStatus` | - | - |
+| `UpdateJob` | - | `namespaceId -> namespaceId` | - | - |
+| `UpdatePackage` | - | `clientToken -> clientToken` | - | - |
+| `UpdatePackageConfiguration` | - | `clientToken -> clientToken` | - | - |
+| `UpdatePackageVersion` | - | `clientToken -> clientToken` | - | - |
+| `UpdateSecurityProfile` | - | `expectedVersion -> expectedVersion` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

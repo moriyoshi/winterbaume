@@ -122,6 +122,19 @@ Parity implications:
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Use to remove one or more tags from an existing scan. |
 | `UpdateAccountConfiguration` | `PUT /updateAccountConfiguration` | - | `encryptionConfig` | - | `UpdateAccountConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Use to update the encryption configuration for an account. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetFindings` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `status -> status` | - | - |
+| `GetMetricsSummary` | - | `date -> date` | - | - |
+| `GetScan` | - | `runId -> runId` | - | - |
+| `ListFindingsMetrics` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `startDate -> startDate`, `endDate -> endDate` | - | - |
+| `ListScans` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

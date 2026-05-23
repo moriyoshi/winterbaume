@@ -276,6 +276,12 @@ Amazon GameLift Servers provides solutions for hosting session-based multiplayer
 | `UpdateScript` | - | - | `ScriptId` | - | `UpdateScriptOutput` | `InternalServiceException`, `InvalidRequestException`, `NotFoundException`, `UnauthorizedException` | This API works with the following fleet types: EC2 Updates Realtime script metadata and content. To update script metadata, specify the script ID and provide updated name and/or version values. |
 | `ValidateMatchmakingRuleSet` | - | - | `RuleSetBody` | - | `ValidateMatchmakingRuleSetOutput` | `InternalServiceException`, `InvalidRequestException`, `UnsupportedRegionException` | This API works with the following fleet types: EC2, Anywhere, Container Validates the syntax of a matchmaking rule or rule set. This operation checks that the rule set is using syntactically correct JSON and that it conforms to allowed property expressions. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -129,6 +129,33 @@ Welcome to the Amazon Web Services Wickr API Reference . The Amazon Web Services
 | `UpdateSecurityGroup` | `PATCH /networks/{networkId}/security-groups/{groupId}` | `idempotent` | `groupId`, `networkId` | - | `UpdateSecurityGroupResponse` | `BadRequestError`, `ForbiddenError`, `InternalServerError`, `RateLimitError`, `ResourceNotFoundError`, `UnauthorizedError`, `ValidationError` | Updates the properties of an existing security group in a Wickr network, such as its name or settings. |
 | `UpdateUser` | `PATCH /networks/{networkId}/users` | `idempotent` | `networkId`, `userId` | - | `UpdateUserResponse` | `BadRequestError`, `ForbiddenError`, `InternalServerError`, `RateLimitError`, `ResourceNotFoundError`, `UnauthorizedError`, `ValidationError` | Updates the properties of an existing user in a Wickr network. This operation allows you to modify the user's name, password, security group membership, and invite code settings. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `BatchCreateUser` | `clientToken -> X-Client-Token` | - | - | - |
+| `BatchDeleteUser` | `clientToken -> X-Client-Token` | - | - | - |
+| `BatchLookupUserUname` | `clientToken -> X-Client-Token` | - | - | - |
+| `BatchReinviteUser` | `clientToken -> X-Client-Token` | - | - | - |
+| `BatchResetDevicesForUser` | `clientToken -> X-Client-Token` | - | - | - |
+| `BatchToggleUserSuspendStatus` | `clientToken -> X-Client-Token` | `suspend -> suspend` | - | - |
+| `CreateSecurityGroup` | `clientToken -> X-Client-Token` | - | - | - |
+| `DeleteNetwork` | `clientToken -> X-Client-Token` | - | - | - |
+| `GetOidcInfo` | - | `clientId -> clientId`, `code -> code`, `grantType -> grantType`, `redirectUri -> redirectUri`, `url -> url`, `clientSecret -> clientSecret`, `codeVerifier -> codeVerifier`, `certificate -> certificate` | - | - |
+| `GetUser` | - | `startTime -> startTime`, `endTime -> endTime` | - | - |
+| `ListBlockedGuestUsers` | - | `maxResults -> maxResults`, `sortDirection -> sortDirection`, `sortFields -> sortFields`, `username -> username`, `admin -> admin`, `nextToken -> nextToken` | - | - |
+| `ListBots` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `sortFields -> sortFields`, `sortDirection -> sortDirection`, `displayName -> displayName`, `username -> username`, `status -> status`, `groupId -> groupId` | - | - |
+| `ListDevicesForUser` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `sortFields -> sortFields`, `sortDirection -> sortDirection` | - | - |
+| `ListGuestUsers` | - | `maxResults -> maxResults`, `sortDirection -> sortDirection`, `sortFields -> sortFields`, `username -> username`, `billingPeriod -> billingPeriod`, `nextToken -> nextToken` | - | - |
+| `ListNetworks` | - | `maxResults -> maxResults`, `sortFields -> sortFields`, `sortDirection -> sortDirection`, `nextToken -> nextToken` | - | - |
+| `ListSecurityGroups` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `sortFields -> sortFields`, `sortDirection -> sortDirection` | - | - |
+| `ListSecurityGroupUsers` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `sortFields -> sortFields`, `sortDirection -> sortDirection` | - | - |
+| `ListUsers` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `sortFields -> sortFields`, `sortDirection -> sortDirection`, `firstName -> firstName`, `lastName -> lastName`, `username -> username`, `status -> status`, `groupId -> groupId` | - | - |
+| `RegisterOpentdfConfig` | - | `dryRun -> dryRun` | - | - |
+| `UpdateNetwork` | `clientToken -> X-Client-Token` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

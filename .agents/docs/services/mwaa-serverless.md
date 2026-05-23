@@ -122,6 +122,14 @@ Amazon Managed Workflows for Apache Airflow Serverless provides a managed workfl
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes tags from an Amazon Managed Workflows for Apache Airflow Serverless resource. This operation removes the specified tags from the resource. |
 | `UpdateWorkflow` | `PUT /workflows/{WorkflowArn}` | - | `DefinitionS3Location`, `RoleArn`, `WorkflowArn` | - | `UpdateWorkflowResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `OperationTimeoutException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates an existing workflow with new configuration settings. This operation allows you to modify the workflow definition, role, and other settings. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

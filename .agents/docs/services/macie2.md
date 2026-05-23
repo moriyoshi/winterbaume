@@ -240,6 +240,30 @@ Parity implications:
 | `UpdateRevealConfiguration` | `PUT /reveal-configuration` | - | `configuration` | - | `UpdateRevealConfigurationResponse` | `AccessDeniedException`, `InternalServerException`, `ThrottlingException`, `ValidationException` | Updates the status and configuration settings for retrieving occurrences of sensitive data reported by findings. |
 | `UpdateSensitivityInspectionTemplate` | `PUT /templates/sensitivity-inspections/{id}` | - | `id` | - | `UpdateSensitivityInspectionTemplateResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the settings for the sensitivity inspection template for an account. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteAllowList` | - | `ignoreJobChecks -> ignoreJobChecks` | - | - |
+| `DisableOrganizationAdminAccount` | - | `adminAccountId -> adminAccountId` | - | - |
+| `GetResourceProfile` | - | `resourceArn -> resourceArn` | - | - |
+| `GetUsageTotals` | - | `timeRange -> timeRange` | - | - |
+| `ListAllowLists` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListAutomatedDiscoveryAccounts` | - | `accountIds -> accountIds`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListClassificationScopes` | - | `name -> name`, `nextToken -> nextToken` | - | - |
+| `ListFindingsFilters` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListInvitations` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListMembers` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `onlyAssociated -> onlyAssociated` | - | - |
+| `ListOrganizationAdminAccounts` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListResourceProfileArtifacts` | - | `nextToken -> nextToken`, `resourceArn -> resourceArn` | - | - |
+| `ListResourceProfileDetections` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `resourceArn -> resourceArn` | - | - |
+| `ListSensitivityInspectionTemplates` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `UpdateResourceProfile` | - | `resourceArn -> resourceArn` | - | - |
+| `UpdateResourceProfileDetections` | - | `resourceArn -> resourceArn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

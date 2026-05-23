@@ -188,6 +188,12 @@ Classic ELB currently stores subnet and security group attachments on the load b
 | `SetLoadBalancerPoliciesForBackendServer` | - | - | `InstancePort`, `LoadBalancerName`, `PolicyNames` | - | `SetLoadBalancerPoliciesForBackendServerOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `PolicyNotFoundException` | Replaces the set of policies associated with the specified port on which the EC2 instance is listening with a new set of policies. At this time, only the back-end server authentication policy type can be applied to the instance ports; this policy type is... |
 | `SetLoadBalancerPoliciesOfListener` | - | - | `LoadBalancerName`, `LoadBalancerPort`, `PolicyNames` | - | `SetLoadBalancerPoliciesOfListenerOutput` | `AccessPointNotFoundException`, `InvalidConfigurationRequestException`, `ListenerNotFoundException`, `PolicyNotFoundException` | Replaces the current set of policies for the specified load balancer port with the specified set of policies. To enable back-end server authentication, use SetLoadBalancerPoliciesForBackendServer. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

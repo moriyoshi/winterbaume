@@ -87,6 +87,17 @@ Amazon Polly is a web service that makes it easy to synthesize speech from text.
 | `StartSpeechSynthesisTask` | `POST /v1/synthesisTasks` | - | `OutputFormat`, `OutputS3BucketName`, `Text`, `VoiceId` | - | `StartSpeechSynthesisTaskOutput` | `EngineNotSupportedException`, `InvalidS3BucketException`, `InvalidS3KeyException`, `InvalidSampleRateException`, `InvalidSnsTopicArnException`, `InvalidSsmlException`, `LanguageNotSupportedException`, `LexiconNotFoundException`, ... (+4) | Allows the creation of an asynchronous synthesis task, by starting a new `SpeechSynthesisTask`. This operation requires all the standard information needed for speech synthesis, plus the name of an Amazon S3 bucket for the service to store the output of the... |
 | `SynthesizeSpeech` | `POST /v1/speech` | - | `OutputFormat`, `Text`, `VoiceId` | - | `SynthesizeSpeechOutput` | `EngineNotSupportedException`, `InvalidSampleRateException`, `InvalidSsmlException`, `LanguageNotSupportedException`, `LexiconNotFoundException`, `MarksNotSupportedForFormatException`, `ServiceFailureException`, `SsmlMarksNotSupportedForTextTypeException`, ... (+1) | Synthesizes UTF-8 input, plain text or SSML, to a stream of bytes. SSML input must be valid, well-formed SSML. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeVoices` | - | `Engine -> Engine`, `LanguageCode -> LanguageCode`, `IncludeAdditionalLanguageCodes -> IncludeAdditionalLanguageCodes`, `NextToken -> NextToken` | - | - |
+| `ListLexicons` | - | `NextToken -> NextToken` | - | - |
+| `ListSpeechSynthesisTasks` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken`, `Status -> Status` | - | - |
+| `StartSpeechSynthesisStream` | `Engine -> x-amzn-Engine`, `LanguageCode -> x-amzn-LanguageCode`, `LexiconNames -> x-amzn-LexiconNames`, `OutputFormat -> x-amzn-OutputFormat`, `SampleRate -> x-amzn-SampleRate`, `VoiceId -> x-amzn-VoiceId` | - | - | `ActionStream` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

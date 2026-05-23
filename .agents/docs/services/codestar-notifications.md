@@ -125,6 +125,14 @@ Parity implications:
 | `UntagResource` | `POST /untagResource/{Arn}` | - | `Arn`, `TagKeys` | - | `UntagResourceResult` | `ConcurrentModificationException`, `LimitExceededException`, `ResourceNotFoundException`, `ValidationException` | Removes the association between one or more provided tags and a notification rule. |
 | `UpdateNotificationRule` | `POST /updateNotificationRule` | - | `Arn` | - | `UpdateNotificationRuleResult` | `ConfigurationException`, `ResourceNotFoundException`, `ValidationException` | Updates a notification rule for a resource. You can change the events that trigger the notification rule, the status of the rule, and the targets that receive the notifications. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

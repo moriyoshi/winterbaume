@@ -134,6 +134,14 @@ Amazon Security Lake is a fully managed security data lake service. You can use 
 | `UpdateSubscriber` | `PUT /v1/subscribers/{subscriberId}` | `idempotent` | `subscriberId` | - | `UpdateSubscriberResponse` | `AccessDeniedException`, `BadRequestException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Updates an existing subscription for the given Amazon Security Lake account ID. You can update a subscriber by changing the sources that the subscriber consumes data from. |
 | `UpdateSubscriberNotification` | `PUT /v1/subscribers/{subscriberId}/notification` | `idempotent` | `configuration`, `subscriberId` | - | `UpdateSubscriberNotificationResponse` | `AccessDeniedException`, `BadRequestException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Updates an existing notification method for the subscription (SQS or HTTPs endpoint) or switches the notification subscription endpoint for a subscriber. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

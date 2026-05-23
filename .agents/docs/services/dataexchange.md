@@ -166,6 +166,22 @@ Parity implications:
 | `UpdateEventAction` | `PATCH /v1/event-actions/{EventActionId}` | - | `EventActionId` | - | `UpdateEventActionResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation updates the event action. |
 | `UpdateRevision` | `PATCH /v1/data-sets/{DataSetId}/revisions/{RevisionId}` | - | `DataSetId`, `RevisionId` | - | `UpdateRevisionResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | This operation updates a revision. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListDataGrants` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDataSetRevisions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDataSets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `Origin -> origin` | - | - |
+| `ListEventActions` | - | `EventSourceId -> eventSourceId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListJobs` | - | `DataSetId -> dataSetId`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `RevisionId -> revisionId` | - | - |
+| `ListReceivedDataGrants` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `AcceptanceState -> acceptanceState` | - | - |
+| `ListRevisionAssets` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `SendApiAsset` | `AssetId -> x-amzn-dataexchange-asset-id`, `DataSetId -> x-amzn-dataexchange-data-set-id`, `Method -> x-amzn-dataexchange-http-method`, `Path -> x-amzn-dataexchange-path`, `RevisionId -> x-amzn-dataexchange-revision-id` | - | `RequestHeaders -> x-amzn-dataexchange-header-*` | `Body` |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

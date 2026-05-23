@@ -611,6 +611,105 @@ Parity implications:
 | `UpdateWorkspaceTheme` | `POST /workspaces/{InstanceId}/{WorkspaceId}/theme` | - | `InstanceId`, `WorkspaceId` | - | `UpdateWorkspaceThemeResponse` | `AccessDeniedException`, `InternalServiceException`, `InvalidParameterException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates the theme configuration for a workspace, including colors and styling. |
 | `UpdateWorkspaceVisibility` | `POST /workspaces/{InstanceId}/{WorkspaceId}/visibility` | - | `InstanceId`, `Visibility`, `WorkspaceId` | - | `UpdateWorkspaceVisibilityResponse` | `AccessDeniedException`, `InternalServiceException`, `InvalidParameterException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates the visibility setting of a workspace, controlling whether it is available to all users, assigned users only, or none. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `BatchGetAttachedFileMetadata` | - | `AssociatedResourceArn -> associatedResourceArn` | - | - |
+| `CompleteAttachedFileUpload` | - | `AssociatedResourceArn -> associatedResourceArn` | - | - |
+| `CreateTestCase` | `TestCaseId -> x-amz-resource-id`, `LastModifiedTime -> x-amz-last-modified-time`, `LastModifiedRegion -> x-amz-last-modified-region` | - | - | - |
+| `DeleteAttachedFile` | - | `AssociatedResourceArn -> associatedResourceArn` | - | - |
+| `DeleteEvaluationForm` | - | `EvaluationFormVersion -> version` | - | - |
+| `DeleteInstance` | - | `ClientToken -> clientToken` | - | - |
+| `DeletePushNotificationRegistration` | - | `ContactId -> contactId` | - | - |
+| `DeleteWorkspaceMedia` | - | `MediaType -> mediaType` | - | - |
+| `DescribeEvaluationForm` | - | `EvaluationFormVersion -> version` | - | - |
+| `DescribeInstanceStorageConfig` | - | `ResourceType -> resourceType` | - | - |
+| `DescribeTestCase` | - | `Status -> status` | - | - |
+| `DisassociateApprovedOrigin` | - | `Origin -> origin`, `ClientToken -> clientToken` | - | - |
+| `DisassociateInstanceStorageConfig` | - | `ResourceType -> resourceType`, `ClientToken -> clientToken` | - | - |
+| `DisassociateLambdaFunction` | - | `FunctionArn -> functionArn`, `ClientToken -> clientToken` | - | - |
+| `DisassociateLexBot` | - | `BotName -> botName`, `LexRegion -> lexRegion`, `ClientToken -> clientToken` | - | - |
+| `DisassociatePhoneNumberContactFlow` | - | `InstanceId -> instanceId` | - | - |
+| `DisassociateSecurityKey` | - | `ClientToken -> clientToken` | - | - |
+| `DisassociateTrafficDistributionGroupUser` | - | `UserId -> UserId`, `InstanceId -> InstanceId` | - | - |
+| `EvaluateDataTableValues` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `GetAttachedFile` | - | `UrlExpiryInSeconds -> urlExpiryInSeconds`, `AssociatedResourceArn -> associatedResourceArn` | - | - |
+| `GetEffectiveHoursOfOperations` | - | `FromDate -> fromDate`, `ToDate -> toDate` | - | - |
+| `GetTaskTemplate` | - | `SnapshotVersion -> snapshotVersion` | - | - |
+| `ListAgentStatuses` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `AgentStatusTypes -> AgentStatusTypes` | - | - |
+| `ListAnalyticsDataAssociations` | - | `DataSetId -> DataSetId`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListAnalyticsDataLakeDataSets` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListApprovedOrigins` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListAssociatedContacts` | - | `ContactId -> contactId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListAttachedFilesConfigurations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListAuthenticationProfiles` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListBots` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `LexVersion -> lexVersion` | - | - |
+| `ListChildHoursOfOperations` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListContactEvaluations` | - | `ContactId -> contactId`, `NextToken -> nextToken` | - | - |
+| `ListContactFlowModuleAliases` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListContactFlowModules` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `ContactFlowModuleState -> state` | - | - |
+| `ListContactFlowModuleVersions` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListContactFlows` | - | `ContactFlowTypes -> contactFlowTypes`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListContactFlowVersions` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListContactReferences` | - | `ReferenceTypes -> referenceTypes`, `NextToken -> nextToken` | - | - |
+| `ListDataTableAttributes` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListDataTablePrimaryValues` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListDataTables` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListDataTableValues` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListEvaluationForms` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListEvaluationFormVersions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListFlowAssociations` | - | `ResourceType -> ResourceType`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListHoursOfOperationOverrides` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListHoursOfOperations` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListInstanceAttributes` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListInstances` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListInstanceStorageConfigs` | - | `ResourceType -> resourceType`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListIntegrationAssociations` | - | `IntegrationType -> integrationType`, `NextToken -> nextToken`, `MaxResults -> maxResults`, `IntegrationArn -> integrationArn` | - | - |
+| `ListLambdaFunctions` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListLexBots` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListNotifications` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListPhoneNumbers` | - | `PhoneNumberTypes -> phoneNumberTypes`, `PhoneNumberCountryCodes -> phoneNumberCountryCodes`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListPredefinedAttributes` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListPrompts` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListQueueEmailAddresses` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListQueueQuickConnects` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListQueues` | - | `QueueTypes -> queueTypes`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListQuickConnects` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `QuickConnectTypes -> QuickConnectTypes` | - | - |
+| `ListRoutingProfileManualAssignmentQueues` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRoutingProfileQueues` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRoutingProfiles` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRules` | - | `PublishStatus -> publishStatus`, `EventSourceName -> eventSourceName`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListSecurityKeys` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListSecurityProfileApplications` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListSecurityProfileFlowModules` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListSecurityProfilePermissions` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListSecurityProfiles` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListTaskTemplates` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `Status -> status`, `Name -> name` | - | - |
+| `ListTestCaseExecutionRecords` | - | `Status -> status`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListTestCaseExecutions` | - | `TestCaseId -> testCaseId`, `TestCaseName -> testCaseName`, `StartTime -> startTime`, `EndTime -> endTime`, `Status -> status`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListTestCases` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListTrafficDistributionGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `InstanceId -> instanceId` | - | - |
+| `ListTrafficDistributionGroupUsers` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListUseCases` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListUserHierarchyGroups` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListUserNotifications` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListUserProficiencies` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListUsers` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListViews` | - | `Type -> type`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListViewVersions` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListWorkspacePages` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListWorkspaces` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ReleasePhoneNumber` | - | `ClientToken -> clientToken` | - | - |
+| `StartAttachedFileUpload` | - | `AssociatedResourceArn -> associatedResourceArn` | - | - |
+| `UntagContact` | - | `TagKeys -> TagKeys` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `UpdateInstanceStorageConfig` | - | `ResourceType -> resourceType` | - | - |
+| `UpdateTestCase` | `LastModifiedTime -> x-amz-last-modified-time`, `LastModifiedRegion -> x-amz-last-modified-region` | - | - | - |
+| `UpdateUserNotificationStatus` | `LastModifiedTime -> x-amz-last-modified-time`, `LastModifiedRegion -> x-amz-last-modified-region` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -226,6 +226,91 @@ Doc Engage API - Amazon Pinpoint API
 | `UpdateVoiceTemplate` | `PUT /v1/templates/{TemplateName}/voice` | - | `TemplateName`, `VoiceTemplateRequest` | - | `UpdateVoiceTemplateResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Updates an existing message template for messages that are sent through the voice channel. |
 | `VerifyOTPMessage` | `POST /v1/apps/{ApplicationId}/verify-otp` | - | `ApplicationId`, `VerifyOTPMessageRequestParameters` | - | `VerifyOTPMessageResponse` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `PayloadTooLargeException`, `TooManyRequestsException` | Verify an OTP |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateApp` | - | - | - | `CreateApplicationRequest` |
+| `CreateCampaign` | - | - | - | `WriteCampaignRequest` |
+| `CreateEmailTemplate` | - | - | - | `EmailTemplateRequest` |
+| `CreateExportJob` | - | - | - | `ExportJobRequest` |
+| `CreateImportJob` | - | - | - | `ImportJobRequest` |
+| `CreateInAppTemplate` | - | - | - | `InAppTemplateRequest` |
+| `CreateJourney` | - | - | - | `WriteJourneyRequest` |
+| `CreatePushTemplate` | - | - | - | `PushNotificationTemplateRequest` |
+| `CreateRecommenderConfiguration` | - | - | - | `CreateRecommenderConfiguration` |
+| `CreateSegment` | - | - | - | `WriteSegmentRequest` |
+| `CreateSmsTemplate` | - | - | - | `SMSTemplateRequest` |
+| `CreateVoiceTemplate` | - | - | - | `VoiceTemplateRequest` |
+| `DeleteEmailTemplate` | - | `Version -> version` | - | - |
+| `DeleteInAppTemplate` | - | `Version -> version` | - | - |
+| `DeletePushTemplate` | - | `Version -> version` | - | - |
+| `DeleteSmsTemplate` | - | `Version -> version` | - | - |
+| `DeleteVoiceTemplate` | - | `Version -> version` | - | - |
+| `GetApplicationDateRangeKpi` | - | `EndTime -> end-time`, `NextToken -> next-token`, `PageSize -> page-size`, `StartTime -> start-time` | - | - |
+| `GetApps` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetCampaignActivities` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetCampaignDateRangeKpi` | - | `EndTime -> end-time`, `NextToken -> next-token`, `PageSize -> page-size`, `StartTime -> start-time` | - | - |
+| `GetCampaigns` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetCampaignVersions` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetEmailTemplate` | - | `Version -> version` | - | - |
+| `GetExportJobs` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetImportJobs` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetInAppTemplate` | - | `Version -> version` | - | - |
+| `GetJourneyDateRangeKpi` | - | `EndTime -> end-time`, `NextToken -> next-token`, `PageSize -> page-size`, `StartTime -> start-time` | - | - |
+| `GetJourneyExecutionActivityMetrics` | - | `NextToken -> next-token`, `PageSize -> page-size` | - | - |
+| `GetJourneyExecutionMetrics` | - | `NextToken -> next-token`, `PageSize -> page-size` | - | - |
+| `GetJourneyRunExecutionActivityMetrics` | - | `NextToken -> next-token`, `PageSize -> page-size` | - | - |
+| `GetJourneyRunExecutionMetrics` | - | `NextToken -> next-token`, `PageSize -> page-size` | - | - |
+| `GetJourneyRuns` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetPushTemplate` | - | `Version -> version` | - | - |
+| `GetRecommenderConfigurations` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetSegmentExportJobs` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetSegmentImportJobs` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetSegments` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetSegmentVersions` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `GetSmsTemplate` | - | `Version -> version` | - | - |
+| `GetVoiceTemplate` | - | `Version -> version` | - | - |
+| `ListJourneys` | - | `PageSize -> page-size`, `Token -> token` | - | - |
+| `ListTemplates` | - | `NextToken -> next-token`, `PageSize -> page-size`, `Prefix -> prefix`, `TemplateType -> template-type` | - | - |
+| `ListTemplateVersions` | - | `NextToken -> next-token`, `PageSize -> page-size` | - | - |
+| `PhoneNumberValidate` | - | - | - | `NumberValidateRequest` |
+| `PutEvents` | - | - | - | `EventsRequest` |
+| `PutEventStream` | - | - | - | `WriteEventStream` |
+| `RemoveAttributes` | - | - | - | `UpdateAttributesRequest` |
+| `SendMessages` | - | - | - | `MessageRequest` |
+| `SendOTPMessage` | - | - | - | `SendOTPMessageRequestParameters` |
+| `SendUsersMessages` | - | - | - | `SendUsersMessageRequest` |
+| `TagResource` | - | - | - | `TagsModel` |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+| `UpdateAdmChannel` | - | - | - | `ADMChannelRequest` |
+| `UpdateApnsChannel` | - | - | - | `APNSChannelRequest` |
+| `UpdateApnsSandboxChannel` | - | - | - | `APNSSandboxChannelRequest` |
+| `UpdateApnsVoipChannel` | - | - | - | `APNSVoipChannelRequest` |
+| `UpdateApnsVoipSandboxChannel` | - | - | - | `APNSVoipSandboxChannelRequest` |
+| `UpdateApplicationSettings` | - | - | - | `WriteApplicationSettingsRequest` |
+| `UpdateBaiduChannel` | - | - | - | `BaiduChannelRequest` |
+| `UpdateCampaign` | - | - | - | `WriteCampaignRequest` |
+| `UpdateEmailChannel` | - | - | - | `EmailChannelRequest` |
+| `UpdateEmailTemplate` | - | `CreateNewVersion -> create-new-version`, `Version -> version` | - | `EmailTemplateRequest` |
+| `UpdateEndpoint` | - | - | - | `EndpointRequest` |
+| `UpdateEndpointsBatch` | - | - | - | `EndpointBatchRequest` |
+| `UpdateGcmChannel` | - | - | - | `GCMChannelRequest` |
+| `UpdateInAppTemplate` | - | `CreateNewVersion -> create-new-version`, `Version -> version` | - | `InAppTemplateRequest` |
+| `UpdateJourney` | - | - | - | `WriteJourneyRequest` |
+| `UpdateJourneyState` | - | - | - | `JourneyStateRequest` |
+| `UpdatePushTemplate` | - | `CreateNewVersion -> create-new-version`, `Version -> version` | - | `PushNotificationTemplateRequest` |
+| `UpdateRecommenderConfiguration` | - | - | - | `UpdateRecommenderConfiguration` |
+| `UpdateSegment` | - | - | - | `WriteSegmentRequest` |
+| `UpdateSmsChannel` | - | - | - | `SMSChannelRequest` |
+| `UpdateSmsTemplate` | - | `CreateNewVersion -> create-new-version`, `Version -> version` | - | `SMSTemplateRequest` |
+| `UpdateTemplateActiveVersion` | - | - | - | `TemplateActiveVersionRequest` |
+| `UpdateVoiceChannel` | - | - | - | `VoiceChannelRequest` |
+| `UpdateVoiceTemplate` | - | `CreateNewVersion -> create-new-version`, `Version -> version` | - | `VoiceTemplateRequest` |
+| `VerifyOTPMessage` | - | - | - | `VerifyOTPMessageRequestParameters` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

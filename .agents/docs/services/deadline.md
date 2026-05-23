@@ -264,6 +264,20 @@ The Amazon Web Services Deadline Cloud API provides infrastructure and centraliz
 | `UpdateWorker` | `PATCH /2023-10-12/farms/{farmId}/fleets/{fleetId}/workers/{workerId}` | `idempotent`, `endpoint-bound` | `farmId`, `fleetId`, `workerId` | - | `UpdateWorkerResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a worker. |
 | `UpdateWorkerSchedule` | `PATCH /2023-10-12/farms/{farmId}/fleets/{fleetId}/workers/{workerId}/schedule` | `idempotent`, `endpoint-bound` | `farmId`, `fleetId`, `workerId` | - | `UpdateWorkerScheduleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerErrorException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the schedule for a worker. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `BatchUpdateJob` | `clientToken -> X-Amz-Client-Token` | - | - | - |
+| `BatchUpdateTask` | `clientToken -> X-Amz-Client-Token` | - | - | - |
+| `GetSessionsStatisticsAggregation` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `aggregationId -> aggregationId` | - | - |
+| `ListAvailableMeteredProducts` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListQueueFleetAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `queueId -> queueId`, `fleetId -> fleetId` | - | - |
+| `ListQueueLimitAssociations` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `queueId -> queueId`, `limitId -> limitId` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

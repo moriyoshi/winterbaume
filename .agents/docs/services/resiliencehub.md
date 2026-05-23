@@ -198,6 +198,20 @@ Resilience Hub helps you proactively prepare and protect your Amazon Web Service
 | `UpdateAppVersionResource` | `POST /update-app-version-resource` | - | `appArn` | - | `UpdateAppVersionResourceResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the resource details in the Resilience Hub application. This action has no effect outside Resilience Hub. |
 | `UpdateResiliencyPolicy` | `POST /update-resiliency-policy` | - | `policyArn` | - | `UpdateResiliencyPolicyResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a resiliency policy. Resilience Hub allows you to provide a value of zero for `rtoInSecs` and `rpoInSecs` of your resiliency policy. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListAppAssessments` | - | `appArn -> appArn`, `assessmentName -> assessmentName`, `assessmentStatus -> assessmentStatus`, `complianceStatus -> complianceStatus`, `invoker -> invoker`, `reverseOrder -> reverseOrder`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListApps` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `name -> name`, `appArn -> appArn`, `fromLastAssessmentTime -> fromLastAssessmentTime`, `toLastAssessmentTime -> toLastAssessmentTime`, `reverseOrder -> reverseOrder`, `awsApplicationArn -> awsApplicationArn` | - | - |
+| `ListRecommendationTemplates` | - | `assessmentArn -> assessmentArn`, `reverseOrder -> reverseOrder`, `status -> status`, `recommendationTemplateArn -> recommendationTemplateArn`, `name -> name`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListResiliencyPolicies` | - | `policyName -> policyName`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListResourceGroupingRecommendations` | - | `appArn -> appArn`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListSuggestedResiliencyPolicies` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

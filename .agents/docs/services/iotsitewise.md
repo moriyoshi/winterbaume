@@ -236,6 +236,66 @@ Welcome to the IoT SiteWise API Reference. IoT SiteWise is an Amazon Web Service
 | `UpdatePortal` | `PUT /portals/{portalId}` | `endpoint-bound`, `idempotency-token` | `portalContactEmail`, `portalId`, `portalName`, `roleArn` | `clientToken` | `UpdatePortalResponse` | `ConflictingOperationException`, `InternalFailureException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates an IoT SiteWise Monitor portal. |
 | `UpdateProject` | `PUT /projects/{projectId}` | `endpoint-bound`, `idempotency-token` | `projectId`, `projectName` | `clientToken` | `UpdateProjectResponse` | `InternalFailureException`, `InvalidRequestException`, `ResourceNotFoundException`, `ThrottlingException` | Updates an IoT SiteWise Monitor project. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AssociateTimeSeriesToAssetProperty` | - | `alias -> alias`, `assetId -> assetId`, `propertyId -> propertyId` | - | - |
+| `CreateAssetModelCompositeModel` | `ifMatch -> If-Match`, `ifNoneMatch -> If-None-Match`, `matchForVersionType -> Match-For-Version-Type` | - | - | - |
+| `DeleteAccessPolicy` | - | `clientToken -> clientToken` | - | - |
+| `DeleteAsset` | - | `clientToken -> clientToken` | - | - |
+| `DeleteAssetModel` | `ifMatch -> If-Match`, `ifNoneMatch -> If-None-Match`, `matchForVersionType -> Match-For-Version-Type` | `clientToken -> clientToken` | - | - |
+| `DeleteAssetModelCompositeModel` | `ifMatch -> If-Match`, `ifNoneMatch -> If-None-Match`, `matchForVersionType -> Match-For-Version-Type` | `clientToken -> clientToken` | - | - |
+| `DeleteAssetModelInterfaceRelationship` | - | `clientToken -> clientToken` | - | - |
+| `DeleteComputationModel` | - | `clientToken -> clientToken` | - | - |
+| `DeleteDashboard` | - | `clientToken -> clientToken` | - | - |
+| `DeleteDataset` | - | `clientToken -> clientToken` | - | - |
+| `DeletePortal` | - | `clientToken -> clientToken` | - | - |
+| `DeleteProject` | - | `clientToken -> clientToken` | - | - |
+| `DeleteTimeSeries` | - | `alias -> alias`, `assetId -> assetId`, `propertyId -> propertyId` | - | - |
+| `DescribeAsset` | - | `excludeProperties -> excludeProperties` | - | - |
+| `DescribeAssetModel` | - | `excludeProperties -> excludeProperties`, `assetModelVersion -> assetModelVersion` | - | - |
+| `DescribeAssetModelCompositeModel` | - | `assetModelVersion -> assetModelVersion` | - | - |
+| `DescribeComputationModel` | - | `computationModelVersion -> computationModelVersion` | - | - |
+| `DescribeComputationModelExecutionSummary` | - | `resolveToResourceType -> resolveToResourceType`, `resolveToResourceId -> resolveToResourceId` | - | - |
+| `DescribeTimeSeries` | - | `alias -> alias`, `assetId -> assetId`, `propertyId -> propertyId` | - | - |
+| `DisassociateTimeSeriesFromAssetProperty` | - | `alias -> alias`, `assetId -> assetId`, `propertyId -> propertyId` | - | - |
+| `GetAssetPropertyAggregates` | - | `assetId -> assetId`, `propertyId -> propertyId`, `propertyAlias -> propertyAlias`, `aggregateTypes -> aggregateTypes`, `resolution -> resolution`, `qualities -> qualities`, `startDate -> startDate`, `endDate -> endDate`, `timeOrdering -> timeOrdering`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetAssetPropertyValue` | - | `assetId -> assetId`, `propertyId -> propertyId`, `propertyAlias -> propertyAlias` | - | - |
+| `GetAssetPropertyValueHistory` | - | `assetId -> assetId`, `propertyId -> propertyId`, `propertyAlias -> propertyAlias`, `startDate -> startDate`, `endDate -> endDate`, `qualities -> qualities`, `timeOrdering -> timeOrdering`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetInterpolatedAssetPropertyValues` | - | `assetId -> assetId`, `propertyId -> propertyId`, `propertyAlias -> propertyAlias`, `startTimeInSeconds -> startTimeInSeconds`, `startTimeOffsetInNanos -> startTimeOffsetInNanos`, `endTimeInSeconds -> endTimeInSeconds`, `endTimeOffsetInNanos -> endTimeOffsetInNanos`, `quality -> quality`, `intervalInSeconds -> intervalInSeconds`, `nextToken -> nextToken`, `maxResults -> maxResults`, `type -> type`, `intervalWindowInSeconds -> intervalWindowInSeconds` | - | - |
+| `ListAccessPolicies` | - | `identityType -> identityType`, `identityId -> identityId`, `resourceType -> resourceType`, `resourceId -> resourceId`, `iamArn -> iamArn`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListActions` | - | `targetResourceType -> targetResourceType`, `targetResourceId -> targetResourceId`, `nextToken -> nextToken`, `maxResults -> maxResults`, `resolveToResourceType -> resolveToResourceType`, `resolveToResourceId -> resolveToResourceId` | - | - |
+| `ListAssetModelCompositeModels` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `assetModelVersion -> assetModelVersion` | - | - |
+| `ListAssetModelProperties` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `filter -> filter`, `assetModelVersion -> assetModelVersion` | - | - |
+| `ListAssetModels` | - | `assetModelTypes -> assetModelTypes`, `nextToken -> nextToken`, `maxResults -> maxResults`, `assetModelVersion -> assetModelVersion` | - | - |
+| `ListAssetProperties` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `filter -> filter` | - | - |
+| `ListAssetRelationships` | - | `traversalType -> traversalType`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAssets` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `assetModelId -> assetModelId`, `filter -> filter` | - | - |
+| `ListAssociatedAssets` | - | `hierarchyId -> hierarchyId`, `traversalDirection -> traversalDirection`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListBulkImportJobs` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `filter -> filter` | - | - |
+| `ListCompositionRelationships` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListComputationModelResolveToResources` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListComputationModels` | - | `computationModelType -> computationModelType`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDashboards` | - | `projectId -> projectId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListDatasets` | - | `sourceType -> sourceType`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListExecutions` | - | `targetResourceType -> targetResourceType`, `targetResourceId -> targetResourceId`, `resolveToResourceType -> resolveToResourceType`, `resolveToResourceId -> resolveToResourceId`, `nextToken -> nextToken`, `maxResults -> maxResults`, `actionType -> actionType` | - | - |
+| `ListGateways` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListInterfaceRelationships` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListPortals` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListProjectAssets` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListProjects` | - | `portalId -> portalId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListTagsForResource` | - | `resourceArn -> resourceArn` | - | - |
+| `ListTimeSeries` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `assetId -> assetId`, `aliasPrefix -> aliasPrefix`, `timeSeriesType -> timeSeriesType` | - | - |
+| `TagResource` | - | `resourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `resourceArn -> resourceArn`, `tagKeys -> tagKeys` | - | - |
+| `UpdateAssetModel` | `ifMatch -> If-Match`, `ifNoneMatch -> If-None-Match`, `matchForVersionType -> Match-For-Version-Type` | - | - | - |
+| `UpdateAssetModelCompositeModel` | `ifMatch -> If-Match`, `ifNoneMatch -> If-None-Match`, `matchForVersionType -> Match-For-Version-Type` | - | - | - |
+
+**Conditional-write/read coverage:** the following operations model RFC 7232 conditional headers and therefore must enforce 412 PreconditionFailed (and may emit 409 ConditionalRequestConflict on races) even though those error codes are typically not in the modelled `errors:` list: `CreateAssetModelCompositeModel`, `DeleteAssetModel`, `DeleteAssetModelCompositeModel`, `UpdateAssetModel`, `UpdateAssetModelCompositeModel`.
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

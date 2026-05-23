@@ -146,6 +146,27 @@ Amazon Web Services Telco Network Builder (TNB) is a network automation service 
 | `ValidateSolFunctionPackageContent` | `PUT /sol/vnfpkgm/v1/vnf_packages/{vnfPkgId}/package_content/validate` | `idempotent` | `file`, `vnfPkgId` | - | `ValidateSolFunctionPackageContentOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Validates function package content. This can be used as a dry run before uploading function package content with PutSolFunctionPackageContent. |
 | `ValidateSolNetworkPackageContent` | `PUT /sol/nsd/v1/ns_descriptors/{nsdInfoId}/nsd_content/validate` | `idempotent` | `file`, `nsdInfoId` | - | `ValidateSolNetworkPackageContentOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Validates network package content. This can be used as a dry run before uploading network package content with PutSolNetworkPackageContent. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetSolFunctionPackageContent` | `accept -> Accept` | - | - | - |
+| `GetSolFunctionPackageDescriptor` | `accept -> Accept` | - | - | - |
+| `GetSolNetworkPackageContent` | `accept -> Accept` | - | - | - |
+| `InstantiateSolNetworkInstance` | - | `dryRun -> dry_run` | - | - |
+| `ListSolFunctionInstances` | - | `maxResults -> max_results`, `nextToken -> nextpage_opaque_marker` | - | - |
+| `ListSolFunctionPackages` | - | `maxResults -> max_results`, `nextToken -> nextpage_opaque_marker` | - | - |
+| `ListSolNetworkInstances` | - | `maxResults -> max_results`, `nextToken -> nextpage_opaque_marker` | - | - |
+| `ListSolNetworkOperations` | - | `nsInstanceId -> nsInstanceId`, `maxResults -> max_results`, `nextToken -> nextpage_opaque_marker` | - | - |
+| `ListSolNetworkPackages` | - | `maxResults -> max_results`, `nextToken -> nextpage_opaque_marker` | - | - |
+| `PutSolFunctionPackageContent` | `contentType -> Content-Type` | - | - | `file` |
+| `PutSolNetworkPackageContent` | `contentType -> Content-Type` | - | - | `file` |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+| `ValidateSolFunctionPackageContent` | `contentType -> Content-Type` | - | - | `file` |
+| `ValidateSolNetworkPackageContent` | `contentType -> Content-Type` | - | - | `file` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

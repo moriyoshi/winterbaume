@@ -161,6 +161,17 @@ Amazon GameLift Streams Amazon GameLift Streams provides a global cloud solution
 | `UpdateApplication` | `PATCH /applications/{Identifier}` | - | `Identifier` | - | `UpdateApplicationOutput` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the mutable configuration settings for a Amazon GameLift Streams application resource. You can change the `Description`, `ApplicationLogOutputUri`, and `ApplicationLogPaths`. |
 | `UpdateStreamGroup` | `PATCH /streamgroups/{Identifier}` | - | `Identifier` | - | `UpdateStreamGroupOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration settings for an Amazon GameLift Streams stream group resource. To update a stream group, it must be in `ACTIVE` status. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListStreamSessions` | - | `Status -> Status`, `ExportFilesStatus -> ExportFilesStatus`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `ListStreamSessionsByAccount` | - | `Status -> Status`, `ExportFilesStatus -> ExportFilesStatus`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+| `RemoveStreamGroupLocations` | - | `Locations -> locations` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

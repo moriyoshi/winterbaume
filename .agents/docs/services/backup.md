@@ -269,6 +269,49 @@ Parity implications:
 | `UpdateRestoreTestingSelection` | `PUT /restore-testing/plans/{RestoreTestingPlanName}/selections/{RestoreTestingSelectionName}` | `idempotent` | `RestoreTestingPlanName`, `RestoreTestingSelection`, `RestoreTestingSelectionName` | - | `UpdateRestoreTestingSelectionOutput` | `ConflictException`, `InvalidParameterValueException`, `MissingParameterValueException`, `ResourceNotFoundException`, `ServiceUnavailableException` | Updates the specified restore testing selection. Most elements except the `RestoreTestingSelectionName` can be updated with this request. |
 | `UpdateTieringConfiguration` | `PUT /tiering-configurations/{TieringConfigurationName}` | `idempotent` | `TieringConfiguration`, `TieringConfigurationName` | - | `UpdateTieringConfigurationOutput` | `AlreadyExistsException`, `ConflictException`, `InvalidParameterValueException`, `LimitExceededException`, `MissingParameterValueException`, `ResourceNotFoundException`, `ServiceUnavailableException` | This request will send changes to your specified tiering configuration. `TieringConfigurationName` cannot be updated after it is created. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CancelLegalHold` | - | `CancelDescription -> cancelDescription`, `RetainRecordInDays -> retainRecordInDays` | - | - |
+| `DescribeBackupVault` | - | `BackupVaultAccountId -> backupVaultAccountId` | - | - |
+| `DescribeRecoveryPoint` | - | `BackupVaultAccountId -> backupVaultAccountId` | - | - |
+| `GetBackupPlan` | - | `VersionId -> versionId`, `MaxScheduledRunsPreview -> MaxScheduledRunsPreview` | - | - |
+| `GetRecoveryPointRestoreMetadata` | - | `BackupVaultAccountId -> backupVaultAccountId` | - | - |
+| `GetRestoreTestingInferredMetadata` | - | `BackupVaultAccountId -> BackupVaultAccountId`, `BackupVaultName -> BackupVaultName`, `RecoveryPointArn -> RecoveryPointArn` | - | - |
+| `ListBackupJobs` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `ByResourceArn -> resourceArn`, `ByState -> state`, `ByBackupVaultName -> backupVaultName`, `ByCreatedBefore -> createdBefore`, `ByCreatedAfter -> createdAfter`, `ByResourceType -> resourceType`, `ByAccountId -> accountId`, `ByCompleteAfter -> completeAfter`, `ByCompleteBefore -> completeBefore`, `ByParentJobId -> parentJobId`, `ByMessageCategory -> messageCategory` | - | - |
+| `ListBackupJobSummaries` | - | `AccountId -> AccountId`, `State -> State`, `ResourceType -> ResourceType`, `MessageCategory -> MessageCategory`, `AggregationPeriod -> AggregationPeriod`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListBackupPlans` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `IncludeDeleted -> includeDeleted` | - | - |
+| `ListBackupPlanTemplates` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListBackupPlanVersions` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListBackupSelections` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListBackupVaults` | - | `ByVaultType -> vaultType`, `ByShared -> shared`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListCopyJobs` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `ByResourceArn -> resourceArn`, `ByState -> state`, `ByCreatedBefore -> createdBefore`, `ByCreatedAfter -> createdAfter`, `ByResourceType -> resourceType`, `ByDestinationVaultArn -> destinationVaultArn`, `ByAccountId -> accountId`, `ByCompleteBefore -> completeBefore`, `ByCompleteAfter -> completeAfter`, `ByParentJobId -> parentJobId`, `ByMessageCategory -> messageCategory`, `BySourceRecoveryPointArn -> sourceRecoveryPointArn` | - | - |
+| `ListCopyJobSummaries` | - | `AccountId -> AccountId`, `State -> State`, `ResourceType -> ResourceType`, `MessageCategory -> MessageCategory`, `AggregationPeriod -> AggregationPeriod`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListFrameworks` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListIndexedRecoveryPoints` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `SourceResourceArn -> sourceResourceArn`, `CreatedBefore -> createdBefore`, `CreatedAfter -> createdAfter`, `ResourceType -> resourceType`, `IndexStatus -> indexStatus` | - | - |
+| `ListLegalHolds` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListProtectedResources` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListProtectedResourcesByBackupVault` | - | `BackupVaultAccountId -> backupVaultAccountId`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRecoveryPointsByBackupVault` | - | `BackupVaultAccountId -> backupVaultAccountId`, `NextToken -> nextToken`, `MaxResults -> maxResults`, `ByResourceArn -> resourceArn`, `ByResourceType -> resourceType`, `ByBackupPlanId -> backupPlanId`, `ByCreatedBefore -> createdBefore`, `ByCreatedAfter -> createdAfter`, `ByParentRecoveryPointArn -> parentRecoveryPointArn` | - | - |
+| `ListRecoveryPointsByLegalHold` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRecoveryPointsByResource` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `ManagedByAWSBackupOnly -> managedByAWSBackupOnly` | - | - |
+| `ListReportJobs` | - | `ByReportPlanName -> ReportPlanName`, `ByCreationBefore -> CreationBefore`, `ByCreationAfter -> CreationAfter`, `ByStatus -> Status`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListReportPlans` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListRestoreAccessBackupVaults` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRestoreJobs` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `ByAccountId -> accountId`, `ByResourceType -> resourceType`, `ByCreatedBefore -> createdBefore`, `ByCreatedAfter -> createdAfter`, `ByStatus -> status`, `ByCompleteBefore -> completeBefore`, `ByCompleteAfter -> completeAfter`, `ByRestoreTestingPlanArn -> restoreTestingPlanArn`, `ByParentJobId -> parentJobId` | - | - |
+| `ListRestoreJobsByProtectedResource` | - | `ByStatus -> status`, `ByRecoveryPointCreationDateAfter -> recoveryPointCreationDateAfter`, `ByRecoveryPointCreationDateBefore -> recoveryPointCreationDateBefore`, `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRestoreJobSummaries` | - | `AccountId -> AccountId`, `State -> State`, `ResourceType -> ResourceType`, `AggregationPeriod -> AggregationPeriod`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListRestoreTestingPlans` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListRestoreTestingSelections` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListScanJobs` | - | `ByAccountId -> ByAccountId`, `ByBackupVaultName -> ByBackupVaultName`, `ByCompleteAfter -> ByCompleteAfter`, `ByCompleteBefore -> ByCompleteBefore`, `ByMalwareScanner -> ByMalwareScanner`, `ByRecoveryPointArn -> ByRecoveryPointArn`, `ByResourceArn -> ByResourceArn`, `ByResourceType -> ByResourceType`, `ByScanResultStatus -> ByScanResultStatus`, `ByState -> ByState`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListScanJobSummaries` | - | `AccountId -> AccountId`, `ResourceType -> ResourceType`, `MalwareScanner -> MalwareScanner`, `ScanResultStatus -> ScanResultStatus`, `State -> State`, `AggregationPeriod -> AggregationPeriod`, `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListTags` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListTieringConfigurations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `RevokeRestoreAccessBackupVault` | - | `RequesterComment -> requesterComment` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -68,6 +68,14 @@ IoT Jobs is a service that allows you to define a set of jobs — remote operati
 | `StartNextPendingJobExecution` | `PUT /things/{thingName}/jobs/$next` | - | `thingName` | - | `StartNextPendingJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Gets and starts the next pending (status IN_PROGRESS or QUEUED) job execution for a thing. Requires permission to access the StartNextPendingJobExecution action. |
 | `UpdateJobExecution` | `POST /things/{thingName}/jobs/{jobId}` | - | `jobId`, `status`, `thingName` | - | `UpdateJobExecutionResponse` | `CertificateValidationException`, `InvalidRequestException`, `InvalidStateTransitionException`, `ResourceNotFoundException`, `ServiceUnavailableException`, `ThrottlingException` | Updates the status of a job execution. Requires permission to access the UpdateJobExecution action. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DescribeJobExecution` | - | `includeJobDocument -> includeJobDocument`, `executionNumber -> executionNumber` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

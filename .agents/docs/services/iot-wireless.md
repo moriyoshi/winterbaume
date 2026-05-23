@@ -245,6 +245,51 @@ AWS IoT Wireless provides bi-directional communication between internet-connecte
 | `UpdateWirelessDeviceImportTask` | `PATCH /wireless_device_import_task/{Id}` | - | `Id`, `Sidewalk` | - | `UpdateWirelessDeviceImportTaskResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update an import task to add more devices to the task. |
 | `UpdateWirelessGateway` | `PATCH /wireless-gateways/{Id}` | - | `Id` | - | `UpdateWirelessGatewayResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates properties of a wireless gateway. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteQueuedMessages` | - | `MessageId -> messageId`, `WirelessDeviceType -> WirelessDeviceType` | - | - |
+| `DeregisterWirelessDevice` | - | `WirelessDeviceType -> WirelessDeviceType` | - | - |
+| `DisassociateAwsAccountFromPartnerAccount` | - | `PartnerType -> partnerType` | - | - |
+| `GetPartnerAccount` | - | `PartnerType -> partnerType` | - | - |
+| `GetPosition` | - | `ResourceType -> resourceType` | - | - |
+| `GetPositionConfiguration` | - | `ResourceType -> resourceType` | - | - |
+| `GetResourceEventConfiguration` | - | `IdentifierType -> identifierType`, `PartnerType -> partnerType` | - | - |
+| `GetResourceLogLevel` | - | `ResourceType -> resourceType` | - | - |
+| `GetResourcePosition` | - | `ResourceType -> resourceType` | - | - |
+| `GetServiceEndpoint` | - | `ServiceType -> serviceType` | - | - |
+| `GetWirelessDevice` | - | `IdentifierType -> identifierType` | - | - |
+| `GetWirelessGateway` | - | `IdentifierType -> identifierType` | - | - |
+| `ListDestinations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListDeviceProfiles` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `DeviceProfileType -> deviceProfileType` | - | - |
+| `ListDevicesForWirelessDeviceImportTask` | - | `Id -> id`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `Status -> status` | - | - |
+| `ListEventConfigurations` | - | `ResourceType -> resourceType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListFuotaTasks` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListMulticastGroups` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListMulticastGroupsByFuotaTask` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListNetworkAnalyzerConfigurations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListPartnerAccounts` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListPositionConfigurations` | - | `ResourceType -> resourceType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListQueuedMessages` | - | `NextToken -> nextToken`, `MaxResults -> maxResults`, `WirelessDeviceType -> WirelessDeviceType` | - | - |
+| `ListServiceProfiles` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListTagsForResource` | - | `ResourceArn -> resourceArn` | - | - |
+| `ListWirelessDeviceImportTasks` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListWirelessDevices` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `DestinationName -> destinationName`, `DeviceProfileId -> deviceProfileId`, `ServiceProfileId -> serviceProfileId`, `WirelessDeviceType -> wirelessDeviceType`, `FuotaTaskId -> fuotaTaskId`, `MulticastGroupId -> multicastGroupId` | - | - |
+| `ListWirelessGateways` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListWirelessGatewayTaskDefinitions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `TaskDefinitionType -> taskDefinitionType` | - | - |
+| `PutPositionConfiguration` | - | `ResourceType -> resourceType` | - | - |
+| `PutResourceLogLevel` | - | `ResourceType -> resourceType` | - | - |
+| `ResetResourceLogLevel` | - | `ResourceType -> resourceType` | - | - |
+| `TagResource` | - | `ResourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `ResourceArn -> resourceArn`, `TagKeys -> tagKeys` | - | - |
+| `UpdatePartnerAccount` | - | `PartnerType -> partnerType` | - | - |
+| `UpdatePosition` | - | `ResourceType -> resourceType` | - | - |
+| `UpdateResourceEventConfiguration` | - | `IdentifierType -> identifierType`, `PartnerType -> partnerType` | - | - |
+| `UpdateResourcePosition` | - | `ResourceType -> resourceType` | - | `GeoJsonPayload` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

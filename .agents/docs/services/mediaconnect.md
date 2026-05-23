@@ -266,6 +266,16 @@ MediaConnect currently stores flow VPC interfaces inside MediaConnect flow state
 | `UpdateRouterNetworkInterface` | `PUT /v1/routerNetworkInterface/{Arn}` | `idempotent` | `Arn` | - | `UpdateRouterNetworkInterfaceResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates the configuration of an existing router network interface in AWS Elemental MediaConnect. |
 | `UpdateRouterOutput` | `PUT /v1/routerOutput/{Arn}` | `idempotent` | `Arn` | - | `UpdateRouterOutputResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceUnavailableException`, `TooManyRequestsException` | Updates the configuration of an existing router output in AWS Elemental MediaConnect. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListEntitlements` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagGlobalResource` | - | `TagKeys -> tagKeys` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

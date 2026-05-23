@@ -211,6 +211,31 @@ EKS currently treats cluster networking values as cluster metadata.
 | `UpdateNodegroupVersion` | `POST /clusters/{clusterName}/node-groups/{nodegroupName}/update-version` | `idempotency-token` | `clusterName`, `nodegroupName` | `clientRequestToken` | `UpdateNodegroupVersionResponse` | `ClientException`, `InvalidParameterException`, `InvalidRequestException`, `ResourceInUseException`, `ResourceNotFoundException`, `ServerException` | Updates the Kubernetes version or AMI version of an Amazon EKS managed node group. You can update a node group using a launch template only if the node group was originally deployed with a launch template. |
 | `UpdatePodIdentityAssociation` | `POST /clusters/{clusterName}/pod-identity-associations/{associationId}` | `idempotency-token` | `associationId`, `clusterName` | `clientRequestToken` | `UpdatePodIdentityAssociationResponse` | `InvalidParameterException`, `InvalidRequestException`, `ResourceNotFoundException`, `ServerException` | Updates a EKS Pod Identity association. In an update, you can change the IAM role, the target IAM role, or `disableSessionTags`. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteAddon` | - | `preserve -> preserve` | - | - |
+| `DescribeAddonConfiguration` | - | `addonName -> addonName`, `addonVersion -> addonVersion` | - | - |
+| `DescribeAddonVersions` | - | `kubernetesVersion -> kubernetesVersion`, `maxResults -> maxResults`, `nextToken -> nextToken`, `addonName -> addonName`, `types -> types`, `publishers -> publishers`, `owners -> owners` | - | - |
+| `DescribeClusterVersions` | - | `clusterType -> clusterType`, `maxResults -> maxResults`, `nextToken -> nextToken`, `defaultOnly -> defaultOnly`, `includeAll -> includeAll`, `clusterVersions -> clusterVersions`, `status -> status`, `versionStatus -> versionStatus` | - | - |
+| `DescribeUpdate` | - | `nodegroupName -> nodegroupName`, `addonName -> addonName`, `capabilityName -> capabilityName` | - | - |
+| `ListAccessEntries` | - | `associatedPolicyArn -> associatedPolicyArn`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListAccessPolicies` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListAddons` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListAssociatedAccessPolicies` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListCapabilities` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListClusters` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `include -> include` | - | - |
+| `ListEksAnywhereSubscriptions` | - | `maxResults -> maxResults`, `nextToken -> nextToken`, `includeStatus -> includeStatus` | - | - |
+| `ListFargateProfiles` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListIdentityProviderConfigs` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListNodegroups` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListPodIdentityAssociations` | - | `namespace -> namespace`, `serviceAccount -> serviceAccount`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListUpdates` | - | `nodegroupName -> nodegroupName`, `addonName -> addonName`, `capabilityName -> capabilityName`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

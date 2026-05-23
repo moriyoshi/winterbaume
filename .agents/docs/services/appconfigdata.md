@@ -88,6 +88,14 @@ Parity implications:
 | `GetLatestConfiguration` | `GET /configuration` | `readonly` | `ConfigurationToken` | - | `GetLatestConfigurationResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Retrieves the latest deployed configuration. This API may return empty configuration data if the client already has the latest version. |
 | `StartConfigurationSession` | `POST /configurationsessions` | - | `ApplicationIdentifier`, `ConfigurationProfileIdentifier`, `EnvironmentIdentifier` | - | `StartConfigurationSessionResponse` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Starts a configuration session used to retrieve a deployed configuration. For more information about this API action and to view example CLI commands that show how to use it with the GetLatestConfiguration API action, see Retrieving the configuration in the... |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetLatestConfiguration` | - | `ConfigurationToken -> configuration_token` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

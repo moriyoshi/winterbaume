@@ -338,6 +338,12 @@ Parity implications:
 | `UpdateResourceDataSync` | - | - | `SyncName`, `SyncSource`, `SyncType` | - | `UpdateResourceDataSyncResult` | `InternalServerError`, `ResourceDataSyncConflictException`, `ResourceDataSyncInvalidConfigurationException`, `ResourceDataSyncNotFoundException` | Update a resource data sync. After you create a resource data sync for a Region, you can't change the account options for that sync. |
 | `UpdateServiceSetting` | - | - | `SettingId`, `SettingValue` | - | `UpdateServiceSettingResult` | `InternalServerError`, `ServiceSettingNotFound`, `TooManyUpdates` | `ServiceSetting` is an account-level setting for an Amazon Web Services service. This setting defines how a user interacts with or uses a service or a feature of a service. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -247,6 +247,43 @@ Parity implications:
 | `UpdateProfile` | `PUT /domains/{DomainName}/profiles` | - | `DomainName`, `ProfileId` | - | `UpdateProfileResponse` | `AccessDeniedException`, `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Updates the properties of a profile. The ProfileId is required for updating a customer profile. |
 | `UpdateRecommender` | `PATCH /domains/{DomainName}/recommenders/{RecommenderName}` | - | `DomainName`, `RecommenderName` | - | `UpdateRecommenderResponse` | `AccessDeniedException`, `BadRequestException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException` | Updates the properties of an existing recommender, allowing you to modify its configuration and description. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetMatches` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `GetRecommender` | - | `TrainingMetricsCount -> training-metrics-count` | - | - |
+| `GetSimilarProfiles` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `GetWorkflowSteps` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListAccountIntegrations` | - | `NextToken -> next-token`, `MaxResults -> max-results`, `IncludeHidden -> include-hidden` | - | - |
+| `ListCalculatedAttributeDefinitions` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListCalculatedAttributesForProfile` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListDomainLayouts` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListDomainObjectTypes` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListDomains` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListEventStreams` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListEventTriggers` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListIdentityResolutionJobs` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListIntegrations` | - | `NextToken -> next-token`, `MaxResults -> max-results`, `IncludeHidden -> include-hidden` | - | - |
+| `ListObjectTypeAttributes` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListObjectTypeAttributeValues` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListProfileHistoryRecords` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListProfileObjects` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListProfileObjectTypes` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListProfileObjectTypeTemplates` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListRecommenderFilters` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListRecommenderRecipes` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListRecommenders` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListRecommenderSchemas` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListRuleBasedMatches` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `ListSegmentDefinitions` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListUploadJobs` | - | `MaxResults -> max-results`, `NextToken -> next-token` | - | - |
+| `ListWorkflows` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `SearchProfiles` | - | `NextToken -> next-token`, `MaxResults -> max-results` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

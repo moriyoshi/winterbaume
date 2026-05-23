@@ -43,6 +43,14 @@ The Amazon SageMaker AI runtime HTTP/2 API.
 |---|---|---|---|---|---|---|---|
 | `InvokeEndpointWithBidirectionalStream` | `POST /endpoints/{EndpointName}/invocations-bidirectional-stream` | - | `Body`, `EndpointName` | - | `InvokeEndpointWithBidirectionalStreamOutput` | `InputValidationError`, `InternalServerError`, `InternalStreamFailure`, `ModelError`, `ModelStreamError`, `ServiceUnavailableError` | Invokes a model endpoint with bidirectional streaming capabilities. This operation establishes a persistent connection that allows you to send multiple requests and receive streaming responses from the model in real-time. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `InvokeEndpointWithBidirectionalStream` | `TargetVariant -> X-Amzn-SageMaker-Target-Variant`, `ModelInvocationPath -> X-Amzn-SageMaker-Model-Invocation-Path`, `ModelQueryString -> X-Amzn-SageMaker-Model-Query-String` | - | - | `Body` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

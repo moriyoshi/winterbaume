@@ -265,6 +265,12 @@ Storage Gateway Service Amazon FSx File Gateway is no longer available to new cu
 | `UpdateSnapshotSchedule` | - | - | `RecurrenceInHours`, `StartAt`, `VolumeARN` | - | `UpdateSnapshotScheduleOutput` | `InternalServerError`, `InvalidGatewayRequestException` | Updates a snapshot schedule configured for a gateway volume. This operation is only supported in the cached volume and stored volume gateway types. |
 | `UpdateVTLDeviceType` | - | - | `DeviceType`, `VTLDeviceARN` | - | `UpdateVTLDeviceTypeOutput` | `InternalServerError`, `InvalidGatewayRequestException` | Updates the type of medium changer in a tape gateway. When you activate a tape gateway, you select a medium changer type for the tape gateway. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

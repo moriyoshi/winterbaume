@@ -254,6 +254,12 @@ Amazon Web Services HealthOmics is a service that helps users such as bioinforma
 | `UpdateWorkflowVersion` | `POST /workflow/{workflowId}/version/{versionName}` | `endpoint-bound` | `versionName`, `workflowId` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `RequestTimeoutException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates information about the workflow version. For more information, see Workflow versioning in Amazon Web Services HealthOmics in the Amazon Web Services HealthOmics User Guide . |
 | `UploadReadSetPart` | `PUT /sequencestore/{sequenceStoreId}/upload/{uploadId}/part` | `endpoint-bound` | `partNumber`, `partSource`, `payload`, `sequenceStoreId`, `uploadId` | - | `UploadReadSetPartResponse` | `AccessDeniedException`, `InternalServerException`, `NotSupportedOperationException`, `RequestTimeoutException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Uploads a specific part of a read set into a sequence store. When you a upload a read set part with a part number that already exists, the new part replaces the existing one. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

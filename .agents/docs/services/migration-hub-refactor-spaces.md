@@ -115,6 +115,19 @@ Amazon Web Services Migration Hub Refactor Spaces This API reference provides de
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Adds to or modifies the tags of the given resource. Tags are metadata which can be used to manage a resource. |
 | `UpdateRoute` | `PATCH /environments/{EnvironmentIdentifier}/applications/{ApplicationIdentifier}/routes/{RouteIdentifier}` | - | `ActivationState`, `ApplicationIdentifier`, `EnvironmentIdentifier`, `RouteIdentifier` | - | `UpdateRouteResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an Amazon Web Services Migration Hub Refactor Spaces route. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListApplications` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListEnvironments` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListEnvironmentVpcs` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRoutes` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListServices` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

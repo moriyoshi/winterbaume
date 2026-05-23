@@ -249,6 +249,12 @@ ECS currently stores `awsvpc`-style placement inputs as task and service metadat
 | `UpdateTaskProtection` | - | - | `cluster`, `protectionEnabled`, `tasks` | - | `UpdateTaskProtectionResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ResourceNotFoundException`, `ServerException`, `UnsupportedFeatureException` | Updates the protection status of a task. You can set `protectionEnabled` to `true` to protect your task from termination during scale-in events from Service Autoscaling or deployments. |
 | `UpdateTaskSet` | - | - | `cluster`, `scale`, `service`, `taskSet` | - | `UpdateTaskSetResponse` | `AccessDeniedException`, `ClientException`, `ClusterNotFoundException`, `InvalidParameterException`, `ServerException`, `ServiceNotActiveException`, `ServiceNotFoundException`, `TaskSetNotFoundException`, ... (+1) | Modifies a task set. This is used when a service uses the `EXTERNAL` deployment controller type. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

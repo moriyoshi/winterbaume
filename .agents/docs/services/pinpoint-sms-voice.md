@@ -77,6 +77,14 @@ Pinpoint SMS and Voice Messaging public facing APIs
 | `SendVoiceMessage` | `POST /v1/sms-voice/voice/message` | - | - | - | `SendVoiceMessageResponse` | `BadRequestException`, `InternalServiceErrorException`, `TooManyRequestsException` | Create a new voice message and send it to a recipient's phone number. |
 | `UpdateConfigurationSetEventDestination` | `PUT /v1/sms-voice/configuration-sets/{ConfigurationSetName}/event-destinations/{EventDestinationName}` | - | `ConfigurationSetName`, `EventDestinationName` | - | `UpdateConfigurationSetEventDestinationResponse` | `BadRequestException`, `InternalServiceErrorException`, `NotFoundException`, `TooManyRequestsException` | Update an event destination in a configuration set. An event destination is a location that you publish information about your voice calls to. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListConfigurationSets` | - | `NextToken -> NextToken`, `PageSize -> PageSize` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

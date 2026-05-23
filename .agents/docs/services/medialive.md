@@ -268,6 +268,39 @@ MediaLive currently has shallow networking placeholders.
 | `UpdateReservation` | `PUT /prod/reservations/{ReservationId}` | - | `ReservationId` | - | `UpdateReservationResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `NotFoundException`, `TooManyRequestsException` | Update reservation. |
 | `UpdateSdiSource` | `PUT /prod/sdiSources/{SdiSourceId}` | - | `SdiSourceId` | - | `UpdateSdiSourceResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `ForbiddenException`, `GatewayTimeoutException`, `InternalServerErrorException`, `TooManyRequestsException` | Change some of the settings in an SdiSource. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteTags` | - | `TagKeys -> tagKeys` | - | - |
+| `DescribeInputDeviceThumbnail` | `Accept -> accept` | - | - | - |
+| `DescribeSchedule` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `DescribeThumbnails` | - | `PipelineId -> pipelineId`, `ThumbnailType -> thumbnailType` | - | - |
+| `ListAlerts` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `StateFilter -> stateFilter` | - | - |
+| `ListChannelPlacementGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListChannels` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListCloudWatchAlarmTemplateGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `Scope -> scope`, `SignalMapIdentifier -> signalMapIdentifier` | - | - |
+| `ListCloudWatchAlarmTemplates` | - | `GroupIdentifier -> groupIdentifier`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `Scope -> scope`, `SignalMapIdentifier -> signalMapIdentifier` | - | - |
+| `ListClusterAlerts` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `StateFilter -> stateFilter` | - | - |
+| `ListClusters` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListEventBridgeRuleTemplateGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `SignalMapIdentifier -> signalMapIdentifier` | - | - |
+| `ListEventBridgeRuleTemplates` | - | `GroupIdentifier -> groupIdentifier`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `SignalMapIdentifier -> signalMapIdentifier` | - | - |
+| `ListInputDevices` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListInputDeviceTransfers` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `TransferType -> transferType` | - | - |
+| `ListInputs` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListInputSecurityGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListMultiplexAlerts` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `StateFilter -> stateFilter` | - | - |
+| `ListMultiplexes` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListMultiplexPrograms` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListNetworks` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListNodes` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListOfferings` | - | `ChannelClass -> channelClass`, `ChannelConfiguration -> channelConfiguration`, `Codec -> codec`, `Duration -> duration`, `MaxResults -> maxResults`, `MaximumBitrate -> maximumBitrate`, `MaximumFramerate -> maximumFramerate`, `NextToken -> nextToken`, `Resolution -> resolution`, `ResourceType -> resourceType`, `SpecialFeature -> specialFeature`, `VideoQuality -> videoQuality` | - | - |
+| `ListReservations` | - | `ChannelClass -> channelClass`, `Codec -> codec`, `MaxResults -> maxResults`, `MaximumBitrate -> maximumBitrate`, `MaximumFramerate -> maximumFramerate`, `NextToken -> nextToken`, `Resolution -> resolution`, `ResourceType -> resourceType`, `SpecialFeature -> specialFeature`, `VideoQuality -> videoQuality` | - | - |
+| `ListSdiSources` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListSignalMaps` | - | `CloudWatchAlarmTemplateGroupIdentifier -> cloudWatchAlarmTemplateGroupIdentifier`, `EventBridgeRuleTemplateGroupIdentifier -> eventBridgeRuleTemplateGroupIdentifier`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

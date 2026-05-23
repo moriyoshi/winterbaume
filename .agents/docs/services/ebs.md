@@ -98,6 +98,18 @@ Parity implications:
 | `PutSnapshotBlock` | `PUT /snapshots/{SnapshotId}/blocks/{BlockIndex}` | - | `BlockData`, `BlockIndex`, `Checksum`, `ChecksumAlgorithm`, `DataLength`, `SnapshotId` | - | `PutSnapshotBlockResponse` | `AccessDeniedException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Writes a block of data to a snapshot. If the specified block contains data, the existing data is overwritten. |
 | `StartSnapshot` | `POST /snapshots` | `idempotency-token` | `VolumeSize` | `ClientToken` | `StartSnapshotResponse` | `AccessDeniedException`, `ConcurrentLimitExceededException`, `ConflictException`, `InternalServerException`, `RequestThrottledException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ValidationException` | Creates a new Amazon EBS snapshot. The new snapshot enters the `pending` state after the request completes. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CompleteSnapshot` | `ChangedBlocksCount -> x-amz-ChangedBlocksCount`, `Checksum -> x-amz-Checksum`, `ChecksumAlgorithm -> x-amz-Checksum-Algorithm`, `ChecksumAggregationMethod -> x-amz-Checksum-Aggregation-Method` | - | - | - |
+| `GetSnapshotBlock` | - | `BlockToken -> blockToken` | - | - |
+| `ListChangedBlocks` | - | `FirstSnapshotId -> firstSnapshotId`, `NextToken -> pageToken`, `MaxResults -> maxResults`, `StartingBlockIndex -> startingBlockIndex` | - | - |
+| `ListSnapshotBlocks` | - | `NextToken -> pageToken`, `MaxResults -> maxResults`, `StartingBlockIndex -> startingBlockIndex` | - | - |
+| `PutSnapshotBlock` | `DataLength -> x-amz-Data-Length`, `Progress -> x-amz-Progress`, `Checksum -> x-amz-Checksum`, `ChecksumAlgorithm -> x-amz-Checksum-Algorithm` | - | - | `BlockData` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

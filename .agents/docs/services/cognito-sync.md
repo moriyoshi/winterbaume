@@ -133,6 +133,17 @@ Parity implications:
 | `UnsubscribeFromDataset` | `DELETE /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}/subscriptions/{DeviceId}` | - | `DatasetName`, `DeviceId`, `IdentityId`, `IdentityPoolId` | - | `UnsubscribeFromDatasetResponse` | `InternalErrorException`, `InvalidConfigurationException`, `InvalidParameterException`, `NotAuthorizedException`, `ResourceNotFoundException`, `TooManyRequestsException` | Unsubscribes from receiving notifications when a dataset is modified by another device. This API can only be called with temporary credentials provided by Cognito Identity. |
 | `UpdateRecords` | `POST /identitypools/{IdentityPoolId}/identities/{IdentityId}/datasets/{DatasetName}` | - | `DatasetName`, `IdentityId`, `IdentityPoolId`, `SyncSessionToken` | - | `UpdateRecordsResponse` | `InternalErrorException`, `InvalidLambdaFunctionOutputException`, `InvalidParameterException`, `LambdaThrottledException`, `LimitExceededException`, `NotAuthorizedException`, `ResourceConflictException`, `ResourceNotFoundException`, ... (+1) | Posts updates to records and adds and deletes records for a dataset and user. The sync count in the record patch is your last known sync count for that record. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListDatasets` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListIdentityPoolUsage` | - | `NextToken -> nextToken`, `MaxResults -> maxResults` | - | - |
+| `ListRecords` | - | `LastSyncCount -> lastSyncCount`, `NextToken -> nextToken`, `MaxResults -> maxResults`, `SyncSessionToken -> syncSessionToken` | - | - |
+| `UpdateRecords` | `ClientContext -> x-amz-Client-Context` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

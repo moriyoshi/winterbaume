@@ -66,6 +66,12 @@ Amazon Web Services Marketplace Metering Service This reference provides descrip
 | `RegisterUsage` | - | - | `ProductCode`, `PublicKeyVersion` | - | `RegisterUsageResult` | `CustomerNotEntitledException`, `DisabledApiException`, `InternalServiceErrorException`, `InvalidProductCodeException`, `InvalidPublicKeyVersionException`, `InvalidRegionException`, `PlatformNotSupportedException`, `ThrottlingException` | Paid container software products sold through Amazon Web Services Marketplace must integrate with the Amazon Web Services Marketplace Metering Service and call the `RegisterUsage` operation for software entitlement and metering. Free and BYOL products for... |
 | `ResolveCustomer` | - | - | `RegistrationToken` | - | `ResolveCustomerResult` | `DisabledApiException`, `ExpiredTokenException`, `InternalServiceErrorException`, `InvalidTokenException`, `ThrottlingException` | `ResolveCustomer` is called by a SaaS application during the registration process. When a buyer visits your website during the registration process, the buyer submits a registration token through their browser. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

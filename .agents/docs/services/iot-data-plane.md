@@ -78,6 +78,20 @@ IoT data IoT data enables secure, bi-directional communication between Internet-
 | `Publish` | `POST /topics/{topic}` | - | `topic` | - | `Unit` | `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `ThrottlingException`, `UnauthorizedException` | Publishes an MQTT message. Requires permission to access the Publish action. |
 | `UpdateThingShadow` | `POST /things/{thingName}/shadow` | - | `payload`, `thingName` | - | `UpdateThingShadowResponse` | `ConflictException`, `InternalFailureException`, `InvalidRequestException`, `MethodNotAllowedException`, `RequestEntityTooLargeException`, `ServiceUnavailableException`, `ThrottlingException`, `UnauthorizedException`, ... (+1) | Updates the shadow for the specified thing. Requires permission to access the UpdateThingShadow action. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteConnection` | - | `cleanSession -> cleanSession`, `preventWillMessage -> preventWillMessage` | - | - |
+| `DeleteThingShadow` | - | `shadowName -> name` | - | - |
+| `GetThingShadow` | - | `shadowName -> name` | - | - |
+| `ListNamedShadowsForThing` | - | `nextToken -> nextToken`, `pageSize -> pageSize` | - | - |
+| `ListRetainedMessages` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `Publish` | `userProperties -> x-amz-mqtt5-user-properties`, `payloadFormatIndicator -> x-amz-mqtt5-payload-format-indicator`, `correlationData -> x-amz-mqtt5-correlation-data` | `qos -> qos`, `retain -> retain`, `contentType -> contentType`, `responseTopic -> responseTopic`, `messageExpiry -> messageExpiry` | - | `payload` |
+| `UpdateThingShadow` | - | `shadowName -> name` | - | `payload` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

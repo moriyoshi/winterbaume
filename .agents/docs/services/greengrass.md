@@ -198,6 +198,59 @@ AWS IoT Greengrass seamlessly extends AWS onto physical devices so they can act 
 | `UpdateSubscriptionDefinition` | `PUT /greengrass/definition/subscriptions/{SubscriptionDefinitionId}` | - | `SubscriptionDefinitionId` | - | `UpdateSubscriptionDefinitionResponse` | `BadRequestException` | Updates a subscription definition. |
 | `UpdateThingRuntimeConfiguration` | `PUT /greengrass/things/{ThingName}/runtimeconfig` | - | `ThingName` | - | `UpdateThingRuntimeConfigurationResponse` | `BadRequestException`, `InternalServerErrorException` | Updates the runtime configuration of a thing. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateConnectorDefinition` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateConnectorDefinitionVersion` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateCoreDefinition` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateCoreDefinitionVersion` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateDeployment` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateDeviceDefinition` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateDeviceDefinitionVersion` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateFunctionDefinition` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateFunctionDefinitionVersion` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateGroup` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateGroupCertificateAuthority` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateGroupVersion` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateLoggerDefinition` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateLoggerDefinitionVersion` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateResourceDefinition` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateResourceDefinitionVersion` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateSoftwareUpdateJob` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateSubscriptionDefinition` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `CreateSubscriptionDefinitionVersion` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `GetConnectorDefinitionVersion` | - | `NextToken -> NextToken` | - | - |
+| `GetDeviceDefinitionVersion` | - | `NextToken -> NextToken` | - | - |
+| `GetFunctionDefinitionVersion` | - | `NextToken -> NextToken` | - | - |
+| `GetLoggerDefinitionVersion` | - | `NextToken -> NextToken` | - | - |
+| `GetSubscriptionDefinitionVersion` | - | `NextToken -> NextToken` | - | - |
+| `ListBulkDeploymentDetailedReports` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListBulkDeployments` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListConnectorDefinitions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListConnectorDefinitionVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListCoreDefinitions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListCoreDefinitionVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListDeployments` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListDeviceDefinitions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListDeviceDefinitionVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListFunctionDefinitions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListFunctionDefinitionVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListGroups` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListGroupVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListLoggerDefinitions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListLoggerDefinitionVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListResourceDefinitions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListResourceDefinitionVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListSubscriptionDefinitions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ListSubscriptionDefinitionVersions` | - | `MaxResults -> MaxResults`, `NextToken -> NextToken` | - | - |
+| `ResetDeployments` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `StartBulkDeployment` | `AmznClientToken -> X-Amzn-Client-Token` | - | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

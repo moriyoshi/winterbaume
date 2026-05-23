@@ -188,6 +188,59 @@ Parity implications:
 | `UpdatePackageVersionsStatus` | `POST /v1/package/versions/update_status` | - | `domain`, `format`, `package`, `repository`, `targetStatus`, `versions` | - | `UpdatePackageVersionsStatusResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the status of one or more versions of a package. Using `UpdatePackageVersionsStatus`, you can update the status of package versions to `Archived`, `Published`, or `Unlisted`. |
 | `UpdateRepository` | `PUT /v1/repository` | - | `domain`, `repository` | - | `UpdateRepositoryResult` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Update the properties of a repository. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `AssociateExternalConnection` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `externalConnection -> external-connection` | - | - |
+| `CopyPackageVersions` | - | `domain -> domain`, `domainOwner -> domain-owner`, `sourceRepository -> source-repository`, `destinationRepository -> destination-repository`, `format -> format`, `namespace -> namespace`, `package -> package` | - | - |
+| `CreateDomain` | - | `domain -> domain` | - | - |
+| `CreatePackageGroup` | - | `domain -> domain`, `domainOwner -> domain-owner` | - | - |
+| `CreateRepository` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository` | - | - |
+| `DeleteDomain` | - | `domain -> domain`, `domainOwner -> domain-owner` | - | - |
+| `DeleteDomainPermissionsPolicy` | - | `domain -> domain`, `domainOwner -> domain-owner`, `policyRevision -> policy-revision` | - | - |
+| `DeletePackage` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package` | - | - |
+| `DeletePackageGroup` | - | `domain -> domain`, `domainOwner -> domain-owner`, `packageGroup -> package-group` | - | - |
+| `DeletePackageVersions` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package` | - | - |
+| `DeleteRepository` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository` | - | - |
+| `DeleteRepositoryPermissionsPolicy` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `policyRevision -> policy-revision` | - | - |
+| `DescribeDomain` | - | `domain -> domain`, `domainOwner -> domain-owner` | - | - |
+| `DescribePackage` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package` | - | - |
+| `DescribePackageGroup` | - | `domain -> domain`, `domainOwner -> domain-owner`, `packageGroup -> package-group` | - | - |
+| `DescribePackageVersion` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package`, `packageVersion -> version` | - | - |
+| `DescribeRepository` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository` | - | - |
+| `DisassociateExternalConnection` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `externalConnection -> external-connection` | - | - |
+| `DisposePackageVersions` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package` | - | - |
+| `GetAssociatedPackageGroup` | - | `domain -> domain`, `domainOwner -> domain-owner`, `format -> format`, `namespace -> namespace`, `package -> package` | - | - |
+| `GetAuthorizationToken` | - | `domain -> domain`, `domainOwner -> domain-owner`, `durationSeconds -> duration` | - | - |
+| `GetDomainPermissionsPolicy` | - | `domain -> domain`, `domainOwner -> domain-owner` | - | - |
+| `GetPackageVersionAsset` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package`, `packageVersion -> version`, `asset -> asset`, `packageVersionRevision -> revision` | - | - |
+| `GetPackageVersionReadme` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package`, `packageVersion -> version` | - | - |
+| `GetRepositoryEndpoint` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `endpointType -> endpointType` | - | - |
+| `GetRepositoryPermissionsPolicy` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository` | - | - |
+| `ListAllowedRepositoriesForGroup` | - | `domain -> domain`, `domainOwner -> domain-owner`, `packageGroup -> package-group`, `originRestrictionType -> originRestrictionType`, `maxResults -> max-results`, `nextToken -> next-token` | - | - |
+| `ListAssociatedPackages` | - | `domain -> domain`, `domainOwner -> domain-owner`, `packageGroup -> package-group`, `maxResults -> max-results`, `nextToken -> next-token`, `preview -> preview` | - | - |
+| `ListPackageGroups` | - | `domain -> domain`, `domainOwner -> domain-owner`, `maxResults -> max-results`, `nextToken -> next-token`, `prefix -> prefix` | - | - |
+| `ListPackages` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `packagePrefix -> package-prefix`, `maxResults -> max-results`, `nextToken -> next-token`, `publish -> publish`, `upstream -> upstream` | - | - |
+| `ListPackageVersionAssets` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package`, `packageVersion -> version`, `maxResults -> max-results`, `nextToken -> next-token` | - | - |
+| `ListPackageVersionDependencies` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package`, `packageVersion -> version`, `nextToken -> next-token` | - | - |
+| `ListPackageVersions` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package`, `status -> status`, `sortBy -> sortBy`, `maxResults -> max-results`, `nextToken -> next-token`, `originType -> originType` | - | - |
+| `ListRepositories` | - | `repositoryPrefix -> repository-prefix`, `maxResults -> max-results`, `nextToken -> next-token` | - | - |
+| `ListRepositoriesInDomain` | - | `domain -> domain`, `domainOwner -> domain-owner`, `administratorAccount -> administrator-account`, `repositoryPrefix -> repository-prefix`, `maxResults -> max-results`, `nextToken -> next-token` | - | - |
+| `ListSubPackageGroups` | - | `domain -> domain`, `domainOwner -> domain-owner`, `packageGroup -> package-group`, `maxResults -> max-results`, `nextToken -> next-token` | - | - |
+| `ListTagsForResource` | - | `resourceArn -> resourceArn` | - | - |
+| `PublishPackageVersion` | `assetSHA256 -> x-amz-content-sha256` | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package`, `packageVersion -> version`, `assetName -> asset`, `unfinished -> unfinished` | - | `assetContent` |
+| `PutPackageOriginConfiguration` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package` | - | - |
+| `PutRepositoryPermissionsPolicy` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository` | - | - |
+| `TagResource` | - | `resourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `resourceArn -> resourceArn` | - | - |
+| `UpdatePackageGroup` | - | `domain -> domain`, `domainOwner -> domain-owner` | - | - |
+| `UpdatePackageGroupOriginConfiguration` | - | `domain -> domain`, `domainOwner -> domain-owner`, `packageGroup -> package-group` | - | - |
+| `UpdatePackageVersionsStatus` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository`, `format -> format`, `namespace -> namespace`, `package -> package` | - | - |
+| `UpdateRepository` | - | `domain -> domain`, `domainOwner -> domain-owner`, `repository -> repository` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

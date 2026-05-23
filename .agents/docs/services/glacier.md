@@ -167,6 +167,26 @@ Parity implications:
 | `UploadArchive` | `POST /{accountId}/vaults/{vaultName}/archives` | - | `accountId`, `vaultName` | - | `ArchiveCreationOutput` | `InvalidParameterValueException`, `MissingParameterValueException`, `NoLongerSupportedException`, `RequestTimeoutException`, `ResourceNotFoundException`, `ServiceUnavailableException` | This operation adds an archive to a vault. This is a synchronous operation, and for a successful upload, your data is durably persisted. |
 | `UploadMultipartPart` | `PUT /{accountId}/vaults/{vaultName}/multipart-uploads/{uploadId}` | - | `accountId`, `uploadId`, `vaultName` | - | `UploadMultipartPartOutput` | `InvalidParameterValueException`, `MissingParameterValueException`, `NoLongerSupportedException`, `RequestTimeoutException`, `ResourceNotFoundException`, `ServiceUnavailableException` | This operation uploads a part of an archive. You can upload archive parts in any order. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CompleteMultipartUpload` | `archiveSize -> x-amz-archive-size`, `checksum -> x-amz-sha256-tree-hash` | - | - | - |
+| `GetJobOutput` | `range -> Range` | - | - | - |
+| `InitiateJob` | - | - | - | `jobParameters` |
+| `InitiateMultipartUpload` | `archiveDescription -> x-amz-archive-description`, `partSize -> x-amz-part-size` | - | - | - |
+| `InitiateVaultLock` | - | - | - | `policy` |
+| `ListJobs` | - | `limit -> limit`, `marker -> marker`, `statuscode -> statuscode`, `completed -> completed` | - | - |
+| `ListMultipartUploads` | - | `limit -> limit`, `marker -> marker` | - | - |
+| `ListParts` | - | `marker -> marker`, `limit -> limit` | - | - |
+| `ListVaults` | - | `marker -> marker`, `limit -> limit` | - | - |
+| `SetVaultAccessPolicy` | - | - | - | `policy` |
+| `SetVaultNotifications` | - | - | - | `vaultNotificationConfig` |
+| `UploadArchive` | `archiveDescription -> x-amz-archive-description`, `checksum -> x-amz-sha256-tree-hash` | - | - | `body` |
+| `UploadMultipartPart` | `checksum -> x-amz-sha256-tree-hash`, `range -> Content-Range` | - | - | `body` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -193,6 +193,12 @@ Parity implications:
 | `UpdateStateMachineAlias` | - | - | `stateMachineAliasArn` | - | `UpdateStateMachineAliasOutput` | `ConflictException`, `InvalidArn`, `ResourceNotFound`, `StateMachineDeleting`, `ValidationException` | Updates the configuration of an existing state machine alias by modifying its `description` or `routingConfiguration`. You must specify at least one of the `description` or `routingConfiguration` parameters to update a state machine alias. |
 | `ValidateStateMachineDefinition` | - | - | `definition` | - | `ValidateStateMachineDefinitionOutput` | `ValidationException` | Validates the syntax of a state machine definition specified in Amazon States Language (ASL), a JSON-based, structured language. You can validate that a state machine definition is correct without creating a state machine resource. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

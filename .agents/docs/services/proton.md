@@ -227,6 +227,16 @@ This is the Proton Service API Reference. It provides descriptions, syntax and u
 | `UpdateServiceTemplateVersion` | - | - | `majorVersion`, `minorVersion`, `templateName` | - | `UpdateServiceTemplateVersionOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update a major or minor version of a service template. |
 | `UpdateTemplateSyncConfig` | - | - | `branch`, `repositoryName`, `repositoryProvider`, `templateName`, `templateType` | - | `UpdateTemplateSyncConfigOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update template sync configuration parameters, except for the `templateName` and `templateType`. Repository details (branch, name, and provider) should be of a linked repository. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListTagsForResource` | - | `resourceArn -> resourceArn`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `TagResource` | - | `resourceArn -> resourceArn` | - | - |
+| `UntagResource` | - | `resourceArn -> resourceArn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -156,6 +156,14 @@ Parity implications:
 | `UpdateGroup` | `POST /update-group` | - | - | - | `UpdateGroupOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Updates the description for an existing group. You cannot update the name of a resource group. |
 | `UpdateGroupQuery` | `POST /update-group-query` | - | `ResourceQuery` | - | `UpdateGroupQueryOutput` | `BadRequestException`, `ForbiddenException`, `InternalServerErrorException`, `MethodNotAllowedException`, `NotFoundException`, `TooManyRequestsException` | Updates the resource query of a group. For more information about resource queries, see Create a tag-based group in Resource Groups. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListGroups` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

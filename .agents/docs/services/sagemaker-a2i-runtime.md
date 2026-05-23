@@ -73,6 +73,14 @@ Amazon Augmented AI (Amazon A2I) adds the benefit of human judgment to any machi
 | `StartHumanLoop` | `POST /human-loops` | - | `FlowDefinitionArn`, `HumanLoopInput`, `HumanLoopName` | - | `StartHumanLoopResponse` | `ConflictException`, `InternalServerException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Starts a human loop, provided that at least one activation condition is met. |
 | `StopHumanLoop` | `POST /human-loops/stop` | - | `HumanLoopName` | - | `StopHumanLoopResponse` | `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Stops the specified human loop. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListHumanLoops` | - | `CreationTimeAfter -> CreationTimeAfter`, `CreationTimeBefore -> CreationTimeBefore`, `FlowDefinitionArn -> FlowDefinitionArn`, `SortOrder -> SortOrder`, `NextToken -> NextToken`, `MaxResults -> MaxResults` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -109,6 +109,18 @@ Catalog API actions allow you to manage your entities through list, describe, an
 | `TagResource` | `POST /TagResource` | - | `ResourceArn`, `Tags` | - | `TagResourceResponse` | `AccessDeniedException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Tags a resource (either an entity or change set). |
 | `UntagResource` | `POST /UntagResource` | - | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `InternalServiceException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes a tag or list of tags from a resource (either an entity or change set). |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CancelChangeSet` | - | `Catalog -> catalog`, `ChangeSetId -> changeSetId` | - | - |
+| `DeleteResourcePolicy` | - | `ResourceArn -> resourceArn` | - | - |
+| `DescribeChangeSet` | - | `Catalog -> catalog`, `ChangeSetId -> changeSetId` | - | - |
+| `DescribeEntity` | - | `Catalog -> catalog`, `EntityId -> entityId` | - | - |
+| `GetResourcePolicy` | - | `ResourceArn -> resourceArn` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

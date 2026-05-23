@@ -113,6 +113,17 @@ With Amazon Route 53 Profiles you can share Route 53 configurations with VPCs an
 | `UntagResource` | `DELETE /tags/{ResourceArn}` | `idempotent` | `ResourceArn`, `TagKeys` | - | `UntagResourceResponse` | `AccessDeniedException`, `ConflictException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Removes one or more tags from a specified resource. |
 | `UpdateProfileResourceAssociation` | `PATCH /profileresourceassociation/{ProfileResourceAssociationId}` | - | `ProfileResourceAssociationId` | - | `UpdateProfileResourceAssociationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServiceErrorException`, `InvalidParameterException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the specified Route 53 Profile resourse association. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListProfileAssociations` | - | `ResourceId -> resourceId`, `ProfileId -> profileId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListProfileResourceAssociations` | - | `ResourceType -> resourceType`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListProfiles` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

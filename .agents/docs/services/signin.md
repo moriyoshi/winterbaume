@@ -46,6 +46,14 @@ AWS Sign-In manages authentication for AWS services. This service provides secur
 |---|---|---|---|---|---|---|---|
 | `CreateOAuth2Token` | `POST /v1/token` | - | `tokenInput` | - | `CreateOAuth2TokenResponse` | `AccessDeniedException`, `InternalServerException`, `TooManyRequestsError`, `ValidationException` | CreateOAuth2Token API Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both: 1. Authorization code redemption... |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateOAuth2Token` | - | - | - | `tokenInput` |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

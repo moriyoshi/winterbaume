@@ -77,6 +77,20 @@ TrustedAdvisor Public API
 | `UpdateOrganizationRecommendationLifecycle` | `PUT /v1/organization-recommendations/{organizationRecommendationIdentifier}/lifecycle` | `idempotent` | `lifecycleStage`, `organizationRecommendationIdentifier` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the lifecycle of a Recommendation within an Organization. This API only supports prioritized recommendations and updates global priority recommendations, eliminating the need to call the API in each AWS Region. |
 | `UpdateRecommendationLifecycle` | `PUT /v1/recommendations/{recommendationIdentifier}/lifecycle` | `idempotent` | `lifecycleStage`, `recommendationIdentifier` | - | `Unit` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Update the lifecyle of a Recommendation. This API only supports prioritized recommendations and updates global priority recommendations, eliminating the need to call the API in each AWS Region. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetRecommendation` | - | `language -> language` | - | - |
+| `ListChecks` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `pillar -> pillar`, `awsService -> awsService`, `source -> source`, `language -> language` | - | - |
+| `ListOrganizationRecommendationAccounts` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `affectedAccountId -> affectedAccountId` | - | - |
+| `ListOrganizationRecommendationResources` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `status -> status`, `exclusionStatus -> exclusionStatus`, `regionCode -> regionCode`, `affectedAccountId -> affectedAccountId` | - | - |
+| `ListOrganizationRecommendations` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `type -> type`, `status -> status`, `pillar -> pillar`, `awsService -> awsService`, `source -> source`, `checkIdentifier -> checkIdentifier`, `afterLastUpdatedAt -> afterLastUpdatedAt`, `beforeLastUpdatedAt -> beforeLastUpdatedAt` | - | - |
+| `ListRecommendationResources` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `status -> status`, `exclusionStatus -> exclusionStatus`, `regionCode -> regionCode`, `language -> language` | - | - |
+| `ListRecommendations` | - | `nextToken -> nextToken`, `maxResults -> maxResults`, `type -> type`, `status -> status`, `pillar -> pillar`, `awsService -> awsService`, `source -> source`, `checkIdentifier -> checkIdentifier`, `afterLastUpdatedAt -> afterLastUpdatedAt`, `beforeLastUpdatedAt -> beforeLastUpdatedAt`, `language -> language` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

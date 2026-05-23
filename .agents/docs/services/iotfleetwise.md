@@ -192,6 +192,17 @@ Amazon Web Services IoT FleetWise is a fully managed service that you can use to
 | `UpdateStateTemplate` | `PATCH /state-templates/{identifier}` | `idempotent` | `identifier` | - | `UpdateStateTemplateResponse` | `AccessDeniedException`, `InternalServerException`, `InvalidSignalsException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a state template. Access to certain Amazon Web Services IoT FleetWise features is currently gated. |
 | `UpdateVehicle` | `PATCH /vehicles/{vehicleName}` | - | `vehicleName` | - | `UpdateVehicleResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `LimitExceededException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates a vehicle. Access to certain Amazon Web Services IoT FleetWise features is currently gated. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetVehicleStatus` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListTagsForResource` | - | `ResourceARN -> resourceArn` | - | - |
+| `TagResource` | - | `ResourceARN -> resourceArn` | - | - |
+| `UntagResource` | - | `ResourceARN -> resourceArn`, `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

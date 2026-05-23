@@ -244,6 +244,12 @@ WorkMail is a secure, managed business email and calendaring service with suppor
 | `UpdateResource` | - | `idempotent` | `OrganizationId`, `ResourceId` | - | `UpdateResourceResponse` | `DirectoryUnavailableException`, `EmailAddressInUseException`, `EntityNotFoundException`, `EntityStateException`, `InvalidConfigurationException`, `InvalidParameterException`, `MailDomainNotFoundException`, `MailDomainStateException`, ... (+4) | Updates data for the resource. To have the latest information, it must be preceded by a DescribeResource call. |
 | `UpdateUser` | - | `idempotent` | `OrganizationId`, `UserId` | - | `UpdateUserResponse` | `DirectoryServiceAuthenticationFailedException`, `DirectoryUnavailableException`, `EntityNotFoundException`, `EntityStateException`, `InvalidParameterException`, `OrganizationNotFoundException`, `OrganizationStateException`, `UnsupportedOperationException` | Updates data for the user. To have the latest information, it must be preceded by a DescribeUser call. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

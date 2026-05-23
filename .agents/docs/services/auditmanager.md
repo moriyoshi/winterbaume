@@ -202,6 +202,32 @@ Parity implications:
 | `UpdateSettings` | `PUT /settings` | - | - | - | `UpdateSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ValidationException` | Updates Audit Manager settings for the current account. |
 | `ValidateAssessmentReportIntegrity` | `POST /assessmentReports/integrity` | - | `s3RelativePath` | - | `ValidateAssessmentReportIntegrityResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ValidationException` | Validates the integrity of an assessment report in Audit Manager. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `DeleteAssessmentFrameworkShare` | - | `requestType -> requestType` | - | - |
+| `GetChangeLogs` | - | `controlSetId -> controlSetId`, `controlId -> controlId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetDelegations` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetEvidenceByEvidenceFolder` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetEvidenceFileUploadUrl` | - | `fileName -> fileName` | - | - |
+| `GetEvidenceFoldersByAssessment` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `GetEvidenceFoldersByAssessmentControl` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAssessmentControlInsightsByControlDomain` | - | `controlDomainId -> controlDomainId`, `assessmentId -> assessmentId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAssessmentFrameworks` | - | `frameworkType -> frameworkType`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAssessmentFrameworkShareRequests` | - | `requestType -> requestType`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAssessmentReports` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListAssessments` | - | `status -> status`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListControlDomainInsights` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListControlDomainInsightsByAssessment` | - | `assessmentId -> assessmentId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListControlInsightsByControlDomain` | - | `controlDomainId -> controlDomainId`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListControls` | - | `controlType -> controlType`, `nextToken -> nextToken`, `maxResults -> maxResults`, `controlCatalogId -> controlCatalogId` | - | - |
+| `ListKeywordsForDataSource` | - | `source -> source`, `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `ListNotifications` | - | `nextToken -> nextToken`, `maxResults -> maxResults` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

@@ -271,6 +271,41 @@ API Gateway V2 currently models VPC links as local metadata.
 | `UpdateStage` | `PATCH /v2/apis/{ApiId}/stages/{StageName}` | - | `ApiId`, `StageName` | - | `UpdateStageResponse` | `BadRequestException`, `ConflictException`, `NotFoundException`, `TooManyRequestsException` | Updates a Stage. |
 | `UpdateVpcLink` | `PATCH /v2/vpclinks/{VpcLinkId}` | - | `VpcLinkId` | - | `UpdateVpcLinkResponse` | `BadRequestException`, `NotFoundException`, `TooManyRequestsException` | Updates a VPC link. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateRoutingRule` | - | `DomainNameId -> domainNameId` | - | - |
+| `DeleteRoutingRule` | - | `DomainNameId -> domainNameId` | - | - |
+| `ExportApi` | - | `ExportVersion -> exportVersion`, `IncludeExtensions -> includeExtensions`, `OutputType -> outputType`, `StageName -> stageName` | - | - |
+| `GetApiMappings` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetApis` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetAuthorizers` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetDeployments` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetDomainNames` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetIntegrationResponses` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetIntegrations` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetModels` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetPortalProduct` | - | `ResourceOwnerAccountId -> resourceOwnerAccountId` | - | - |
+| `GetProductPage` | - | `ResourceOwnerAccountId -> resourceOwnerAccountId` | - | - |
+| `GetProductRestEndpointPage` | - | `IncludeRawDisplayContent -> includeRawDisplayContent`, `ResourceOwnerAccountId -> resourceOwnerAccountId` | - | - |
+| `GetRouteResponses` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetRoutes` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetRoutingRule` | - | `DomainNameId -> domainNameId` | - | - |
+| `GetStages` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `GetVpcLinks` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ImportApi` | - | `Basepath -> basepath`, `FailOnWarnings -> failOnWarnings` | - | - |
+| `ListPortalProducts` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `ResourceOwner -> resourceOwner` | - | - |
+| `ListPortals` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `ListProductPages` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `ResourceOwnerAccountId -> resourceOwnerAccountId` | - | - |
+| `ListProductRestEndpointPages` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `ResourceOwnerAccountId -> resourceOwnerAccountId` | - | - |
+| `ListRoutingRules` | - | `DomainNameId -> domainNameId`, `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `PutRoutingRule` | - | `DomainNameId -> domainNameId` | - | - |
+| `ReimportApi` | - | `Basepath -> basepath`, `FailOnWarnings -> failOnWarnings` | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

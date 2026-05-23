@@ -211,6 +211,14 @@ Welcome to the Clean Rooms API Reference . Clean Rooms is an Amazon Web Services
 | `UpdateProtectedJob` | `PATCH /memberships/{membershipIdentifier}/protectedJobs/{protectedJobIdentifier}` | `idempotent` | `membershipIdentifier`, `protectedJobIdentifier`, `targetStatus` | - | `UpdateProtectedJobOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the processing of a currently running job. |
 | `UpdateProtectedQuery` | `PATCH /memberships/{membershipIdentifier}/protectedQueries/{protectedQueryIdentifier}` | `idempotent` | `membershipIdentifier`, `protectedQueryIdentifier`, `targetStatus` | - | `UpdateProtectedQueryOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the processing of a currently running query. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

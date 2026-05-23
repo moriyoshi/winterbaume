@@ -172,6 +172,31 @@ Parity implications:
 | `UpdateExtensionAssociation` | `PATCH /extensionassociations/{ExtensionAssociationId}` | - | `ExtensionAssociationId` | - | `ExtensionAssociation` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Updates an association. For more information about extensions and associations, see Extending workflows in the AppConfig User Guide . |
 | `ValidateConfiguration` | `POST /applications/{ApplicationId}/configurationprofiles/{ConfigurationProfileId}/validators` | - | `ApplicationId`, `ConfigurationProfileId`, `ConfigurationVersion` | - | `Unit` | `BadRequestException`, `InternalServerException`, `ResourceNotFoundException` | Uses the validators in a configuration profile to validate a configuration. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `CreateExtension` | `LatestVersionNumber -> Latest-Version-Number` | - | - | - |
+| `CreateHostedConfigurationVersion` | `Description -> Description`, `ContentType -> Content-Type`, `LatestVersionNumber -> Latest-Version-Number`, `VersionLabel -> VersionLabel` | - | - | `Content` |
+| `DeleteConfigurationProfile` | `DeletionProtectionCheck -> x-amzn-deletion-protection-check` | - | - | - |
+| `DeleteEnvironment` | `DeletionProtectionCheck -> x-amzn-deletion-protection-check` | - | - | - |
+| `DeleteExtension` | - | `VersionNumber -> version` | - | - |
+| `GetConfiguration` | - | `ClientId -> client_id`, `ClientConfigurationVersion -> client_configuration_version` | - | - |
+| `GetExtension` | - | `VersionNumber -> version_number` | - | - |
+| `ListApplications` | - | `MaxResults -> max_results`, `NextToken -> next_token` | - | - |
+| `ListConfigurationProfiles` | - | `MaxResults -> max_results`, `NextToken -> next_token`, `Type -> type` | - | - |
+| `ListDeployments` | - | `MaxResults -> max_results`, `NextToken -> next_token` | - | - |
+| `ListDeploymentStrategies` | - | `MaxResults -> max_results`, `NextToken -> next_token` | - | - |
+| `ListEnvironments` | - | `MaxResults -> max_results`, `NextToken -> next_token` | - | - |
+| `ListExtensionAssociations` | - | `ResourceIdentifier -> resource_identifier`, `ExtensionIdentifier -> extension_identifier`, `ExtensionVersionNumber -> extension_version_number`, `MaxResults -> max_results`, `NextToken -> next_token` | - | - |
+| `ListExtensions` | - | `MaxResults -> max_results`, `NextToken -> next_token`, `Name -> name` | - | - |
+| `ListHostedConfigurationVersions` | - | `MaxResults -> max_results`, `NextToken -> next_token`, `VersionLabel -> version_label` | - | - |
+| `StopDeployment` | `AllowRevert -> Allow-Revert` | - | - | - |
+| `UntagResource` | - | `TagKeys -> tagKeys` | - | - |
+| `ValidateConfiguration` | - | `ConfigurationVersion -> configuration_version` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

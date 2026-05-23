@@ -116,6 +116,17 @@ Health Agent for healthcare providers and patient engagement
 | `TagResource` | `POST /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tags` | - | `Unit` | - | Associates the specified tags with the specified resource |
 | `UntagResource` | `DELETE /tags/{resourceArn}` | `idempotent` | `resourceArn`, `tagKeys` | - | `Unit` | - | Removes the specified tags from the specified resource |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListDomains` | - | `status -> status`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListSubscriptions` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `StartMedicalScribeListeningSession` | `sessionId -> x-amzn-medscribe-session-id`, `domainId -> x-amzn-medscribe-domain-id`, `subscriptionId -> x-amzn-medscribe-subscription-id`, `languageCode -> x-amzn-medscribe-language-code`, `mediaSampleRateHertz -> x-amzn-medscribe-sample-rate`, `mediaEncoding -> x-amzn-medscribe-media-encoding` | - | - | `inputStream` |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

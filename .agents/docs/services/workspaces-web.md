@@ -206,6 +206,15 @@ WorkSpaces Web currently stores portal networking as portal/resource metadata.
 | `UpdateUserAccessLoggingSettings` | `PATCH /userAccessLoggingSettings/{userAccessLoggingSettingsArn+}` | `idempotency-token` | `userAccessLoggingSettingsArn` | `clientToken` | `UpdateUserAccessLoggingSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the user access logging settings. |
 | `UpdateUserSettings` | `PATCH /userSettings/{userSettingsArn+}` | `idempotency-token` | `userSettingsArn` | `clientToken` | `UpdateUserSettingsResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the user settings. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListSessions` | - | `username -> username`, `sessionId -> sessionId`, `sortBy -> sortBy`, `status -> status`, `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

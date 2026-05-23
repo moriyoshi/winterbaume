@@ -193,6 +193,12 @@ AWS Partner Central API for Selling AWS Partner Central API for Selling Referenc
 | `UpdateEngagementContext` | `POST /UpdateEngagementContext` | - | `Catalog`, `ContextIdentifier`, `EngagementIdentifier`, `EngagementLastModifiedAt`, `Payload`, `Type` | - | `UpdateEngagementContextResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the context information for an existing engagement with new or modified data. |
 | `UpdateOpportunity` | `POST /UpdateOpportunity` | - | `Catalog`, `Identifier`, `LastModifiedDate` | - | `UpdateOpportunityResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates the `Opportunity` record identified by a given `Identifier`. This operation allows you to modify the details of an existing opportunity to reflect the latest information and progress. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

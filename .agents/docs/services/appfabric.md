@@ -151,6 +151,18 @@ Parity implications:
 | `UpdateAppAuthorization` | `PATCH /appbundles/{appBundleIdentifier}/appauthorizations/{appAuthorizationIdentifier}` | - | `appAuthorizationIdentifier`, `appBundleIdentifier` | - | `UpdateAppAuthorizationResponse` | `AccessDeniedException`, `InternalServerException`, `ResourceNotFoundException`, `ThrottlingException`, `ValidationException` | Updates an app authorization within an app bundle, which allows AppFabric to connect to an application. If the app authorization was in a `connected` state, updating the app authorization will set it back to a `PendingConnect` state. |
 | `UpdateIngestionDestination` | `PATCH /appbundles/{appBundleIdentifier}/ingestions/{ingestionIdentifier}/ingestiondestinations/{ingestionDestinationIdentifier}` | - | `appBundleIdentifier`, `destinationConfiguration`, `ingestionDestinationIdentifier`, `ingestionIdentifier` | - | `UpdateIngestionDestinationResponse` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates an ingestion destination, which specifies how an application's ingested data is processed by Amazon Web Services AppFabric and where it's delivered. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListAppAuthorizations` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListAppBundles` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListIngestionDestinations` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `ListIngestions` | - | `maxResults -> maxResults`, `nextToken -> nextToken` | - | - |
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

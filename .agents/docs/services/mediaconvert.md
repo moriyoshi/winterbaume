@@ -157,6 +157,19 @@ AWS Elemental MediaConvert
 | `UpdatePreset` | `PUT /2017-08-29/presets/{Name}` | - | `Name` | - | `UpdatePresetResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceQuotaExceededException`, `TooManyRequestsException` | Modify one of your existing presets. |
 | `UpdateQueue` | `PUT /2017-08-29/queues/{Name}` | - | `Name` | - | `UpdateQueueResponse` | `BadRequestException`, `ConflictException`, `ForbiddenException`, `InternalServerErrorException`, `NotFoundException`, `ServiceQuotaExceededException`, `TooManyRequestsException` | Modify one of your existing queues. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `ListJobs` | - | `MaxResults -> maxResults`, `NextToken -> nextToken`, `Order -> order`, `Queue -> queue`, `Status -> status` | - | - |
+| `ListJobTemplates` | - | `Category -> category`, `ListBy -> listBy`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `Order -> order` | - | - |
+| `ListPresets` | - | `Category -> category`, `ListBy -> listBy`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `Order -> order` | - | - |
+| `ListQueues` | - | `ListBy -> listBy`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `Order -> order` | - | - |
+| `ListVersions` | - | `MaxResults -> maxResults`, `NextToken -> nextToken` | - | - |
+| `SearchJobs` | - | `InputFile -> inputFile`, `MaxResults -> maxResults`, `NextToken -> nextToken`, `Order -> order`, `Queue -> queue`, `Status -> status` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

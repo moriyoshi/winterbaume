@@ -183,6 +183,12 @@ Amazon Route 53 Global Resolver is a global, internet-accessible DNS resolver th
 | `UpdateGlobalResolver` | `PATCH /global-resolver/{globalResolverId}` | `idempotent` | `globalResolverId` | - | `UpdateGlobalResolverOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of a Route 53 Global Resolver instance. You can modify the name, description, and observability Region. |
 | `UpdateHostedZoneAssociation` | `PATCH /hosted-zone-associations/{hostedZoneAssociationId}` | `idempotent` | `hostedZoneAssociationId` | - | `UpdateHostedZoneAssociationOutput` | `AccessDeniedException`, `ConflictException`, `InternalServerException`, `ResourceNotFoundException`, `ServiceQuotaExceededException`, `ThrottlingException`, `ValidationException` | Updates the configuration of a hosted zone association. Route 53 Global Resolver is a global service that supports resolvers in multiple Amazon Web Services Regions but you must specify the US East (Ohio) Region to create, update, or otherwise work with Route... |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+_No `@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, or `@httpPayload` input members are modelled for this service (typical for `awsJson1_*` protocols, where all input flows through the JSON body)._
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

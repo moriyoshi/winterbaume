@@ -156,6 +156,14 @@ Welcome to the AWS Ground Station API Reference. AWS Ground Station is a fully m
 | `UpdateEphemeris` | `PUT /ephemeris/{ephemerisId}` | `idempotent` | `enabled`, `ephemerisId` | - | `EphemerisIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Update an existing ephemeris. |
 | `UpdateMissionProfile` | `PUT /missionprofile/{missionProfileId}` | `idempotent` | `missionProfileId` | - | `MissionProfileIdResponse` | `DependencyException`, `InvalidParameterException`, `ResourceNotFoundException` | Updates a mission profile. Updating a mission profile will not update the execution parameters for existing future contacts. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `UntagResource` | - | `tagKeys -> tagKeys` | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |

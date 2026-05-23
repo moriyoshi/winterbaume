@@ -65,6 +65,16 @@ Amazon Lex provides both build and runtime endpoints. Each endpoint provides a s
 | `PostText` | `POST /bot/{botName}/alias/{botAlias}/user/{userId}/text` | - | `botAlias`, `botName`, `inputText`, `userId` | - | `PostTextResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `DependencyFailedException`, `InternalFailureException`, `LimitExceededException`, `LoopDetectedException`, `NotFoundException` | Sends user input to Amazon Lex. Client applications can use this API to send requests to Amazon Lex at runtime. |
 | `PutSession` | `POST /bot/{botName}/alias/{botAlias}/user/{userId}/session` | - | `botAlias`, `botName`, `userId` | - | `PutSessionResponse` | `BadGatewayException`, `BadRequestException`, `ConflictException`, `DependencyFailedException`, `InternalFailureException`, `LimitExceededException`, `NotAcceptableException`, `NotFoundException` | Creates a new session or modifies an existing session with an Amazon Lex bot. Use this operation to enable your application to set the state of the bot. |
 
+## HTTP Bindings
+
+Per-operation input members that bind to HTTP transport surfaces. Optional members are easy to miss because they do not appear in the operation matrix's Required input column. RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`) and service-specific modifier headers (`x-amz-*`, `x-amzn-*`) surface here. Every handler must list each binding as honoured, intentionally unsupported, or ignored-with-rationale.
+
+| Operation | Header inputs | Query inputs | Prefix headers | Payload |
+|---|---|---|---|---|
+| `GetSession` | - | `checkpointLabelFilter -> checkpointLabelFilter` | - | - |
+| `PostContent` | `sessionAttributes -> x-amz-lex-session-attributes`, `requestAttributes -> x-amz-lex-request-attributes`, `contentType -> Content-Type`, `accept -> Accept`, `activeContexts -> x-amz-lex-active-contexts` | - | - | `inputStream` |
+| `PutSession` | `accept -> Accept` | - | - | - |
+
 ## Important Shapes
 
 | Shape | Type | Members | Documentation cue |
