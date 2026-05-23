@@ -86,7 +86,12 @@ async fn test_put_get_delete_key() {
 }
 
 #[tokio::test]
-async fn test_etag_mismatch_returns_conflict() {
+async fn test_put_key_etag_mismatch_returns_conflict() {
+    // Strengthens the original loose `format!("{err:?}").contains("...")` check
+    // into a typed-variant assertion -- see the auto-memory entry
+    // `error-tests-must-assert-typed-variant` and TODO
+    // `error-tests-typed-variant-assertion-sweep` for the rationale: a fuzzy
+    // string check would also accept the SDK's `Unhandled` fallback.
     let client = make_client().await;
     let _ = client
         .describe_key_value_store()
@@ -102,8 +107,92 @@ async fn test_etag_mismatch_returns_conflict() {
         .if_match("etag-bogus")
         .send()
         .await
-        .expect_err("conflict");
-    assert!(format!("{err:?}").contains("ConflictException"));
+        .expect_err("PutKey with stale If-Match must fail");
+    assert!(matches!(
+        err.as_service_error(),
+        Some(
+            aws_sdk_cloudfrontkeyvaluestore::operation::put_key::PutKeyError::ConflictException(_)
+        )
+    ));
+    if let aws_sdk_cloudfrontkeyvaluestore::error::SdkError::ServiceError(svc) = &err {
+        assert_eq!(svc.raw().status().as_u16(), 409);
+    }
+}
+
+#[tokio::test]
+async fn test_delete_key_etag_mismatch_returns_conflict() {
+    let client = make_client().await;
+    // Seed the store and a key first.
+    let initial = client
+        .describe_key_value_store()
+        .kvs_arn(KVS_ARN)
+        .send()
+        .await
+        .expect("describe");
+    let etag = initial.e_tag().to_string();
+    let put = client
+        .put_key()
+        .kvs_arn(KVS_ARN)
+        .key("doomed")
+        .value("v")
+        .if_match(&etag)
+        .send()
+        .await
+        .expect("put");
+    let _current_etag = put.e_tag().to_string();
+
+    let err = client
+        .delete_key()
+        .kvs_arn(KVS_ARN)
+        .key("doomed")
+        .if_match("etag-bogus")
+        .send()
+        .await
+        .expect_err("DeleteKey with stale If-Match must fail");
+    assert!(matches!(
+        err.as_service_error(),
+        Some(aws_sdk_cloudfrontkeyvaluestore::operation::delete_key::DeleteKeyError::ConflictException(_))
+    ));
+
+    // Key must survive a rejected conditional delete.
+    let value = client
+        .get_key()
+        .kvs_arn(KVS_ARN)
+        .key("doomed")
+        .send()
+        .await
+        .expect("key must still exist");
+    assert_eq!(value.value(), "v");
+}
+
+#[tokio::test]
+async fn test_update_keys_etag_mismatch_returns_conflict() {
+    let client = make_client().await;
+    let _ = client
+        .describe_key_value_store()
+        .kvs_arn(KVS_ARN)
+        .send()
+        .await
+        .expect("describe");
+
+    let err = client
+        .update_keys()
+        .kvs_arn(KVS_ARN)
+        .if_match("etag-bogus")
+        .puts(
+            aws_sdk_cloudfrontkeyvaluestore::types::PutKeyRequestListItem::builder()
+                .key("x")
+                .value("y")
+                .build()
+                .unwrap(),
+        )
+        .send()
+        .await
+        .expect_err("UpdateKeys with stale If-Match must fail");
+    assert!(matches!(
+        err.as_service_error(),
+        Some(aws_sdk_cloudfrontkeyvaluestore::operation::update_keys::UpdateKeysError::ConflictException(_))
+    ));
 }
 
 #[tokio::test]

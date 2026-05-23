@@ -160,7 +160,8 @@ impl CloudFrontService {
             }
             // DELETE /2020-05-31/origin-access-control/{id} - DeleteOriginAccessControl
             ("DELETE", ["2020-05-31", "origin-access-control", id]) => {
-                self.handle_delete_origin_access_control(&state, id).await
+                self.handle_delete_origin_access_control(&state, id, if_match.as_deref())
+                    .await
             }
             // POST /2020-05-31/public-key - CreatePublicKey
             ("POST", ["2020-05-31", "public-key"]) => {
@@ -174,7 +175,8 @@ impl CloudFrontService {
             }
             // DELETE /2020-05-31/public-key/{id} - DeletePublicKey
             ("DELETE", ["2020-05-31", "public-key", id]) => {
-                self.handle_delete_public_key(&state, id).await
+                self.handle_delete_public_key(&state, id, if_match.as_deref())
+                    .await
             }
             // POST /2020-05-31/tagging?Operation=Tag&Resource={arn} - TagResource
             ("POST", ["2020-05-31", "tagging"])
@@ -337,20 +339,23 @@ impl CloudFrontService {
             }
             // DeleteConnectionFunction (DELETE /2020-05-31/connection-function/{Id})
             ("DELETE", ["2020-05-31", "connection-function", id]) => {
-                self.handle_delete_connection_function(&state, id).await
+                self.handle_delete_connection_function(&state, id, if_match.as_deref())
+                    .await
             }
             // DeleteConnectionGroup (DELETE /2020-05-31/connection-group/{Id})
             ("DELETE", ["2020-05-31", "connection-group", id]) => {
-                self.handle_delete_connection_group(&state, id).await
+                self.handle_delete_connection_group(&state, id, if_match.as_deref())
+                    .await
             }
             // DeleteContinuousDeploymentPolicy (DELETE /2020-05-31/continuous-deployment-policy/{Id})
             ("DELETE", ["2020-05-31", "continuous-deployment-policy", id]) => {
-                self.handle_delete_continuous_deployment_policy(&state, id)
+                self.handle_delete_continuous_deployment_policy(&state, id, if_match.as_deref())
                     .await
             }
             // DeleteDistributionTenant (DELETE /2020-05-31/distribution-tenant/{Id})
             ("DELETE", ["2020-05-31", "distribution-tenant", id]) => {
-                self.handle_delete_distribution_tenant(&state, id).await
+                self.handle_delete_distribution_tenant(&state, id, if_match.as_deref())
+                    .await
             }
             // DeleteFieldLevelEncryptionConfig (DELETE /2020-05-31/field-level-encryption/{Id})
             ("DELETE", ["2020-05-31", "field-level-encryption", id]) => {
@@ -1205,11 +1210,10 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         id: &str,
-        _if_match: Option<&str>,
+        if_match: Option<&str>,
     ) -> MockResponse {
-        // Note: moto does not validate etag on delete, so we skip etag validation here
         let mut state = state.write().await;
-        match state.delete_distribution(id) {
+        match state.delete_distribution(id, if_match) {
             Ok(()) => MockResponse::xml(204, "".to_string()),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -1487,9 +1491,10 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         id: &str,
+        if_match: Option<&str>,
     ) -> MockResponse {
         let mut state = state.write().await;
-        match state.delete_origin_access_control(id) {
+        match state.delete_origin_access_control(id, if_match) {
             Ok(()) => wire::serialize_delete_origin_access_control_response(),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -1587,9 +1592,10 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         id: &str,
+        if_match: Option<&str>,
     ) -> MockResponse {
         let mut state = state.write().await;
-        match state.delete_public_key(id) {
+        match state.delete_public_key(id, if_match) {
             Ok(()) => wire::serialize_delete_public_key_response(),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -2419,9 +2425,10 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         id: &str,
+        if_match: Option<&str>,
     ) -> MockResponse {
         let mut state = state.write().await;
-        match state.delete_connection_function(id) {
+        match state.delete_connection_function(id, if_match) {
             Ok(()) => wire::serialize_delete_connection_function_response(),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -2431,9 +2438,10 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         id: &str,
+        if_match: Option<&str>,
     ) -> MockResponse {
         let mut state = state.write().await;
-        match state.delete_connection_group(id) {
+        match state.delete_connection_group(id, if_match) {
             Ok(()) => wire::serialize_delete_connection_group_response(),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -2443,9 +2451,10 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         id: &str,
+        if_match: Option<&str>,
     ) -> MockResponse {
         let mut state = state.write().await;
-        match state.delete_continuous_deployment_policy(id) {
+        match state.delete_continuous_deployment_policy(id, if_match) {
             Ok(()) => wire::serialize_delete_continuous_deployment_policy_response(),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -2455,9 +2464,10 @@ impl CloudFrontService {
         &self,
         state: &Arc<tokio::sync::RwLock<CloudFrontState>>,
         id: &str,
+        if_match: Option<&str>,
     ) -> MockResponse {
         let mut state = state.write().await;
-        match state.delete_distribution_tenant(id) {
+        match state.delete_distribution_tenant(id, if_match) {
             Ok(()) => wire::serialize_delete_distribution_tenant_response(),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -2508,9 +2518,8 @@ impl CloudFrontService {
         id: &str,
         if_match: Option<&str>,
     ) -> MockResponse {
-        let _ = if_match;
         let mut state = state.write().await;
-        match state.delete_key_group(id) {
+        match state.delete_key_group(id, if_match) {
             Ok(()) => wire::serialize_delete_key_group_response(),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -2547,9 +2556,8 @@ impl CloudFrontService {
         id: &str,
         if_match: Option<&str>,
     ) -> MockResponse {
-        let _ = if_match; // ORP delete doesn't use if-match in current implementation
         let mut state = state.write().await;
-        match state.delete_origin_request_policy(id) {
+        match state.delete_origin_request_policy(id, if_match) {
             Ok(()) => wire::serialize_delete_origin_request_policy_response(),
             Err(e) => cloudfront_error_response(&e),
         }
@@ -2588,9 +2596,8 @@ impl CloudFrontService {
         id: &str,
         if_match: Option<&str>,
     ) -> MockResponse {
-        let _ = if_match; // RHP delete doesn't use if-match in current implementation
         let mut state = state.write().await;
-        match state.delete_response_headers_policy(id) {
+        match state.delete_response_headers_policy(id, if_match) {
             Ok(()) => wire::serialize_delete_response_headers_policy_response(),
             Err(e) => cloudfront_error_response(&e),
         }
