@@ -3204,6 +3204,497 @@ async fn test_s3control_dispatch_delete_tags_for_resource() {
 }
 
 // ---------------------------------------------------------------------------
+// Regression tests for reported bugs.
+// ---------------------------------------------------------------------------
+
+/// Regression for GitHub issue #3: HeadBucket on a missing bucket returned an
+/// XML error body, which forced aws-sdk-rust to fall back to the Unhandled
+/// error variant instead of resolving HeadBucketError::NotFound. Real S3
+/// documents that 4xx responses for HeadBucket carry no body.
+#[tokio::test]
+async fn test_head_bucket_4xx_has_no_body_and_resolves_typed_not_found() {
+    use aws_sdk_s3::operation::head_bucket::HeadBucketError;
+
+    let client = make_s3_client().await;
+    let err = client
+        .head_bucket()
+        .bucket("does-not-exist")
+        .send()
+        .await
+        .expect_err("head_bucket on missing bucket must fail");
+
+    if let aws_sdk_s3::error::SdkError::ServiceError(svc) = &err {
+        let raw = svc.raw();
+        assert_eq!(raw.status().as_u16(), 404);
+        let body_bytes = raw.body().bytes().unwrap_or(&[]);
+        assert!(
+            body_bytes.is_empty(),
+            "HeadBucket 4xx response must carry no body; got {} bytes: {:?}",
+            body_bytes.len(),
+            std::str::from_utf8(body_bytes).unwrap_or("<non-utf8>")
+        );
+    } else {
+        panic!("expected ServiceError, got {err:?}");
+    }
+
+    assert!(
+        matches!(err.as_service_error(), Some(HeadBucketError::NotFound(_))),
+        "expected typed HeadBucketError::NotFound, got {:?}",
+        err.as_service_error()
+    );
+}
+
+/// Regression for GitHub issue #4: PutObject with `If-None-Match: *` on a key
+/// that already exists silently overwrote the object instead of returning
+/// 412 PreconditionFailed.
+#[tokio::test]
+async fn test_put_object_if_none_match_star_rejects_existing_key() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("cond-bucket")
+        .send()
+        .await
+        .expect("create_bucket should succeed");
+
+    let first = client
+        .put_object()
+        .bucket("cond-bucket")
+        .key("lock")
+        .if_none_match("*")
+        .body(ByteStream::from_static(b"v1"))
+        .send()
+        .await
+        .expect("first conditional PUT should succeed");
+    let first_etag = first.e_tag.expect("first PUT must return ETag");
+
+    let err = client
+        .put_object()
+        .bucket("cond-bucket")
+        .key("lock")
+        .if_none_match("*")
+        .body(ByteStream::from_static(b"v2"))
+        .send()
+        .await
+        .expect_err("second conditional PUT must fail");
+
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    let meta = svc_err.meta();
+    assert_eq!(meta.code(), Some("PreconditionFailed"));
+    if let aws_sdk_s3::error::SdkError::ServiceError(svc) = &err {
+        assert_eq!(svc.raw().status().as_u16(), 412);
+    } else {
+        panic!("expected ServiceError, got {err:?}");
+    }
+
+    // The first object must still be intact.
+    let head = client
+        .head_object()
+        .bucket("cond-bucket")
+        .key("lock")
+        .send()
+        .await
+        .expect("head_object should succeed after rejected overwrite");
+    assert_eq!(head.e_tag.as_deref(), Some(first_etag.as_str()));
+}
+
+/// `If-Match: <etag>` succeeds when the stored ETag matches and fails with
+/// 412 when it does not.
+#[tokio::test]
+async fn test_put_object_if_match_enforced() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("ifmatch-bucket")
+        .send()
+        .await
+        .unwrap();
+
+    let v1 = client
+        .put_object()
+        .bucket("ifmatch-bucket")
+        .key("k")
+        .body(ByteStream::from_static(b"v1"))
+        .send()
+        .await
+        .unwrap();
+    let v1_etag = v1.e_tag.unwrap();
+
+    // Matching ETag → overwrite succeeds.
+    client
+        .put_object()
+        .bucket("ifmatch-bucket")
+        .key("k")
+        .if_match(&v1_etag)
+        .body(ByteStream::from_static(b"v2"))
+        .send()
+        .await
+        .expect("If-Match with current ETag must succeed");
+
+    // Stale ETag → 412.
+    let err = client
+        .put_object()
+        .bucket("ifmatch-bucket")
+        .key("k")
+        .if_match(&v1_etag)
+        .body(ByteStream::from_static(b"v3"))
+        .send()
+        .await
+        .expect_err("If-Match with stale ETag must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+
+    // If-Match on a missing key → 412.
+    let err = client
+        .put_object()
+        .bucket("ifmatch-bucket")
+        .key("absent")
+        .if_match("\"deadbeef\"")
+        .body(ByteStream::from_static(b"x"))
+        .send()
+        .await
+        .expect_err("If-Match on missing key must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+// ---------------------------------------------------------------------------
+// Conditional surfaces on the other S3 operations modelled by the HTTP
+// Bindings extractor: CompleteMultipartUpload, CopyObject, DeleteObject,
+// GetObject, HeadObject.
+// ---------------------------------------------------------------------------
+
+/// CompleteMultipartUpload must enforce `If-None-Match: *` on the destination
+/// key just like PutObject. A racing finalisation of a multipart upload
+/// against an already-existing key must return 412.
+#[tokio::test]
+async fn test_complete_multipart_upload_if_none_match_star() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("mpu-cond")
+        .send()
+        .await
+        .unwrap();
+
+    // Pre-populate the destination key.
+    client
+        .put_object()
+        .bucket("mpu-cond")
+        .key("file")
+        .body(ByteStream::from_static(b"already-here"))
+        .send()
+        .await
+        .unwrap();
+
+    let create = client
+        .create_multipart_upload()
+        .bucket("mpu-cond")
+        .key("file")
+        .send()
+        .await
+        .unwrap();
+    let upload_id = create.upload_id.unwrap();
+    let part = client
+        .upload_part()
+        .bucket("mpu-cond")
+        .key("file")
+        .upload_id(&upload_id)
+        .part_number(1)
+        .body(ByteStream::from_static(
+            &[0u8; 5 * 1024 * 1024], // minimum part size
+        ))
+        .send()
+        .await
+        .unwrap();
+    let part_etag = part.e_tag.unwrap();
+
+    let err = client
+        .complete_multipart_upload()
+        .bucket("mpu-cond")
+        .key("file")
+        .upload_id(&upload_id)
+        .if_none_match("*")
+        .multipart_upload(
+            aws_sdk_s3::types::CompletedMultipartUpload::builder()
+                .parts(
+                    aws_sdk_s3::types::CompletedPart::builder()
+                        .part_number(1)
+                        .e_tag(part_etag)
+                        .build(),
+                )
+                .build(),
+        )
+        .send()
+        .await
+        .expect_err("CompleteMultipartUpload with If-None-Match: * must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+/// CopyObject must reject when `x-amz-copy-source-if-match` doesn't match the
+/// source ETag (source-side conditional → 412 PreconditionFailed).
+#[tokio::test]
+async fn test_copy_object_source_if_match_mismatch() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("copy-cond")
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_object()
+        .bucket("copy-cond")
+        .key("src")
+        .body(ByteStream::from_static(b"hello"))
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .copy_object()
+        .bucket("copy-cond")
+        .key("dst")
+        .copy_source("copy-cond/src")
+        .copy_source_if_match("\"deadbeef\"")
+        .send()
+        .await
+        .expect_err("CopyObject with mismatched x-amz-copy-source-if-match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+
+    // The destination must not exist after a rejected copy.
+    let head = client
+        .head_object()
+        .bucket("copy-cond")
+        .key("dst")
+        .send()
+        .await;
+    assert!(head.is_err(), "rejected copy must not create destination");
+}
+
+/// CopyObject must reject when destination `If-None-Match: *` and the
+/// destination key already exists.
+#[tokio::test]
+async fn test_copy_object_destination_if_none_match_star() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("copy-cond2")
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_object()
+        .bucket("copy-cond2")
+        .key("src")
+        .body(ByteStream::from_static(b"hello"))
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_object()
+        .bucket("copy-cond2")
+        .key("dst")
+        .body(ByteStream::from_static(b"existing"))
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .copy_object()
+        .bucket("copy-cond2")
+        .key("dst")
+        .copy_source("copy-cond2/src")
+        .if_none_match("*")
+        .send()
+        .await
+        .expect_err("CopyObject with destination If-None-Match: * onto existing key must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+}
+
+/// DeleteObject must enforce `If-Match` on the stored ETag.
+#[tokio::test]
+async fn test_delete_object_if_match_enforced() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("del-cond")
+        .send()
+        .await
+        .unwrap();
+    let put = client
+        .put_object()
+        .bucket("del-cond")
+        .key("k")
+        .body(ByteStream::from_static(b"v1"))
+        .send()
+        .await
+        .unwrap();
+    let etag = put.e_tag.unwrap();
+
+    // Mismatch → 412 PreconditionFailed.
+    let err = client
+        .delete_object()
+        .bucket("del-cond")
+        .key("k")
+        .if_match("\"deadbeef\"")
+        .send()
+        .await
+        .expect_err("conditional delete with stale ETag must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+
+    // Object must still exist after rejected delete.
+    client
+        .head_object()
+        .bucket("del-cond")
+        .key("k")
+        .send()
+        .await
+        .expect("object must still exist after rejected conditional delete");
+
+    // Matching ETag → delete succeeds.
+    client
+        .delete_object()
+        .bucket("del-cond")
+        .key("k")
+        .if_match(&etag)
+        .send()
+        .await
+        .expect("conditional delete with current ETag must succeed");
+}
+
+/// GetObject with `If-None-Match` matching the current ETag must return 304
+/// Not Modified (cache-validation path). The SDK surfaces 304 as an error.
+#[tokio::test]
+async fn test_get_object_if_none_match_returns_304() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("get-cond")
+        .send()
+        .await
+        .unwrap();
+    let put = client
+        .put_object()
+        .bucket("get-cond")
+        .key("k")
+        .body(ByteStream::from_static(b"data"))
+        .send()
+        .await
+        .unwrap();
+    let etag = put.e_tag.unwrap();
+
+    let err = client
+        .get_object()
+        .bucket("get-cond")
+        .key("k")
+        .if_none_match(&etag)
+        .send()
+        .await
+        .expect_err("GET with matching If-None-Match must surface 304");
+    if let aws_sdk_s3::error::SdkError::ServiceError(svc) = &err {
+        assert_eq!(svc.raw().status().as_u16(), 304);
+    } else {
+        panic!("expected ServiceError, got {err:?}");
+    }
+}
+
+/// GetObject with `If-Match` mismatching the current ETag must return 412.
+#[tokio::test]
+async fn test_get_object_if_match_mismatch_returns_412() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("get-cond2")
+        .send()
+        .await
+        .unwrap();
+    client
+        .put_object()
+        .bucket("get-cond2")
+        .key("k")
+        .body(ByteStream::from_static(b"data"))
+        .send()
+        .await
+        .unwrap();
+
+    let err = client
+        .get_object()
+        .bucket("get-cond2")
+        .key("k")
+        .if_match("\"deadbeef\"")
+        .send()
+        .await
+        .expect_err("GET with stale If-Match must fail");
+    let svc_err = err.as_service_error().expect("ServiceError expected");
+    assert_eq!(svc_err.meta().code(), Some("PreconditionFailed"));
+    if let aws_sdk_s3::error::SdkError::ServiceError(svc) = &err {
+        assert_eq!(svc.raw().status().as_u16(), 412);
+    }
+}
+
+/// HeadObject must honour `If-None-Match` (304) and `If-Match` (412), and on
+/// 4xx the response body must be empty so aws-sdk-rust resolves the typed
+/// `HeadObjectError::NotFound` / Precondition error variant cleanly.
+#[tokio::test]
+async fn test_head_object_conditional_headers() {
+    let client = make_s3_client().await;
+    client
+        .create_bucket()
+        .bucket("head-cond")
+        .send()
+        .await
+        .unwrap();
+    let put = client
+        .put_object()
+        .bucket("head-cond")
+        .key("k")
+        .body(ByteStream::from_static(b"data"))
+        .send()
+        .await
+        .unwrap();
+    let etag = put.e_tag.unwrap();
+
+    // 304 path.
+    let err = client
+        .head_object()
+        .bucket("head-cond")
+        .key("k")
+        .if_none_match(&etag)
+        .send()
+        .await
+        .expect_err("HEAD with matching If-None-Match must surface 304");
+    if let aws_sdk_s3::error::SdkError::ServiceError(svc) = &err {
+        assert_eq!(svc.raw().status().as_u16(), 304);
+        assert!(
+            svc.raw().body().bytes().unwrap_or(&[]).is_empty(),
+            "HEAD 304 must carry no body"
+        );
+    }
+
+    // 412 path with empty body.
+    let err = client
+        .head_object()
+        .bucket("head-cond")
+        .key("k")
+        .if_match("\"deadbeef\"")
+        .send()
+        .await
+        .expect_err("HEAD with stale If-Match must fail");
+    if let aws_sdk_s3::error::SdkError::ServiceError(svc) = &err {
+        assert_eq!(svc.raw().status().as_u16(), 412);
+        assert!(
+            svc.raw().body().bytes().unwrap_or(&[]).is_empty(),
+            "HEAD 412 must carry no body (issue #3 regression)"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
 // BlobBackedService smoke tests
 // ---------------------------------------------------------------------------
 

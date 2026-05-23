@@ -15,8 +15,8 @@ Create or enhance `.agents/docs/services/<service>.md` so future Winterbaume wor
 
 ## Core Rules
 
-- Treat `vendor/api-models-aws` as the source of truth for service identity, protocol, operations, required members, idempotency, pagination, error shapes, and Smithy resources.
-- Treat official AWS documentation as the source of truth for semantics not present in Smithy: lifecycle transitions, cross-resource constraints, defaults, quotas, deletion prerequisites, policy behaviour, synchronisation, and workflow ordering.
+- Treat `vendor/api-models-aws` as the source of truth for service identity, protocol, operations, required input members, HTTP-bound input members (`@httpHeader`, `@httpQuery`, `@httpPrefixHeaders`, `@httpPayload`, `@httpLabel`), idempotency, pagination, error shapes (including empty-member shapes, which signal "no response body" for HEAD operations), and Smithy resources.
+- Treat official AWS documentation as the source of truth for semantics not present in Smithy: lifecycle transitions, cross-resource constraints, defaults, quotas, deletion prerequisites, policy behaviour, synchronisation, workflow ordering, RFC 7232 conditional-write semantics (412 PreconditionFailed, 409 ConditionalRequestConflict), HTTP-method body rules (HEAD/GET differences, redirect handling), and any HTTP error codes the service emits that are absent from the modelled `errors:` list.
 - Read `.agents/docs/LTM/aws-doc-test-plan-catalog.md` and `.agents/docs/LTM/workspace-readmes-and-service-examples.md` before changing scenarios. Scenario bullets are planning prompts, not implementation guarantees.
 - For repo-authored docs, use British English and half-width punctuation only.
 - Preserve any `Winterbaume LTM Notes`, `Cross-call invariants`, service-specific TODOs, or hand-written parity notes already present in an existing dossier unless the user explicitly asks to rewrite them.
@@ -53,7 +53,8 @@ Use its output to populate or verify:
 - Operation family counts.
 - Operation groups.
 - Operation detail matrix.
-- Important error, input, output, enum, and resource-related shapes.
+- `HTTP Bindings` section: per-operation `@httpHeader` / `@httpQuery` / `@httpPrefixHeaders` / `@httpPayload` input members. The extractor also emits a "Conditional-write/read coverage" summary listing every operation whose input includes RFC 7232 headers — this is the canonical list of operations that must enforce 412 PreconditionFailed (and possibly 409 ConditionalRequestConflict) and must surface those error codes in tests.
+- Important error, input, output, enum, and resource-related shapes. Pay attention to error shapes rendered with `**empty (no members)**`: that empty member set encodes "the HTTP response carries no body," which is critical for HEAD operations (a body forces the SDK into Unhandled instead of resolving the typed `NotFound` variant).
 - Resource model, when Smithy declares resources. If the model has no Smithy resources, derive conceptual resources from AWS docs and operation names, and say that the Smithy model lacks `resource` shapes.
 
 ### 3. Research Official AWS Documentation
@@ -66,6 +67,9 @@ Search for:
 - `<service title> API Reference <core operation>`
 - `<service title> create delete update list <main resource>`
 - `<service title> quotas limits lifecycle access point policy tags pagination`
+- `<service title> conditional requests preconditions 412` (when the extractor's HTTP Bindings section lists any `If-Match` / `If-None-Match` / `If-Modified-Since` / `If-Unmodified-Since` / `x-amz-copy-source-if-*` headers — otherwise skip).
+- `<service title> HEAD response body` (when the operation matrix lists any `HEAD` method — otherwise skip).
+- `<service title> error codes responses` (look for HTTP error codes not represented in any operation's modelled `errors:` list — these are documented behaviour without a typed error shape).
 
 Read only pages that answer concrete parity questions. Record URLs in `Official AWS Documentation Research`.
 
@@ -79,6 +83,9 @@ Look specifically for:
 - Account/service defaults that affect later creates.
 - Policy, IAM, KMS, S3, EC2/VPC, Glue, Lambda, EventBridge, or other cross-service identifiers.
 - Tagging semantics, quota limits, pagination ordering, and default values.
+- RFC 7232 conditional headers (`If-Match`, `If-None-Match`, `If-Modified-Since`, `If-Unmodified-Since`, and service-prefixed variants such as `x-amz-copy-source-if-*`) and their HTTP error codes (412 PreconditionFailed, 409 ConditionalRequestConflict). These are rarely modelled as typed errors but are documented behaviour. Cross-check the extractor's "Conditional-write/read coverage" summary.
+- HTTP-method semantics, especially the HEAD response-body rule (4xx HEAD responses must not include a body; an XML body forces `aws-sdk-rust` into `Unhandled` instead of the typed `NotFound` variant). Also note redirect handling, content-length quirks, and PUT-vs-POST body semantics where the user-guide flags them.
+- The modelled `errors:` list is a lower bound. The API Reference's "Errors" / "Response" sections often document additional HTTP error codes (precondition failures, request conflicts, request-too-large, throttling variants) that have no typed error shape but still need to be emitted with the correct HTTP status and SDK `ErrorMetadata.code`.
 
 ### 4. Generate or Enhance the Dossier
 
@@ -95,8 +102,9 @@ For a new dossier, create `.agents/docs/services/<model-slug>.md` with these sec
 9. `Resource Model`.
 10. `Operation Groups`.
 11. `Operation Detail Matrix`.
-12. `Important Shapes`.
-13. `Research Checklist for Parity Work`.
+12. `HTTP Bindings`.
+13. `Important Shapes`.
+14. `Research Checklist for Parity Work`.
 
 For an existing dossier:
 
@@ -106,6 +114,7 @@ For an existing dossier:
 - Keep scenario text actionable: "create X, attach Y, verify Z appears through list/get" is better than "test CRUD".
 - Treat the extractor output as a patch aid, not a replacement file. Preserve arbitrary manual edits, unknown sections, and hand-written notes unless the current Smithy model or official AWS documentation clearly contradicts them.
 - Be especially careful with `Research Checklist for Parity Work`, `Possible Usage Scenarios`, `Behavioural Model Notes`, and `Official AWS Documentation Research`; these often contain human judgement and LTM-derived implementation guidance even though the extractor can emit sections with the same names.
+- When refreshing an existing dossier whose `HTTP Bindings` section is missing (i.e., it predates the extractor's binding output), add the section using the extractor's draft. This is the single most leverage change for catching missing optional headers — conditional-write headers, idempotency-via-`x-amz-*` headers, and protocol modifier headers — that get silently dropped from hand-written handlers.
 - Preserve manual notes unless contradicted by newer official docs or the current model. If contradicted, state the correction precisely.
 
 ### 5. Scenario Quality Gate
